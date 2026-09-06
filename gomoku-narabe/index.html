@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="color-scheme" content="dark" />
+<meta name="description" content="ネオンが走るサイバーパンク五目並べ。AI対戦・2人プレイ・詰め五目に対応。" />
+<title>NEURO GOMOKU // 五目並べ</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23050810'/%3E%3Ccircle cx='16' cy='16' r='8' fill='none' stroke='%2300e5ff' stroke-width='3'/%3E%3C/svg%3E" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;600;700&family=JetBrains+Mono:wght@400;700&display=swap" />
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div class="scanlines" aria-hidden="true"></div>
+  <div class="vignette" aria-hidden="true"></div>
+
+  <header class="topbar">
+    <h1 class="logo" data-text="NEURO GOMOKU">NEURO<span>GOMOKU</span></h1>
+    <p class="tagline">// 五目並べ &nbsp;·&nbsp; ver 1.2 &nbsp;·&nbsp; NEON PROTOCOL</p>
+  </header>
+
+  <main class="layout">
+    <!-- ===== 盤面 ===== -->
+    <section class="board-area">
+      <div class="board-frame">
+        <div class="corner tl"></div><div class="corner tr"></div>
+        <div class="corner bl"></div><div class="corner br"></div>
+        <canvas id="board" width="600" height="600" role="grid"
+                aria-label="五目並べの盤面 15かける15" tabindex="0"></canvas>
+
+        <div id="review-badge" class="review-badge" hidden>REVIEW — 巻き戻し中</div>
+
+        <div id="overlay" class="overlay" hidden>
+          <div class="overlay-card">
+            <p id="overlay-kicker" class="overlay-kicker">RESULT</p>
+            <h2 id="overlay-title" class="overlay-title">WIN</h2>
+            <p id="overlay-sub" class="overlay-sub"></p>
+            <div class="overlay-actions">
+              <button id="btn-rematch" class="btn btn-primary" type="button">もう一局</button>
+              <button id="btn-close-overlay" class="btn" type="button">盤面を見る</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <p id="status" class="status" role="status" aria-live="polite">
+        <span class="dot" id="status-dot"></span><span id="status-text">対局開始 — 先手の番です</span>
+      </p>
+
+      <!-- 盤面直下の主要操作。スマホでもスクロールせずに届く位置に置く -->
+      <div class="actionbar" role="group" aria-label="対局操作">
+        <button id="btn-back" class="abtn" type="button" title="一手戻す (U)">
+          <span class="ico">◀</span><span class="lbl">戻る</span>
+        </button>
+        <button id="btn-forward" class="abtn" type="button" title="一手進める (I)">
+          <span class="ico">▶</span><span class="lbl">進む</span>
+        </button>
+        <button id="btn-hint" class="abtn abtn-accent" type="button" title="次の一手を教えてもらう (H)">
+          <span class="ico">◎</span><span class="lbl">ヒント</span>
+        </button>
+        <button id="btn-mate" class="abtn abtn-accent" type="button" title="詰み筋を探す (T)">
+          <span class="ico">⚡</span><span class="lbl">詰み筋</span>
+        </button>
+        <button id="btn-restart" class="abtn" type="button" title="新規対局 (R)">
+          <span class="ico">↺</span><span class="lbl" id="btn-restart-label">新規</span>
+        </button>
+      </div>
+
+      <!-- ヒント・詰み筋・詰め五目の結果表示 -->
+      <div id="advice" class="advice" hidden>
+        <div class="advice-head">
+          <span id="advice-kind" class="advice-kind">HINT</span>
+          <p id="advice-text" class="advice-text"></p>
+          <button id="advice-close" class="advice-close" type="button" aria-label="閉じる">×</button>
+        </div>
+        <div id="mate-nav" class="mate-nav" hidden>
+          <button id="mate-prev" class="mbtn" type="button" aria-label="前の手">◀</button>
+          <span id="mate-pos" class="mate-pos">1 / 1</span>
+          <button id="mate-next" class="mbtn" type="button" aria-label="次の手">▶</button>
+          <ol id="mate-list" class="mate-list"></ol>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== サイドパネル ===== -->
+    <aside class="panel">
+      <div class="card">
+        <h2 class="card-title">MODE</h2>
+        <div class="seg seg-3" role="group" aria-label="対戦モード">
+          <button class="seg-btn is-active" type="button" data-mode="ai">1P <small>vs AI</small></button>
+          <button class="seg-btn" type="button" data-mode="pvp">2P <small>対人</small></button>
+          <button class="seg-btn" type="button" data-mode="puzzle">詰め <small>問題</small></button>
+        </div>
+
+        <div id="ai-options">
+          <label class="field">
+            <span class="field-label">CPUの強さ</span>
+            <select id="level" class="select">
+              <option value="easy">EASY — 練習用</option>
+              <option value="normal" selected>NORMAL — 標準</option>
+              <option value="hard">HARD — 本気（四追いを読む）</option>
+            </select>
+          </label>
+          <label class="field">
+            <span class="field-label">手番</span>
+            <select id="first" class="select">
+              <option value="human" selected>あなたが先手（CYAN）</option>
+              <option value="ai">AIが先手（あなたはMAGENTA）</option>
+            </select>
+          </label>
+        </div>
+
+        <div id="rule-field">
+          <label class="field">
+            <span class="field-label">ルール（対局開始時に適用）</span>
+            <select id="ruleset" class="select">
+              <option value="free" selected>自由五目（禁じ手なし）</option>
+              <option value="renju">連珠（先手に三三・四四・長連 禁止）</option>
+              <option value="overline">長連禁止（両者）</option>
+              <option value="three">三三禁止（先手のみ）</option>
+            </select>
+          </label>
+          <p id="rule-note" class="rule-note">禁じ手はありません。6連以上でも勝ちです。</p>
+        </div>
+
+        <div id="puzzle-options" hidden>
+          <label class="field">
+            <span class="field-label">問題の難易度</span>
+            <select id="puzzle-level" class="select">
+              <option value="easy">やさしい — 5〜7手</option>
+              <option value="normal" selected>ふつう — 7〜11手</option>
+              <option value="hard">むずかしい — 11〜15手</option>
+            </select>
+          </label>
+          <p class="rule-note">
+            四を打ち続けて相手の受けを強制し、五を作れば正解です。
+            受けは自動で返ってきます。
+          </p>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2 class="card-title">PLAYERS</h2>
+        <div class="players">
+          <div class="player is-turn" id="p1">
+            <span class="chip chip-p1"></span>
+            <span class="p-name" id="p1-name">PLAYER 1</span>
+            <span class="p-tag" id="p1-tag">先手</span>
+          </div>
+          <div class="player" id="p2">
+            <span class="chip chip-p2"></span>
+            <span class="p-name" id="p2-name">CPU</span>
+            <span class="p-tag" id="p2-tag">後手</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2 class="card-title">SCORE <button id="btn-reset-score" class="link-btn" type="button">リセット</button></h2>
+        <dl class="score" id="score">
+          <div><dt id="s1-label">勝利</dt><dd id="s1">0</dd></div>
+          <div><dt id="s2-label">敗北</dt><dd id="s2">0</dd></div>
+          <div><dt id="s3-label">引分</dt><dd id="s3">0</dd></div>
+        </dl>
+        <p class="streak">連勝 <b id="streak">0</b> <span class="sep">/</span> 最高 <b id="best-streak">0</b></p>
+      </div>
+
+      <div class="card">
+        <h2 class="card-title">CONTROL</h2>
+        <div class="btn-row">
+          <button id="btn-new" class="btn btn-primary" type="button">新規対局 <kbd>R</kbd></button>
+          <button id="btn-latest" class="btn" type="button">最新の局面へ</button>
+          <button id="btn-sound" class="btn" type="button" aria-pressed="true">♪ SOUND ON <kbd>M</kbd></button>
+        </div>
+        <p class="hint">
+          <b>置き方</b>: 盤面を押したまま指やマウスを動かすと狙いが動き、<b>離した位置に石が置かれます</b>。
+          十字線が出るので、指で盤が隠れても位置が分かります。盤の外まで動かして離すと取り消せます。<br />
+          矢印キー＋Enter でも操作できます。
+        </p>
+      </div>
+
+      <div class="card log-card">
+        <h2 class="card-title">LOG <span class="moves">手数 <b id="move-count">0</b></span></h2>
+        <ol id="log" class="log" reversed></ol>
+      </div>
+    </aside>
+  </main>
+
+  <footer class="footer">15×15 / 5目そろえたら勝ち &nbsp;·&nbsp; データはブラウザ内(localStorage)にのみ保存されます</footer>
+
+  <script src="js/board.js"></script>
+  <script src="js/ai.js"></script>
+  <script src="js/rules.js"></script>
+  <script src="js/puzzle.js"></script>
+  <script src="js/storage.js"></script>
+  <script src="js/audio.js"></script>
+  <script src="js/render.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
