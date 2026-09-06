@@ -2,7 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { loadFQ, fakeStorage, toPlain } from './helpers.mjs';
 
-const FILES = ['fish.js', 'progress.js', 'world.js', 'gear.js', 'achievements.js', 'storage.js'];
+const FILES = ['fish.js', 'progress.js', 'angler.js', 'world.js', 'gear.js', 'parts.js',
+  'boost.js', 'bonus.js', 'achievements.js', 'storage.js'];
 const load = (extra) => loadFQ(FILES, extra);
 
 test('保存 → 読み込みで進捗がそのまま戻る', () => {
@@ -15,6 +16,14 @@ test('保存 → 読み込みで進捗がそのまま戻る', () => {
   st.records.push({ id: 'aji', size: 28.4, points: 41, at: 1000 });
   st.achievements.push('first');
   st.settings.sound = false;
+  st.anglerXp = 120;
+  st.parts.reel = 'reel_power';
+  st.ownedParts = ['reel_power'];
+  st.boostStock.boost_rare = 3;
+  st.boostActive.boost_point = 4;
+  st.bonusDate = '2026-09-06';
+  st.bonusStreak = 5;
+  st.admin = true;
   assert.equal(Store.save(st), true);
 
   const back = Store.load();
@@ -27,6 +36,14 @@ test('保存 → 読み込みで進捗がそのまま戻る', () => {
   assert.equal(back.records.length, 1);
   assert.deepEqual(toPlain(back.achievements), ['first']);
   assert.equal(back.settings.sound, false);
+  assert.equal(back.anglerXp, 120);
+  assert.equal(back.parts.reel, 'reel_power');
+  assert.deepEqual(toPlain(back.ownedParts), ['reel_power']);
+  assert.equal(back.boostStock.boost_rare, 3);
+  assert.equal(back.boostActive.boost_point, 4);
+  assert.equal(back.bonusDate, '2026-09-06');
+  assert.equal(back.bonusStreak, 5);
+  assert.equal(back.admin, true);
   assert.equal(back.level, Store.load().level);
   assert.equal(back.level, load({ localStorage }).Progress.levelFromXp(1234),
     'xp からレベルが復元されていない');
@@ -72,6 +89,15 @@ test('壊れたJSONが入っていても既定値で復帰する', () => {
   assert.equal(Store.load().xp, 0);
 });
 
+test('釣り人レベルも保存値から復元される', () => {
+  const localStorage = fakeStorage();
+  const FQ = load({ localStorage });
+  const st = FQ.Store.defaults();
+  st.anglerXp = FQ.Angler.totalFor(7);
+  FQ.Store.save(st);
+  assert.equal(FQ.Store.load().anglerLevel, 7);
+});
+
 test('釣果はポイント・図鑑・記録・コンボへ同時に反映される', () => {
   const FQ = load({ localStorage: fakeStorage() });
   const { Store, Fish, Progress } = FQ;
@@ -97,6 +123,25 @@ test('釣果はポイント・図鑑・記録・コンボへ同時に反映さ�
   assert.equal(st.combo, 2);
 });
 
+test('釣ると釣り人の経験値も増え、レアなほど多い', () => {
+  const FQ = load({ localStorage: fakeStorage() });
+  const { Store, Fish } = FQ;
+  const common = Store.defaults();
+  Store.applyCatch(common, { fish: Fish.byId('aji'), size: 20 }, 1);
+  const legend = Store.defaults();
+  Store.applyCatch(legend, { fish: Fish.byId('ryugu'), size: 300 }, 1);
+  assert.ok(common.anglerXp > 0, 'コモンで経験値が入らない');
+  assert.ok(legend.anglerXp > common.anglerXp, 'レアのほうが少ない');
+});
+
+test('ポイント倍率（天候・ブースト）が獲得ポイントに掛かる', () => {
+  const { Store, Fish } = load({ localStorage: fakeStorage() });
+  const a = Store.defaults(), b = Store.defaults();
+  Store.applyCatch(a, { fish: Fish.byId('tai'), size: 50 }, 1);
+  Store.applyCatch(b, { fish: Fish.byId('tai'), size: 50, pointMul: 2 }, 1);
+  assert.ok(b.xp > a.xp * 1.9, '倍率が効いていない');
+});
+
 test('バラすとコンボだけが切れ、ポイントと図鑑は減らない', () => {
   const { Store, Fish } = load({ localStorage: fakeStorage() });
   const st = Store.defaults();
@@ -108,6 +153,32 @@ test('バラすとコンボだけが切れ、ポイントと図鑑は減らな�
   assert.equal(st.misses, 1);
   assert.equal(st.xp, xp, 'バラシでポイントが減っている');
   assert.equal(st.dex.aji.count, 1);
+});
+
+test('コンボ保護が当たると半分だけ残り、外れると0になる', () => {
+  const { Store, Fish } = load({ localStorage: fakeStorage() });
+  const make = () => {
+    const st = Store.defaults();
+    for (let i = 0; i < 6; i++) Store.applyCatch(st, { fish: Fish.byId('aji'), size: 20 }, i);
+    return st;
+  };
+  const hit = make();
+  assert.equal(Store.applyMiss(hit, { guard: 0.5, random: () => 0.1 }).kept, 3);
+  assert.equal(hit.combo, 3);
+
+  const miss = make();
+  assert.equal(Store.applyMiss(miss, { guard: 0.5, random: () => 0.9 }).kept, 0);
+  assert.equal(miss.combo, 0);
+
+  const none = make();
+  assert.equal(Store.applyMiss(none, { guard: 0, random: () => 0 }).kept, 0, '保護0%でも残ってしまう');
+});
+
+test('バラしても釣り人の経験値は少し入る', () => {
+  const { Store } = load({ localStorage: fakeStorage() });
+  const st = Store.defaults();
+  Store.applyMiss(st);
+  assert.ok(st.anglerXp > 0);
 });
 
 test('ベスト記録は上位10件だけをポイント順で保持する', () => {

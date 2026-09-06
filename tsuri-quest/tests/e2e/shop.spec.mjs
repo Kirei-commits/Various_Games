@@ -1,9 +1,11 @@
 import { test, expect } from '@playwright/test';
-import { open, tap, grant, stateOf, waitPhase } from './fixtures.mjs';
+import { open, tap, grant, stateOf, waitPhase, openShop } from './fixtures.mjs';
 
 test.beforeEach(async ({ page }) => {
   await open(page);
-  await page.locator('#tab-shop').click();
+  // ログインボーナスのポイントを持っていると「買えない」検証にならないので使い切る
+  await page.evaluate(() => { window.FQ.app.state.coins = 0; window.FQ.app.render(); });
+  await openShop(page);
 });
 
 test('ポイントが足りないときは買えない', async ({ page }) => {
@@ -14,7 +16,7 @@ test('ポイントが足りないときは買えない', async ({ page }) => {
 
 test('エサを買うと所持数が増え、ポイントが減る', async ({ page }) => {
   await grant(page, 1000);
-  await page.locator('#tab-shop').click();
+  await openShop(page);
   await page.locator('[data-buy="jig"][data-count="10"]').click();
 
   const st = await stateOf(page);
@@ -26,7 +28,7 @@ test('エサを買うと所持数が増え、ポイントが減る', async ({ pa
 
 test('買ったエサを装備でき、キャストごとに1つ減る', async ({ page }) => {
   await grant(page, 1000);
-  await page.locator('#tab-shop').click();
+  await openShop(page);
   await page.locator('[data-buy="shrimp"][data-count="1"]').click();
   await page.locator('[data-equip="shrimp"]').click();
 
@@ -48,7 +50,7 @@ test('持っていないエサは装備できない', async ({ page }) => {
 
 test('竿を強化すると表示と性能が変わる', async ({ page }) => {
   await grant(page, 5000);
-  await page.locator('#tab-shop').click();
+  await openShop(page);
   await page.locator('#upgrade-rod').click();
 
   expect((await stateOf(page)).rod).toBe(2);
@@ -60,14 +62,14 @@ test('糸を強化すると危険域が狭くなる', async ({ page }) => {
   const danger = () => page.locator('#tension-danger').evaluate((el) => parseFloat(el.style.width));
   const before = await danger();
   await grant(page, 5000);
-  await page.locator('#tab-shop').click();
+  await openShop(page);
   await page.locator('#upgrade-line').click();
   expect(await danger()).toBeLessThan(before);
 });
 
 test('最大まで強化すると打ち止めになり、実績が解除される', async ({ page }) => {
   await grant(page, 20000);
-  await page.locator('#tab-shop').click();
+  await openShop(page);
   for (const kind of ['rod', 'line']) {
     for (let i = 0; i < 4; i++) await page.locator('#upgrade-' + kind).click();
   }

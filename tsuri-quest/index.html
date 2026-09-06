@@ -5,30 +5,129 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0e6ea8">
 <title>つりクエスト — TSURI QUEST</title>
-<meta name="description" content="7種類の魚を釣り上げてレベルを上げる、ブラウザだけで遊べる釣りゲーム。">
+<meta name="description" content="30種類の魚を釣り上げてレベルを上げる、ブラウザだけで遊べる釣りゲーム。">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='26' font-size='26'>🎣</text></svg>">
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-<div class="app">
+
+<!-- ───────────────────────────── ログイン画面 -->
+<div class="gate" id="gate">
+  <div class="gate-card">
+    <h1 class="gate-title">つりクエスト</h1>
+    <p class="gate-sub">TSURI QUEST</p>
+
+    <div class="gate-tabs" role="tablist">
+      <button type="button" class="gate-tab is-active" id="gate-tab-new" role="tab" aria-selected="true">新規作成</button>
+      <button type="button" class="gate-tab" id="gate-tab-load" role="tab" aria-selected="false">続きから</button>
+    </div>
+
+    <form class="gate-form" id="form-new">
+      <label class="field">名前
+        <input id="new-name" type="text" maxlength="16" autocomplete="username" placeholder="16文字まで">
+      </label>
+      <label class="field">パスワード
+        <input id="new-pass" type="password" maxlength="32" autocomplete="new-password" placeholder="4文字以上">
+      </label>
+      <p class="gate-error" id="new-error" role="alert"></p>
+      <button type="submit" class="gate-go" id="btn-create">この名前ではじめる</button>
+    </form>
+
+    <form class="gate-form" id="form-load" hidden>
+      <label class="field">名前
+        <input id="load-name" type="text" maxlength="16" autocomplete="username">
+      </label>
+      <label class="field">パスワード
+        <input id="load-pass" type="password" maxlength="32" autocomplete="current-password">
+      </label>
+      <p class="gate-error" id="load-error" role="alert"></p>
+      <button type="submit" class="gate-go" id="btn-login">つづきから</button>
+      <p class="gate-hint" id="saved-list"></p>
+    </form>
+
+    <details class="gate-restore">
+      <summary>バックアップコードから復元する</summary>
+      <label class="field">バックアップコード
+        <textarea id="restore-code" rows="3" placeholder="新規作成のときに控えた長い文字列"></textarea>
+      </label>
+      <p class="gate-error" id="restore-error" role="alert"></p>
+      <button type="button" class="gate-sub-go" id="btn-restore">復元する</button>
+    </details>
+
+    <p class="gate-note" id="gate-note">
+      セーブデータは<b>この端末のこのブラウザ</b>に保存されます。
+      別の端末へ持っていくには、新規作成のあとに出るバックアップコードを控えてください。
+    </p>
+  </div>
+</div>
+
+<!-- ───────────────────────────── 新規作成直後のメモ画面 -->
+<div class="gate" id="memo" hidden>
+  <div class="gate-card">
+    <h2 class="gate-title small">⚠ 忘れる前にメモを</h2>
+    <p class="gate-note">
+      パスワードを忘れると<b>元に戻せません</b>（この端末の中だけで完結しているため、
+      再発行のしくみがありません）。下の3つをスクリーンショットか紙で控えてください。
+    </p>
+    <div class="memo-row"><span>名前</span><b id="memo-name"></b></div>
+    <div class="memo-row"><span>パスワード</span><b id="memo-pass"></b></div>
+    <label class="field">バックアップコード（別の端末へ移すとき用）
+      <textarea id="memo-code" rows="3" readonly></textarea>
+    </label>
+    <button type="button" class="gate-sub-go" id="btn-copy">3つまとめてコピー</button>
+    <label class="memo-check">
+      <input type="checkbox" id="memo-ok"> 控えました
+    </label>
+    <button type="button" class="gate-go" id="btn-memo-done" disabled>釣りをはじめる</button>
+  </div>
+</div>
+
+<!-- ───────────────────────────── ログインボーナス -->
+<div class="gate" id="bonus" hidden>
+  <div class="gate-card">
+    <h2 class="gate-title small">🎁 ログインボーナス</h2>
+    <p class="bonus-day" id="bonus-day"></p>
+    <div class="bonus-items" id="bonus-items"></div>
+    <div class="bonus-track" id="bonus-track"></div>
+    <button type="button" class="gate-go" id="btn-bonus-ok">受け取る</button>
+  </div>
+</div>
+
+<!-- ───────────────────────────── ゲーム本体 -->
+<div class="app" id="app" hidden>
 
   <header class="hud">
-    <div class="hud-main">
-      <div class="hud-level">
-        <span class="lv-badge" id="hud-level">Lv.1</span>
-        <span class="lv-title" id="hud-title">無名の釣り人</span>
-      </div>
-      <div class="xp">
+    <div class="hud-meters">
+      <div class="meter">
+        <div class="meter-head">
+          <span class="lv-badge" id="hud-level">Lv.1</span>
+          <span class="meter-name">釣果</span>
+          <span class="xp-text" id="hud-xp-text">0 / 40 P</span>
+        </div>
         <div class="xp-bar"><div class="xp-fill" id="hud-xp-fill"></div></div>
-        <span class="xp-text" id="hud-xp-text">0 / 40 P</span>
+      </div>
+      <div class="meter">
+        <div class="meter-head">
+          <span class="lv-badge alt" id="hud-angler">Lv.1</span>
+          <span class="meter-name">釣り人</span>
+          <span class="xp-text" id="hud-angler-text">0 / 12</span>
+        </div>
+        <div class="xp-bar"><div class="xp-fill alt" id="hud-angler-fill"></div></div>
       </div>
     </div>
-    <div class="hud-side">
+
+    <div class="hud-chips">
       <div class="chip chip-coin" title="所持ポイント">💰 <b id="hud-coins">0</b></div>
       <div class="chip" id="hud-env" title="時間帯と天気">🌅 05:00 ☀️</div>
       <div class="chip chip-combo" id="hud-combo" title="連続ヒット">🔥 0</div>
+      <div class="chip chip-boost" id="hud-boost" title="発動中のブースト" hidden></div>
+      <span class="hud-spacer"></span>
+      <span class="chip chip-user" id="hud-user" title="ログイン中のデータ">👤 —</span>
       <button class="icon-btn" id="btn-sound" type="button" aria-pressed="true" title="効果音">🔊</button>
+      <button class="icon-btn" id="btn-logout" type="button" title="ログアウト">🚪</button>
     </div>
+
+    <p class="lv-title" id="hud-title">無名の釣り人</p>
   </header>
 
   <main class="stage">
@@ -60,12 +159,14 @@
 
   <nav class="tabs" role="tablist">
     <button class="tab is-active" id="tab-dex" type="button" role="tab" aria-controls="panel-dex" aria-selected="true">図鑑</button>
-    <button class="tab" id="tab-shop" type="button" role="tab" aria-controls="panel-shop" aria-selected="false">道具</button>
+    <button class="tab" id="tab-shop" type="button" role="tab" aria-controls="panel-shop" aria-selected="false">ショップ</button>
+    <button class="tab" id="tab-angler" type="button" role="tab" aria-controls="panel-angler" aria-selected="false">釣り人</button>
     <button class="tab" id="tab-records" type="button" role="tab" aria-controls="panel-records" aria-selected="false">記録</button>
     <button class="tab" id="tab-achievements" type="button" role="tab" aria-controls="panel-achievements" aria-selected="false">実績</button>
   </nav>
 
   <section class="panel" id="panel-dex" role="tabpanel" aria-labelledby="tab-dex">
+    <h2 class="panel-title">図鑑 <span class="counter" id="dex-count">0 / 30</span></h2>
     <div class="dex" id="dex-list"></div>
   </section>
 
@@ -73,10 +174,40 @@
     <h2 class="panel-title">エサ・ルアー</h2>
     <p class="panel-note">装備したエサはキャストごとに1つ消費します（素エサは消費しません）。</p>
     <div class="lures" id="lure-list"></div>
+
+    <h2 class="panel-title">ブーストアイテム</h2>
+    <p class="panel-note">買って「使う」と、決まったキャスト数のあいだ効果が続きます。重ねがけできます。</p>
+    <div class="boosts" id="boost-list"></div>
+
+    <h2 class="panel-title">パーツ・装飾品</h2>
+    <p class="panel-note">買ったものは持ち替えられます。見た目も変わります。</p>
+    <div class="parts" id="part-list"></div>
+
     <h2 class="panel-title">竿</h2>
     <div class="upgrade" id="rod-upgrade"></div>
     <h2 class="panel-title">糸</h2>
     <div class="upgrade" id="line-upgrade"></div>
+
+    <h2 class="panel-title">コード入力</h2>
+    <form class="admin" id="form-admin">
+      <input id="admin-code" type="text" placeholder="コードを入力" autocomplete="off">
+      <button type="submit" class="buy" id="btn-admin">送信</button>
+    </form>
+    <p class="admin-state" id="admin-state" hidden>
+      🛠 管理者モード: 全商品が0円です。
+      <button type="button" class="linkish" id="btn-admin-off">解除する</button>
+    </p>
+  </section>
+
+  <section class="panel" id="panel-angler" role="tabpanel" aria-labelledby="tab-angler" hidden>
+    <h2 class="panel-title">釣り人レベル <span class="counter" id="angler-count">Lv.1 / 20</span></h2>
+    <p class="panel-note">
+      キャストして釣ると上がります（バラしても少し入ります）。
+      レベルが上がるほど<b>釣りそのものが快適になります</b>。
+    </p>
+    <div class="perks" id="perk-list"></div>
+    <h3 class="panel-sub">つぎのレベルで</h3>
+    <div class="perks next" id="perk-next"></div>
   </section>
 
   <section class="panel" id="panel-records" role="tabpanel" aria-labelledby="tab-records" hidden>
@@ -84,7 +215,11 @@
     <ol class="records" id="record-list"></ol>
     <h2 class="panel-title">通算</h2>
     <div class="stats" id="stat-list"></div>
-    <button class="danger" id="btn-reset" type="button">データを消去する</button>
+    <h2 class="panel-title">データ</h2>
+    <p class="panel-note">別の端末やブラウザへ移すときは、このコードを控えて「続きから」画面で復元してください。</p>
+    <textarea id="backup-code" rows="3" readonly></textarea>
+    <button class="buy" id="btn-backup-copy" type="button">バックアップコードをコピー</button>
+    <button class="danger" id="btn-reset" type="button">このデータを消去する</button>
   </section>
 
   <section class="panel" id="panel-achievements" role="tabpanel" aria-labelledby="tab-achievements" hidden>
@@ -94,16 +229,22 @@
   <footer class="foot">
     <a href="../">← ゲーム一覧</a>
   </footer>
-
-  <div class="toasts" id="toasts" aria-live="polite"></div>
 </div>
+
+<div class="toasts" id="toasts" aria-live="polite"></div>
 
 <script src="js/fish.js"></script>
 <script src="js/progress.js"></script>
+<script src="js/angler.js"></script>
 <script src="js/world.js"></script>
 <script src="js/gear.js"></script>
+<script src="js/parts.js"></script>
+<script src="js/boost.js"></script>
+<script src="js/bonus.js"></script>
 <script src="js/achievements.js"></script>
 <script src="js/storage.js"></script>
+<script src="js/account.js"></script>
+<script src="js/tackle.js"></script>
 <script src="js/game.js"></script>
 <script src="js/audio.js"></script>
 <script src="js/render.js"></script>

@@ -2,13 +2,23 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { loadFQ, seededRandom, autoFight } from './helpers.mjs';
 
-const FQ = loadFQ(['fish.js', 'progress.js', 'world.js', 'gear.js', 'game.js']);
-const { Fish, Gear, Game } = FQ;
+const FQ = loadFQ(['fish.js', 'progress.js', 'angler.js', 'world.js', 'gear.js',
+  'parts.js', 'boost.js', 'achievements.js', 'storage.js', 'tackle.js', 'game.js']);
+const { Fish, Gear, Game, Tackle, Store } = FQ;
 
 function newGame(seed = 5) {
   return Game.create({ random: seededRandom(seed) });
 }
-const ctx = () => ({ level: 10, phase: 'day', weather: 'sunny', lure: Gear.lure('none'), rod: Gear.rod(1), line: Gear.line(1) });
+
+/** 素の道具立て（Tackle.resolve と同じ形）。上書きしたい項目だけ渡す。 */
+function tackle(over) {
+  const base = {
+    waitMul: 1, biteBonusMs: Gear.rod(1).reactionBonusMs, reelMul: Gear.rod(1).reelRate,
+    drainMul: 1, breakAt: Gear.line(1).breakAt, rareBoost: 1, bigBias: 0, ampMul: 1
+  };
+  return Object.assign(base, over || {});
+}
+const ctx = (over) => ({ level: 10, phase: 'day', weather: 'sunny', tackle: tackle(over) });
 
 /** 指定フェーズまで進める。 */
 function advanceTo(game, phase, maxMs = 30000) {
@@ -72,7 +82,7 @@ test('合わせないまま猶予を過ぎると late で失敗する', () => {
 test('竿を強化すると当たりの猶予が伸びる', () => {
   const mk = (rodLv) => {
     const g = newGame(11);
-    g.cast({ ...ctx(), rod: Gear.rod(rodLv) });
+    g.cast(ctx({ biteBonusMs: Gear.rod(rodLv).reactionBonusMs }));
     return g.state.biteWindowMs;
   };
   assert.ok(mk(5) > mk(1), '竿を強化しても猶予が変わらない');
@@ -123,7 +133,7 @@ test('緩急をつけて巻けば釣り上げられる（7種すべてで成立�
 test('糸を強化すると、同じ操作で許される巻き幅が広がる', () => {
   const reach = (lineLv) => {
     const g = newGame(3);
-    g.cast({ ...ctx(), line: Gear.line(lineLv) });
+    g.cast(ctx({ breakAt: Gear.line(lineLv).breakAt }));
     advanceTo(g, 'bite');
     g.strike();
     g.setReeling(true);
@@ -137,7 +147,7 @@ test('糸を強化すると、同じ操作で許される巻き幅が広がる',
 test('竿を強化すると取り込みが速くなる', () => {
   const land = (rodLv) => {
     const g = newGame(3);
-    g.cast({ ...ctx(), rod: Gear.rod(rodLv) });
+    g.cast(ctx({ reelMul: Gear.rod(rodLv).reelRate }));
     advanceTo(g, 'bite');
     g.strike();
     let t = 0;
@@ -162,10 +172,44 @@ test('レアな魚ほど当たりが短く、ファイトが長い', () => {
   assert.ok(legend.fightMs > common.fightMs);
 });
 
+test('リールの drainMul が大きいほど、巻きを止めたときに速く緩む', () => {
+  const drop = (drainMul) => {
+    const g = newGame(3);
+    g.cast(ctx({ drainMul }));
+    advanceTo(g, 'bite');
+    g.strike();
+    g.setReeling(true);
+    for (let i = 0; i < 25; i++) g.tick(16);
+    const peak = g.state.tension;
+    g.setReeling(false);
+    for (let i = 0; i < 10; i++) g.tick(16);
+    return peak - g.state.tension;
+  };
+  assert.ok(drop(1.25) > drop(1.0), 'ドラグ性能が効いていない');
+});
+
+test('装備をすべて整えると、素の状態より明らかに楽になる', () => {
+  const st = Store.defaults();
+  const bare = Tackle.resolve(st, { waitMul: 1, ampMul: 1, pointMul: 1 });
+
+  st.rod = 5; st.line = 5; st.lure = 'chum';
+  st.anglerXp = FQ.Angler.totalFor(FQ.Angler.LEVEL_MAX);
+  st.ownedParts = ['reel_legend', 'float_gold'];
+  st.parts.reel = 'reel_legend';
+  st.parts.float = 'float_gold';
+  const full = Tackle.resolve(st, { waitMul: 1, ampMul: 1, pointMul: 1 });
+
+  assert.ok(full.waitMul < bare.waitMul * 0.6, '待ち時間が短くなっていない');
+  assert.ok(full.biteBonusMs > 1000, '合わせの猶予が伸びていない');
+  assert.ok(full.reelMul > bare.reelMul * 1.8, '取り込みが速くなっていない');
+  assert.ok(full.breakAt > bare.breakAt, '糸が強くなっていない');
+  assert.ok(full.breakAt < 1, '絶対に切れない設定になっている');
+});
+
 test('嵐は引きの振れ幅を大きくする', () => {
   const amp = (mul) => {
     const g = newGame(21);
-    g.cast({ ...ctx(), weatherAmpMul: mul });
+    g.cast(ctx({ ampMul: mul }));
     g.state.fish = Fish.byId('buri');
     let min = Infinity, max = -Infinity;
     for (let ms = 0; ms < 6000; ms += 20) {

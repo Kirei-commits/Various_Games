@@ -3,7 +3,8 @@ import assert from 'node:assert/strict';
 import { loadFQ, fakeStorage } from './helpers.mjs';
 
 const FQ = loadFQ(
-  ['fish.js', 'progress.js', 'world.js', 'gear.js', 'achievements.js', 'storage.js'],
+  ['fish.js', 'progress.js', 'angler.js', 'world.js', 'gear.js', 'parts.js', 'boost.js',
+   'bonus.js', 'achievements.js', 'storage.js'],
   { localStorage: fakeStorage() }
 );
 const { Achievements, Store, Fish } = FQ;
@@ -33,18 +34,31 @@ test('達成済みの実績は二度と返らない', () => {
   assert.equal(Achievements.evaluate(st, null).includes('first'), false);
 });
 
+/** 図鑑に n 種ぶんの記録を入れる。 */
+function fill(st, n) {
+  Fish.all().slice(0, n).forEach((f) => {
+    st.dex[f.id] = { count: 1, maxSize: 10, bestPoints: 1 };
+  });
+}
+
 test('各実績が条件どおりに解除される', () => {
   const cases = [
     ['first',     (s) => { s.catches = 1; }],
     ['ten',       (s) => { s.catches = 10; }],
-    ['five_kind', (s) => { for (const id of ['aji', 'saba', 'ika', 'tai', 'buri']) s.dex[id] = { count: 1, maxSize: 10, bestPoints: 1 }; }],
+    ['kind10',    (s) => { fill(s, 10); }],
+    ['kind20',    (s) => { fill(s, 20); }],
     ['combo10',   (s) => { s.bestCombo = 10; }],
     ['big100',    (s) => { s.dex.buri = { count: 1, maxSize: 101, bestPoints: 1 }; }],
     ['rich',      (s) => { s.dex.tai = { count: 1, maxSize: 50, bestPoints: 500 }; }],
     ['kue',       (s) => { s.dex.kue = { count: 1, maxSize: 90, bestPoints: 1 }; }],
     ['gear_max',  (s) => { s.rod = 5; s.line = 5; }],
     ['ryugu',     (s) => { s.dex.ryugu = { count: 1, maxSize: 300, bestPoints: 1 }; }],
-    ['complete',  (s) => { for (const f of Fish.all()) s.dex[f.id] = { count: 1, maxSize: 10, bestPoints: 1 }; }],
+    ['rabuka',    (s) => { s.dex.rabuka = { count: 1, maxSize: 150, bestPoints: 1 }; }],
+    ['daiouika',  (s) => { s.dex.daiouika = { count: 1, maxSize: 500, bestPoints: 1 }; }],
+    ['login7',    (s) => { s.bonusStreak = 7; }],
+    ['dressed',   (s) => { s.ownedParts = ['a', 'b', 'c', 'd', 'e', 'f']; }],
+    ['angler_max', (s) => { s.anglerLevel = 20; }],
+    ['complete',  (s) => { fill(s, 30); }],
     ['master',    (s) => { s.level = 30; }]
   ];
   for (const [id, setup] of cases) {
@@ -76,11 +90,25 @@ test('未知のIDが混ざっていても落ちない', () => {
   assert.equal(Achievements.titleOf(st), Achievements.byId('first').title);
 });
 
-test('図鑑を完成させると称号が最終形になる', () => {
+test('すべてやり切ると全実績が解除され、称号が最終形になる', () => {
   const st = Store.defaults();
   for (const f of Fish.all()) st.dex[f.id] = { count: 1, maxSize: f.max, bestPoints: 600 };
   st.catches = 50; st.bestCombo = 10; st.rod = 5; st.line = 5; st.level = 30;
+  st.anglerLevel = 20; st.bonusStreak = 7;
+  st.ownedParts = ['a', 'b', 'c', 'd', 'e', 'f'];
   st.achievements = Achievements.evaluate(st, null);
   assert.equal(st.achievements.length, Achievements.LIST.length, 'すべて解除されていない');
   assert.equal(Achievements.titleOf(st), Achievements.byId('master').title);
+});
+
+test('図鑑の実績は魚の種類数と食い違わない', () => {
+  const complete = Achievements.LIST.find((a) => a.id === 'complete');
+  const st = Store.defaults();
+  Fish.all().slice(0, Fish.count - 1).forEach((f) => {
+    st.dex[f.id] = { count: 1, maxSize: 1, bestPoints: 1 };
+  });
+  assert.equal(complete.check(st, null), false, '1種足りなくても完成扱いになっている');
+  const last = Fish.all()[Fish.count - 1];
+  st.dex[last.id] = { count: 1, maxSize: 1, bestPoints: 1 };
+  assert.equal(complete.check(st, null), true, '全種そろえても完成にならない');
 });

@@ -8,13 +8,14 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { loadFQ, seededRandom, fakeStorage, autoFight } from './helpers.mjs';
 
-const FILES = ['fish.js', 'progress.js', 'world.js', 'gear.js', 'achievements.js', 'storage.js', 'game.js'];
+const FILES = ['fish.js', 'progress.js', 'angler.js', 'world.js', 'gear.js', 'parts.js',
+  'boost.js', 'bonus.js', 'achievements.js', 'storage.js', 'tackle.js', 'game.js'];
 
 /** 一人前のプレイヤーが黙々と釣り続けたときの進行をまるごと再現する。 */
 function play({ seed = 1, maxCasts = 5000, upgrade = true, lure = 'none',
-                rod = null, line = null, fight = {} } = {}) {
+                rod = null, line = null, fight = {}, stopAtMax = true } = {}) {
   const FQ = loadFQ(FILES, { localStorage: fakeStorage() });
-  const { Store, Gear, World, Progress, Game } = FQ;
+  const { Store, Gear, World, Progress, Game, Tackle } = FQ;
   const rng = seededRandom(seed);
   const st = Store.defaults();
   const game = Game.create({ random: rng });
@@ -35,10 +36,10 @@ function play({ seed = 1, maxCasts = 5000, upgrade = true, lure = 'none',
       }
     }
     const weather = World.weatherOf(st.weather);
+    st.lure = lure;
+    const tackle = Tackle.resolve(st, weather);
     if (!game.cast({
-      level: st.level, phase: World.phaseAt(st.clock).id, weather: st.weather,
-      lure: Gear.lure(lure), rod: Gear.rod(st.rod), line: Gear.line(st.line),
-      weatherWaitMul: weather.waitMul, weatherAmpMul: weather.ampMul
+      level: st.level, phase: World.phaseAt(st.clock).id, weather: st.weather, tackle: tackle
     })) break;
 
     casts++;
@@ -52,14 +53,17 @@ function play({ seed = 1, maxCasts = 5000, upgrade = true, lure = 'none',
       const ev = autoFight(game, fight);
       fightMs += ev.elapsed;
       if (ev.type === 'landed') {
-        Store.applyCatch(st, { fish: ev.fish, size: ev.size, weatherMul: weather.pointMul }, casts);
+        Store.applyCatch(st, { fish: ev.fish, size: ev.size, pointMul: tackle.pointMul }, casts);
         caught[ev.fish.id] = (caught[ev.fish.id] || 0) + 1;
       } else {
-        Store.applyMiss(st);
+        Store.applyMiss(st, { guard: 0, random: rng });
       }
     }
     game.reset();
-    if (st.level >= Progress.LEVEL_MAX && reachedMax == null) { reachedMax = casts; break; }
+    if (st.level >= Progress.LEVEL_MAX && reachedMax == null) {
+      reachedMax = casts;
+      if (stopAtMax) break;
+    }
   }
   return { state: st, casts, caught, reachedMax, fightMs, FQ };
 }
@@ -84,14 +88,13 @@ test('Lv30 到達までのキャスト数が想定の範囲に収まる', () => 
 test('レベルが上がるほどレアな魚の割合が増える（全時間帯・全天候をならして）', () => {
   const { Fish, World } = loadFQ(['fish.js', 'world.js']);
   const rng = seededRandom(77);
-  const RARE = ['buri', 'kue', 'ryugu'];
   const share = (level) => {
     let rare = 0;
     const N = 20000;
     for (let i = 0; i < N; i++) {
       const phase = World.PHASES[i % World.PHASES.length].id;
       const weather = World.WEATHER_IDS[(i >> 2) % World.WEATHER_IDS.length];
-      if (RARE.includes(Fish.pick({ level, phase, weather }, rng).id)) rare++;
+      if (Fish.pick({ level, phase, weather }, rng).stars >= 3) rare++;
     }
     return rare / N;
   };
@@ -105,11 +108,17 @@ test('レベルが上がるほどレアな魚の割合が増える（全時間�
   assert.ok(shares[shares.length - 1] > 0.30, `Lv30 でもレアが出なさすぎ (${shares[shares.length - 1].toFixed(3)})`);
 });
 
-test('遊び切るまでに7種すべてが釣れる（出会えない魚がいない）', () => {
-  const { caught, FQ } = play({ seed: 5, maxCasts: 4000 });
-  for (const f of FQ.Fish.all()) {
-    assert.ok(caught[f.id] > 0, `${f.name} に一度も出会えなかった`);
-  }
+test('十分に遊べば30種すべてに出会える（絶対に会えない魚がいない）', () => {
+  // レベルが上がるほどレアが出るので、最大レベル到達後もしばらく粘って数える
+  const { caught, FQ } = play({ seed: 5, maxCasts: 30000, stopAtMax: false, lure: 'chum' });
+  const missing = FQ.Fish.all().filter((f) => !caught[f.id]).map((f) => f.name).join('、');
+  assert.equal(missing, '', '一度も出会えなかった魚がいる: ' + missing);
+});
+
+test('釣り人レベルも遊んでいるうちに上がりきる', () => {
+  const { state, FQ } = play({ seed: 8, maxCasts: 4000, stopAtMax: false });
+  assert.equal(state.anglerLevel, FQ.Angler.LEVEL_MAX,
+    `釣り人レベルが ${state.anglerLevel} までしか上がらなかった`);
 });
 
 test('高いエサほど強く、値段に見合った伸びがある', () => {
@@ -126,7 +135,7 @@ test('高いエサほど強く、値段に見合った伸びがある', () => {
 
 test('糸を強化すると、同じ荒い巻き方でもバラシが減る', () => {
   // 糸の強さを考えずに一定のテンションまで巻いてしまうプレイヤーを想定する
-  const rough = { high: 0.78 };
+  const rough = { high: 0.79 };
   const weak = play({ seed: 6, maxCasts: 250, upgrade: false, line: 1, fight: rough });
   const strong = play({ seed: 6, maxCasts: 250, upgrade: false, line: 5, fight: rough });
   assert.ok(weak.state.misses > 0, 'そもそもバラシが起きていない（テストが役に立っていない）');

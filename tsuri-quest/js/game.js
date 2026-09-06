@@ -45,6 +45,7 @@
       pullPhase: 0,      // 引きのsin波の初期位相
       ampMul: 1,
       reelRate: 1,
+      drainMul: 1,
       breakAt: 0.8,
       result: null       // { ok:true, fish, size } | { ok:false, reason }
     };
@@ -61,29 +62,30 @@
 
     /**
      * キャストする。ctx:
-     *   { level, phase, weather, lure, rod, line }
-     * lure/rod/line は Gear の定義オブジェクト（テストでは直接渡せる）。
+     *   { level, phase, weather, tackle }
+     * tackle は Tackle.resolve() の結果（＝すべての補正を掛け合わせた値）。
+     * 個々の道具は見ない。省略された項目は素の値として扱う。
      */
     function cast(ctx) {
       if (s.phase !== 'idle') return false;
       ctx = ctx || {};
       var Fish = global.FQ.Fish;
-      var lure = ctx.lure || { waitMul: 1, rareBoost: 1, bigBias: 0 };
-      var rod = ctx.rod || { reelRate: 1, reactionBonusMs: 0 };
-      var line = ctx.line || { breakAt: 0.8 };
-      var weatherWaitMul = ctx.weatherWaitMul == null ? 1 : ctx.weatherWaitMul;
+      var t = ctx.tackle || {};
+      var num = function (v, d) { return v == null ? d : v; };
 
       s.fish = Fish.pick({
-        level: ctx.level, phase: ctx.phase, weather: ctx.weather, rareBoost: lure.rareBoost
+        level: ctx.level, phase: ctx.phase, weather: ctx.weather,
+        rareBoost: num(t.rareBoost, 1)
       }, rng);
-      s.size = Fish.rollSize(s.fish, rng, { bigBias: lure.bigBias });
+      s.size = Fish.rollSize(s.fish, rng, { bigBias: num(t.bigBias, 0) });
 
-      s.waitMs = (WAIT_MIN_MS + rng() * WAIT_SPAN_MS) * lure.waitMul * weatherWaitMul;
-      s.biteWindowMs = s.fish.reactionMs + rod.reactionBonusMs;
+      s.waitMs = (WAIT_MIN_MS + rng() * WAIT_SPAN_MS) * num(t.waitMul, 1);
+      s.biteWindowMs = s.fish.reactionMs + num(t.biteBonusMs, 0);
       s.pullPhase = rng() * Math.PI * 2;
-      s.ampMul = ctx.weatherAmpMul == null ? 1 : ctx.weatherAmpMul;
-      s.reelRate = rod.reelRate;
-      s.breakAt = line.breakAt;
+      s.ampMul = num(t.ampMul, 1);
+      s.reelRate = num(t.reelMul, 1);
+      s.drainMul = num(t.drainMul, 1);
+      s.breakAt = num(t.breakAt, 0.8);
 
       s.tension = 0;
       s.progress = 0;
@@ -152,7 +154,7 @@
         if (s.reeling) {
           s.tension += (TENSION_UP + Math.max(0, pull) * TENSION_PULL) * sec;
         } else {
-          s.tension -= TENSION_DOWN * sec;
+          s.tension -= TENSION_DOWN * s.drainMul * sec;
         }
         if (s.tension < 0) s.tension = 0;
         if (s.tension > 1) s.tension = 1;
@@ -207,7 +209,14 @@
       skipWait: function () {
         if (s.phase === 'casting') { s.phase = 'waiting'; s.t = 0; }
         if (s.phase === 'waiting') s.t = s.waitMs - 1;
-      }
+      },
+      /**
+       * 当たりの猶予を伸ばす。E2Eテスト専用。
+       * 合わせの猶予は魚によっては 0.7 秒しかなく、テストの操作往復のほうが
+       * 長くなることがある（並列実行で実際に落ちた）。猶予そのものの検証は
+       * ロジックテストと「合わせ遅れ」のケースで別途行う。
+       */
+      holdBite: function (ms) { s.biteWindowMs = ms || 60000; }
     };
   }
 

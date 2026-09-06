@@ -259,6 +259,10 @@
     drawSea(g, w, h, hz, seaOf(view.timePhase), view);
 
     var gp = view.gamePhase;
+    var parts = view.parts || {};
+    var rodColor = parts.rodColor || '#5b3a24';
+    var reelColor = parts.reelColor || '#8b6b4a';
+    var floatSkin = parts.float || { top: '#ffffff', bottom: '#ff5f6d', stem: '#ffb703' };
     var bob = Math.sin(view.time / 380) * 4;
     var floatX = w * 0.5;
     var floatY = hz + (h - hz) * 0.30 + bob;
@@ -271,12 +275,27 @@
       tipX = w * (0.70 - bend * 0.5);
       tipY = h * (0.10 + bend * 0.35);
     }
-    g.strokeStyle = '#5b3a24';
+    g.strokeStyle = rodColor;
     g.lineWidth = Math.max(4, w * 0.012);
     g.lineCap = 'round';
     g.beginPath();
     g.moveTo(rodX, rodY);
     g.quadraticCurveTo(w * 0.90, h * 0.45, tipX, tipY);
+    g.stroke();
+
+    // リール（装備しているパーツの色で描く）
+    var reelX = w * 0.915, reelY = h * 0.80;
+    var reelR = Math.max(7, w * 0.026);
+    g.fillStyle = reelColor;
+    g.beginPath(); g.arc(reelX, reelY, reelR, 0, Math.PI * 2); g.fill();
+    g.fillStyle = 'rgba(255,255,255,0.55)';
+    g.beginPath(); g.arc(reelX, reelY, reelR * 0.45, 0, Math.PI * 2); g.fill();
+    g.strokeStyle = reelColor;
+    g.lineWidth = Math.max(2, reelR * 0.28);
+    var spin = gp === 'fight' && view.reeling ? view.time / 60 : view.time / 900;
+    g.beginPath();
+    g.moveTo(reelX, reelY);
+    g.lineTo(reelX + Math.cos(spin) * reelR * 1.35, reelY + Math.sin(spin) * reelR * 1.35);
     g.stroke();
 
     if (gp !== 'idle' && gp !== 'casting') {
@@ -296,7 +315,7 @@
       g.strokeStyle = 'rgba(255,255,255,0.65)';
       g.lineWidth = 1.4;
       g.beginPath(); g.moveTo(tipX, tipY); g.lineTo(px, py); g.stroke();
-      g.fillStyle = '#ff5f6d';
+      g.fillStyle = floatSkin.bottom;
       g.beginPath(); g.arc(px, py, 6, 0, Math.PI * 2); g.fill();
     }
 
@@ -318,11 +337,11 @@
     if (gp !== 'idle' && gp !== 'casting') {
       var dip = gp === 'bite' ? Math.abs(Math.sin(view.time / 70)) * 14 : 0;
       var fyF = floatY + dip;
-      g.fillStyle = '#ffffff';
+      g.fillStyle = floatSkin.top;
       g.beginPath(); g.arc(floatX, fyF - 8, 7, Math.PI, 0); g.fill();
-      g.fillStyle = '#ff5f6d';
+      g.fillStyle = floatSkin.bottom;
       g.beginPath(); g.arc(floatX, fyF - 8, 7, 0, Math.PI); g.fill();
-      g.strokeStyle = '#ffb703';
+      g.strokeStyle = floatSkin.stem;
       g.lineWidth = 3;
       g.beginPath(); g.moveTo(floatX, fyF - 15); g.lineTo(floatX, fyF - 26); g.stroke();
 

@@ -10,8 +10,8 @@ import { fileURLToPath } from 'node:url';
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 
 const ALL = [
-  'fish.js', 'progress.js', 'world.js', 'gear.js',
-  'achievements.js', 'storage.js', 'game.js'
+  'fish.js', 'progress.js', 'angler.js', 'world.js', 'gear.js', 'parts.js', 'boost.js',
+  'bonus.js', 'achievements.js', 'storage.js', 'account.js', 'tackle.js', 'game.js'
 ];
 
 /**

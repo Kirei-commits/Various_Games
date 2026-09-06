@@ -28,7 +28,7 @@ test('押せるものはすべて 44×44px 以上ある', async ({ page }) => {
 
 test('横スクロールが発生しない', async ({ page }) => {
   await open(page);
-  for (const tab of ['dex', 'shop', 'records', 'achievements']) {
+  for (const tab of ['dex', 'shop', 'angler', 'records', 'achievements']) {
     await page.locator('#tab-' + tab).click();
     const overflow = await page.evaluate(() =>
       document.documentElement.scrollWidth - document.documentElement.clientWidth);

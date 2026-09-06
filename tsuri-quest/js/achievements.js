@@ -6,32 +6,46 @@
   'use strict';
 
   var LIST = [
-    { id: 'first',    rank: 1, name: '初漁',        title: '見習い釣り師',   desc: 'はじめて1匹釣り上げる',
+    { id: 'first',      rank: 1,  name: '初漁',         title: '見習い釣り師',   desc: 'はじめて1匹釣り上げる',
       check: function (st) { return st.catches >= 1; } },
-    { id: 'ten',      rank: 2, name: '十匹',        title: '常連',           desc: '通算10匹釣り上げる',
+    { id: 'ten',        rank: 2,  name: '十匹',         title: '常連',           desc: '通算10匹釣り上げる',
       check: function (st) { return st.catches >= 10; } },
-    { id: 'five_kind',rank: 3, name: '五目釣り',    title: '目利き',         desc: '5種類の魚を釣る',
-      check: function (st) { return Object.keys(st.dex || {}).length >= 5; } },
-    { id: 'combo10',  rank: 4, name: '連鎖の達人',  title: '入れ食いの主',   desc: 'コンボを10まで伸ばす',
+    { id: 'kind10',     rank: 3,  name: '十目釣り',     title: '目利き',         desc: '10種類の魚を釣る',
+      check: function (st) { return kinds(st) >= 10; } },
+    { id: 'combo10',    rank: 4,  name: '連鎖の達人',   title: '入れ食いの主',   desc: 'コンボを10まで伸ばす',
       check: function (st) { return (st.bestCombo || 0) >= 10; } },
-    { id: 'big100',   rank: 5, name: '大物ハンター', title: 'ランカー',      desc: '100cm を超える魚を釣る',
+    { id: 'big100',     rank: 5,  name: '大物ハンター', title: 'ランカー',       desc: '100cm を超える魚を釣る',
       check: function (st, ev) { return biggest(st) >= 100 || (ev && ev.size >= 100); } },
-    { id: 'rich',     rank: 6, name: '一攫千金',    title: '大漁旗',         desc: '1匹で500ポイント以上を得る',
+    { id: 'login7',     rank: 6,  name: '皆勤賞',       title: '毎日の人',       desc: 'ログインボーナスを7日連続で受け取る',
+      check: function (st) { return (st.bonusStreak || 0) >= 7; } },
+    { id: 'rich',       rank: 7,  name: '一攫千金',     title: '大漁旗',         desc: '1匹で500ポイント以上を得る',
       check: function (st, ev) { return bestPoints(st) >= 500 || (ev && ev.points >= 500); } },
-    { id: 'kue',      rank: 7, name: '磯の王',      title: '荒磯の覇者',     desc: 'クエを釣り上げる',
+    { id: 'kind20',     rank: 8,  name: '二十目釣り',   title: '海の博物学者',   desc: '20種類の魚を釣る',
+      check: function (st) { return kinds(st) >= 20; } },
+    { id: 'kue',        rank: 9,  name: '磯の王',       title: '荒磯の覇者',     desc: 'クエを釣り上げる',
       check: function (st) { return !!(st.dex && st.dex.kue); } },
-    { id: 'gear_max', rank: 8, name: '完全装備',    title: '道具の求道者',   desc: '竿と糸を最大まで強化する',
+    { id: 'dressed',    rank: 10, name: '洒落者',       title: '道楽者',         desc: '装飾品・パーツを6つ買う',
+      check: function (st) { return (st.ownedParts || []).length >= 6; } },
+    { id: 'gear_max',   rank: 11, name: '完全装備',     title: '道具の求道者',   desc: '竿と糸を最大まで強化する',
       check: function (st) { return st.rod >= 5 && st.line >= 5; } },
-    { id: 'ryugu',    rank: 9, name: '深淵を覗く',  title: '龍宮の使い',     desc: 'リュウグウノツカイを釣り上げる',
+    { id: 'angler_max', rank: 12, name: '熟練',         title: '手練れ',         desc: '釣り人レベルを最大にする',
+      check: function (st) { return (st.anglerLevel || 1) >= 20; } },
+    { id: 'ryugu',      rank: 13, name: '深淵を覗く',   title: '龍宮の使い',     desc: 'リュウグウノツカイを釣り上げる',
       check: function (st) { return !!(st.dex && st.dex.ryugu); } },
-    { id: 'complete', rank: 10, name: '図鑑完成',   title: '海を知る者',     desc: '7種類すべてを釣り上げる',
-      check: function (st) { return Object.keys(st.dex || {}).length >= 7; } },
-    { id: 'master',   rank: 11, name: '名人',       title: '釣聖',           desc: 'レベル30に到達する',
+    { id: 'rabuka',     rank: 14, name: '生きた化石',   title: '古代の目撃者',   desc: 'ラブカを釣り上げる',
+      check: function (st) { return !!(st.dex && st.dex.rabuka); } },
+    { id: 'daiouika',   rank: 15, name: '海の伝説',     title: '深海の覇者',     desc: 'ダイオウイカを釣り上げる',
+      check: function (st) { return !!(st.dex && st.dex.daiouika); } },
+    { id: 'complete',   rank: 16, name: '図鑑完成',     title: '海を知る者',     desc: '30種類すべてを釣り上げる',
+      check: function (st) { return kinds(st) >= 30; } },
+    { id: 'master',     rank: 17, name: '名人',         title: '釣聖',           desc: '釣果レベルを30にする',
       check: function (st) { return (st.level || 1) >= 30; } }
   ];
 
   var BY_ID = {};
   for (var i = 0; i < LIST.length; i++) BY_ID[LIST[i].id] = LIST[i];
+
+  function kinds(st) { return Object.keys(st.dex || {}).length; }
 
   function biggest(st) {
     var best = 0;

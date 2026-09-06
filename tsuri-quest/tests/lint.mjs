@@ -40,11 +40,19 @@ for (const f of jsFiles) {
 }
 
 // 3. 読み込み順
+const ALL_JS = [
+  'fish.js', 'progress.js', 'angler.js', 'world.js', 'gear.js', 'parts.js', 'boost.js',
+  'bonus.js', 'achievements.js', 'storage.js', 'account.js', 'tackle.js', 'game.js',
+  'audio.js', 'render.js'
+];
 const need = [
   ['fish.js', 'game.js'], ['fish.js', 'render.js'],
-  ['progress.js', 'storage.js'], ['achievements.js', 'storage.js'],
-  ...['fish.js', 'progress.js', 'world.js', 'gear.js', 'achievements.js',
-      'storage.js', 'game.js', 'audio.js', 'render.js'].map((f) => [f, 'main.js'])
+  // storage は状態の正規化で Progress / Angler を、実績判定で Achievements を使う
+  ['progress.js', 'storage.js'], ['angler.js', 'storage.js'], ['achievements.js', 'storage.js'],
+  // tackle はすべての補正元をまとめる
+  ['gear.js', 'tackle.js'], ['parts.js', 'tackle.js'],
+  ['angler.js', 'tackle.js'], ['boost.js', 'tackle.js'],
+  ...ALL_JS.map((f) => [f, 'main.js'])
 ];
 for (const [before, after] of need) {
   const i = order.indexOf(before), j = order.indexOf(after);

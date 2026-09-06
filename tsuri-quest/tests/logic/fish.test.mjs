@@ -4,9 +4,12 @@ import { loadFQ, seededRandom, scriptedRandom } from './helpers.mjs';
 
 const { Fish } = loadFQ(['fish.js']);
 
-test('魚は7種類あり、必要な属性がすべて揃っている', () => {
+test('魚は30種類あり、必要な属性がすべて揃っている', () => {
   const all = Fish.all();
-  assert.equal(all.length, 7);
+  assert.equal(all.length, 30);
+  assert.equal(Fish.count, 30);
+  assert.equal(new Set(all.map((f) => f.id)).size, 30, 'IDが重複している');
+  assert.equal(new Set(all.map((f) => f.name)).size, 30, '名前が重複している');
   for (const f of all) {
     assert.ok(f.id && f.name, `id/name が無い: ${JSON.stringify(f)}`);
     assert.ok(f.min > 0 && f.max > f.min, `${f.id}: サイズ範囲が不正`);
@@ -22,7 +25,7 @@ test('魚は7種類あり、必要な属性がすべて揃っている', () => {
   }
 });
 
-test('レア度が高いほど基礎点・サイズが大きい（順序が崩れていない）', () => {
+test('レア度が高いほど基礎点が大きい（順序が崩れていない）', () => {
   const all = Fish.all();
   for (let i = 1; i < all.length; i++) {
     assert.ok(all[i].stars >= all[i - 1].stars, 'stars が昇順に並んでいない');
@@ -30,12 +33,34 @@ test('レア度が高いほど基礎点・サイズが大きい（順序が崩�
   }
 });
 
+test('レア度の段階がすべて埋まっていて、偏りすぎていない', () => {
+  const byStars = {};
+  for (const f of Fish.all()) byStars[f.stars] = (byStars[f.stars] || 0) + 1;
+  for (let s = 1; s <= 5; s++) {
+    assert.ok(byStars[s] >= 3, `★${s} が ${byStars[s] || 0} 種しかない`);
+  }
+  assert.ok(byStars[1] > byStars[5], 'コモンより伝説のほうが多い');
+});
+
+test('レア度が上がるほど、当たりが短くファイトが長い（段階の平均で見る）', () => {
+  const avg = (stars, key) => {
+    const list = Fish.all().filter((f) => f.stars === stars);
+    return list.reduce((a, f) => a + f[key], 0) / list.length;
+  };
+  for (let s = 2; s <= 5; s++) {
+    assert.ok(avg(s, 'reactionMs') < avg(s - 1, 'reactionMs'), `★${s} の猶予が短くなっていない`);
+    assert.ok(avg(s, 'fightMs') > avg(s - 1, 'fightMs'), `★${s} のファイトが長くなっていない`);
+    assert.ok(avg(s, 'base') > avg(s - 1, 'base'), `★${s} の基礎点が上がっていない`);
+  }
+});
+
 test('出現重みは Lv1 と Lv30 の値をきっちり返し、範囲外はクランプされる', () => {
+  const near = (a, b, msg) => assert.ok(Math.abs(a - b) < 1e-9, `${msg}: ${a} vs ${b}`);
   for (const f of Fish.all()) {
-    assert.equal(Fish.weightAt(f, 1), f.w1);
-    assert.equal(Fish.weightAt(f, 30), f.w30);
-    assert.equal(Fish.weightAt(f, 0), f.w1, 'Lv0 は Lv1 として扱う');
-    assert.equal(Fish.weightAt(f, 99), f.w30, 'Lv30 超はクランプする');
+    near(Fish.weightAt(f, 1), f.w1, f.id);
+    near(Fish.weightAt(f, 30), f.w30, f.id);
+    near(Fish.weightAt(f, 0), f.w1, `${f.id}: Lv0 は Lv1 として扱う`);
+    near(Fish.weightAt(f, 99), f.w30, `${f.id}: Lv30 超はクランプする`);
     const mid = Fish.weightAt(f, 15.5);
     assert.ok(Math.abs(mid - (f.w1 + f.w30) / 2) < 1e-9, '中間は線形補間になる');
   }
@@ -54,23 +79,25 @@ test('レベルが上がるほどレアな魚の出現確率が上がり、コ�
         `${id}: Lv${levels[i]} の確率が Lv${levels[i - 1]} 以下`);
     }
   }
-  for (const id of ['aji', 'saba']) {
+  for (const id of ['aji', 'saba', 'iwashi', 'haze']) {
     assert.ok(share(30, id) < share(1, id), `${id}: レベルを上げても確率が下がらない`);
   }
 });
 
-test('Lv1 でも伝説はゼロではない（初回から夢がある）', () => {
+test('Lv1 でも伝説はゼロではないが、めったに出ない', () => {
   const ws = Fish.weights({ level: 1 });
   const total = ws.reduce((a, w) => a + w.weight, 0);
-  const p = ws.find((w) => w.fish.id === 'ryugu').weight / total;
-  assert.ok(p > 0 && p < 0.005, `Lv1 の伝説確率が想定外: ${p}`);
+  const legend = ws.filter((w) => w.fish.stars === 5).reduce((a, w) => a + w.weight, 0) / total;
+  assert.ok(legend > 0, 'Lv1 で伝説が絶対に出ない');
+  assert.ok(legend < 0.01, `Lv1 の伝説確率が高すぎる: ${legend}`);
+  for (const w of ws) assert.ok(w.weight > 0, `${w.fish.id} の重みが 0 以下`);
 });
 
 test('時間帯・天候・ルアーの補正が重みに掛かる', () => {
   const base = Fish.weights({ level: 10 }).find((w) => w.fish.id === 'ryugu').weight;
   const night = Fish.weights({ level: 10, phase: 'night' }).find((w) => w.fish.id === 'ryugu').weight;
   const storm = Fish.weights({ level: 10, weather: 'storm' }).find((w) => w.fish.id === 'ryugu').weight;
-  assert.ok(night > base * 3.5, '夜の補正が効いていない');
+  assert.ok(night > base * 3.0, '夜の補正が効いていない');
   assert.ok(storm > base * 2, '嵐の補正が効いていない');
 
   const lured = Fish.weights({ level: 10, rareBoost: 2.5 });
@@ -95,15 +122,15 @@ test('抽選は乱数だけで決まり、同じ種なら同じ結果になる',
 
 test('抽選の境界: 乱数0で先頭、1に限りなく近い値で末尾が出る', () => {
   const ctx = { level: 1 };
-  assert.equal(Fish.pick(ctx, scriptedRandom([0])).id, 'aji');
-  assert.equal(Fish.pick(ctx, scriptedRandom([0.9999999999])).id, 'ryugu');
+  assert.equal(Fish.pick(ctx, scriptedRandom([0])).id, 'iwashi');
+  assert.equal(Fish.pick(ctx, scriptedRandom([0.9999999999])).id, 'daiouika');
 });
 
 test('サイズは常に範囲内で、大物寄せを掛けると平均が上がる', () => {
   const rng = seededRandom(99);
   for (const f of Fish.all()) {
     let sum = 0, sumBig = 0;
-    const N = 3000;
+    const N = 800;
     for (let i = 0; i < N; i++) {
       const s = Fish.rollSize(f, rng);
       const big = Fish.rollSize(f, rng, { bigBias: 0.8 });

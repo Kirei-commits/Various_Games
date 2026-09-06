@@ -4,11 +4,19 @@ import { open, tap, phase, stateOf, waitPhase, castToBite, catchOne } from './fi
 test('初回は Lv.1 で、図鑑はすべて未取得', async ({ page }) => {
   await open(page);
   await expect(page.locator('#hud-level')).toHaveText('Lv.1');
-  await expect(page.locator('#hud-coins')).toHaveText('0');
+  await expect(page.locator('#hud-angler')).toHaveText('Lv.1');
   await expect(page.locator('#action')).toHaveText('キャスト');
   await expect(page.locator('#status')).toContainText('キャスト');
-  await expect(page.locator('.dex-card')).toHaveCount(7);
-  await expect(page.locator('.dex-card.locked')).toHaveCount(7);
+
+  const total = await page.evaluate(() => window.FQ.Fish.count);
+  expect(total).toBe(30);
+  await expect(page.locator('.dex-card')).toHaveCount(total);
+  await expect(page.locator('.dex-card.locked')).toHaveCount(total);
+  await expect(page.locator('#dex-count')).toHaveText('0 / 30');
+
+  const st = await stateOf(page);
+  expect(st.xp).toBe(0);
+  expect(st.catches).toBe(0);
 });
 
 test('キャストすると仕掛けが飛び、やがて当たりが出る', async ({ page }) => {
@@ -31,13 +39,14 @@ test('1匹釣るとポイント・図鑑・記録・コンボがまとめて更�
   expect(st.catches).toBe(1);
   expect(st.combo).toBe(1);
   expect(st.xp).toBeGreaterThan(0);
-  expect(st.coins).toBe(st.xp);
+  expect(st.anglerXp).toBeGreaterThan(0);
   expect(Object.keys(st.dex)).toHaveLength(1);
   expect(st.records).toHaveLength(1);
 
   await expect(page.locator('#hud-coins')).not.toHaveText('0');
   await expect(page.locator('#hud-combo')).toHaveText('🔥 1');
-  await expect(page.locator('.dex-card.locked')).toHaveCount(6);
+  await expect(page.locator('#dex-count')).toHaveText('1 / 30');
+  await expect(page.locator('.dex-card.locked')).toHaveCount(29);
   await page.locator('#tab-records').click();
   await expect(page.locator('.record')).toHaveCount(1);
 });
@@ -69,7 +78,7 @@ test('早合わせは失敗し、理由が表示される', async ({ page }) => 
 
 test('合わせ遅れは失敗する', async ({ page }) => {
   await open(page);
-  await castToBite(page);
+  await castToBite(page, { hold: false });   // 猶予そのものを見たいので伸ばさない
   await waitPhase(page, 'result');
   expect(await page.evaluate(() => window.FQ.app.game.state.result.reason)).toBe('late');
   await expect(page.locator('#status')).toContainText('遅かった');

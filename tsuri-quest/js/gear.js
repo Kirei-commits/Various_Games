@@ -52,30 +52,32 @@
 
   function maxLevel(kind) { return (kind === 'rod' ? RODS : LINES).length; }
 
-  /** 次段階のコスト。最大なら null。 */
-  function upgradeCost(kind, level) {
+  /** 次段階のコスト。最大なら null。opts.free なら 0。 */
+  function upgradeCost(kind, level, opts) {
     var list = kind === 'rod' ? RODS : LINES;
     var next = Math.round(level || 1) + 1;
-    return next > list.length ? null : list[next - 1].cost;
+    if (next > list.length) return null;
+    return (opts && opts.free) ? 0 : list[next - 1].cost;
   }
 
   /**
    * 強化を試みる。成功したら { ok:true, level, coins }、失敗なら { ok:false, reason }。
    * 状態は書き換えず新しい値を返す（呼び出し側が state に反映する）。
+   * opts.free は管理者コードによる「全商品0円」モード。
    */
-  function tryUpgrade(kind, level, coins) {
-    var cost = upgradeCost(kind, level);
+  function tryUpgrade(kind, level, coins, opts) {
+    var cost = upgradeCost(kind, level, opts);
     if (cost == null) return { ok: false, reason: 'max' };
     if (coins < cost) return { ok: false, reason: 'poor', cost: cost };
     return { ok: true, level: Math.round(level) + 1, coins: coins - cost, cost: cost };
   }
 
-  /** ルアーを count 個買う。 */
-  function tryBuyLure(id, count, coins) {
+  /** ルアーを count 個買う。opts.free なら 0円。 */
+  function tryBuyLure(id, count, coins, opts) {
     var l = LURE_BY_ID[id];
     if (!l || l.cost === 0) return { ok: false, reason: 'unbuyable' };
     var n = Math.max(1, Math.round(count || 1));
-    var total = l.cost * n;
+    var total = ((opts && opts.free) ? 0 : l.cost) * n;
     if (coins < total) return { ok: false, reason: 'poor', cost: total };
     return { ok: true, count: n, coins: coins - total, cost: total };
   }

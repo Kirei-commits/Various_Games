@@ -3,7 +3,7 @@ import { open, stateOf, catchOne } from './fixtures.mjs';
 
 test('タブを切り替えると対応するパネルだけが出る', async ({ page }) => {
   await open(page);
-  const names = ['dex', 'shop', 'records', 'achievements'];
+  const names = ['dex', 'shop', 'angler', 'records', 'achievements'];
   for (const name of names) {
     await page.locator('#tab-' + name).click();
     await expect(page.locator('#panel-' + name)).toBeVisible();
@@ -64,6 +64,21 @@ test('時間帯と天候の表示が状態と一致する', async ({ page }) => 
     window.FQ.app.debug.setWeather('sunny');
   });
   await expect(page.locator('#hud-env')).toHaveText('🌅 05:00 ☀️');
+});
+
+test('釣り人パネルに恩恵と「つぎのレベルで」が並ぶ', async ({ page }) => {
+  await open(page);
+  await page.locator('#tab-angler').click();
+  await expect(page.locator('#angler-count')).toHaveText('Lv.1 / 20');
+  await expect(page.locator('#perk-list .perk')).toHaveCount(5);
+  await expect(page.locator('#perk-next .perk')).toHaveCount(5);
+
+  await page.evaluate(() => window.FQ.app.debug.setAnglerXp(12));
+  await expect(page.locator('#angler-count')).toHaveText('Lv.12 / 20');
+  await expect(page.locator('#hud-angler')).toHaveText('Lv.12');
+
+  await page.evaluate(() => window.FQ.app.debug.setAnglerXp(20));
+  await expect(page.locator('#perk-next .maxed')).toBeVisible();
 });
 
 test('効果音の切り替えが表示に反映される', async ({ page }) => {

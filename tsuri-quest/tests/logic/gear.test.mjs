@@ -55,6 +55,21 @@ test('エサはコストどおりに買え、素エサは買えない', () => {
   assert.equal(Gear.tryBuyLure('jig', 0, 99999).count, 1, '0個指定は1個として扱う');
 });
 
+test('管理者モードでは0円で買える・強化できる', () => {
+  const r = Gear.tryUpgrade('rod', 1, 0, { free: true });
+  assert.equal(r.ok, true);
+  assert.equal(r.cost, 0);
+  assert.equal(r.coins, 0);
+  assert.equal(Gear.upgradeCost('rod', 1, { free: true }), 0);
+  assert.equal(Gear.upgradeCost('rod', 5, { free: true }), null, '最大は0円でも強化できない');
+
+  const b = Gear.tryBuyLure('chum', 10, 0, { free: true });
+  assert.equal(b.ok, true);
+  assert.equal(b.cost, 0);
+  assert.equal(b.count, 10);
+  assert.equal(Gear.tryBuyLure('none', 1, 0, { free: true }).ok, false, '素エサは0円でも買わせない');
+});
+
 test('高いエサほど効果が強い（値段と性能が逆転していない）', () => {
   const buyable = Gear.LURES.filter((l) => l.cost > 0);
   const score = (l) => (1 - l.waitMul) + (l.rareBoost - 1) + l.bigBias;
