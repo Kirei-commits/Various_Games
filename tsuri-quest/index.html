@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0e6ea8">
+<title>つりクエスト — TSURI QUEST</title>
+<meta name="description" content="7種類の魚を釣り上げてレベルを上げる、ブラウザだけで遊べる釣りゲーム。">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='26' font-size='26'>🎣</text></svg>">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="app">
+
+  <header class="hud">
+    <div class="hud-main">
+      <div class="hud-level">
+        <span class="lv-badge" id="hud-level">Lv.1</span>
+        <span class="lv-title" id="hud-title">無名の釣り人</span>
+      </div>
+      <div class="xp">
+        <div class="xp-bar"><div class="xp-fill" id="hud-xp-fill"></div></div>
+        <span class="xp-text" id="hud-xp-text">0 / 40 P</span>
+      </div>
+    </div>
+    <div class="hud-side">
+      <div class="chip chip-coin" title="所持ポイント">💰 <b id="hud-coins">0</b></div>
+      <div class="chip" id="hud-env" title="時間帯と天気">🌅 05:00 ☀️</div>
+      <div class="chip chip-combo" id="hud-combo" title="連続ヒット">🔥 0</div>
+      <button class="icon-btn" id="btn-sound" type="button" aria-pressed="true" title="効果音">🔊</button>
+    </div>
+  </header>
+
+  <main class="stage">
+    <canvas id="scene" aria-label="釣り場の様子"></canvas>
+    <div class="stage-overlay">
+      <p class="status" id="status">キャストして釣りをはじめよう</p>
+      <div class="gauges" id="gauges" hidden>
+        <div class="gauge">
+          <span class="gauge-label">テンション</span>
+          <div class="gauge-track" id="tension-track">
+            <div class="gauge-danger" id="tension-danger"></div>
+            <div class="gauge-fill tension" id="tension-fill"></div>
+          </div>
+        </div>
+        <div class="gauge">
+          <span class="gauge-label">取り込み</span>
+          <div class="gauge-track">
+            <div class="gauge-fill progress" id="progress-fill"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <div class="controls">
+    <button class="action" id="action" type="button">キャスト</button>
+    <p class="hint" id="hint">エサ: 素エサ ／ 竿: 竹の延べ竿 ／ 糸: ナイロン2号</p>
+  </div>
+
+  <nav class="tabs" role="tablist">
+    <button class="tab is-active" id="tab-dex" type="button" role="tab" aria-controls="panel-dex" aria-selected="true">図鑑</button>
+    <button class="tab" id="tab-shop" type="button" role="tab" aria-controls="panel-shop" aria-selected="false">道具</button>
+    <button class="tab" id="tab-records" type="button" role="tab" aria-controls="panel-records" aria-selected="false">記録</button>
+    <button class="tab" id="tab-achievements" type="button" role="tab" aria-controls="panel-achievements" aria-selected="false">実績</button>
+  </nav>
+
+  <section class="panel" id="panel-dex" role="tabpanel" aria-labelledby="tab-dex">
+    <div class="dex" id="dex-list"></div>
+  </section>
+
+  <section class="panel" id="panel-shop" role="tabpanel" aria-labelledby="tab-shop" hidden>
+    <h2 class="panel-title">エサ・ルアー</h2>
+    <p class="panel-note">装備したエサはキャストごとに1つ消費します（素エサは消費しません）。</p>
+    <div class="lures" id="lure-list"></div>
+    <h2 class="panel-title">竿</h2>
+    <div class="upgrade" id="rod-upgrade"></div>
+    <h2 class="panel-title">糸</h2>
+    <div class="upgrade" id="line-upgrade"></div>
+  </section>
+
+  <section class="panel" id="panel-records" role="tabpanel" aria-labelledby="tab-records" hidden>
+    <h2 class="panel-title">ベスト記録</h2>
+    <ol class="records" id="record-list"></ol>
+    <h2 class="panel-title">通算</h2>
+    <div class="stats" id="stat-list"></div>
+    <button class="danger" id="btn-reset" type="button">データを消去する</button>
+  </section>
+
+  <section class="panel" id="panel-achievements" role="tabpanel" aria-labelledby="tab-achievements" hidden>
+    <div class="achievements" id="achievement-list"></div>
+  </section>
+
+  <footer class="foot">
+    <a href="../">← ゲーム一覧</a>
+  </footer>
+
+  <div class="toasts" id="toasts" aria-live="polite"></div>
+</div>
+
+<script src="js/fish.js"></script>
+<script src="js/progress.js"></script>
+<script src="js/world.js"></script>
+<script src="js/gear.js"></script>
+<script src="js/achievements.js"></script>
+<script src="js/storage.js"></script>
+<script src="js/game.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/render.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>

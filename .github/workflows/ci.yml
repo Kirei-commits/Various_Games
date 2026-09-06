@@ -1,0 +1,100 @@
+# このリポジトリ唯一の CI 定義。
+#
+# 重要: GitHub Actions は **リポジトリ直下の .github/workflows/ しか読まない**。
+# 各ゲームのディレクトリの中にワークフローを置いても実行されない
+# （実際、gomoku-narabe/.github/workflows/ci.yml はこのリポジトリでは動いていなかった。
+#  あれは単独リポジトリとして切り出したときのために残してある）。
+# ゲームを追加したら、下の matrix に**ディレクトリ名を足すこと**。
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# 同じブランチへ続けてpushしたら古い実行は打ち切る
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    name: 静的検査とロジックテスト (${{ matrix.game }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        game: [gomoku-narabe, tsuri-quest]
+    defaults:
+      run:
+        working-directory: ${{ matrix.game }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: ${{ matrix.game }}/package-lock.json
+
+      # lint は Node の標準機能だけで動くので依存のインストール前に実行できる
+      - name: 構文チェックと参照ファイルの整合性
+        run: npm run lint
+
+      - name: 依存をインストール
+        run: npm ci
+
+      - name: ロジックテスト
+        run: npm run test:logic
+
+  e2e:
+    name: ブラウザテスト (${{ matrix.game }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        game: [gomoku-narabe, tsuri-quest]
+    defaults:
+      run:
+        working-directory: ${{ matrix.game }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: ${{ matrix.game }}/package-lock.json
+
+      - name: 依存をインストール
+        run: npm ci
+
+      # --with-deps を省くとローカルでは通るのにCIだけ落ちる（libnss等が入らない）
+      - name: Chromium と実行に必要なシステムライブラリを導入
+        run: npx playwright install --with-deps chromium
+
+      - name: E2Eテスト（デスクトップ + スマホのタッチ操作）
+        run: npm run test:e2e
+
+      # 失敗したときこそレポートが要るので必ず保存する
+      - name: テストレポートを保存
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: playwright-report-${{ matrix.game }}
+          path: ${{ matrix.game }}/playwright-report/
+          retention-days: 14
+
+      - name: 失敗時のトレースとスクリーンショットを保存
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: playwright-test-results-${{ matrix.game }}
+          path: ${{ matrix.game }}/test-results/
+          retention-days: 7
