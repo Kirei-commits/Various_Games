@@ -2,7 +2,8 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    # 作業ブランチでも回して、PRを開く前に緑かどうかを確かめられるようにする
+    branches: [main, 'claude/**']
   pull_request:
   workflow_dispatch:
 
