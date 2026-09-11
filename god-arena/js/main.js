@@ -38,9 +38,9 @@
   // ── 局面ごとに押せる手札 ───────────────────────────────
   function playable(item) {
     if (game.busy) return false;
-    if (isMyDefense()) return item.kind === 'defense';
+    if (isMyDefense()) return Items.isShield(item);
     if (!isMyTurn()) return false;
-    if (item.kind === 'defense') return false;       // 防具は受ける時だけ使う
+    if (Items.isShield(item)) return false;          // 防具と反射具は受ける時だけ使う
     const sel = [...game.ui.selected].map(findItem).filter(Boolean);
     if (!sel.length) return true;
     // 武器どうしは重ねられる。食料・魔法は1つだけ。
@@ -82,13 +82,16 @@
     $('#btn-take').hidden = !defending;
 
     if (defending) {
-      const shields = sel.filter((i) => i.kind === 'defense');
+      const shields = sel.filter(Items.isShield);
       $('#btn-guard').disabled = game.busy || shields.length === 0;
       $('#btn-take').disabled = game.busy;
       const preview = Engine.resolveDamage(s.pending.weapons, shields);
-      Render.hint(shields.length
-        ? `この防御なら ${preview.damage} ダメージ（${preview.blocked} 防げる）`
-        : '防具をえらぶか、そのまま受ける', preview.damage >= me().hp);
+      let text = '防具をえらぶか、そのまま受ける';
+      if (shields.length) {
+        text = `この防御なら ${preview.damage} ダメージ（${preview.blocked} 防げる）`;
+        if (preview.reflected > 0) text += ` / ${preview.reflected} 撃ち返す`;
+      }
+      Render.hint(text, preview.damage >= me().hp);
       return;
     }
 
@@ -153,7 +156,7 @@
 
   async function humanDefend(useItems) {
     if (!isMyDefense() || game.busy) return;
-    const uids = useItems ? selectedItems().filter((i) => i.kind === 'defense').map((i) => i.uid) : [];
+    const uids = useItems ? selectedItems().filter(Items.isShield).map((i) => i.uid) : [];
     game.ui.selected.clear();
     await resolveDefense(uids);
   }
@@ -175,11 +178,23 @@
   /** 防御を確定してダメージを出す（人間・AI共通） */
   async function resolveDefense(uids) {
     const s = game.state;
+    // defend() の後は pending が消え、決着ならログに 'over' が足される。
+    // 先に攻守のIDを控えておく（ログ末尾から取ると 'over' を拾って壊れる）。
     const targetId = s.pending.targetId;
+    const attackerId = s.pending.attackerId;
     const res = Engine.defend(s, uids);
     game.busy = true;
 
-    if (res.blocked > 0 && res.damage === 0) {
+    if (res.reflected > 0) {
+      Audio.play('block');
+      const dn = Engine.byId(s, targetId).name;
+      Render.stage(null, res.damage > 0
+        ? `${dn} は ${res.reflected} 撃ち返した！（${res.damage} くらった）`
+        : `${dn} は完全に防ぎ、${res.reflected} 撃ち返した！`);
+      Render.pop('ref', `↩${res.reflected}`);
+      Render.shake(attackerId);
+      if (res.damage > 0) Render.shake(targetId);
+    } else if (res.blocked > 0 && res.damage === 0) {
       Audio.play('block');
       Render.stage(null, '完全に防いだ！');
       Render.pop('blk', 'GUARD');
@@ -197,11 +212,16 @@
     refresh();
     await wait(delay() * 0.8);
 
-    if (res.defeated) {
+    const fallen = [];
+    if (res.defeated) fallen.push(Engine.byId(s, targetId).name);
+    if (res.attackerDefeated) fallen.push(Engine.byId(s, attackerId).name);
+    if (fallen.length) {
       Audio.play('defeat');
-      Render.stage(null, `${Engine.byId(s, targetId).name} は倒れた`);
+      Render.stage(null, fallen.length > 1
+        ? `${fallen.join(' と ')} が相打ちで倒れた`
+        : `${fallen[0]} は倒れた`);
       refresh();
-      await wait(delay() * 0.7);
+      await wait(delay() * 0.85);
     }
     game.busy = false;
     drive();
@@ -281,22 +301,30 @@
 
   function finish() {
     const s = game.state;
-    const won = s.winner !== null && Engine.byId(s, s.winner).isHuman;
+    const draw = s.winner === null;                       // 反射での相打ちで起きる
+    const won = !draw && Engine.byId(s, s.winner).isHuman;
     const rec = Object.assign({}, game.record);
     rec.games++;
-    if (won) rec.wins++; else rec.losses++;
+    if (draw) rec.draws++;
+    else if (won) rec.wins++;
+    else rec.losses++;
     rec.kills += me().stats.kills;
     game.record = Store.save({ record: rec }).record;
 
     Audio.play(won ? 'win' : 'lose');
-    $('#overlay-kicker').textContent = won ? 'VICTORY' : 'DEFEAT';
-    $('#overlay-title').textContent = won ? '勝利' : '敗北';
+    $('#overlay-kicker').textContent = draw ? 'DRAW' : (won ? 'VICTORY' : 'DEFEAT');
+    $('#overlay-title').textContent = draw ? '相打ち' : (won ? '勝利' : '敗北');
     const stats = me().stats;
-    $('#overlay-sub').textContent =
-      `与ダメージ ${stats.dealt} ／ 防いだ ${stats.blocked} ／ 撃破 ${stats.kills}人`
-      + (s.winner !== null && !won ? `　—　${Engine.byId(s, s.winner).name} の勝ち` : '');
+    const parts = [
+      `与ダメージ ${stats.dealt}`,
+      `防いだ ${stats.blocked}`,
+      `撃ち返し ${stats.reflected}`,
+      `撃破 ${stats.kills}人`
+    ];
+    $('#overlay-sub').textContent = parts.join(' ／ ')
+      + (!draw && !won ? `　—　${Engine.byId(s, s.winner).name} の勝ち` : '');
     $('#overlay').hidden = false;
-    Render.stage('RESULT', won ? 'あなたの勝利！' : '敗北…');
+    Render.stage('RESULT', draw ? '相打ち…' : (won ? 'あなたの勝利！' : '敗北…'));
     refresh();
   }
 
@@ -328,10 +356,12 @@
       if (!item || !playable(item)) return;
       if (game.ui.selected.has(uid)) game.ui.selected.delete(uid);
       else {
-        // 食料・魔法は1つだけ。武器を選んでいたら入れ替える。
-        if (item.kind !== 'defense' && item.kind !== 'weapon') game.ui.selected.clear();
+        // 食料・魔法は1つだけ。武器や防具は重ねられる。
+        if (!Items.isShield(item) && item.kind !== 'weapon') game.ui.selected.clear();
         const cur = selectedItems();
-        if (cur.length && cur[0].kind !== item.kind) game.ui.selected.clear();
+        const sameGroup = (a, b) =>
+          a.kind === b.kind || (Items.isShield(a) && Items.isShield(b));
+        if (cur.length && !sameGroup(cur[0], item)) game.ui.selected.clear();
         game.ui.selected.add(uid);
       }
       Audio.play('select');

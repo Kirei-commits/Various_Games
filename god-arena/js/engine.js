@@ -38,7 +38,7 @@
       maxHp: hp,
       alive: true,
       hand: Items.draw(rng, OPENING_HAND),
-      stats: { dealt: 0, blocked: 0, taken: 0, healed: 0, kills: 0 }
+      stats: { dealt: 0, blocked: 0, taken: 0, healed: 0, kills: 0, reflected: 0 }
     }));
     return {
       players,
@@ -58,7 +58,8 @@
   const alivePlayers = (s) => s.players.filter((p) => p.alive);
   const byId = (s, id) => s.players[id];
   const weaponsOf = (p) => p.hand.filter((i) => i.kind === 'weapon');
-  const defensesOf = (p) => p.hand.filter((i) => i.kind === 'defense');
+  /** 守りに使える手札（防具と反射具） */
+  const defensesOf = (p) => p.hand.filter(Items.isShield);
   const supportsOf = (p) => p.hand.filter((i) => i.kind === 'food' || i.kind === 'magic');
 
   /** 攻撃できる相手（自分以外の生存者） */
@@ -70,23 +71,32 @@
    * 攻撃と防御からダメージを求める純関数。ここがルールの核。
    *  - 攻撃は属性ごとに合算される
    *  - 同じ属性の防具だけがその属性を止められる
+   *  - 反射具は同属性を止めたうえで、止めた分をそのまま攻撃側へ返す
    *  - 全属性(all)の防具は余りを引き受ける。大きく通っている属性から順に充てる
+   *
+   * 同じ属性に反射具と防具の両方を出したときは、反射具を先に充てる
+   * （撃ち返せる量が増えるので、出した側に有利な配分にする）。
    */
   function resolveDamage(weapons, defenses) {
     const atk = new Map();
     for (const w of weapons) atk.set(w.element, (atk.get(w.element) || 0) + w.power);
 
-    const def = new Map();
+    const shield = new Map();
+    const mirror = new Map();
     let universal = 0;
     for (const d of defenses) {
-      if (d.element === 'all') universal += d.power;
-      else def.set(d.element, (def.get(d.element) || 0) + d.power);
+      if (d.kind === 'reflect') mirror.set(d.element, (mirror.get(d.element) || 0) + d.power);
+      else if (d.element === 'all') universal += d.power;
+      else shield.set(d.element, (shield.get(d.element) || 0) + d.power);
     }
 
-    // 属性ごとに同属性の防具を当てる
+    // 属性ごとに 反射 → 同属性の防具 の順で充てる
     const rows = [...atk.entries()].map(([element, raw]) => {
-      const same = Math.min(raw, def.get(element) || 0);
-      return { element, raw, sameBlocked: same, rest: raw - same, universalBlocked: 0 };
+      const reflected = Math.min(raw, mirror.get(element) || 0);
+      let rest = raw - reflected;
+      const sameBlocked = Math.min(rest, shield.get(element) || 0);
+      rest -= sameBlocked;
+      return { element, raw, reflected, sameBlocked, rest, universalBlocked: 0 };
     });
 
     // 残りの大きい属性から全属性防具を充てる（防御側に最も有利な配分）
@@ -99,19 +109,21 @@
       universal -= use;
     }
 
-    let damage = 0, blocked = 0;
+    let damage = 0, blocked = 0, reflected = 0;
     const detail = rows.map((r) => {
       damage += r.rest;
-      blocked += r.sameBlocked + r.universalBlocked;
+      blocked += r.reflected + r.sameBlocked + r.universalBlocked;
+      reflected += r.reflected;
       return {
         element: r.element,
         raw: r.raw,
-        blocked: r.sameBlocked + r.universalBlocked,
+        blocked: r.reflected + r.sameBlocked + r.universalBlocked,
+        reflected: r.reflected,
         through: r.rest
       };
     });
     detail.sort((a, b) => b.raw - a.raw);
-    return { damage, blocked, detail, wasted: universal };
+    return { damage, blocked, reflected, detail, wasted: universal };
   }
 
   // ── 手札操作 ───────────────────────────────────────────
@@ -131,6 +143,7 @@
   function itemValue(item) {
     switch (item.kind) {
       case 'weapon':  return item.power + 3;
+      case 'reflect': return item.power * 1.15;
       case 'defense': return item.power * 0.9;
       case 'magic':   return 11;
       case 'food':    return item.power * 0.55;
@@ -221,7 +234,7 @@
     const attacker = byId(s, attackerId);
 
     const used = uids && uids.length ? takeFromHand(defender, uids) : [];
-    if (used.some((i) => i.kind !== 'defense')) {
+    if (used.some((i) => !Items.isShield(i))) {
       give(s, defender, used);
       throw new Error('防具以外では防御できない');
     }
@@ -239,16 +252,32 @@
       attacker.stats.kills++;
     }
 
+    // 反射は防御が済んだあとに攻撃側へ返る。攻撃側はこれを防げない。
+    let attackerDefeated = false;
+    if (res.reflected > 0) {
+      attacker.hp = Math.max(0, attacker.hp - res.reflected);
+      attacker.stats.taken += res.reflected;
+      defender.stats.dealt += res.reflected;
+      defender.stats.reflected += res.reflected;
+      if (attacker.hp <= 0 && attacker.alive) {
+        attacker.alive = false;
+        attacker.hand = [];
+        attackerDefeated = true;
+        if (defender.alive) defender.stats.kills++;
+      }
+    }
+
     log(s, {
       t: 'resolve', actor: attackerId, target: targetId,
       items: used.map((i) => i.id),
-      damage: res.damage, blocked: res.blocked, detail: res.detail, defeated
+      damage: res.damage, blocked: res.blocked, reflected: res.reflected,
+      detail: res.detail, defeated, attackerDefeated
     });
 
     s.pending = null;
     s.phase = 'turn';
     endTurn(s);
-    return Object.assign({ defeated }, res);
+    return Object.assign({ defeated, attackerDefeated }, res);
   }
 
   /** 祈る。神からアイテムを授かって手番を終える。攻め手があるうちは祈れない。 */

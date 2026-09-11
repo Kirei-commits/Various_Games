@@ -52,7 +52,7 @@ for (const [before, after] of need) {
 // 4. アイテム定義の整合
 const src = fs.readFileSync(path.join(jsDir, 'items.js'), 'utf8');
 const entries = [...src.matchAll(/\{\s*id:\s*'([^']+)',\s*name:\s*'([^']+)',\s*kind:\s*'([^']+)',\s*element:\s*'([^']+)',\s*power:\s*(-?\d+)/g)];
-const KINDS = new Set(['weapon', 'defense', 'food', 'magic']);
+const KINDS = new Set(['weapon', 'defense', 'reflect', 'food', 'magic']);
 const ELS = new Set(['none', 'fire', 'water', 'thunder', 'light', 'dark', 'all']);
 const seen = new Set();
 for (const [, id, name, kind, element, power] of entries) {
@@ -60,11 +60,19 @@ for (const [, id, name, kind, element, power] of entries) {
   seen.add(id);
   if (!KINDS.has(kind)) problems.push(`未知の kind: ${id} -> ${kind}`);
   if (!ELS.has(element)) problems.push(`未知の element: ${id} -> ${element}`);
+  // all は「どの属性でも受けられる」防具専用。反射具に付けると強すぎて成立しない。
   if (kind !== 'defense' && element === 'all') problems.push(`all属性は防具にしか使えない: ${id}`);
   if (Number(power) <= 0) problems.push(`power が0以下: ${id}`);
   if (!name) problems.push(`name が空: ${id}`);
 }
 if (entries.length < 20) problems.push(`アイテム定義が読み取れていない（${entries.length}件）`);
+
+// 攻撃属性それぞれに受け手があること（片方だけ増やして相性が崩れるのを防ぐ）
+for (const el of ['none', 'fire', 'water', 'thunder', 'light', 'dark']) {
+  const hasWeapon = entries.some(([, , , k, e]) => k === 'weapon' && e === el);
+  const hasShield = entries.some(([, , , k, e]) => (k === 'defense' || k === 'reflect') && (e === el || e === 'all'));
+  if (hasWeapon && !hasShield) problems.push(`${el} 属性の武器はあるが受け手が無い`);
+}
 
 if (problems.length) {
   console.error('lint 失敗:');

@@ -26,12 +26,12 @@
   // ── 見えない防具の見積もり ────────────────────────────
   // 「相手の手札1枚がこの属性の防具である確率」と「その平均防御力」を
   // カタログの重みから前計算しておく。攻撃属性を散らす判断の根拠になる。
-  const DEF_STATS = (() => {
+  function statsFor(kinds) {
     const total = Items.CATALOG.reduce((s, d) => s + d.weight, 0);
     const stats = {};
     for (const el of Items.ATTACK_ELEMENTS) stats[el] = { p: 0, power: 0 };
     for (const d of Items.CATALOG) {
-      if (d.kind !== 'defense') continue;
+      if (!kinds.includes(d.kind)) continue;
       const targets = d.element === 'all' ? Items.ATTACK_ELEMENTS : [d.element];
       for (const el of targets) {
         const p = d.weight / total;
@@ -43,7 +43,12 @@
       if (stats[el].p > 0) stats[el].power /= stats[el].p;
     }
     return stats;
-  })();
+  }
+
+  /** 止められる確率（防具と反射具の両方） */
+  const DEF_STATS = statsFor(['defense', 'reflect']);
+  /** 撃ち返される確率（反射具だけ） */
+  const REFLECT_STATS = statsFor(['reflect']);
 
   /** その属性の攻撃 raw が、手札 n 枚の相手に何点通りそうか */
   function expectedThrough(element, raw, handSize, bias) {
@@ -51,6 +56,13 @@
     const p = Math.max(0, st.p * (bias === undefined ? 1 : bias));
     const expectedBlock = Math.min(raw, p * handSize * st.power);
     return raw - expectedBlock;
+  }
+
+  /** その属性で raw だけ撃ったとき、撃ち返されそうな量 */
+  function expectedReflect(element, raw, handSize, bias) {
+    const st = REFLECT_STATS[element] || { p: 0, power: 0 };
+    const p = Math.max(0, st.p * (bias === undefined ? 1 : bias));
+    return Math.min(raw, p * handSize * st.power);
   }
 
   /**
@@ -165,6 +177,12 @@
           const raw = combo.reduce((a, w) => a + w.power, 0);
           const lethal = raw >= target.hp && est >= target.hp * 0.75;
 
+          // 反射で撃ち返される見込み。大きな単属性攻撃ほど危ない。
+          const byElement = new Map();
+          for (const w of combo) byElement.set(w.element, (byElement.get(w.element) || 0) + w.power);
+          let backlash = 0;
+          for (const [el, r] of byElement) backlash += expectedReflect(el, r, target.hand.length, bias[el]);
+
           // 相手のHPを超える分は捨てているのと同じ。腕がいいほどそれを嫌う。
           const overkill = Math.max(0, est - target.hp);
           // 弱い武器を手元に残すと、次の手番でその弱い一撃を強制される
@@ -178,6 +196,7 @@
           let score = Math.min(est, target.hp) * value
             - overkill * 0.45 * cfg.iq
             - stuck * cfg.iq
+            - backlash * (backlash >= me.hp ? 4 : 1.1) * cfg.iq
             + (lethal ? 18 : 0);
           score *= jitter(level);
           if (!best || score > best.score) {
@@ -217,13 +236,18 @@
     const danger = Math.min(1, bare.damage / Math.max(1, me.hp));
     const costPerItem = lethal ? 0 : (1 - danger) * 6 * cfg.iq + 0.8;
 
+    const attacker = Engine.byId(state, pending.attackerId);
     let best = { uids: [], score: 0, prevented: 0 };
     for (const combo of subsets(shields, 10)) {
       const res = Engine.resolveDamage(pending.weapons, combo);
       const prevented = bare.damage - res.damage;
-      if (prevented <= 0) continue;
+      // 撃ち返せるなら、防げる量が同じでも反射具を選ぶ理由になる
+      const payback = res.reflected * (1 + 0.6 * cfg.iq);
+      const finishes = res.reflected >= attacker.hp ? 70 * cfg.iq : 0;
+      if (prevented <= 0 && res.reflected <= 0) continue;
       const survives = res.damage < me.hp;
-      let score = prevented - combo.length * costPerItem + (lethal && survives ? 60 : 0);
+      let score = prevented + payback + finishes
+        - combo.length * costPerItem + (lethal && survives ? 60 : 0);
       score *= jitter(level);
       if (score > best.score) best = { uids: combo.map((d) => d.uid), score, prevented };
     }
@@ -235,7 +259,7 @@
 
   global.GA = global.GA || {};
   global.GA.AI = {
-    LEVELS, DEF_STATS, setRandom, chooseAction, chooseDefense,
-    estimateDamage, expectedThrough, readDefenses
+    LEVELS, DEF_STATS, REFLECT_STATS, setRandom, chooseAction, chooseDefense,
+    estimateDamage, expectedThrough, expectedReflect, readDefenses
   };
 })(typeof window !== 'undefined' ? window : globalThis);

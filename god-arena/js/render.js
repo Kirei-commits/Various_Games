@@ -67,7 +67,35 @@
     meta.appendChild(hp);
     meta.appendChild(el('span', null, `手札 ${p.hand.length}`));
     card.appendChild(meta);
+
+    if (!p.isHuman) card.appendChild(readStrip(state, p));
     return card;
+  }
+
+  /**
+   * これまでに防いだ／素通しした属性を並べた帯。
+   * AI が使っているのと同じ `AI.readDefenses()` の結果をそのまま見せることで、
+   * 人間も相手と同じ情報で読み合えるようにする（隠し情報は出さない）。
+   */
+  function readStrip(state, p) {
+    const strip = el('div', 'readstrip');
+    strip.title = '厚 = この属性を防いだ実績あり / 薄 = この属性が素通りした';
+    const bias = global.GA.AI.readDefenses(state, p.id);
+    let any = false;
+    for (const key of Items.ATTACK_ELEMENTS) {
+      const b = bias[key];
+      if (b > 1.05) { strip.appendChild(chip(key, 'thick', '厚')); any = true; }
+      else if (b < 0.95) { strip.appendChild(chip(key, 'thin', '薄')); any = true; }
+    }
+    if (!any) strip.appendChild(el('span', 'readnote', 'まだ読めない'));
+    return strip;
+  }
+
+  function chip(key, cls, mark) {
+    const e = Items.element(key);
+    const n = el('span', `readchip ${cls} el-${key}`, `${e.sym}${mark}`);
+    n.setAttribute('aria-label', `${e.label}属性 ${mark}`);
+    return n;
   }
 
   function players(state, ui) {
@@ -85,7 +113,7 @@
 
   /** 手札の1枚 */
   function itemCard(item, { selected, disabled }) {
-    const b = el('button', `card el-${item.element}`);
+    const b = el('button', `card el-${item.element}${item.kind === 'reflect' ? ' is-reflect' : ''}`);
     b.type = 'button';
     b.dataset.uid = item.uid;
     b.setAttribute('role', 'listitem');
@@ -187,7 +215,17 @@
         else add('', `${nameOf(state, e.target)} は無防備。`);
         if (e.damage > 0) { add('', ' ダメージ '); add('dmg', String(e.damage)); }
         else add('ok', ' 完全に防いだ！');
-        if (e.defeated) add('dmg', ` — ${nameOf(state, e.target)} 敗退！`);
+        if (e.reflected > 0) {
+          add('', ' ');
+          add('ref', `↩ ${nameOf(state, e.actor)} に ${e.reflected} 撃ち返した！`);
+        }
+        if (e.defeated && e.attackerDefeated) {
+          add('dmg', ` — ${nameOf(state, e.target)} と ${nameOf(state, e.actor)} が相打ち！`);
+        } else if (e.defeated) {
+          add('dmg', ` — ${nameOf(state, e.target)} 敗退！`);
+        } else if (e.attackerDefeated) {
+          add('dmg', ` — 撃ち返しで ${nameOf(state, e.actor)} 敗退！`);
+        }
         break;
       case 'pray':
         add('', `${nameOf(state, e.actor)} は祈った → `);
@@ -205,7 +243,7 @@
         break;
       }
       case 'over':
-        add('b', e.winner === null ? '引き分け' : `${nameOf(state, e.winner)} の勝利！`);
+        add('b', e.winner === null ? '相打ち — 引き分け' : `${nameOf(state, e.winner)} の勝利！`);
         break;
       default:
         add('', e.text || '');
@@ -232,7 +270,7 @@
     refs.record.replaceChildren();
     const cells = [
       ['勝', rec.wins], ['敗', rec.losses],
-      ['総戦', rec.games], ['最大ダメージ', rec.bestDamage]
+      ['相打ち', rec.draws], ['最大ダメージ', rec.bestDamage]
     ];
     for (const [label, value] of cells) {
       const d = el('div');
@@ -245,6 +283,6 @@
   global.GA = global.GA || {};
   global.GA.Render = {
     init, players, hand, stage, hint, pop, shake, log, elementLegend, record,
-    itemCard, playerCard
+    itemCard, playerCard, readStrip
   };
 })(typeof window !== 'undefined' ? window : globalThis);

@@ -17,7 +17,7 @@
       autoDefend: false,    // 防御をAIに任せる
       showLog: true
     },
-    record: { wins: 0, losses: 0, games: 0, bestDamage: 0, kills: 0 }
+    record: { wins: 0, losses: 0, draws: 0, games: 0, bestDamage: 0, kills: 0 }
   };
 
   /** 既定値に定義の無いキーは捨てる。ここに書き忘れると保存しても復元されない。 */

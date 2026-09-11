@@ -59,6 +59,16 @@
     { id: 'darkshield', name: 'のろいのたて', kind: 'defense', element: 'dark',  power: 10, weight: 5 },
     { id: 'aegis',     name: 'めがみのたて', kind: 'defense', element: 'all',   power: 9,  weight: 2 },
 
+    // ── 反射具（防いだ分をそのまま撃ち返す） ──────
+    // 防ぐだけの防具より弱いが、大技を受け止めると手痛い反撃になる。
+    // 出現は絞る（多いと「大きく撃つ」選択そのものが消えてしまう）。
+    { id: 'counterplate', name: 'カウンタープレート', kind: 'reflect', element: 'none',    power: 6, weight: 4 },
+    { id: 'backfire',  name: 'ほのおのかがみ', kind: 'reflect', element: 'fire',    power: 7, weight: 3 },
+    { id: 'frostmirror', name: 'こおりのかがみ', kind: 'reflect', element: 'water', power: 7, weight: 3 },
+    { id: 'earthcoil', name: 'アースコイル',   kind: 'reflect', element: 'thunder', power: 7, weight: 3 },
+    { id: 'mirror',    name: 'かがみのたて',   kind: 'reflect', element: 'light',   power: 8, weight: 2 },
+    { id: 'voidcloak', name: 'やみのころも',   kind: 'reflect', element: 'dark',    power: 8, weight: 2 },
+
     // ── 食料（1ターン使って回復する） ─────────────
     { id: 'apple',   name: 'りんご',     kind: 'food', element: 'none', power: 5,  weight: 11 },
     { id: 'bread',   name: 'パン',       kind: 'food', element: 'none', power: 8,  weight: 9 },
@@ -110,7 +120,10 @@
     return ELEMENTS[key] || ELEMENTS.none;
   }
 
-  const KIND_LABEL = { weapon: '武器', defense: '防具', food: '食料', magic: '魔法' };
+  const KIND_LABEL = { weapon: '武器', defense: '防具', reflect: '反射', food: '食料', magic: '魔法' };
+
+  /** 守りに使えるか（防具と反射具）。engine と AI が同じ判定を見るために置く。 */
+  function isShield(item) { return item.kind === 'defense' || item.kind === 'reflect'; }
 
   /** カードに出す短い説明 */
   function describe(item) {
@@ -119,6 +132,7 @@
       case 'defense': return item.element === 'all'
         ? `どの属性でも ${item.power} 防ぐ`
         : `${element(item.element).label}属性を ${item.power} 防ぐ`;
+      case 'reflect': return `${element(item.element).label}属性を ${item.power} 防ぎ、防いだ分を撃ち返す`;
       case 'food':    return `HP を ${item.power} 回復`;
       case 'magic':
         if (item.effect === 'heal')  return `HP を ${item.power} 回復`;
@@ -133,6 +147,6 @@
   global.GA.Items = {
     ELEMENTS, ATTACK_ELEMENTS, CATALOG, KIND_LABEL,
     byId: (id) => BY_ID[id],
-    instantiate, resetUid, draw, drawOne, element, describe
+    instantiate, resetUid, draw, drawOne, element, describe, isShield
   };
 })(typeof window !== 'undefined' ? window : globalThis);

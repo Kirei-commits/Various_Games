@@ -84,10 +84,24 @@ test('AI同士の対戦は必ず決着する（30局）', () => {
     const GA = fresh(seed * 17 + 3);
     const s = GA.Engine.create({ names: ['A', 'B', 'C', 'D'], humans: 0 });
     const r = autoPlay(GA, s, ['normal', 'normal', 'normal', 'normal']);
+    // 反射での相打ちで winner が null になることはある。決着していることを見る。
     assert.equal(s.phase, 'over', `seed=${seed} で決着しない（${r.turns}手）`);
-    assert.notEqual(r.winner, null);
     assert.ok(r.turns < 500, `長すぎる（${r.turns}手）`);
   }
+});
+
+test('相打ちは起こるが、ありふれてはいない（200局）', () => {
+  let draws = 0, total = 0;
+  for (let seed = 0; seed < 200; seed++) {
+    const GA = fresh(seed * 13 + 2);
+    const s = GA.Engine.create({ names: ['A', 'B'], humans: 0 });
+    const r = autoPlay(GA, s, ['normal', 'normal']);
+    if (s.phase !== 'over') continue;
+    total++;
+    if (r.winner === null) draws++;
+  }
+  assert.equal(total, 200, '決着しない局がある');
+  assert.ok(draws / total <= 0.12, `相打ちが多すぎる: ${draws}/${total}`);
 });
 
 test('ゴッドは かけだし より強い（タイマン120局・先後入れ替え）', () => {
@@ -102,9 +116,9 @@ test('ゴッドは かけだし より強い（タイマン120局・先後入れ
     games++;
     if (levels[r.winner] === 'hard') godWins++;
   }
-  assert.ok(games >= 110, `決着した局が少なすぎる (${games})`);
-  // 実測 70%。運の要素があるので余裕をみて 62% を下限にする。
-  assert.ok(godWins / games >= 0.62, `ゴッドの勝率が低い: ${godWins}/${games}`);
+  assert.ok(games >= 105, `決着した局が少なすぎる (${games})`);
+  // 実測 76.7%（反射の読みが入って伸びた）。運の要素をみて 66% を下限にする。
+  assert.ok(godWins / games >= 0.66, `ゴッドの勝率が低い: ${godWins}/${games}`);
 });
 
 test('ベテランは かけだし より強い（タイマン120局）', () => {

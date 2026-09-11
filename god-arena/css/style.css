@@ -134,6 +134,16 @@ html, body {
 .pmeta { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); }
 .pmeta .hpnum { color: var(--text); font-variant-numeric: tabular-nums; }
 
+/* 相手カードの「読み」の帯。防いだ属性 = 厚、素通りした属性 = 薄 */
+.readstrip { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; min-height: 17px; }
+.readchip {
+  font-size: 10px; line-height: 1.5; border-radius: 999px; padding: 0 5px;
+  border: 1px solid currentColor; opacity: .9;
+}
+.readchip.thick { background: rgba(255, 255, 255, .1); font-weight: 700; }
+.readchip.thin { opacity: .45; border-style: dashed; }
+.readnote { font-size: 10px; color: var(--muted); }
+
 .self-card { margin-top: 12px; }
 .self-card .pcard { cursor: default; border-color: rgba(245,196,81,.35); }
 
@@ -162,6 +172,7 @@ html, body {
 .pop.dmg { color: var(--danger); }
 .pop.blk { color: var(--el-water); }
 .pop.heal { color: var(--ok); }
+.pop.ref { color: var(--el-all); }
 @keyframes pop {
   0% { opacity: 0; transform: translate(-50%, 10px) scale(.7); }
   25% { opacity: 1; transform: translate(-50%, -14px) scale(1.15); }
@@ -245,6 +256,9 @@ html, body {
   font-size: 9px; border-radius: 999px; padding: 1px 5px;
   border: 1px solid var(--line); color: var(--muted);
 }
+/* 反射具は一目で見分けられるようにする（大技を受け止める切り札なので） */
+.card.is-reflect { border-top: 1px solid var(--el-all); box-shadow: inset 0 0 18px rgba(124, 240, 210, .08); }
+.card.is-reflect .kind-badge { color: var(--el-all); border-color: rgba(124, 240, 210, .5); }
 .el-none { color: var(--el-none); } .card.el-none { border-left-color: var(--el-none); }
 .el-fire { color: var(--el-fire); } .card.el-fire { border-left-color: var(--el-fire); }
 .el-water { color: var(--el-water); } .card.el-water { border-left-color: var(--el-water); }
@@ -266,6 +280,7 @@ html, body {
 .log .line .dmg { color: var(--danger); font-weight: 700; }
 .log .line .blk { color: var(--el-water); }
 .log .line .ok { color: var(--ok); }
+.log .line .ref { color: var(--el-all); font-weight: 700; }
 .elements { display: flex; flex-wrap: wrap; gap: 6px; }
 .elements span { font-size: 11px; border: 1px solid var(--line); border-radius: 999px; padding: 3px 8px; }
 .record { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; font-size: 12px; color: var(--muted); }
