@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="color-scheme" content="dark" />
+<meta name="description" content="神器を引き当てて撃ち合う、属性つき多人数バトル。ブラウザだけで遊べます。" />
+<title>GOD ARENA // 神器大戦</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%230b0714'/%3E%3Cpath d='M16 4l3.6 7.6L28 12.8l-6 6 1.4 8.4L16 23.2 8.6 27.2 10 18.8l-6-6 8.4-1.2z' fill='%23f5c451'/%3E%3C/svg%3E" />
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div class="bg-glow" aria-hidden="true"></div>
+
+  <header class="topbar">
+    <h1 class="logo">GOD<span>ARENA</span></h1>
+    <p class="tagline">// 神器大戦 &nbsp;·&nbsp; ver 1.0</p>
+    <button id="btn-settings" class="icon-btn" type="button" aria-label="設定を開く" title="設定">⚙</button>
+  </header>
+
+  <main class="layout">
+    <section class="arena-area">
+      <!-- ===== 対戦相手 ===== -->
+      <div id="opponents" class="opponents" role="list" aria-label="対戦相手"></div>
+
+      <!-- ===== 中央のステージ ===== -->
+      <div class="stage" id="stage">
+        <p id="stage-kicker" class="stage-kicker">ROUND 1</p>
+        <p id="stage-text" class="stage-text">あなたの番です</p>
+        <div id="stage-fx" class="stage-fx" aria-hidden="true"></div>
+      </div>
+
+      <!-- ===== 自分 ===== -->
+      <div id="self" class="self-card"></div>
+
+      <!-- 主要操作。スクロールせずに届く位置に必ず置く -->
+      <div class="actionbar" role="group" aria-label="行動">
+        <button id="btn-attack" class="abtn abtn-primary" type="button" disabled>
+          <span class="ico">⚔</span><span class="lbl">こうげき</span>
+        </button>
+        <button id="btn-use" class="abtn" type="button" disabled>
+          <span class="ico">✚</span><span class="lbl">つかう</span>
+        </button>
+        <button id="btn-pray" class="abtn abtn-accent" type="button">
+          <span class="ico">🙏</span><span class="lbl">いのる</span>
+        </button>
+        <button id="btn-guard" class="abtn abtn-primary" type="button" hidden>
+          <span class="ico">🛡</span><span class="lbl">ぼうぎょ</span>
+        </button>
+        <button id="btn-take" class="abtn" type="button" hidden>
+          <span class="ico">✖</span><span class="lbl">うける</span>
+        </button>
+      </div>
+
+      <p id="hint" class="hint" role="status" aria-live="polite">武器をえらんで相手をタップ</p>
+
+      <!-- ===== 手札 ===== -->
+      <div class="hand-head">
+        <h2>手札 <span id="hand-count" class="count">0</span></h2>
+        <div class="filters" id="filters" role="group" aria-label="手札の絞り込み">
+          <button class="chip is-on" data-filter="all" type="button">すべて</button>
+          <button class="chip" data-filter="weapon" type="button">武器</button>
+          <button class="chip" data-filter="defense" type="button">防具</button>
+          <button class="chip" data-filter="support" type="button">食料・魔法</button>
+        </div>
+      </div>
+      <div id="hand" class="hand" role="list" aria-label="手札"></div>
+    </section>
+
+    <!-- ===== サイド ===== -->
+    <aside class="side">
+      <section class="panel">
+        <h2 class="panel-title">戦況ログ</h2>
+        <div id="log" class="log" role="log" aria-live="polite"></div>
+      </section>
+      <section class="panel">
+        <h2 class="panel-title">属性の相性</h2>
+        <p class="note">攻撃は<strong>同じ属性の防具</strong>でしか止まりません。
+           <span class="el-all">全</span>の防具だけはどの属性でも受けられます。
+           属性を混ぜて撃つほど防がれにくくなります。</p>
+        <div id="elements" class="elements"></div>
+      </section>
+      <section class="panel">
+        <h2 class="panel-title">戦績</h2>
+        <div id="record" class="record"></div>
+      </section>
+    </aside>
+  </main>
+
+  <!-- ===== 設定 ===== -->
+  <div id="settings" class="modal" hidden>
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="settings-title">
+      <h2 id="settings-title">設定</h2>
+      <label class="row">
+        <span>相手の強さ</span>
+        <select id="opt-level">
+          <option value="easy">かけだし</option>
+          <option value="normal">ベテラン</option>
+          <option value="hard">ゴッド</option>
+        </select>
+      </label>
+      <label class="row">
+        <span>対戦人数</span>
+        <select id="opt-opponents">
+          <option value="1">1人（タイマン）</option>
+          <option value="2">2人</option>
+          <option value="3">3人</option>
+          <option value="5">5人（乱戦）</option>
+        </select>
+      </label>
+      <label class="row">
+        <span>演出の速さ</span>
+        <select id="opt-speed">
+          <option value="slow">ゆっくり</option>
+          <option value="normal">ふつう</option>
+          <option value="fast">はやい</option>
+        </select>
+      </label>
+      <label class="row">
+        <span>効果音</span>
+        <input id="opt-sound" type="checkbox" />
+      </label>
+      <label class="row">
+        <span>防御をおまかせ</span>
+        <input id="opt-autodefend" type="checkbox" />
+      </label>
+      <div class="modal-actions">
+        <button id="btn-restart" class="btn btn-primary" type="button">この設定で新しい戦いへ</button>
+        <button id="btn-close-settings" class="btn" type="button">とじる</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 決着 ===== -->
+  <div id="overlay" class="modal" hidden>
+    <div class="modal-card result" role="dialog" aria-modal="true" aria-labelledby="overlay-title">
+      <p id="overlay-kicker" class="overlay-kicker">RESULT</p>
+      <h2 id="overlay-title" class="overlay-title">勝利</h2>
+      <p id="overlay-sub" class="overlay-sub"></p>
+      <div class="modal-actions">
+        <button id="btn-rematch" class="btn btn-primary" type="button">もう一戦</button>
+        <button id="btn-close-overlay" class="btn" type="button">結果を見る</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/items.js"></script>
+  <script src="js/engine.js"></script>
+  <script src="js/ai.js"></script>
+  <script src="js/storage.js"></script>
+  <script src="js/audio.js"></script>
+  <script src="js/render.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
