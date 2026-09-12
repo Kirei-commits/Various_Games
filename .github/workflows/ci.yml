@@ -1,0 +1,131 @@
+name: CI
+
+on:
+  push:
+    # このリポジトリのデフォルトブランチは claude/cyberpunk-gomoku-game-70crr8。
+    # 作業ブランチでも回して、PRを開く前に緑かどうかを確かめられるようにする
+    branches: [main, 'claude/**']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# 同じブランチへ続けてpushしたら古い実行は打ち切る
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    name: 静的検査とロジックテスト (${{ matrix.game }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        game: [god-arena, gomoku-narabe]
+    defaults:
+      run:
+        working-directory: ${{ matrix.game }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: ${{ matrix.game }}/package-lock.json
+
+      # lint は Node の標準機能だけで動くので依存のインストール前に実行できる
+      - name: 構文チェックと参照ファイルの整合性
+        run: npm run lint
+
+      - name: 依存をインストール
+        run: npm ci
+
+      - name: ロジックテスト
+        run: npm run test:logic
+
+  e2e:
+    name: ブラウザテスト (${{ matrix.game }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        game: [god-arena, gomoku-narabe]
+    defaults:
+      run:
+        working-directory: ${{ matrix.game }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: ${{ matrix.game }}/package-lock.json
+
+      - name: 依存をインストール
+        run: npm ci
+
+      # --with-deps を省くとローカルでは通るのにCIだけ落ちる（libnss等が入らない）
+      - name: Chromium と実行に必要なシステムライブラリを導入
+        run: npx playwright install --with-deps chromium
+
+      - name: E2Eテスト（デスクトップ + スマホのタッチ操作）
+        run: npm run test:e2e
+
+      # 失敗したときこそレポートが要るので if: always() を必ず付ける
+      - name: テストレポートを保存
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: playwright-report-${{ matrix.game }}
+          path: ${{ matrix.game }}/playwright-report/
+          retention-days: 14
+
+      - name: 失敗時のトレースとスクリーンショットを保存
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: playwright-results-${{ matrix.game }}
+          path: ${{ matrix.game }}/test-results/
+          retention-days: 7
+
+  # 決められた局面を確かめる E2E とは別に、実ブラウザで決着まで通しプレイして
+  # 「詰み・停止・表示崩れ」を探す。E2Eでは見つからない種類の壊れ方を拾う。
+  playtest:
+    name: 通しプレイ (god-arena)
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    defaults:
+      run:
+        working-directory: god-arena
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: god-arena/package-lock.json
+
+      - name: 依存をインストール
+        run: npm ci
+
+      - name: Chromium と実行に必要なシステムライブラリを導入
+        run: npx playwright install --with-deps chromium
+
+      # 局数はCIの時間に合わせて絞る。手元では --games を増やして回す。
+      - name: 決着までの通しプレイ
+        run: npm run playtest -- --games 1 --keep
+
+      - name: 通しプレイのスクリーンショットを保存
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: playtest-shots
+          path: god-arena/playtest-shots/
+          retention-days: 7
