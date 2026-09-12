@@ -176,12 +176,34 @@
     return best;
   }
 
-  /** 狙いやすさ。瀕死ほど、手札が薄いほど狙う価値が高い。 */
-  function targetValue(target) {
-    const frail = 1 + (1 - target.hp / target.maxHp) * 1.2;
-    const naked = 1 + Math.max(0, 6 - target.hand.length) * 0.06;
-    return frail * naked;
+  /** このラウンドでその相手が既に受けたダメージ（見えている情報だけで分かる） */
+  function damageThisRound(state, targetId) {
+    let sum = 0;
+    for (let i = state.log.length - 1; i >= 0; i--) {
+      const e = state.log[i];
+      if (e.round !== state.round) break;
+      if (e.t === 'resolve' && e.target === targetId) sum += e.damage;
+    }
+    return sum;
   }
+
+  /**
+   * 狙いやすさ。
+   *
+   * 弱った相手を優先すると、多人数戦で全員が同じ相手に群がり、
+   * 1人が何もできないまま退場する展開になる（6人戦で4人に1人が
+   * 一度も行動できずに消えていた）。とどめを刺す動機は攻撃側の
+   * lethal ボーナスが持っているので、ここでは瀕死を優先しない。
+   * 逆に、このラウンドで既に殴られている相手は避ける。
+   */
+  function targetValue(target, piledOn) {
+    const naked = 1 + Math.max(0, 6 - target.hand.length) * 0.06;
+    const crowd = 1 / (1 + (piledOn / target.maxHp) * PILE_AVOIDANCE);
+    return naked * crowd;
+  }
+
+  /** 集中砲火を避ける強さ。0 にすると全員で袋叩きにする。 */
+  const PILE_AVOIDANCE = 2.5;
 
   /**
    * 次の行動を決める。
@@ -234,15 +256,19 @@
     if (weapons.length && targets.length) {
       let best = null;
       for (const target of targets) {
-        const value = targetValue(target);
+        const value = targetValue(target, damageThisRound(state, target.id));
         // 腕のいい相手ほど、これまでの防ぎ方から手札を読む
         const read = readDefenses(state, target.id);
         const bias = {};
         for (const el of Items.ATTACK_ELEMENTS) bias[el] = 1 + (read[el] - 1) * cfg.iq;
 
+        // 瀕死の相手には神の加護がかかり、通るダメージが半分になる。
+        // これを見ないと「倒せる」と誤認して手札を使い切ってしまう。
+        const grace = Engine.graceScale(target);
+
         for (const combo of subsets(weapons, 10)) {
-          const est = estimateDamage(combo, target.hand.length, bias);
-          const raw = combo.reduce((a, w) => a + w.power, 0);
+          const est = estimateDamage(combo, target.hand.length, bias) * grace;
+          const raw = combo.reduce((a, w) => a + w.power, 0) * grace;
           const lethal = raw >= target.hp && est >= target.hp * 0.75;
 
           // 反射で撃ち返される見込み。大きな単属性攻撃ほど危ない。
@@ -250,6 +276,7 @@
           for (const w of combo) byElement.set(w.element, (byElement.get(w.element) || 0) + w.power);
           let backlash = 0;
           for (const [el, r] of byElement) backlash += expectedReflect(el, r, target.hand.length, bias[el]);
+          backlash *= Engine.graceScale(me);     // 撃ち返しにも自分の加護が効く
 
           // 相手のHPを超える分は捨てているのと同じ。腕がいいほどそれを嫌う。
           const overkill = Math.max(0, est - target.hp);
@@ -328,6 +355,7 @@
   global.GA = global.GA || {};
   global.GA.AI = {
     LEVELS, DEF_STATS, REFLECT_STATS, setRandom, chooseAction, chooseDefense,
-    estimateDamage, estimateTraited, expectedThrough, expectedReflect, readDefenses, bestHex
+    estimateDamage, estimateTraited, expectedThrough, expectedReflect, readDefenses, bestHex,
+    targetValue, damageThisRound
   };
 })(typeof window !== 'undefined' ? window : globalThis);

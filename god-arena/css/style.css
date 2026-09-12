@@ -144,6 +144,7 @@ html, body {
 .statustag.st-poison { color: #9be36b; background: rgba(155, 227, 107, .12); }
 .statustag.st-seal   { color: #ff9db0; background: rgba(255, 157, 176, .12); }
 .statustag.st-curse  { color: var(--el-dark); background: rgba(181, 123, 255, .14); }
+.statustag.st-grace  { color: var(--gold); background: rgba(245, 196, 81, .16); }
 
 /* 相手カードの「読み」の帯。防いだ属性 = 厚、素通りした属性 = 薄 */
 .readstrip { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; min-height: 17px; }

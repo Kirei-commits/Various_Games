@@ -164,6 +164,21 @@ test('特性が違う単発はまとまらない', () => {
   assert.equal(packets.length, 2, '貫通の有無で別のパケットになる');
 });
 
+test('全属性の防具は、その属性しか止められない防具の出番を奪わない', () => {
+  const GA = fresh();
+  const { Engine, Items } = GA;
+  const weapons = [
+    Object.assign(Items.instantiate('inferno'), { power: 10 }),   // 火10
+    Object.assign(Items.instantiate('tsunami'), { power: 10 })    // 水10
+  ];
+  const aegis = Object.assign(Items.instantiate('aegis'), { power: 10 });        // 全10
+  const flame = Object.assign(Items.instantiate('flameshield'), { power: 10 });  // 火10
+  // 火の盾は火にしか使えない。全属性の盾に先を譲ると火が通ってしまう。
+  // 並び順で結果が変わってはいけない。
+  assert.equal(Engine.resolveDamage(weapons, [aegis, flame]).damage, 0);
+  assert.equal(Engine.resolveDamage(weapons, [flame, aegis]).damage, 0);
+});
+
 test('特性の無い武器の挙動は変わっていない', () => {
   const GA = fresh();
   const { Engine, Items } = GA;

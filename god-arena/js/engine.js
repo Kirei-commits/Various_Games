@@ -11,6 +11,9 @@
   // 特性つきの武器が入って1局が短くなり、運の比重が上がった。
   // HPを増やして手数を戻すと、腕の差が出る幅も戻る（撹拌シード300局で実測）。
   const START_HP = 48;
+  // 人数が増えるとその分だけ毎ラウンドの被弾が増える（全員が必ず攻撃するため）。
+  // 人数に応じてHPを足さないと、多人数戦で何もできずに退場する者が出る。
+  const HP_PER_EXTRA_PLAYER = 6;
   const HAND_LIMIT = 12;
   const OPENING_HAND = 5;
   const PRAY_DRAW = 3;
@@ -30,7 +33,7 @@
     const o = opts || {};
     const names = o.names || ['あなた', 'アレス', 'ヘラ', 'ロキ'];
     const humans = o.humans === undefined ? 1 : o.humans;
-    const hp = o.hp || START_HP;
+    const hp = o.hp || (START_HP + HP_PER_EXTRA_PLAYER * Math.max(0, names.length - 2));
     const players = names.map((name, i) => ({
       id: i,
       name,
@@ -50,6 +53,7 @@
       phase: 'turn',        // 'turn' | 'defense' | 'over'
       pending: null,        // 防御待ちの攻撃
       winner: null,
+      events: 0,          // 積んだログの総数（表示は300件で打ち切るが、これは減らない）
       log: [],
       handLimit: HAND_LIMIT
     };
@@ -138,8 +142,16 @@
     const shields = defenses
       .map((d) => ({ element: d.element, power: Math.floor(d.power * scale), reflect: d.kind === 'reflect' }))
       .filter((d) => d.power > 0)
-      // 反射具を先に、次に強いものから
-      .sort((a, b) => (a.reflect === b.reflect ? b.power - a.power : (a.reflect ? -1 : 1)));
+      // 1) 反射具を先に（撃ち返せる量が最大になる）
+      // 2) 次に属性が決まっている防具（全属性の防具に先を譲ると、その属性しか
+      //    止められない防具が出番を失って防げる量が減る）
+      // 3) 同じ条件なら強いものから
+      .sort((a, b) => {
+        if (a.reflect !== b.reflect) return a.reflect ? -1 : 1;
+        const aAll = a.element === 'all', bAll = b.element === 'all';
+        if (aAll !== bAll) return aAll ? 1 : -1;
+        return b.power - a.power;
+      });
 
     let wasted = 0;
     for (const shield of shields) {
@@ -189,6 +201,24 @@
   /** のろいを考慮した防御倍率 */
   function defenseScaleOf(p) { return statusOf(p, 'curse') ? 0.5 : 1; }
 
+  /** 神の加護がかかる残りHPの割合 */
+  const GRACE_AT = 0.4;
+  /** 加護がかかっている間、通ってきたダメージに掛ける倍率 */
+  const GRACE_SCALE = 0.5;
+
+  /**
+   * 神の加護。瀕死の者は神に守られ、受けるダメージが軽くなる。
+   *
+   * 多人数戦では「武器を持っていたら必ず攻撃する」ため、人数分の火力が
+   * 毎ラウンド誰か1人に集まる。加護が無いと、6人戦で4人に1人が
+   * 一度も行動しないまま退場していた。倒しきるには重ねて殴る必要がある、
+   * という形にして、狙われた側に手番が回るようにしている。
+   */
+  function graceScale(p) { return p.hp <= Math.ceil(p.maxHp * GRACE_AT) ? GRACE_SCALE : 1; }
+
+  /** 加護を考慮した実ダメージ */
+  function applyGrace(p, damage) { return Math.ceil(damage * graceScale(p)); }
+
   /**
    * いま受けている攻撃を、渡した防具で受けたらどうなるか。
    * UI のプレビューと AI の判断と実際の解決が、必ず同じ数字になるようにここを通す。
@@ -199,7 +229,13 @@
     const defender = byId(s, s.pending.targetId);
     const list = (items || []).map((it) =>
       (typeof it === 'string' ? defender.hand.find((h) => h.uid === it) : it)).filter(Boolean);
-    return resolveDamage(s.pending.weapons, list, { defenseScale: defenseScaleOf(defender) });
+    const res = resolveDamage(s.pending.weapons, list, { defenseScale: defenseScaleOf(defender) });
+    // 加護もここで効かせる。UIのプレビューと実際の解決が違う数字になってはいけない。
+    // 撃ち返しは攻撃側が受けるので、加護は攻撃側のものを見る。
+    res.graced = res.damage - applyGrace(defender, res.damage);
+    res.damage = applyGrace(defender, res.damage);
+    res.reflected = applyGrace(byId(s, s.pending.attackerId), res.reflected);
+    return res;
   }
 
   // ── 手札操作 ───────────────────────────────────────────
@@ -246,8 +282,15 @@
     return discarded;
   }
 
+  /**
+   * ログに1件積む。
+   * 表示用に直近300件だけを保つが、`events` は切り捨てず数え続ける
+   * （進行しているかどうかの判定に log.length を使うと、上限に達した時点で
+   *   「進んでいない」と誤判定される。実際に通しプレイで踏んだ）。
+   */
   function log(s, entry) {
-    s.log.push(Object.assign({ n: s.log.length + 1, round: s.round }, entry));
+    s.events++;
+    s.log.push(Object.assign({ n: s.events, round: s.round }, entry));
     if (s.log.length > 300) s.log.splice(0, s.log.length - 300);
     return entry;
   }
@@ -324,6 +367,8 @@
     }
 
     const res = resolveDamage(weapons, used, { defenseScale: defenseScaleOf(defender) });
+    res.graced = res.damage - applyGrace(defender, res.damage);
+    res.damage = applyGrace(defender, res.damage);
     defender.hp = Math.max(0, defender.hp - res.damage);
     defender.stats.taken += res.damage;
     defender.stats.blocked += res.blocked;
@@ -338,8 +383,10 @@
     }
 
     // 反射は防御が済んだあとに攻撃側へ返る。攻撃側はこれを防げない。
+    // ただし加護は効く（受ける側が瀕死なら軽くなる）。
     let attackerDefeated = false;
     if (res.reflected > 0) {
+      res.reflected = applyGrace(attacker, res.reflected);
       attacker.hp = Math.max(0, attacker.hp - res.reflected);
       attacker.stats.taken += res.reflected;
       defender.stats.dealt += res.reflected;
@@ -357,7 +404,7 @@
       t: 'resolve', actor: attackerId, target: targetId,
       items: used.map((i) => i.id),
       damage: res.damage, blocked: res.blocked, reflected: res.reflected,
-      crits: res.crits, detail: res.detail, defeated, attackerDefeated
+      crits: res.crits, graced: res.graced, detail: res.detail, defeated, attackerDefeated
     });
 
     s.pending = null;
@@ -482,6 +529,7 @@
   function tickStatus(s, p) {
     const out = { poison: 0, expired: [] };
     if (!p.status || !p.status.length) return out;
+    // どくは神の加護を貫く。加護で粘っている相手に、毒がとどめの手段として残る。
     const poison = statusOf(p, 'poison');
     if (poison) {
       out.poison = Math.min(p.hp, poison.power);
@@ -552,10 +600,11 @@
 
   global.GA = global.GA || {};
   global.GA.Engine = {
-    START_HP, HAND_LIMIT, OPENING_HAND, PRAY_DRAW,
+    START_HP, HP_PER_EXTRA_PLAYER, HAND_LIMIT, OPENING_HAND, PRAY_DRAW,
     setRandom, random,
     create, current, alivePlayers, byId, targetsFor, availableActions, canPray, itemValue,
     statusOf, isSealed, isUsable, defenseScaleOf, previewDefense, strongestElement, tickStatus,
+    GRACE_AT, GRACE_SCALE, graceScale, applyGrace,
     weaponsOf, defensesOf, supportsOf,
     resolveDamage, toPackets, attack, defend, pray, useItem, endTurn
   };

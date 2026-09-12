@@ -71,14 +71,18 @@ test('反射のダメージは攻撃側のHPを削る（防げない）', () => 
 test('反射で攻撃側が倒れることがある', () => {
   const GA = fresh();
   const { Engine } = GA;
-  const s = Engine.create({ names: ['A', 'B', 'C'], humans: 0, hp: 40 });
-  s.players[0].hp = 5;
-  setHand(GA, s.players[0], ['inferno']);
-  setHand(GA, s.players[1], ['backfire']);
+  const s = Engine.create({ names: ['A', 'B', 'C'], humans: 0 });
+  // 加護（残りHPが4割以下なら被ダメージ半減）が効かない条件で組む。
+  // 攻撃側は撃ち返しで倒れ、防御側は通った分を受けても生き残る。
+  s.players[0].maxHp = 7; s.players[0].hp = 7;
+  setHand(GA, s.players[0], ['inferno']);       // 火14
+  setHand(GA, s.players[1], ['backfire']);      // 火の反射7
   Engine.attack(s, 1, [s.players[0].hand[0].uid]);
   const res = Engine.defend(s, [s.players[1].hand[0].uid]);
+  assert.equal(res.reflected, 7);
   assert.equal(res.attackerDefeated, true);
   assert.equal(s.players[0].alive, false);
+  assert.ok(s.players[1].alive, '防御側は生き残る');
   assert.equal(s.players[1].stats.kills, 1);
   assert.equal(s.players[1].stats.reflected, 7);
 });
@@ -86,9 +90,8 @@ test('反射で攻撃側が倒れることがある', () => {
 test('相打ちになると引き分けで終わる', () => {
   const GA = fresh();
   const { Engine } = GA;
-  const s = Engine.create({ names: ['A', 'B'], humans: 0 });
-  s.players[0].hp = 5;
-  s.players[1].hp = 5;
+  // 加護（残りHPが4割以下で被ダメージ半減）が効かない上限HPで組む
+  const s = Engine.create({ names: ['A', 'B'], humans: 0, hp: 7 });
   setHand(GA, s.players[0], ['inferno']);      // 火14
   setHand(GA, s.players[1], ['backfire']);     // 7止めて7返す → 7通って双方0
   Engine.attack(s, 1, [s.players[0].hand[0].uid]);

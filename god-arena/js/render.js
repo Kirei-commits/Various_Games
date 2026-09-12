@@ -68,14 +68,21 @@
     meta.appendChild(el('span', null, `手札 ${p.hand.length}`));
     card.appendChild(meta);
 
-    if (p.status && p.status.length) card.appendChild(statusRow(p));
+    const graced = p.alive && Engine.graceScale(p) < 1;
+    if (graced || (p.status && p.status.length)) card.appendChild(statusRow(p, graced));
     if (!p.isHuman) card.appendChild(readStrip(state, p));
     return card;
   }
 
   /** かかっている状態異常。残りターン数まで出す（いつ切れるかが読みに効く） */
-  function statusRow(p) {
+  function statusRow(p, graced) {
     const row = el('div', 'statusrow');
+    if (graced) {
+      const tag = el('span', 'statustag st-grace', '✤ 加護');
+      tag.title = '瀕死のため、神の加護で受けるダメージが半分になっている（どくには効かない）';
+      tag.setAttribute('aria-label', tag.title);
+      row.appendChild(tag);
+    }
     for (const st of p.status) {
       const info = Items.STATUS[st.id];
       if (!info) continue;
@@ -235,6 +242,7 @@
         if (e.crits > 0) add('crit', ' 会心！');
         if (e.damage > 0) { add('', ' ダメージ '); add('dmg', String(e.damage)); }
         else add('ok', ' 完全に防いだ！');
+        if (e.graced > 0) add('ok', `（加護で ${e.graced} 軽減）`);
         if (e.reflected > 0) {
           add('', ' ');
           add('ref', `↩ ${nameOf(state, e.actor)} に ${e.reflected} 撃ち返した！`);

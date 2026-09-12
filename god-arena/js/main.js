@@ -24,11 +24,58 @@
     record: null,
     busy: false,     // 演出中は入力を止める
     logShown: 0,     // 演出済みのログ件数（毒などは endTurn の内側で起きる）
-    timer: null
+    gen: 0,          // 進行の世代。取りこぼしから復帰したら上がる
+    recoveries: 0,   // 復帰した回数（通しプレイで監視する）
+    watchTicks: 0    // 見張り番が回った回数
   };
 
   const delay = () => SPEED[game.settings.speed] || SPEED.normal;
-  const wait = (ms) => new Promise((res) => { game.timer = setTimeout(res, ms); });
+
+  /**
+   * 演出の待ち。
+   *
+   * setTimeout のコールバックが発火しないことが実際にあった（通しプレイで再現。
+   * ページは生きていて clearTimeout も呼んでいないのに、仕掛けたタイマーだけが来ない）。
+   * 待ちが1回でも取りこぼされると busy が立ったままゲームが完全に止まるため、
+   * 描画フレーム(requestAnimationFrame)でも締め切りを見て、どちらか早い方で進める。
+   * 裏側のタブでは rAF が止まるが、その場合は setTimeout の方が動く。
+   * 仕掛けたタイマーは全部覚えておき、対局を作り直すときにまとめて止める。
+   */
+  const timers = new Set();
+  function wait(ms) {
+    return new Promise((resolve) => {
+      const deadline = (global.performance ? performance.now() : Date.now()) + ms;
+      const now = () => (global.performance ? performance.now() : Date.now());
+      let settled = false;
+      const finish = () => {
+        if (settled) return;
+        settled = true;
+        timers.delete(id);
+        resolve();
+      };
+      const id = setTimeout(finish, ms);
+      timers.add(id);
+      const frame = () => {
+        if (settled) return;
+        if (now() >= deadline) finish();
+        else if (global.requestAnimationFrame) global.requestAnimationFrame(frame);
+      };
+      if (global.requestAnimationFrame) global.requestAnimationFrame(frame);
+    });
+  }
+
+  /**
+   * 演出の待ちが取りこぼされたときに復帰するための世代番号。
+   * 復帰すると世代が上がるので、あとから目を覚ました古い処理は
+   * `stale()` を見て何もせずに降りる（同じ行動が二重に走らないようにする）。
+   */
+  const stale = (gen) => gen !== game.gen;
+
+  /** 仕掛けた待ちを全部止める */
+  function cancelWaits() {
+    for (const id of timers) clearTimeout(id);
+    timers.clear();
+  }
 
   const me = () => game.state.players.find((p) => p.isHuman);
   const isMyTurn = () => game.state.phase === 'turn' && Engine.current(game.state).isHuman;
@@ -95,6 +142,7 @@
       if (shields.length) {
         text = `この防御なら ${preview.damage} ダメージ（${preview.blocked} 防げる）`;
         if (preview.reflected > 0) text += ` / ${preview.reflected} 撃ち返す`;
+        if (preview.graced > 0) text += ` / 加護で ${preview.graced} 軽減`;
       }
       Render.hint(text, preview.damage >= me().hp);
       return;
@@ -130,7 +178,7 @@
     game.ui.selected.clear();
     Engine.attack(game.state, targetId, uids);
     Audio.play('attack');
-    await announceAttack();
+    if (!await announceAttack()) return;
     drive();
   }
 
@@ -168,8 +216,12 @@
     await resolveDefense(uids);
   }
 
-  /** 攻撃の宣言を見せる */
+  /**
+   * 攻撃の宣言を見せる。
+   * @returns {boolean} 途中で世代が変わったら false（呼び出し側はそこで降りる）
+   */
   async function announceAttack() {
+    const gen = game.gen;
     const p = game.state.pending;
     const a = Engine.byId(game.state, p.attackerId);
     const t = Engine.byId(game.state, p.targetId);
@@ -178,12 +230,15 @@
     game.busy = true;
     refresh();
     await wait(delay() * 0.75);
+    if (stale(gen)) return false;
     game.busy = false;
     refresh();
+    return true;
   }
 
   /** 防御を確定してダメージを出す（人間・AI共通） */
   async function resolveDefense(uids) {
+    const gen = game.gen;
     const s = game.state;
     // defend() の後は pending が消え、決着ならログに 'over' が足される。
     // 先に攻守のIDを控えておく（ログ末尾から取ると 'over' を拾って壊れる）。
@@ -219,6 +274,7 @@
     }
     refresh();
     await wait(delay() * 0.8);
+    if (stale(gen)) return;
 
     const fallen = [];
     if (res.defeated) fallen.push(Engine.byId(s, targetId).name);
@@ -230,6 +286,7 @@
         : `${fallen[0]} は倒れた`);
       refresh();
       await wait(delay() * 0.85);
+      if (stale(gen)) return;
     }
     game.busy = false;
     drive();
@@ -237,19 +294,21 @@
 
   // ── AI ────────────────────────────────────────────────
   async function aiTurn() {
+    const gen = game.gen;
     const s = game.state;
     const p = Engine.current(s);
     game.busy = true;
     Render.stage(`ROUND ${s.round}`, `${p.name} の番…`);
     refresh();
     await wait(delay() * 0.55);
+    if (stale(gen)) return;
     game.busy = false;
 
     const act = AI.chooseAction(s, p.level);
     if (act.type === 'attack') {
       Engine.attack(s, act.targetId, act.uids);
       Audio.play('attack');
-      await announceAttack();
+      if (!await announceAttack()) return;
       drive();
       return;
     }
@@ -260,6 +319,7 @@
       Render.stage(null, `${p.name} は ${item ? item.name : 'アイテム'} を使った`);
       game.busy = true; refresh();
       await wait(delay() * 0.7);
+      if (stale(gen)) return;
       game.busy = false;
       drive();
       return;
@@ -269,16 +329,19 @@
     Render.stage(null, `${p.name} は祈った`);
     game.busy = true; refresh();
     await wait(delay() * 0.6);
+    if (stale(gen)) return;
     game.busy = false;
     drive();
   }
 
   async function aiDefend() {
+    const gen = game.gen;
     const s = game.state;
     const defender = Engine.byId(s, s.pending.targetId);
     game.busy = true;
     refresh();
     await wait(delay() * 0.5);
+    if (stale(gen)) return;
     game.busy = false;
     const uids = AI.chooseDefense(s, defender.isHuman ? 'hard' : defender.level);
     await resolveDefense(uids);
@@ -289,8 +352,10 @@
    * これらは endTurn の内側で起きるので、行動の戻り値には出てこない。
    */
   async function showTicks() {
+    const gen = game.gen;
     const s = game.state;
     for (let i = game.logShown; i < s.log.length; i++) {
+      if (stale(gen)) return;
       const e = s.log[i];
       if (e.t === 'poison') {
         game.busy = true;
@@ -300,6 +365,7 @@
         Render.shake(e.actor);
         refresh();
         await wait(delay() * 0.6);
+        if (stale(gen)) return;
         game.busy = false;
       } else if (e.t === 'fall') {
         game.busy = true;
@@ -307,6 +373,7 @@
         Render.stage(null, `${Engine.byId(s, e.actor).name} は どく に倒れた`);
         refresh();
         await wait(delay() * 0.75);
+        if (stale(gen)) return;
         game.busy = false;
       }
     }
@@ -315,7 +382,9 @@
 
   // ── 進行 ───────────────────────────────────────────────
   async function drive() {
+    const gen = game.gen;
     await showTicks();
+    if (stale(gen)) return;      // 取りこぼしからの復帰で世代が変わったら降りる
     const s = game.state;
     refresh();
     if (s.phase === 'over') { finish(); return; }
@@ -368,7 +437,10 @@
 
   // ── 新しい対戦 ─────────────────────────────────────────
   function newGame() {
-    clearTimeout(game.timer);
+    cancelWaits();
+    // 世代を上げないと、前の対局で待っていた処理が目を覚まして
+    // 新しい局面を触りにくる（requestAnimationFrame は止められないため）。
+    game.gen++;
     const n = Math.max(1, Math.min(5, game.settings.opponents));
     const names = ['あなた', ...NAMES.slice(0, n)];
     game.state = Engine.create({
@@ -413,6 +485,15 @@
       const id = Number(card.dataset.player);
       const p = Engine.byId(game.state, id);
       if (!p || !p.alive || !isMyTurn() || game.busy) return;
+
+      // 狙い先は攻撃後も残る。同じ相手をもう一度タップしたときに選択が外れると、
+      // 「同じ相手を続けて攻撃する」が2タップ必要になって操作が噛み合わない。
+      // 撃つものを選んでいる間は、同じ相手のタップは「そこへ撃つ」の確定にする。
+      if (game.ui.targetId === id && selectedItems().length) {
+        if (!$('#btn-attack').disabled) { humanAttack(); return; }
+        if (!$('#btn-use').disabled) { humanUse(); return; }
+      }
+
       game.ui.targetId = game.ui.targetId === id ? null : id;
       Audio.play('select');
       refresh();
@@ -506,6 +587,42 @@
     return out;
   }
 
+  /**
+   * 進行の見張り番。
+   *
+   * 演出の待ちに仕掛けた setTimeout と requestAnimationFrame の両方が
+   * 発火しないことが実際にあった（通しプレイで再現。ページ自体は生きていて、
+   * 同時に動いている別の setInterval は回り続けているのに、その時に仕掛けた
+   * コールバックだけが来ない）。原因が環境側にあっても、ゲームが永久に
+   * 止まってしまうのは受け入れられないので、止まったら自分で復帰する。
+   *
+   * 復帰するときは世代番号を上げる。あとから目を覚ました古い処理は stale() を
+   * 見て降りるので、同じ行動が二重に走ることはない。
+   */
+  function startWatchdog() {
+    let last = '';
+    let same = 0;
+    setInterval(() => {
+      game.watchTicks++;
+      const s = game.state;
+      if (!s || s.phase === 'over') { same = 0; return; }
+      // 人の入力待ちは「止まっている」ではない
+      const waitingForHuman = !game.busy && (isMyTurn() || isMyDefense());
+      if (waitingForHuman) { same = 0; return; }
+
+      const snapshot = `${s.log.length}/${s.phase}/${s.turn}/${game.busy}`;
+      if (snapshot !== last) { last = snapshot; same = 0; return; }
+      if (++same < 5) return;              // 5秒動いていなければ取りこぼしとみなす
+
+      same = 0;
+      game.recoveries++;
+      game.gen++;                          // 古い処理を無効にする
+      cancelWaits();
+      game.busy = false;
+      drive();
+    }, 1000);
+  }
+
   function boot() {
     const saved = Store.load();
     game.settings = applyQuery(saved.settings);
@@ -515,6 +632,7 @@
     Render.elementLegend();
     bind();
     newGame();
+    startWatchdog();
   }
 
   global.GA = global.GA || {};

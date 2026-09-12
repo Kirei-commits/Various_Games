@@ -39,8 +39,10 @@ test('反射具で受けると攻撃側にダメージが返る', async ({ page 
 test('撃ち返しで相手を倒すと決着する', async ({ page }) => {
   const g = await openGame(page, { level: 'hard' });
   await incomingAttack(page, g, ['inferno'], ['backfire']);
+  // 加護（残りHPが4割以下で被ダメージ半減）が効かない条件にする
   await page.evaluate(() => {
-    window.GA.game.state.players[1].hp = 6;
+    const p = window.GA.game.state.players[1];
+    p.maxHp = 7; p.hp = 7;
     window.GA.refresh();
   });
   await g.tap(cardByName(page, 'ほのおのかがみ'));
@@ -53,10 +55,11 @@ test('撃ち返しで相手を倒すと決着する', async ({ page }) => {
 test('相打ちになると引き分けとして表示される', async ({ page }) => {
   const g = await openGame(page, { level: 'hard' });
   await incomingAttack(page, g, ['inferno'], ['backfire']);
+  // 双方とも加護が効かない上限HPにして、通る7と返す7で相打ちにする
   await page.evaluate(() => {
     const s = window.GA.game.state;
-    s.players[0].hp = 7;   // 通る7でこちらも倒れる
-    s.players[1].hp = 7;   // 返す7で相手も倒れる
+    s.players[0].maxHp = 7; s.players[0].hp = 7;
+    s.players[1].maxHp = 7; s.players[1].hp = 7;
     window.GA.refresh();
   });
   await g.tap(cardByName(page, 'ほのおのかがみ'));
