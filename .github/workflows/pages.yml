@@ -1,0 +1,54 @@
+# 静的サイトとして GitHub Pages に公開する。
+# ビルド工程は無く、リポジトリの中身をそのまま配る（各ゲームは index.html だけで動く）。
+#
+# 初回だけ手作業が要る:
+#   リポジトリの Settings → Pages → Build and deployment → Source を
+#   「GitHub Actions」にする。それまでこのワークフローは失敗する
+#   （CIとは別のワークフローなので、CIの緑には影響しない）。
+name: Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# 公開は最新のものだけでよいので、走っている途中でも新しい方を優先する
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    name: 公開
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v7
+
+      # 配信物に開発用のものを混ぜない（node_modules やテスト結果）
+      - name: 配信するファイルだけを集める
+        run: |
+          mkdir -p _site
+          cp index.html _site/ 2>/dev/null || true
+          for game in god-arena gomoku-narabe; do
+            mkdir -p "_site/$game"
+            cp -r "$game/index.html" "$game/css" "$game/js" "_site/$game/" 2>/dev/null || true
+          done
+          ls -R _site | head -40
+
+      - uses: actions/configure-pages@v6
+
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: _site
+
+      - id: deploy
+        uses: actions/deploy-pages@v5

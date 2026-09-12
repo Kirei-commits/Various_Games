@@ -11,4 +11,20 @@
 
 ## 遊び方
 
-各ゲームのディレクトリを開き、`index.html` をブラウザで直接開くか、GitHub Pages でホストして遊べます。
+`index.html` をブラウザで直接開けば、そのまま遊べます（サーバー不要・ビルド不要）。
+
+GitHub Pages でも公開しています。
+
+```
+https://kirei-commits.github.io/Various_Games/
+```
+
+> 初回だけ、リポジトリの Settings → Pages → Source を「GitHub Actions」にする必要があります。
+
+## 開発
+
+各ゲームのディレクトリで `npm ci && npm test`。
+god-arena には実ブラウザで通しプレイする `npm run playtest` もあります。
+
+CI はリポジトリ直下の `.github/workflows/` にあり、両方のゲームを回します。
+このリポジトリの改善は自動ループで進めています。手順は [LOOP.md](./LOOP.md) を参照してください。

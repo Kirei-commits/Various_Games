@@ -92,3 +92,39 @@ jobs:
           name: playwright-results-${{ matrix.game }}
           path: ${{ matrix.game }}/test-results/
           retention-days: 7
+
+  # 決められた局面を確かめる E2E とは別に、実ブラウザで決着まで通しプレイして
+  # 「詰み・停止・表示崩れ」を探す。E2Eでは見つからない種類の壊れ方を拾う。
+  playtest:
+    name: 通しプレイ (god-arena)
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    defaults:
+      run:
+        working-directory: god-arena
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: god-arena/package-lock.json
+
+      - name: 依存をインストール
+        run: npm ci
+
+      - name: Chromium と実行に必要なシステムライブラリを導入
+        run: npx playwright install --with-deps chromium
+
+      # 局数はCIの時間に合わせて絞る。手元では --games を増やして回す。
+      - name: 決着までの通しプレイ
+        run: npm run playtest -- --games 1 --keep
+
+      - name: 通しプレイのスクリーンショットを保存
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: playtest-shots
+          path: god-arena/playtest-shots/
+          retention-days: 7
