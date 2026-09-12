@@ -36,6 +36,28 @@ prompt: LOOP.md の「1周でやること」を上から実行する。人間の
 
 止めるときは Routine を削除するか、`/loop` を止めます。
 
+### ブラウザが取得できない環境で回すとき
+
+Claude のクラウドセッションのように**ブラウザの取得が封じられ、配置済みのものを使う**
+環境では、`@playwright/test` を上げた直後に E2E と通しプレイがローカルで動かなくなります
+（新しいリビジョンを要求され、取得は拒否される）。CIは自分で入れるので影響ありません。
+
+`PW_CHROMIUM` に実行ファイルのパスを渡すと、それで起動します。
+
+```bash
+export PW_CHROMIUM=/opt/pw-browsers/chromium-1194/chrome-linux/chrome
+npm run test:e2e
+npm run playtest
+```
+
+置き場所は環境によって変わるので、まず探してください。
+
+```bash
+find /opt/pw-browsers -maxdepth 4 -type f -name chrome
+```
+
+**`npx playwright install` は実行しないこと。** 取得が封じられているので失敗します。
+
 ## 前提として守っていること
 
 - **実行時の依存パッケージはゼロ。** ビルド工程を持ち込まない
@@ -51,6 +73,9 @@ prompt: LOOP.md の「1周でやること」を上から実行する。人間の
 
 ## いまの状態（2026-09-12 / god-arena v1.4）
 
+- PR #1 をデフォルトブランチへマージ済み。dependabot の3件（setup-node v7 /
+  Playwright 1.63 ×2）もマージ済みで、その組み合わせでCI全ジョブ緑を確認済み
+- GitHub Pages で公開中: https://kirei-commits.github.io/Various_Games/
 - 検証: lint OK / ロジック 100件 / E2E 80件 / 通しプレイ 9局 0 issues
 - 強さの実測（撹拌シード600局・先後入れ替え）
   - ゴッド vs かけだし 72.9%、ベテラン vs かけだし 64.0%、ゴッド vs ベテラン 59.0%

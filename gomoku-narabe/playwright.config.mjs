@@ -1,5 +1,12 @@
 import { defineConfig, devices } from '@playwright/test';
 
+/**
+ * ブラウザの取得が封じられた環境（配置済みのものを使う運用）向けの逃げ道。
+ * PW_CHROMIUM に chrome の実行ファイルのパスを入れると、それで起動する。
+ * 未設定なら Playwright が自分で用意したものを使う（CIはこちら）。
+ */
+const executablePath = process.env.PW_CHROMIUM || undefined;
+
 const PORT = 8080;
 const baseURL = `http://127.0.0.1:${PORT}`;
 
@@ -14,6 +21,7 @@ export default defineConfig({
 
   use: {
     baseURL,
+    launchOptions: executablePath ? { executablePath } : {},
     trace: 'on-first-retry',        // 失敗した時だけ再実行してトレースを残す
     screenshot: 'only-on-failure',
     video: 'off'

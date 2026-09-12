@@ -288,7 +288,9 @@ async function main() {
   if (KEEP) await fs.mkdir(SHOTS, { recursive: true });
 
   const server = await startServer();
-  const browser = await chromium.launch();
+  // ブラウザの取得が封じられた環境では PW_CHROMIUM で実行ファイルを指定する
+  const browser = await chromium.launch(
+    process.env.PW_CHROMIUM ? { executablePath: process.env.PW_CHROMIUM } : {});
   const report = new Report();
 
   const scenarios = [];
