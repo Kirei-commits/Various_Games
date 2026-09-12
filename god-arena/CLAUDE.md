@@ -153,6 +153,12 @@ E2Eは「決めた局面が期待通りか」を見る。通しプレイは「**
 - 表示用ログを300件で打ち切っていたため、進行の判定に `log.length` が使えなかった
   （`state.events` を足した。**進行しているかの判定に `log.length` を使わない**）
 
+**ブラウザを取得できない環境では `PW_CHROMIUM` に実行ファイルのパスを渡す。**
+Playwright を上げると配置済みのブラウザではリビジョンが合わなくなるが、
+この環境では取得が拒否されるため `npx playwright install` は使えない。
+`playwright.config.mjs` と `tests/playtest.mjs` が `PW_CHROMIUM` を見て起動する。
+CIは自分でブラウザを入れるので、この変数は未設定のままでよい。
+
 E2Eは `desktop`（マウス）と `mobile`（Pixel 5 / `hasTouch`）の2プロジェクトで走る。
 端末差のある操作は `tests/e2e/fixtures.mjs` の `tap()` に閉じ込め、スペック本体に分岐を書かない。
 
