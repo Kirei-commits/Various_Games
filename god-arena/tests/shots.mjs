@@ -46,7 +46,7 @@ async function shot(name, device, query, prep) {
   const page = await context.newPage();
   const errors = [];
   page.on('pageerror', (e) => errors.push(e.message));
-  await page.goto(`${BASE}/?${new URLSearchParams({ speed: 'fast', sound: 'off', ...query })}`);
+  await page.goto(`${BASE}/?${new URLSearchParams({ speed: 'fast', sound: 'off', first: '0', ...query })}`);
   await page.waitForSelector('#hand');
   await page.waitForTimeout(400);
   if (prep) await prep(page);

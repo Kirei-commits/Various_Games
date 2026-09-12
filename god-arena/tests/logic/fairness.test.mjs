@@ -13,7 +13,7 @@ function fresh(seed = 41) {
 test('残りHPが4割以下になると受けるダメージが半分になる', () => {
   const GA = fresh();
   const { Engine } = GA;
-  const s = Engine.create({ names: ['A', 'B'], humans: 0 });
+  const s = Engine.create({ firstTurn: 0, names: ['A', 'B'], humans: 0 });
   const max = s.players[1].maxHp;
   assert.equal(Engine.graceScale(s.players[1]), 1, '満タンでは加護は無い');
 
@@ -28,7 +28,7 @@ test('残りHPが4割以下になると受けるダメージが半分になる',
 test('加護は実際のダメージに効き、プレビューと同じ数字になる', () => {
   const GA = fresh();
   const { Engine } = GA;
-  const s = Engine.create({ names: ['A', 'B'], humans: 0 });
+  const s = Engine.create({ firstTurn: 0, names: ['A', 'B'], humans: 0 });
   s.players[1].hp = 10;                        // maxHp 48 の4割以下
   setHand(GA, s.players[0], ['cannon']);       // 無14
   Engine.attack(s, 1, [s.players[0].hand[0].uid]);
@@ -45,7 +45,7 @@ test('加護は実際のダメージに効き、プレビューと同じ数字�
 test('加護は撃ち返しにも効く', () => {
   const GA = fresh();
   const { Engine } = GA;
-  const s = Engine.create({ names: ['A', 'B'], humans: 0 });
+  const s = Engine.create({ firstTurn: 0, names: ['A', 'B'], humans: 0 });
   s.players[0].hp = 10;                        // 攻撃側が瀕死
   setHand(GA, s.players[0], ['inferno']);      // 火14
   setHand(GA, s.players[1], ['backfire']);     // 火の反射7
@@ -58,7 +58,7 @@ test('加護は撃ち返しにも効く', () => {
 test('プレビューの撃ち返しにも加護が効く（実際とずれない）', () => {
   const GA = fresh();
   const { Engine } = GA;
-  const s = Engine.create({ names: ['A', 'B'], humans: 0 });
+  const s = Engine.create({ firstTurn: 0, names: ['A', 'B'], humans: 0 });
   s.players[0].hp = 10;                        // 攻撃側が瀕死 → 撃ち返しが半減する
   setHand(GA, s.players[0], ['inferno']);
   setHand(GA, s.players[1], ['backfire']);
@@ -73,7 +73,7 @@ test('プレビューの撃ち返しにも加護が効く（実際とずれな�
 test('AIは加護を織り込んで見積もる（倒せない相手に使い切らない）', () => {
   const GA = fresh();
   const { Engine, AI } = GA;
-  const s = Engine.create({ names: ['A', 'B', 'C'], humans: 0 });
+  const s = Engine.create({ firstTurn: 0, names: ['A', 'B', 'C'], humans: 0 });
   // B は瀕死だが加護で半減するので、この火力では倒しきれない
   s.players[1].hp = 12;
   s.players[1].hand = [];
@@ -90,7 +90,7 @@ test('AIは加護を織り込んで見積もる（倒せない相手に使い切
 test('どくは加護を貫く（加護で粘る相手へのとどめが残る）', () => {
   const GA = fresh();
   const { Engine } = GA;
-  const s = Engine.create({ names: ['A', 'B'], humans: 0 });
+  const s = Engine.create({ firstTurn: 0, names: ['A', 'B'], humans: 0 });
   s.players[1].hp = 10;
   setHand(GA, s.players[0], ['poisonmist']);   // 毎ターン4
   setHand(GA, s.players[1], ['apple']);
@@ -101,7 +101,7 @@ test('どくは加護を貫く（加護で粘る相手へのとどめが残る�
 test('加護がかかっても、属性ごとの内訳の合計が実ダメージと一致する', () => {
   const GA = fresh();
   const { Engine } = GA;
-  const s = Engine.create({ names: ['A', 'B'], humans: 0 });
+  const s = Engine.create({ firstTurn: 0, names: ['A', 'B'], humans: 0 });
   s.players[1].hp = 10;                          // 加護がかかる
   setHand(GA, s.players[0], ['inferno', 'judgement', 'cannon']);   // 火14 雷14 無14
   Engine.attack(s, 1, s.players[0].hand.map((i) => i.uid));
@@ -118,7 +118,7 @@ test('加護がかかっても、属性ごとの内訳の合計が実ダメー�
 test('加護がかかっても、撃ち返しの内訳の合計が一致する', () => {
   const GA = fresh();
   const { Engine } = GA;
-  const s = Engine.create({ names: ['A', 'B'], humans: 0 });
+  const s = Engine.create({ firstTurn: 0, names: ['A', 'B'], humans: 0 });
   s.players[0].hp = 10;                          // 攻撃側に加護
   setHand(GA, s.players[0], ['inferno', 'judgement']);
   setHand(GA, s.players[1], ['backfire', 'earthcoil']);   // 火7 雷7 の反射
@@ -134,7 +134,7 @@ test('加護がかかっても、撃ち返しの内訳の合計が一致する',
 test('加護で軽くなった分を「防いだ」に数えない', () => {
   const GA = fresh();
   const { Engine } = GA;
-  const s = Engine.create({ names: ['A', 'B'], humans: 0 });
+  const s = Engine.create({ firstTurn: 0, names: ['A', 'B'], humans: 0 });
   s.players[1].hp = 10;                       // 加護がかかる
   setHand(GA, s.players[0], ['inferno']);     // 火14
   Engine.attack(s, 1, [s.players[0].hand[0].uid]);
@@ -151,7 +151,7 @@ test('加護で軽くなった分を「防いだ」に数えない', () => {
 test('加護がかかっても「その属性を止められない」と読める', () => {
   const GA = fresh();
   const { Engine, AI } = GA;
-  const s = Engine.create({ names: ['A', 'B'], humans: 0 });
+  const s = Engine.create({ firstTurn: 0, names: ['A', 'B'], humans: 0 });
   s.players[1].hp = 10;                       // 加護がかかる
   setHand(GA, s.players[0], ['inferno']);
   Engine.attack(s, 1, [s.players[0].hand[0].uid]);
@@ -165,7 +165,7 @@ test('加護がかかっても「その属性を止められない」と読め�
 test('防いだ量は撃ち返した分を二重に数えない', () => {
   const GA = fresh();
   const { Engine } = GA;
-  const s = Engine.create({ names: ['A', 'B'], humans: 0 });
+  const s = Engine.create({ firstTurn: 0, names: ['A', 'B'], humans: 0 });
   setHand(GA, s.players[0], ['inferno']);        // 火14
   setHand(GA, s.players[1], ['backfire']);       // 火の反射7
   Engine.attack(s, 1, [s.players[0].hand[0].uid]);
@@ -188,12 +188,95 @@ test('比例配分は合計をきっちり合わせる', () => {
   assert.doesNotThrow(() => Engine.rescaleRows(zero, 'v', 5));
 });
 
+test('ラウンドは生存者が一巡してから進む（先手の席に依存しない）', () => {
+  const GA = fresh();
+  const { Engine } = GA;
+  for (const first of [0, 1, 2, 3]) {
+    const s = Engine.create({ firstTurn: first, names: ['A', 'B', 'C', 'D'], humans: 0 });
+    assert.equal(s.round, 1);
+    for (let i = 0; i < 3; i++) {
+      Engine.endTurn(s);
+      assert.equal(s.round, 1, `先手=${first} で ${i + 1}手目にラウンドが進んでいる`);
+    }
+    Engine.endTurn(s);
+    assert.equal(s.round, 2, `先手=${first} で一巡してもラウンドが進まない`);
+  }
+});
+
+test('脱落してもラウンドの数え方が崩れない', () => {
+  const GA = fresh();
+  const { Engine } = GA;
+  const s = Engine.create({ firstTurn: 0, names: ['A', 'B', 'C'], humans: 0 });
+  s.players[1].alive = false;              // 生存2人
+  Engine.endTurn(s);
+  assert.equal(s.round, 1);
+  Engine.endTurn(s);
+  assert.equal(s.round, 2, '生存者ぶんで一巡と数えていない');
+});
+
+// ── 神の怒り ─────────────────────────────────────────
+test('神の怒りはラウンド18を過ぎてから効き、上限で止まる', () => {
+  const GA = fresh();
+  const { Engine } = GA;
+  assert.equal(Engine.wrathScale(1), 1);
+  assert.equal(Engine.wrathScale(Engine.WRATH.from), 1, '開始ラウンドまでは効かない');
+  assert.ok(Engine.wrathScale(Engine.WRATH.from + 1) > 1);
+  assert.ok(Engine.wrathScale(Engine.WRATH.from + 2) > Engine.wrathScale(Engine.WRATH.from + 1));
+  assert.equal(Engine.wrathScale(Engine.WRATH.from + 999), Engine.WRATH.max, '上限で止まらない');
+});
+
+test('神の怒りは通ったダメージを重くし、内訳の合計と一致する', () => {
+  const GA = fresh();
+  const { Engine } = GA;
+  const s = Engine.create({ firstTurn: 0, names: ['A', 'B'], humans: 0 });
+  s.round = Engine.WRATH.from + 5;               // 倍率 2.0
+  setHand(GA, s.players[0], ['inferno', 'judgement']);   // 火14 + 雷14
+  Engine.attack(s, 1, s.players[0].hand.map((i) => i.uid));
+
+  const preview = Engine.previewDefense(s, []);
+  assert.equal(preview.wrath, Engine.wrathScale(s.round));
+  assert.equal(preview.damage, 56, '28 の2倍');
+  assert.equal(preview.wrathAdded, 28);
+  assert.equal(preview.detail.reduce((a, r) => a + r.through, 0), preview.damage,
+    '内訳の合計と食い違っている');
+
+  const res = Engine.defend(s, []);
+  assert.equal(res.damage, preview.damage, 'プレビューと実際がずれている');
+});
+
+test('神の怒りと加護は重なって効く（怒りで重くしてから加護で軽くする）', () => {
+  const GA = fresh();
+  const { Engine } = GA;
+  const s = Engine.create({ firstTurn: 0, names: ['A', 'B'], humans: 0 });
+  s.round = Engine.WRATH.from + 5;               // 倍率 2.0
+  s.players[1].hp = 10;                          // 加護がかかる
+  setHand(GA, s.players[0], ['cannon']);         // 無14
+  Engine.attack(s, 1, [s.players[0].hand[0].uid]);
+  const res = Engine.defend(s, []);
+  assert.equal(res.wrathAdded, 14, '14 → 28');
+  assert.equal(res.damage, 14, '28 の半分');
+  assert.equal(res.graced, 14);
+  assert.equal(res.detail.reduce((a, r) => a + r.through, 0), res.damage);
+});
+
+test('ラウンド18までは怒りが一切かからない', () => {
+  const GA = fresh();
+  const { Engine } = GA;
+  const s = Engine.create({ firstTurn: 0, names: ['A', 'B'], humans: 0 });
+  s.round = Engine.WRATH.from;
+  setHand(GA, s.players[0], ['cannon']);
+  Engine.attack(s, 1, [s.players[0].hand[0].uid]);
+  const res = Engine.defend(s, []);
+  assert.equal(res.wrathAdded, 0);
+  assert.equal(res.damage, 14);
+});
+
 // ── 人数に応じたHP ───────────────────────────────────
 test('人数が増えるほど最大HPが増える', () => {
   const GA = fresh();
   const { Engine } = GA;
-  const two = Engine.create({ names: ['A', 'B'], humans: 0 });
-  const six = Engine.create({ names: ['A', 'B', 'C', 'D', 'E', 'F'], humans: 0 });
+  const two = Engine.create({ firstTurn: 0, names: ['A', 'B'], humans: 0 });
+  const six = Engine.create({ firstTurn: 0, names: ['A', 'B', 'C', 'D', 'E', 'F'], humans: 0 });
   assert.equal(two.players[0].maxHp, Engine.START_HP);
   assert.equal(six.players[0].maxHp, Engine.START_HP + Engine.HP_PER_EXTRA_PLAYER * 4);
   assert.ok(six.players[0].maxHp > two.players[0].maxHp);
@@ -203,7 +286,7 @@ test('人数が増えるほど最大HPが増える', () => {
 test('このラウンドで既に殴られた相手は狙いの価値が下がる', () => {
   const GA = fresh();
   const { Engine, AI } = GA;
-  const s = Engine.create({ names: ['A', 'B', 'C'], humans: 0 });
+  const s = Engine.create({ firstTurn: 0, names: ['A', 'B', 'C'], humans: 0 });
   const fresh1 = s.players[1];
   assert.ok(AI.targetValue(fresh1, 0) > AI.targetValue(fresh1, 20),
     '既に殴られた相手を避けていない');
@@ -212,7 +295,7 @@ test('このラウンドで既に殴られた相手は狙いの価値が下が�
 test('直近ひと回り分より古い被ダメージは忘れる', () => {
   const GA = fresh();
   const { Engine, AI } = GA;
-  const s = Engine.create({ names: ['A', 'B', 'C'], humans: 0 });
+  const s = Engine.create({ firstTurn: 0, names: ['A', 'B', 'C'], humans: 0 });
 
   /** いまの手番の者が、指定の相手を1発撃つ */
   const shoot = (targetId, id = 'stone') => {
@@ -247,7 +330,7 @@ function firstEliminationTurns(players, games = 150) {
     GA.AI.setRandom(seededRandom((seed ^ 0xABCD) >>> 0));
     const { Engine, AI } = GA;
     const names = ['P0', 'P1', 'P2', 'P3', 'P4', 'P5'].slice(0, players);
-    const s = Engine.create({ names, humans: 0, levels: names.map(() => 'normal') });
+    const s = Engine.create({ firstTurn: 0, names, humans: 0, levels: names.map(() => 'normal') });
     const acted = new Array(players).fill(0);
     let guard = 0;
     while (s.phase !== 'over' && guard++ < 3000) {
@@ -292,7 +375,7 @@ function positionWinRates(players, games) {
     GA.AI.setRandom(seededRandom((seed ^ 0xABCD) >>> 0));
     const { Engine, AI } = GA;
     const names = ['P0', 'P1', 'P2', 'P3', 'P4', 'P5'].slice(0, players);
-    const s = Engine.create({ names, humans: 0, levels: names.map(() => 'normal') });
+    const s = Engine.create({ firstTurn: 0, names, humans: 0, levels: names.map(() => 'normal') });
     let guard = 0;
     while (s.phase !== 'over' && guard++ < 3000) {
       if (s.phase === 'defense') {
@@ -324,16 +407,50 @@ test('1対1で先手が有利になっていない', () => {
     `後手が有利すぎる: ${(r.rates[0] * 100).toFixed(1)}%`);
 });
 
-test('1対1では後手が神器を1つ多く持って始まる', () => {
+test('1対1の補正は「後に動く側」に渡る（席ではなく手番順）', () => {
   const GA = fresh();
   const { Engine } = GA;
-  const duel = Engine.create({ names: ['A', 'B'], humans: 0 });
-  assert.equal(duel.players[0].hand.length, Engine.OPENING_HAND);
-  assert.equal(duel.players[1].hand.length, Engine.OPENING_HAND + Engine.DUEL_SECOND_BONUS);
+  for (const first of [0, 1]) {
+    const duel = Engine.create({ firstTurn: first, names: ['A', 'B'], humans: 0 });
+    assert.equal(duel.turn, first);
+    assert.equal(duel.players[first].hand.length, Engine.OPENING_HAND, '先手に補正が入っている');
+    assert.equal(duel.players[1 - first].hand.length,
+      Engine.OPENING_HAND + Engine.DUEL_SECOND_BONUS, '後手に補正が入っていない');
+  }
 
   // 3人以上では手番順の偏りが別の形になるので、この補正は当てない
-  const three = Engine.create({ names: ['A', 'B', 'C'], humans: 0 });
+  const three = Engine.create({ firstTurn: 0, names: ['A', 'B', 'C'], humans: 0 });
   for (const p of three.players) assert.equal(p.hand.length, Engine.OPENING_HAND);
+});
+
+test('先手は既定でランダムに決まる', () => {
+  // 手番順の有利不利をいつも同じ席が背負わないようにするための規則。
+  // 席を固定したまま回すと、3人戦では最後の席が 37.7%（期待33.3%）だった。
+  const seen = new Map();
+  for (let i = 0; i < 300; i++) {
+    const seed = mixSeed(i);
+    const GA = loadGA(['items.js', 'engine.js', 'ai.js']);
+    GA.Engine.setRandom(seededRandom(seed));
+    const s = GA.Engine.create({ names: ['A', 'B', 'C'], humans: 0 });
+    seen.set(s.turn, (seen.get(s.turn) || 0) + 1);
+    assert.equal(s.first, s.turn);
+  }
+  assert.equal(seen.size, 3, `先手が偏っている: ${[...seen.entries()]}`);
+  for (const [seat, count] of seen) {
+    assert.ok(count / 300 > 0.24 && count / 300 < 0.43,
+      `席 ${seat} の先手率が偏っている: ${(count / 300 * 100).toFixed(1)}%`);
+  }
+});
+
+test('先手を指定すればその席から始まる（再現のため）', () => {
+  const GA = fresh();
+  for (let i = 0; i < 4; i++) {
+    const s = GA.Engine.create({ firstTurn: i, names: ['A', 'B', 'C', 'D'], humans: 0 });
+    assert.equal(s.turn, i);
+  }
+  // 範囲外は丸める（URLから来た値を信用しない）
+  assert.equal(GA.Engine.create({ firstTurn: 99, names: ['A', 'B'], humans: 0 }).turn, 1);
+  assert.equal(GA.Engine.create({ firstTurn: -3, names: ['A', 'B'], humans: 0 }).turn, 0);
 });
 
 test('4人戦で手番順による偏りが出ていない', () => {
@@ -350,7 +467,7 @@ test('4人戦で手番順による偏りが出ていない', () => {
 test('集中砲火の回避はラウンド境界で途切れない', () => {
   const GA = fresh();
   const { Engine, AI } = GA;
-  const s = Engine.create({ names: ['A', 'B', 'C'], humans: 0 });
+  const s = Engine.create({ firstTurn: 0, names: ['A', 'B', 'C'], humans: 0 });
   setHand(GA, s.players[0], ['cannon']);
   Engine.attack(s, 1, [s.players[0].hand[0].uid]);
   Engine.defend(s, []);

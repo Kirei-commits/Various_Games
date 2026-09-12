@@ -56,7 +56,7 @@ test('同属性に反射具と防具を重ねたら、反射具から先に充�
 test('反射のダメージは攻撃側のHPを削る（防げない）', () => {
   const GA = fresh();
   const { Engine } = GA;
-  const s = Engine.create({ names: ['A', 'B'], humans: 0 });
+  const s = Engine.create({ firstTurn: 0, names: ['A', 'B'], humans: 0 });
   setHand(GA, s.players[0], ['inferno', 'flameshield']);   // 防具を持っていても反射は防げない
   setHand(GA, s.players[1], ['backfire']);
   const weapon = s.players[0].hand.find((i) => i.kind === 'weapon');
@@ -71,7 +71,7 @@ test('反射のダメージは攻撃側のHPを削る（防げない）', () => 
 test('反射で攻撃側が倒れることがある', () => {
   const GA = fresh();
   const { Engine } = GA;
-  const s = Engine.create({ names: ['A', 'B', 'C'], humans: 0 });
+  const s = Engine.create({ firstTurn: 0, names: ['A', 'B', 'C'], humans: 0 });
   // 加護（残りHPが4割以下なら被ダメージ半減）が効かない条件で組む。
   // 攻撃側は撃ち返しで倒れ、防御側は通った分を受けても生き残る。
   s.players[0].maxHp = 7; s.players[0].hp = 7;
@@ -91,7 +91,7 @@ test('相打ちになると引き分けで終わる', () => {
   const GA = fresh();
   const { Engine } = GA;
   // 加護（残りHPが4割以下で被ダメージ半減）が効かない上限HPで組む
-  const s = Engine.create({ names: ['A', 'B'], humans: 0, hp: 7 });
+  const s = Engine.create({ firstTurn: 0, names: ['A', 'B'], humans: 0, hp: 7 });
   setHand(GA, s.players[0], ['inferno']);      // 火14
   setHand(GA, s.players[1], ['backfire']);     // 7止めて7返す → 7通って双方0
   Engine.attack(s, 1, [s.players[0].hand[0].uid]);
@@ -105,7 +105,7 @@ test('相打ちになると引き分けで終わる', () => {
 test('反射具は防御に使える手札として数えられる', () => {
   const GA = fresh();
   const { Engine } = GA;
-  const s = Engine.create({ names: ['A', 'B'], humans: 0 });
+  const s = Engine.create({ firstTurn: 0, names: ['A', 'B'], humans: 0 });
   setHand(GA, s.players[1], ['backfire', 'apple']);
   assert.deepEqual(toPlain(Engine.defensesOf(s.players[1])).map((i) => i.id), ['backfire']);
 });
@@ -113,7 +113,7 @@ test('反射具は防御に使える手札として数えられる', () => {
 test('食料や武器を防御に出そうとしても弾かれる', () => {
   const GA = fresh();
   const { Engine } = GA;
-  const s = Engine.create({ names: ['A', 'B'], humans: 0 });
+  const s = Engine.create({ firstTurn: 0, names: ['A', 'B'], humans: 0 });
   setHand(GA, s.players[0], ['sword']);
   setHand(GA, s.players[1], ['apple']);
   Engine.attack(s, 1, [s.players[0].hand[0].uid]);
@@ -132,7 +132,7 @@ test('反射具は同じ数値の防具より価値が高いと見なされる',
 test('AIは撃ち返しで相手を倒せるなら反射具を出す', () => {
   const GA = fresh();
   const { Engine, AI } = GA;
-  const s = Engine.create({ names: ['A', 'B'], humans: 0 });
+  const s = Engine.create({ firstTurn: 0, names: ['A', 'B'], humans: 0 });
   s.players[0].hp = 6;                                  // 反射7で倒れる
   setHand(GA, s.players[0], ['inferno']);
   setHand(GA, s.players[1], ['backfire', 'flameshield']);

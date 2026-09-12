@@ -222,6 +222,14 @@
     hideBreakdown();
   }
 
+  /**
+   * ラウンド表示だけを書き換える。
+   * `stage()` は内訳パネルを閉じてしまうので、毎回の描画では使えない。
+   */
+  function kicker(text) {
+    if (text !== undefined && text !== null) refs.stageKicker.textContent = text;
+  }
+
   function hideBreakdown() {
     refs.breakdown.hidden = true;
     refs.stageMain.hidden = false;
@@ -291,6 +299,7 @@
     }
 
     const extra = [];
+    if (res.wrathAdded > 0) extra.push(`神の怒りで +${res.wrathAdded}`);
     // blocked には撃ち返した分も含まれるので、二重に数えないよう引いてから出す
     const guarded = Math.max(0, res.blocked - (res.reflected || 0));
     if (guarded > 0) extra.push(`${guarded} 防いだ`);
@@ -433,7 +442,7 @@
 
   global.GA = global.GA || {};
   global.GA.Render = {
-    init, players, hand, stage, hint, pop, shake, log, elementLegend, record,
+    init, players, hand, stage, kicker, hint, pop, shake, log, elementLegend, record,
     breakdown, hideBreakdown,
     itemCard, playerCard, readStrip, statusRow
   };

@@ -229,7 +229,7 @@ test('特性つきの武器でもAIの行動は必ず実行できる（120局面
   for (let seed = 0; seed < 120; seed++) {
     const GA = fresh(seed);
     const { Engine, AI } = GA;
-    const s = Engine.create({ names: ['A', 'B', 'C'], humans: 0 });
+    const s = Engine.create({ firstTurn: 0, names: ['A', 'B', 'C'], humans: 0 });
     const act = toPlain(AI.chooseAction(s, ['easy', 'normal', 'hard'][seed % 3]));
     assert.doesNotThrow(() => {
       if (act.type === 'attack') Engine.attack(s, act.targetId, act.uids);

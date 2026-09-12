@@ -208,13 +208,20 @@
    * 逆に、このラウンドで既に殴られている相手は避ける。
    */
   function targetValue(target, piledOn) {
-    const naked = 1 + Math.max(0, 6 - target.hand.length) * 0.06;
-    const crowd = 1 / (1 + (piledOn / target.maxHp) * PILE_AVOIDANCE);
+    const naked = 1 + Math.max(0, 6 - target.hand.length) * TUNING.nakedWeight;
+    const crowd = 1 / (1 + (piledOn / target.maxHp) * TUNING.pileAvoidance);
     return naked * crowd;
   }
 
-  /** 集中砲火を避ける強さ。0 にすると全員で袋叩きにする。 */
-  const PILE_AVOIDANCE = 2.5;
+  /**
+   * 狙い先の重み。**当て推量ではなく測って決めている**（撹拌シード各600局）。
+   *  pileAvoidance … 集中砲火を避ける強さ。0 にすると全員で袋叩きにする
+   *  nakedWeight   … 手札の薄い相手を狙う強さ。手札は「防具を持っていそうか」の
+   *                  手がかりなので狙う理由になるが、**攻撃すると手札が減る**ため、
+   *                  大きすぎると「直前に動いた者＝早い手番」ばかりが狙われて
+   *                  手番順の有利不利になる（初回被弾が 4人戦で 21.7 対 11.7 まで開いた）
+   */
+  const TUNING = { pileAvoidance: 2.5, nakedWeight: 0.06 };
 
   /**
    * 次の行動を決める。
@@ -273,9 +280,10 @@
         const bias = {};
         for (const el of Items.ATTACK_ELEMENTS) bias[el] = 1 + (read[el] - 1) * cfg.iq;
 
-        // 瀕死の相手には神の加護がかかり、通るダメージが半分になる。
-        // これを見ないと「倒せる」と誤認して手札を使い切ってしまう。
-        const grace = Engine.graceScale(target);
+        // 瀕死の相手には神の加護がかかって通るダメージが減り、
+        // 長引いた勝負では神の怒りで増える。どちらも見ないと
+        // 「倒せる／倒せない」の判断がずれる（攻めと守りで別の数字を見てしまう）。
+        const grace = Engine.graceScale(target) * Engine.wrathScale(state.round);
 
         for (const combo of subsets(weapons, 10)) {
           const est = estimateDamage(combo, target.hand.length, bias) * grace;
@@ -365,7 +373,7 @@
 
   global.GA = global.GA || {};
   global.GA.AI = {
-    LEVELS, DEF_STATS, REFLECT_STATS, setRandom, chooseAction, chooseDefense,
+    LEVELS, TUNING, DEF_STATS, REFLECT_STATS, setRandom, chooseAction, chooseDefense,
     estimateDamage, estimateTraited, expectedThrough, expectedReflect, readDefenses, bestHex,
     targetValue, damageThisRound
   };

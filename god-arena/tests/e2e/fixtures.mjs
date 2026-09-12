@@ -9,8 +9,10 @@ export async function openGame(page, query = {}) {
   page.on('pageerror', (e) => errors.push('pageerror: ' + e.message));
   page.on('console', (m) => { if (m.type() === 'error') errors.push('console: ' + m.text()); });
 
+  // 先手はゲーム本体ではランダムだが、テストは first=0（自分が先手）に固定する。
+  // 固定しないと「自分の手番のはずが相手の手番」で操作が空振りする。
   const params = new URLSearchParams(Object.assign(
-    { seed: '7', speed: 'fast', sound: 'off', opponents: '1' }, query));
+    { seed: '7', speed: 'fast', sound: 'off', opponents: '1', first: '0' }, query));
   await page.goto('/?' + params.toString());
   await expect(page.locator('#hand')).toBeVisible();
   await waitForMyTurn(page);

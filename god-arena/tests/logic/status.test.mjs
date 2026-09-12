@@ -12,7 +12,7 @@ function fresh(seed = 21) {
 /** A が B に状態異常をかけた直後の状態を作る */
 function hexed(GA, effectId, opts = {}) {
   const { Engine } = GA;
-  const s = Engine.create({ names: ['A', 'B'], humans: 0, hp: opts.hp || 40 });
+  const s = Engine.create({ firstTurn: 0, names: ['A', 'B'], humans: 0, hp: opts.hp || 40 });
   setHand(GA, s.players[0], [effectId]);
   if (opts.victimHand) setHand(GA, s.players[1], opts.victimHand);
   const out = Engine.useItem(s, s.players[0].hand[0].uid, 1);
@@ -44,7 +44,7 @@ test('どくは相手の手番のはじめに削り、ターン数が尽きる�
 test('どくで倒れると手番はそのまま次の人へ渡る', () => {
   const GA = fresh();
   const { Engine } = GA;
-  const s = Engine.create({ names: ['A', 'B', 'C'], humans: 0 });
+  const s = Engine.create({ firstTurn: 0, names: ['A', 'B', 'C'], humans: 0 });
   s.players[1].hp = 3;
   setHand(GA, s.players[0], ['poisonmist']);
   setHand(GA, s.players[1], ['apple']);
@@ -59,7 +59,7 @@ test('どくで倒れると手番はそのまま次の人へ渡る', () => {
 test('どくで最後のひとりになれば決着する', () => {
   const GA = fresh();
   const { Engine } = GA;
-  const s = Engine.create({ names: ['A', 'B'], humans: 0 });
+  const s = Engine.create({ firstTurn: 0, names: ['A', 'B'], humans: 0 });
   s.players[1].hp = 2;
   setHand(GA, s.players[0], ['poisonmist']);
   Engine.useItem(s, s.players[0].hand[0].uid, 1);
@@ -147,7 +147,7 @@ test('のろい中は反射できる量も半分になる', () => {
 test('同じ状態異常の重ねがけでターン数は伸びない（長い方を採る）', () => {
   const GA = fresh();
   const { Engine } = GA;
-  const s = Engine.create({ names: ['A', 'B'], humans: 0 });
+  const s = Engine.create({ firstTurn: 0, names: ['A', 'B'], humans: 0 });
   setHand(GA, s.players[1], ['apple']);
   setHand(GA, s.players[0], ['poisonmist', 'poisonmist']);
   Engine.useItem(s, s.players[0].hand[0].uid, 1);
@@ -162,7 +162,7 @@ test('同じ状態異常の重ねがけでターン数は伸びない（長い�
 test('状態異常は自分にはかけられない', () => {
   const GA = fresh();
   const { Engine } = GA;
-  const s = Engine.create({ names: ['A', 'B'], humans: 0 });
+  const s = Engine.create({ firstTurn: 0, names: ['A', 'B'], humans: 0 });
   setHand(GA, s.players[0], ['poisonmist']);
   assert.throws(() => Engine.useItem(s, s.players[0].hand[0].uid, 0), /対象が不正/);
   assert.equal(s.players[0].hand.length, 1, '差し戻されている');
@@ -182,7 +182,7 @@ test('狙い先が必要なアイテムを Items が判別できる', () => {
 test('AIは状態異常を、効きそうな相手に使う', () => {
   const GA = fresh();
   const { Engine, AI } = GA;
-  const s = Engine.create({ names: ['A', 'B', 'C'], humans: 0 });
+  const s = Engine.create({ firstTurn: 0, names: ['A', 'B', 'C'], humans: 0 });
   setHand(GA, s.players[0], ['poisonmist']);          // 武器が無いので状態異常を使う番
   s.players[1].hp = 3;                                // ほぼ削れている＝毒の旨みが小さい
   s.players[2].hp = 40;
@@ -195,7 +195,7 @@ test('AIは封じられた武器で攻撃しようとしない（100局面）', 
   for (let seed = 0; seed < 100; seed++) {
     const GA = fresh(seed);
     const { Engine, AI } = GA;
-    const s = Engine.create({ names: ['A', 'B'], humans: 0 });
+    const s = Engine.create({ firstTurn: 0, names: ['A', 'B'], humans: 0 });
     const me = s.players[0];
     me.status = [{ id: 'seal', turns: 2, element: Engine.strongestElement(me) }];
     const act = toPlain(AI.chooseAction(s, 'hard'));

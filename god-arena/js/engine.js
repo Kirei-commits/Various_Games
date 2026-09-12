@@ -32,13 +32,25 @@
 
   /**
    * 新しい対戦を作る。
-   * @param {{names?:string[], humans?:number, hp?:number, levels?:string[]}} opts
+   *
+   * **先手は既定でランダムに決まる。** 手番順には有利不利が残っていて
+   * （3人戦では最後の手番が 37.7%／期待33.3%、撹拌シード1200局の実測）、
+   * 人間をいつも先頭に置くと、その偏りをいつも人間が背負うことになる。
+   * 席と手番順を切り離せば、人間の期待勝率は全席の平均＝公平になる。
+   * テストは `firstTurn` を明示して決定的にする。
+   *
+   * @param {{names?:string[], humans?:number, hp?:number, levels?:string[],
+   *          firstTurn?:number}} opts
    */
   function create(opts) {
     const o = opts || {};
     const names = o.names || ['あなた', 'アレス', 'ヘラ', 'ロキ'];
     const humans = o.humans === undefined ? 1 : o.humans;
     const hp = o.hp || (START_HP + HP_PER_EXTRA_PLAYER * Math.max(0, names.length - 2));
+    const first = (o.firstTurn === undefined || o.firstTurn === null)
+      ? randInt(names.length)
+      : Math.max(0, Math.min(names.length - 1, o.firstTurn));
+    // 1対1の補正は「後に動く側」に渡す（席ではなく手番順に紐づける）
     const duel = names.length === 2;
     const players = names.map((name, i) => ({
       id: i,
@@ -49,13 +61,15 @@
       maxHp: hp,
       alive: true,
       status: [],
-      hand: Items.draw(rng, OPENING_HAND + (duel && i > 0 ? DUEL_SECOND_BONUS : 0)),
+      hand: Items.draw(rng, OPENING_HAND + (duel && i !== first ? DUEL_SECOND_BONUS : 0)),
       stats: { dealt: 0, blocked: 0, taken: 0, healed: 0, kills: 0, reflected: 0 }
     }));
     return {
       players,
-      turn: 0,
+      turn: first,
+      first,
       round: 1,
+      turnsThisRound: 0,
       phase: 'turn',        // 'turn' | 'defense' | 'over'
       pending: null,        // 防御待ちの攻撃
       winner: null,
@@ -207,6 +221,26 @@
   /** のろいを考慮した防御倍率 */
   function defenseScaleOf(p) { return statusOf(p, 'curse') ? 0.5 : 1; }
 
+  /**
+   * 神の怒り。長引くほど、通ったダメージが重くなる。
+   *
+   * 問題は中央値ではなく**長い試合の尾**だった。実測（撹拌シード各300局）:
+   *   怒りなし   6人戦 ログ中央265 / 9割339 / 最長448
+   *   from=18    6人戦 ログ中央189〜206 / 9割239 / 最長285
+   * 中央値はほとんど変えずに最長を切れる。from を 14 まで下げると
+   * タイマンにも効いてしまい、腕の差（ゴッド vs かけだし）が 75%→72% に落ちた。
+   */
+  const WRATH = {
+    from: 18,    // このラウンドを超えてから効きはじめる
+    step: 0.2,   // 1ラウンドごとの増分
+    max: 2.5     // 上限
+  };
+
+  function wrathScale(round) {
+    if (round <= WRATH.from) return 1;
+    return Math.min(WRATH.max, 1 + (round - WRATH.from) * WRATH.step);
+  }
+
   /** 神の加護がかかる残りHPの割合 */
   const GRACE_AT = 0.4;
   /** 加護がかかっている間、通ってきたダメージに掛ける倍率 */
@@ -252,7 +286,20 @@
    * **属性ごとの内訳も同じ比率で詰める**（行の合計が実ダメージと一致するように）。
    * 攻撃側と防御側で加護の有無が違うので、それぞれの倍率を使う。
    */
-  function applyGraceToResult(res, defender, attacker) {
+  function applyGraceToResult(res, defender, attacker, round) {
+    // 先に神の怒りで重くし、そのあと加護で軽くする。
+    // 内訳の行も同じ比率で詰めて、合計と一致させる。
+    const wrath = wrathScale(round || 1);
+    res.wrath = wrath;
+    if (wrath > 1 && res.damage > 0) {
+      const heavier = Math.ceil(res.damage * wrath);
+      rescaleRows(res.detail, 'through', heavier);
+      res.wrathAdded = heavier - res.damage;
+      res.damage = heavier;
+    } else {
+      res.wrathAdded = 0;
+    }
+
     const damage = applyGrace(defender, res.damage);
     res.graced = res.damage - damage;
     if (damage !== res.damage) {
@@ -286,7 +333,7 @@
     const res = resolveDamage(s.pending.weapons, list, { defenseScale: defenseScaleOf(defender) });
     // 加護もここで効かせる。UIのプレビューと実際の解決が違う数字になってはいけない。
     // 撃ち返しは攻撃側が受けるので、加護は攻撃側のものを見る。
-    return applyGraceToResult(res, defender, byId(s, s.pending.attackerId));
+    return applyGraceToResult(res, defender, byId(s, s.pending.attackerId), s.round);
   }
 
   // ── 手札操作 ───────────────────────────────────────────
@@ -419,7 +466,7 @@
 
     const res = applyGraceToResult(
       resolveDamage(weapons, used, { defenseScale: defenseScaleOf(defender) }),
-      defender, attacker);
+      defender, attacker, s.round);
     defender.hp = Math.max(0, defender.hp - res.damage);
     defender.stats.taken += res.damage;
     defender.stats.blocked += res.blocked;
@@ -454,7 +501,8 @@
       t: 'resolve', actor: attackerId, target: targetId,
       items: used.map((i) => i.id),
       damage: res.damage, blocked: res.blocked, reflected: res.reflected,
-      crits: res.crits, graced: res.graced, detail: res.detail, defeated, attackerDefeated
+      crits: res.crits, graced: res.graced, wrath: res.wrath, wrathAdded: res.wrathAdded,
+      detail: res.detail, defeated, attackerDefeated
     });
 
     s.pending = null;
@@ -606,16 +654,27 @@
     return true;
   }
 
-  /** 手番の札を次の生存者へ進めるだけ（状態異常の処理はしない） */
+  /**
+   * 手番の札を次の生存者へ進めるだけ（状態異常の処理はしない）。
+   *
+   * ラウンドの数え方は「席の番号が巻き戻ったら」ではなく
+   * **生存者が一巡したら** にする。先手はランダムなので、席の番号で数えると
+   * 最初のラウンドが1手で終わってしまい、神の怒りの開始が席によってずれる。
+   */
   function advance(s) {
     let next = s.turn;
     for (let i = 0; i < s.players.length; i++) {
       next = (next + 1) % s.players.length;
       if (s.players[next].alive) break;
     }
-    if (next <= s.turn) s.round++;
     s.turn = next;
     s.phase = 'turn';
+
+    s.turnsThisRound++;
+    if (s.turnsThisRound >= alivePlayers(s).length) {
+      s.round++;
+      s.turnsThisRound = 0;
+    }
   }
 
   /**
@@ -655,6 +714,7 @@
     create, current, alivePlayers, byId, targetsFor, availableActions, canPray, itemValue,
     statusOf, isSealed, isUsable, defenseScaleOf, previewDefense, strongestElement, tickStatus,
     GRACE_AT, GRACE_SCALE, graceScale, applyGrace, applyGraceToResult, rescaleRows,
+    WRATH, wrathScale,
     weaponsOf, defensesOf, supportsOf,
     resolveDamage, toPackets, attack, defend, pray, useItem, endTurn
   };

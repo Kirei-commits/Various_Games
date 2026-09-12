@@ -24,6 +24,7 @@
     record: null,
     busy: false,     // 演出中は入力を止める
     logShown: 0,     // 演出済みのログ件数（毒などは endTurn の内側で起きる）
+    firstTurn: null, // 先手（null ならランダム）。?first= で固定できる
     gen: 0,          // 進行の世代。取りこぼしから復帰したら上がる
     recoveries: 0,   // 復帰した回数（通しプレイで監視する）
     watchTicks: 0    // 見張り番が回った回数
@@ -112,11 +113,19 @@
   }
 
   // ── 描画 ───────────────────────────────────────────────
+  /** ラウンド表示。神の怒りがかかっていれば倍率も出す */
+  function roundLabel(s) {
+    if (s.phase === 'over') return 'RESULT';     // 決着の表示を上書きしない
+    const wrath = Engine.wrathScale(s.round);
+    return wrath > 1 ? `ROUND ${s.round} · 神の怒り ×${wrath.toFixed(1)}` : `ROUND ${s.round}`;
+  }
+
   function refresh() {
     const s = game.state;
     // 手札から消えたものを選択から外す
     for (const uid of [...game.ui.selected]) if (!findItem(uid)) game.ui.selected.delete(uid);
 
+    Render.kicker(roundLabel(s));      // ラウンドと神の怒りは常に今の状態を出す
     Render.players(s, game.ui);
     Render.hand(s, game.ui, playable);
     Render.log(s);
@@ -256,7 +265,7 @@
     const a = Engine.byId(game.state, p.attackerId);
     const t = Engine.byId(game.state, p.targetId);
     const names = p.weapons.map((w) => w.name).join(' + ');
-    Render.stage(`ROUND ${game.state.round}`, `${a.name} の ${names}！ → ${t.name}（計${p.total}）`);
+    Render.stage(roundLabel(game.state), `${a.name} の ${names}！ → ${t.name}（計${p.total}）`);
     game.busy = true;
     refresh();
     await wait(delay() * 0.75);
@@ -327,7 +336,7 @@
     const s = game.state;
     const p = Engine.current(s);
     game.busy = true;
-    Render.stage(`ROUND ${s.round}`, `${p.name} の番…`);
+    Render.stage(roundLabel(s), `${p.name} の番…`);
     refresh();
     await wait(delay() * 0.55);
     if (stale(gen)) return;
@@ -428,7 +437,7 @@
       return;
     }
     if (Engine.current(s).isHuman) {
-      Render.stage(`ROUND ${s.round}`, 'あなたの番です');
+      Render.stage(roundLabel(s), 'あなたの番です');
       refresh();
       return;
     }
@@ -475,6 +484,7 @@
     game.state = Engine.create({
       names,
       humans: 1,
+      firstTurn: game.firstTurn,        // null ならエンジンがランダムに決める
       levels: names.map((_, i) => (i === 0 ? 'normal' : game.settings.level))
     });
     game.ui.selected.clear();
@@ -578,6 +588,9 @@
 
     document.addEventListener('keydown', (ev) => {
       if (ev.target.matches('input, select, textarea')) return;
+      // Ctrl+R / Cmd+R（再読み込み）などを奪わない。
+      // 修飾キー付きはブラウザの操作なので手を出さない。
+      if (ev.ctrlKey || ev.metaKey || ev.altKey) return;
       const k = ev.key.toLowerCase();
       if (k === 'r') pickRandomTarget();
       else if (k === 'a') humanAttack();
@@ -621,6 +634,11 @@
       if (n >= 1 && n <= 5) out.opponents = n;
     }
     if (q.get('sound') === 'off') out.sound = false;
+    // 先手を固定する。テストと不具合の再現のため（既定はランダム）
+    if (q.has('first')) {
+      const n = Number(q.get('first'));
+      if (Number.isInteger(n) && n >= 0) game.firstTurn = n;
+    }
     if (q.has('seed')) {
       const seed = Number(q.get('seed')) || 1;
       Engine.setRandom(seeded(seed));

@@ -59,7 +59,7 @@ test('過剰な防御は他の属性に回らない', () => {
 test('攻撃 → 防御 で HP が減り、手番が次へ移る', () => {
   const GA = fresh();
   const { Engine } = GA;
-  const s = Engine.create({ names: ['A', 'B'], humans: 0 });
+  const s = Engine.create({ firstTurn: 0, names: ['A', 'B'], humans: 0 });
   setHand(GA, s.players[0], ['sword']);        // 無 9
   setHand(GA, s.players[1], ['woodshield']);   // 無 5
   const uid = s.players[0].hand[0].uid;
@@ -77,7 +77,7 @@ test('攻撃 → 防御 で HP が減り、手番が次へ移る', () => {
 test('HPが0になると敗退し、手札を失う', () => {
   const GA = fresh();
   const { Engine } = GA;
-  const s = Engine.create({ names: ['A', 'B', 'C'], humans: 0, hp: 10 });
+  const s = Engine.create({ firstTurn: 0, names: ['A', 'B', 'C'], humans: 0, hp: 10 });
   setHand(GA, s.players[0], ['inferno']);      // 14
   setHand(GA, s.players[1], ['apple', 'sword']);
   Engine.attack(s, 1, [s.players[0].hand[0].uid]);
@@ -91,7 +91,7 @@ test('HPが0になると敗退し、手札を失う', () => {
 test('最後の1人になったら決着する', () => {
   const GA = fresh();
   const { Engine } = GA;
-  const s = Engine.create({ names: ['A', 'B'], humans: 0, hp: 5 });
+  const s = Engine.create({ firstTurn: 0, names: ['A', 'B'], humans: 0, hp: 5 });
   setHand(GA, s.players[0], ['cannon']);
   Engine.attack(s, 1, [s.players[0].hand[0].uid]);
   Engine.defend(s, []);
@@ -102,7 +102,7 @@ test('最後の1人になったら決着する', () => {
 test('敗退者は手番を飛ばされる', () => {
   const GA = fresh();
   const { Engine } = GA;
-  const s = Engine.create({ names: ['A', 'B', 'C'], humans: 0, hp: 6 });
+  const s = Engine.create({ firstTurn: 0, names: ['A', 'B', 'C'], humans: 0, hp: 6 });
   setHand(GA, s.players[0], ['cannon']);
   Engine.attack(s, 1, [s.players[0].hand[0].uid]);
   Engine.defend(s, []);           // B 敗退
@@ -112,7 +112,7 @@ test('敗退者は手番を飛ばされる', () => {
 test('祈るとアイテムが増え、手番が移る', () => {
   const GA = fresh();
   const { Engine } = GA;
-  const s = Engine.create({ names: ['A', 'B'], humans: 0 });
+  const s = Engine.create({ firstTurn: 0, names: ['A', 'B'], humans: 0 });
   setHand(GA, s.players[0], ['woodshield', 'apple']);   // 武器が無いので祈れる
   const before = s.players[0].hand.length;
   const out = Engine.pray(s);
@@ -124,7 +124,7 @@ test('祈るとアイテムが増え、手番が移る', () => {
 test('手札が上限でも、祈れば価値の低いものから捨てて新しい神器が入る', () => {
   const GA = fresh();
   const { Engine } = GA;
-  const s = Engine.create({ names: ['A', 'B'], humans: 0 });
+  const s = Engine.create({ firstTurn: 0, names: ['A', 'B'], humans: 0 });
   // 防具と食料で埋まった状態。ここで引いた分を全部捨てると永久に攻め手が来ない。
   setHand(GA, s.players[0], new Array(Engine.HAND_LIMIT).fill('apple'));
   const out = Engine.pray(s);
@@ -138,7 +138,7 @@ test('手札が上限でも、祈れば価値の低いものから捨てて新�
 test('捨てるのは価値の低い手札から（武器は残る）', () => {
   const GA = fresh();
   const { Engine } = GA;
-  const s = Engine.create({ names: ['A', 'B'], humans: 0, hp: 40 });
+  const s = Engine.create({ firstTurn: 0, names: ['A', 'B'], humans: 0, hp: 40 });
   const hand = ['cannon', ...new Array(Engine.HAND_LIMIT - 1).fill('apple')];
   setHand(GA, s.players[1], hand);
   // 相手の手番にして祈らせるのではなく、give を通る経路（ごうだつ）で確認する
@@ -151,7 +151,7 @@ test('捨てるのは価値の低い手札から（武器は残る）', () => {
 test('武器を持っている間は祈れない（攻め手があるのに引き直せない）', () => {
   const GA = fresh();
   const { Engine } = GA;
-  const s = Engine.create({ names: ['A', 'B'], humans: 0 });
+  const s = Engine.create({ firstTurn: 0, names: ['A', 'B'], humans: 0 });
   setHand(GA, s.players[0], ['sword', 'apple']);
   assert.equal(Engine.canPray(s), false);
   assert.throws(() => Engine.pray(s), /祈れない/);
@@ -163,7 +163,7 @@ test('武器を持っている間は祈れない（攻め手があるのに引�
 test('食料はHPを回復し、最大値を超えない', () => {
   const GA = fresh();
   const { Engine } = GA;
-  const s = Engine.create({ names: ['A', 'B'], humans: 0 });
+  const s = Engine.create({ firstTurn: 0, names: ['A', 'B'], humans: 0 });
   const max = s.players[0].maxHp;
   s.players[0].hp = max - 5;
   setHand(GA, s.players[0], ['herb']);   // 16回復だが5しか入らない
@@ -175,7 +175,7 @@ test('食料はHPを回復し、最大値を超えない', () => {
 test('てんけいはアイテムを授かる／ごうだつは相手から奪う', () => {
   const GA = fresh(42);
   const { Engine } = GA;
-  const s = Engine.create({ names: ['A', 'B'], humans: 0 });
+  const s = Engine.create({ firstTurn: 0, names: ['A', 'B'], humans: 0 });
   setHand(GA, s.players[0], ['oracle']);
   const drew = Engine.useItem(s, s.players[0].hand[0].uid);
   assert.equal(drew.drawn.length, 4);
@@ -193,7 +193,7 @@ test('てんけいはアイテムを授かる／ごうだつは相手から奪�
 test('不正な操作は例外になり、手札は失われない', () => {
   const GA = fresh();
   const { Engine } = GA;
-  const s = Engine.create({ names: ['A', 'B'], humans: 0 });
+  const s = Engine.create({ firstTurn: 0, names: ['A', 'B'], humans: 0 });
   setHand(GA, s.players[0], ['woodshield']);
   assert.throws(() => Engine.attack(s, 1, [s.players[0].hand[0].uid]), /武器以外/);
   assert.equal(s.players[0].hand.length, 1, '差し戻されている');
@@ -204,7 +204,7 @@ test('不正な操作は例外になり、手札は失われない', () => {
 test('availableActions は局面に応じた選択肢を返す', () => {
   const GA = fresh();
   const { Engine } = GA;
-  const s = Engine.create({ names: ['A', 'B'], humans: 0 });
+  const s = Engine.create({ firstTurn: 0, names: ['A', 'B'], humans: 0 });
   setHand(GA, s.players[0], []);
   assert.deepEqual(toPlain(Engine.availableActions(s)), ['pray']);
   setHand(GA, s.players[0], ['sword', 'apple']);
@@ -216,7 +216,7 @@ test('availableActions は局面に応じた選択肢を返す', () => {
 test('ログには攻撃・解決・決着が残る', () => {
   const GA = fresh();
   const { Engine } = GA;
-  const s = Engine.create({ names: ['A', 'B'], humans: 0, hp: 5 });
+  const s = Engine.create({ firstTurn: 0, names: ['A', 'B'], humans: 0, hp: 5 });
   setHand(GA, s.players[0], ['cannon']);
   Engine.attack(s, 1, [s.players[0].hand[0].uid]);
   Engine.defend(s, []);

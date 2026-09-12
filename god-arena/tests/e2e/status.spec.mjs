@@ -78,6 +78,26 @@ test('封じで攻め手が無くなると「いのる」が押せるように�
   await expect(page.locator('#btn-pray')).toBeEnabled();
 });
 
+test('神の怒りがかかると表示に出て、ダメージが重くなる', async ({ page }) => {
+  const g = await openGame(page, { level: 'hard' });
+  await page.evaluate(() => {
+    const s = window.GA.game.state;
+    s.round = window.GA.Engine.WRATH.from + 5;      // 倍率 2.0
+    window.GA.refresh();
+  });
+  await expect(page.locator('#stage-kicker')).toContainText('神の怒り');
+
+  await setMyHand(page, ['cannon']);                // 無14 → 28
+  await setFoeHand(page, 1, []);
+  const before = (await g.state()).players[1].hp;
+  await g.tap(cardByName(page, 'たいほう'));
+  await g.tap(page.locator('#opponents .pcard').first());
+
+  await expect(page.locator('#bd-total')).toContainText('神の怒りで +14', { timeout: 15000 });
+  await expect.poll(async () => (await g.state()).players[1].hp).toBe(before - 28);
+  expect(g.errors).toEqual([]);
+});
+
 test('のろい中は防御の予測値が半分になる', async ({ page }) => {
   const g = await openGame(page, { level: 'hard' });
   await setMyHand(page, []);

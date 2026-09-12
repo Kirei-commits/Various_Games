@@ -21,7 +21,7 @@ function duel(a, b, games = 300) {
     GA.Engine.setRandom(seededRandom(seed));
     GA.AI.setRandom(seededRandom((seed ^ 0xABCD) >>> 0));
     const levels = i % 2 === 0 ? [a, b] : [b, a];
-    const s = GA.Engine.create({ names: ['A', 'B'], humans: 0, levels });
+    const s = GA.Engine.create({ firstTurn: 0, names: ['A', 'B'], humans: 0, levels });
     const r = autoPlay(GA, s, levels, 800);
     assert.equal(s.phase, 'over', `i=${i} で決着しない（${r.turns}手）`);
     if (r.winner === null) { draws++; continue; }
@@ -34,7 +34,7 @@ function duel(a, b, games = 300) {
 test('致死の攻撃は必ず防ぐ（出し惜しみしない）', () => {
   const GA = fresh();
   const { Engine, AI } = GA;
-  const s = Engine.create({ names: ['A', 'B'], humans: 0, hp: 10 });
+  const s = Engine.create({ firstTurn: 0, names: ['A', 'B'], humans: 0, hp: 10 });
   setHand(GA, s.players[0], ['inferno']);                 // 火14
   setHand(GA, s.players[1], ['flameshield', 'armor']);    // 火9 / 無11
   Engine.attack(s, 1, [s.players[0].hand[0].uid]);
@@ -48,7 +48,7 @@ test('致死の攻撃は必ず防ぐ（出し惜しみしない）', () => {
 test('防げない属性の防具は使わない（無駄撃ちしない）', () => {
   const GA = fresh();
   const { Engine, AI } = GA;
-  const s = Engine.create({ names: ['A', 'B'], humans: 0 });
+  const s = Engine.create({ firstTurn: 0, names: ['A', 'B'], humans: 0 });
   setHand(GA, s.players[0], ['ember']);              // 火6
   setHand(GA, s.players[1], ['iceshield', 'rod']);   // 水9 / 雷9
   Engine.attack(s, 1, [s.players[0].hand[0].uid]);
@@ -58,7 +58,7 @@ test('防げない属性の防具は使わない（無駄撃ちしない）', ()
 test('倒しきれる相手がいれば止めを刺す', () => {
   const GA = fresh();
   const { Engine, AI } = GA;
-  const s = Engine.create({ names: ['A', 'B', 'C'], humans: 0 });
+  const s = Engine.create({ firstTurn: 0, names: ['A', 'B', 'C'], humans: 0 });
   s.players[1].hp = 4;    // 瀕死
   s.players[2].hp = 40;
   s.players[1].hand = [];
@@ -71,7 +71,7 @@ test('倒しきれる相手がいれば止めを刺す', () => {
 test('武器が無ければ祈る', () => {
   const GA = fresh();
   const { Engine, AI } = GA;
-  const s = Engine.create({ names: ['A', 'B'], humans: 0 });
+  const s = Engine.create({ firstTurn: 0, names: ['A', 'B'], humans: 0 });
   setHand(GA, s.players[0], []);
   assert.equal(toPlain(AI.chooseAction(s, 'hard')).type, 'pray');
 });
@@ -79,7 +79,7 @@ test('武器が無ければ祈る', () => {
 test('瀕死なら回復を優先する', () => {
   const GA = fresh();
   const { Engine, AI } = GA;
-  const s = Engine.create({ names: ['A', 'B'], humans: 0 });
+  const s = Engine.create({ firstTurn: 0, names: ['A', 'B'], humans: 0 });
   s.players[0].hp = 8;
   setHand(GA, s.players[0], ['herb', 'stone']);
   const act = toPlain(AI.chooseAction(s, 'hard'));
@@ -90,7 +90,7 @@ test('AIが返す行動は必ず実行できる（100局面）', () => {
   for (let seed = 0; seed < 100; seed++) {
     const GA = fresh(seed);
     const { Engine, AI } = GA;
-    const s = Engine.create({ names: ['A', 'B', 'C'], humans: 0 });
+    const s = Engine.create({ firstTurn: 0, names: ['A', 'B', 'C'], humans: 0 });
     const p = Engine.current(s);
     const act = toPlain(AI.chooseAction(s, ['easy', 'normal', 'hard'][seed % 3]));
     assert.doesNotThrow(() => {
@@ -104,7 +104,7 @@ test('AIが返す行動は必ず実行できる（100局面）', () => {
 test('AI同士の対戦は必ず決着する（30局）', () => {
   for (let seed = 0; seed < 30; seed++) {
     const GA = fresh(seed * 17 + 3);
-    const s = GA.Engine.create({ names: ['A', 'B', 'C', 'D'], humans: 0 });
+    const s = GA.Engine.create({ firstTurn: 0, names: ['A', 'B', 'C', 'D'], humans: 0 });
     const r = autoPlay(GA, s, ['normal', 'normal', 'normal', 'normal']);
     // 反射での相打ちで winner が null になることはある。決着していることを見る。
     assert.equal(s.phase, 'over', `seed=${seed} で決着しない（${r.turns}手）`);
@@ -141,7 +141,7 @@ test('難易度の序列が保たれている（各300局・先後入れ替え�
 test('見えている情報からしか相手の防具を読まない', () => {
   const GA = fresh();
   const { Engine, AI } = GA;
-  const s = Engine.create({ names: ['A', 'B'], humans: 0 });
+  const s = Engine.create({ firstTurn: 0, names: ['A', 'B'], humans: 0 });
   const before = toPlain(AI.readDefenses(s, 1));
   for (const el of Object.keys(before)) assert.equal(before[el], 1, '戦う前から偏りがある');
 
@@ -159,7 +159,7 @@ test('1局の長さが極端にならない（中央値が現実的）', () => {
   const lengths = [];
   for (let seed = 0; seed < 20; seed++) {
     const GA = fresh(seed * 11 + 1);
-    const s = GA.Engine.create({ names: ['A', 'B'], humans: 0 });
+    const s = GA.Engine.create({ firstTurn: 0, names: ['A', 'B'], humans: 0 });
     lengths.push(autoPlay(GA, s, ['normal', 'normal']).turns);
   }
   lengths.sort((a, b) => a - b);
