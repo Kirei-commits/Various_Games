@@ -17,6 +17,8 @@ test('反射具は「反射」と分かる見た目になっている', async ({
   await expect(card).toHaveClass(/is-reflect/);
   await expect(card).toContainText('反射');
   await expect(card).toContainText('撃ち返す');
+  // 詳しい効果は枠に収めるため title に入れている
+  await expect(card).toHaveAttribute('title', /防いだ分を撃ち返す/);
 });
 
 test('反射具で受けると攻撃側にダメージが返る', async ({ page }) => {
@@ -25,7 +27,7 @@ test('反射具で受けると攻撃側にダメージが返る', async ({ page 
   const before = await g.state();
 
   await g.tap(cardByName(page, 'ほのおのかがみ'));
-  await expect(page.locator('#hint')).toContainText('撃ち返す');
+  await expect(page.locator('#bd-total')).toContainText('撃ち返した');
   await g.tap(page.locator('#btn-guard'));
   await waitForMyTurn(page);
 
@@ -72,8 +74,9 @@ test('相打ちになると引き分けとして表示される', async ({ page 
 
 test('相手が防いだ属性は「厚」、素通りした属性は「薄」と表示される', async ({ page }) => {
   const g = await openGame(page, { level: 'hard' });
+  // 読めるものが無いうちは帯そのものを出さない（一画面に収めるため行を使わない）
   const strip = page.locator('#opponents .readstrip').first();
-  await expect(strip).toContainText('まだ読めない');
+  await expect(strip).toHaveCount(0);
 
   // 火は防がれ、雷は素通りする局面をつくる
   await setMyHand(page, ['inferno', 'judgement']);

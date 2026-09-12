@@ -14,19 +14,38 @@
 
   <header class="topbar">
     <h1 class="logo">GOD<span>ARENA</span></h1>
-    <p class="tagline">// 神器大戦 &nbsp;·&nbsp; ver 1.0</p>
+    <p class="tagline">// 神器大戦</p>
+    <button id="btn-log" class="icon-btn" type="button"
+            aria-label="戦況ログを開く" title="戦況ログ・属性の相性・戦績 (L)">📜</button>
     <button id="btn-settings" class="icon-btn" type="button" aria-label="設定を開く" title="設定">⚙</button>
   </header>
 
   <main class="layout">
     <section class="arena-area">
       <!-- ===== 対戦相手 ===== -->
+      <div class="arena-head">
+        <h2>相手 <span id="alive-count" class="count">0</span>
+          <span id="foe-level" class="foe-level"></span></h2>
+        <button id="btn-random" class="chip chip-action" type="button"
+                title="生きている相手からランダムに狙う (R)">🎲 ランダムに狙う</button>
+      </div>
       <div id="opponents" class="opponents" role="list" aria-label="対戦相手"></div>
 
       <!-- ===== 中央のステージ ===== -->
       <div class="stage" id="stage">
-        <p id="stage-kicker" class="stage-kicker">ROUND 1</p>
-        <p id="stage-text" class="stage-text">あなたの番です</p>
+        <div id="stage-main">
+          <p id="stage-kicker" class="stage-kicker">ROUND 1</p>
+          <p id="stage-text" class="stage-text">あなたの番です</p>
+        </div>
+
+        <!-- 属性ごとに「いくら来て、いくら防げて、いくら通るか」を見せる。
+             受ける時のプレビューと、解決した後の結果の両方で同じ形を使う。 -->
+        <div id="breakdown" class="breakdown" role="status" aria-live="polite" hidden>
+          <p id="bd-title" class="bd-title"></p>
+          <ul id="bd-rows" class="bd-rows"></ul>
+          <p id="bd-total" class="bd-total"></p>
+        </div>
+
         <div id="stage-fx" class="stage-fx" aria-hidden="true"></div>
       </div>
 
@@ -67,8 +86,12 @@
       <div id="hand" class="hand" role="list" aria-label="手札"></div>
     </section>
 
-    <!-- ===== サイド ===== -->
-    <aside class="side">
+    <!-- ===== サイド =====
+         狭い画面では画面外に置いて、📜 で引き出す。
+         一画面に収めるため、常時表示にはしない（DOMには常に置いてある）。 -->
+    <div id="drawer-backdrop" class="drawer-backdrop" hidden></div>
+    <aside id="side" class="side">
+      <button id="btn-close-side" class="side-close" type="button" aria-label="閉じる">✕</button>
       <section class="panel">
         <h2 class="panel-title">戦況ログ</h2>
         <div id="log" class="log" role="log" aria-live="polite"></div>
@@ -79,6 +102,17 @@
            <span class="el-all">全</span>の防具だけはどの属性でも受けられます。
            属性を混ぜて撃つほど防がれにくくなります。</p>
         <div id="elements" class="elements"></div>
+      </section>
+      <section class="panel">
+        <h2 class="panel-title">武器の特性</h2>
+        <dl class="legend">
+          <dt>連撃 N</dt><dd>N回に分かれて当たる。防具1枚が受け止められるのは1回分だけ</dd>
+          <dt>貫通</dt><dd>防具の効果が半分になる</dd>
+          <dt>会心</dt><dd>その一撃が1点も防がれなければ威力1.5倍</dd>
+        </dl>
+        <p class="note">反射具は止めた分をそのまま撃ち返します（撃ち返しは防げません）。
+           残りHPが4割以下になると<strong>神の加護</strong>で被ダメージが半分になります
+           （どくには効きません）。</p>
       </section>
       <section class="panel">
         <h2 class="panel-title">戦績</h2>

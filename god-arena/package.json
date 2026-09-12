@@ -10,6 +10,7 @@
     "test:logic": "node --test tests/logic/*.test.mjs",
     "test:e2e": "playwright test",
     "playtest": "node tests/playtest.mjs",
+    "shots": "node tests/shots.mjs",
     "test": "npm run lint && npm run test:logic && npm run test:e2e"
   },
   "devDependencies": {

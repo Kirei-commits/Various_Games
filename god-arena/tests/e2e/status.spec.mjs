@@ -87,13 +87,13 @@ test('のろい中は防御の予測値が半分になる', async ({ page }) => 
   await setMyHand(page, ['armor']);                 // 無11
 
   await g.tap(cardByName(page, 'よろい'));
-  await expect(page.locator('#hint')).toContainText('3 ダメージ');   // 14 - 11
+  await expect(page.locator('#bd-total')).toContainText('3 ダメージ');   // 14 - 11
 
   // 選択は解かず、のろいをかけた状態で描画し直す（もう一度タップすると選択が外れる）
   await page.evaluate(() => {
     window.GA.game.state.players[0].status = [{ id: 'curse', turns: 3, power: 1 }];
     window.GA.refresh();
   });
-  await expect(page.locator('#hint')).toContainText('9 ダメージ');   // 14 - 5（11が5に目減り）
+  await expect(page.locator('#bd-total')).toContainText('9 ダメージ');   // 14 - 5（11が5に目減り）
   expect(g.errors).toEqual([]);
 });

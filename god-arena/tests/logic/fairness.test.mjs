@@ -98,6 +98,65 @@ test('どくは加護を貫く（加護で粘る相手へのとどめが残る�
   assert.equal(s.players[1].hp, 6, '4がそのまま入る');
 });
 
+test('加護がかかっても、属性ごとの内訳の合計が実ダメージと一致する', () => {
+  const GA = fresh();
+  const { Engine } = GA;
+  const s = Engine.create({ names: ['A', 'B'], humans: 0 });
+  s.players[1].hp = 10;                          // 加護がかかる
+  setHand(GA, s.players[0], ['inferno', 'judgement', 'cannon']);   // 火14 雷14 無14
+  Engine.attack(s, 1, s.players[0].hand.map((i) => i.uid));
+
+  const preview = Engine.previewDefense(s, []);
+  const sumThrough = preview.detail.reduce((a, r) => a + r.through, 0);
+  assert.equal(sumThrough, preview.damage, '行の合計と実ダメージが食い違っている');
+
+  const res = Engine.defend(s, []);
+  assert.equal(res.detail.reduce((a, r) => a + r.through, 0), res.damage);
+  assert.equal(res.damage, 21, '42 の半分');
+});
+
+test('加護がかかっても、撃ち返しの内訳の合計が一致する', () => {
+  const GA = fresh();
+  const { Engine } = GA;
+  const s = Engine.create({ names: ['A', 'B'], humans: 0 });
+  s.players[0].hp = 10;                          // 攻撃側に加護
+  setHand(GA, s.players[0], ['inferno', 'judgement']);
+  setHand(GA, s.players[1], ['backfire', 'earthcoil']);   // 火7 雷7 の反射
+  Engine.attack(s, 1, s.players[0].hand.map((i) => i.uid));
+  const uids = s.players[1].hand.map((i) => i.uid);
+  const preview = Engine.previewDefense(s, uids);
+  assert.equal(preview.detail.reduce((a, r) => a + r.reflected, 0), preview.reflected);
+  const res = Engine.defend(s, uids);
+  assert.equal(res.detail.reduce((a, r) => a + r.reflected, 0), res.reflected);
+  assert.equal(res.reflected, 7, '14 の半分');
+});
+
+test('防いだ量は撃ち返した分を二重に数えない', () => {
+  const GA = fresh();
+  const { Engine } = GA;
+  const s = Engine.create({ names: ['A', 'B'], humans: 0 });
+  setHand(GA, s.players[0], ['inferno']);        // 火14
+  setHand(GA, s.players[1], ['backfire']);       // 火の反射7
+  Engine.attack(s, 1, [s.players[0].hand[0].uid]);
+  const res = Engine.defend(s, [s.players[1].hand[0].uid]);
+  assert.equal(res.reflected, 7);
+  assert.equal(res.blocked, 7, '止めたのは7。撃ち返しと合わせて14にはならない');
+  assert.equal(res.damage, 7);
+});
+
+test('比例配分は合計をきっちり合わせる', () => {
+  const GA = fresh();
+  const { Engine } = GA;
+  const rows = [{ v: 5 }, { v: 5 }, { v: 5 }];
+  Engine.rescaleRows(rows, 'v', 8);
+  assert.equal(rows.reduce((a, r) => a + r.v, 0), 8, '端数で合計がずれている');
+  const one = [{ v: 3 }];
+  Engine.rescaleRows(one, 'v', 1);
+  assert.equal(one[0].v, 1);
+  const zero = [{ v: 0 }, { v: 0 }];
+  assert.doesNotThrow(() => Engine.rescaleRows(zero, 'v', 5));
+});
+
 // ── 人数に応じたHP ───────────────────────────────────
 test('人数が増えるほど最大HPが増える', () => {
   const GA = fresh();

@@ -169,6 +169,31 @@
     return out;
   }
 
+  /**
+   * カードの1行に出す要約。
+   * 説明文をそのまま入れると枠からあふれるので、カードには属性と数値だけを置き、
+   * 効果の説明は describe() を title / aria-label に入れて読めるようにしている。
+   */
+  function summary(item) {
+    const label = element(item.element).label;
+    switch (item.kind) {
+      case 'weapon':
+        return item.hits > 1 ? `${label}属性 ${item.power}×${item.hits}` : `${label}属性 ${item.power}`;
+      case 'defense':  return item.element === 'all' ? `全属性を ${item.power}` : `${label}属性を ${item.power}`;
+      case 'reflect':  return `${label}属性を ${item.power} 撃ち返す`;
+      case 'food':     return `HP +${item.power}`;
+      case 'magic':
+        if (item.effect === 'heal')   return `HP +${item.power}`;
+        if (item.effect === 'draw')   return `神器 ${item.power}個`;
+        if (item.effect === 'steal')  return `${item.power}個うばう`;
+        if (item.effect === 'poison') return `どく ${item.power}／${item.turns}ターン`;
+        if (item.effect === 'seal')   return `ふうじ ${item.turns}ターン`;
+        if (item.effect === 'curse')  return `のろい ${item.turns}ターン`;
+        return '';
+      default: return '';
+    }
+  }
+
   /** カードに出す短い説明 */
   function describe(item) {
     switch (item.kind) {
@@ -206,6 +231,7 @@
     ELEMENTS, ATTACK_ELEMENTS, CATALOG, KIND_LABEL,
     byId: (id) => BY_ID[id],
     STATUS,
-    instantiate, resetUid, draw, drawOne, element, describe, traits, isShield, needsTarget, isHex
+    instantiate, resetUid, draw, drawOne, element, describe, summary, traits,
+    isShield, needsTarget, isHex
   };
 })(typeof window !== 'undefined' ? window : globalThis);

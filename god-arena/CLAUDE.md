@@ -42,8 +42,12 @@ CI はリポジトリ直下の `.github/workflows/ci.yml`（god-arena と gomoku
    `merge()` で捨てられ、保存しても復元されない。
 6. **ルール判断は engine に集約する。** UI と AI は同じ関数（`availableActions` /
    `canPray` / `resolveDamage`）を見る。UI側で条件を書き直すと必ずずれる。
-7. **主要な操作は手札の直上・ファーストビュー内に置く。**
-   `tests/e2e/layout.spec.mjs` が「1画面に収まること」「44×44px 以上」を検査している。
+7. **一画面に収める。スクロールしてよいのは手札だけ。**
+   `body` は `100dvh` の縦並び、`.arena-area` はグリッドで手札の行だけが
+   `minmax(0, 1fr)`。`.layout` と `.arena-area` の `min-height: 0` を外すと
+   子のスクロールが効かなくなる。狭い画面では戦況ログを引き出し（`#side.is-open`）に
+   逃がして場所を取らない。`tests/e2e/layout.spec.mjs` が
+   「ページが縦にスクロールしないこと」「44×44px 以上」を検査している。
 8. **`[hidden] { display: none !important; }` を消さない。**
    `.abtn { display: flex }` が既定の `[hidden]` に勝ってしまい、
    隠したはずの防御ボタンが出たままになる（実際にこれで落とした）。
@@ -64,7 +68,25 @@ CI はリポジトリ直下の `.github/workflows/ci.yml`（god-arena と gomoku
    （撃ち返しは攻撃側の加護を見る。片方だけ入れてプレビューと実際がずれた）。
 13. **攻撃側のAIの見積もりにも加護を掛ける。** `Engine.graceScale(target)` を
    忘れると、瀕死の相手を「倒せる」と誤認して手札を使い切る。
-14. **演出の待ちは取りこぼされることがある。**
+14. **手札のカード（`<button>`）は flex コンテナにしておく。**
+   button は中身のブロック要素から高さが決まらず、説明の行が黙って切れる
+   （実測で `scrollHeight 81 / clientHeight 69` を確認）。`display: flex` に
+   すると中身の高さがそのまま効く。`layout.spec.mjs` の
+   「手札のカードの中身が切れない」が回帰を見張っている。
+15. **攻撃の結果は属性ごとの内訳で見せる（`Render.breakdown`）。**
+   「何ダメージ」だけでは、どの属性が防げてどれが通ったのか読めない
+   （遊んだ人からの指摘）。受ける前のプレビューと解決後の結果で同じ関数を使う。
+   - **行の合計は必ず実ダメージと一致させる。** 加護で減らすときは
+     `Engine.applyGraceToResult()` が `rescaleRows()` で内訳も比例配分する。
+     片方だけ減らすと「行の合計 ≠ 合計」になって信用されない。
+   - **`res.blocked` には撃ち返した分が含まれる。** 「防いだ」として出すときは
+     `blocked - reflected` にする（二重に数えてしまう）。
+   - 帯の長さは `blocked + through` の最大値で揃える。`raw` で揃えると
+     会心（1.5倍）の行が基準を超える。
+16. **画面操作の乱数はゲームの乱数と分ける（`uiRandom`）。**
+   狙い先の抽選に `Engine.random()` を使うと、押すたびに引きとAIの判断が
+   ずれて `?seed=` の再現性が壊れる。
+17. **演出の待ちは取りこぼされることがある。**
    通しプレイで、仕掛けた `setTimeout` と `requestAnimationFrame` の両方が
    発火しない場面を捕まえた（ページは生きていて、先に仕掛けた別の
    `setInterval` は回り続けていた）。そのため
@@ -141,6 +163,7 @@ CI はリポジトリ直下の `.github/workflows/ci.yml`（god-arena と gomoku
 | ロジック | `tests/logic/*.test.mjs` | `node --test` | ダメージ計算、進行、AIの妥当性、難易度の序列、永続化 |
 | ブラウザ | `tests/e2e/*.spec.mjs` | Playwright | 攻撃・防御・祈り・設定・レイアウト |
 | 通しプレイ | `tests/playtest.mjs` | `npm run playtest` | 実ブラウザで決着まで遊び、詰み・停止・表示崩れ・JSエラーを探す |
+| 画面の確認 | `tests/shots.mjs` | `npm run shots` | 主要画面を撮って、一画面に収まっているかを機械と目の両方で確かめる |
 
 ### 通しプレイ（playtest）について
 

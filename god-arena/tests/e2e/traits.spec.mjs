@@ -25,7 +25,7 @@ test('連撃は防具1枚では受けきれない', async ({ page }) => {
   const before = (await g.state()).players[0].hp;
 
   await g.tap(cardByName(page, 'てつのたて'));
-  await expect(page.locator('#hint')).toContainText('4 ダメージ');
+  await expect(page.locator('#bd-total')).toContainText('4 ダメージ');
   await g.tap(page.locator('#btn-guard'));
   await waitForMyTurn(page);
   expect((await g.state()).players[0].hp).toBe(before - 4, '1回分だけ止まる');
@@ -37,7 +37,7 @@ test('連撃は回数分の防具をそろえれば止まる', async ({ page }) 
   const before = (await g.state()).players[0].hp;
 
   for (const card of await page.locator('#hand .card').all()) await g.tap(card);
-  await expect(page.locator('#hint')).toContainText('0 ダメージ');
+  await expect(page.locator('#bd-total')).toContainText('0 ダメージ');
   await g.tap(page.locator('#btn-guard'));
   await waitForMyTurn(page);
   expect((await g.state()).players[0].hp).toBe(before);
@@ -49,7 +49,7 @@ test('貫通は防具の効果を半分にする', async ({ page }) => {
   const before = (await g.state()).players[0].hp;
 
   await g.tap(cardByName(page, 'よろい'));
-  await expect(page.locator('#hint')).toContainText('1 ダメージ');
+  await expect(page.locator('#bd-total')).toContainText('1 ダメージ');
   await g.tap(page.locator('#btn-guard'));
   await waitForMyTurn(page);
   expect((await g.state()).players[0].hp).toBe(before - 1);
@@ -86,6 +86,6 @@ test('会心を含む攻撃のプレビューは1.5倍を織り込む', async ({
   await incomingAttack(page, g, ['blazeburst'], ['iceshield']);   // 火7会心 を 水の盾で受けようとする
   // 属性が合わないので防げず、会心して 10 になる
   await g.tap(cardByName(page, 'こおりのたて'));
-  await expect(page.locator('#hint')).toContainText('10 ダメージ');
+  await expect(page.locator('#bd-total')).toContainText('10 ダメージ');
   expect(g.errors).toEqual([]);
 });

@@ -20,13 +20,20 @@
   function init() {
     refs = {
       opponents: $('#opponents'),
+      aliveCount: $('#alive-count'),
+      foeLevel: $('#foe-level'),
       self: $('#self'),
       hand: $('#hand'),
       handCount: $('#hand-count'),
       stage: $('#stage'),
+      stageMain: $('#stage-main'),
       stageText: $('#stage-text'),
       stageKicker: $('#stage-kicker'),
       stageFx: $('#stage-fx'),
+      breakdown: $('#breakdown'),
+      bdTitle: $('#bd-title'),
+      bdRows: $('#bd-rows'),
+      bdTotal: $('#bd-total'),
       log: $('#log'),
       hint: $('#hint'),
       elements: $('#elements'),
@@ -49,8 +56,7 @@
     }
 
     const name = el('div', 'pname');
-    name.appendChild(el('span', null, p.name));
-    if (!p.isHuman) name.appendChild(el('span', 'ptag', (global.GA.AI.LEVELS[p.level] || {}).label || 'AI'));
+    name.appendChild(el('span', 'pn', p.name));
     if (!p.alive) name.appendChild(el('span', 'ptag', '敗退'));
     card.appendChild(name);
 
@@ -70,7 +76,10 @@
 
     const graced = p.alive && Engine.graceScale(p) < 1;
     if (graced || (p.status && p.status.length)) card.appendChild(statusRow(p, graced));
-    if (!p.isHuman) card.appendChild(readStrip(state, p));
+    if (!p.isHuman) {
+      const strip = readStrip(state, p);
+      if (strip) card.appendChild(strip);      // まだ読めないうちは行を使わない
+    }
     return card;
   }
 
@@ -103,13 +112,19 @@
     const strip = el('div', 'readstrip');
     strip.title = '厚 = この属性を防いだ実績あり / 薄 = この属性が素通りした';
     const bias = global.GA.AI.readDefenses(state, p.id);
-    let any = false;
-    for (const key of Items.ATTACK_ELEMENTS) {
-      const b = bias[key];
-      if (b > 1.05) { strip.appendChild(chip(key, 'thick', '厚')); any = true; }
-      else if (b < 0.95) { strip.appendChild(chip(key, 'thin', '薄')); any = true; }
+    // 1行に収まる数だけ出す。読みの強い（1から離れている）ものを優先する。
+    // 黙って切り落とすと「出ているはずの情報が見えない」ことになるため、
+    // 残りは件数で示す。
+    const reads = Items.ATTACK_ELEMENTS
+      .map((key) => ({ key, b: bias[key] }))
+      .filter((r) => r.b > 1.05 || r.b < 0.95)
+      .sort((a, b) => Math.abs(b.b - 1) - Math.abs(a.b - 1));
+    if (!reads.length) return null;
+    const SHOWN = 3;
+    for (const r of reads.slice(0, SHOWN)) {
+      strip.appendChild(chip(r.key, r.b > 1 ? 'thick' : 'thin', r.b > 1 ? '厚' : '薄'));
     }
-    if (!any) strip.appendChild(el('span', 'readnote', 'まだ読めない'));
+    if (reads.length > SHOWN) strip.appendChild(el('span', 'readmore', `+${reads.length - SHOWN}`));
     return strip;
   }
 
@@ -121,6 +136,11 @@
   }
 
   function players(state, ui) {
+    const foes = state.players.filter((p) => !p.isHuman);
+    refs.aliveCount.textContent = `${foes.filter((p) => p.alive).length} / ${foes.length}`;
+    // 難易度は全員同じなので、カードごとに出さず見出しに1回だけ出す
+    const lv = foes.length ? (global.GA.AI.LEVELS[foes[0].level] || {}).label : '';
+    refs.foeLevel.textContent = lv ? `· ${lv}` : '';
     refs.opponents.replaceChildren();
     for (const p of state.players) {
       if (p.isHuman) continue;
@@ -143,17 +163,21 @@
     if (sealed) b.classList.add('is-sealed');
     if (disabled) { b.classList.add('is-off'); b.disabled = true; }
 
-    b.appendChild(el('span', 'kind-badge', Items.KIND_LABEL[item.kind] || ''));
     b.appendChild(el('div', 'cname', item.name));
     b.appendChild(el('div', 'cpow', String(item.power)));
     const meta = el('div', 'cmeta');
     const e = Items.element(item.element);
-    meta.appendChild(el('span', `el-${item.element}`, `${e.sym} ${e.label}`));
+    meta.appendChild(el('span', `el-${item.element}`, `${e.sym}${e.label}`));
+    meta.appendChild(el('span', 'kind-badge', Items.KIND_LABEL[item.kind] || ''));
     for (const t of Items.traits(item)) meta.appendChild(el('span', 'trait', t));
     b.appendChild(meta);
-    b.appendChild(el('div', 'cdesc', sealed ? '封じられていて使えない' : Items.describe(item)));
-    b.setAttribute('aria-label',
-      `${item.name} ${sealed ? '封じられていて使えない' : Items.describe(item)}`);
+    // 武器は「数値・属性・特性」がすでに上に出ているので、説明の行は重ねない。
+    // 防具・食料・魔法は数値だけでは何が起きるか分からないので出す。
+    if (sealed) b.appendChild(el('div', 'cdesc', '封じられていて使えない'));
+    else if (item.kind !== 'weapon') b.appendChild(el('div', 'cdesc', Items.summary(item)));
+    const full = sealed ? '封じられていて使えない' : Items.describe(item);
+    b.title = `${item.name} — ${full}`;
+    b.setAttribute('aria-label', `${item.name} ${full}`);
     return b;
   }
 
@@ -195,6 +219,90 @@
   function stage(kicker, text) {
     if (kicker !== undefined && kicker !== null) refs.stageKicker.textContent = kicker;
     if (text !== undefined && text !== null) refs.stageText.textContent = text;
+    hideBreakdown();
+  }
+
+  function hideBreakdown() {
+    refs.breakdown.hidden = true;
+    refs.stageMain.hidden = false;
+  }
+
+  /**
+   * 攻撃の内訳を属性ごとに見せる。
+   *
+   * 「何ダメージ」だけでは、どの属性が防げてどれが通ったのか分からない
+   * （遊んだ人からの指摘）。属性ごとに 来た量 / 防いだ量 / 撃ち返した量 /
+   * 通った量 を数字と帯の両方で出す。
+   *
+   * 受ける前のプレビューと、解決した後の結果で同じ形を使う。
+   * 同じ数字が出ていないと信用されないので、どちらも
+   * Engine.previewDefense / defend の戻り値をそのまま渡す。
+   *
+   * @param {object} res damage/blocked/reflected/crits/graced/detail
+   * @param {{title:string, live?:boolean}} opts
+   */
+  function breakdown(res, opts) {
+    const o = opts || {};
+    refs.bdTitle.textContent = o.title || '';
+    refs.bdRows.replaceChildren();
+
+    // 帯の長さは「いちばん量の多い行」を基準にそろえる。
+    // 行ごとに伸ばし切ると、14 と 6 が同じ長さに見えて量が比べられない。
+    // 会心は通る量が 1.5倍 になるので、raw ではなく実際の内訳の合計で揃える。
+    const rowTotal = (r) => r.blocked + r.through;
+    const maxTotal = Math.max(1, ...(res.detail || []).map(rowTotal));
+
+    for (const row of res.detail || []) {
+      const e = Items.element(row.element);
+      const li = el('li', `bd-row el-${row.element}`);
+      li.appendChild(el('span', 'bd-el', `${e.sym}${e.label}`));
+
+      // 帯。防いだ分・撃ち返した分・通った分の比を見せる
+      const bar = el('span', 'bd-bar');
+      const blockedOnly = Math.max(0, row.blocked - (row.reflected || 0));
+      const segs = [
+        ['blk', blockedOnly], ['ref', row.reflected || 0], ['thr', row.through],
+        ['pad', Math.max(0, maxTotal - rowTotal(row))]   // 他の行との量の差を見せる余白
+      ];
+      for (const [cls, value] of segs) {
+        if (value <= 0) continue;
+        const seg = el('i', `seg ${cls}`);
+        seg.style.flexGrow = String(value);
+        bar.appendChild(seg);
+      }
+      li.appendChild(bar);
+
+      const num = el('span', 'bd-num');
+      num.appendChild(el('span', 'raw', String(row.raw)));
+      num.appendChild(el('span', 'arrow', '→'));
+      num.appendChild(el('b', row.through > 0 ? 'dmg' : 'ok', String(row.through)));
+      li.appendChild(num);
+
+      const notes = [];
+      if (blockedOnly > 0) notes.push(`防 ${blockedOnly}`);
+      if (row.reflected > 0) notes.push(`↩ ${row.reflected}`);
+      if (row.crit) notes.push('会心');
+      li.appendChild(el('span', 'bd-note', notes.join(' / ')));
+      li.setAttribute('aria-label',
+        `${e.label}属性 ${row.raw} のうち ${row.through} 通る。${notes.join('、') || '防げていない'}`);
+      refs.bdRows.appendChild(li);
+    }
+
+    const extra = [];
+    // blocked には撃ち返した分も含まれるので、二重に数えないよう引いてから出す
+    const guarded = Math.max(0, res.blocked - (res.reflected || 0));
+    if (guarded > 0) extra.push(`${guarded} 防いだ`);
+    if (res.reflected > 0) extra.push(`${res.reflected} 撃ち返した`);
+    if (res.graced > 0) extra.push(`加護で ${res.graced} 軽減`);
+    if (res.crits > 0) extra.push('会心！');
+    refs.bdTotal.replaceChildren();
+    refs.bdTotal.appendChild(el('span', 'bd-lead', o.live ? 'このまま受けると' : '結果'));
+    refs.bdTotal.appendChild(el('b', res.damage > 0 ? 'dmg' : 'ok', `${res.damage} ダメージ`));
+    if (extra.length) refs.bdTotal.appendChild(el('span', 'bd-extra', `（${extra.join(' / ')}）`));
+
+    refs.breakdown.classList.toggle('is-live', !!o.live);
+    refs.stageMain.hidden = true;
+    refs.breakdown.hidden = false;
   }
 
   function hint(text, warn) {
@@ -324,6 +432,7 @@
   global.GA = global.GA || {};
   global.GA.Render = {
     init, players, hand, stage, hint, pop, shake, log, elementLegend, record,
+    breakdown, hideBreakdown,
     itemCard, playerCard, readStrip, statusRow
   };
 })(typeof window !== 'undefined' ? window : globalThis);

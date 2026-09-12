@@ -220,6 +220,51 @@
   function applyGrace(p, damage) { return Math.ceil(damage * graceScale(p)); }
 
   /**
+   * 合計を `target` に合わせて、各行の整数値を比例配分で詰める。
+   * 端数は「削る量が大きい行から」引く（最大剰余法）。
+   * これをやらないと、属性ごとの内訳の合計と実ダメージが食い違う。
+   */
+  function rescaleRows(rows, key, target) {
+    const current = rows.reduce((sum, r) => sum + r[key], 0);
+    if (current === target || current <= 0) return;
+    const exact = rows.map((r) => (r[key] * target) / current);
+    const floored = exact.map((v) => Math.floor(v));
+    let rest = target - floored.reduce((a, b) => a + b, 0);
+    const order = rows
+      .map((r, i) => ({ i, frac: exact[i] - floored[i] }))
+      .sort((a, b) => b.frac - a.frac);
+    for (const { i } of order) {
+      if (rest <= 0) break;
+      floored[i]++;
+      rest--;
+    }
+    rows.forEach((r, i) => { r[key] = floored[i]; });
+  }
+
+  /**
+   * 加護を効かせる。通ったダメージと撃ち返しを軽くし、
+   * **属性ごとの内訳も同じ比率で詰める**（行の合計が実ダメージと一致するように）。
+   * 攻撃側と防御側で加護の有無が違うので、それぞれの倍率を使う。
+   */
+  function applyGraceToResult(res, defender, attacker) {
+    const damage = applyGrace(defender, res.damage);
+    res.graced = res.damage - damage;
+    if (damage !== res.damage) rescaleRows(res.detail, 'through', damage);
+    res.damage = damage;
+
+    const reflected = applyGrace(attacker, res.reflected);
+    if (reflected !== res.reflected) rescaleRows(res.detail, 'reflected', reflected);
+    res.reflected = reflected;
+
+    // 防いだ量は「来た量 − 通った量」で数え直す（撃ち返した分も含む）
+    res.blocked = res.detail.reduce((sum, r) => {
+      r.blocked = Math.max(0, r.raw - r.through);
+      return sum + r.blocked;
+    }, 0);
+    return res;
+  }
+
+  /**
    * いま受けている攻撃を、渡した防具で受けたらどうなるか。
    * UI のプレビューと AI の判断と実際の解決が、必ず同じ数字になるようにここを通す。
    * @param {object[]|string[]} items 防具の実体か uid
@@ -232,10 +277,7 @@
     const res = resolveDamage(s.pending.weapons, list, { defenseScale: defenseScaleOf(defender) });
     // 加護もここで効かせる。UIのプレビューと実際の解決が違う数字になってはいけない。
     // 撃ち返しは攻撃側が受けるので、加護は攻撃側のものを見る。
-    res.graced = res.damage - applyGrace(defender, res.damage);
-    res.damage = applyGrace(defender, res.damage);
-    res.reflected = applyGrace(byId(s, s.pending.attackerId), res.reflected);
-    return res;
+    return applyGraceToResult(res, defender, byId(s, s.pending.attackerId));
   }
 
   // ── 手札操作 ───────────────────────────────────────────
@@ -366,9 +408,9 @@
       throw new Error('封じられた属性は使えない');
     }
 
-    const res = resolveDamage(weapons, used, { defenseScale: defenseScaleOf(defender) });
-    res.graced = res.damage - applyGrace(defender, res.damage);
-    res.damage = applyGrace(defender, res.damage);
+    const res = applyGraceToResult(
+      resolveDamage(weapons, used, { defenseScale: defenseScaleOf(defender) }),
+      defender, attacker);
     defender.hp = Math.max(0, defender.hp - res.damage);
     defender.stats.taken += res.damage;
     defender.stats.blocked += res.blocked;
@@ -386,7 +428,6 @@
     // ただし加護は効く（受ける側が瀕死なら軽くなる）。
     let attackerDefeated = false;
     if (res.reflected > 0) {
-      res.reflected = applyGrace(attacker, res.reflected);
       attacker.hp = Math.max(0, attacker.hp - res.reflected);
       attacker.stats.taken += res.reflected;
       defender.stats.dealt += res.reflected;
@@ -604,7 +645,7 @@
     setRandom, random,
     create, current, alivePlayers, byId, targetsFor, availableActions, canPray, itemValue,
     statusOf, isSealed, isUsable, defenseScaleOf, previewDefense, strongestElement, tickStatus,
-    GRACE_AT, GRACE_SCALE, graceScale, applyGrace,
+    GRACE_AT, GRACE_SCALE, graceScale, applyGrace, applyGraceToResult, rescaleRows,
     weaponsOf, defensesOf, supportsOf,
     resolveDamage, toPackets, attack, defend, pray, useItem, endTurn
   };

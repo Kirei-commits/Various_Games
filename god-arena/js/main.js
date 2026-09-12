@@ -32,6 +32,13 @@
   const delay = () => SPEED[game.settings.speed] || SPEED.normal;
 
   /**
+   * 画面操作のための乱数。**ゲームの乱数とは分けている。**
+   * Engine.random() を使うと、狙い先を振るたびに引きとAIの判断の流れがずれ、
+   * ?seed= で同じ展開を再現できなくなる。
+   */
+  const uiRandom = () => Math.random();
+
+  /**
    * 演出の待ち。
    *
    * setTimeout のコールバックが発火しないことが実際にあった（通しプレイで再現。
@@ -132,19 +139,21 @@
     $('#btn-pray').hidden = defending;
     $('#btn-guard').hidden = !defending;
     $('#btn-take').hidden = !defending;
+    // 防御中も押せる見た目のまま残ると誤解を招くので、必ず先に無効化する
+    $('#btn-random').disabled = game.busy || defending || !isMyTurn()
+      || Engine.targetsFor(s, me().id).length === 0;
 
     if (defending) {
       const shields = sel.filter(Items.isShield);
       $('#btn-guard').disabled = game.busy || shields.length === 0;
       $('#btn-take').disabled = game.busy;
       const preview = Engine.previewDefense(s, shields);
-      let text = '防具をえらぶか、そのまま受ける';
-      if (shields.length) {
-        text = `この防御なら ${preview.damage} ダメージ（${preview.blocked} 防げる）`;
-        if (preview.reflected > 0) text += ` / ${preview.reflected} 撃ち返す`;
-        if (preview.graced > 0) text += ` / 加護で ${preview.graced} 軽減`;
-      }
-      Render.hint(text, preview.damage >= me().hp);
+      const attacker = Engine.byId(s, s.pending.attackerId);
+      const names = s.pending.weapons.map((w) => w.name).join(' + ');
+      Render.breakdown(preview, { live: true, title: `${attacker.name} の ${names}` });
+      Render.hint(shields.length
+        ? '「ぼうぎょ」で確定／別の防具も重ねられる'
+        : '防具をえらぶと、どれだけ止まるかが上に出る', preview.damage >= me().hp);
       return;
     }
 
@@ -197,6 +206,27 @@
     drive();
   }
 
+  /**
+   * 生きている相手からランダムに1人選ぶ。
+   * すでに撃つものを選んでいれば、そのまま実行に入る（毎回自分で選ぶのが面倒という指摘）。
+   */
+  function pickRandomTarget() {
+    if (!isMyTurn() || game.busy) return;
+    const targets = Engine.targetsFor(game.state, me().id);
+    if (!targets.length) return;
+    const choice = targets[Math.floor(uiRandom() * targets.length) % targets.length];
+    game.ui.targetId = choice.id;
+    Audio.play('select');
+    refresh();
+
+    // 攻撃と、狙い先が要る魔法だけ、そのまま実行に入る。
+    // 食料や回復はこのボタンの役目ではないので、勝手に使ってしまわない。
+    const sel = selectedItems();
+    const targeted = sel.length === 1 && Items.needsTarget(sel[0]);
+    if (!$('#btn-attack').disabled) humanAttack();
+    else if (targeted && !$('#btn-use').disabled) humanUse();
+  }
+
   async function humanPray() {
     if ($('#btn-pray').disabled) return;
     game.ui.selected.clear();
@@ -244,36 +274,35 @@
     // 先に攻守のIDを控えておく（ログ末尾から取ると 'over' を拾って壊れる）。
     const targetId = s.pending.targetId;
     const attackerId = s.pending.attackerId;
+    const weaponNames = s.pending.weapons.map((w) => w.name).join(' + ');
     const res = Engine.defend(s, uids);
     game.busy = true;
 
+    // 何がどう受けられたのかは、属性ごとの内訳で見せる（数字1つでは読めない）
+    const an = Engine.byId(s, attackerId).name;
+    const dn = Engine.byId(s, targetId).name;
+    const shields = uids && uids.length
+      ? `／${dn} は ${uids.length}枚で防御` : `／${dn} は無防備`;
+    Render.breakdown(res, { title: `${an} の ${weaponNames}${shields}` });
+
     if (res.reflected > 0) {
       Audio.play('block');
-      const dn = Engine.byId(s, targetId).name;
-      Render.stage(null, res.damage > 0
-        ? `${dn} は ${res.reflected} 撃ち返した！（${res.damage} くらった）`
-        : `${dn} は完全に防ぎ、${res.reflected} 撃ち返した！`);
       Render.pop('ref', `↩${res.reflected}`);
       Render.shake(attackerId);
       if (res.damage > 0) Render.shake(targetId);
     } else if (res.blocked > 0 && res.damage === 0) {
       Audio.play('block');
-      Render.stage(null, '完全に防いだ！');
       Render.pop('blk', 'GUARD');
     } else if (res.damage > 0) {
       Audio.play('hit');
-      const crit = res.crits > 0 ? '会心！ ' : '';
-      Render.stage(null, `${crit}${Engine.byId(s, targetId).name} に ${res.damage} ダメージ`);
       Render.pop(res.crits > 0 ? 'crit' : 'dmg', `-${res.damage}`);
       Render.shake(targetId);
       if (res.damage > game.record.bestDamage && Engine.byId(s, targetId).isHuman === false) {
         game.record = Store.save({ record: Object.assign({}, game.record, { bestDamage: res.damage }) }).record;
       }
-    } else {
-      Render.stage(null, 'かすりもしなかった');
     }
     refresh();
-    await wait(delay() * 0.8);
+    await wait(delay() * 1.2);      // 内訳を読む時間をとる
     if (stale(gen)) return;
 
     const fallen = [];
@@ -514,8 +543,17 @@
     $('#btn-attack').addEventListener('click', humanAttack);
     $('#btn-use').addEventListener('click', humanUse);
     $('#btn-pray').addEventListener('click', humanPray);
+    $('#btn-random').addEventListener('click', pickRandomTarget);
     $('#btn-guard').addEventListener('click', () => humanDefend(true));
     $('#btn-take').addEventListener('click', () => humanDefend(false));
+
+    const setDrawer = (open) => {
+      $('#side').classList.toggle('is-open', open);
+      $('#drawer-backdrop').hidden = !open;
+    };
+    $('#btn-log').addEventListener('click', () => setDrawer(!$('#side').classList.contains('is-open')));
+    $('#btn-close-side').addEventListener('click', () => setDrawer(false));
+    $('#drawer-backdrop').addEventListener('click', () => setDrawer(false));
 
     $('#btn-settings').addEventListener('click', () => { $('#settings').hidden = false; });
     $('#btn-close-settings').addEventListener('click', () => { $('#settings').hidden = true; });
@@ -541,12 +579,16 @@
     document.addEventListener('keydown', (ev) => {
       if (ev.target.matches('input, select, textarea')) return;
       const k = ev.key.toLowerCase();
-      if (k === 'a') humanAttack();
+      if (k === 'r') pickRandomTarget();
+      else if (k === 'a') humanAttack();
       else if (k === 'p') humanPray();
       else if (k === 'u') humanUse();
       else if (k === 'g') humanDefend(true);
       else if (k === 't') humanDefend(false);
-      else if (k === 'escape') { $('#settings').hidden = true; $('#overlay').hidden = true; }
+      else if (k === 'l') setDrawer(!$('#side').classList.contains('is-open'));
+      else if (k === 'escape') {
+        $('#settings').hidden = true; $('#overlay').hidden = true; setDrawer(false);
+      }
     });
   }
 
@@ -640,6 +682,7 @@
   global.GA.boot = boot;
   global.GA.newGame = newGame;
   global.GA.refresh = refresh;
+  global.GA.pickRandomTarget = pickRandomTarget;
 
   if (typeof document !== 'undefined') {
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
