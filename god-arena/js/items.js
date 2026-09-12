@@ -78,7 +78,13 @@
     // ── 魔法（1ターン使って発動する） ─────────────
     { id: 'cure',    name: 'いやしのまほう', kind: 'magic', element: 'light', power: 20, effect: 'heal',  weight: 4 },
     { id: 'oracle',  name: 'てんけい',       kind: 'magic', element: 'light', power: 4,  effect: 'draw',  weight: 5 },
-    { id: 'plunder', name: 'ごうだつ',       kind: 'magic', element: 'dark',  power: 2,  effect: 'steal', weight: 4 }
+    { id: 'plunder', name: 'ごうだつ',       kind: 'magic', element: 'dark',  power: 2,  effect: 'steal', weight: 4 },
+
+    // ── 呪い（相手に状態異常をかける） ────────────
+    // 一撃の大きさ以外の脅し方。殴るだけの手番にしないために置いている。
+    { id: 'poisonmist', name: 'どくのきり', kind: 'magic', element: 'dark', power: 4, effect: 'poison', turns: 3, weight: 5 },
+    { id: 'sealward',   name: 'ふうじのふだ', kind: 'magic', element: 'dark', power: 1, effect: 'seal',   turns: 2, weight: 4 },
+    { id: 'hexward',    name: 'のろいのふだ', kind: 'magic', element: 'dark', power: 1, effect: 'curse',  turns: 3, weight: 4 }
   ];
 
   const BY_ID = Object.create(null);
@@ -125,6 +131,22 @@
   /** 守りに使えるか（防具と反射具）。engine と AI が同じ判定を見るために置く。 */
   function isShield(item) { return item.kind === 'defense' || item.kind === 'reflect'; }
 
+  /** 相手を選ぶ必要があるか。UIの狙い先選択と AI の判断が同じ条件を見るために置く。 */
+  const TARGETED = new Set(['steal', 'poison', 'seal', 'curse']);
+  function needsTarget(item) { return item.kind === 'magic' && TARGETED.has(item.effect); }
+
+  /** 状態異常をかけるアイテムか */
+  function isHex(item) {
+    return item.kind === 'magic' && ['poison', 'seal', 'curse'].includes(item.effect);
+  }
+
+  /** 状態異常の表示情報 */
+  const STATUS = {
+    poison: { label: 'どく',   sym: '☠', desc: (st) => `毎ターン ${st.power} ダメージ` },
+    seal:   { label: 'ふうじ', sym: '⛔', desc: (st) => `${element(st.element).label}属性が使えない` },
+    curse:  { label: 'のろい', sym: '✖', desc: () => '防御力が半分になる' }
+  };
+
   /** カードに出す短い説明 */
   function describe(item) {
     switch (item.kind) {
@@ -138,6 +160,9 @@
         if (item.effect === 'heal')  return `HP を ${item.power} 回復`;
         if (item.effect === 'draw')  return `アイテムを ${item.power} 個授かる`;
         if (item.effect === 'steal') return `相手から ${item.power} 個うばう`;
+        if (item.effect === 'poison') return `${item.turns}ターン 毎ターン ${item.power} ダメージ`;
+        if (item.effect === 'seal') return `${item.turns}ターン 相手の得意属性を封じる`;
+        if (item.effect === 'curse') return `${item.turns}ターン 相手の防御力を半分にする`;
         return '';
       default: return '';
     }
@@ -147,6 +172,7 @@
   global.GA.Items = {
     ELEMENTS, ATTACK_ELEMENTS, CATALOG, KIND_LABEL,
     byId: (id) => BY_ID[id],
-    instantiate, resetUid, draw, drawOne, element, describe, isShield
+    STATUS,
+    instantiate, resetUid, draw, drawOne, element, describe, isShield, needsTarget, isHex
   };
 })(typeof window !== 'undefined' ? window : globalThis);

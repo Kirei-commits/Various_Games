@@ -68,8 +68,23 @@
     meta.appendChild(el('span', null, `手札 ${p.hand.length}`));
     card.appendChild(meta);
 
+    if (p.status && p.status.length) card.appendChild(statusRow(p));
     if (!p.isHuman) card.appendChild(readStrip(state, p));
     return card;
+  }
+
+  /** かかっている状態異常。残りターン数まで出す（いつ切れるかが読みに効く） */
+  function statusRow(p) {
+    const row = el('div', 'statusrow');
+    for (const st of p.status) {
+      const info = Items.STATUS[st.id];
+      if (!info) continue;
+      const tag = el('span', `statustag st-${st.id}`, `${info.sym} ${info.label}${st.turns}`);
+      tag.title = `${info.label}: ${info.desc(st)}（残り${st.turns}ターン）`;
+      tag.setAttribute('aria-label', tag.title);
+      row.appendChild(tag);
+    }
+    return row;
   }
 
   /**
@@ -112,12 +127,13 @@
   }
 
   /** 手札の1枚 */
-  function itemCard(item, { selected, disabled }) {
+  function itemCard(item, { selected, disabled, sealed }) {
     const b = el('button', `card el-${item.element}${item.kind === 'reflect' ? ' is-reflect' : ''}`);
     b.type = 'button';
     b.dataset.uid = item.uid;
     b.setAttribute('role', 'listitem');
     if (selected) b.classList.add('is-sel');
+    if (sealed) b.classList.add('is-sealed');
     if (disabled) { b.classList.add('is-off'); b.disabled = true; }
 
     b.appendChild(el('span', 'kind-badge', Items.KIND_LABEL[item.kind] || ''));
@@ -127,8 +143,9 @@
     const e = Items.element(item.element);
     meta.appendChild(el('span', `el-${item.element}`, `${e.sym} ${e.label}`));
     b.appendChild(meta);
-    b.appendChild(el('div', 'cdesc', Items.describe(item)));
-    b.setAttribute('aria-label', `${item.name} ${Items.describe(item)}`);
+    b.appendChild(el('div', 'cdesc', sealed ? '封じられていて使えない' : Items.describe(item)));
+    b.setAttribute('aria-label',
+      `${item.name} ${sealed ? '封じられていて使えない' : Items.describe(item)}`);
     return b;
   }
 
@@ -161,7 +178,8 @@
     for (const item of sorted) {
       refs.hand.appendChild(itemCard(item, {
         selected: ui.selected.has(item.uid),
-        disabled: !isPlayable(item)
+        disabled: !isPlayable(item),
+        sealed: !Engine.isUsable(me, item)
       }));
     }
   }
@@ -240,8 +258,21 @@
         if (e.healed) { add('ok', ` HP +${e.healed}`); }
         if (e.drawn) { add('', ` アイテム ${e.drawn}個を授かった`); }
         if (e.stolen) { add('', ` ${nameOf(state, e.victim)} から ${e.stolen}個うばった`); }
+        if (e.hex) {
+          const info = Items.STATUS[e.hex.id] || { label: e.hex.id };
+          const where = e.hex.element ? `（${Items.element(e.hex.element).label}属性）` : '';
+          add('dmg', ` ${nameOf(state, e.victim)} に ${info.label}${where} ${e.hex.turns}ターン`);
+        }
         break;
       }
+      case 'poison':
+        add('', `${nameOf(state, e.actor)} は どく で `);
+        add('dmg', String(e.damage));
+        add('', ' ダメージ');
+        break;
+      case 'fall':
+        add('dmg', `${nameOf(state, e.actor)} は ${e.cause === 'poison' ? 'どく' : ''}に倒れた`);
+        break;
       case 'over':
         add('b', e.winner === null ? '相打ち — 引き分け' : `${nameOf(state, e.winner)} の勝利！`);
         break;
@@ -283,6 +314,6 @@
   global.GA = global.GA || {};
   global.GA.Render = {
     init, players, hand, stage, hint, pop, shake, log, elementLegend, record,
-    itemCard, playerCard, readStrip
+    itemCard, playerCard, readStrip, statusRow
   };
 })(typeof window !== 'undefined' ? window : globalThis);

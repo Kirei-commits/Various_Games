@@ -14,9 +14,11 @@
    *  iq    … 「腕前」。過剰攻撃の回避・手札の読み・防具の出し惜しみに効く。
    *  guard … 防御しようとする度合い。低いと受け損なう。
    */
+  // 値は当て推量ではなく、撹拌したseedで各400局を回して決めている。
+  // 等差のseedで測ると系列が相関して数値が偏るので、必ず添字を撹拌して測る。
   const LEVELS = {
-    easy:   { noise: 0.60, iq: 0.10, guard: 0.50, label: 'かけだし' },
-    normal: { noise: 0.22, iq: 0.60, guard: 0.85, label: 'ベテラン' },
+    easy:   { noise: 0.70, iq: 0.05, guard: 0.35, label: 'かけだし' },
+    normal: { noise: 0.30, iq: 0.45, guard: 0.70, label: 'ベテラン' },
     hard:   { noise: 0.0,  iq: 1.00, guard: 1.00, label: 'ゴッド' }
   };
 
@@ -118,6 +120,30 @@
 
   const jitter = (level) => 1 + (rng() - 0.5) * 2 * LEVELS[level].noise;
 
+  /**
+   * どの状態異常を誰にかけるか。
+   *  どく   … HPが残っている相手ほど効く（削り切れる量が増える）
+   *  ふうじ … 手札の厚い相手ほど効く（大事な属性を止めやすい）
+   *  のろい … これから殴る相手＝HPが高くて手強い相手に効く
+   */
+  function bestHex(hexes, targets, cfg) {
+    let best = null;
+    for (const item of hexes) {
+      for (const target of targets) {
+        const alreadyOn = (target.status || []).some((st) => st.id === item.effect);
+        let value = 0;
+        if (item.effect === 'poison') value = Math.min(target.hp, item.power * (item.turns || 2));
+        else if (item.effect === 'seal') value = 3 + target.hand.length * 1.1;
+        else if (item.effect === 'curse') value = 4 + (target.hp / target.maxHp) * 8;
+        if (alreadyOn) value *= 0.25;          // 重ねがけは効きが薄い
+        value *= 0.7 + 0.6 * cfg.iq;           // 腕が上がるほど使い所が良くなる
+        value *= 1 + (rng() - 0.5) * 2 * cfg.noise;
+        if (!best || value > best.value) best = { item, target, value };
+      }
+    }
+    return best;
+  }
+
   /** 狙いやすさ。瀕死ほど、手札が薄いほど狙う価値が高い。 */
   function targetValue(target) {
     const frail = 1 + (1 - target.hp / target.maxHp) * 1.2;
@@ -154,14 +180,24 @@
       return { type: 'use', uid: oracle.uid };
     }
 
-    // 3) 相手の手札が厚いなら奪う（攻め手が無い時ほど積極的に）
+    // 3) 状態異常。攻め手が無い手番ほど価値が高い（祈るより仕事になる）
+    const hexes = supports.filter(Items.isHex);
+    if (hexes.length && targets.length) {
+      const useNow = weapons.length === 0 || rng() < 0.18 + 0.25 * cfg.iq;
+      if (useNow) {
+        const pick = bestHex(hexes, targets, cfg);
+        if (pick) return { type: 'use', uid: pick.item.uid, targetId: pick.target.id };
+      }
+    }
+
+    // 4) 相手の手札が厚いなら奪う（攻め手が無い時ほど積極的に）
     const plunder = supports.find((i) => i.effect === 'steal');
     const rich = targets.slice().sort((a, b) => b.hand.length - a.hand.length)[0];
     if (plunder && rich && rich.hand.length >= 5 && (!weapons.length || rng() < 0.22)) {
       return { type: 'use', uid: plunder.uid, targetId: rich.id };
     }
 
-    // 4) 攻撃できるなら、期待ダメージがいちばん大きい組み合わせを探す。
+    // 5) 攻撃できるなら、期待ダメージがいちばん大きい組み合わせを探す。
     //    武器を持っている間は祈れないので、ここに来たら必ず攻める。
     if (weapons.length && targets.length) {
       let best = null;
@@ -207,7 +243,7 @@
       if (best) return { type: 'attack', targetId: best.targetId, uids: best.uids };
     }
 
-    // 5) 余裕があるうちに食べておく
+    // 6) 余裕があるうちに食べておく
     if (heals.length && me.hp < me.maxHp - 6 && rng() < cfg.guard) {
       return { type: 'use', uid: heals[0].uid };
     }
@@ -228,7 +264,7 @@
     const shields = Engine.defensesOf(me);
     if (!shields.length) return [];
 
-    const bare = Engine.resolveDamage(pending.weapons, []);
+    const bare = Engine.previewDefense(state, []);
     if (bare.damage <= 0) return [];
     const lethal = bare.damage >= me.hp;
 
@@ -239,7 +275,7 @@
     const attacker = Engine.byId(state, pending.attackerId);
     let best = { uids: [], score: 0, prevented: 0 };
     for (const combo of subsets(shields, 10)) {
-      const res = Engine.resolveDamage(pending.weapons, combo);
+      const res = Engine.previewDefense(state, combo);
       const prevented = bare.damage - res.damage;
       // 撃ち返せるなら、防げる量が同じでも反射具を選ぶ理由になる
       const payback = res.reflected * (1 + 0.6 * cfg.iq);
@@ -260,6 +296,6 @@
   global.GA = global.GA || {};
   global.GA.AI = {
     LEVELS, DEF_STATS, REFLECT_STATS, setRandom, chooseAction, chooseDefense,
-    estimateDamage, expectedThrough, expectedReflect, readDefenses
+    estimateDamage, expectedThrough, expectedReflect, readDefenses, bestHex
   };
 })(typeof window !== 'undefined' ? window : globalThis);

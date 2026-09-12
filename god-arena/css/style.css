@@ -134,6 +134,17 @@ html, body {
 .pmeta { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); }
 .pmeta .hpnum { color: var(--text); font-variant-numeric: tabular-nums; }
 
+/* かかっている状態異常 */
+.statusrow { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+.statustag {
+  font-size: 10px; font-weight: 700; line-height: 1.6;
+  border-radius: 999px; padding: 0 6px;
+  border: 1px solid currentColor;
+}
+.statustag.st-poison { color: #9be36b; background: rgba(155, 227, 107, .12); }
+.statustag.st-seal   { color: #ff9db0; background: rgba(255, 157, 176, .12); }
+.statustag.st-curse  { color: var(--el-dark); background: rgba(181, 123, 255, .14); }
+
 /* 相手カードの「読み」の帯。防いだ属性 = 厚、素通りした属性 = 薄 */
 .readstrip { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; min-height: 17px; }
 .readchip {
@@ -258,6 +269,13 @@ html, body {
 }
 /* 反射具は一目で見分けられるようにする（大技を受け止める切り札なので） */
 .card.is-reflect { border-top: 1px solid var(--el-all); box-shadow: inset 0 0 18px rgba(124, 240, 210, .08); }
+/* 封じられた手札は「持っているが出せない」ので、消さずに理由が分かる見た目にする */
+.card.is-sealed { border-left-color: #ff9db0 !important; }
+.card.is-sealed .cpow { text-decoration: line-through; opacity: .6; }
+.card.is-sealed::after {
+  content: '封'; position: absolute; bottom: 6px; right: 7px;
+  font-size: 11px; font-weight: 700; color: #ff9db0;
+}
 .card.is-reflect .kind-badge { color: var(--el-all); border-color: rgba(124, 240, 210, .5); }
 .el-none { color: var(--el-none); } .card.el-none { border-left-color: var(--el-none); }
 .el-fire { color: var(--el-fire); } .card.el-fire { border-left-color: var(--el-fire); }

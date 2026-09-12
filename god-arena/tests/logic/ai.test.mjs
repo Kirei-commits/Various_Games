@@ -1,12 +1,34 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { loadGA, seededRandom, setHand, toPlain, autoPlay } from './helpers.mjs';
+import { loadGA, seededRandom, setHand, toPlain, autoPlay, mixSeed } from './helpers.mjs';
 
 function fresh(seed = 5) {
   const GA = loadGA(['items.js', 'engine.js', 'ai.js']);
   GA.Engine.setRandom(seededRandom(seed));
   GA.AI.setRandom(seededRandom(seed + 1));
   return GA;
+}
+
+/**
+ * 難易度どうしを戦わせて勝率を返す。先後は1局ごとに入れ替える。
+ * シードは mixSeed で撹拌する（等差のシードだと系列が相関して勝率が偏る）。
+ */
+function duel(a, b, games = 300) {
+  let wins = 0, decided = 0, draws = 0;
+  for (let i = 0; i < games; i++) {
+    const seed = mixSeed(i);
+    const GA = loadGA(['items.js', 'engine.js', 'ai.js']);
+    GA.Engine.setRandom(seededRandom(seed));
+    GA.AI.setRandom(seededRandom((seed ^ 0xABCD) >>> 0));
+    const levels = i % 2 === 0 ? [a, b] : [b, a];
+    const s = GA.Engine.create({ names: ['A', 'B'], humans: 0, levels });
+    const r = autoPlay(GA, s, levels, 800);
+    assert.equal(s.phase, 'over', `i=${i} で決着しない（${r.turns}手）`);
+    if (r.winner === null) { draws++; continue; }
+    decided++;
+    if (levels[r.winner] === a) wins++;
+  }
+  return { rate: wins / decided, wins, decided, draws };
 }
 
 test('致死の攻撃は必ず防ぐ（出し惜しみしない）', () => {
@@ -90,49 +112,29 @@ test('AI同士の対戦は必ず決着する（30局）', () => {
   }
 });
 
-test('相打ちは起こるが、ありふれてはいない（200局）', () => {
-  let draws = 0, total = 0;
-  for (let seed = 0; seed < 200; seed++) {
-    const GA = fresh(seed * 13 + 2);
-    const s = GA.Engine.create({ names: ['A', 'B'], humans: 0 });
-    const r = autoPlay(GA, s, ['normal', 'normal']);
-    if (s.phase !== 'over') continue;
-    total++;
-    if (r.winner === null) draws++;
-  }
-  assert.equal(total, 200, '決着しない局がある');
-  assert.ok(draws / total <= 0.12, `相打ちが多すぎる: ${draws}/${total}`);
+test('相打ちは起こるが、ありふれてはいない（300局）', () => {
+  const r = duel('normal', 'normal', 300);
+  assert.ok(r.draws >= 1, '相打ちが一度も起きない');
+  assert.ok(r.draws / 300 <= 0.08, `相打ちが多すぎる: ${r.draws}/300`);
 });
 
-test('ゴッドは かけだし より強い（タイマン120局・先後入れ替え）', () => {
-  let godWins = 0, games = 0;
-  for (let seed = 0; seed < 120; seed++) {
-    const GA = fresh(seed * 31 + 7);
-    const godFirst = seed % 2 === 0;
-    const levels = godFirst ? ['hard', 'easy'] : ['easy', 'hard'];
-    const s = GA.Engine.create({ names: ['A', 'B'], humans: 0, levels });
-    const r = autoPlay(GA, s, levels);
-    if (r.winner === null) continue;
-    games++;
-    if (levels[r.winner] === 'hard') godWins++;
-  }
-  assert.ok(games >= 105, `決着した局が少なすぎる (${games})`);
-  // 実測 76.7%（反射の読みが入って伸びた）。運の要素をみて 66% を下限にする。
-  assert.ok(godWins / games >= 0.66, `ゴッドの勝率が低い: ${godWins}/${games}`);
-});
+test('難易度の序列が保たれている（各300局・先後入れ替え・撹拌シード）', () => {
+  // 撹拌シード600局での実測: 71.1% / 63.4% / 58.0%（それぞれ ±4pt 程度）
+  // 閾値は実測の95%信頼区間の下限より、さらに下に置く。
+  const hardEasy = duel('hard', 'easy');
+  const normalEasy = duel('normal', 'easy');
+  const hardNormal = duel('hard', 'normal');
 
-test('ベテランは かけだし より強い（タイマン120局）', () => {
-  let wins = 0, games = 0;
-  for (let seed = 0; seed < 120; seed++) {
-    const GA = fresh(seed * 31 + 7);
-    const levels = seed % 2 === 0 ? ['normal', 'easy'] : ['easy', 'normal'];
-    const s = GA.Engine.create({ names: ['A', 'B'], humans: 0, levels });
-    const r = autoPlay(GA, s, levels);
-    if (r.winner === null) continue;
-    games++;
-    if (levels[r.winner] === 'normal') wins++;
-  }
-  assert.ok(wins / games >= 0.56, `ベテランの勝率が低い: ${wins}/${games}`);
+  assert.ok(hardEasy.rate >= 0.62,
+    `ゴッド vs かけだし が低い: ${hardEasy.wins}/${hardEasy.decided}`);
+  assert.ok(normalEasy.rate >= 0.55,
+    `ベテラン vs かけだし が低い: ${normalEasy.wins}/${normalEasy.decided}`);
+  assert.ok(hardNormal.rate >= 0.52,
+    `ゴッド vs ベテラン が低い: ${hardNormal.wins}/${hardNormal.decided}`);
+
+  // 序列そのものも確かめる（数値だけ通って順番が崩れるのを防ぐ）
+  assert.ok(hardEasy.rate > normalEasy.rate,
+    `ゴッドの優位がベテランを超えていない: ${hardEasy.rate.toFixed(3)} vs ${normalEasy.rate.toFixed(3)}`);
 });
 
 test('見えている情報からしか相手の防具を読まない', () => {

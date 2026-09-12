@@ -23,6 +23,20 @@ export function loadGA(files = ['items.js', 'engine.js', 'ai.js'], extra = {}) {
   return sandbox.window.GA;
 }
 
+/**
+ * 添字からよく散らばったシードを作る。
+ * `seed = i * 31 + 7` のような等差の並びは mulberry32 の内部加算と噛み合って
+ * 乱数列どうしが相関し、同じ実装でも系列によって勝率が 61% と 73% に分かれた。
+ * 比較テストは必ずこれを通したシードで測る。
+ */
+export function mixSeed(i) {
+  let x = ((i + 1) * 0x9E3779B1) >>> 0;
+  x ^= x >>> 16;
+  x = Math.imul(x, 0x85EBCA6B) >>> 0;
+  x ^= x >>> 13;
+  return x >>> 0;
+}
+
 /** 固定シードの擬似乱数（mulberry32）。対戦結果をテストごとに変えないために使う。 */
 export function seededRandom(seed = 20260911) {
   let a = seed >>> 0;

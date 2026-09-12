@@ -23,6 +23,7 @@
     settings: null,
     record: null,
     busy: false,     // 演出中は入力を止める
+    logShown: 0,     // 演出済みのログ件数（毒などは endTurn の内側で起きる）
     timer: null
   };
 
@@ -38,6 +39,7 @@
   // ── 局面ごとに押せる手札 ───────────────────────────────
   function playable(item) {
     if (game.busy) return false;
+    if (!Engine.isUsable(me(), item)) return false;      // ふうじ中の属性は出せない
     if (isMyDefense()) return Items.isShield(item);
     if (!isMyTurn()) return false;
     if (Items.isShield(item)) return false;          // 防具と反射具は受ける時だけ使う
@@ -74,6 +76,9 @@
     const sel = selectedItems();
     const weaponsPicked = sel.length > 0 && sel.every((i) => i.kind === 'weapon');
     const supportPicked = sel.length === 1 && (sel[0].kind === 'food' || sel[0].kind === 'magic');
+    const needsTarget = supportPicked && Items.needsTarget(sel[0]);
+    const targetOk = game.ui.targetId !== null
+      && Engine.byId(s, game.ui.targetId) && Engine.byId(s, game.ui.targetId).alive;
 
     $('#btn-attack').hidden = defending;
     $('#btn-use').hidden = defending;
@@ -85,7 +90,7 @@
       const shields = sel.filter(Items.isShield);
       $('#btn-guard').disabled = game.busy || shields.length === 0;
       $('#btn-take').disabled = game.busy;
-      const preview = Engine.resolveDamage(s.pending.weapons, shields);
+      const preview = Engine.previewDefense(s, shields);
       let text = '防具をえらぶか、そのまま受ける';
       if (shields.length) {
         text = `この防御なら ${preview.damage} ダメージ（${preview.blocked} 防げる）`;
@@ -96,9 +101,8 @@
     }
 
     const mine = isMyTurn() && !game.busy;
-    $('#btn-attack').disabled = !(mine && weaponsPicked && game.ui.targetId !== null
-      && Engine.byId(s, game.ui.targetId) && Engine.byId(s, game.ui.targetId).alive);
-    $('#btn-use').disabled = !(mine && supportPicked);
+    $('#btn-attack').disabled = !(mine && weaponsPicked && targetOk);
+    $('#btn-use').disabled = !(mine && supportPicked && (!needsTarget || targetOk));
     $('#btn-pray').disabled = !(mine && Engine.canPray(s));
 
     if (!mine) { Render.hint(s.phase === 'over' ? '決着' : '相手の手番です'); return; }
@@ -108,7 +112,9 @@
         ? `${sel.length}個えらんだ（計${total}）— 狙う相手をタップ`
         : `${Engine.byId(s, game.ui.targetId).name} に 計${total} の攻撃`);
     } else if (supportPicked) {
-      Render.hint(`${sel[0].name} を使う`);
+      if (needsTarget && !targetOk) Render.hint(`${sel[0].name} — かける相手をタップ`);
+      else if (needsTarget) Render.hint(`${Engine.byId(s, game.ui.targetId).name} に ${sel[0].name}`);
+      else Render.hint(`${sel[0].name} を使う`);
     } else if (!Engine.canPray(s)) {
       Render.hint('武器を持っている間は祈れません。武器をえらんで相手をタップ');
     } else {
@@ -131,8 +137,9 @@
   async function humanUse() {
     if ($('#btn-use').disabled) return;
     const item = selectedItems()[0];
+    const targetId = Items.needsTarget(item) ? game.ui.targetId : undefined;
     game.ui.selected.clear();
-    const out = Engine.useItem(game.state, item.uid);
+    const out = Engine.useItem(game.state, item.uid, targetId);
     Audio.play(out.healed ? 'heal' : 'pray');
     Render.stage(null, `${item.name} を使った`);
     if (out.healed) Render.pop('heal', `+${out.healed}`);
@@ -276,8 +283,38 @@
     await resolveDefense(uids);
   }
 
+  /**
+   * まだ見せていないログ（毒のダメージ、毒による敗退）を順に演出する。
+   * これらは endTurn の内側で起きるので、行動の戻り値には出てこない。
+   */
+  async function showTicks() {
+    const s = game.state;
+    for (let i = game.logShown; i < s.log.length; i++) {
+      const e = s.log[i];
+      if (e.t === 'poison') {
+        game.busy = true;
+        Audio.play('hit');
+        Render.stage(null, `${Engine.byId(s, e.actor).name} は どく で ${e.damage} ダメージ`);
+        Render.pop('dmg', `-${e.damage}`);
+        Render.shake(e.actor);
+        refresh();
+        await wait(delay() * 0.6);
+        game.busy = false;
+      } else if (e.t === 'fall') {
+        game.busy = true;
+        Audio.play('defeat');
+        Render.stage(null, `${Engine.byId(s, e.actor).name} は どく に倒れた`);
+        refresh();
+        await wait(delay() * 0.75);
+        game.busy = false;
+      }
+    }
+    game.logShown = s.log.length;
+  }
+
   // ── 進行 ───────────────────────────────────────────────
-  function drive() {
+  async function drive() {
+    await showTicks();
     const s = game.state;
     refresh();
     if (s.phase === 'over') { finish(); return; }
@@ -341,6 +378,7 @@
     game.ui.selected.clear();
     game.ui.targetId = null;
     game.busy = false;
+    game.logShown = 0;
     $('#overlay').hidden = true;
     Render.stage('ROUND 1', 'あなたの番です');
     drive();
@@ -377,8 +415,10 @@
       game.ui.targetId = game.ui.targetId === id ? null : id;
       Audio.play('select');
       refresh();
-      // 武器を選んだ状態で相手をタップしたら、そのまま攻撃に入る
-      if (game.ui.targetId !== null && !$('#btn-attack').disabled) humanAttack();
+      // 選んだ状態で相手をタップしたら、そのまま実行に入る
+      if (game.ui.targetId === null) return;
+      if (!$('#btn-attack').disabled) humanAttack();
+      else if (!$('#btn-use').disabled) humanUse();
     });
 
     $('#filters').addEventListener('click', (ev) => {

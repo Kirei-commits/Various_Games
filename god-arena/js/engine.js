@@ -37,6 +37,7 @@
       hp,
       maxHp: hp,
       alive: true,
+      status: [],
       hand: Items.draw(rng, OPENING_HAND),
       stats: { dealt: 0, blocked: 0, taken: 0, healed: 0, kills: 0, reflected: 0 }
     }));
@@ -57,10 +58,23 @@
   const current = (s) => s.players[s.turn];
   const alivePlayers = (s) => s.players.filter((p) => p.alive);
   const byId = (s, id) => s.players[id];
-  const weaponsOf = (p) => p.hand.filter((i) => i.kind === 'weapon');
+  /** 状態異常をひとつ探す */
+  const statusOf = (p, id) => (p.status || []).find((st) => st.id === id) || null;
+
+  /** ふうじ中の属性は攻撃にも防御にも使えない */
+  function isSealed(p, item) {
+    const seal = statusOf(p, 'seal');
+    return !!seal && item.element === seal.element;
+  }
+
+  /** いま手札から出せるか。UI・AI・engine が同じ判定を見るために一箇所に置く。 */
+  function isUsable(p, item) { return !isSealed(p, item); }
+
+  // 「持っている」ではなく「出せる」で数える。封じられた武器では攻撃できないため。
+  const weaponsOf = (p) => p.hand.filter((i) => i.kind === 'weapon' && isUsable(p, i));
   /** 守りに使える手札（防具と反射具） */
-  const defensesOf = (p) => p.hand.filter(Items.isShield);
-  const supportsOf = (p) => p.hand.filter((i) => i.kind === 'food' || i.kind === 'magic');
+  const defensesOf = (p) => p.hand.filter((i) => Items.isShield(i) && isUsable(p, i));
+  const supportsOf = (p) => p.hand.filter((i) => (i.kind === 'food' || i.kind === 'magic') && isUsable(p, i));
 
   /** 攻撃できる相手（自分以外の生存者） */
   function targetsFor(s, id) {
@@ -77,17 +91,21 @@
    * 同じ属性に反射具と防具の両方を出したときは、反射具を先に充てる
    * （撃ち返せる量が増えるので、出した側に有利な配分にする）。
    */
-  function resolveDamage(weapons, defenses) {
+  function resolveDamage(weapons, defenses, opts) {
+    const scale = (opts && opts.defenseScale !== undefined) ? opts.defenseScale : 1;
     const atk = new Map();
     for (const w of weapons) atk.set(w.element, (atk.get(w.element) || 0) + w.power);
 
+    // のろい中は防御力が目減りする（scale < 1）。反射できる量も同じだけ減る。
+    const bend = (v) => Math.floor(v * scale);
     const shield = new Map();
     const mirror = new Map();
     let universal = 0;
     for (const d of defenses) {
-      if (d.kind === 'reflect') mirror.set(d.element, (mirror.get(d.element) || 0) + d.power);
-      else if (d.element === 'all') universal += d.power;
-      else shield.set(d.element, (shield.get(d.element) || 0) + d.power);
+      const power = bend(d.power);
+      if (d.kind === 'reflect') mirror.set(d.element, (mirror.get(d.element) || 0) + power);
+      else if (d.element === 'all') universal += power;
+      else shield.set(d.element, (shield.get(d.element) || 0) + power);
     }
 
     // 属性ごとに 反射 → 同属性の防具 の順で充てる
@@ -124,6 +142,22 @@
     });
     detail.sort((a, b) => b.raw - a.raw);
     return { damage, blocked, reflected, detail, wasted: universal };
+  }
+
+  /** のろいを考慮した防御倍率 */
+  function defenseScaleOf(p) { return statusOf(p, 'curse') ? 0.5 : 1; }
+
+  /**
+   * いま受けている攻撃を、渡した防具で受けたらどうなるか。
+   * UI のプレビューと AI の判断と実際の解決が、必ず同じ数字になるようにここを通す。
+   * @param {object[]|string[]} items 防具の実体か uid
+   */
+  function previewDefense(s, items) {
+    if (!s.pending) return { damage: 0, blocked: 0, reflected: 0, detail: [], wasted: 0 };
+    const defender = byId(s, s.pending.targetId);
+    const list = (items || []).map((it) =>
+      (typeof it === 'string' ? defender.hand.find((h) => h.uid === it) : it)).filter(Boolean);
+    return resolveDamage(s.pending.weapons, list, { defenseScale: defenseScaleOf(defender) });
   }
 
   // ── 手札操作 ───────────────────────────────────────────
@@ -213,6 +247,10 @@
       give(s, attacker, weapons);
       throw new Error('武器以外では攻撃できない');
     }
+    if (weapons.some((i) => isSealed(attacker, i))) {
+      give(s, attacker, weapons);
+      throw new Error('封じられた属性は使えない');
+    }
     const total = weapons.reduce((sum, w) => sum + w.power, 0);
     s.pending = { attackerId: attacker.id, targetId, weapons, total };
     s.phase = 'defense';
@@ -238,8 +276,12 @@
       give(s, defender, used);
       throw new Error('防具以外では防御できない');
     }
+    if (used.some((i) => isSealed(defender, i))) {
+      give(s, defender, used);
+      throw new Error('封じられた属性は使えない');
+    }
 
-    const res = resolveDamage(weapons, used);
+    const res = resolveDamage(weapons, used, { defenseScale: defenseScaleOf(defender) });
     defender.hp = Math.max(0, defender.hp - res.damage);
     defender.stats.taken += res.damage;
     defender.stats.blocked += res.blocked;
@@ -249,6 +291,7 @@
     if (defeated) {
       defender.alive = false;
       defender.hand = [];
+      defender.status = [];
       attacker.stats.kills++;
     }
 
@@ -262,6 +305,7 @@
       if (attacker.hp <= 0 && attacker.alive) {
         attacker.alive = false;
         attacker.hand = [];
+        attacker.status = [];
         attackerDefeated = true;
         if (defender.alive) defender.stats.kills++;
       }
@@ -305,7 +349,12 @@
       throw new Error('その場では使えないアイテム');
     }
 
-    const out = { item, healed: 0, drawn: [], stolen: [] };
+    if (isSealed(p, item)) {
+      give(s, p, [item]);
+      throw new Error('封じられた属性は使えない');
+    }
+
+    const out = { item, healed: 0, drawn: [], stolen: [], hex: null };
     if (item.kind === 'food' || item.effect === 'heal') {
       const before = p.hp;
       p.hp = Math.min(p.maxHp, p.hp + item.power);
@@ -326,13 +375,80 @@
         give(s, p, out.stolen);
         out.victim = victim.id;
       }
+    } else if (Items.isHex(item)) {
+      const victim = targetId === undefined || targetId === null
+        ? pickRichestOpponent(s, p.id)
+        : byId(s, targetId);
+      if (!victim || !victim.alive || victim.id === p.id) {
+        give(s, p, [item]);
+        throw new Error('状態異常の対象が不正');
+      }
+      out.hex = applyHex(victim, item);
+      out.victim = victim.id;
     }
 
     log(s, {
       t: 'use', actor: p.id, item: item.id, healed: out.healed,
-      drawn: out.drawn.length, stolen: out.stolen.length, victim: out.victim
+      drawn: out.drawn.length, stolen: out.stolen.length, victim: out.victim,
+      hex: out.hex ? { id: out.hex.id, turns: out.hex.turns, element: out.hex.element } : null
     });
     endTurn(s);
+    return out;
+  }
+
+  /**
+   * 状態異常をかける。同じものが既にかかっていたら、残りターンの長い方を採る
+   * （重ねがけで無限に伸びないようにする）。
+   */
+  function applyHex(victim, item) {
+    const st = { id: item.effect, turns: item.turns || 2, power: item.power };
+    if (item.effect === 'seal') st.element = strongestElement(victim);
+    const existing = (victim.status || []).find((x) => x.id === st.id);
+    if (existing) {
+      existing.turns = Math.max(existing.turns, st.turns);
+      existing.power = Math.max(existing.power, st.power);
+      if (st.element) existing.element = st.element;
+      return existing;
+    }
+    victim.status.push(st);
+    return st;
+  }
+
+  /**
+   * 手札の中で総合力がいちばん高い属性。ふうじの対象を決めるのに使う。
+   * 攻撃側には相手の手札が見えないので、「必ず痛いところに当たるが、
+   * どこに当たるかは撃つ側にも分からない」効果になる。
+   */
+  function strongestElement(p) {
+    const total = new Map();
+    for (const it of p.hand) {
+      if (it.element === 'all') continue;
+      total.set(it.element, (total.get(it.element) || 0) + it.power);
+    }
+    let best = null, bestValue = -1;
+    for (const el of Items.ATTACK_ELEMENTS) {
+      const v = total.get(el) || 0;
+      if (v > bestValue) { bestValue = v; best = el; }
+    }
+    return best || 'none';
+  }
+
+  /**
+   * 手番のはじめに状態異常を処理する。毒のダメージを与え、残りターンを1減らす。
+   * @returns {{poison:number, expired:string[]}}
+   */
+  function tickStatus(s, p) {
+    const out = { poison: 0, expired: [] };
+    if (!p.status || !p.status.length) return out;
+    const poison = statusOf(p, 'poison');
+    if (poison) {
+      out.poison = Math.min(p.hp, poison.power);
+      p.hp = Math.max(0, p.hp - poison.power);
+      p.stats.taken += out.poison;
+    }
+    for (const st of p.status) st.turns--;
+    out.expired = p.status.filter((st) => st.turns <= 0).map((st) => st.id);
+    p.status = p.status.filter((st) => st.turns > 0);
     return out;
   }
 
@@ -340,15 +456,18 @@
     return targetsFor(s, id).slice().sort((a, b) => b.hand.length - a.hand.length)[0] || null;
   }
 
-  /** 次の生存者へ手番を渡す。決着していれば phase を over にする。 */
-  function endTurn(s) {
+  /** 決着していれば phase を over にして true を返す */
+  function checkOver(s) {
     const alive = alivePlayers(s);
-    if (alive.length <= 1) {
-      s.phase = 'over';
-      s.winner = alive.length === 1 ? alive[0].id : null;
-      log(s, { t: 'over', winner: s.winner });
-      return;
-    }
+    if (alive.length > 1) return false;
+    s.phase = 'over';
+    s.winner = alive.length === 1 ? alive[0].id : null;
+    log(s, { t: 'over', winner: s.winner });
+    return true;
+  }
+
+  /** 手番の札を次の生存者へ進めるだけ（状態異常の処理はしない） */
+  function advance(s) {
     let next = s.turn;
     for (let i = 0; i < s.players.length; i++) {
       next = (next + 1) % s.players.length;
@@ -359,11 +478,42 @@
     s.phase = 'turn';
   }
 
+  /**
+   * 手番のはじめの処理。毒で倒れたら、そのまま次の人へ送る。
+   * 毒で全滅しうるので、生存者を見ながら回す（再帰にすると読みづらいのでループにした）。
+   */
+  function startTurn(s) {
+    for (let guard = 0; guard <= s.players.length + 1; guard++) {
+      const p = current(s);
+      const tick = tickStatus(s, p);
+      if (tick.poison > 0) {
+        log(s, { t: 'poison', actor: p.id, damage: tick.poison });
+      }
+      if (p.hp <= 0 && p.alive) {
+        p.alive = false;
+        p.hand = [];
+        p.status = [];
+        log(s, { t: 'fall', actor: p.id, cause: 'poison' });
+      }
+      if (checkOver(s)) return;
+      if (p.alive) return;
+      advance(s);
+    }
+  }
+
+  /** 次の生存者へ手番を渡す。決着していれば phase を over にする。 */
+  function endTurn(s) {
+    if (checkOver(s)) return;
+    advance(s);
+    startTurn(s);
+  }
+
   global.GA = global.GA || {};
   global.GA.Engine = {
     START_HP, HAND_LIMIT, OPENING_HAND, PRAY_DRAW,
     setRandom, random,
     create, current, alivePlayers, byId, targetsFor, availableActions, canPray, itemValue,
+    statusOf, isSealed, isUsable, defenseScaleOf, previewDefense, strongestElement, tickStatus,
     weaponsOf, defensesOf, supportsOf,
     resolveDamage, attack, defend, pray, useItem, endTurn
   };
