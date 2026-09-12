@@ -13,7 +13,7 @@
     "test": "npm run lint && npm run test:logic && npm run test:e2e"
   },
   "devDependencies": {
-    "@playwright/test": "1.56.1"
+    "@playwright/test": "1.63.0"
   },
   "engines": { "node": ">=20" }
 }
