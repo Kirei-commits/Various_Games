@@ -85,8 +85,11 @@
         else guarded.add(def.element);
       }
       for (const row of e.detail) {
+        // 「素通りした」の判定に through と raw を比べてはいけない。
+        // 加護で through が減ると、防具を持っていないのに止めたように見えてしまう。
+        // 実際に止まったかどうか（blocked）だけを見る。
         if (guarded.has(row.element)) bias[row.element] = (bias[row.element] || 1) * 1.35;
-        else if (row.through >= row.raw) bias[row.element] = (bias[row.element] || 1) * 0.62;
+        else if (!row.blocked) bias[row.element] = (bias[row.element] || 1) * 0.62;
       }
     }
     for (const el of Items.ATTACK_ELEMENTS) bias[el] = Math.max(0.25, Math.min(2.2, bias[el]));
@@ -176,13 +179,21 @@
     return best;
   }
 
-  /** このラウンドでその相手が既に受けたダメージ（見えている情報だけで分かる） */
+  /**
+   * その相手が「直近ひと回り分」で受けたダメージ。
+   *
+   * ラウンド単位で数えると、ラウンドの先頭で全員ぶんが一斉に忘れられるため、
+   * 手番順で有利不利が出る（4人戦で最後の手番の勝率が 36% に偏っていた）。
+   * 直近の解決を人数分だけ遡る「移動窓」にして、順番による偏りを消す。
+   */
   function damageThisRound(state, targetId) {
-    let sum = 0;
-    for (let i = state.log.length - 1; i >= 0; i--) {
+    const window = Math.max(2, state.players.filter((p) => p.alive).length);
+    let sum = 0, seen = 0;
+    for (let i = state.log.length - 1; i >= 0 && seen < window; i--) {
       const e = state.log[i];
-      if (e.round !== state.round) break;
-      if (e.t === 'resolve' && e.target === targetId) sum += e.damage;
+      if (e.t !== 'resolve') continue;
+      seen++;
+      if (e.target === targetId) sum += e.damage;
     }
     return sum;
   }

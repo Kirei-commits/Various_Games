@@ -15,12 +15,15 @@ test('主要な操作はスクロールせずに届く位置にある', async ({
 test('押せるものは最低 44x44px ある（指で確実に押せる大きさ）', async ({ page }) => {
   const g = await openGame(page);
   await setMyHand(page, ['sword', 'woodshield', 'apple']);
+  // 対戦中に押す操作はすべて含める。絞り込みのチップ（表示切り替え）は対象外。
   const targets = [
     ...await page.locator('.abtn:visible').all(),
     ...await page.locator('#hand .card').all(),
     ...await page.locator('#opponents .pcard').all(),
-    page.locator('#btn-settings')
+    page.locator('#btn-settings'),
+    page.locator('#btn-random')
   ];
+  if (await page.locator('#btn-log').isVisible()) targets.push(page.locator('#btn-log'));
   for (const t of targets) {
     const box = await t.boundingBox();
     expect(box.width, await t.innerText()).toBeGreaterThanOrEqual(44);

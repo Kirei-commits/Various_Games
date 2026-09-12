@@ -120,15 +120,15 @@ test('相打ちがありふれてはいない（300局）', () => {
 });
 
 test('難易度の序列が保たれている（各300局・先後入れ替え・撹拌シード）', () => {
-  // 撹拌シード600局での実測: 72.9% / 64.0% / 59.0%（それぞれ ±4pt 程度）
+  // 撹拌シード600局での実測: 75.8% / 67.6% / 59.0%（それぞれ ±4pt 程度）
   // 閾値は実測の95%信頼区間の下限より、さらに下に置く。
   const hardEasy = duel('hard', 'easy');
   const normalEasy = duel('normal', 'easy');
   const hardNormal = duel('hard', 'normal');
 
-  assert.ok(hardEasy.rate >= 0.64,
+  assert.ok(hardEasy.rate >= 0.66,
     `ゴッド vs かけだし が低い: ${hardEasy.wins}/${hardEasy.decided}`);
-  assert.ok(normalEasy.rate >= 0.55,
+  assert.ok(normalEasy.rate >= 0.58,
     `ベテラン vs かけだし が低い: ${normalEasy.wins}/${normalEasy.decided}`);
   assert.ok(hardNormal.rate >= 0.52,
     `ゴッド vs ベテラン が低い: ${hardNormal.wins}/${hardNormal.decided}`);

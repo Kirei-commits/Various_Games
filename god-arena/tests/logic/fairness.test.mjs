@@ -131,6 +131,37 @@ test('加護がかかっても、撃ち返しの内訳の合計が一致する',
   assert.equal(res.reflected, 7, '14 の半分');
 });
 
+test('加護で軽くなった分を「防いだ」に数えない', () => {
+  const GA = fresh();
+  const { Engine } = GA;
+  const s = Engine.create({ names: ['A', 'B'], humans: 0 });
+  s.players[1].hp = 10;                       // 加護がかかる
+  setHand(GA, s.players[0], ['inferno']);     // 火14
+  Engine.attack(s, 1, [s.players[0].hand[0].uid]);
+  const res = Engine.defend(s, []);           // 防具は出さない
+
+  assert.equal(res.damage, 7);
+  assert.equal(res.graced, 7);
+  assert.equal(res.blocked, 0, '防具を出していないのに防いだことになっている');
+  assert.equal(res.detail[0].blocked, 0);
+  assert.equal(res.detail[0].graced, 7, '行ごとの加護の量が入っていない');
+  assert.equal(res.detail[0].through, 7);
+});
+
+test('加護がかかっても「その属性を止められない」と読める', () => {
+  const GA = fresh();
+  const { Engine, AI } = GA;
+  const s = Engine.create({ names: ['A', 'B'], humans: 0 });
+  s.players[1].hp = 10;                       // 加護がかかる
+  setHand(GA, s.players[0], ['inferno']);
+  Engine.attack(s, 1, [s.players[0].hand[0].uid]);
+  Engine.defend(s, []);                       // 火を止められなかった
+
+  const bias = AI.readDefenses(s, 1);
+  assert.ok(bias.fire < 1,
+    `素通りした属性を薄いと読めていない（${bias.fire}）。加護で through が減ると誤読する`);
+});
+
 test('防いだ量は撃ち返した分を二重に数えない', () => {
   const GA = fresh();
   const { Engine } = GA;
@@ -178,16 +209,27 @@ test('このラウンドで既に殴られた相手は狙いの価値が下が�
     '既に殴られた相手を避けていない');
 });
 
-test('このラウンドの被ダメージだけを数える', () => {
+test('直近ひと回り分より古い被ダメージは忘れる', () => {
   const GA = fresh();
   const { Engine, AI } = GA;
-  const s = Engine.create({ names: ['A', 'B'], humans: 0 });
-  setHand(GA, s.players[0], ['cannon']);
-  Engine.attack(s, 1, [s.players[0].hand[0].uid]);
-  Engine.defend(s, []);
-  assert.ok(AI.damageThisRound(s, 1) > 0);
-  s.round++;                                    // ラウンドが変われば忘れる
-  assert.equal(AI.damageThisRound(s, 1), 0);
+  const s = Engine.create({ names: ['A', 'B', 'C'], humans: 0 });
+
+  /** いまの手番の者が、指定の相手を1発撃つ */
+  const shoot = (targetId, id = 'stone') => {
+    const shooter = Engine.current(s);
+    setHand(GA, shooter, [id]);
+    Engine.attack(s, targetId, [shooter.hand[0].uid]);
+    Engine.defend(s, []);
+  };
+
+  shoot(1, 'cannon');                       // A → B
+  assert.ok(AI.damageThisRound(s, 1) > 0, '直後は覚えている');
+
+  // 生存3人なので窓は3件。Bを狙わない解決が3件積まれれば窓から外れる
+  shoot(2);                                 // B → C
+  shoot(0);                                 // C → A
+  shoot(2);                                 // A → C
+  assert.equal(AI.damageThisRound(s, 1), 0, '窓から外れた分をまだ数えている');
 });
 
 // ── 多人数戦の公平さ ─────────────────────────────────
@@ -236,6 +278,90 @@ function firstEliminationTurns(players, games = 150) {
 // 対策前は 4人戦・6人戦とも「最初の脱落者の手番数」が中央1手、
 // 6人戦では4人に1人が一度も行動しないまま消えていた。
 // 対策後の実測は 4人戦 中央10手 / 6人戦 中央12手・下位25%が9手。
+/**
+ * 全員同レベルで回し、手番順ごとの勝率を返す。
+ * 手番の位置で有利不利が出ていないかを見る。
+ */
+function positionWinRates(players, games) {
+  const wins = new Array(players).fill(0);
+  let decided = 0;
+  for (let i = 0; i < games; i++) {
+    const seed = mixSeed(i);
+    const GA = loadGA(['items.js', 'engine.js', 'ai.js']);
+    GA.Engine.setRandom(seededRandom(seed));
+    GA.AI.setRandom(seededRandom((seed ^ 0xABCD) >>> 0));
+    const { Engine, AI } = GA;
+    const names = ['P0', 'P1', 'P2', 'P3', 'P4', 'P5'].slice(0, players);
+    const s = Engine.create({ names, humans: 0, levels: names.map(() => 'normal') });
+    let guard = 0;
+    while (s.phase !== 'over' && guard++ < 3000) {
+      if (s.phase === 'defense') {
+        const d = Engine.byId(s, s.pending.targetId);
+        Engine.defend(s, AI.chooseDefense(s, d.level));
+        continue;
+      }
+      const p = Engine.current(s);
+      const a = AI.chooseAction(s, p.level);
+      if (a.type === 'attack') Engine.attack(s, a.targetId, a.uids);
+      else if (a.type === 'use') Engine.useItem(s, a.uid, a.targetId);
+      else Engine.pray(s);
+    }
+    assert.equal(s.phase, 'over', `i=${i} で決着しない`);
+    if (s.winner === null) continue;
+    decided++;
+    wins[s.winner]++;
+  }
+  return { rates: wins.map((w) => w / decided), decided };
+}
+
+test('1対1で先手が有利になっていない', () => {
+  // 補正前は先手 54.7% ±2.8pt（1200局）だった。後手に神器を1つ渡して 49.7% に戻した。
+  const r = positionWinRates(2, 400);
+  assert.ok(r.decided >= 380, `決着した局が少なすぎる (${r.decided})`);
+  assert.ok(r.rates[0] <= 0.565,
+    `先手が有利すぎる: ${(r.rates[0] * 100).toFixed(1)}%`);
+  assert.ok(r.rates[0] >= 0.435,
+    `後手が有利すぎる: ${(r.rates[0] * 100).toFixed(1)}%`);
+});
+
+test('1対1では後手が神器を1つ多く持って始まる', () => {
+  const GA = fresh();
+  const { Engine } = GA;
+  const duel = Engine.create({ names: ['A', 'B'], humans: 0 });
+  assert.equal(duel.players[0].hand.length, Engine.OPENING_HAND);
+  assert.equal(duel.players[1].hand.length, Engine.OPENING_HAND + Engine.DUEL_SECOND_BONUS);
+
+  // 3人以上では手番順の偏りが別の形になるので、この補正は当てない
+  const three = Engine.create({ names: ['A', 'B', 'C'], humans: 0 });
+  for (const p of three.players) assert.equal(p.hand.length, Engine.OPENING_HAND);
+});
+
+test('4人戦で手番順による偏りが出ていない', () => {
+  // 集中砲火の回避をラウンド単位で数えていたころは、ラウンドの先頭で
+  // 全員ぶんが一斉に忘れられるため、最後の手番が 36.2% まで偏っていた。
+  // 直近ひと回り分の移動窓に変えて 24〜26% に収まった。
+  const r = positionWinRates(4, 400);
+  for (const [i, rate] of r.rates.entries()) {
+    assert.ok(rate >= 0.19 && rate <= 0.31,
+      `手番 ${i} の勝率が偏っている: ${(rate * 100).toFixed(1)}%（期待 25%）`);
+  }
+});
+
+test('集中砲火の回避はラウンド境界で途切れない', () => {
+  const GA = fresh();
+  const { Engine, AI } = GA;
+  const s = Engine.create({ names: ['A', 'B', 'C'], humans: 0 });
+  setHand(GA, s.players[0], ['cannon']);
+  Engine.attack(s, 1, [s.players[0].hand[0].uid]);
+  Engine.defend(s, []);
+  const justHit = AI.damageThisRound(s, 1);
+  assert.ok(justHit > 0);
+
+  // ラウンドが変わっても、直近ひと回り分に入っていれば覚えている
+  s.round += 1;
+  assert.equal(AI.damageThisRound(s, 1), justHit, 'ラウンド境界で忘れている');
+});
+
 test('4人戦で「何もできずに退場」が起きない', () => {
   const r = firstEliminationTurns(4);
   assert.equal(r.neverActed, 0, `一度も動けず退場が ${(r.neverActed * 100).toFixed(1)}%`);

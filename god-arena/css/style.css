@@ -155,8 +155,16 @@ body {
 .arena-head h2 { margin: 0; font-size: 13px; letter-spacing: .08em; color: var(--muted); }
 .foe-level { color: var(--muted); font-weight: 400; font-size: 11.5px; }
 .arena-head .count { color: var(--gold); font-variant-numeric: tabular-nums; }
-.chip-action { margin-left: auto; min-height: 34px; }
-.chip-action:hover:not(:disabled) { color: var(--gold); border-color: var(--gold); }
+/* .chip は後ろで min-height を指定しているので、同じ詳細度だと負ける。
+   順序に依存しないよう 2クラスで書く。 */
+.chip.chip-action {
+  margin-left: auto;
+  /* 対戦中に押す操作なので、指で確実に押せる 44px を確保する
+     （絞り込みのチップは表示切り替えなので 32px のまま） */
+  min-height: 44px;
+  padding: 0 12px;
+}
+.chip.chip-action:hover:not(:disabled) { color: var(--gold); border-color: var(--gold); }
 .chip:disabled { opacity: .35; cursor: not-allowed; }
 
 .opponents {
@@ -254,6 +262,7 @@ body {
 .bd-bar .seg.blk { background: var(--el-water); }
 .bd-bar .seg.ref { background: var(--el-all); }
 .bd-bar .seg.thr { background: var(--danger); }
+.bd-bar .seg.grc { background: var(--gold); }
 .bd-bar .seg.pad { background: transparent; }
 .bd-num { font-variant-numeric: tabular-nums; white-space: nowrap; text-align: right; }
 .bd-num .raw { color: var(--muted); }

@@ -249,7 +249,7 @@
     // 帯の長さは「いちばん量の多い行」を基準にそろえる。
     // 行ごとに伸ばし切ると、14 と 6 が同じ長さに見えて量が比べられない。
     // 会心は通る量が 1.5倍 になるので、raw ではなく実際の内訳の合計で揃える。
-    const rowTotal = (r) => r.blocked + r.through;
+    const rowTotal = (r) => r.blocked + (r.graced || 0) + r.through;
     const maxTotal = Math.max(1, ...(res.detail || []).map(rowTotal));
 
     for (const row of res.detail || []) {
@@ -261,7 +261,8 @@
       const bar = el('span', 'bd-bar');
       const blockedOnly = Math.max(0, row.blocked - (row.reflected || 0));
       const segs = [
-        ['blk', blockedOnly], ['ref', row.reflected || 0], ['thr', row.through],
+        ['blk', blockedOnly], ['ref', row.reflected || 0],
+        ['grc', row.graced || 0], ['thr', row.through],
         ['pad', Math.max(0, maxTotal - rowTotal(row))]   // 他の行との量の差を見せる余白
       ];
       for (const [cls, value] of segs) {
@@ -281,6 +282,7 @@
       const notes = [];
       if (blockedOnly > 0) notes.push(`防 ${blockedOnly}`);
       if (row.reflected > 0) notes.push(`↩ ${row.reflected}`);
+      if (row.graced > 0) notes.push(`加護 ${row.graced}`);
       if (row.crit) notes.push('会心');
       li.appendChild(el('span', 'bd-note', notes.join(' / ')));
       li.setAttribute('aria-label',
