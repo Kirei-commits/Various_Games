@@ -142,6 +142,7 @@
     const meta = el('div', 'cmeta');
     const e = Items.element(item.element);
     meta.appendChild(el('span', `el-${item.element}`, `${e.sym} ${e.label}`));
+    for (const t of Items.traits(item)) meta.appendChild(el('span', 'trait', t));
     b.appendChild(meta);
     b.appendChild(el('div', 'cdesc', sealed ? '封じられていて使えない' : Items.describe(item)));
     b.setAttribute('aria-label',
@@ -231,6 +232,7 @@
       case 'resolve':
         if (e.items.length) { add('', `${nameOf(state, e.target)} は `); add('blk', itemNames(e.items)); add('', ' で防御。'); }
         else add('', `${nameOf(state, e.target)} は無防備。`);
+        if (e.crits > 0) add('crit', ' 会心！');
         if (e.damage > 0) { add('', ' ダメージ '); add('dmg', String(e.damage)); }
         else add('ok', ' 完全に防いだ！');
         if (e.reflected > 0) {

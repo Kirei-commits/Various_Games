@@ -112,14 +112,15 @@ test('AI同士の対戦は必ず決着する（30局）', () => {
   }
 });
 
-test('相打ちは起こるが、ありふれてはいない（300局）', () => {
+test('相打ちがありふれてはいない（300局）', () => {
+  // 相打ちが「起こりうる」ことは reflect.test.mjs で局面を作って確かめている。
+  // ここでは頻度だけを見る（起きる確率が数%なので、下限を課すとフレーキーになる）。
   const r = duel('normal', 'normal', 300);
-  assert.ok(r.draws >= 1, '相打ちが一度も起きない');
   assert.ok(r.draws / 300 <= 0.08, `相打ちが多すぎる: ${r.draws}/300`);
 });
 
 test('難易度の序列が保たれている（各300局・先後入れ替え・撹拌シード）', () => {
-  // 撹拌シード600局での実測: 71.1% / 63.4% / 58.0%（それぞれ ±4pt 程度）
+  // 撹拌シード600局での実測: 71.7% / 64.0% / 60.1%（それぞれ ±4pt 程度）
   // 閾値は実測の95%信頼区間の下限より、さらに下に置く。
   const hardEasy = duel('hard', 'easy');
   const normalEasy = duel('normal', 'easy');
@@ -129,7 +130,7 @@ test('難易度の序列が保たれている（各300局・先後入れ替え�
     `ゴッド vs かけだし が低い: ${hardEasy.wins}/${hardEasy.decided}`);
   assert.ok(normalEasy.rate >= 0.55,
     `ベテラン vs かけだし が低い: ${normalEasy.wins}/${normalEasy.decided}`);
-  assert.ok(hardNormal.rate >= 0.52,
+  assert.ok(hardNormal.rate >= 0.54,
     `ゴッド vs ベテラン が低い: ${hardNormal.wins}/${hardNormal.decided}`);
 
   // 序列そのものも確かめる（数値だけ通って順番が崩れるのを防ぐ）

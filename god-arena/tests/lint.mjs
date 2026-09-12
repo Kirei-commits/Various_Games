@@ -67,6 +67,18 @@ for (const [, id, name, kind, element, power] of entries) {
 }
 if (entries.length < 20) problems.push(`アイテム定義が読み取れていない（${entries.length}件）`);
 
+// 武器の特性は武器にしか付けられない。連撃は2回以上でないと意味がない。
+const lines = src.split('\n').filter((l) => /\{\s*id:\s*'/.test(l));
+for (const line of lines) {
+  const id = (line.match(/id:\s*'([^']+)'/) || [])[1];
+  const kind = (line.match(/kind:\s*'([^']+)'/) || [])[1];
+  if (!id || !kind) continue;
+  const hasTrait = /\bhits:|\bpierce:|\bcrit:/.test(line);
+  if (hasTrait && kind !== 'weapon') problems.push(`特性は武器にしか付けられない: ${id}`);
+  const hits = (line.match(/hits:\s*(\d+)/) || [])[1];
+  if (hits !== undefined && Number(hits) < 2) problems.push(`hits は2以上にする: ${id}`);
+}
+
 // 攻撃属性それぞれに受け手があること（片方だけ増やして相性が崩れるのを防ぐ）
 for (const el of ['none', 'fire', 'water', 'thunder', 'light', 'dark']) {
   const hasWeapon = entries.some(([, , , k, e]) => k === 'weapon' && e === el);

@@ -67,7 +67,7 @@ test('攻撃 → 防御 で HP が減り、手番が次へ移る', () => {
   assert.equal(s.phase, 'defense');
   const res = Engine.defend(s, [s.players[1].hand[0].uid]);
   assert.equal(res.damage, 4);
-  assert.equal(s.players[1].hp, 36);
+  assert.equal(s.players[1].hp, s.players[1].maxHp - 4);
   assert.equal(s.phase, 'turn');
   assert.equal(s.turn, 1, '防御側に手番が渡る');
   assert.equal(s.players[0].hand.length, 0, '使った武器は消える');
@@ -164,11 +164,12 @@ test('食料はHPを回復し、最大値を超えない', () => {
   const GA = fresh();
   const { Engine } = GA;
   const s = Engine.create({ names: ['A', 'B'], humans: 0 });
-  s.players[0].hp = 35;
-  setHand(GA, s.players[0], ['herb']);   // 16
+  const max = s.players[0].maxHp;
+  s.players[0].hp = max - 5;
+  setHand(GA, s.players[0], ['herb']);   // 16回復だが5しか入らない
   const out = Engine.useItem(s, s.players[0].hand[0].uid);
   assert.equal(out.healed, 5);
-  assert.equal(s.players[0].hp, 40);
+  assert.equal(s.players[0].hp, max);
 });
 
 test('てんけいはアイテムを授かる／ごうだつは相手から奪う', () => {

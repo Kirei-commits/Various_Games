@@ -8,7 +8,9 @@
 
   const Items = global.GA.Items;
 
-  const START_HP = 40;
+  // 特性つきの武器が入って1局が短くなり、運の比重が上がった。
+  // HPを増やして手数を戻すと、腕の差が出る幅も戻る（撹拌シード300局で実測）。
+  const START_HP = 48;
   const HAND_LIMIT = 12;
   const OPENING_HAND = 5;
   const PRAY_DRAW = 3;
@@ -82,66 +84,106 @@
   }
 
   /**
+   * 攻撃を「命中パケット」に展開する。
+   * 連撃(hits)は回数分のパケットに分かれ、1つの防具では1回分しか受け止められない。
+   * それ以外の武器は、同じ性質（属性・貫通・会心）どうしをまとめる
+   * （防具を何枚も重ねて受けられるため）。
+   */
+  function toPackets(weapons) {
+    const merged = new Map();
+    const packets = [];
+    for (const w of weapons) {
+      const hits = w.hits > 1 ? w.hits : 1;
+      if (hits > 1) {
+        for (let i = 0; i < hits; i++) {
+          packets.push({
+            element: w.element, power: w.power, pierce: !!w.pierce, crit: !!w.crit,
+            solo: true, blocked: 0, reflected: 0, shielded: false
+          });
+        }
+        continue;
+      }
+      const key = `${w.element}/${w.pierce ? 1 : 0}/${w.crit ? 1 : 0}`;
+      const found = merged.get(key);
+      if (found) { found.power += w.power; continue; }
+      const packet = {
+        element: w.element, power: w.power, pierce: !!w.pierce, crit: !!w.crit,
+        solo: false, blocked: 0, reflected: 0, shielded: false
+      };
+      merged.set(key, packet);
+      packets.push(packet);
+    }
+    return packets;
+  }
+
+  /**
    * 攻撃と防御からダメージを求める純関数。ここがルールの核。
-   *  - 攻撃は属性ごとに合算される
-   *  - 同じ属性の防具だけがその属性を止められる
-   *  - 反射具は同属性を止めたうえで、止めた分をそのまま攻撃側へ返す
-   *  - 全属性(all)の防具は余りを引き受ける。大きく通っている属性から順に充てる
    *
-   * 同じ属性に反射具と防具の両方を出したときは、反射具を先に充てる
-   * （撃ち返せる量が増えるので、出した側に有利な配分にする）。
+   *  - 攻撃は属性ごとにまとまる。同じ属性の防具だけがその属性を止められる
+   *  - 全属性(all)の防具はどの属性でも受けられる
+   *  - 反射具は止めた分をそのまま攻撃側へ返す
+   *  - 貫通(pierce)に対しては防具の効果が半分になる
+   *  - 連撃(hits)は回数分に分かれ、防具1枚が受け止められるのは1回分だけ
+   *  - 会心(crit)は、その一撃が1点も防がれなかったときだけ威力が1.5倍になる
+   *
+   * 防具の割り当ては「防御側にとって有利な順」で決める（出した側が損しないように）。
+   *   1. 反射具を先に使う（撃ち返せる量が最大になる）
+   *   2. 強い防具から順に、いちばん多く止められる相手に充てる
+   *   3. 同じだけ止まるなら連撃の1回分に充てる（残りの防具を重ねる余地を残せる）
    */
   function resolveDamage(weapons, defenses, opts) {
     const scale = (opts && opts.defenseScale !== undefined) ? opts.defenseScale : 1;
-    const atk = new Map();
-    for (const w of weapons) atk.set(w.element, (atk.get(w.element) || 0) + w.power);
+    const packets = toPackets(weapons);
 
-    // のろい中は防御力が目減りする（scale < 1）。反射できる量も同じだけ減る。
-    const bend = (v) => Math.floor(v * scale);
-    const shield = new Map();
-    const mirror = new Map();
-    let universal = 0;
-    for (const d of defenses) {
-      const power = bend(d.power);
-      if (d.kind === 'reflect') mirror.set(d.element, (mirror.get(d.element) || 0) + power);
-      else if (d.element === 'all') universal += power;
-      else shield.set(d.element, (shield.get(d.element) || 0) + power);
+    const shields = defenses
+      .map((d) => ({ element: d.element, power: Math.floor(d.power * scale), reflect: d.kind === 'reflect' }))
+      .filter((d) => d.power > 0)
+      // 反射具を先に、次に強いものから
+      .sort((a, b) => (a.reflect === b.reflect ? b.power - a.power : (a.reflect ? -1 : 1)));
+
+    let wasted = 0;
+    for (const shield of shields) {
+      let best = null;
+      for (const packet of packets) {
+        if (shield.element !== 'all' && shield.element !== packet.element) continue;
+        if (packet.solo && packet.shielded) continue;            // 連撃の1回分には1枚だけ
+        const remaining = packet.power - packet.blocked;
+        if (remaining <= 0) continue;
+        const effect = Math.floor(shield.power * (packet.pierce ? 0.5 : 1));
+        const stop = Math.min(effect, remaining);
+        if (stop <= 0) continue;
+        const better = !best || stop > best.stop
+          || (stop === best.stop && packet.solo && !best.packet.solo);
+        if (better) best = { packet, stop };
+      }
+      if (!best) { wasted += shield.power; continue; }
+      best.packet.blocked += best.stop;
+      if (best.packet.solo) best.packet.shielded = true;
+      if (shield.reflect) best.packet.reflected += best.stop;
+      wasted += shield.power - best.stop;
     }
 
-    // 属性ごとに 反射 → 同属性の防具 の順で充てる
-    const rows = [...atk.entries()].map(([element, raw]) => {
-      const reflected = Math.min(raw, mirror.get(element) || 0);
-      let rest = raw - reflected;
-      const sameBlocked = Math.min(rest, shield.get(element) || 0);
-      rest -= sameBlocked;
-      return { element, raw, reflected, sameBlocked, rest, universalBlocked: 0 };
-    });
-
-    // 残りの大きい属性から全属性防具を充てる（防御側に最も有利な配分）
-    rows.sort((a, b) => b.rest - a.rest);
-    for (const row of rows) {
-      if (universal <= 0) break;
-      const use = Math.min(row.rest, universal);
-      row.universalBlocked = use;
-      row.rest -= use;
-      universal -= use;
+    // 属性ごとにまとめ直す
+    const rows = new Map();
+    let damage = 0, blocked = 0, reflected = 0, crits = 0;
+    for (const packet of packets) {
+      let through = packet.power - packet.blocked;
+      const critHit = packet.crit && packet.blocked === 0 && through > 0;
+      if (critHit) { through = Math.floor(through * 1.5); crits++; }
+      damage += through;
+      blocked += packet.blocked;
+      reflected += packet.reflected;
+      const row = rows.get(packet.element)
+        || { element: packet.element, raw: 0, blocked: 0, reflected: 0, through: 0, crit: false };
+      row.raw += packet.power;
+      row.blocked += packet.blocked;
+      row.reflected += packet.reflected;
+      row.through += through;
+      row.crit = row.crit || critHit;
+      rows.set(packet.element, row);
     }
-
-    let damage = 0, blocked = 0, reflected = 0;
-    const detail = rows.map((r) => {
-      damage += r.rest;
-      blocked += r.reflected + r.sameBlocked + r.universalBlocked;
-      reflected += r.reflected;
-      return {
-        element: r.element,
-        raw: r.raw,
-        blocked: r.reflected + r.sameBlocked + r.universalBlocked,
-        reflected: r.reflected,
-        through: r.rest
-      };
-    });
-    detail.sort((a, b) => b.raw - a.raw);
-    return { damage, blocked, reflected, detail, wasted: universal };
+    const detail = [...rows.values()].sort((a, b) => b.raw - a.raw);
+    return { damage, blocked, reflected, crits, detail, wasted };
   }
 
   /** のろいを考慮した防御倍率 */
@@ -315,7 +357,7 @@
       t: 'resolve', actor: attackerId, target: targetId,
       items: used.map((i) => i.id),
       damage: res.damage, blocked: res.blocked, reflected: res.reflected,
-      detail: res.detail, defeated, attackerDefeated
+      crits: res.crits, detail: res.detail, defeated, attackerDefeated
     });
 
     s.pending = null;
@@ -515,6 +557,6 @@
     create, current, alivePlayers, byId, targetsFor, availableActions, canPray, itemValue,
     statusOf, isSealed, isUsable, defenseScaleOf, previewDefense, strongestElement, tickStatus,
     weaponsOf, defensesOf, supportsOf,
-    resolveDamage, attack, defend, pray, useItem, endTurn
+    resolveDamage, toPackets, attack, defend, pray, useItem, endTurn
   };
 })(typeof window !== 'undefined' ? window : globalThis);

@@ -93,12 +93,44 @@
     return bias;
   }
 
-  /** 武器の組み合わせを属性ごとにまとめて期待通過ダメージを出す */
+  /**
+   * 特性つきの武器1本が何点通りそうか。
+   *  連撃 … 防具1枚が受け止められるのは1回分だけなので、止まるのは「持っていそうな枚数」まで
+   *  貫通 … 防具の効果が半分になる
+   *  会心 … 1点も防がれなければ1.5倍。防がれない見込みの分だけ上乗せする
+   */
+  function estimateTraited(w, handSize, bias) {
+    const st = DEF_STATS[w.element] || { p: 0, power: 0 };
+    const count = Math.max(0, st.p * (bias === undefined ? 1 : bias)) * handSize;
+    const shieldPower = st.power * (w.pierce ? 0.5 : 1);
+    const hits = w.hits > 1 ? w.hits : 1;
+    const raw = w.power * hits;
+
+    const blocked = hits > 1
+      ? Math.min(hits, count) * Math.min(shieldPower, w.power)   // 1回分ずつしか止まらない
+      : Math.min(raw, count * shieldPower);                      // 単発は防具を重ねられる
+
+    let through = Math.max(0, raw - blocked);
+    if (w.crit) through *= 1 + 0.5 * Math.max(0, Math.min(1, 1 - count));
+    return through;
+  }
+
+  /**
+   * 武器の組み合わせが何点通りそうか。
+   * 素の武器は属性ごとにまとめる（防具を重ねて受けられるため）。
+   * 特性つきは1本ずつ見積もる（止まり方が違うのでまとめると数字が狂う）。
+   */
   function estimateDamage(weapons, handSize, bias) {
-    const byElement = new Map();
-    for (const w of weapons) byElement.set(w.element, (byElement.get(w.element) || 0) + w.power);
+    const plain = new Map();
     let sum = 0;
-    for (const [el, raw] of byElement) {
+    for (const w of weapons) {
+      if (w.hits > 1 || w.pierce || w.crit) {
+        sum += estimateTraited(w, handSize, bias ? bias[w.element] : 1);
+      } else {
+        plain.set(w.element, (plain.get(w.element) || 0) + w.power);
+      }
+    }
+    for (const [el, raw] of plain) {
       sum += expectedThrough(el, raw, handSize, bias ? bias[el] : 1);
     }
     return sum;
@@ -296,6 +328,6 @@
   global.GA = global.GA || {};
   global.GA.AI = {
     LEVELS, DEF_STATS, REFLECT_STATS, setRandom, chooseAction, chooseDefense,
-    estimateDamage, expectedThrough, expectedReflect, readDefenses, bestHex
+    estimateDamage, estimateTraited, expectedThrough, expectedReflect, readDefenses, bestHex
   };
 })(typeof window !== 'undefined' ? window : globalThis);

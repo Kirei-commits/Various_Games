@@ -48,6 +48,19 @@
     { id: 'shade',    name: 'やみのやいば', kind: 'weapon', element: 'dark',  power: 7,  weight: 7 },
     { id: 'demonsword', name: 'まけん',   kind: 'weapon', element: 'dark',    power: 12, weight: 3 },
 
+    // ── 特性つきの武器 ────────────────────────────
+    // 同じ火力でも「どう当たるか」が違うので、どれを撃つかに意味が出る。
+    // hits   … 連撃。回数分に分かれ、防具1枚では1回分しか受け止められない
+    // pierce … 貫通。防具の効果が半分になる
+    // crit   … 会心。1点も防がれなければ威力1.5倍（属性を読み切れたご褒美）
+    { id: 'twinblade', name: 'にとうりゅう', kind: 'weapon', element: 'none',    power: 4, hits: 2, weight: 4 },
+    { id: 'hailstorm', name: 'あられ',       kind: 'weapon', element: 'water',   power: 3, hits: 3, weight: 3 },
+    { id: 'chainbolt', name: 'れんらい',     kind: 'weapon', element: 'thunder', power: 3, hits: 3, weight: 3 },
+    { id: 'pike',      name: 'つらぬきやり', kind: 'weapon', element: 'none',    power: 6, pierce: true, weight: 4 },
+    { id: 'lightlance', name: 'ひかりのそう', kind: 'weapon', element: 'light',  power: 7, pierce: true, weight: 3 },
+    { id: 'blazeburst', name: 'ばくえん',    kind: 'weapon', element: 'fire',    power: 7, crit: true, weight: 3 },
+    { id: 'assassin',  name: 'あんさつけん', kind: 'weapon', element: 'dark',    power: 6, crit: true, weight: 3 },
+
     // ── 防具 ──────────────────────────────────────
     { id: 'woodshield', name: 'きのたて', kind: 'defense', element: 'none',    power: 5,  weight: 12 },
     { id: 'ironshield', name: 'てつのたて', kind: 'defense', element: 'none',  power: 8,  weight: 9 },
@@ -147,10 +160,30 @@
     curse:  { label: 'のろい', sym: '✖', desc: () => '防御力が半分になる' }
   };
 
+  /** 武器の特性を短い言葉にする（カードとログで同じ言い方を使う） */
+  function traits(item) {
+    const out = [];
+    if (item.hits > 1) out.push(`連撃${item.hits}`);
+    if (item.pierce) out.push('貫通');
+    if (item.crit) out.push('会心');
+    return out;
+  }
+
   /** カードに出す短い説明 */
   function describe(item) {
     switch (item.kind) {
-      case 'weapon':  return `${element(item.element).label}属性 ${item.power} ダメージ`;
+      case 'weapon': {
+        const t = traits(item);
+        if (!t.length) return `${element(item.element).label}属性 ${item.power} ダメージ`;
+        const head = item.hits > 1
+          ? `${element(item.element).label}属性 ${item.power}×${item.hits}`
+          : `${element(item.element).label}属性 ${item.power}`;
+        const note = [];
+        if (item.hits > 1) note.push('防具1枚では1回分しか防げない');
+        if (item.pierce) note.push('防具の効果が半分');
+        if (item.crit) note.push('無防備なら1.5倍');
+        return `${head} — ${note.join('・')}`;
+      }
       case 'defense': return item.element === 'all'
         ? `どの属性でも ${item.power} 防ぐ`
         : `${element(item.element).label}属性を ${item.power} 防ぐ`;
@@ -173,6 +206,6 @@
     ELEMENTS, ATTACK_ELEMENTS, CATALOG, KIND_LABEL,
     byId: (id) => BY_ID[id],
     STATUS,
-    instantiate, resetUid, draw, drawOne, element, describe, isShield, needsTarget, isHex
+    instantiate, resetUid, draw, drawOne, element, describe, traits, isShield, needsTarget, isHex
   };
 })(typeof window !== 'undefined' ? window : globalThis);

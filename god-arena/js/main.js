@@ -207,8 +207,9 @@
       Render.pop('blk', 'GUARD');
     } else if (res.damage > 0) {
       Audio.play('hit');
-      Render.stage(null, `${Engine.byId(s, targetId).name} に ${res.damage} ダメージ`);
-      Render.pop('dmg', `-${res.damage}`);
+      const crit = res.crits > 0 ? '会心！ ' : '';
+      Render.stage(null, `${crit}${Engine.byId(s, targetId).name} に ${res.damage} ダメージ`);
+      Render.pop(res.crits > 0 ? 'crit' : 'dmg', `-${res.damage}`);
       Render.shake(targetId);
       if (res.damage > game.record.bestDamage && Engine.byId(s, targetId).isHuman === false) {
         game.record = Store.save({ record: Object.assign({}, game.record, { bestDamage: res.damage }) }).record;

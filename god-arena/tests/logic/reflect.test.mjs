@@ -63,8 +63,8 @@ test('反射のダメージは攻撃側のHPを削る（防げない）', () => 
   Engine.attack(s, 1, [weapon.uid]);
   const res = Engine.defend(s, [s.players[1].hand[0].uid]);
   assert.equal(res.reflected, 7);
-  assert.equal(s.players[0].hp, 33, '攻撃側が7くらう');
-  assert.equal(s.players[1].hp, 33, '通った7も入る');
+  assert.equal(s.players[0].hp, s.players[0].maxHp - 7, '攻撃側が7くらう');
+  assert.equal(s.players[1].hp, s.players[1].maxHp - 7, '通った7も入る');
   assert.equal(s.players[0].hand.length, 1, '防具は消費されない');
 });
 
