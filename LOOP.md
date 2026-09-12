@@ -68,12 +68,23 @@ prompt: LOOP.md の「1周でやること」を上から実行する。人間の
 
 | ワークフロー | いつ動く | 中身 |
 | --- | --- | --- |
-| `.github/workflows/ci.yml` | main への push / PR / 作業ブランチ(`claude/**`) への push | lint・ロジック・E2E（god-arena と gomoku-narabe の両方）、god-arena の通しプレイ |
-| `.github/workflows/pages.yml` | main への push | GitHub Pages へ公開 |
+| `.github/workflows/ci.yml` | デフォルトブランチ / PR / 作業ブランチ(`claude/**`) への push | lint・ロジック・E2E（god-arena と gomoku-narabe の両方）、god-arena の通しプレイ |
+| `.github/workflows/pages.yml` | デフォルトブランチへの push | GitHub Pages へ公開 |
 | `.github/dependabot.yml` | 毎月 | 開発用依存と Actions のバージョン追従 |
 
 **サブディレクトリ配下の `.github/workflows/` は GitHub では実行されません。**
 ワークフローはリポジトリ直下にだけ置きます。
+
+### デフォルトブランチについて
+
+このリポジトリには **`main` がありません。** デフォルトブランチは
+`claude/cyberpunk-gomoku-game-70crr8` です（作られた経緯のまま残っている）。
+ワークフローの `branches:` にはこれを明記してあります。
+
+`main` に改名するとワークフローが素直になりますが、
+**クラウドセッションからはブランチの改名・デフォルト変更ができません**
+（GitHub プロキシが設定系のAPIパスを拒否するため）。手元か GitHub の画面で
+改名したら、`ci.yml` と `pages.yml` の `branches:` を `main` だけにしてください。
 
 ### Pages の初回設定（人の手が必要）
 

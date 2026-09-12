@@ -2,6 +2,7 @@ name: CI
 
 on:
   push:
+    # このリポジトリのデフォルトブランチは claude/cyberpunk-gomoku-game-70crr8。
     # 作業ブランチでも回して、PRを開く前に緑かどうかを確かめられるようにする
     branches: [main, 'claude/**']
   pull_request:

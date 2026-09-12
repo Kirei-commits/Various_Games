@@ -9,7 +9,11 @@ name: Pages
 
 on:
   push:
-    branches: [main]
+    # このリポジトリには main が無く、デフォルトブランチは
+    # claude/cyberpunk-gomoku-game-70crr8 になっている（作られた経緯のまま）。
+    # main しか書かないと永久に発火しないので、実際のデフォルトブランチを書く。
+    # main へ改名したらこの行を main だけにする。
+    branches: [main, claude/cyberpunk-gomoku-game-70crr8]
   workflow_dispatch:
 
 permissions:
