@@ -47,7 +47,10 @@ const rows = [
   ['畑の数', stat('fields')],
   ['最大コンボ', stat('bestCombo')],
   ['救済の回数', stat('rescues')],
-  ['何も起きない最長(ms)', stat('worstStuckMs')]
+  ['何も起きない最長(ms)', stat('worstStuckMs')],
+  ['手持ち無沙汰(%)', stat('idlePct')],
+  ['1秒以上の待ち(%)', stat('feltIdlePct')],
+  ['待たされた最長(ms)', stat('worstIdleMs')]
 ];
 
 const lines = [];
@@ -60,8 +63,17 @@ lines.push('');
 
 const longest = Math.max(...col('worstStuckMs'));
 const rescueTotal = col('rescues').reduce((a, b) => a + b, 0);
+const worstIdle = Math.max(...col('worstIdleMs'));
+const medIdlePct = med(col('idlePct'));
 lines.push(`- 何もできない時間の最長: **${longest}ms**（3秒を超えたら詰みを疑う）`);
 lines.push(`- 救済の発動: **${rescueTotal}回**`);
+lines.push('');
+lines.push(`### 待ち時間（このゲームの約束）`);
+lines.push('');
+const medFelt = med(col('feltIdlePct'));
+lines.push(`- 手持ち無沙汰の割合: **${medIdlePct}%**（収穫・植える・取り出す・仕込む・届ける のどれも無い時間）`);
+lines.push(`- そのうち **1秒以上つづいた待ち**: **${medFelt}%** ← 人が「待った」と感じるのはここ`);
+lines.push(`- いちばん長く待たされた時間: **${worstIdle}ms**（**3秒を超えたら失敗**）`);
 
 const report = lines.join('\n');
 console.log(report);
@@ -70,7 +82,15 @@ if (wantSummary && process.env.GITHUB_STEP_SUMMARY) {
   fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, report + '\n');
 }
 
+let bad = false;
 if (longest > 3000) {
   console.error(`\n✘ 何もできない時間が ${longest}ms あった。詰みの疑い。`);
-  process.exit(1);
+  bad = true;
 }
+// 待ち時間を限りなく0に近づけるのがこのゲームの存在理由なので、機械で見張る
+if (worstIdle > 3000) {
+  console.error(`\n✘ ${worstIdle}ms 待たされた。畑がまとめて実って、手が空く時間ができている。`);
+  console.error('  時間差まき（Engine.sow）が効いているか確かめる。');
+  bad = true;
+}
+if (bad) process.exit(1);

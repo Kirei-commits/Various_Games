@@ -67,6 +67,18 @@ export async function advance(page, ms) {
   }, ms);
 }
 
+/**
+ * 買ってある畑がぜんぶ実るまで待つ。
+ * 時間差まきで順番に実るので、「まとめて収穫」を確かめるテストはこちらを使う。
+ */
+export async function waitAllReady(page, timeout = 20000) {
+  await expect.poll(async () => page.evaluate(() => {
+    const g = window.GF.game;
+    return g.state.fields.slice(0, g.state.fieldsOwned)
+      .every((f) => window.GF.Engine.isReady(f, g.state.now));
+  }), { timeout }).toBe(true);
+}
+
 /** 畑が実るまで待つ */
 export async function waitReady(page, index = 0) {
   await expect.poll(async () => page.evaluate((i) => {

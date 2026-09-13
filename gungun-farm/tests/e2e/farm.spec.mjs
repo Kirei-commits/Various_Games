@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { openFarm, openTab, give, setProgress, advance, waitReady } from './fixtures.mjs';
+import { openFarm, openTab, give, setProgress, advance, waitReady, waitAllReady } from './fixtures.mjs';
 
 test('畑をタップして植え、実ったらタップで収穫できる', async ({ page }) => {
   const g = await openFarm(page);
@@ -34,7 +34,8 @@ test('主ボタンは「まく」→「収穫して植え直す」を1タップ�
   let s = await g.state();
   expect(s.fields.filter((f) => f.crop).length).toBe(s.fieldsOwned);
 
-  await waitReady(page);
+  // 時間差で実るので、まとめて収穫を確かめるときは全マスが揃うのを待つ
+  await waitAllReady(page);
   await g.tap(page.locator('#btn-harvest'));
 
   s = await g.state();
@@ -60,7 +61,7 @@ test('畑を1マスだけ押しても、収穫して植え直す', async ({ page
 test('タネ代が尽きたら、収穫しても植え直さない（空いたまま）', async ({ page }) => {
   const g = await openFarm(page);
   await g.tap(page.locator('#btn-harvest'));
-  await waitReady(page);
+  await waitAllReady(page);
   await page.evaluate(() => { window.GF.game.state.coins = 0; });
 
   await g.tap(page.locator('#btn-harvest'));
@@ -173,7 +174,7 @@ test('売る数はまとめて選べる', async ({ page }) => {
 test('倉庫がいっぱいだと収穫できず、みせへ案内される', async ({ page }) => {
   const g = await openFarm(page);
   await g.tap(page.locator('#btn-harvest'));
-  await waitReady(page);
+  await waitAllReady(page);
   await page.evaluate(() => {
     const s = window.GF.game.state;
     window.GF.Engine.store(s, 'carrot', window.GF.Engine.barnFree(s));
@@ -260,4 +261,25 @@ test('育つにつれて、芽から作物の絵に変わる', async ({ page }) 
   await advance(page, 1200);                     // 実った
   await expect(page.locator('.field').first()).toHaveClass(/ready/);
   await expect(plant).toHaveText('🥕');
+});
+
+test('まとめてまいた畑は順番に実る（ずっと何かが光っている）', async ({ page }) => {
+  const g = await openFarm(page, { speed: '1' });
+  await g.tap(page.locator('.card[data-act="seed"][data-id="carrot"]'));   // 3秒
+  await g.tap(page.locator('#btn-harvest'));                              // 空の畑にまく
+
+  const s = await g.state();
+  const times = s.fields.slice(0, s.fieldsOwned).map((f) => f.readyAt);
+  expect(new Set(times).size).toBe(s.fieldsOwned, '実る時刻がばらけている');
+
+  // いちばん早いマスは「作物の秒数 ÷ 畑の数」で来る。全部そろうのを待たない
+  const sec = 3000;
+  expect(Math.min(...times) - s.now).toBeLessThan(sec / 2);
+  expect(Math.max(...times) - s.now).toBeLessThanOrEqual(sec + 1, '作物の秒数より長くは待たせない');
+
+  // 実際に、一斉ではなく少しずつ光る
+  await expect.poll(async () => page.locator('.field.ready').count(), { timeout: 4000 })
+    .toBeGreaterThan(0);
+  const someReady = await page.locator('.field.ready').count();
+  expect(someReady).toBeLessThan(s.fieldsOwned, '一斉には実らない');
 });

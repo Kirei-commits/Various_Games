@@ -110,6 +110,28 @@ function chooseSeed(GF, state, want) {
   return pick ? pick.id : best[best.length - 1].id;   // 買えなくても、いちばん安いものを指しておく
 }
 
+/**
+ * いま「進行を進める操作」があるか。
+ * 収穫・植える・取り出す・仕込む・届ける のどれも無い瞬間を「待たされている」と数える。
+ * 売り買いは家事なのでいつでもできる＝待ちの解消にはならないので、数えない。
+ *
+ * これがこのゲームの約束（待ち時間を限りなく0に）を測る指標。
+ */
+export function hasSomethingToDo(GF, s) {
+  const { Engine, Data } = GF;
+  const roomy = Engine.barnFree(s) > 0;
+  for (let i = 0; i < s.fieldsOwned; i++) {
+    if (roomy && Engine.isReady(s.fields[i], s.now)) return 'harvest';
+    if (!s.fields[i].crop && Data.cropsAt(s.level).some((c) => s.coins >= c.cost)) return 'plant';
+  }
+  for (let i = 0; i < s.machines.length; i++) {
+    if (roomy && s.machines[i].done > 0) return 'collect';
+    if (Engine.canQueue(s, i)) return 'queue';
+  }
+  for (const o of s.orders) if (Engine.canDeliver(s, o)) return 'deliver';
+  return null;
+}
+
 /** その作物が畑で育っている数 */
 const growing = (state, id) => state.fields.filter((f) => f.crop === id).length;
 
@@ -127,10 +149,33 @@ export function simulate(GF, opts = {}) {
   let stuckFor = 0;
   let worstStuck = 0;
   let prevProgress = -1;
+  let idleMs = 0;
+  let idleRun = 0;
+  let worstIdle = 0;
+  let feltMs = 0;          // 1秒以上つづいた「待ち」だけを数えたもの
+
+  // 待ち時間は bot の手を動かす間隔より細かく見る。
+  // 400ms きざみで見ると 200ms の隙間が丸ごと見えず、実際より良い数字が出る。
+  const SAMPLE = 100;
+  const FELT = 1000;       // 人が「待った」と感じ始めるあたり
 
   for (let t = 0; t <= total; t += stepMs) {
     GF.Engine.tick(state, t);
     if (state.over) break;
+
+    // 手を動かす前に「やることがあるか」を見る（あとで見ると自分で解消してしまう）
+    for (let u = 0; u < stepMs; u += SAMPLE) {
+      GF.Engine.tick(state, t + u);
+      if (hasSomethingToDo(GF, state)) {
+        if (idleRun >= FELT) feltMs += idleRun;
+        idleRun = 0;
+      } else {
+        idleMs += SAMPLE;
+        idleRun += SAMPLE;
+        worstIdle = Math.max(worstIdle, idleRun);
+      }
+    }
+
     botStep(GF, state);
 
     // 「何も起きていない時間」を測る。畑も機械も注文も動かない時間が続いたら詰み。
@@ -161,6 +206,9 @@ export function simulate(GF, opts = {}) {
     fields: state.fieldsOwned,
     barn: GF.Engine.barnCap(state),
     worstStuckMs: worstStuck,
+    idlePct: Math.round((idleMs / total) * 1000) / 10,
+    feltIdlePct: Math.round((feltMs / total) * 1000) / 10,
+    worstIdleMs: worstIdle,
     state
   };
 }
