@@ -143,8 +143,13 @@
       } else if (ev.kind === 'over') {
         Audio.play('finish');
         showResult();
-      } else if (ev.kind === 'buy') {
+      } else if (ev.kind === 'buy' || ev.kind === 'boatgone') {
         Render.ticker(ev.text);
+        if (ev.kind === 'boatgone') Audio.play('nope');
+      } else if (ev.kind === 'boat') {
+        Render.ticker('ふなびんが着いた🚢 余ったものをどんどん積もう');
+      } else if (ev.kind === 'ship') {
+        Render.ticker('⛵ ' + ev.text);
       }
     }
     if (game.popQueue.length && !game.popping) {
@@ -219,6 +224,19 @@
     } else if (act === 'deliver') {
       const res = Engine.deliver(state, Number(id));
       if (res) { Audio.play('deliver'); Render.float('+🪙' + res.coins, x, y); Render.float('+⭐' + res.xp, x, y + 18, 'xp'); }
+    } else if (act === 'boat-load') {
+      const n = Engine.loadBoatAll(state);
+      if (n > 0) {
+        Audio.play('collect');
+        Render.float('🚢+' + n, x, y);
+        Render.ticker(Engine.boatReady(state.boat) ? 'ふなびんが満載！ しゅっこうできる' : `${n}こ 積んだ`);
+      } else {
+        Audio.play('nope');
+        Render.ticker('積めるものが無い（注文に要るぶんは残してある）');
+      }
+    } else if (act === 'boat-ship') {
+      const res = Engine.shipBoat(state);
+      if (res) { Audio.play('finish'); Render.float('+🪙' + res.coins, x, y); Render.float('+⭐' + res.xp, x, y + 18, 'xp'); }
     } else if (act === 'dismiss') {
       Engine.dismiss(state, Number(id));
       Audio.play('tap');
@@ -412,6 +430,7 @@
       el('p', '', '⏱ まとめてまいた畑は**順番に**実る。だから待たされない——いつ見ても、どこかが光っている。'),
       el('p', '', '🏭 となりのボタンで、出来たものを取り出して余った材料をまとめて仕込む。注文に要るぶんは残してくれる。'),
       el('p', '', '📦 ちゅうもんを届けるとコインと経験値がもらえる。早いほどオマケ、続けるほど倍率が上がる。'),
+      el('p', '', '🚢 レベル7から「ふなびん」が来る。**少しずつ積める**ので、余ったものの行き先になる。積みきると報酬は2.2倍。'),
       el('p', '', '⚠️ 倉庫がいっぱいだと収穫できない。みせで売るか、倉庫を広げよう。')
     ];
     const ok = el('button', 'menu primary', 'はじめる！');

@@ -27,6 +27,12 @@ const MINUTES = Number(opt('minutes', 3));       // 農園の中で過ごす分�
  */
 const SPEED = Number(opt('speed', 3));
 const PORT = Number(opt('port', 8083));
+/**
+ * 途中のレベルから始める。
+ * 最初から回すと3分ではレベル4までしか行かず、**ふなびん（Lv7）や後半の施設を
+ * 一度も踏まないまま「0 issues」になる**。後半だけを見たいときに使う。
+ */
+const START_LEVEL = Number(opt('level', 0));
 const KEEP = args.includes('--keep');            // スクリーンショットを残す
 const SHOTS = path.join(ROOT, 'playtest-shots');
 
@@ -62,7 +68,19 @@ async function main() {
   const url = `http://127.0.0.1:${PORT}/?seed=${Date.now() % 100000}&speed=${SPEED}&sound=off&fresh=1&help=off`;
   await page.goto(url);
   await page.waitForSelector('#fields .field');
-  console.log(`通しプレイ開始（農園の中で ${MINUTES}分 / 時間の倍率 ${SPEED}倍）`);
+
+  if (START_LEVEL > 1) {
+    await page.evaluate((lv) => {
+      const s = window.GF.game.state, E = window.GF.Engine, D = window.GF.Data;
+      s.level = lv; s.xp = 0; s.xpNext = D.xpFor(lv);
+      s.coins = 4000; s.barnUp = 4;
+      s.fieldsOwned = Math.min(D.FIELD_SLOTS, D.FIELDS_AT_START + Math.floor(lv / 3));
+      for (const def of D.machinesAt(lv)) if (!E.ownsMachine(s, def.id)) s.machines.push({ id: def.id, queue: [], done: 0 });
+      window.GF.refresh();
+    }, START_LEVEL);
+  }
+  console.log(`通しプレイ開始（農園の中で ${MINUTES}分 / 時間の倍率 ${SPEED}倍` +
+    (START_LEVEL > 1 ? ` / Lv${START_LEVEL}から` : '') + '）');
 
   const deadline = MINUTES * 60_000;
   let round = 0;
@@ -98,7 +116,8 @@ async function main() {
 
   const final = await page.evaluate(() => {
     const st = window.GF.game.state;
-    return { level: st.level, coins: Math.floor(st.coins), ...st.stats, bestCombo: st.bestCombo };
+    return { level: st.level, coins: Math.floor(st.coins), ...st.stats, bestCombo: st.bestCombo,
+             boatHere: !!st.boat, boatLoaded: st.boat ? Object.values(st.boat.loaded).reduce((a, b) => a + b, 0) : 0 };
   });
 
   // 遊び終わった画面が崩れていないかも見る
@@ -111,6 +130,14 @@ async function main() {
   if (final.rescues > 0) note(`救済が ${final.rescues}回 発動した（経済のどこかが詰まっている）`);
   if (final.delivered === 0) note('1件も届けられなかった');
   if (final.crafted === 0) note('一度も加工できなかった（こうぼうが画面から使えていない）');
+  // 積みかけの船が残っているのは普通（出港も期限切れもしていないだけ）。
+  // 「一度も来なかった」ことだけを問題にする
+  if (START_LEVEL >= 7 && !final.boatHere && final.shipped === 0 && final.boatMissed === 0) {
+    note('ふなびんが一度も来なかった（Lv7以降なら来るはず）');
+  }
+  if (START_LEVEL >= 7 && final.shipped === 0 && final.boatLoaded === 0) {
+    note('ふなびんに一度も積めなかった（画面から積む道が通っていない）');
+  }
 
   console.log('\n結果:', JSON.stringify(final));
   await browser.close();
@@ -141,9 +168,11 @@ async function act(page, s, round) {
   // 2. 副ボタン。出来たものを取り出して、余った材料で仕込む
   await click('#btn-work');
 
-  // 3. ちゅうもん。届けられるものは全部届ける（ここが唯一「考える」ところ）
+  // 3. ちゅうもん。届けられるものは全部届け、ふなびんに積めるだけ積む
   await tab('order');
   for (let i = 0; i < 3; i++) if (!await click('.order .go:not([disabled])')) break;
+  await click('.boat .boat-go:not([disabled])');      // つむ
+  await click('.boat .boat-go:not([disabled])');      // 満載ならしゅっこう
 
   // 4. みせ。詰まりかけと、本当に金欠のときだけ寄る。
   //    売るのは安いもの（一覧の末尾）から。高いものは注文に使いたい。
@@ -169,11 +198,28 @@ async function act(page, s, round) {
     await click('.card[data-act="buy-machine"]:not(.off)');
     await click('.card[data-act="buy-field"]:not(.off)');
   }
-  if (round % 12 === 0) {
+  if (round % 8 === 0) {
+    // 船が待っている作物があればそれを植える。無ければいちばん格上を選ぶ。
+    // （船は量を求めるので、畑ごと向けないといつまでも埋まらない）
+    const wanted = await page.evaluate(() => {
+      const st = window.GF.game.state, E = window.GF.Engine, D = window.GF.Data;
+      if (!st.boat) return null;
+      let worst = 0, pick = null;
+      for (const c of D.cropsAt(st.level)) {
+        const need = E.boatNeed(st.boat, c.id) - (st.barn[c.id] || 0);
+        if (need > worst) { worst = need; pick = c.id; }
+      }
+      return pick;
+    }).catch(() => null);
+
     await tab('seed');
-    const seeds = page.locator('.card[data-act="seed"]:not(.off)');
-    const n = await seeds.count();
-    if (n) await seeds.nth(n - 1).click({ timeout: 2000 }).catch(() => {});
+    if (wanted) {
+      await click(`.card[data-act="seed"][data-id="${wanted}"]:not(.off)`);
+    } else {
+      const seeds = page.locator('.card[data-act="seed"]:not(.off)');
+      const n = await seeds.count();
+      if (n) await seeds.nth(n - 1).click({ timeout: 2000 }).catch(() => {});
+    }
   }
 }
 

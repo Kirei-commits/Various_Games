@@ -40,6 +40,8 @@ const rows = [
   ['レベル', stat('level')],
   ['稼いだコイン', stat('earned')],
   ['配達', stat('delivered')],
+  ['ふなびん出港', stat('shipped')],
+  ['逃した船', stat('boatMissed')],
   ['流れた注文', stat('expired')],
   ['収穫', stat('harvested')],
   ['加工', stat('crafted')],

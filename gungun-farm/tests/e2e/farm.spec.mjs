@@ -285,3 +285,72 @@ test('まとめてまいた畑は順番に実る（ずっと何かが光って�
   const someReady = await page.locator('.field.ready').count();
   expect(someReady).toBeLessThan(s.fieldsOwned, '一斉には実らない');
 });
+
+test('ふなびんは少しずつ積めて、満載で出港できる', async ({ page }) => {
+  const g = await openFarm(page, { speed: '1' });
+  // ふなびんが来る状態を作る
+  await page.evaluate(() => {
+    const s = window.GF.game.state, E = window.GF.Engine, D = window.GF.Data;
+    s.level = 12; s.barnUp = 30; s.coins = 99999;
+    for (const def of D.machinesAt(12)) if (!E.ownsMachine(s, def.id)) s.machines.push({ id: def.id, queue: [], done: 0 });
+    s.orders = [];
+    s.nextOrderAt = s.now + 10_000_000;          // 注文の予約で結果が変わらないように止める
+    s.boat = E.makeBoat(s);
+    window.GF.refresh();
+  });
+  await openTab(page, 'order');
+  await expect(page.locator('.boat')).toBeVisible();
+
+  // 半分だけ用意して積む
+  await page.evaluate(() => {
+    const s = window.GF.game.state, E = window.GF.Engine;
+    for (const [id, n] of Object.entries(s.boat.want)) E.store(s, id, Math.floor(n / 2));
+    window.GF.refresh();
+  });
+  await g.tap(page.locator('.boat .boat-go'));
+
+  let s = await g.state();
+  const loaded = Object.values(s.boat.loaded).reduce((a, b) => a + b, 0);
+  expect(loaded).toBeGreaterThan(0);
+  expect(await page.locator('.boat .boat-go').innerText()).toBe('つむ', 'まだ満載ではない');
+
+  // 残りを用意して積みきる
+  await page.evaluate(() => {
+    const s2 = window.GF.game.state, E = window.GF.Engine;
+    for (const id of Object.keys(s2.boat.want)) E.store(s2, id, E.boatNeed(s2.boat, id));
+    window.GF.refresh();
+  });
+  await g.tap(page.locator('.boat .boat-go'));
+  await expect(page.locator('.boat .boat-go')).toHaveText('しゅっこう！');
+  await expect(page.locator('.boat')).toHaveClass(/full/);
+
+  const before = (await g.state()).coins;
+  const reward = (await g.state()).boat.coins;
+  await g.tap(page.locator('.boat .boat-go'));
+
+  s = await g.state();
+  expect(s.coins).toBe(before + reward);
+  expect(s.stats.shipped).toBe(1);
+  expect(g.errors).toEqual([]);
+});
+
+test('ふなびんの「つむ」は、ふつうの注文が欲しがるぶんを残す', async ({ page }) => {
+  const g = await openFarm(page, { speed: '1' });
+  const item = await page.evaluate(() => {
+    const s = window.GF.game.state, E = window.GF.Engine;
+    s.level = 12; s.barnUp = 30; s.coins = 99999;
+    s.boat = E.makeBoat(s);
+    const id = Object.keys(s.boat.want)[0];
+    s.orders = [{ id: 9001, want: { [id]: 3 }, coins: 50, xp: 5, createdAt: s.now, expiresAt: s.now + 999999, ttl: 999999 }];
+    s.nextOrderAt = s.now + 10_000_000;
+    E.store(s, id, 5);
+    window.GF.refresh();
+    return id;
+  });
+  await openTab(page, 'order');
+  await g.tap(page.locator('.boat .boat-go'));
+
+  const s = await g.state();
+  expect(s.barn[item]).toBe(3, '注文ぶんの3個は残っている');
+  expect(s.boat.loaded[item]).toBe(2);
+});

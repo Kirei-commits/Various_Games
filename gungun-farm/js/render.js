@@ -91,8 +91,10 @@
     refs.btnWork.disabled = done === 0 && !ready2;
     refs.workLabel.textContent = done ? `とりだす ${done}` : 'ぜんぶ仕込む';
 
+    const boat = state.boat;
+    const boatAction = boat && (Engine.boatReady(boat) || Engine.boatLoadable(state) > 0) ? 1 : 0;
     const deliverable = state.orders.filter((o) => Engine.canDeliver(state, o)).length;
-    badge(refs.badgeOrder, deliverable);
+    badge(refs.badgeOrder, deliverable + boatAction);
     const collectable = state.machines.filter((m) => m.done > 0).length;
     badge(refs.badgeWork, collectable);
     badge(refs.badgeShop, used >= cap ? '!' : 0);
@@ -200,9 +202,13 @@
         .map((m, i) => m.id + m.queue.length + ':' + m.done + ':' + (Engine.canQueue(state, i) ? 1 : 0)).join(',');
     }
     if (ui.tab === 'order') {
+      const b = state.boat;
+      const boatSig = b
+        ? b.id + ':' + Object.entries(b.loaded).map(([k, v]) => k + v).join(',') + ':' + Engine.boatLoadable(state)
+        : '-';
       return 'order|' + state.combo + '|' + state.orders
         .map((o) => o.id + ':' + (Engine.canDeliver(state, o) ? 1 : 0)).join(',') + '|' +
-        Object.entries(state.barn).map(([k, v]) => k + v).join(',');
+        Object.entries(state.barn).map(([k, v]) => k + v).join(',') + '|' + boatSig;
     }
     const buys = [state.coins >= Data.barnPrice(state.barnUp) ? 1 : 0];
     const up = Engine.nextFieldPrice(state);
@@ -283,9 +289,53 @@
     return grid;
   }
 
+  /** ふなびん。少しずつ積める大きな注文 */
+  function boatCard(state) {
+    const boat = state.boat;
+    const row = el('div', 'boat' + (Engine.boatReady(boat) ? ' full' : ''));
+
+    const head = el('div', 'boat-head');
+    head.appendChild(el('span', 'boat-title', '🚢 ふなびん'));
+    head.appendChild(el('span', 'reward', `🪙${boat.coins} ・ ⭐${boat.xp}`));
+    row.appendChild(head);
+
+    const want = el('div', 'want');
+    for (const [id, n] of Object.entries(boat.want)) {
+      const got = Math.min(boat.loaded[id] || 0, n);
+      const chip = el('span', got >= n ? 'done' : (state.barn[id] || 0) > 0 ? '' : 'lack', `${icon(id)}${got}/${n}`);
+      chip.title = nameOf(id);
+      want.appendChild(chip);
+    }
+    row.appendChild(want);
+
+    const ready = Engine.boatReady(boat);
+    // 判定は engine の同じ関数を見る。ここで書き直すと、押せるのに何も積めないボタンになる
+    const loadable = Engine.boatLoadable(state);
+    const go = el('button', 'go boat-go', ready ? 'しゅっこう！' : loadable ? `つむ ${loadable}` : 'つむ');
+    go.dataset.act = ready ? 'boat-ship' : 'boat-load';
+    go.disabled = !ready && loadable === 0;
+    row.appendChild(go);
+
+    const ttl = el('div', 'ttl');
+    const fill = el('i');
+    ttl.appendChild(fill);
+    row.appendChild(ttl);
+    live.push({
+      el: fill,
+      set: (s2) => {
+        if (!s2.boat) return;
+        const left = (s2.boat.expiresAt - s2.now) / s2.boat.ttl;
+        fill.style.width = pct(left);
+        ttl.classList.toggle('soon', left < 0.3);
+      }
+    });
+    return row;
+  }
+
   /** ちゅうもん */
   function orderPanel(state) {
     const wrap = el('div');
+    if (state.boat) wrap.appendChild(boatCard(state));
     if (!state.orders.length) {
       wrap.appendChild(el('p', 'empty-note', 'つぎの注文をまっています…'));
       return wrap;
@@ -295,7 +345,8 @@
       const want = el('div', 'want');
       for (const [id, n] of Object.entries(o.want)) {
         const have = state.barn[id] || 0;
-        const chip = el('span', have >= n ? '' : 'lack', `${icon(id)}${have}/${n}`);
+        // 足りているぶんだけ出す。「6/3」は読みにくい
+        const chip = el('span', have >= n ? '' : 'lack', `${icon(id)}${Math.min(have, n)}/${n}`);
         chip.title = nameOf(id);
         want.appendChild(chip);
       }

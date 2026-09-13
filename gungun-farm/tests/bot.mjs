@@ -39,6 +39,12 @@ export function botStep(GF, state) {
     if (Engine.canDeliver(state, o)) Engine.deliver(state, o.id);
   }
 
+  // 3.5 ふなびん。余ったものを積んで、満載になったら出す
+  if (state.boat) {
+    Engine.loadBoatAll(state);
+    if (Engine.boatReady(state.boat)) Engine.shipBoat(state);
+  }
+
   // 4. 期限が近いのに手が届かない注文は捨てて、枠を空ける
   for (const o of [...state.orders]) {
     if (o.expiresAt - state.now > 8000) continue;
@@ -84,8 +90,9 @@ export function botStep(GF, state) {
 /**
  * 何を植えるか。畑ぜんぶが同じタネになるので、選ぶのは1つだけ。
  *  a) 開いている注文が欲しがっている作物で、足りていないもの
- *  b) 持っている機械が食べる作物で、在庫が薄いもの
- *  c) それ以外は「1秒あたりの儲け」がいちばん大きい作物
+ *  b) **ふなびんが待っている作物**（船は量を求めるので、畑ごと向ける値打ちがある）
+ *  c) 持っている機械が食べる作物で、在庫が薄いもの
+ *  d) それ以外は「1秒あたりの儲け」がいちばん大きい作物
  */
 function chooseSeed(GF, state, want) {
   const { Engine, Data } = GF;
@@ -101,12 +108,21 @@ function chooseSeed(GF, state, want) {
   const stock = (id) => (state.barn[id] || 0) + growing(state, id);
 
   const ordered = crops.find((c) => (want[c.id] || 0) > stock(c.id));
+  // 船が待っているもの。いちばん足りていない作物へ畑を向ける
+  let boated = null;
+  if (state.boat) {
+    let worst = 0;
+    for (const c of crops) {
+      const need = Engine.boatNeed(state.boat, c.id) - stock(c.id);
+      if (need > worst) { worst = need; boated = c; }
+    }
+  }
   const needed = crops.find((c) => machineNeed[c.id] && stock(c.id) < machineNeed[c.id]);
   const best = crops.slice().sort((a, b) => {
     const rate = (c) => (Data.item(c.id).sell - c.cost) / c.sec;
     return rate(b) - rate(a);
   });
-  const pick = [ordered, needed, ...best].find((c) => c && state.coins >= c.cost);
+  const pick = [ordered, boated, needed, ...best].find((c) => c && state.coins >= c.cost);
   return pick ? pick.id : best[best.length - 1].id;   // 買えなくても、いちばん安いものを指しておく
 }
 
@@ -129,6 +145,12 @@ export function hasSomethingToDo(GF, s) {
     if (Engine.canQueue(s, i)) return 'queue';
   }
   for (const o of s.orders) if (Engine.canDeliver(s, o)) return 'deliver';
+  if (s.boat) {
+    if (Engine.boatReady(s.boat)) return 'ship';
+    for (const id of Object.keys(s.boat.want)) {
+      if (Engine.boatNeed(s.boat, id) > 0 && (s.barn[id] || 0) > 0) return 'load';
+    }
+  }
   return null;
 }
 
@@ -201,6 +223,8 @@ export function simulate(GF, opts = {}) {
     harvested: state.stats.harvested,
     crafted: state.stats.crafted,
     rescues: state.stats.rescues,
+    shipped: state.stats.shipped,
+    boatMissed: state.stats.boatMissed,
     bestCombo: state.bestCombo,
     machines: state.machines.length,
     fields: state.fieldsOwned,

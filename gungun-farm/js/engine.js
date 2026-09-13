@@ -16,6 +16,10 @@
   const pick = (arr) => arr[rand(arr.length)];
 
   const ORDER_SLOTS = 3;
+  const BOAT_LEVEL = 7;              // ふなびんが来はじめるレベル
+  const BOAT_TTL = 240_000;          // 出港まで4分
+  const BOAT_BONUS = 2.2;            // 積みきったときの倍率（ふつうの注文は1.35倍）
+  const BOAT_GAP = 20_000;           // 次の船が来るまでの間
   const ORDER_REFILL_MS = 2200;      // 空いた注文枠が埋まるまでの間
   const COMBO_MAX = 10;
   const COMBO_STEP = 0.05;           // 連続配達1回あたりの報酬倍率
@@ -43,9 +47,11 @@
       orders: [],
       orderSeq: 1,
       nextOrderAt: 0,
+      boat: null,                    // ふなびん。少しずつ積める大きな注文
+      nextBoatAt: 0,
       combo: 0,
       bestCombo: 0,
-      stats: { harvested: 0, crafted: 0, delivered: 0, expired: 0, coinsEarned: 0, xpEarned: 0, rescues: 0 },
+      stats: { harvested: 0, crafted: 0, delivered: 0, expired: 0, shipped: 0, boatMissed: 0, coinsEarned: 0, xpEarned: 0, rescues: 0 },
       events: [],
       eventSeq: 1
     };
@@ -270,6 +276,26 @@
    * 注文を1件作る。**用意できないものは絶対に頼まない**。
    * 高い品ほど選ばれやすくするが、こむぎだけの注文も残す（詰まったときの逃げ道）。
    */
+  /**
+   * 農園の生産力。畑と機械が増えるほど大きくなる。
+   *
+   * 注文の大きさをこれに合わせる。**合わせないと注文が脇役になる。**
+   * 1件 1〜4個の注文を3枠並べても、12マスの畑と18台の機械が産む量には
+   * まるで足りず、余りは売るしかなくなる（測ったら 配達44.6% / 売却55.4%）。
+   */
+  function capacity(state) {
+    return 1 + Math.max(0, state.fieldsOwned - Data.FIELDS_AT_START) * 0.18
+             + Math.max(0, state.machines.length - 1) * 0.16;
+  }
+
+  /**
+   * ふつうの注文の大きさ。**上げすぎない。**
+   * 生産力にそのまま比例させたら、1件が大きくなって件数が半分になり
+   * （10分で67件 → 35件）、コンボの刻みが消えた。
+   * 余剰をまとめて引き取るのは、ふつうの注文ではなく**ふなびん**の仕事。
+   */
+  const orderScale = (state) => Math.min(2, 1 + (capacity(state) - 1) * 0.35);
+
   function makeOrder(state) {
     const ids = obtainable(state);
     const kinds = Math.min(ids.length, 1 + (rng() < 0.45 ? 1 : 0) + (state.level >= 5 && rng() < 0.3 ? 1 : 0));
@@ -281,18 +307,22 @@
       const i = Data.item(pool[a]).sell >= Data.item(pool[b]).sell ? a : b;
       chosen.push(pool.splice(i, 1)[0]);
     }
+    const scale = orderScale(state);
     const want = {};
     let units = 0;
     let value = 0;
     for (const id of chosen) {
       const sell = Data.item(id).sell;
-      const max = sell >= 80 ? 2 : sell >= 25 ? 3 : 4;
+      const base = sell >= 250 ? 2 : sell >= 80 ? 3 : sell >= 25 ? 4 : 5;
+      // 農園が育つほど大きく頼まれる。ただし上限は置く（倉庫に入らない注文を作らない）
+      const max = Math.max(1, Math.min(12, Math.round(base * scale)));
       const n = 1 + rand(max);
       want[id] = n;
       units += n;
       value += sell * n;
     }
-    const ttl = Math.min(150_000, 45_000 + units * 12_000);
+    // 大きい注文ほど支度に時間が要る。期限は個数で伸ばす
+    const ttl = Math.min(180_000, 45_000 + units * 9_000);
     return {
       id: state.orderSeq++,
       want,
@@ -339,6 +369,138 @@
     state.orders.splice(idx, 1);
     state.nextOrderAt = Math.max(state.nextOrderAt, state.now + ORDER_REFILL_MS);
     return true;
+  }
+
+  /* ------------------------------------------------------------ ふなびん */
+
+  /**
+   * ふなびん（大きな注文）。**ふつうの注文との違いは「少しずつ積める」こと。**
+   *
+   * 待ち時間の無い農園は、注文が吸える量よりずっと多く産む。
+   * 実測で、ふつうの注文が引き取れるのは産んだ量の数%で、残りは売るしかなかった
+   * （配達44.6% / 売却55.4%）。ふなびんは**余ったそばから積んでいける**ので、
+   * 揃うまで抱えておく必要がなく、余剰の行き先になる。
+   */
+  function makeBoat(state) {
+    const ids = obtainable(state);
+    if (!ids.length) return null;
+    const kinds = Math.min(ids.length, 3 + rand(2));
+    const pool = ids.slice();
+    const chosen = [];
+    for (let k = 0; k < kinds && pool.length; k++) {
+      // **ふつうの注文とは逆に、安いものへ寄せる。**
+      // 船が運ぶのは余り物。深い加工品を大量に頼むと、4分では到底揃わず
+      // 一度も出港しなかった（ケーキ×11 のような注文が出ていた）。
+      const a = rand(pool.length), b = rand(pool.length);
+      const i = Data.item(pool[a]).sell <= Data.item(pool[b]).sell ? a : b;
+      chosen.push(pool.splice(i, 1)[0]);
+    }
+    const scale = capacity(state);
+    const want = {};
+    let units = 0;
+    let value = 0;
+    for (const id of chosen) {
+      const sell = Data.item(id).sell;
+      // 安いものほど多く積む（余る量に合わせる）
+      const base = sell >= 250 ? 2 : sell >= 80 ? 4 : sell >= 25 ? 8 : 12;
+      const n = Math.max(2, Math.min(40, Math.round(base * scale * (0.8 + rng() * 0.4))));
+      want[id] = n;
+      units += n;
+      value += sell * n;
+    }
+    // 積む量に合わせて出港まで待つ。量だけ増やして時間を据え置くと、ただの無理難題になる
+    const ttl = Math.max(180_000, Math.min(360_000, 120_000 + units * 4_000));
+    return {
+      id: state.orderSeq++,
+      want,
+      loaded: {},
+      coins: Math.round(value * BOAT_BONUS),
+      xp: Math.round(value / 7) + chosen.length * 5,
+      createdAt: state.now,
+      expiresAt: state.now + ttl,
+      ttl
+    };
+  }
+
+  const boatNeed = (boat, id) => Math.max(0, (boat.want[id] || 0) - (boat.loaded[id] || 0));
+  const boatReady = (boat) => !!boat && Object.keys(boat.want).every((id) => boatNeed(boat, id) === 0);
+  /** 積んだ割合（0..1）。表示と、期限切れの払い戻しに使う */
+  const boatProgress = (boat) => {
+    if (!boat) return 0;
+    const want = Object.values(boat.want).reduce((a, b) => a + b, 0);
+    const got = Object.keys(boat.want).reduce((a, id) => a + Math.min(boat.loaded[id] || 0, boat.want[id]), 0);
+    return want ? got / want : 0;
+  };
+
+  /** 1種類だけ積む */
+  function loadBoat(state, id, n = 1) {
+    const boat = state.boat;
+    if (!boat) return 0;
+    const put = Math.min(n, boatNeed(boat, id), state.barn[id] || 0);
+    if (put < 1) return 0;
+    take(state, id, put);
+    boat.loaded[id] = (boat.loaded[id] || 0) + put;
+    return put;
+  }
+
+  /**
+   * いま何個積めるか（ふつうの注文のぶんを残した上で）。
+   * **ボタンの出し分けと、実際に積む処理は、必ずこの同じ関数を見る。**
+   * 片方だけ「在庫があるか」で判定していて、押せるのに何も積めないボタンになっていた。
+   */
+  function boatLoadable(state) {
+    if (!state.boat) return 0;
+    const keep = reservedForOrders(state);
+    let n = 0;
+    for (const id of Object.keys(state.boat.want)) {
+      const spare = Math.min((state.barn[id] || 0) - (keep[id] || 0), boatNeed(state.boat, id));
+      if (spare > 0) n += spare;
+    }
+    return n;
+  }
+
+  /**
+   * 積めるものを全部積む（1タップ）。
+   * **ふつうの注文が欲しがっているぶんは残す。** ふなびんは期限が長く、
+   * 先に短い注文を潰したほうが得なので、1タップのボタンが邪魔をしないようにする。
+   */
+  function loadBoatAll(state) {
+    if (!state.boat) return 0;
+    const keep = reservedForOrders(state);
+    let put = 0;
+    for (const id of Object.keys(state.boat.want)) {
+      const spare = (state.barn[id] || 0) - (keep[id] || 0);
+      if (spare > 0) put += loadBoat(state, id, spare);
+    }
+    return put;
+  }
+
+  /** 積みきった船を出す */
+  function shipBoat(state) {
+    const boat = state.boat;
+    if (!boatReady(boat)) return null;
+    earn(state, boat.coins, boat.xp);
+    state.boat = null;
+    state.nextBoatAt = state.now + BOAT_GAP;
+    state.stats.shipped++;
+    event(state, 'ship', `ふなびん出港！ ${boat.coins}コイン`, { coins: boat.coins });
+    return { coins: boat.coins, xp: boat.xp };
+  }
+
+  /**
+   * 期限切れ。積んだぶんは**売値で払い戻す**（おまけが付かないだけで、損はしない）。
+   * 大きな注文で丸損させると、積むこと自体が怖くなる。
+   */
+  function expireBoat(state) {
+    const boat = state.boat;
+    if (!boat) return;
+    let back = 0;
+    for (const [id, n] of Object.entries(boat.loaded)) back += Data.item(id).sell * n;
+    if (back > 0) earn(state, back, 0);
+    state.boat = null;
+    state.nextBoatAt = state.now + BOAT_GAP;
+    state.stats.boatMissed++;
+    event(state, 'boatgone', back > 0 ? `船が出てしまった…積んだぶん ${back}コインで引き取り` : '船が出てしまった…');
   }
 
   /* ---------------------------------------------------------------- 店 */
@@ -437,6 +599,13 @@
       if (state.orders.length < ORDER_SLOTS) state.nextOrderAt = state.now + ORDER_REFILL_MS;
     }
 
+    // ふなびん
+    if (state.boat && state.boat.expiresAt <= state.now) expireBoat(state);
+    if (!state.boat && state.level >= BOAT_LEVEL && state.now >= state.nextBoatAt) {
+      state.boat = makeBoat(state);
+      if (state.boat) event(state, 'boat', 'ふなびんが着いた🚢');
+    }
+
     rescue(state);
 
     if (state.mode === 'rush' && state.limit && state.now >= state.limit) {
@@ -459,7 +628,9 @@
     barnCap, barnUsed, barnFree, has, ownsMachine,
     canPlant, plant, sow, plantAll, isReady, harvest, harvestAll,
     canQueue, queue, collect, collectAll, workAll, reservedForOrders, machineDef,
-    obtainable, makeOrder, canDeliver, deliver, dismiss, comboMul,
+    obtainable, capacity, makeOrder, canDeliver, deliver, dismiss, comboMul,
+    BOAT_LEVEL, BOAT_TTL, BOAT_BONUS, makeBoat, boatNeed, boatReady, boatProgress,
+    loadBoat, loadBoatAll, boatLoadable, shipBoat, expireBoat,
     sell, nextFieldPrice, buyField, buyBarn, buyMachine,
     rescue, timeLeft, score, store, take, event
   };

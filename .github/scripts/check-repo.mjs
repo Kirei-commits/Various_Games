@@ -42,6 +42,23 @@ for (const g of games) {
   }
 }
 
+// 1.5 ゲームのディレクトリ直下に、書き捨てのファイルが残っていないこと。
+//     デバッグ用のスクリプトを置いたまま commit しかけたことが二度ある
+//     （配信物にも混ざりかける）。置いてよいものを決めておく。
+const ALLOWED_TOP = new Set([
+  'index.html', 'package.json', 'package-lock.json', 'playwright.config.mjs',
+  'README.md', 'CLAUDE.md', 'ROADMAP.md', '.gitignore',
+  'css', 'js', 'tests', 'node_modules', 'playwright-report', 'test-results', 'playtest-shots'
+]);
+for (const g of games) {
+  for (const name of fs.readdirSync(path.join(ROOT, g.name))) {
+    if (name.startsWith('.') && name !== '.gitignore') continue;
+    if (!ALLOWED_TOP.has(name)) {
+      problems.push(`${g.name}/${name} は置き場所が決まっていない（書き捨てなら消す／要るなら ALLOWED_TOP に足す）`);
+    }
+  }
+}
+
 // 2. 入口のページと README からたどり着けること。
 //    リンクを足し忘れると、CIは緑なのに誰も遊べないゲームができる
 const indexHtml = read('index.html');
