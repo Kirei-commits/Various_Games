@@ -1,0 +1,24 @@
+{
+  "name": "gungun-farm",
+  "version": "1.0.0",
+  "private": true,
+  "description": "ぐんぐん農園 — 待ち時間は最長10秒。1画面で完結するポップな農園ゲーム",
+  "type": "module",
+  "scripts": {
+    "start": "node tests/serve.mjs",
+    "lint": "node tests/lint.mjs",
+    "test:logic": "node --test tests/logic/*.test.mjs",
+    "test:e2e": "playwright test",
+    "simulate": "node tests/simulate.mjs",
+    "playtest": "node tests/playtest.mjs",
+    "test": "npm run lint && npm run test:logic && npm run test:e2e",
+    "playtest:ci": "node tests/playtest.mjs --minutes 3 --speed 3 --keep",
+    "simulate:ci": "node tests/simulate.mjs --minutes 10 --runs 8 --summary"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.63.0"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

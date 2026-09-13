@@ -1,0 +1,312 @@
+/* ぐんぐん農園 — 明るくて、1画面で完結する見た目。
+   スクロールしないことが仕様なので、高さは必ず dvh を基準にした grid で配る。 */
+
+:root {
+  --sky1:#7fd8ff; --sky2:#a9edb4; --sun:#ffd83d;
+  --leaf:#41c46a; --leaf-d:#2f9e4f;
+  --soil:#d3a06a; --soil-d:#b47e45;
+  --ink:#3b332c; --ink-soft:#8a7c6d;
+  --card:#fffdf5; --line:#f0e0bd;
+  --pink:#ff7fae; --blue:#4bb3ff; --orange:#ff9f45;
+  --gold:#ffb300;
+  --r:16px;
+  --shadow: 0 3px 0 rgba(0,0,0,.13);
+}
+
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+/* 隠したものは必ず消える。display を持つクラスに負けると、押せない何かが出たままになる */
+[hidden] { display: none !important; }
+
+html, body { height: 100%; }
+body {
+  margin: 0;
+  color: var(--ink);
+  font-family: "Hiragino Maru Gothic ProN", "Zen Maru Gothic", "M PLUS Rounded 1c",
+               "Hiragino Sans", "Noto Sans JP", system-ui, sans-serif;
+  background: linear-gradient(180deg, var(--sky1) 0%, #bfeaff 45%, var(--sky2) 100%) fixed;
+  overflow: hidden;              /* ページ自体は絶対にスクロールさせない */
+  overscroll-behavior: none;
+  user-select: none;
+}
+/* お日さまと雲。画像を持たずに背景だけで空気を作る */
+body::before, body::after {
+  content: ""; position: fixed; border-radius: 50%; pointer-events: none; z-index: 0;
+}
+body::before { width: 120px; height: 120px; top: -26px; right: -22px; background: radial-gradient(circle at 35% 35%, #fff6b0, var(--sun) 60%, rgba(255,216,61,0) 72%); }
+body::after  { width: 220px; height: 220px; bottom: -120px; left: -60px; background: radial-gradient(circle, rgba(255,255,255,.55), rgba(255,255,255,0) 70%); }
+
+#app {
+  position: relative; z-index: 1;
+  max-width: 480px; margin: 0 auto;
+  height: 100vh; height: 100dvh;
+  display: grid;
+  grid-template-rows: auto auto auto minmax(0, 1fr) auto auto;
+  gap: 6px;
+  padding: 6px 10px calc(4px + env(safe-area-inset-bottom));
+}
+
+/* ------------------------------------------------------------------ 上の段 */
+#hud {
+  display: flex; align-items: center; gap: 6px;
+  background: var(--card); border-radius: var(--r); padding: 6px 8px;
+  box-shadow: var(--shadow); border: 2px solid #fff;
+}
+.icon-btn {
+  width: 44px; height: 44px; flex: none; border: none; border-radius: 12px;
+  background: #ffeec2; color: var(--ink); font-size: 20px; line-height: 1; cursor: pointer;
+}
+.icon-btn:active { transform: translateY(2px); }
+.lv { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.lv-num { font-size: 13px; font-weight: 700; letter-spacing: .02em; }
+.lv-num b { font-size: 17px; color: var(--leaf-d); }
+.xpbar { display: block; height: 8px; border-radius: 99px; background: #eee3cd; overflow: hidden; }
+.xpbar i { display: block; height: 100%; width: 0; border-radius: 99px; background: linear-gradient(90deg, var(--leaf), #9ae66e); transition: width .25s ease-out; }
+.stat {
+  flex: none; display: flex; align-items: center; gap: 3px;
+  font-size: 14px; font-weight: 700; background: #fff6dd; border-radius: 12px;
+  padding: 7px 9px; min-height: 36px; white-space: nowrap;
+}
+.stat b { font-variant-numeric: tabular-nums; }
+.stat.full { background: #ffd9d9; color: #c0392b; animation: shake .4s ease; }
+.timer { background: #e2f1ff; }
+.timer.hurry { background: #ffd9d9; color: #c0392b; }
+
+/* ------------------------------------------------------------------ 畑 */
+#farm { display: grid; place-items: center; }
+.fields {
+  width: min(100%, 54vh);
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px;
+}
+.field {
+  position: relative; aspect-ratio: 1; min-height: 44px;
+  border: none; padding: 0; cursor: pointer; border-radius: 14px;
+  display: grid; place-items: center;
+  background: linear-gradient(180deg, var(--soil), var(--soil-d));
+  box-shadow: inset 0 -4px 0 rgba(0,0,0,.14), var(--shadow);
+  background-image: linear-gradient(180deg, var(--soil), var(--soil-d)),
+                    repeating-linear-gradient(90deg, rgba(0,0,0,.06) 0 3px, transparent 3px 11px);
+  background-blend-mode: normal;
+}
+.field:active { transform: translateY(2px); box-shadow: inset 0 -2px 0 rgba(0,0,0,.14); }
+.field .plant {
+  font-size: clamp(19px, 6.4vw, 32px); line-height: 1;
+  transform: scale(var(--s, .4)); transform-origin: 50% 78%;
+  transition: transform .3s cubic-bezier(.34,1.56,.64,1);
+  filter: drop-shadow(0 1px 0 rgba(0,0,0,.2));
+}
+.field .prog {
+  position: absolute; left: 10%; right: 10%; bottom: 6px; height: 5px;
+  border-radius: 99px; background: rgba(0,0,0,.28); overflow: hidden;
+}
+.field .prog i { display: block; height: 100%; width: 0; background: #ffe66d; }
+.field.ready { background-image: linear-gradient(180deg, #ffe89a, #ffcb47); }
+.field.ready .plant { animation: sway .7s ease-in-out infinite alternate; transform: scale(1); }
+.field.ready::after {
+  content: "✨"; position: absolute; top: 2px; right: 3px; font-size: 13px;
+  animation: twinkle .9s ease-in-out infinite;
+}
+.field.empty { background-image: linear-gradient(180deg, #e0b587, #c68f54); }
+.field.empty .plant { opacity: .3; transform: scale(.55); }
+.field.locked { background-image: linear-gradient(180deg, #d8d3cb, #bdb7ae); cursor: default; }
+.field.locked .plant { opacity: .75; transform: scale(.7); }
+.field .lock-price {
+  position: absolute; bottom: 4px; left: 0; right: 0; text-align: center;
+  font-size: 10px; font-weight: 700; color: #5c564d;
+}
+
+/* ------------------------------------------------------------------ 実況 */
+.ticker {
+  margin: 0; height: 22px; line-height: 22px; text-align: center;
+  font-size: 12.5px; font-weight: 700; color: #4a4036;
+  text-shadow: 0 1px 0 rgba(255,255,255,.7);
+  overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
+}
+.ticker.hit { animation: pop-in .3s ease; }
+
+/* ------------------------------------------------------------------ 下の段 */
+.panel {
+  background: var(--card); border-radius: var(--r); border: 2px solid #fff;
+  box-shadow: var(--shadow); display: grid; grid-template-rows: auto minmax(0, 1fr);
+  min-height: 0; overflow: hidden;
+}
+.panel-head {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  padding: 5px 10px 3px; border-bottom: 2px dashed var(--line);
+}
+.panel-head h2 { margin: 0; font-size: 13px; color: var(--ink-soft); letter-spacing: .04em; }
+.panel-note { font-size: 11.5px; color: var(--ink-soft); }
+.panel-body { overflow-y: auto; overscroll-behavior: contain; padding: 7px; -webkit-overflow-scrolling: touch; }
+
+.grid { display: grid; gap: 6px; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); }
+.grid.wide { grid-template-columns: repeat(auto-fill, minmax(108px, 1fr)); }
+
+/* 汎用のカード（タネ・機械・商品・売り物） */
+.card {
+  position: relative; min-height: 60px; border: 2px solid var(--line); border-radius: 13px;
+  background: #fff; padding: 5px 4px 4px; cursor: pointer;
+  display: grid; grid-template-rows: auto auto auto; gap: 1px; place-items: center;
+  font-family: inherit; color: inherit; text-align: center;
+}
+.card:active { transform: translateY(2px); }
+.card .ico { font-size: 21px; line-height: 1.1; }
+.card .nm { font-size: 10.5px; font-weight: 700; line-height: 1.15; }
+.card .sub { font-size: 10px; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+.card.on { border-color: var(--leaf); background: #f0fff2; box-shadow: 0 0 0 3px rgba(65,196,106,.25); }
+.card.off { opacity: .45; cursor: default; }
+.card .pill {
+  position: absolute; top: -7px; right: -5px; min-width: 20px; height: 20px; padding: 0 5px;
+  border-radius: 99px; background: var(--pink); color: #fff; font-size: 11px; font-weight: 700;
+  display: grid; place-items: center; box-shadow: 0 2px 0 rgba(0,0,0,.15);
+}
+.card .pill.ok { background: var(--leaf); }
+.card .bar { width: 86%; height: 5px; border-radius: 99px; background: #eee3cd; overflow: hidden; }
+.card .bar i { display: block; height: 100%; width: 0; background: var(--orange); }
+.card .slots { font-size: 9px; letter-spacing: 1px; color: var(--orange); height: 11px; }
+
+/* 注文 */
+.order {
+  border: 2px solid var(--line); border-radius: 13px; background: #fff; padding: 6px 8px;
+  display: grid; grid-template-columns: 1fr auto; gap: 4px 8px; align-items: center; margin-bottom: 6px;
+}
+.order:last-child { margin-bottom: 0; }
+.order .want { display: flex; flex-wrap: wrap; gap: 4px; }
+.order .want span {
+  font-size: 12px; font-weight: 700; background: #fff4d6; border-radius: 9px; padding: 3px 6px;
+}
+.order .want span.lack { background: #ffe0e0; color: #c0392b; }
+.order .reward { font-size: 12px; font-weight: 700; color: var(--gold); white-space: nowrap; }
+.order .ttl { grid-column: 1 / -1; height: 5px; border-radius: 99px; background: #eee3cd; overflow: hidden; }
+.order .ttl i { display: block; height: 100%; width: 100%; background: var(--blue); }
+.order .ttl.soon i { background: var(--pink); }
+.order .go {
+  grid-row: 1 / 3; grid-column: 2; min-width: 76px; min-height: 44px; border-radius: 12px;
+  border: none; background: var(--leaf); color: #fff; font-weight: 700; font-size: 13px;
+  font-family: inherit; cursor: pointer; box-shadow: 0 3px 0 var(--leaf-d);
+}
+.order .go:active { transform: translateY(3px); box-shadow: none; }
+.order .go[disabled] { background: #d8d2c8; box-shadow: 0 3px 0 #bdb7ae; color: #fff; }
+.order-head { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+.order .x {
+  width: 44px; height: 44px; border: none; background: transparent; color: #c3bbae;
+  font-size: 16px; cursor: pointer; font-family: inherit;
+}
+
+/* 店の見出し */
+.seg { display: flex; gap: 4px; background: #f3ead6; border-radius: 12px; padding: 3px; }
+.seg-btn {
+  min-width: 62px; min-height: 44px; border: none; border-radius: 10px; background: transparent;
+  font-family: inherit; font-size: 12.5px; font-weight: 700; color: var(--ink-soft); cursor: pointer;
+}
+.seg-btn.on { background: #fff; color: var(--ink); box-shadow: 0 2px 0 rgba(0,0,0,.1); }
+
+.shop-h { font-size: 11px; font-weight: 700; color: var(--ink-soft); margin: 2px 0 5px; }
+.shop-h:not(:first-child) { margin-top: 10px; }
+.qty {
+  /* 指で押すものはすべて 44x44px 以上（tests/e2e/layout.spec.mjs が見張っている） */
+  border: 2px solid var(--line); background: #fff; border-radius: 10px;
+  min-width: 48px; min-height: 44px;
+  padding: 2px 10px; font-family: inherit; font-weight: 700; font-size: 13px; cursor: pointer; color: var(--ink);
+}
+
+.empty-note { white-space: pre-line; text-align: center; color: var(--ink-soft); font-size: 12px; padding: 14px 8px; line-height: 1.7; }
+
+/* ------------------------------------------------------------------ 大きいボタン */
+.actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.big {
+  min-height: 52px; border: none; border-radius: 14px; font-family: inherit;
+  font-size: 15px; font-weight: 700; color: #fff; cursor: pointer; letter-spacing: .02em;
+}
+.big:active { transform: translateY(3px); box-shadow: none !important; }
+.big[disabled] { background: #cfc9bf; box-shadow: 0 4px 0 #b3ada3; }
+.harvest { background: var(--orange); box-shadow: 0 4px 0 #d97b1d; }
+.plant { background: var(--leaf); box-shadow: 0 4px 0 var(--leaf-d); }
+
+/* ------------------------------------------------------------------ タブ */
+.tabs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+.tab {
+  position: relative; min-height: 48px; border: none; border-radius: 13px; cursor: pointer;
+  background: rgba(255,255,255,.72); font-family: inherit; color: var(--ink-soft);
+  display: grid; place-items: center; gap: 0; padding: 3px 0;
+}
+.tab .tab-ico { font-size: 17px; line-height: 1.1; filter: grayscale(.5); }
+.tab .tab-label { font-size: 10.5px; font-weight: 700; }
+.tab.is-on { background: #fff; color: var(--ink); box-shadow: var(--shadow); }
+.tab.is-on .tab-ico { filter: none; transform: scale(1.12); }
+.tab .badge {
+  position: absolute; top: 2px; right: 8px; min-width: 17px; height: 17px; padding: 0 4px;
+  border-radius: 99px; background: var(--pink); color: #fff; font-size: 10px; font-weight: 700;
+  font-style: normal; display: grid; place-items: center;
+}
+
+/* ------------------------------------------------------------------ 浮き文字と演出 */
+.floats { position: fixed; inset: 0; pointer-events: none; z-index: 40; }
+.floats span {
+  position: absolute; font-size: 15px; font-weight: 700; color: var(--gold);
+  text-shadow: 0 2px 0 #fff, 0 0 6px rgba(255,255,255,.8);
+  animation: float-up .9s ease-out forwards;
+}
+.floats span.xp { color: var(--leaf-d); }
+
+.pop {
+  /* 早いうちはレベルアップが十数秒ごとに来る。農園を覆い隠すと遊びが止まるので、
+     背景は暗くもぼかしもしない。pointer-events: none で操作もそのまま通す。 */
+  position: fixed; inset: 0; z-index: 50; display: grid; place-items: center;
+  align-content: center; background: transparent; pointer-events: none;
+}
+.pop .box {
+  background: var(--card); border: 4px solid var(--sun); border-radius: 22px;
+  padding: 14px 22px; text-align: center; box-shadow: 0 8px 24px rgba(0,0,0,.25);
+  animation: pop-in .4s cubic-bezier(.34,1.56,.64,1);
+}
+.pop .big-lv { font-size: 30px; font-weight: 800; color: var(--leaf-d); margin-bottom: 4px; }
+.pop .unlocks { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 8px; }
+.pop .unlocks span { font-size: 12px; font-weight: 700; background: #fff4d6; border-radius: 10px; padding: 5px 8px; }
+.confetti { position: fixed; inset: 0; pointer-events: none; overflow: hidden; }
+.confetti i { position: absolute; font-style: normal; font-size: 18px; animation: fall 1.4s linear forwards; }
+
+/* ------------------------------------------------------------------ シート（メニュー・結果） */
+.sheet {
+  position: fixed; inset: 0; z-index: 60; display: grid; place-items: center;
+  background: rgba(59,51,44,.45); padding: 16px;
+}
+.sheet .box {
+  width: min(100%, 380px); max-height: 84dvh; overflow-y: auto; overscroll-behavior: contain;
+  background: var(--card); border-radius: 20px; border: 3px solid #fff;
+  padding: 16px; box-shadow: 0 12px 30px rgba(0,0,0,.25);
+  animation: pop-in .25s ease-out;
+}
+.sheet h2 { margin: 0 0 10px; font-size: 18px; text-align: center; }
+.sheet h3 { margin: 14px 0 6px; font-size: 12px; color: var(--ink-soft); }
+.sheet p { margin: 0 0 10px; font-size: 12.5px; line-height: 1.8; color: #5b5147; }
+.sheet .rows { display: grid; gap: 8px; }
+.sheet button.menu {
+  width: 100%; min-height: 48px; border-radius: 13px; border: none; font-family: inherit;
+  font-size: 14px; font-weight: 700; cursor: pointer; background: #ffeec2; color: var(--ink);
+}
+.sheet button.menu.primary { background: var(--leaf); color: #fff; box-shadow: 0 4px 0 var(--leaf-d); }
+.sheet button.menu.primary:active { transform: translateY(3px); box-shadow: none; }
+.sheet .result { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+.sheet .result div { background: #fff6dd; border-radius: 13px; padding: 8px; text-align: center; }
+.sheet .result b { display: block; font-size: 19px; color: var(--leaf-d); }
+.sheet .result small { font-size: 10.5px; color: var(--ink-soft); }
+.sheet .best { text-align: center; font-size: 12px; font-weight: 700; color: var(--gold); margin-bottom: 8px; }
+
+/* ------------------------------------------------------------------ 動き */
+@keyframes sway { from { transform: scale(1) rotate(-5deg); } to { transform: scale(1.08) rotate(5deg); } }
+@keyframes twinkle { 0%,100% { opacity: .3; transform: scale(.8); } 50% { opacity: 1; transform: scale(1.15); } }
+@keyframes float-up { from { opacity: 1; transform: translateY(0) scale(1); } to { opacity: 0; transform: translateY(-46px) scale(1.25); } }
+@keyframes pop-in { from { opacity: 0; transform: scale(.7); } to { opacity: 1; transform: scale(1); } }
+@keyframes fall { from { transform: translateY(-20px) rotate(0); opacity: 1; } to { transform: translateY(105dvh) rotate(540deg); opacity: .9; } }
+@keyframes shake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-3px); } 75% { transform: translateX(3px); } }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+}
+
+/* 画面が低いとき（横向きなど）は畑を小さくして、下の段を守る */
+@media (max-height: 620px) {
+  .fields { width: min(100%, 46vh); gap: 5px; }
+  .big { min-height: 46px; font-size: 14px; }
+  .tab { min-height: 44px; }
+  .ticker { height: 18px; line-height: 18px; font-size: 11.5px; }
+}

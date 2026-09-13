@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no" />
+<meta name="color-scheme" content="light" />
+<meta name="theme-color" content="#7fd8ff" />
+<meta name="description" content="待ち時間は最長10秒。育てて、作って、届ける。1画面で完結するポップな農園ゲーム。" />
+<title>ぐんぐん農園 — GUNGUN FARM</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%237fd8ff'/%3E%3Ccircle cx='25' cy='7' r='4' fill='%23ffd83d'/%3E%3Cpath d='M16 27V14' stroke='%232f9e4f' stroke-width='3' stroke-linecap='round'/%3E%3Cpath d='M16 17c-5 0-8-3-8-7 5 0 8 3 8 7zM16 15c5 0 8-3 8-7-5 0-8 3-8 7z' fill='%2341c46a'/%3E%3C/svg%3E" />
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div id="app">
+
+    <header id="hud">
+      <button id="btn-menu" class="icon-btn" aria-label="メニュー">☰</button>
+      <div class="lv">
+        <span class="lv-num">Lv<b id="level">1</b></span>
+        <span class="xpbar"><i id="xpfill"></i></span>
+      </div>
+      <div class="stat"><span aria-hidden="true">🪙</span><b id="coins">30</b></div>
+      <div class="stat" id="barn-stat"><span aria-hidden="true">📦</span><b id="barn">0/30</b></div>
+      <div class="stat timer" id="timer" hidden><span aria-hidden="true">⏱</span><b id="timeleft">3:00</b></div>
+    </header>
+
+    <main id="farm">
+      <div id="fields" class="fields"></div>
+    </main>
+
+    <p id="ticker" class="ticker" aria-live="polite">タネをえらんで、畑をタップ！</p>
+
+    <section id="panel" class="panel">
+      <div class="panel-head">
+        <h2 id="panel-title">たね</h2>
+        <span id="panel-note" class="panel-note"></span>
+      </div>
+      <div id="panel-body" class="panel-body"></div>
+    </section>
+
+    <div id="actions" class="actions">
+      <button id="btn-harvest" class="big harvest"><span aria-hidden="true">🧺</span><span class="lbl" id="harvest-label">ぜんぶ収穫</span></button>
+      <button id="btn-plant" class="big plant"><span aria-hidden="true" id="plant-ico">🌱</span><span class="lbl" id="plant-label">ぜんぶ植える</span></button>
+    </div>
+
+    <nav id="tabs" class="tabs">
+      <button class="tab is-on" data-tab="seed"><span class="tab-ico" aria-hidden="true">🌱</span><span class="tab-label">たね</span></button>
+      <button class="tab" data-tab="work"><span class="tab-ico" aria-hidden="true">🏭</span><span class="tab-label">こうぼう</span><i class="badge" id="badge-work" hidden></i></button>
+      <button class="tab" data-tab="order"><span class="tab-ico" aria-hidden="true">📦</span><span class="tab-label">ちゅうもん</span><i class="badge" id="badge-order" hidden></i></button>
+      <button class="tab" data-tab="shop"><span class="tab-ico" aria-hidden="true">🛒</span><span class="tab-label">みせ</span><i class="badge" id="badge-shop" hidden></i></button>
+    </nav>
+
+  </div>
+
+  <div id="floats" class="floats" aria-hidden="true"></div>
+  <div id="pop" class="pop" hidden aria-live="polite"></div>
+  <div id="sheet" class="sheet" hidden></div>
+
+  <script src="js/data.js"></script>
+  <script src="js/engine.js"></script>
+  <script src="js/storage.js"></script>
+  <script src="js/audio.js"></script>
+  <script src="js/render.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
