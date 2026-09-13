@@ -126,3 +126,38 @@ test('1台ずつ押したときは遠慮しない（自分で決めた操作な�
   assert.equal(GF.Engine.queue(s, 0), true, '注文ぶんを割ってでも仕込める');
   assert.equal(s.barn.wheat, 2);
 });
+
+test('どのレベルにも新しく解放されるものがある（進行が空にならない）', () => {
+  const { GF } = setup();
+  const dead = [];
+  for (let lv = 2; lv <= GF.Data.MAX_LEVEL; lv++) {
+    if (GF.Data.unlockedAt(lv).length === 0) dead.push(lv);
+  }
+  // 一度、Lv14〜20の7レベル連続で何も解放されない状態になっていた
+  assert.ok(dead.length <= 2, `何も解放されないレベルが多い: ${dead.join(', ')}`);
+  for (let i = 1; i < dead.length; i++) {
+    assert.notEqual(dead[i], dead[i - 1] + 1, `Lv${dead[i - 1]}とLv${dead[i]}が連続で空`);
+  }
+});
+
+test('後半の施設ほど、前半で作った品を 材料にして鎖が深くなる', () => {
+  const { GF } = setup();
+  const depth = (id, seen = new Set()) => {
+    if (seen.has(id)) return 0;                     // 循環していたら止める
+    seen.add(id);
+    const src = GF.Data.MACHINES.find((m) => m.recipe.out === id);
+    if (!src) return 0;                             // 作物
+    return 1 + Math.max(...Object.keys(src.recipe.in).map((i) => depth(i, new Set(seen))));
+  };
+  const early = GF.Data.MACHINES.filter((m) => m.level <= 6).map((m) => depth(m.recipe.out));
+  const late = GF.Data.MACHINES.filter((m) => m.level >= 17).map((m) => depth(m.recipe.out));
+  assert.ok(Math.max(...late) > Math.max(...early),
+    `後半の鎖が深くなっていない（前半 ${Math.max(...early)} / 後半 ${Math.max(...late)}）`);
+});
+
+test('材料に自分の作る品を使う機械は作らない（無限ループになる）', () => {
+  const { GF } = setup();
+  for (const m of GF.Data.MACHINES) {
+    assert.ok(!Object.keys(m.recipe.in).includes(m.recipe.out), `${m.id} が自分の品を材料にしている`);
+  }
+});

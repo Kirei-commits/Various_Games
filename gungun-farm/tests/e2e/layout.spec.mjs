@@ -104,3 +104,42 @@ test('倉庫の中身が増えても、みせの一覧が画面を押し広げ�
     document.documentElement.scrollHeight - document.documentElement.clientHeight);
   expect(over).toBeLessThanOrEqual(1);
 });
+
+test('レベル20で作物も施設も増えきっても、1画面から溢れない', async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 568 });     // いちばん小さい画面で見る
+  const g = await openFarm(page);
+  await page.evaluate(() => {
+    const s = window.GF.game.state, E = window.GF.Engine, D = window.GF.Data;
+    s.level = D.MAX_LEVEL; s.coins = 99999; s.fieldsOwned = D.FIELD_SLOTS; s.barnUp = 8;
+    for (const m of D.MACHINES) if (!E.ownsMachine(s, m.id)) s.machines.push({ id: m.id, queue: [], done: 0 });
+    for (const id of Object.keys(D.ITEMS)) E.store(s, id, 2);
+    window.GF.refresh();
+  });
+
+  for (const tab of ['seed', 'work', 'order', 'shop']) {
+    await openTab(page, tab);
+    const over = await page.evaluate(() => ({
+      y: document.documentElement.scrollHeight - document.documentElement.clientHeight,
+      x: document.documentElement.scrollWidth - document.documentElement.clientWidth
+    }));
+    expect(over.y, `${tab}: たてのはみ出し`).toBeLessThanOrEqual(1);
+    expect(over.x, `${tab}: よこのはみ出し`).toBeLessThanOrEqual(1);
+    // 下の段に収まりきらないぶんは、パネルの内側だけがスクロールする
+    const tabs = await page.locator('#tabs').boundingBox();
+    expect(tabs.y + tabs.height, `${tab}: タブが画面の外`).toBeLessThanOrEqual(568 + 1);
+  }
+  expect(g.errors).toEqual([]);
+});
+
+test('増えた施設ぜんぶが、みせの「かう」に並ぶ', async ({ page }) => {
+  const g = await openFarm(page);
+  await setProgress(page, { level: 20, coins: 99999 });
+  await openTab(page, 'shop');
+  await g.tap(page.locator('.seg-btn[data-id="buy"]'));
+
+  const buyable = await page.locator('.card[data-act="buy-machine"]').count();
+  const expected = await page.evaluate(() =>
+    window.GF.Data.MACHINES.filter((m) => m.price > 0).length);
+  expect(buyable).toBe(expected);
+  expect(expected).toBeGreaterThanOrEqual(17, '後半の施設まで揃っている');
+});

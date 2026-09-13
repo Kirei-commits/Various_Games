@@ -111,6 +111,22 @@ if (!Data) {
     if (!ITEMS[id].name || !ITEMS[id].emoji) problems.push(`名前か絵文字が空: ${id}`);
   }
 
+  // どのレベルにも「新しく解放されるもの」があること。
+  // 一度、レベル14〜20の**7レベル連続で何も解放されない**状態になっていた
+  // （進行の後半3分の1が空っぽ）。「レベルに沿って増えていく」が売りなので機械で見張る。
+  const dead = [];
+  let run = [];
+  for (let lv = 2; lv <= Data.MAX_LEVEL; lv++) {
+    if (Data.unlockedAt(lv).length === 0) run.push(lv);
+    else { if (run.length) dead.push(run); run = []; }
+  }
+  if (run.length) dead.push(run);
+  for (const d of dead) {
+    if (d.length >= 2) {
+      problems.push(`何も解放されないレベルが ${d.length}連続: Lv${d[0]}〜Lv${d[d.length - 1]}（作物か施設を足す）`);
+    }
+  }
+
   // レベルは上がるほど遠くなること（途中で楽になると育ちの実感が壊れる）
   for (let lv = 1; lv < Data.MAX_LEVEL; lv++) {
     if (Data.xpFor(lv + 1) <= Data.xpFor(lv)) problems.push(`必要経験値が増えていない: Lv${lv} -> Lv${lv + 1}`);

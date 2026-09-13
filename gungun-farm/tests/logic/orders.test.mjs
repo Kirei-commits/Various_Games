@@ -106,3 +106,20 @@ test('注文の報酬は、材料をそのまま売るより高い', () => {
     assert.ok(o.coins > raw, '届けるより売った方が得だと、注文を見る意味が無くなる');
   }
 });
+
+test('レベルが上がるほど、頼める品の種類が増える（増え続けること）', () => {
+  const GF = setup();
+  let prev = 0;
+  const counts = [];
+  for (let lv = 1; lv <= GF.Data.MAX_LEVEL; lv++) {
+    const s = GF.Engine.create();
+    s.level = lv;
+    // その時点で買える機械はぜんぶ持っている前提で数える
+    for (const def of GF.Data.machinesAt(lv)) if (!GF.Engine.ownsMachine(s, def.id)) s.machines.push({ id: def.id, queue: [], done: 0 });
+    const n = new Set(GF.Engine.obtainable(s)).size;
+    counts.push(n);
+    assert.ok(n >= prev, `Lv${lv} で作れる品が減っている（${prev} → ${n}）`);
+    prev = n;
+  }
+  assert.ok(counts[counts.length - 1] > counts[0] * 3, '最後まで遊ぶと品数が3倍以上になる');
+});

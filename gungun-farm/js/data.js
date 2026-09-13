@@ -34,7 +34,19 @@
     cheese:  { name: 'チーズ',       emoji: '🧀', sell: 130 },
     jam:     { name: 'ジャム',       emoji: '🍯', sell: 146 },
     cake:    { name: 'ケーキ',       emoji: '🍰', sell: 210 },
-    pie:     { name: 'パイ',         emoji: '🥧', sell: 200 }
+    pie:     { name: 'パイ',         emoji: '🥧', sell: 200 },
+
+    // レベル14以降。ここから先が空っぽだと「どんどん増える」が途中で止まる
+    tomato:   { name: 'トマト',       emoji: '🍅', sell: 40 },
+    olive:    { name: 'オリーブ',     emoji: '🫒', sell: 56 },
+    melon:    { name: 'メロン',       emoji: '🍈', sell: 74 },
+    ketchup:  { name: 'ケチャップ',   emoji: '🥫', sell: 108 },
+    pasta:    { name: 'パスタ',       emoji: '🍝', sell: 96 },
+    oil:      { name: 'オリーブ油',   emoji: '🧴', sell: 152 },
+    pizza:    { name: 'ピザ',         emoji: '🍕', sell: 340 },
+    icecream: { name: 'アイス',       emoji: '🍨', sell: 260 },
+    salad:    { name: 'サラダ',       emoji: '🥗', sell: 270 },
+    sandwich: { name: 'サンド',       emoji: '🥪', sell: 280 }
   };
 
   /**
@@ -50,7 +62,10 @@
     { id: 'cane',    sec: 6, cost: 15, xp: 5, level: 6 },
     { id: 'berry',   sec: 7, cost: 21, xp: 6, level: 8 },
     { id: 'pumpkin', sec: 8, cost: 28, xp: 7, level: 10 },
-    { id: 'grape',   sec: 9, cost: 36, xp: 8, level: 12 }
+    { id: 'grape',   sec: 9, cost: 36, xp: 8, level: 12 },
+    { id: 'tomato',  sec: 7, cost: 24, xp: 9,  level: 14 },
+    { id: 'olive',   sec: 8, cost: 34, xp: 10, level: 16 },
+    { id: 'melon',   sec: 9, cost: 44, xp: 11, level: 18 }
   ];
 
   /**
@@ -81,7 +96,23 @@
     { id: 'pieshop',  name: 'パイ工房',         emoji: '🥧', level: 12, price: 3000, slots: 2,
       recipe: { out: 'pie',     in: { pumpkin: 2, flour: 1 },      sec: 10, xp: 18 } },
     { id: 'jampot',   name: 'ジャムなべ',       emoji: '🍯', level: 13, price: 3600, slots: 2,
-      recipe: { out: 'jam',     in: { grape: 2 },                  sec: 6,  xp: 14 } }
+      recipe: { out: 'jam',     in: { grape: 2 },                  sec: 6,  xp: 14 } },
+
+    // レベル14以降。作った品をさらに材料にして、生産の鎖を長くしていく
+    { id: 'ketchupery', name: 'ケチャップ工場', emoji: '🥫', level: 14, price: 2600, slots: 3,
+      recipe: { out: 'ketchup',  in: { tomato: 2 },                            sec: 4, xp: 12 } },
+    { id: 'pastashop',  name: 'パスタ工房',     emoji: '🍝', level: 15, price: 3200, slots: 2,
+      recipe: { out: 'pasta',    in: { flour: 2, tomato: 1 },                  sec: 6, xp: 13 } },
+    { id: 'oilpress',   name: 'オリーブ油しぼり', emoji: '🧴', level: 16, price: 4200, slots: 2,
+      recipe: { out: 'oil',      in: { olive: 2 },                             sec: 6, xp: 16 } },
+    { id: 'pizzeria',   name: 'ピザ窯',         emoji: '🍕', level: 17, price: 5400, slots: 2,
+      recipe: { out: 'pizza',    in: { flour: 1, cheese: 1, ketchup: 1 },      sec: 9, xp: 26 } },
+    { id: 'gelateria',  name: 'アイス屋',       emoji: '🍨', level: 18, price: 6200, slots: 2,
+      recipe: { out: 'icecream', in: { milk: 2, melon: 1 },                    sec: 8, xp: 22 } },
+    { id: 'saladbar',   name: 'サラダバー',     emoji: '🥗', level: 19, price: 7000, slots: 2,
+      recipe: { out: 'salad',    in: { tomato: 1, carrot: 1, oil: 1 },         sec: 5, xp: 21 } },
+    { id: 'sandwichery', name: 'サンド屋',      emoji: '🥪', level: 20, price: 8000, slots: 2,
+      recipe: { out: 'sandwich', in: { bread: 1, cheese: 1, tomato: 1 },       sec: 7, xp: 23 } }
   ];
 
   /**

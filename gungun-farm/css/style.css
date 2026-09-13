@@ -125,9 +125,17 @@ body::after  { width: 220px; height: 220px; bottom: -120px; left: -60px; backgro
 
 /* ------------------------------------------------------------------ 下の段 */
 .panel {
+  position: relative;
   background: var(--card); border-radius: var(--r); border: 2px solid #fff;
   box-shadow: var(--shadow); display: grid; grid-template-rows: auto minmax(0, 1fr);
   min-height: 0; overflow: hidden;
+}
+/* 下に続きがあるとき、端をぼかして気づけるようにする。
+   切れたカードの列だけが手がかりだと「そこで終わり」に見える。 */
+.panel::after {
+  content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 18px;
+  background: linear-gradient(to top, var(--card), rgba(255, 253, 245, 0));
+  pointer-events: none;
 }
 .panel-head {
   display: flex; align-items: center; justify-content: space-between; gap: 8px;
@@ -142,13 +150,13 @@ body::after  { width: 220px; height: 220px; bottom: -120px; left: -60px; backgro
 
 /* 汎用のカード（タネ・機械・商品・売り物） */
 .card {
-  position: relative; min-height: 60px; border: 2px solid var(--line); border-radius: 13px;
-  background: #fff; padding: 5px 4px 4px; cursor: pointer;
+  position: relative; min-height: 56px; border: 2px solid var(--line); border-radius: 13px;
+  background: #fff; padding: 4px 4px 3px; cursor: pointer;
   display: grid; grid-template-rows: auto auto auto; gap: 1px; place-items: center;
   font-family: inherit; color: inherit; text-align: center;
 }
 .card:active { transform: translateY(2px); }
-.card .ico { font-size: 21px; line-height: 1.1; }
+.card .ico { font-size: 20px; line-height: 1.05; }
 .card .nm { font-size: 10.5px; font-weight: 700; line-height: 1.15; }
 .card .sub { font-size: 10px; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
 .card.on { border-color: var(--leaf); background: #f0fff2; box-shadow: 0 0 0 3px rgba(65,196,106,.25); }
