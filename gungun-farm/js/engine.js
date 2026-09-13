@@ -28,6 +28,10 @@
 
   /* ---------------------------------------------------------------- 状態 */
 
+  /**
+   * 新しい農園を作る。
+   * `bare: true` は「形だけ欲しい」とき用（注文を引かないので乱数を消費しない）。
+   */
   function create(opts = {}) {
     const machines = [{ id: 'mill', queue: [], done: 0 }];  // せいふんきは最初から持っている
     const state = {
@@ -55,7 +59,29 @@
       events: [],
       eventSeq: 1
     };
-    fillOrders(state);
+    if (!opts.bare) fillOrders(state);
+    return state;
+  }
+
+  /**
+   * 保存された農園に、あとから足した項目を埋める。
+   *
+   * **項目を増やすたびに古い保存が壊れる。** ふなびんを足したとき、
+   * 古い保存には `nextBoatAt` が無く `now >= undefined` が常に false になって
+   * **船が永久に来ない**状態になった（`stats.shipped` は `undefined++` で NaN）。
+   * 読み込んだら必ずここを通す。増やした項目を個別に書き足す必要はない。
+   */
+  function normalize(state) {
+    if (!state || typeof state !== 'object') return state;
+    const shape = create({ bare: true });
+    for (const k of Object.keys(shape)) {
+      if (state[k] === undefined) state[k] = shape[k];
+    }
+    if (!state.stats || typeof state.stats !== 'object') state.stats = shape.stats;
+    for (const k of Object.keys(shape.stats)) {
+      if (typeof state.stats[k] !== 'number') state.stats[k] = 0;
+    }
+    if (!Array.isArray(state.events)) state.events = [];
     return state;
   }
 
@@ -624,7 +650,7 @@
   global.GF = global.GF || {};
   global.GF.Engine = {
     ORDER_SLOTS, COMBO_MAX, QUICK_RATIO, QUICK_BONUS,
-    setRandom, create, tick,
+    setRandom, create, normalize, tick,
     barnCap, barnUsed, barnFree, has, ownsMachine,
     canPlant, plant, sow, plantAll, isReady, harvest, harvestAll,
     canQueue, queue, collect, collectAll, workAll, reservedForOrders, machineDef,

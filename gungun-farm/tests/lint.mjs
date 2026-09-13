@@ -41,7 +41,8 @@ for (const f of jsFiles) if (!order.includes(f)) problems.push(`js/${f} が inde
 const need = [
   ['data.js', 'engine.js'], ['data.js', 'render.js'], ['data.js', 'main.js'],
   ['engine.js', 'render.js'], ['engine.js', 'main.js'],
-  ['storage.js', 'main.js'], ['audio.js', 'main.js'], ['render.js', 'main.js']
+  ['storage.js', 'main.js'], ['audio.js', 'main.js'], ['render.js', 'main.js'],
+  ['engine.js', 'storage.js']   // storage は読み込んだ農園を Engine.normalize に通す
 ];
 for (const [before, after] of need) {
   const i = order.indexOf(before), j = order.indexOf(after);

@@ -60,6 +60,12 @@ CI はリポジトリ直下の `.github/workflows/ci.yml`。ゲーム一覧は
 4. **乱数を直接呼ばない。** `Engine.setRandom()` を通す（`?seed=` の再現とテストのため）。
 5. **設定キーは必ず `Store.DEFAULTS.settings` に定義する。** 定義漏れのキーは
    `merge()` で捨てられ、保存しても復元されない。
+5.5 **state に項目を足したら、古い保存が壊れていないか確かめる。**
+   `Store.loadFarm()` は `Engine.normalize()` を通して足りない項目を埋める。
+   埋め忘れると静かに壊れる——ふなびんを足したとき、古い保存には `nextBoatAt` が無く
+   `now >= undefined` が常に false になって**船が永久に来なかった**
+   （`stats.shipped` は `undefined++` で NaN）。normalize は `create({bare:true})` から
+   形を借りるので、**項目を増やしても書き足す必要はない**（bare は乱数を消費しない）。
 6. **`localStorage` は必ず try/catch で包む。** 読み書きの両方が例外を投げうる。
 7. **`[hidden] { display: none !important; }` を消さない。**
    `display` を持つクラスが既定の `[hidden]` に勝ってしまう。

@@ -85,3 +85,48 @@ test('農園を捨てられる（はじめから、のために）', () => {
   GF.Store.clearFarm();
   assert.equal(GF.Store.loadFarm(), null);
 });
+
+test('あとから足した項目が無い古い保存でも、新しい仕掛けが動く', () => {
+  const ls = fakeStorage();
+  const GF = withStorage(ls);
+  GF.Engine.setRandom(seededRandom(3));
+
+  // ふなびんが無かった頃の保存を作る
+  const old = GF.Engine.create();
+  delete old.boat;
+  delete old.nextBoatAt;
+  delete old.stats.shipped;
+  delete old.stats.boatMissed;
+  GF.Store.saveFarm(old);
+
+  const back = GF.Store.loadFarm();
+  assert.equal(back.nextBoatAt, 0, '無かった項目が埋まっている');
+  assert.equal(back.stats.shipped, 0, '数え始めが 0（undefined だと ++ で NaN になる）');
+
+  // 埋まっていないと `now >= undefined` が常に false で、船が永久に来ない
+  back.level = GF.Engine.BOAT_LEVEL;
+  for (let t = 1000; t <= 60_000; t += 1000) GF.Engine.tick(back, t);
+  assert.ok(back.boat, '古い保存でもふなびんが来る');
+});
+
+test('壊れた stats でも落ちない', () => {
+  const GF = withStorage(fakeStorage());
+  GF.Engine.setRandom(seededRandom(4));
+  const s = GF.Engine.create();
+  s.stats = 'こわれている';
+  s.events = null;
+  GF.Engine.normalize(s);
+  assert.equal(typeof s.stats, 'object');
+  assert.equal(s.stats.harvested, 0);
+  assert.ok(Array.isArray(s.events));
+});
+
+test('形を借りるだけのとき（bare）は乱数を消費しない', () => {
+  const GF = withStorage(fakeStorage());
+  let calls = 0;
+  GF.Engine.setRandom(() => { calls++; return 0.5; });
+  GF.Engine.create({ bare: true });
+  assert.equal(calls, 0, 'normalize が ?seed= の再現性を壊さないための約束');
+  GF.Engine.create();
+  assert.ok(calls > 0, 'ふつうに作るときは注文を引く');
+});

@@ -88,7 +88,8 @@
       const s = data.state;
       // 形が合わないものは捨てる。壊れた保存で起動できなくなる方が困る。
       if (!Array.isArray(s.fields) || !Array.isArray(s.machines) || typeof s.coins !== 'number') return null;
-      return s;
+      // あとから足した項目を埋める（埋めないと、古い保存で新しい仕掛けが動かない）
+      return global.GF && global.GF.Engine ? global.GF.Engine.normalize(s) : s;
     } catch (e) {
       return null;
     }
