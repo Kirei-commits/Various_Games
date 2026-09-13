@@ -171,6 +171,12 @@
       });
     }
     $('#sheet').addEventListener('click', (e) => { if (e.target.id === 'sheet') Render.closeSheet(); });
+
+    // 隠れているあいだは requestAnimationFrame が止まる＝自動保存も止まる。
+    // 裏に回った時点と閉じる直前に、その場で保存しておく
+    const saveNow = () => { if (game.state) Store.saveFarm(game.state); };
+    global.document.addEventListener('visibilitychange', () => { if (global.document.hidden) saveNow(); });
+    global.addEventListener('pagehide', saveNow);
   }
 
   function onClick(e) {

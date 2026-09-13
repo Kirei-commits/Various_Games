@@ -136,7 +136,15 @@
         bar.appendChild(fill);
         cell.appendChild(bar);
         live.push({ el: fill, set: (s) => { fill.style.width = pct(growth(s.fields[i], s.now)); } });
-        live.push({ el: plant, set: (s) => { plant.style.setProperty('--s', (0.4 + 0.6 * growth(s.fields[i], s.now)).toFixed(3)); } });
+        // 芽から作物への切り替えも、大きさと同じく毎フレーム側で面倒を見る。
+        // 署名（sig）は「実ったかどうか」しか見ていないので、作り直しに任せると
+        // 育っても芽のままになる（他の畑が実った拍子にだけ絵が変わっていた）
+        live.push({ el: plant, set: (s) => {
+          const g = growth(s.fields[i], s.now);
+          plant.style.setProperty('--s', (0.4 + 0.6 * g).toFixed(3));
+          const want = g < 0.45 ? '🌱' : icon(s.fields[i].crop || f.crop);
+          if (plant.textContent !== want) plant.textContent = want;
+        } });
       }
       frag.appendChild(cell);
     }

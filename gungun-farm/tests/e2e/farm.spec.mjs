@@ -180,3 +180,22 @@ test('3分チャレンジは時間が切れると結果が出る', async ({ page
   await expect(page.locator('#sheet')).toContainText('おつかれさま');
   expect(g.errors).toEqual([]);
 });
+
+test('育つにつれて、芽から作物の絵に変わる', async ({ page }) => {
+  // 時間は advance() で自分で進めたいので、勝手に進まない速さで開く
+  const g = await openFarm(page, { speed: '0.05' });
+  await g.tap(page.locator('.card[data-act="seed"][data-id="carrot"]'));   // 3秒
+  await g.tap(page.locator('.field').first());
+
+  const plant = page.locator('.field').first().locator('.plant');
+  await advance(page, 600);                      // 2割ほど
+  await expect(plant).toHaveText('🌱');
+
+  await advance(page, 1500);                     // 7割ほど
+  await expect(plant).toHaveText('🥕');
+  await expect(page.locator('.field').first()).not.toHaveClass(/ready/);
+
+  await advance(page, 1200);                     // 実った
+  await expect(page.locator('.field').first()).toHaveClass(/ready/);
+  await expect(plant).toHaveText('🥕');
+});
