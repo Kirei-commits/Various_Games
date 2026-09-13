@@ -167,6 +167,14 @@ body::after  { width: 220px; height: 220px; bottom: -120px; left: -60px; backgro
 .card .nm { font-size: 10.5px; font-weight: 700; line-height: 1.15; }
 .card .sub { font-size: 9.5px; color: var(--ink-soft); font-variant-numeric: tabular-nums;
   white-space: nowrap; letter-spacing: -.01em; }
+/* きょうの作物。選んでいる印（.on の緑）に勝たないよう、先に置く */
+.card.today { background: #fff8e0; border-color: #ffcf4d; }
+.card.today::before {
+  content: '☀'; position: absolute; top: -7px; left: -5px;
+  width: 20px; height: 20px; border-radius: 99px;
+  background: var(--sun, #ffd83d); color: #7a4a00; font-size: 12px; font-weight: 700;
+  display: grid; place-items: center; box-shadow: 0 2px 0 rgba(0,0,0,.15); z-index: 1;
+}
 .card.on { border-color: var(--leaf); background: #f0fff2; box-shadow: 0 0 0 3px rgba(65,196,106,.25); }
 .card.off { opacity: .45; cursor: default; }
 .card .pill {

@@ -82,7 +82,8 @@ test('期限が切れても、積んだぶんは売値で戻る（丸損させ�
   const before = s.coins;
   GF.Engine.tick(s, boat.expiresAt);
   assert.equal(s.boat, null);
-  assert.equal(s.coins, before + GF.Data.item(id).sell * 3, '積んだぶんは売値で引き取られる');
+  // 値段はデータから直に読まない。きょうの作物の倍率は engine が持っている
+  assert.equal(s.coins, before + GF.Engine.sellPrice(s, id, 3), '積んだぶんは売値で引き取られる');
   assert.equal(s.stats.boatMissed, 1);
 });
 

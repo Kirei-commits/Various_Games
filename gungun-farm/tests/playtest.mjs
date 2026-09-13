@@ -204,7 +204,7 @@ async function act(page, s, round) {
     await click('.card[data-act="buy-field"]:not(.off)');
   }
   if (round % 5 === 0) {
-    // 船が待っている作物があればそれを植える。無ければいちばん格上を選ぶ。
+    // 注文 → ふなびん → きょうの作物 の順に畑を向ける。無ければいちばん格上を選ぶ。
     // （船は量を求めるので、畑ごと向けないといつまでも埋まらない）
     const wanted = await page.evaluate(() => {
       const st = window.GF.game.state, E = window.GF.Engine, D = window.GF.Data;
@@ -222,6 +222,9 @@ async function act(page, s, round) {
         }
         if (pick) return pick;
       }
+      // 3. きょうの作物（もうけが上がっているので、余りを売る筋がいちばん太い）
+      const today = E.todayCrop(st);
+      if (today && crops.some((c) => c.id === today)) return today;
       return null;
     }).catch(() => null);
 

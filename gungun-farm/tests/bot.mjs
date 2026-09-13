@@ -118,8 +118,10 @@ function chooseSeed(GF, state, want) {
     }
   }
   const needed = crops.find((c) => machineNeed[c.id] && stock(c.id) < machineNeed[c.id]);
+  // 値段は engine に聞く。**きょうの作物のもうけが、この並びに自然に効く**
+  // （直に Data.item().sell を読むと、倍率が乗っていない順位で選んでしまう）
   const best = crops.slice().sort((a, b) => {
-    const rate = (c) => (Data.item(c.id).sell - c.cost) / c.sec;
+    const rate = (c) => (Engine.unitPrice(state, c.id) - c.cost) / c.sec;
     return rate(b) - rate(a);
   });
   const pick = [ordered, boated, needed, ...best].find((c) => c && state.coins >= c.cost);

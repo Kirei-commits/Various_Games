@@ -26,6 +26,23 @@
   const QUICK_RATIO = 0.5;           // 期限の前半に届けると「はやうま」
   const QUICK_BONUS = 0.25;
 
+  /**
+   * 農園の一日（3分で一巡）。空の色だけの飾りだったものに、遊びの意味を持たせる。
+   * **一日ごとに作物がひとつ「きょうの作物」になり、売値が上がる。**
+   * 待ちが無いゲームは同じ輪をひたすら回すことになりやすいので、
+   * **3分ごとに、手なりで最適だった選択がずれる**ようにしている。
+   *
+   * 倍率は**もうけ（売値 − タネ代）**に掛ける。育ちの速さにも経験値にも触らない
+   * （育ちを速くすると10秒の約束に、経験値を増やすとレベル設計に効いてしまう）。
+   *
+   * **売値そのものに掛けてはいけない。** タネ代の高い作物ほど得が大きくなり、
+   * 「短いほど1秒あたりが良い・長いほど1枠の値打ちが高い」という取引が壊れる
+   * （メロンは売値×1.5でもうけが3.4倍になり、1秒あたりでも1枠でも最強になった）。
+   * もうけに掛けるなら、どの作物も一律に1.5倍で、順位の関係はそのまま残る。
+   */
+  const DAY_MS = 180_000;
+  const TODAY_BONUS = 1.5;
+
   /* ---------------------------------------------------------------- 状態 */
 
   /**
@@ -53,6 +70,7 @@
       nextOrderAt: 0,
       boat: null,                    // ふなびん。少しずつ積める大きな注文
       nextBoatAt: 0,
+      today: { day: -1, crop: null },  // きょうの作物。day は -1 から始めて最初の tick で引く
       combo: 0,
       bestCombo: 0,
       achieved: [],
@@ -522,12 +540,68 @@
     const boat = state.boat;
     if (!boat) return;
     let back = 0;
-    for (const [id, n] of Object.entries(boat.loaded)) back += Data.item(id).sell * n;
+    for (const [id, n] of Object.entries(boat.loaded)) back += sellPrice(state, id, n);
     if (back > 0) earn(state, back, 0);
     state.boat = null;
     state.nextBoatAt = state.now + BOAT_GAP;
     state.stats.boatMissed++;
     event(state, 'boatgone', back > 0 ? `船が出てしまった…積んだぶん ${back}コインで引き取り` : '船が出てしまった…');
+  }
+
+  /* ------------------------------------------------------------ きょうの作物 */
+
+  /** いま高く売れる作物（無ければ null） */
+  const todayCrop = (state) => (state.today ? state.today.crop : null);
+
+  /**
+   * 売値。**その場で値段が決まる取引は、すべてここを通す**（店・船の引き取り）。
+   * 直に `Data.item(id).sell` を読むと、きょうの作物の倍率が抜け落ちる。
+   *
+   * 注文とふなびんの報酬は**受けた時点で決まっている**ので倍率を掛けない。
+   * カードに出ている額と、実際にもらえる額が食い違うほうが困る。
+   */
+  function sellPrice(state, id, n = 1) {
+    return unitPrice(state, id) * n;
+  }
+
+  /** 1個ぶんの売値。きょうの作物は「もうけ」の部分だけが増える */
+  function unitPrice(state, id) {
+    const sell = Data.item(id).sell;
+    if (id !== todayCrop(state)) return sell;
+    const cost = (Data.crop(id) || {}).cost || 0;
+    return cost + Math.round((sell - cost) * TODAY_BONUS);
+  }
+
+  /** 日数から作物を決めるための、状態を持たない撹拌 */
+  function hash32(n) {
+    let h = Math.imul(n ^ 0x9e3779b9, 2654435761);
+    h ^= h >>> 15;
+    h = Math.imul(h, 2246822519);
+    h ^= h >>> 13;
+    return h >>> 0;
+  }
+
+  /**
+   * 日が変わったら、きょうの作物を引き直す。
+   *
+   * **ここでは共有の乱数（`rng`）を引かない。** 引くと注文の抽選がその分ずれるので、
+   * 「手を動かす間隔だけを変えて比べる」ような計測が、条件ごとに違う作物を掴んでしまう
+   * （実際、これで tempo の比較が 400ms だけ 3割落ちたように見えた）。
+   * 日数から決めれば、何を比べても きょうの作物 は同じ動きをする。
+   *
+   * **同じ作物を2日つづけて出さない**（変わったことが分からないと意味がない）ので、
+   * 前の作物から 1以上ずらした位置を取る。解放済みの作物からしか選ばない。
+   */
+  function rollToday(state) {
+    const day = Math.floor(state.now / DAY_MS);
+    if (state.today && state.today.day === day) return;
+    const list = Data.cropsAt(state.level);
+    if (!list.length) return;
+    const at = Math.max(0, list.findIndex((c) => c.id === todayCrop(state)));
+    const step = list.length > 1 ? 1 + (hash32(day) % (list.length - 1)) : 0;
+    const c = list[(at + step) % list.length];
+    state.today = { day, crop: c.id };
+    event(state, 'today', `きょうは${Data.item(c.id).name}の日！`, { crop: c.id });
   }
 
   /* ---------------------------------------------------------------- 店 */
@@ -537,7 +611,7 @@
     const num = Math.min(n, have);
     if (num < 1) return 0;
     take(state, id, num);
-    const coins = Data.item(id).sell * num;
+    const coins = sellPrice(state, id, num);
     earn(state, coins, 0);
     return coins;
   }
@@ -628,6 +702,8 @@
     if (state.over) return state;
     state.now = Math.max(state.now, now);
 
+    rollToday(state);
+
     for (const m of state.machines) {
       while (m.queue.length && m.queue[0].readyAt <= state.now) { m.queue.shift(); m.done++; }
     }
@@ -684,6 +760,7 @@
     obtainable, capacity, makeOrder, canDeliver, deliver, dismiss, comboMul,
     BOAT_LEVEL, BOAT_TTL, BOAT_BONUS, makeBoat, boatNeed, boatReady, boatProgress,
     loadBoat, loadBoatAll, boatLoadable, shipBoat, expireBoat,
+    DAY_MS, TODAY_BONUS, todayCrop, sellPrice, unitPrice, rollToday,
     sell, nextFieldPrice, buyField, buyBarn, buyMachine,
     rescue, timeLeft, score, store, take, event, achieveCount, checkAchievements
   };

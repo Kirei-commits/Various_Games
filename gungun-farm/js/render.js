@@ -194,9 +194,14 @@
 
     const [title, note] = TITLES[ui.tab] || TITLES.seed;
     refs.panelTitle.textContent = title;
+    // たねの見出しには「きょうの作物」を出す。パネルを開くたび目に入る場所なので、
+    // 日が変わったことに気づく手がかりがここにも要る（浮き札は1度きりで流れる）
+    const today = Engine.todayCrop(state);
     refs.panelNote.textContent = ui.tab === 'order'
       ? `コンボ ×${Engine.comboMul(state).toFixed(2)}`
-      : note;
+      : ui.tab === 'seed' && today
+        ? `☀ きょうは${icon(today)}${nameOf(today)} もうけ×${Engine.TODAY_BONUS}`
+        : note;
 
     const body = ({ seed: seedPanel, work: workPanel, order: orderPanel, shop: shopPanel }[ui.tab] || seedPanel)(state, ui);
     refs.panelBody.replaceChildren(body);
@@ -211,7 +216,7 @@
    */
   function panelSig(state, ui) {
     if (ui.tab === 'seed') {
-      return 'seed|' + state.level + '|' + ui.seed + '|' + Data.CROPS
+      return 'seed|' + state.level + '|' + ui.seed + '|' + Engine.todayCrop(state) + '|' + Data.CROPS
         .map((c) => (c.level > state.level ? 'x' : state.coins >= c.cost ? '1' : '0')).join('');
     }
     if (ui.tab === 'work') {
@@ -235,7 +240,7 @@
       if (def.price <= 0 || Engine.ownsMachine(state, def.id)) continue;
       buys.push(def.id + (state.level >= def.level && state.coins >= def.price ? 1 : 0));
     }
-    return 'shop|' + ui.shopTab + '|' + state.level + '|' + ui.qty + '|' + Engine.barnCap(state) + '|' + state.fieldsOwned + '|' +
+    return 'shop|' + ui.shopTab + '|' + state.level + '|' + Engine.todayCrop(state) + '|' + ui.qty + '|' + Engine.barnCap(state) + '|' + state.fieldsOwned + '|' +
       Object.entries(state.barn).map(([k, v]) => k + v).join(',') + '|' + buys.join(',');
   }
 
@@ -253,7 +258,9 @@
       // 「いくら払って、いくらのものが穫れるか」を出す。
       // 1枠の値打ち（売値）が上位作物のごほうびなので、そこが見えないと選べない
       // 絵文字を入れると折り返して行がそろわなくなる。数字だけで詰める
-      card.appendChild(el('span', 'sub', locked ? nameOf(c.id) : `${c.sec}秒 ${c.cost}→${Data.item(c.id).sell}`));
+      // きょうの作物は売値が上がっているので、その額を出す（表の数字と食い違わせない）
+      if (!locked && c.id === Engine.todayCrop(state)) card.classList.add('today');
+      card.appendChild(el('span', 'sub', locked ? nameOf(c.id) : `${c.sec}秒 ${c.cost}→${Engine.sellPrice(state, c.id)}`));
       grid.appendChild(card);
     }
     return grid;
@@ -432,14 +439,16 @@
     if (!ids.length) return el('p', 'empty-note', '倉庫はからっぽ。\n畑で育てて、持ってこよう！');
 
     const grid = el('div', 'grid');
-    ids.sort((a, b) => Data.item(b).sell - Data.item(a).sell);
+    // 高く売れるものが上に来る。きょうの作物は倍率のぶん順番も上がる
+    ids.sort((a, b) => Engine.sellPrice(state, b) - Engine.sellPrice(state, a));
     for (const id of ids) {
-      const card = el('button', 'card');
+      const today = id === Engine.todayCrop(state);
+      const card = el('button', 'card' + (today ? ' today' : ''));
       card.dataset.act = 'sell';
       card.dataset.id = id;
       card.appendChild(el('span', 'ico', icon(id)));
       card.appendChild(el('span', 'nm', nameOf(id)));
-      card.appendChild(el('span', 'sub', '🪙' + Data.item(id).sell));
+      card.appendChild(el('span', 'sub', '🪙' + Engine.sellPrice(state, id)));
       card.appendChild(el('i', 'pill', String(state.barn[id])));
       grid.appendChild(card);
     }
@@ -506,7 +515,7 @@
    * 空の色だけを動かし、カードやボタンの色には触らない（読みにくくしない）。
    * 夜も黒くはしない——明るいゲームなので、濃い青どまり。
    */
-  const DAY_MS = 180_000;
+  const DAY_MS = Engine.DAY_MS;   // 一日の長さは engine が持つ（きょうの作物と同じ一日）
   const SKY = [
     // **昼と夜には平らな時間を作る。** 隣の色へずっと補間していると、
     // 青と桃が混ざる帯（＝くすんだ灰色）が長く居座って、明るいゲームに見えなくなる。
@@ -613,9 +622,9 @@
    * ティッカー（1行）に出すと、収穫や植え直しの知らせを押しのけてしまう。
    * レベルアップと同じく、操作を止めない浮きもの（pointer-events: none）にする。
    */
-  function award(emoji, name, done) {
+  function award(emoji, name, done, tag) {
     const box = el('div', 'box award');
-    box.appendChild(el('div', 'award-tag', '🏅 じっせき'));
+    box.appendChild(el('div', 'award-tag', tag || '🏅 じっせき'));
     box.appendChild(el('div', 'award-name', `${emoji} ${name}`));
     refs.pop.replaceChildren(box);
     refs.pop.hidden = false;

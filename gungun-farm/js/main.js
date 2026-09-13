@@ -154,6 +154,10 @@
         // ティッカーは1行しかないので、収穫などの知らせを押しのけない形で出す
         game.popQueue.push(ev);
         Audio.play('coin');
+      } else if (ev.kind === 'today') {
+        // 日が変わるのは3分に1度。操作の結果ではないので ticker は使わない
+        game.popQueue.push(ev);
+        Audio.play('coin');
       }
     }
     if (game.popQueue.length && !game.popping) {
@@ -163,6 +167,8 @@
       if (ev.kind === 'achieve') {
         const a = Data.ACHIEVEMENTS.find((x) => x.id === ev.achievement);
         Render.award(a ? a.emoji : '🏅', a ? a.name : ev.text, done);
+      } else if (ev.kind === 'today') {
+        Render.award(Render.icon(ev.crop), `もうけ ×${Engine.TODAY_BONUS}`, done, '☀️ きょうの作物');
       } else {
         Render.levelUp(ev.level, ev.unlocks, done);
       }

@@ -414,3 +414,51 @@ test('倉庫が満杯でも主ボタンは死なない（押せば理由が出�
   await expect(page.locator('#ticker')).toContainText('倉庫がいっぱい');
   await expect(page.locator('.tab[data-tab="shop"]')).toHaveClass(/is-on/, '売り場へ案内する');
 });
+
+test('きょうの作物が、たねと みせの両方で分かる', async ({ page }) => {
+  const g = await openFarm(page);
+  await setProgress(page, { level: 20, coins: 5000 });
+  const today = await page.evaluate(() => window.GF.Engine.todayCrop(window.GF.game.state));
+  expect(today).toBeTruthy();
+
+  // たね: 印が付いていて、上がった売値がカードに出ている
+  const card = page.locator(`.card[data-act="seed"][data-id="${today}"]`);
+  await expect(card).toHaveClass(/today/);
+  const up = await page.evaluate((id) => ({
+    now: window.GF.Engine.unitPrice(window.GF.game.state, id),
+    base: window.GF.Data.item(id).sell
+  }), today);
+  expect(up.now).toBeGreaterThan(up.base);
+  await expect(card.locator('.sub')).toContainText(String(up.now));
+  await expect(page.locator('#panel-note')).toContainText('きょう');
+
+  // 印が付くのは1つだけ（どれが今日か分からなくなる）
+  expect(await page.locator('.card[data-act="seed"].today').count()).toBe(1);
+
+  // みせ: 同じ値段で売れる
+  await give(page, today, 3);
+  await openTab(page, 'shop');
+  const sellCard = page.locator(`.card[data-act="sell"][data-id="${today}"]`);
+  await expect(sellCard).toHaveClass(/today/);
+  await expect(sellCard.locator('.sub')).toHaveText('🪙' + up.now);
+
+  const before = (await g.state()).coins;
+  await g.tap(sellCard);
+  expect((await g.state()).coins).toBe(before + up.now);
+  expect(g.errors).toEqual([]);
+});
+
+test('日が変わると、きょうの作物が入れ替わって知らせが出る', async ({ page }) => {
+  const g = await openFarm(page);
+  await setProgress(page, { level: 20 });
+  const first = await page.evaluate(() => window.GF.Engine.todayCrop(window.GF.game.state));
+
+  await advance(page, 180_000);   // 一日ぶん
+  await expect(page.locator('#pop')).toContainText('きょうの作物');
+
+  const next = await page.evaluate(() => window.GF.Engine.todayCrop(window.GF.game.state));
+  expect(next).not.toBe(first);
+  await openTab(page, 'seed');
+  await expect(page.locator(`.card[data-act="seed"][data-id="${next}"]`)).toHaveClass(/today/);
+  expect(g.errors).toEqual([]);
+});
