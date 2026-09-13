@@ -198,3 +198,41 @@ test('ちょうどよい間隔に幅がある（狙って合わせなくてい�
   // 極端に放っておくと、さすがに落ちる（そうでないと手を動かす意味が無い）
   assert.ok(tempo(6000).coins < best * 0.6, '放っておいても同じだけ稼げてしまう');
 });
+
+/**
+ * **稼ぎの主筋が「余りを売っただけ」に戻っていないか。**
+ *
+ * 一度、稼ぎの55%が売却になって注文がおまけに落ちていた（ふなびんを足して直した）。
+ * そのあと、**農園だけが育って注文の枠が3つのままだった**ために、
+ * 25分では 注文ぜんぶ 50.6% / 売る 51.2% と、また同じところへ戻っていた。
+ * 注文の枠をレベルで増やして 59% に戻してある。
+ */
+test('稼ぎの主筋は注文であり続ける', () => {
+  for (const r of runs(10, 6)) {
+    const orders = r.orderPct + r.boatPct;
+    assert.ok(orders > 50,
+      `10分で注文の取り分が ${orders.toFixed(1)}%（seed ${r.seed}）。` +
+      '余りを売るほうが主筋になっている');
+  }
+});
+
+test('農園が育ちきっても、余りを売るだけのゲームに戻らない', () => {
+  const all = runs(25, 6).map((r) => r.orderPct + r.boatPct);
+  assert.ok(med(all) > 45,
+    `25分で注文の取り分が ${med(all).toFixed(1)}%。生産だけが増えて注文が追いついていない`);
+});
+
+test('注文の枠はレベルに沿って増える', () => {
+  const { orderSlotsAt } = GF.Data;
+  assert.equal(orderSlotsAt(1), 3);
+  for (let lv = 2; lv <= 20; lv++) {
+    assert.ok(orderSlotsAt(lv) >= orderSlotsAt(lv - 1), `Lv${lv} で枠が減っている`);
+  }
+  assert.ok(orderSlotsAt(20) > orderSlotsAt(1), 'レベル20でも枠が増えていない');
+  // 枠が増えたレベルは、レベルアップの知らせに出る
+  for (const r of GF.Data.ORDER_SLOTS) {
+    if (r.level === 1) continue;
+    assert.ok(GF.Data.unlockedAt(r.level).some((u) => u.kind === 'order'),
+      `Lv${r.level} の枠追加が「解放されたもの」に出ていない`);
+  }
+});

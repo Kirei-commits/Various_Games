@@ -25,7 +25,7 @@ test('注文は、いま自力で用意できるものしか頼まない', () =>
 test('注文の枠は3つで、減ったら少し間をおいて補充される', () => {
   const GF = setup();
   const s = GF.Engine.create();
-  assert.equal(s.orders.length, GF.Engine.ORDER_SLOTS);
+  assert.equal(s.orders.length, GF.Engine.orderSlots(s));
 
   GF.Engine.dismiss(s, s.orders[0].id);
   assert.equal(s.orders.length, 2);

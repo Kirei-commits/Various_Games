@@ -135,6 +135,8 @@ function chooseSeed(GF, state, want) {
  *
  * これがこのゲームの約束（待ち時間を限りなく0に）を測る指標。
  */
+const pct = (part, whole) => (whole ? Math.round((part / whole) * 1000) / 10 : 0);
+
 export function hasSomethingToDo(GF, s) {
   const { Engine, Data } = GF;
   const roomy = Engine.barnFree(s) > 0;
@@ -227,6 +229,11 @@ export function simulate(GF, opts = {}) {
     rescues: state.stats.rescues,
     shipped: state.stats.shipped,
     boatMissed: state.stats.boatMissed,
+    // コインの出どころ。**注文が主筋であること**を毎回見張るための数字
+    // （一度、稼ぎの55%が「余りを売っただけ」になって注文がおまけに落ちていた）
+    orderPct: pct(state.stats.coinsOrder, state.stats.coinsEarned),
+    boatPct: pct(state.stats.coinsBoat, state.stats.coinsEarned),
+    sellPct: pct(state.stats.coinsSell, state.stats.coinsEarned),
     bestCombo: state.bestCombo,
     machines: state.machines.length,
     fields: state.fieldsOwned,

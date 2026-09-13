@@ -15,7 +15,8 @@
   const rand = (n) => Math.floor(rng() * n);
   const pick = (arr) => arr[rand(arr.length)];
 
-  const ORDER_SLOTS = 3;
+  /** 注文の枠。**レベルに沿って増える**（テーブルは data.js） */
+  const orderSlots = (state) => Data.orderSlotsAt(state.level);
   const BOAT_LEVEL = 7;              // ふなびんが来はじめるレベル
   const BOAT_TTL = 240_000;          // 出港まで4分
   const BOAT_BONUS = 2.2;            // 積みきったときの倍率（ふつうの注文は1.35倍）
@@ -74,7 +75,11 @@
       combo: 0,
       bestCombo: 0,
       achieved: [],
-      stats: { harvested: 0, crafted: 0, delivered: 0, expired: 0, shipped: 0, boatMissed: 0, coinsEarned: 0, xpEarned: 0, rescues: 0 },
+      stats: {
+        harvested: 0, crafted: 0, delivered: 0, expired: 0, shipped: 0, boatMissed: 0,
+        coinsEarned: 0, xpEarned: 0, rescues: 0,
+        coinsOrder: 0, coinsBoat: 0, coinsSell: 0   // コインの出どころ（測るため）
+      },
       events: [],
       eventSeq: 1
     };
@@ -129,8 +134,23 @@
     return true;
   }
 
-  function earn(state, coins, xp) {
-    if (coins) { state.coins += coins; state.stats.coinsEarned += coins; }
+  /**
+   * コインと経験値を受け取る。
+   *
+   * `src` は**コインの出どころ**（`order` / `boat` / `sell`）。
+   * このゲームは一度「稼ぎの55%が余りを売っただけ」になって、
+   * 注文がおまけに落ちていた。**主筋がどこかは測らないと分からない**ので、
+   * 内訳を数えて `npm run simulate` が毎回出す。
+   * stats は平らな数にしておく（`normalize` が入れ子を 0 に潰すため）。
+   */
+  function earn(state, coins, xp, src) {
+    if (coins) {
+      state.coins += coins;
+      state.stats.coinsEarned += coins;
+      if (src === 'order') state.stats.coinsOrder += coins;
+      else if (src === 'boat') state.stats.coinsBoat += coins;
+      else if (src === 'sell') state.stats.coinsSell += coins;
+    }
     if (xp) { state.xp += xp; state.stats.xpEarned += xp; levelUp(state); }
   }
 
@@ -380,7 +400,7 @@
   }
 
   function fillOrders(state) {
-    while (state.orders.length < ORDER_SLOTS) state.orders.push(makeOrder(state));
+    while (state.orders.length < orderSlots(state)) state.orders.push(makeOrder(state));
   }
 
   const canDeliver = (state, order) => Object.entries(order.want).every(([id, n]) => has(state, id, n));
@@ -399,7 +419,7 @@
     state.combo++;
     state.bestCombo = Math.max(state.bestCombo, state.combo);
     const coins = Math.round(order.coins * comboMul(state) * (quick ? 1 + QUICK_BONUS : 1));
-    earn(state, coins, order.xp);
+    earn(state, coins, order.xp, 'order');
     state.stats.delivered++;
     state.orders.splice(idx, 1);
     state.nextOrderAt = Math.max(state.nextOrderAt, state.now + ORDER_REFILL_MS);
@@ -524,7 +544,7 @@
   function shipBoat(state) {
     const boat = state.boat;
     if (!boatReady(boat)) return null;
-    earn(state, boat.coins, boat.xp);
+    earn(state, boat.coins, boat.xp, 'boat');
     state.boat = null;
     state.nextBoatAt = state.now + BOAT_GAP;
     state.stats.shipped++;
@@ -541,7 +561,7 @@
     if (!boat) return;
     let back = 0;
     for (const [id, n] of Object.entries(boat.loaded)) back += sellPrice(state, id, n);
-    if (back > 0) earn(state, back, 0);
+    if (back > 0) earn(state, back, 0, 'boat');   // 引き取りも船から出たコイン
     state.boat = null;
     state.nextBoatAt = state.now + BOAT_GAP;
     state.stats.boatMissed++;
@@ -612,7 +632,7 @@
     if (num < 1) return 0;
     take(state, id, num);
     const coins = sellPrice(state, id, num);
-    earn(state, coins, 0);
+    earn(state, coins, 0, 'sell');
     return coins;
   }
 
@@ -722,9 +742,9 @@
       event(state, 'expire', '注文が流れた…');
     }
 
-    if (state.orders.length < ORDER_SLOTS && state.now >= state.nextOrderAt) {
+    if (state.orders.length < orderSlots(state) && state.now >= state.nextOrderAt) {
       state.orders.push(makeOrder(state));
-      if (state.orders.length < ORDER_SLOTS) state.nextOrderAt = state.now + ORDER_REFILL_MS;
+      if (state.orders.length < orderSlots(state)) state.nextOrderAt = state.now + ORDER_REFILL_MS;
     }
 
     // ふなびん
@@ -752,7 +772,7 @@
 
   global.GF = global.GF || {};
   global.GF.Engine = {
-    ORDER_SLOTS, COMBO_MAX, QUICK_RATIO, QUICK_BONUS,
+    orderSlots, COMBO_MAX, QUICK_RATIO, QUICK_BONUS,
     setRandom, create, normalize, tick,
     barnCap, barnUsed, barnFree, has, ownsMachine,
     canPlant, plant, sow, plantAll, isReady, harvest, harvestAll,

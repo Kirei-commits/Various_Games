@@ -161,11 +161,29 @@
   const machinesAt = (level) => MACHINES.filter((m) => m.level <= level);
 
   /** レベルが上がったときに新しく解放されたもの。レベルアップの表示に使う。 */
+  /**
+   * 注文の枠。**レベルに沿って増える。**
+   *
+   * 枠を3つのまま固定していたら、農園の生産量だけが3倍になって
+   * **注文が追いつかず、稼ぎの半分が「余りを売っただけ」に戻っていた**
+   * （25分で 注文ぜんぶ 50.6% / 余りを売る 51.2%）。
+   * 実測で枠を振ったところ、5枠がちょうどよかった（6枠にすると
+   * ふなびんの取り分を食うだけで、注文ぜんぶの割合は伸びない）。
+   */
+  const ORDER_SLOTS = [
+    { level: 1,  slots: 3 },
+    { level: 8,  slots: 4 },
+    { level: 15, slots: 5 }
+  ];
+  const orderSlotsAt = (level) =>
+    ORDER_SLOTS.reduce((a, r) => (level >= r.level ? r.slots : a), ORDER_SLOTS[0].slots);
+
   function unlockedAt(level) {
     const out = [];
     for (const c of CROPS) if (c.level === level) out.push({ kind: 'crop', id: c.id, name: ITEMS[c.id].name, emoji: ITEMS[c.id].emoji });
     for (const m of MACHINES) if (m.level === level && m.price > 0) out.push({ kind: 'machine', id: m.id, name: m.name, emoji: m.emoji });
     FIELD_UPGRADES.forEach((f) => { if (f.level === level) out.push({ kind: 'field', id: 'field', name: '畑の増設', emoji: '🟩' }); });
+    for (const r of ORDER_SLOTS) if (r.level === level && r.level > 1) out.push({ kind: 'order', id: 'order', name: `注文が${r.slots}件に`, emoji: '📦' });
     return out;
   }
 
@@ -199,6 +217,7 @@
     FIELDS_AT_START, FIELD_SLOTS, FIELD_UPGRADES,
     BARN_AT_START, BARN_STEP, barnPrice,
     xpFor, MAX_LEVEL,
+    ORDER_SLOTS, orderSlotsAt,
     item, crop, machine, cropsAt, machinesAt, unlockedAt
   };
 })(typeof window !== 'undefined' ? window : globalThis);

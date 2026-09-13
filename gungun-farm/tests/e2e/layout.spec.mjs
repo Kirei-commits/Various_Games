@@ -116,6 +116,16 @@ test('レベル20で作物も施設も増えきっても、1画面から溢れ�
     window.GF.refresh();
   });
 
+  // 注文の枠はレベルで増える。**いちばん多い枠 ＋ ふなびん**で見る
+  const slots = await page.evaluate(() => {
+    const s = window.GF.game.state, E = window.GF.Engine;
+    while (s.orders.length < E.orderSlots(s)) s.orders.push(E.makeOrder(s));
+    if (!s.boat) s.boat = E.makeBoat(s);
+    window.GF.refresh();
+    return s.orders.length;
+  });
+  expect(slots).toBeGreaterThan(3);
+
   for (const tab of ['seed', 'work', 'order', 'shop']) {
     await openTab(page, tab);
     const over = await page.evaluate(() => ({
@@ -128,6 +138,10 @@ test('レベル20で作物も施設も増えきっても、1画面から溢れ�
     const tabs = await page.locator('#tabs').boundingBox();
     expect(tabs.y + tabs.height, `${tab}: タブが画面の外`).toBeLessThanOrEqual(568 + 1);
   }
+  // 注文は「上から1件目」が必ず見えている（開いた瞬間に何も見えないのは困る）
+  await openTab(page, 'order');
+  const first = await page.locator('.order').first().boundingBox();
+  expect(first.y + first.height).toBeLessThanOrEqual(568);
   expect(g.errors).toEqual([]);
 });
 
