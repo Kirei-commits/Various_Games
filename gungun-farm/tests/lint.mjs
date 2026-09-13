@@ -111,6 +111,37 @@ if (!Data) {
     if (!ITEMS[id].name || !ITEMS[id].emoji) problems.push(`名前か絵文字が空: ${id}`);
   }
 
+  // タネ選びが「偽の選択」になっていないこと。
+  //
+  // 一度、1秒あたりの儲けも1枠の値打ちも**両方とも格上が勝つ**表になっていた
+  // （こむぎ1.00 → メロン3.33、かつ売値も3 → 74）。解放された中でいちばん格上を
+  // 選べば常に正解で、タネの一覧はただの飾りだった。
+  // いまは取引になっている: **短いほど1秒あたりが良く、長いほど1枠の値打ちが高い**。
+  //   → 手が空いているなら短いのを回す / 工房と注文に手を掛けたいなら長いのを植える
+  const perSec = (c) => (ITEMS[c.id].sell - c.cost) / c.sec;
+  const bySec = CROPS.slice().sort((a, b) => a.sec - b.sec || a.level - b.level);
+  for (let i = 1; i < bySec.length; i++) {
+    if (perSec(bySec[i]) > perSec(bySec[i - 1]) + 0.001) {
+      problems.push(`長い作物のほうが1秒あたり儲かる: ${bySec[i - 1].id}(${perSec(bySec[i - 1]).toFixed(2)})` +
+        ` → ${bySec[i].id}(${perSec(bySec[i]).toFixed(2)})。短い作物を選ぶ理由が消える`);
+    }
+  }
+  const byLevel = CROPS.slice().sort((a, b) => a.level - b.level || a.sec - b.sec);
+  for (let i = 1; i < byLevel.length; i++) {
+    if (ITEMS[byLevel[i].id].sell <= ITEMS[byLevel[i - 1].id].sell) {
+      problems.push(`後から解放される作物の1枠の値打ちが上がっていない: ` +
+        `${byLevel[i - 1].id}(${ITEMS[byLevel[i - 1].id].sell}) → ${byLevel[i].id}(${ITEMS[byLevel[i].id].sell})`);
+    }
+  }
+  // 取引が成立するだけの差があること（差が無いとどれを選んでも同じ＝やはり飾り）
+  const fastest = bySec[0], slowest = bySec[bySec.length - 1];
+  if (perSec(fastest) < perSec(slowest) * 1.5) {
+    problems.push(`短い作物と長い作物で1秒あたりの差が小さい（${perSec(fastest).toFixed(2)} 対 ${perSec(slowest).toFixed(2)}）`);
+  }
+  if (ITEMS[slowest.id].sell < ITEMS[fastest.id].sell * 4) {
+    problems.push(`短い作物と長い作物で1枠の値打ちの差が小さい（${ITEMS[fastest.id].sell} 対 ${ITEMS[slowest.id].sell}）`);
+  }
+
   // どのレベルにも「新しく解放されるもの」があること。
   // 一度、レベル14〜20の**7レベル連続で何も解放されない**状態になっていた
   // （進行の後半3分の1が空っぽ）。「レベルに沿って増えていく」が売りなので機械で見張る。

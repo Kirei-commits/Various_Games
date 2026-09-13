@@ -160,7 +160,7 @@
   /* ---------------------------------------------------------------- 下の段 */
 
   const TITLES = {
-    seed: ['たね', 'まとめてまくと順番に実る'],
+    seed: ['たね', '短いほど稼ぎ・長いほど手が空く'],
     work: ['こうぼう', '1台ずつなら注文ぶんも使える'],
     order: ['ちゅうもん', '早いほどオマケが増える'],
     shop: ['みせ', '売って、広げて、増やす']
@@ -226,7 +226,10 @@
       card.dataset.id = c.id;
       card.appendChild(el('span', 'ico', locked ? '🔒' : icon(c.id)));
       card.appendChild(el('span', 'nm', locked ? 'Lv' + c.level : nameOf(c.id)));
-      card.appendChild(el('span', 'sub', locked ? nameOf(c.id) : `🪙${c.cost} ・ ${c.sec}秒`));
+      // 「いくら払って、いくらのものが穫れるか」を出す。
+      // 1枠の値打ち（売値）が上位作物のごほうびなので、そこが見えないと選べない
+      // 絵文字を入れると折り返して行がそろわなくなる。数字だけで詰める
+      card.appendChild(el('span', 'sub', locked ? nameOf(c.id) : `${c.sec}秒 ${c.cost}→${Data.item(c.id).sell}`));
       grid.appendChild(card);
     }
     return grid;

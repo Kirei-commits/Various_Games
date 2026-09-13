@@ -53,9 +53,10 @@ test('畑を1マスだけ押しても、収穫して植え直す', async ({ page
 
   await g.tap(field);
   const s = await g.state();
+  const cost = await page.evaluate(() => window.GF.Data.crop('wheat').cost);
   expect(s.barn.wheat).toBe(1);
   expect(s.fields[0].crop).toBe('wheat', '空かずに植え直されている');
-  expect(s.coins).toBe(before - 1, 'タネ代を払っている');
+  expect(s.coins).toBe(before - cost, 'タネ代を払っている');
 });
 
 test('タネ代が尽きたら、収穫しても植え直さない（空いたまま）', async ({ page }) => {
@@ -157,8 +158,9 @@ test('みせで売るとコインが増え、倉庫が空く', async ({ page }) 
 
   await g.tap(page.locator('.card[data-act="sell"][data-id="corn"]'));
   const after = await g.state();
+  const sell = await page.evaluate(() => window.GF.Data.item('corn').sell);   // 値段は調整で動く
   expect(after.barn.corn).toBe(2);
-  expect(after.coins).toBe(before.coins + 11);
+  expect(after.coins).toBe(before.coins + sell);
 });
 
 test('売る数はまとめて選べる', async ({ page }) => {

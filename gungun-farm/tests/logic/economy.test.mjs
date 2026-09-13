@@ -88,3 +88,70 @@ test('3分チャレンジは3分ちょうどで終わる', () => {
   GF2.Engine.tick(s, 300_000);
   assert.equal(s.coins, coins, '終わったあとは時間が進まない');
 });
+
+/**
+ * タネ選びが「取引」になっているかを、実際に回して確かめる。
+ * 短い作物だけ / 長い作物だけ で同じ手順を回し、稼ぎと手数を比べる。
+ * **どちらかが全部の指標で勝つなら、それは選択ではない。**
+ */
+function strategy(pick, minutes = 4, runs = 3) {
+  const acc = { coins: 0, xp: 0, taps: 0 };
+  for (let r = 0; r < runs; r++) {
+    GF.Engine.setRandom(seededRandom(mixSeed(r)));
+    const s = GF.Engine.create({ mode: 'free' });
+    s.level = 12; s.xp = 0; s.xpNext = GF.Data.xpFor(12);
+    s.fieldsOwned = GF.Data.FIELD_SLOTS; s.coins = 5000; s.barnUp = 4;
+    let taps = 0;
+    for (let t = 0; t <= minutes * 60000; t += 200) {
+      GF.Engine.tick(s, t);
+      const crop = pick(s);
+      if (GF.Engine.harvestAll(s, crop) > 0) taps++;        // 主ボタン1タップぶん
+      GF.Engine.workAll(s);
+      for (const o of [...s.orders]) if (GF.Engine.canDeliver(s, o)) GF.Engine.deliver(s, o.id);
+      const want = GF.Engine.reservedForOrders(s);
+      if (GF.Engine.barnFree(s) < 6) {
+        for (const id of Object.keys(s.barn).sort((a, b) => GF.Data.item(a).sell - GF.Data.item(b).sell)) {
+          if (GF.Engine.barnFree(s) >= GF.Engine.barnCap(s) * 0.4) break;
+          const spare = (s.barn[id] || 0) - (want[id] || 0);
+          if (spare > 0) GF.Engine.sell(s, id, spare);
+        }
+      }
+      GF.Engine.plantAll(s, crop);
+    }
+    acc.coins += s.stats.coinsEarned; acc.xp += s.stats.xpEarned; acc.taps += taps;
+  }
+  return { coins: acc.coins / runs, xp: acc.xp / runs, taps: acc.taps / runs };
+}
+
+test('短い作物と長い作物のどちらにも選ぶ理由がある（タネ選びが飾りでないこと）', () => {
+  const shortest = (s) => GF.Data.cropsAt(s.level).slice().sort((a, b) => a.sec - b.sec)[0].id;
+  const longest = (s) => GF.Data.cropsAt(s.level).slice().sort((a, b) => b.sec - a.sec || b.cost - a.cost)[0].id;
+  const fast = strategy(shortest);
+  const slow = strategy(longest);
+
+  // 短いほうは稼ぐ。ただし手数を払う
+  assert.ok(fast.coins > slow.coins * 1.1,
+    `短い作物が稼げていない（${Math.round(fast.coins)} 対 ${Math.round(slow.coins)}）`);
+  assert.ok(fast.taps > slow.taps * 2,
+    `長い作物で手数が減っていない（${Math.round(fast.taps)} 対 ${Math.round(slow.taps)}回）`);
+
+  // 長いほうにも取り柄がある。全部で負けるなら選ぶ理由が無い
+  assert.ok(slow.xp >= fast.xp,
+    `長い作物に取り柄が無い（経験値 ${Math.round(slow.xp)} 対 ${Math.round(fast.xp)}）`);
+  assert.ok(slow.coins > fast.coins * 0.6,
+    `長い作物が稼げなさすぎる（${Math.round(slow.coins)} 対 ${Math.round(fast.coins)}）`);
+});
+
+test('1秒あたりの儲けは短いほど良く、1枠の値打ちは長いほど高い', () => {
+  const perSec = (c) => (GF.Data.item(c.id).sell - c.cost) / c.sec;
+  const bySec = GF.Data.CROPS.slice().sort((a, b) => a.sec - b.sec || a.level - b.level);
+  for (let i = 1; i < bySec.length; i++) {
+    assert.ok(perSec(bySec[i]) <= perSec(bySec[i - 1]) + 0.001,
+      `${bySec[i].id} のほうが1秒あたり儲かる（短い作物を選ぶ理由が消える）`);
+  }
+  const byLevel = GF.Data.CROPS.slice().sort((a, b) => a.level - b.level || a.sec - b.sec);
+  for (let i = 1; i < byLevel.length; i++) {
+    assert.ok(GF.Data.item(byLevel[i].id).sell > GF.Data.item(byLevel[i - 1].id).sell,
+      `${byLevel[i].id} の1枠の値打ちが上がっていない`);
+  }
+});

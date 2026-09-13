@@ -15,38 +15,38 @@
    * 作物も加工品も同じ器に入れる（注文はどちらも指定できる）。
    */
   const ITEMS = {
-    wheat:   { name: 'こむぎ',       emoji: '🌾', sell: 3 },
-    carrot:  { name: 'にんじん',     emoji: '🥕', sell: 6 },
-    corn:    { name: 'とうもろこし', emoji: '🌽', sell: 11 },
-    soy:     { name: 'だいず',       emoji: '🫘', sell: 18 },
-    cane:    { name: 'さとうきび',   emoji: '🎋', sell: 26 },
-    berry:   { name: 'いちご',       emoji: '🍓', sell: 36 },
-    pumpkin: { name: 'かぼちゃ',     emoji: '🎃', sell: 47 },
-    grape:   { name: 'ぶどう',       emoji: '🍇', sell: 60 },
+    wheat:   { name: 'こむぎ',       emoji: '🌾', sell: 11 },
+    carrot:  { name: 'にんじん',     emoji: '🥕', sell: 16 },
+    corn:    { name: 'とうもろこし', emoji: '🌽', sell: 21 },
+    soy:     { name: 'だいず',       emoji: '🫘', sell: 26 },
+    cane:    { name: 'さとうきび',   emoji: '🎋', sell: 32 },
+    berry:   { name: 'いちご',       emoji: '🍓', sell: 35 },
+    pumpkin: { name: 'かぼちゃ',     emoji: '🎃', sell: 40 },
+    grape:   { name: 'ぶどう',       emoji: '🍇', sell: 45 },
 
-    flour:   { name: 'こむぎこ',     emoji: '🥣', sell: 12 },
-    feed:    { name: 'しりょう',     emoji: '🧺', sell: 22 },
-    egg:     { name: 'たまご',       emoji: '🥚', sell: 30 },
-    bread:   { name: 'パン',         emoji: '🍞', sell: 34 },
-    popcorn: { name: 'ポップコーン', emoji: '🍿', sell: 32 },
-    milk:    { name: 'ミルク',       emoji: '🥛', sell: 56 },
-    juice:   { name: 'ジュース',     emoji: '🧃', sell: 88 },
-    cheese:  { name: 'チーズ',       emoji: '🧀', sell: 130 },
-    jam:     { name: 'ジャム',       emoji: '🍯', sell: 146 },
-    cake:    { name: 'ケーキ',       emoji: '🍰', sell: 210 },
-    pie:     { name: 'パイ',         emoji: '🥧', sell: 200 },
+    flour:   { name: 'こむぎこ',     emoji: '🥣', sell: 27 },
+    feed:    { name: 'しりょう',     emoji: '🧺', sell: 53 },
+    egg:     { name: 'たまご',       emoji: '🥚', sell: 67 },
+    bread:   { name: 'パン',         emoji: '🍞', sell: 69 },
+    popcorn: { name: 'ポップコーン', emoji: '🍿', sell: 53 },
+    milk:    { name: 'ミルク',       emoji: '🥛', sell: 138 },
+    juice:   { name: 'ジュース',     emoji: '🧃', sell: 91 },
+    cheese:  { name: 'チーズ',       emoji: '🧀', sell: 374 },
+    jam:     { name: 'ジャム',       emoji: '🍯', sell: 120 },
+    cake:    { name: 'ケーキ',       emoji: '🍰', sell: 321 },
+    pie:     { name: 'パイ',         emoji: '🥧', sell: 154 },
 
     // レベル14以降。ここから先が空っぽだと「どんどん増える」が途中で止まる
-    tomato:   { name: 'トマト',       emoji: '🍅', sell: 40 },
-    olive:    { name: 'オリーブ',     emoji: '🫒', sell: 56 },
-    melon:    { name: 'メロン',       emoji: '🍈', sell: 74 },
-    ketchup:  { name: 'ケチャップ',   emoji: '🥫', sell: 108 },
-    pasta:    { name: 'パスタ',       emoji: '🍝', sell: 96 },
-    oil:      { name: 'オリーブ油',   emoji: '🧴', sell: 152 },
-    pizza:    { name: 'ピザ',         emoji: '🍕', sell: 340 },
-    icecream: { name: 'アイス',       emoji: '🍨', sell: 260 },
-    salad:    { name: 'サラダ',       emoji: '🥗', sell: 270 },
-    sandwich: { name: 'サンド',       emoji: '🥪', sell: 280 }
+    tomato:   { name: 'トマト',       emoji: '🍅', sell: 61 },
+    olive:    { name: 'オリーブ',     emoji: '🫒', sell: 75 },
+    melon:    { name: 'メロン',       emoji: '🍈', sell: 91 },
+    ketchup:  { name: 'ケチャップ',   emoji: '🥫', sell: 155 },
+    pasta:    { name: 'パスタ',       emoji: '🍝', sell: 153 },
+    oil:      { name: 'オリーブ油',   emoji: '🧴', sell: 199 },
+    pizza:    { name: 'ピザ',         emoji: '🍕', sell: 785 },
+    icecream: { name: 'アイス',       emoji: '🍨', sell: 508 },
+    salad:    { name: 'サラダ',       emoji: '🥗', sell: 359 },
+    sandwich: { name: 'サンド',       emoji: '🥪', sell: 683 }
   };
 
   /**
@@ -55,17 +55,17 @@
    * 売値はタネ代のおよそ2〜3倍。畑だけでも黒字だが、儲けの本体は加工品と注文にある。
    */
   const CROPS = [
-    { id: 'wheat',   sec: 2, cost: 1,  xp: 1, level: 1 },
-    { id: 'carrot',  sec: 3, cost: 3,  xp: 2, level: 1 },
-    { id: 'corn',    sec: 4, cost: 6,  xp: 3, level: 2 },
-    { id: 'soy',     sec: 5, cost: 10, xp: 4, level: 4 },
-    { id: 'cane',    sec: 6, cost: 15, xp: 5, level: 6 },
-    { id: 'berry',   sec: 7, cost: 21, xp: 6, level: 8 },
-    { id: 'pumpkin', sec: 8, cost: 28, xp: 7, level: 10 },
-    { id: 'grape',   sec: 9, cost: 36, xp: 8, level: 12 },
-    { id: 'tomato',  sec: 7, cost: 24, xp: 9,  level: 14 },
-    { id: 'olive',   sec: 8, cost: 34, xp: 10, level: 16 },
-    { id: 'melon',   sec: 9, cost: 44, xp: 11, level: 18 }
+    { id: 'wheat',     sec: 2, cost:  3, xp:  1, level:  1 },
+    { id: 'carrot',    sec: 3, cost:  5, xp:  2, level:  1 },
+    { id: 'corn',      sec: 4, cost:  7, xp:  3, level:  2 },
+    { id: 'soy',       sec: 5, cost: 10, xp:  4, level:  4 },
+    { id: 'cane',      sec: 6, cost: 14, xp:  5, level:  6 },
+    { id: 'berry',     sec: 7, cost: 17, xp:  6, level:  8 },
+    { id: 'pumpkin',   sec: 8, cost: 21, xp:  7, level: 10 },
+    { id: 'grape',     sec: 9, cost: 26, xp:  8, level: 12 },
+    { id: 'tomato',    sec: 9, cost: 42, xp:  9, level: 14 },
+    { id: 'olive',     sec: 9, cost: 56, xp: 10, level: 16 },
+    { id: 'melon',     sec: 9, cost: 72, xp: 11, level: 18 }
   ];
 
   /**
@@ -77,41 +77,41 @@
   const MACHINES = [
     { id: 'mill',     name: 'せいふんき',       emoji: '⚙️', level: 1,  price: 0,    slots: 3,
       recipe: { out: 'flour',   in: { wheat: 2 },                  sec: 3,  xp: 3 } },
-    { id: 'feedmill', name: 'しりょう工場',     emoji: '🧺', level: 2,  price: 80,   slots: 3,
+    { id: 'feedmill', name: 'しりょう工場',     emoji: '🧺', level: 2,  price: 160,   slots: 3,
       recipe: { out: 'feed',    in: { wheat: 2, corn: 1 },         sec: 3,  xp: 4 } },
-    { id: 'coop',     name: 'にわとり小屋',     emoji: '🐔', level: 3,  price: 150,  slots: 3,
+    { id: 'coop',     name: 'にわとり小屋',     emoji: '🐔', level: 3,  price: 300,  slots: 3,
       recipe: { out: 'egg',     in: { feed: 1 },                   sec: 4,  xp: 5 } },
-    { id: 'bakery',   name: 'パンがま',         emoji: '🍞', level: 4,  price: 260,  slots: 3,
+    { id: 'bakery',   name: 'パンがま',         emoji: '🍞', level: 4,  price: 520,  slots: 3,
       recipe: { out: 'bread',   in: { flour: 2 },                  sec: 4,  xp: 6 } },
-    { id: 'popper',   name: 'ポップコーンき',   emoji: '🍿', level: 5,  price: 380,  slots: 3,
+    { id: 'popper',   name: 'ポップコーンき',   emoji: '🍿', level: 5,  price: 760,  slots: 3,
       recipe: { out: 'popcorn', in: { corn: 2 },                   sec: 4,  xp: 6 } },
-    { id: 'cowshed',  name: 'うし小屋',         emoji: '🐄', level: 6,  price: 700,  slots: 2,
+    { id: 'cowshed',  name: 'うし小屋',         emoji: '🐄', level: 6,  price: 1400,  slots: 2,
       recipe: { out: 'milk',    in: { feed: 2 },                   sec: 5,  xp: 8 } },
-    { id: 'juicer',   name: 'ジューサー',       emoji: '🧃', level: 8,  price: 1100,  slots: 2,
+    { id: 'juicer',   name: 'ジューサー',       emoji: '🧃', level: 8,  price: 2200,  slots: 2,
       recipe: { out: 'juice',   in: { berry: 2 },                  sec: 5,  xp: 9 } },
-    { id: 'dairy',    name: 'チーズがま',       emoji: '🧀', level: 9,  price: 1600,  slots: 2,
+    { id: 'dairy',    name: 'チーズがま',       emoji: '🧀', level: 9,  price: 3200,  slots: 2,
       recipe: { out: 'cheese',  in: { milk: 2 },                   sec: 7,  xp: 12 } },
-    { id: 'cakeshop', name: 'ケーキ工房',       emoji: '🍰', level: 11, price: 2400, slots: 2,
+    { id: 'cakeshop', name: 'ケーキ工房',       emoji: '🍰', level: 11, price: 4800, slots: 2,
       recipe: { out: 'cake',    in: { flour: 1, egg: 1, milk: 1 }, sec: 8,  xp: 16 } },
-    { id: 'pieshop',  name: 'パイ工房',         emoji: '🥧', level: 12, price: 3000, slots: 2,
+    { id: 'pieshop',  name: 'パイ工房',         emoji: '🥧', level: 12, price: 6000, slots: 2,
       recipe: { out: 'pie',     in: { pumpkin: 2, flour: 1 },      sec: 10, xp: 18 } },
-    { id: 'jampot',   name: 'ジャムなべ',       emoji: '🍯', level: 13, price: 3600, slots: 2,
+    { id: 'jampot',   name: 'ジャムなべ',       emoji: '🍯', level: 13, price: 7200, slots: 2,
       recipe: { out: 'jam',     in: { grape: 2 },                  sec: 6,  xp: 14 } },
 
     // レベル14以降。作った品をさらに材料にして、生産の鎖を長くしていく
-    { id: 'ketchupery', name: 'ケチャップ工場', emoji: '🥫', level: 14, price: 2600, slots: 3,
+    { id: 'ketchupery', name: 'ケチャップ工場', emoji: '🥫', level: 14, price: 5200, slots: 3,
       recipe: { out: 'ketchup',  in: { tomato: 2 },                            sec: 4, xp: 12 } },
-    { id: 'pastashop',  name: 'パスタ工房',     emoji: '🍝', level: 15, price: 3200, slots: 2,
+    { id: 'pastashop',  name: 'パスタ工房',     emoji: '🍝', level: 15, price: 6400, slots: 2,
       recipe: { out: 'pasta',    in: { flour: 2, tomato: 1 },                  sec: 6, xp: 13 } },
-    { id: 'oilpress',   name: 'オリーブ油しぼり', emoji: '🧴', level: 16, price: 4200, slots: 2,
+    { id: 'oilpress',   name: 'オリーブ油しぼり', emoji: '🧴', level: 16, price: 8400, slots: 2,
       recipe: { out: 'oil',      in: { olive: 2 },                             sec: 6, xp: 16 } },
-    { id: 'pizzeria',   name: 'ピザ窯',         emoji: '🍕', level: 17, price: 5400, slots: 2,
+    { id: 'pizzeria',   name: 'ピザ窯',         emoji: '🍕', level: 17, price: 10800, slots: 2,
       recipe: { out: 'pizza',    in: { flour: 1, cheese: 1, ketchup: 1 },      sec: 9, xp: 26 } },
-    { id: 'gelateria',  name: 'アイス屋',       emoji: '🍨', level: 18, price: 6200, slots: 2,
+    { id: 'gelateria',  name: 'アイス屋',       emoji: '🍨', level: 18, price: 12400, slots: 2,
       recipe: { out: 'icecream', in: { milk: 2, melon: 1 },                    sec: 8, xp: 22 } },
-    { id: 'saladbar',   name: 'サラダバー',     emoji: '🥗', level: 19, price: 7000, slots: 2,
+    { id: 'saladbar',   name: 'サラダバー',     emoji: '🥗', level: 19, price: 14000, slots: 2,
       recipe: { out: 'salad',    in: { tomato: 1, carrot: 1, oil: 1 },         sec: 5, xp: 21 } },
-    { id: 'sandwichery', name: 'サンド屋',      emoji: '🥪', level: 20, price: 8000, slots: 2,
+    { id: 'sandwichery', name: 'サンド屋',      emoji: '🥪', level: 20, price: 16000, slots: 2,
       recipe: { out: 'sandwich', in: { bread: 1, cheese: 1, tomato: 1 },       sec: 7, xp: 23 } }
   ];
 
@@ -123,18 +123,18 @@
   const FIELDS_AT_START = 6;
   const FIELD_SLOTS = 12;
   const FIELD_UPGRADES = [
-    { price: 120,  level: 3 },
-    { price: 240,  level: 5 },
-    { price: 420,  level: 7 },
-    { price: 900,  level: 9 },
-    { price: 1500, level: 11 },
-    { price: 2400, level: 13 }
+    { price: 160,   level: 3 },
+    { price: 320,   level: 5 },
+    { price: 560,  level: 7 },
+    { price: 1200,  level: 9 },
+    { price: 2000,  level: 11 },
+    { price: 3200,  level: 13 }
   ];
 
   /** 倉庫。いっぱいだと収穫も取り出しもできなくなるので、広げるか売る。 */
   const BARN_AT_START = 30;
   const BARN_STEP = 12;
-  const barnPrice = (upgrades) => Math.round(70 * Math.pow(1.75, upgrades));
+  const barnPrice = (upgrades) => Math.round(140 * Math.pow(1.75, upgrades));
 
   /**
    * 次のレベルまでに必要な経験値。

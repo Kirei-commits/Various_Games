@@ -31,7 +31,7 @@
       mode: opts.mode === 'rush' ? 'rush' : 'free',
       limit: opts.mode === 'rush' ? (opts.limit || 180_000) : 0,
       over: false,
-      coins: opts.coins === undefined ? 30 : opts.coins,
+      coins: opts.coins === undefined ? 90 : opts.coins,
       level: 1,
       xp: 0,
       xpNext: Data.xpFor(1),

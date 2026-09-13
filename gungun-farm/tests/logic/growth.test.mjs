@@ -28,8 +28,9 @@ test('どの作物も、どの機械も、10秒を超えて待たせない', () 
 
 test('タネ代を払えないと植えられない', () => {
   const GF = setup();
-  const s = GF.Engine.create({ coins: 1 });
-  assert.equal(GF.Engine.plant(s, 0, 'wheat'), true);   // 1コイン
+  const cost = GF.Data.crop('wheat').cost;            // 値段は調整で動くのでデータから採る
+  const s = GF.Engine.create({ coins: cost });
+  assert.equal(GF.Engine.plant(s, 0, 'wheat'), true);
   assert.equal(s.coins, 0);
   assert.equal(GF.Engine.plant(s, 1, 'wheat'), false, 'コインが無ければ植わらない');
   assert.equal(s.fields[1].crop, null);
@@ -45,7 +46,8 @@ test('解放前の作物と、買っていない畑には植えられない', ()
 
 test('ぜんぶ植えるは、持っているコインの範囲で止まる', () => {
   const GF = setup();
-  const s = GF.Engine.create({ coins: 9 });          // にんじんは3コイン → 3マスぶん
+  const cost = GF.Data.crop('carrot').cost;
+  const s = GF.Engine.create({ coins: cost * 3 });   // ちょうど3マスぶん
   const n = GF.Engine.plantAll(s, 'carrot');
   assert.equal(n, 3);
   assert.equal(s.coins, 0);
@@ -102,19 +104,17 @@ test('tick は同じ時刻で何度呼んでも結果が変わらない', () => 
 
 test('収穫と同時に植え直せる。タネ代が無ければ空いたままにする', () => {
   const GF = setup();
-  const s = GF.Engine.create({ coins: 3 });        // こむぎ2回ぶん（1回目は植える、2回目が植え直し）
+  const c = GF.Data.crop('wheat');
+  const s = GF.Engine.create({ coins: c.cost * 2 });   // 植える1回 + 植え直し1回ぶん
   GF.Engine.plant(s, 0, 'wheat');
-  GF.Engine.tick(s, 2000);
+  GF.Engine.tick(s, c.sec * 1000);
 
   assert.equal(GF.Engine.harvest(s, 0, 'wheat'), true);
   assert.equal(s.fields[0].crop, 'wheat', '同じ場所に植え直っている');
   assert.equal(s.barn.wheat, 1);
-  assert.equal(s.coins, 1);
+  assert.equal(s.coins, 0, 'タネ代を2回ぶん払いきった');
 
-  GF.Engine.tick(s, 4000);
-  GF.Engine.harvest(s, 0, 'wheat');
-  assert.equal(s.coins, 0);
-  GF.Engine.tick(s, 6000);
+  GF.Engine.tick(s, c.sec * 2000);
   assert.equal(GF.Engine.harvest(s, 0, 'wheat'), true, '収穫そのものは出来る');
   assert.equal(s.fields[0].crop, null, 'タネ代が無ければ空いたままにする（勝手に借金しない）');
 });

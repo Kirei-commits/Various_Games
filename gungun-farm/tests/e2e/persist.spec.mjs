@@ -48,8 +48,9 @@ test('「はじめから」を選んだときは、ちゃんと消える', async
 
   await page.evaluate(() => { window.GF.Store.clearFarm(); window.GF.startGame('free'); });
   const fresh = await g.state();
+  const start = await page.evaluate(() => window.GF.Engine.create({}).coins);   // 初期コインもデータ次第
   expect(fresh.barn.pumpkin).toBe(undefined);
-  expect(fresh.coins).toBe(30);
+  expect(fresh.coins).toBe(start);
 });
 
 test('壊れた保存が残っていても起動できる', async ({ page }) => {
@@ -61,6 +62,7 @@ test('壊れた保存が残っていても起動できる', async ({ page }) => 
   page.on('pageerror', (e) => errors.push(e.message));
   await page.goto('/?seed=7&speed=8&sound=off&help=off');
   await expect(page.locator('#fields .field')).toHaveCount(12);
-  expect((await page.evaluate(() => window.GF.game.state.coins))).toBe(30);
+  const start = await page.evaluate(() => window.GF.Engine.create({}).coins);
+  expect((await page.evaluate(() => window.GF.game.state.coins))).toBe(start);
   expect(errors).toEqual([]);
 });
