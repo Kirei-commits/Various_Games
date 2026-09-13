@@ -68,6 +68,22 @@
 
     // 初めての人にだけ、いちど遊びかたを出す
     if (!resumed && game.record.games === 0 && params.get('help') !== 'off') showHelp();
+
+    registerWorker();
+  }
+
+  /**
+   * オフラインでも開けるようにする。
+   * **`file://` で直接開いたときは登録できない**（Service Worker が使えない）ので、
+   * 失敗を握りつぶす。このゲームは file:// でもそのまま動くのが前提。
+   */
+  function registerWorker() {
+    if (params.get('sw') === 'off') return;
+    const nav = global.navigator;
+    if (!nav || !nav.serviceWorker || !/^https?:$/.test(global.location.protocol)) return;
+    try {
+      nav.serviceWorker.register('sw.js').catch(() => { /* 鳴らないだけ。遊びは続く */ });
+    } catch (e) { /* noop */ }
   }
 
   /**

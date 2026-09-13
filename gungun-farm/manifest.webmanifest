@@ -1,0 +1,16 @@
+{
+  "name": "ぐんぐん農園",
+  "short_name": "ぐんぐん農園",
+  "description": "待ち時間は最長10秒。育てて、作って、届ける。1画面で完結するポップな農園ゲーム。",
+  "lang": "ja",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#7fd8ff",
+  "theme_color": "#7fd8ff",
+  "icons": [
+    { "src": "./icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "./icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "maskable" }
+  ]
+}

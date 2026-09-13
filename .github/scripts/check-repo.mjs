@@ -48,6 +48,8 @@ for (const g of games) {
 const ALLOWED_TOP = new Set([
   'index.html', 'package.json', 'package-lock.json', 'playwright.config.mjs',
   'README.md', 'CLAUDE.md', 'ROADMAP.md', '.gitignore',
+  // スマホの画面に置ける・オフラインでも開ける、のために要るもの（配信物に入る）
+  'sw.js', 'manifest.webmanifest', 'icon.svg',
   'css', 'js', 'tests', 'node_modules', 'playwright-report', 'test-results', 'playtest-shots'
 ]);
 for (const g of games) {

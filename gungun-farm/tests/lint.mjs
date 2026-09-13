@@ -49,6 +49,59 @@ for (const [before, after] of need) {
   if (i === -1 || j === -1 || i > j) problems.push(`読み込み順が不正: ${before} は ${after} より前に必要`);
 }
 
+// 3.5 Service Worker が配るものと、index.html が読むものを突き合わせる。
+//     **ビルド工程が無いので、並びは手で書く。だからこそ、ずれたら気づけるようにする。**
+//     ずれると「入れたつもりのファイルだけ取りに行って失敗する」——静かに壊れる種類の不具合。
+const swPath = path.join(ROOT, 'sw.js');
+if (!fs.existsSync(swPath)) {
+  problems.push('sw.js が無い（オフラインで開けなくなる）');
+} else {
+  const sw = fs.readFileSync(swPath, 'utf8');
+  const listed = new Set(
+    [...sw.matchAll(/'\.\/([^']*)'/g)].map((m) => m[1]).filter((x) => x !== '')
+  );
+  // index.html が読むもの（data: と外部は除く）は、ぜんぶ並んでいること
+  for (const ref of refs) {
+    if (!listed.has(ref)) problems.push(`sw.js の一覧に ${ref} が無い（オフラインで欠ける）`);
+  }
+  if (!listed.has('index.html')) problems.push('sw.js の一覧に index.html が無い');
+  if (!/'\.\/'/.test(sw)) problems.push("sw.js の一覧に './' が無い（入口をキャッシュできない）");
+  // 逆に、存在しないものを並べていると install がまるごと失敗する
+  for (const name of listed) {
+    if (!fs.existsSync(path.join(ROOT, name))) {
+      problems.push(`sw.js が存在しないファイルを並べている: ${name}`);
+    }
+  }
+  if (!/const CACHE = '[^']+'/.test(sw)) problems.push('sw.js に CACHE の名前が無い');
+}
+
+// 3.6 マニフェスト（スマホの画面に置けるようにするための宣言）
+const manPath = path.join(ROOT, 'manifest.webmanifest');
+if (!fs.existsSync(manPath)) {
+  problems.push('manifest.webmanifest が無い');
+} else {
+  try {
+    const man = JSON.parse(fs.readFileSync(manPath, 'utf8'));
+    for (const key of ['name', 'start_url', 'display', 'icons', 'theme_color']) {
+      if (!man[key]) problems.push(`manifest.webmanifest に ${key} が無い`);
+    }
+    for (const icon of man.icons || []) {
+      const rel = String(icon.src).replace(/^\.\//, '');
+      if (!fs.existsSync(path.join(ROOT, rel))) problems.push(`マニフェストのアイコンが無い: ${icon.src}`);
+    }
+    // 1画面のたてlong なゲームなので、立てて開く
+    if (man.orientation && man.orientation !== 'portrait') {
+      problems.push('マニフェストの orientation は portrait（1画面のたて長を前提にしている）');
+    }
+    const theme = (html.match(/name="theme-color" content="([^"]+)"/) || [])[1];
+    if (theme && man.theme_color !== theme) {
+      problems.push(`theme_color が index.html と食い違う（${man.theme_color} 対 ${theme}）`);
+    }
+  } catch (e) {
+    problems.push('manifest.webmanifest が JSON として読めない: ' + e.message);
+  }
+}
+
 // 4. データの整合。実際に data.js を評価して中身を見る
 const sandbox = { window: {}, Math, JSON, Object, Array, Number, String };
 vm.createContext(sandbox);
