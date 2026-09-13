@@ -95,7 +95,7 @@
     game.settings = Store.save({ settings: { mode } }).settings;
     if (mode === 'free') Store.clearFarm();
     Render.invalidate();
-    if (!opts.silent) Render.ticker(mode === 'rush' ? 'よーい、スタート！' : 'タネをえらんで、畑をタップ！');
+    if (!opts.silent) Render.ticker(mode === 'rush' ? 'よーい、スタート！' : 'したの大きいボタンでどんどん回そう！');
     if (game.state) Render.sync(game.state, game.ui);
   }
 
@@ -158,8 +158,8 @@
 
   function bindInput() {
     $('#app').addEventListener('click', onClick);
-    $('#btn-harvest').addEventListener('click', () => doHarvestAll());
-    $('#btn-plant').addEventListener('click', () => doPlantAll());
+    $('#btn-harvest').addEventListener('click', () => doHarvest());
+    $('#btn-work').addEventListener('click', () => doWorkAll());
     $('#btn-menu').addEventListener('click', showMenu);
     for (const tab of document.querySelectorAll('.tab')) {
       tab.addEventListener('click', () => {
@@ -192,7 +192,8 @@
     if (act === 'field') {
       const f = state.fields[i];
       if (Engine.isReady(f, state.now)) {
-        if (Engine.harvest(state, i)) { Audio.play('harvest'); Render.float(Render.icon(f.crop), x, y); }
+        // 収穫すると、選んでいるタネがその場に植え直される（タネ代が無ければ空いたまま）
+        if (Engine.harvest(state, i, game.ui.seed)) { Audio.play('harvest'); Render.float(Render.icon(f.crop), x, y); }
         else barnFullWarning();
       } else if (!f.crop) {
         plantAt(i, x, y);
@@ -289,38 +290,54 @@
     Render.invalidate();
   }
 
-  function doHarvestAll() {
+  /**
+   * 主ボタン。実ったものを収穫し、空いた畑へ選んでいるタネを植え直す。
+   * 収穫と植え直しを別々のボタンにしていたとき、この2つだけで全操作の71%を占めていた
+   * （待ちの無いゲームでは、その往復に判断が無い）。1タップにまとめてある。
+   */
+  function doHarvest() {
     const state = game.state;
-    const n = Engine.harvestAll(state);
+    const before = Math.floor(state.coins);
+    const n = Engine.harvestAll(state, game.ui.seed);
+    const sown = n > 0 ? 0 : Engine.plantAll(state, game.ui.seed);   // 実りが無ければ、まくだけ
+
     if (n > 0) {
       Audio.play('harvest');
       const box = $('#btn-harvest').getBoundingClientRect();
       Render.float('+' + n, box.left + box.width / 2, box.top);
-      Render.ticker(`${n}こ 収穫した！`);
+      const spent = before - Math.floor(state.coins);
+      const planted = state.fields.filter((f, i) => i < state.fieldsOwned && f.crop).length;
+      Render.ticker(spent > 0
+        ? `${n}こ 収穫して、${Render.nameOf(game.ui.seed)}を植え直した（🪙${spent}）`
+        : `${n}こ 収穫した（タネ代が足りず ${state.fieldsOwned - planted}マス 空いている）`);
+    } else if (sown > 0) {
+      Audio.play('plant');
+      Render.ticker(`${Render.nameOf(game.ui.seed)}を ${sown}マス まいた`);
     } else if (Engine.barnFree(state) < 1) {
       barnFullWarning();
     } else {
       Audio.play('nope');
-      Render.ticker('まだ実っていない');
+      const c = Data.crop(game.ui.seed);
+      Render.ticker(c && state.coins < c.cost ? `まだ実っていない（タネ代も足りない）` : 'まだ実っていない');
     }
     Render.sync(state, game.ui);
   }
 
-  function doPlantAll() {
+  /** 副ボタン。出来たものを取り出して、余っている材料で全部仕込む。 */
+  function doWorkAll() {
     const state = game.state;
-    const n = Engine.plantAll(state, game.ui.seed);
-    if (n > 0) { Audio.play('plant'); Render.ticker(`${Render.nameOf(game.ui.seed)}を ${n}マス 植えた`); }
-    else {
+    const { got, queued } = Engine.workAll(state);
+    if (got > 0 || queued > 0) {
+      Audio.play(got > 0 ? 'collect' : 'craft');
+      const box = $('#btn-work').getBoundingClientRect();
+      if (got > 0) Render.float('+' + got, box.left + box.width / 2, box.top);
+      Render.ticker([got > 0 ? `${got}こ 取り出した` : '', queued > 0 ? `${queued}こ 仕込んだ` : '']
+        .filter(Boolean).join('・'));
+    } else if (state.machines.some((m) => m.done) && Engine.barnFree(state) < 1) {
+      barnFullWarning();
+    } else {
       Audio.play('nope');
-      const c = Data.crop(game.ui.seed);
-      if (c && state.coins < c.cost && Engine.barnUsed(state) > 0) {
-        Render.ticker(`タネ代が足りない（🪙${c.cost}）。みせで売ってコインにしよう`);
-        game.ui.tab = 'shop';
-        game.ui.shopTab = 'sell';
-        Render.invalidate();
-      } else {
-        Render.ticker('植えられる畑がない（タネ代か空きマスを確認）');
-      }
+      Render.ticker('材料が足りない（注文に要るぶんは残してある）');
     }
     Render.sync(state, game.ui);
   }
@@ -391,8 +408,8 @@
   function showHelp() {
     const nodes = [
       el('h2', '', 'あそびかた'),
-      el('p', '', '🌱 タネをえらんで畑をタップ。いちばん長い作物でも9秒、機械でも10秒で出来上がる。'),
-      el('p', '', '🏭 こうぼうは材料がそろうとタップで仕込める。出来たらもう一度タップで倉庫へ。'),
+      el('p', '', '🧺 したの「しゅうかく」を押すと、実ったものを収穫して、選んでいるタネをその場に植え直す。いちばん長い作物でも9秒。'),
+      el('p', '', '🏭 となりのボタンで、出来たものを取り出して余った材料をまとめて仕込む。注文に要るぶんは残してくれる。'),
       el('p', '', '📦 ちゅうもんを届けるとコインと経験値がもらえる。早いほどオマケ、続けるほど倍率が上がる。'),
       el('p', '', '⚠️ 倉庫がいっぱいだと収穫できない。みせで売るか、倉庫を広げよう。')
     ];

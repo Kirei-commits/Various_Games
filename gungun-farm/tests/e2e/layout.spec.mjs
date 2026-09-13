@@ -57,7 +57,7 @@ test('押せるものは 44x44px 以上ある（指で確実に押せる大き�
       ...await page.locator('.field').all(),
       ...await page.locator('#panel-body button').all(),
       ...await page.locator('.tab').all(),
-      page.locator('#btn-harvest'), page.locator('#btn-plant'), page.locator('#btn-menu')
+      page.locator('#btn-harvest'), page.locator('#btn-work'), page.locator('#btn-menu')
     ];
     for (const t of targets) {
       const box = await t.boundingBox();
@@ -73,7 +73,7 @@ test('押せるものは 44x44px 以上ある（指で確実に押せる大き�
 test('主要な2つのボタンは、どの画面でも同じ場所にある', async ({ page }) => {
   await openFarm(page);
   const harvest = await page.locator('#btn-harvest').boundingBox();
-  const plant = await page.locator('#btn-plant').boundingBox();
+  const plant = await page.locator('#btn-work').boundingBox();
   const tabs = await page.locator('#tabs').boundingBox();
   expect(harvest.y).toBeCloseTo(plant.y, 0);
   expect(harvest.y + harvest.height).toBeLessThanOrEqual(tabs.y + 1);

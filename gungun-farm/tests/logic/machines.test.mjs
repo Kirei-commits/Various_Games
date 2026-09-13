@@ -90,3 +90,39 @@ test('機械を買ったときに、その材料がもう手に入ること', ()
     }
   }
 });
+
+test('まとめ仕込みは、出来たものを取り出してから、余った材料で仕込む', () => {
+  const { GF, s } = setup();
+  s.orders = [];
+  GF.Engine.store(s, 'wheat', 6);
+
+  const a = GF.Engine.workAll(s);
+  assert.equal(a.queued, 3, '空いている枠ぶん仕込む');
+  assert.equal(s.barn.wheat, undefined);
+
+  GF.Engine.tick(s, 3000);
+  const b = GF.Engine.workAll(s);
+  assert.equal(b.got, 3, '次に押したときは取り出しから');
+  assert.equal(s.barn.flour, 3);
+});
+
+test('まとめ仕込みは、注文が欲しがっている材料には手を出さない', () => {
+  const { GF, s } = setup();
+  s.orders = [{ id: 1, want: { wheat: 3 }, coins: 20, xp: 3, createdAt: 0, expiresAt: 99999, ttl: 99999 }];
+  GF.Engine.store(s, 'wheat', 4);
+
+  assert.equal(GF.Engine.workAll(s).queued, 0, '残り1個では注文ぶんを割るので仕込まない');
+  assert.equal(s.barn.wheat, 4);
+
+  GF.Engine.store(s, 'wheat', 2);                 // 余りが3個になった
+  assert.equal(GF.Engine.workAll(s).queued, 1);
+  assert.equal(s.barn.wheat, 4, '注文ぶんの3個 + 端数1個は残る');
+});
+
+test('1台ずつ押したときは遠慮しない（自分で決めた操作なので）', () => {
+  const { GF, s } = setup();
+  s.orders = [{ id: 1, want: { wheat: 3 }, coins: 20, xp: 3, createdAt: 0, expiresAt: 99999, ttl: 99999 }];
+  GF.Engine.store(s, 'wheat', 4);
+  assert.equal(GF.Engine.queue(s, 0), true, '注文ぶんを割ってでも仕込める');
+  assert.equal(s.barn.wheat, 2);
+});

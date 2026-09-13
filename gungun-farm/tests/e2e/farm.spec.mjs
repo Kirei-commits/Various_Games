@@ -16,7 +16,7 @@ test('畑をタップして植え、実ったらタップで収穫できる', as
 
   const s = await g.state();
   expect(s.barn.wheat).toBe(1);
-  expect(s.fields[0].crop).toBe(null);
+  expect(s.fields[0].crop).toBe('wheat', '収穫と同時に植え直される');
   expect(g.errors).toEqual([]);
 });
 
@@ -27,19 +27,81 @@ test('タネを選び替えると、植わるものが変わる', async ({ page 
   expect((await g.state()).fields[0].crop).toBe('carrot');
 });
 
-test('ぜんぶ植える・ぜんぶ収穫が1タップで効く', async ({ page }) => {
+test('主ボタンは「まく」→「収穫して植え直す」を1タップでやる', async ({ page }) => {
   const g = await openFarm(page);
-  await g.tap(page.locator('#btn-plant'));
+  // 畑が空のときは、まくボタンとして働く
+  await g.tap(page.locator('#btn-harvest'));
   let s = await g.state();
   expect(s.fields.filter((f) => f.crop).length).toBe(s.fieldsOwned);
 
   await waitReady(page);
-  await expect(page.locator('#btn-harvest')).toBeEnabled();
   await g.tap(page.locator('#btn-harvest'));
 
   s = await g.state();
   expect(s.barn.wheat).toBe(s.fieldsOwned);
+  // 収穫と同時に植え直されているので、畑は空にならない
+  expect(s.fields.filter((f) => f.crop === 'wheat').length).toBe(s.fieldsOwned);
+});
+
+test('畑を1マスだけ押しても、収穫して植え直す', async ({ page }) => {
+  const g = await openFarm(page);
+  const field = page.locator('.field').first();
+  await g.tap(field);
+  await waitReady(page);
+  const before = (await g.state()).coins;
+
+  await g.tap(field);
+  const s = await g.state();
+  expect(s.barn.wheat).toBe(1);
+  expect(s.fields[0].crop).toBe('wheat', '空かずに植え直されている');
+  expect(s.coins).toBe(before - 1, 'タネ代を払っている');
+});
+
+test('タネ代が尽きたら、収穫しても植え直さない（空いたまま）', async ({ page }) => {
+  const g = await openFarm(page);
+  await g.tap(page.locator('#btn-harvest'));
+  await waitReady(page);
+  await page.evaluate(() => { window.GF.game.state.coins = 0; });
+
+  await g.tap(page.locator('#btn-harvest'));
+  const s = await g.state();
   expect(s.fields.filter((f) => f.crop).length).toBe(0);
+  await expect(page.locator('#ticker')).toContainText('空いている');
+});
+
+test('副ボタンは「取り出す」と「まとめて仕込む」を1タップでやる', async ({ page }) => {
+  const g = await openFarm(page);
+  // 注文が材料を予約すると結果が変わる。板を空にし、補充も止めてから測る
+  // （空にするだけでは、次の tick で新しい注文が来て予約が復活する）
+  await page.evaluate(() => {
+    const s = window.GF.game.state;
+    s.orders = [];
+    s.nextOrderAt = s.now + 10_000_000;
+    window.GF.refresh();
+  });
+  await give(page, 'wheat', 6);
+  await g.tap(page.locator('#btn-work'));
+  expect((await g.state()).machines[0].queue.length).toBe(3, '空いている枠ぶん仕込む');
+
+  await advance(page, 4000);
+  await g.tap(page.locator('#btn-work'));
+  expect((await g.state()).barn.flour).toBe(3);
+});
+
+test('まとめ仕込みは、注文に要るぶんの材料を残す', async ({ page }) => {
+  const g = await openFarm(page);
+  // こむぎ2個を欲しがる注文だけにする
+  await page.evaluate(() => {
+    const s = window.GF.game.state;
+    s.orders = [{ id: 999, want: { wheat: 2 }, coins: 20, xp: 3, createdAt: s.now, expiresAt: s.now + 90000, ttl: 90000 }];
+    window.GF.refresh();
+  });
+  await give(page, 'wheat', 3);
+
+  await g.tap(page.locator('#btn-work'));
+  const s = await g.state();
+  expect(s.machines[0].queue.length).toBe(0, '残り1個では注文ぶんを割ってしまうので仕込まない');
+  expect(s.barn.wheat).toBe(3);
 });
 
 test('こうぼうは材料がそろうと仕込め、出来たらタップで取り出せる', async ({ page }) => {
@@ -110,7 +172,7 @@ test('売る数はまとめて選べる', async ({ page }) => {
 
 test('倉庫がいっぱいだと収穫できず、みせへ案内される', async ({ page }) => {
   const g = await openFarm(page);
-  await g.tap(page.locator('#btn-plant'));
+  await g.tap(page.locator('#btn-harvest'));
   await waitReady(page);
   await page.evaluate(() => {
     const s = window.GF.game.state;

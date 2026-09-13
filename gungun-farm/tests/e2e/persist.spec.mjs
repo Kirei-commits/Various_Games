@@ -11,7 +11,7 @@ const saveNow = (page) => page.evaluate(() => window.GF.Store.saveFarm(window.GF
 test('閉じて開き直すと、続きから遊べる', async ({ page }) => {
   const g = await openFarm(page);
   await g.tap(page.locator('.card[data-act="seed"][data-id="carrot"]'));
-  await g.tap(page.locator('#btn-plant'));
+  await g.tap(page.locator('#btn-harvest'));
   await page.evaluate(() => window.GF.Engine.store(window.GF.game.state, 'corn', 5));
   const before = await g.state();
   await saveNow(page);

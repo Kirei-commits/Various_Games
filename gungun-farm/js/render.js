@@ -33,8 +33,9 @@
       timer: $('#timer'), timeleft: $('#timeleft'),
       fields: $('#fields'), ticker: $('#ticker'),
       panelTitle: $('#panel-title'), panelNote: $('#panel-note'), panelBody: $('#panel-body'),
-      btnHarvest: $('#btn-harvest'), btnPlant: $('#btn-plant'),
-      harvestLabel: $('#harvest-label'), plantLabel: $('#plant-label'), plantIco: $('#plant-ico'),
+      btnHarvest: $('#btn-harvest'),
+      btnWork: $('#btn-work'),
+      harvestLabel: $('#harvest-label'), harvestIco: $('#harvest-ico'), workLabel: $('#work-label'),
       badgeWork: $('#badge-work'), badgeOrder: $('#badge-order'), badgeShop: $('#badge-shop'),
       tabs: [...document.querySelectorAll('.tab')],
       floats: $('#floats'), pop: $('#pop'), sheet: $('#sheet')
@@ -75,15 +76,20 @@
       refs.timer.hidden = true;
     }
 
-    const ready = state.fields.filter((f, i) => i < state.fieldsOwned && Engine.isReady(f, state.now)).length;
-    refs.btnHarvest.disabled = ready === 0 || Engine.barnFree(state) < 1;
-    refs.harvestLabel.textContent = ready ? `ぜんぶ収穫 ${ready}` : 'ぜんぶ収穫';
-
+    // 主ボタン: 実ったものを収穫して、空いた畑へ選んでいるタネを植え直す（1タップ）
     const crop = Data.crop(ui.seed);
+    const ready = state.fields.filter((f, i) => i < state.fieldsOwned && Engine.isReady(f, state.now)).length;
     const empty = state.fields.filter((f, i) => i < state.fieldsOwned && !f.crop).length;
-    refs.btnPlant.disabled = !crop || empty === 0 || state.coins < crop.cost;
-    refs.plantIco.textContent = crop ? icon(ui.seed) : '🌱';
-    refs.plantLabel.textContent = crop && empty ? `ぜんぶ植える ${Math.min(empty, Math.floor(state.coins / crop.cost))}` : 'ぜんぶ植える';
+    const canSow = !!crop && state.coins >= crop.cost && empty > 0;
+    refs.btnHarvest.disabled = (ready === 0 || Engine.barnFree(state) < 1) && !canSow;
+    refs.harvestIco.textContent = ready ? '🧺' : crop ? icon(ui.seed) : '🌱';
+    refs.harvestLabel.textContent = ready ? `しゅうかく ${ready}` : canSow ? 'たねをまく' : 'しゅうかく';
+
+    // 副ボタン: 出来たものを取り出して、余った材料で全部仕込む
+    const done = state.machines.reduce((a, m) => a + m.done, 0);
+    const ready2 = state.machines.some((m, i) => Engine.canQueue(state, i));
+    refs.btnWork.disabled = done === 0 && !ready2;
+    refs.workLabel.textContent = done ? `とりだす ${done}` : 'ぜんぶ仕込む';
 
     const deliverable = state.orders.filter((o) => Engine.canDeliver(state, o)).length;
     badge(refs.badgeOrder, deliverable);
@@ -154,8 +160,8 @@
   /* ---------------------------------------------------------------- 下の段 */
 
   const TITLES = {
-    seed: ['たね', 'えらんだタネを畑にタップ'],
-    work: ['こうぼう', '材料がそろうと仕込める'],
+    seed: ['たね', '切り替えると次の収穫から植わる'],
+    work: ['こうぼう', '1台ずつなら注文ぶんも使える'],
     order: ['ちゅうもん', '早いほどオマケが増える'],
     shop: ['みせ', '売って、広げて、増やす']
   };

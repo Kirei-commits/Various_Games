@@ -219,7 +219,7 @@ body::after  { width: 220px; height: 220px; bottom: -120px; left: -60px; backgro
 .big:active { transform: translateY(3px); box-shadow: none !important; }
 .big[disabled] { background: #cfc9bf; box-shadow: 0 4px 0 #b3ada3; }
 .harvest { background: var(--orange); box-shadow: 0 4px 0 #d97b1d; }
-.plant { background: var(--leaf); box-shadow: 0 4px 0 var(--leaf-d); }
+.work { background: var(--blue); box-shadow: 0 4px 0 #2b86c9; }
 
 /* ------------------------------------------------------------------ タブ */
 .tabs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }

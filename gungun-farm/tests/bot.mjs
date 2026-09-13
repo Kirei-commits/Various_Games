@@ -25,33 +25,24 @@ export function botStep(GF, state) {
   const { Engine, Data } = GF;
   if (state.over) return;
 
-  // 1. 出来上がったものを取り出して、実った畑を収穫する
-  Engine.collectAll(state);
-  Engine.harvestAll(state);
+  const want = reserved(state);
 
-  // 2. 届けられる注文は高い順に届ける
+  // 1. 実ったものを収穫して、その場に植え直す（主ボタン1タップ）
+  const seed = chooseSeed(GF, state, want);
+  if (seed) Engine.harvestAll(state, seed);
+
+  // 2. 出来たものを取り出して、余った材料で仕込む（副ボタン1タップ）
+  Engine.workAll(state);
+
+  // 3. 届けられる注文は高い順に届ける
   for (const o of [...state.orders].sort((a, b) => b.coins - a.coins)) {
     if (Engine.canDeliver(state, o)) Engine.deliver(state, o.id);
   }
 
-  // 3. 期限が近いのに手が届かない注文は捨てて、枠を空ける
+  // 4. 期限が近いのに手が届かない注文は捨てて、枠を空ける
   for (const o of [...state.orders]) {
-    const left = o.expiresAt - state.now;
-    if (left > 8000) continue;
+    if (o.expiresAt - state.now > 8000) continue;
     if (!Engine.canDeliver(state, o)) Engine.dismiss(state, o.id);
-  }
-
-  // 4. 余っている材料を加工に回す（高い品を作る機械から順に）
-  const want = reserved(state);
-  const byValue = state.machines
-    .map((m, i) => ({ i, def: Engine.machineDef(m) }))
-    .sort((a, b) => Data.item(b.def.recipe.out).sell - Data.item(a.def.recipe.out).sell);
-  for (const { i, def } of byValue) {
-    for (let guard = 0; guard < 8; guard++) {
-      const ok = Object.entries(def.recipe.in).every(([id, n]) => surplus(state, want, id) >= n);
-      if (!ok || !Engine.canQueue(state, i)) break;
-      Engine.queue(state, i);
-    }
   }
 
   // 5. 売る。理由は2つあって、どちらも欠かすと詰まる
@@ -86,20 +77,20 @@ export function botStep(GF, state) {
   const up = Engine.nextFieldPrice(state);
   if (up && state.level >= up.level && affordable(up.price * 1.5)) Engine.buyField(state);
 
-  // 7. 空いた畑に植える
-  plantFields(GF, state, want);
+  // 7. 空いている畑（買ったばかり・タネ代切れ）にまく
+  if (seed) Engine.plantAll(state, seed);
 }
 
 /**
- * 何を植えるか。
+ * 何を植えるか。畑ぜんぶが同じタネになるので、選ぶのは1つだけ。
  *  a) 開いている注文が欲しがっている作物で、足りていないもの
  *  b) 持っている機械が食べる作物で、在庫が薄いもの
  *  c) それ以外は「1秒あたりの儲け」がいちばん大きい作物
  */
-function plantFields(GF, state, want) {
+function chooseSeed(GF, state, want) {
   const { Engine, Data } = GF;
   const crops = Data.cropsAt(state.level);
-  if (!crops.length) return;
+  if (!crops.length) return null;
 
   const machineNeed = {};
   for (const m of state.machines) {
@@ -107,23 +98,19 @@ function plantFields(GF, state, want) {
       if (Data.crop(id)) machineNeed[id] = (machineNeed[id] || 0) + n * 3;
     }
   }
+  const stock = (id) => (state.barn[id] || 0) + growing(state, id);
 
+  const ordered = crops.find((c) => (want[c.id] || 0) > stock(c.id));
+  const needed = crops.find((c) => machineNeed[c.id] && stock(c.id) < machineNeed[c.id]);
   const best = crops.slice().sort((a, b) => {
     const rate = (c) => (Data.item(c.id).sell - c.cost) / c.sec;
     return rate(b) - rate(a);
   });
-
-  for (let i = 0; i < state.fieldsOwned; i++) {
-    if (state.fields[i].crop) continue;
-
-    const ordered = crops.find((c) => (want[c.id] || 0) > (state.barn[c.id] || 0) + growing(state, c.id));
-    const needed = crops.find((c) => machineNeed[c.id] && (state.barn[c.id] || 0) + growing(state, c.id) < machineNeed[c.id]);
-    const choice = [ordered, needed, ...best].find((c) => c && Engine.canPlant(state, i, c.id));
-    if (!choice) break;                       // コインが尽きた
-    Engine.plant(state, i, choice.id);
-  }
+  const pick = [ordered, needed, ...best].find((c) => c && state.coins >= c.cost);
+  return pick ? pick.id : best[best.length - 1].id;   // 買えなくても、いちばん安いものを指しておく
 }
 
+/** その作物が畑で育っている数 */
 const growing = (state, id) => state.fields.filter((f) => f.crop === id).length;
 
 /**

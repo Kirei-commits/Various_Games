@@ -120,7 +120,15 @@
 
   const isReady = (f, now) => !!f.crop && f.readyAt <= now;
 
-  function harvest(state, i) {
+  /**
+   * 収穫する。`replant` を渡すと、空いた畑へそのタネをその場で植え直す。
+   *
+   * 「収穫 → 植える」の往復は、待ち時間のあるゲームでは意味のある操作だが、
+   * このゲームには待ちが無いので**ただの往復**になる。計測したら、全操作の
+   * 71%が収穫と植え直しで、判断のある操作は11%しか残っていなかった。
+   * 植え直しを収穫にくっつけて、その分を注文と店（＝考えるところ）に回す。
+   */
+  function harvest(state, i, replant) {
     const f = state.fields[i];
     if (!f || !isReady(f, state.now)) return false;
     if (barnFree(state) < 1) return false;          // 倉庫がいっぱいなら収穫できない
@@ -129,12 +137,13 @@
     state.fields[i] = { crop: null, plantedAt: 0, readyAt: 0 };
     state.stats.harvested++;
     earn(state, 0, c.xp);
+    if (replant) plant(state, i, replant);          // タネ代が無ければ空いたまま
     return true;
   }
 
-  function harvestAll(state) {
+  function harvestAll(state, replant) {
     let n = 0;
-    for (let i = 0; i < state.fieldsOwned; i++) if (harvest(state, i)) n++;
+    for (let i = 0; i < state.fieldsOwned; i++) if (harvest(state, i, replant)) n++;
     return n;
   }
 
@@ -178,6 +187,38 @@
     let n = 0;
     for (let i = 0; i < state.machines.length; i++) n += collect(state, i);
     return n;
+  }
+
+  /** 開いている注文が欲しがっている数。まとめ仕込みはここに手を出さない。 */
+  function reservedForOrders(state) {
+    const want = {};
+    for (const o of state.orders) {
+      for (const [id, n] of Object.entries(o.want)) want[id] = (want[id] || 0) + n;
+    }
+    return want;
+  }
+
+  /**
+   * 出来たものを取り出して、余っている材料で全部仕込む。
+   * **注文に要るぶんは残す。** 1タップのボタンが、届けるはずだった品を
+   * 勝手に材料にしてしまうと、押すのが怖いボタンになる。
+   * 1台ずつ押したときは遠慮しない（そちらは自分で決めた操作なので）。
+   */
+  function workAll(state) {
+    const got = collectAll(state);
+    const keep = reservedForOrders(state);
+    let queued = 0;
+    for (let i = 0; i < state.machines.length; i++) {
+      const def = machineDef(state.machines[i]);
+      for (let guard = 0; guard < 12; guard++) {
+        const spare = Object.entries(def.recipe.in)
+          .every(([id, n]) => (state.barn[id] || 0) - (keep[id] || 0) >= n);
+        if (!spare || !canQueue(state, i)) break;
+        queue(state, i);
+        queued++;
+      }
+    }
+    return { got, queued };
   }
 
   /* ---------------------------------------------------------------- 注文 */
@@ -381,7 +422,7 @@
     setRandom, create, tick,
     barnCap, barnUsed, barnFree, has, ownsMachine,
     canPlant, plant, plantAll, isReady, harvest, harvestAll,
-    canQueue, queue, collect, collectAll, machineDef,
+    canQueue, queue, collect, collectAll, workAll, reservedForOrders, machineDef,
     obtainable, makeOrder, canDeliver, deliver, dismiss, comboMul,
     sell, nextFieldPrice, buyField, buyBarn, buyMachine,
     rescue, timeLeft, score, store, take, event

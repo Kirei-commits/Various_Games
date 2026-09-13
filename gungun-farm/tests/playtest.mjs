@@ -135,15 +135,13 @@ async function act(page, s, round) {
   };
   const tab = (name) => page.locator(`.tab[data-tab="${name}"]`).click();
 
-  // 1. 実ったら収穫して、空いたら植える（いちばん手数の多い操作）
+  // 1. 主ボタン。実ったものを収穫して、その場に植え直す
   await click('#btn-harvest');
-  await click('#btn-plant');
 
-  // 2. こうぼう。出来たものを取り出し、材料があれば仕込む
-  await tab('work');
-  for (let i = 0; i < 12; i++) if (!await click('.card[data-act="machine"]:not(.off)')) break;
+  // 2. 副ボタン。出来たものを取り出して、余った材料で仕込む
+  await click('#btn-work');
 
-  // 3. ちゅうもん。届けられるものは全部届ける
+  // 3. ちゅうもん。届けられるものは全部届ける（ここが唯一「考える」ところ）
   await tab('order');
   for (let i = 0; i < 3; i++) if (!await click('.order .go:not([disabled])')) break;
 

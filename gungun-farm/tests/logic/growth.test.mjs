@@ -99,3 +99,43 @@ test('tick は同じ時刻で何度呼んでも結果が変わらない', () => 
   GF.Engine.tick(s, 4000);            // 巻き戻そうとしても進んだ時刻は戻らない
   assert.equal(JSON.stringify(s), snap);
 });
+
+test('収穫と同時に植え直せる。タネ代が無ければ空いたままにする', () => {
+  const GF = setup();
+  const s = GF.Engine.create({ coins: 3 });        // こむぎ2回ぶん（1回目は植える、2回目が植え直し）
+  GF.Engine.plant(s, 0, 'wheat');
+  GF.Engine.tick(s, 2000);
+
+  assert.equal(GF.Engine.harvest(s, 0, 'wheat'), true);
+  assert.equal(s.fields[0].crop, 'wheat', '同じ場所に植え直っている');
+  assert.equal(s.barn.wheat, 1);
+  assert.equal(s.coins, 1);
+
+  GF.Engine.tick(s, 4000);
+  GF.Engine.harvest(s, 0, 'wheat');
+  assert.equal(s.coins, 0);
+  GF.Engine.tick(s, 6000);
+  assert.equal(GF.Engine.harvest(s, 0, 'wheat'), true, '収穫そのものは出来る');
+  assert.equal(s.fields[0].crop, null, 'タネ代が無ければ空いたままにする（勝手に借金しない）');
+});
+
+test('植え直す先は、いま選んでいるタネ（違う作物にも切り替わる）', () => {
+  const GF = setup();
+  const s = GF.Engine.create({ coins: 999 });
+  GF.Engine.plantAll(s, 'wheat');
+  GF.Engine.tick(s, 2000);
+
+  const n = GF.Engine.harvestAll(s, 'carrot');
+  assert.equal(n, s.fieldsOwned);
+  assert.equal(s.fields.filter((f) => f.crop === 'carrot').length, s.fieldsOwned);
+  assert.equal(s.barn.wheat, s.fieldsOwned);
+});
+
+test('植え直しを頼まなければ、畑は空くまま（古い呼び方を壊さない）', () => {
+  const GF = setup();
+  const s = GF.Engine.create({ coins: 999 });
+  GF.Engine.plant(s, 0, 'wheat');
+  GF.Engine.tick(s, 2000);
+  GF.Engine.harvest(s, 0);
+  assert.equal(s.fields[0].crop, null);
+});
