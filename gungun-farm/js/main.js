@@ -50,6 +50,7 @@
     game.record = Store.load().record;
 
     if (params.has('sound')) game.settings.sound = params.get('sound') !== 'off';
+    if (params.has('music')) game.settings.music = params.get('music') !== 'off';
     Audio.setEnabled(game.settings.sound);
     game.speed = Math.max(0.1, Math.min(50, Number(params.get('speed')) || 1));
     if (params.has('seed')) Engine.setRandom(mulberry32(Number(params.get('seed')) || 1));
@@ -117,6 +118,7 @@
     }
     drainEvents();
     Render.sync(state, game.ui);
+    Audio.setMusicPhase((state.now % Render.DAY_MS) / Render.DAY_MS);
 
     if (state.mode === 'free' && ts - saveAt > 3000) {
       saveAt = ts;
@@ -177,7 +179,18 @@
 
   /* ---------------------------------------------------------------- 入力 */
 
+  /**
+   * BGMは**最初に触られるまで鳴らせない**（自動再生の制限）。
+   * 起動時ではなく、どれか押されたときに始める。
+   */
+  function wakeMusic() {
+    if (game.settings.sound && game.settings.music) Audio.startMusic();
+  }
+
   function bindInput() {
+    for (const ev of ['pointerdown', 'keydown']) {
+      global.document.addEventListener(ev, wakeMusic, { passive: true });
+    }
     $('#app').addEventListener('click', onClick);
     $('#btn-harvest').addEventListener('click', () => doHarvest());
     $('#btn-work').addEventListener('click', () => doWorkAll());
@@ -428,10 +441,21 @@
     sound.addEventListener('click', () => {
       game.settings = Store.save({ settings: { sound: !game.settings.sound } }).settings;
       Audio.setEnabled(game.settings.sound);
+      // 音を切ると BGM も止まる。**戻したときに鳴り直さないと、もう二度と鳴らない**
+      if (game.settings.sound) wakeMusic();
       sound.textContent = game.settings.sound ? '🔊 音: オン' : '🔇 音: オフ';
       Audio.play('tap');
     });
     rows.appendChild(sound);
+
+    const bgmLabel = () => (game.settings.music ? '🎵 BGM: オン' : '🎵 BGM: オフ');
+    const bgm = el('button', 'menu', bgmLabel());
+    bgm.addEventListener('click', () => {
+      game.settings = Store.save({ settings: { music: !game.settings.music } }).settings;
+      if (game.settings.music) wakeMusic(); else Audio.stopMusic();
+      bgm.textContent = bgmLabel();
+    });
+    rows.appendChild(bgm);
 
     const help = el('button', 'menu', '❓ あそびかた');
     help.addEventListener('click', () => { Render.closeSheet(); showHelp(); });

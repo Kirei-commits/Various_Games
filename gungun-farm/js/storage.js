@@ -14,6 +14,7 @@
   const DEFAULTS = {
     settings: {
       sound: true,
+      music: true,         // BGM。効果音とは別に切れる（作業中に流しっぱなしにする人がいる）
       mode: 'free',        // free | rush
       tab: 'seed',         // 最後に開いていた下の段
       seed: 'wheat'        // 選んでいるタネ

@@ -488,3 +488,34 @@ test('3分チャレンジは、ここ数回の成績が並んで見える', asyn
   await expect(page.locator('#sheet .recent-row')).toHaveCount(2);
   expect(g.errors).toEqual([]);
 });
+
+test('BGMは最初に触るまで鳴らず、メニューから切れる', async ({ page }) => {
+  const g = await openFarm(page, { sound: 'on' });
+  const on = () => page.evaluate(() => window.GF.Audio.isMusicOn());
+
+  // 自動再生の制限があるので、開いただけでは鳴らさない
+  expect(await on()).toBe(false);
+
+  await g.tap(page.locator('.field').first());
+  expect(await on()).toBe(true);
+
+  // メニューから切れる。切ったら本当に止まる
+  await page.locator('#btn-menu').click();
+  const bgm = page.locator('#sheet .menu', { hasText: 'BGM' });
+  await expect(bgm).toContainText('オン');
+  await bgm.click();
+  await expect(bgm).toContainText('オフ');
+  expect(await on()).toBe(false);
+
+  // 入れ直すと鳴り直す（戻せないと、切った人はもう二度と聞けない）
+  await bgm.click();
+  expect(await on()).toBe(true);
+
+  // 音そのものを切ると BGM も止まり、戻すと鳴り直す
+  const sound = page.locator('#sheet .menu', { hasText: '音:' });
+  await sound.click();
+  expect(await on()).toBe(false);
+  await sound.click();
+  expect(await on()).toBe(true);
+  expect(g.errors).toEqual([]);
+});
