@@ -143,3 +143,21 @@ test('増えた施設ぜんぶが、みせの「かう」に並ぶ', async ({ pa
   expect(buyable).toBe(expected);
   expect(expected).toBeGreaterThanOrEqual(17, '後半の施設まで揃っている');
 });
+
+test('はじめての人の「あそびかた」は、いちばん小さい画面でも「はじめる」まで見える', async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 568 });
+  // help=off を付けない＝初回の人と同じ道
+  await page.goto('/?seed=2&speed=1&sound=off&fresh=1');
+  await expect(page.locator('#fields .field')).toHaveCount(12);
+  await expect(page.locator('.sheet')).toBeVisible();
+
+  const btn = await page.locator('.sheet .menu.primary').boundingBox();
+  expect(btn.y + btn.height, 'スクロールしないと始められない').toBeLessThanOrEqual(568);
+
+  // 強調の書きかたがそのまま出ていないこと（textContent に ** を書くと生で出る）
+  const text = await page.locator('.sheet').innerText();
+  expect(text).not.toContain('**');
+
+  await page.locator('.sheet .menu.primary').click();
+  await expect(page.locator('.sheet')).toBeHidden();
+});

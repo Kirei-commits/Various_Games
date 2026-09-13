@@ -184,7 +184,8 @@ test('倉庫がいっぱいだと収穫できず、みせへ案内される', as
   });
 
   await expect(page.locator('#barn-stat')).toHaveClass(/full/);
-  await expect(page.locator('#btn-harvest')).toBeDisabled();
+  // ボタンは殺さない（理由が出ないまま手詰まりに見えるため）。ここでは畑を直接押す道を見る
+  await expect(page.locator('#btn-harvest')).toBeEnabled();
   await g.tap(page.locator('.field').first());
   await expect(page.locator('#ticker')).toContainText('倉庫がいっぱい');
   await expect(page.locator('.tab[data-tab="shop"]')).toHaveClass(/is-on/);
@@ -393,4 +394,23 @@ test('じっせきがメニューに並び、取ると知らせが出る', async
   await page.locator('#btn-menu').click();
   await expect(page.locator('.achieve.done')).not.toHaveCount(0);
   expect(g.errors).toEqual([]);
+});
+
+test('倉庫が満杯でも主ボタンは死なない（押せば理由が出る）', async ({ page }) => {
+  const g = await openFarm(page, { speed: '1' });
+  await g.tap(page.locator('#btn-harvest'));
+  await waitAllReady(page);
+  await page.evaluate(() => {
+    const s = window.GF.game.state;
+    window.GF.Engine.store(s, 'carrot', window.GF.Engine.barnFree(s));
+    window.GF.refresh();
+  });
+
+  // 押せなくすると、なぜ進めないのか分からないまま手が止まる
+  await expect(page.locator('#btn-harvest')).toBeEnabled();
+  await expect(page.locator('#harvest-label')).toHaveText('倉庫がいっぱい');
+
+  await g.tap(page.locator('#btn-harvest'));
+  await expect(page.locator('#ticker')).toContainText('倉庫がいっぱい');
+  await expect(page.locator('.tab[data-tab="shop"]')).toHaveClass(/is-on/, '売り場へ案内する');
 });

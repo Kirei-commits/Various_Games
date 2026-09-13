@@ -20,6 +20,20 @@
     return n;
   }
 
+  /**
+   * `**ここ**` を太字にして返す。
+   * `el('p', '', '...**強調**...')` は textContent なので、**そのまま星印が出る**
+   * （あそびかたの画面で実際に出てしまった）。強調したいときはこれを通す。
+   */
+  function rich(tag, cls, text) {
+    const n = el(tag, cls);
+    String(text).split(/\*\*/).forEach((part, i) => {
+      if (!part) return;
+      n.appendChild(i % 2 ? el('strong', '', part) : document.createTextNode(part));
+    });
+    return n;
+  }
+
   let refs = null;
   let sigFields = '';
   let sigPanel = '';
@@ -81,9 +95,13 @@
     const ready = state.fields.filter((f, i) => i < state.fieldsOwned && Engine.isReady(f, state.now)).length;
     const empty = state.fields.filter((f, i) => i < state.fieldsOwned && !f.crop).length;
     const canSow = !!crop && state.coins >= crop.cost && empty > 0;
-    refs.btnHarvest.disabled = (ready === 0 || Engine.barnFree(state) < 1) && !canSow;
-    refs.harvestIco.textContent = ready ? '🧺' : crop ? icon(ui.seed) : '🌱';
-    refs.harvestLabel.textContent = ready ? `しゅうかく ${ready}` : canSow ? 'たねをまく' : 'しゅうかく';
+    const jammed = ready > 0 && Engine.barnFree(state) < 1;      // 実ったのに倉庫が満杯
+    // **倉庫が満杯のときにボタンを殺さない。** 押せなくすると理由が出ないまま手詰まりに見える。
+    // 押せるままにして、押したら「みせで売ろう」と案内する（doHarvest が受ける）。
+    refs.btnHarvest.disabled = ready === 0 && !canSow && !jammed;
+    refs.harvestIco.textContent = jammed ? '📦' : ready ? '🧺' : crop ? icon(ui.seed) : '🌱';
+    refs.harvestLabel.textContent = jammed ? '倉庫がいっぱい'
+      : ready ? `しゅうかく ${ready}` : canSow ? 'たねをまく' : 'しゅうかく';
 
     // 副ボタン: 出来たものを取り出して、余った材料で全部仕込む
     const done = state.machines.reduce((a, m) => a + m.done, 0);
@@ -613,5 +631,5 @@
   const closeSheet = () => { refs.sheet.hidden = true; refs.sheet.replaceChildren(); };
 
   global.GF = global.GF || {};
-  global.GF.Render = { init, sync, invalidate, paint, ticker, float, barnPulse, award, skyAt, DAY_MS, levelUp, sheet, closeSheet, el, icon, nameOf, growth, refs: () => refs };
+  global.GF.Render = { init, sync, invalidate, paint, ticker, float, barnPulse, award, rich, skyAt, DAY_MS, levelUp, sheet, closeSheet, el, icon, nameOf, growth, refs: () => refs };
 })(typeof window !== 'undefined' ? window : globalThis);
