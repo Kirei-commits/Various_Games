@@ -53,6 +53,8 @@ body::after  { width: 220px; height: 220px; bottom: -120px; left: -60px; backgro
 
 /* ------------------------------------------------------------------ 上の段 */
 #hud {
+  /* かざりの層は畑の上へ少しはみ出す。HUDのカードの上を飛ばせない */
+  position: relative; z-index: 3;
   display: flex; align-items: center; gap: 6px;
   background: var(--card); border-radius: var(--r); padding: 6px 8px;
   box-shadow: var(--shadow); border: 2px solid #fff;
@@ -78,7 +80,34 @@ body::after  { width: 220px; height: 220px; bottom: -120px; left: -60px; backgro
 .timer.hurry { background: #ffd9d9; color: #c0392b; }
 
 /* ------------------------------------------------------------------ 畑 */
-#farm { display: grid; place-items: center; }
+#farm { position: relative; display: grid; place-items: center; }
+
+/* ------------------------------------------------------------------ かざり */
+/* **場所を取らない層。** 1画面の約束があるので、畑と空の上に重ねるだけ。
+   `pointer-events: none` を外すと、畑のタップを食う層になる。 */
+.decor {
+  /* 上の帯だけ。下へ伸ばすと作物の絵と知らせの1行に重なって、どちらも読めなくなる。
+     **横へはみ出させない**（left/right を負にしたら、ページが2px横に伸びた）。 */
+  position: absolute; top: -7%; left: 0; right: 0; height: 34%;
+  pointer-events: none; overflow: hidden; z-index: 2;
+}
+.deco {
+  position: absolute; left: var(--x, 50%); top: var(--y, 0);
+  font-size: 19px; line-height: 1;
+  filter: drop-shadow(0 1px 1px rgba(0,0,0,.18));
+  animation: deco-drift var(--t, 11s) ease-in-out var(--d, 0s) infinite;
+}
+
+@keyframes deco-drift {
+  0%, 100% { transform: translate(-13px, 0) rotate(-4deg); }
+  50%      { transform: translate(13px, -5px) rotate(4deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .deco { animation: none; }
+}
+
+.shop-note { text-align: center; margin: 0 0 5px; font-size: 10.5px; color: var(--ink-soft); }
 .fields {
   width: min(100%, 54vh);
   display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px;

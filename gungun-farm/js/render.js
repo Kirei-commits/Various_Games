@@ -36,6 +36,7 @@
 
   let refs = null;
   let sigFields = '';
+  let sigDecor = '';
   let sigPanel = '';
   /** 毎フレーム塗り直すところ。{el, set(state)} */
   let live = [];
@@ -45,7 +46,7 @@
       level: $('#level'), xpfill: $('#xpfill'), coins: $('#coins'),
       barn: $('#barn'), barnStat: $('#barn-stat'),
       timer: $('#timer'), timeleft: $('#timeleft'),
-      fields: $('#fields'), ticker: $('#ticker'),
+      fields: $('#fields'), decor: $('#decor'), ticker: $('#ticker'),
       panelTitle: $('#panel-title'), panelNote: $('#panel-note'), panelBody: $('#panel-body'),
       btnHarvest: $('#btn-harvest'),
       btnWork: $('#btn-work'),
@@ -54,7 +55,7 @@
       tabs: [...document.querySelectorAll('.tab')],
       floats: $('#floats'), pop: $('#pop'), sheet: $('#sheet')
     };
-    sigFields = sigPanel = '';
+    sigFields = sigPanel = sigDecor = '';
     return refs;
   }
 
@@ -240,6 +241,10 @@
       if (def.price <= 0 || Engine.ownsMachine(state, def.id)) continue;
       buys.push(def.id + (state.level >= def.level && state.coins >= def.price ? 1 : 0));
     }
+    if (ui.shopTab === 'decor') {
+      return 'decor|' + state.level + '|' + Data.DECOR
+        .map((d) => (Engine.ownsDecor(state, d.id) ? 'o' : state.level < d.level ? 'x' : state.coins >= d.price ? '1' : '0')).join('');
+    }
     return 'shop|' + ui.shopTab + '|' + state.level + '|' + Engine.todayCrop(state) + '|' + ui.qty + '|' + Engine.barnCap(state) + '|' + state.fieldsOwned + '|' +
       Object.entries(state.barn).map(([k, v]) => k + v).join(',') + '|' + buys.join(',');
   }
@@ -416,7 +421,7 @@
     const wrap = el('div');
     const head = el('div', 'order-head');
     const seg = el('div', 'seg');
-    for (const [id, label] of [['sell', 'うる'], ['buy', 'かう']]) {
+    for (const [id, label] of [['sell', 'うる'], ['buy', 'かう'], ['decor', 'かざり']]) {
       const b = el('button', 'seg-btn' + (ui.shopTab === id ? ' on' : ''), label);
       b.dataset.act = 'shop-tab';
       b.dataset.id = id;
@@ -430,7 +435,11 @@
       head.appendChild(qty);
     }
     wrap.appendChild(head);
-    wrap.appendChild(ui.shopTab === 'buy' ? buySection(state) : sellSection(state));
+    wrap.appendChild(
+      ui.shopTab === 'buy' ? buySection(state)
+        : ui.shopTab === 'decor' ? decorSection(state)
+          : sellSection(state)
+    );
     return wrap;
   }
 
@@ -453,6 +462,35 @@
       grid.appendChild(card);
     }
     return grid;
+  }
+
+  /**
+   * かざり。**能力は上げない**ので、並べるのは名前と値段と見ばえだけ。
+   * 買ったものは畑と空に出る（`decor()`）。
+   */
+  function decorSection(state) {
+    const wrap = el('div');
+    const list = Data.DECOR;
+    const have = list.filter((d) => Engine.ownsDecor(state, d.id)).length;
+    // 1行に収める。2行にすると、いちばん小さい画面でカードが1枚も見えなくなる
+    wrap.appendChild(el('p', 'shop-note',
+      `見ばえ ✨${Engine.charm(state)}（${have}/${list.length}）・ちからは上がらない`));
+
+    const grid = el('div', 'grid');
+    for (const d of list) {
+      const owned = Engine.ownsDecor(state, d.id);
+      const known = state.level >= d.level;
+      const can = !owned && known && state.coins >= d.price;
+      const card = el('button', 'card' + (owned ? ' on' : can ? '' : ' off'));
+      card.dataset.act = owned ? 'noop' : 'buy-decor';
+      card.dataset.id = d.id;
+      card.appendChild(el('span', 'ico', known ? d.emoji : '🔒'));
+      card.appendChild(el('span', 'nm', known ? d.name : `Lv${d.level}`));
+      card.appendChild(el('span', 'sub', owned ? `✨${d.charm}` : known ? `🪙${d.price}` : d.name));
+      grid.appendChild(card);
+    }
+    wrap.appendChild(grid);
+    return wrap;
   }
 
   function buySection(state) {
@@ -500,13 +538,51 @@
   function sync(state, ui) {
     sky(state);
     hud(state, ui);
+    decor(state);
     fields(state, ui);
     panel(state, ui);
     paint(state);
   }
 
   /** 形が変わっていなくても作り直したいとき（タブを切り替えた直後など） */
-  function invalidate() { sigFields = sigPanel = ''; lastPhase = -1; }
+  function invalidate() { sigFields = sigPanel = sigDecor = ''; lastPhase = -1; }
+
+  /* -------------------------------------------------------------- かざり */
+
+  /**
+   * 買ったかざりを、空と畑の上に重ねて出す。
+   *
+   * **場所を取らない。** 1画面に収める約束があるので、`#farm` の中に
+   * `position: absolute` の層を敷いて、そこへ置く。
+   * **`pointer-events: none` を外さない**——畑のタップを食う層になる。
+   *
+   * **出すのはいちばん上の帯だけ。** 畑の真ん中に置くと作物の絵に重なり、
+   * 下に置くと知らせの1行に重なる。**この画面で空いているのは空だけ。**
+   *
+   * 位置と速さは id から決める（乱数を引かない）。同じ農園ならいつ見ても同じ場所にいる。
+   */
+  function decor(state) {
+    const owned = state.decor || [];
+    const sig = owned.join(',');
+    if (sig === sigDecor) return;
+    sigDecor = sig;
+
+    const nodes = [];
+    owned.forEach((id) => {
+      const def = Data.decor(id);
+      if (!def) return;
+      const n = el('span', 'deco', def.emoji);
+      // place は一覧の並び順。**買った順ではない**ので、
+      // あとから1つ買い足しても、もう出ているものは動かない
+      const slot = Data.DECOR.indexOf(def);
+      n.style.setProperty('--x', (3 + slot * 10.6) + '%');   // 右端は揺れぶんを残して 79% まで
+      n.style.setProperty('--y', (slot % 3) * 5 + '%');
+      n.style.setProperty('--t', (8 + (slot % 5) * 1.6).toFixed(1) + 's');
+      n.style.setProperty('--d', (slot * 0.7).toFixed(1) + 's');
+      nodes.push(n);
+    });
+    refs.decor.replaceChildren(...nodes);
+  }
 
   /* ------------------------------------------------------------ 一日の色 */
 
@@ -640,5 +716,5 @@
   const closeSheet = () => { refs.sheet.hidden = true; refs.sheet.replaceChildren(); };
 
   global.GF = global.GF || {};
-  global.GF.Render = { init, sync, invalidate, paint, ticker, float, barnPulse, award, rich, skyAt, DAY_MS, levelUp, sheet, closeSheet, el, icon, nameOf, growth, refs: () => refs };
+  global.GF.Render = { init, sync, invalidate, paint, decor, ticker, float, barnPulse, award, rich, skyAt, DAY_MS, levelUp, sheet, closeSheet, el, icon, nameOf, growth, refs: () => refs };
 })(typeof window !== 'undefined' ? window : globalThis);

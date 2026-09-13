@@ -175,3 +175,68 @@ test('はじめての人の「あそびかた」は、いちばん小さい画�
   await page.locator('.sheet .menu.primary').click();
   await expect(page.locator('.sheet')).toBeHidden();
 });
+
+/**
+ * かざりは畑と空に重ねて出す層。**場所は取らないが、タップを食ってはいけない。**
+ * ここを落とすと「畑を押しても反応しない」になる（いちばん質の悪い壊れかた）。
+ */
+test('かざりを全部そろえても、畑のタップを邪魔しない', async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 568 });
+  const g = await openFarm(page);
+  await page.evaluate(() => {
+    const s = window.GF.game.state, D = window.GF.Data;
+    s.level = D.MAX_LEVEL; s.coins = 99999;
+    s.decor = D.DECOR.map((d) => d.id);
+    window.GF.refresh();
+  });
+  await expect(page.locator('.deco')).toHaveCount(8);
+
+  // 1画面から溢れない
+  const over = await page.evaluate(() => ({
+    y: document.documentElement.scrollHeight - document.documentElement.clientHeight,
+    x: document.documentElement.scrollWidth - document.documentElement.clientWidth
+  }));
+  expect(over.y).toBeLessThanOrEqual(1);
+  expect(over.x).toBeLessThanOrEqual(1);
+
+  // かざりの層は畑の外に出ない（知らせの1行や下の段に重ならない）
+  const farm = await page.locator('#farm').boundingBox();
+  for (const d of await page.locator('.deco').all()) {
+    const b = await d.boundingBox();
+    expect(b.y + b.height, 'かざりが畑の下へはみ出している').toBeLessThanOrEqual(farm.y + farm.height);
+  }
+
+  // どのマスも、かざりごしに押せる
+  for (let i = 0; i < 12; i++) {
+    const field = page.locator('.field').nth(i);
+    const box = await field.boundingBox();
+    const top = await page.evaluate(({ x, y }) => {
+      const el = document.elementFromPoint(x, y);
+      return el && el.closest('.field') ? 'field' : (el && el.className) || '?';
+    }, { x: box.x + box.width / 2, y: box.y + box.height / 2 });
+    expect(top, `${i}マス目がかざりに隠れている`).toBe('field');
+  }
+
+  await g.tap(page.locator('.field').first());
+  expect((await g.state()).fields[0].crop).toBeTruthy();
+  expect(g.errors).toEqual([]);
+});
+
+test('みせの「かざり」で買えて、買ったものが空に出る', async ({ page }) => {
+  const g = await openFarm(page);
+  await setProgress(page, { level: 20, coins: 99999 });
+  await openTab(page, 'shop');
+  await g.tap(page.locator('.seg-btn[data-id="decor"]'));
+
+  await expect(page.locator('.card[data-act="buy-decor"]')).toHaveCount(8);
+  await expect(page.locator('.deco')).toHaveCount(0);
+
+  // 値段はデータから採る（直書きすると、値段を触るたびにテストが落ちる）
+  const price = await page.evaluate(() => window.GF.Data.DECOR[0].price);
+  await g.tap(page.locator('.card[data-act="buy-decor"]').first());
+  await expect(page.locator('.deco')).toHaveCount(1);
+  const s = await g.state();
+  expect(s.decor.length).toBe(1);
+  expect(s.coins).toBe(99999 - price);
+  expect(g.errors).toEqual([]);
+});

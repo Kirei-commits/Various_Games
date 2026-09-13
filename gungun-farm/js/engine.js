@@ -72,6 +72,7 @@
       boat: null,                    // ふなびん。少しずつ積める大きな注文
       nextBoatAt: 0,
       today: { day: -1, crop: null },  // きょうの作物。day は -1 から始めて最初の tick で引く
+      decor: [],                     // 買ったかざり（能力は上げない。コインの行き先）
       combo: 0,
       bestCombo: 0,
       achieved: [],
@@ -646,6 +647,24 @@
     return coins;
   }
 
+  /* ---------------------------------------------------------------- かざり */
+
+  const ownsDecor = (state, id) => (state.decor || []).includes(id);
+
+  /** 農園の見ばえ。かざりの合計。数えるだけで、何の能力にも効かない */
+  const charm = (state) =>
+    (state.decor || []).reduce((a, id) => a + ((Data.decor(id) || {}).charm || 0), 0);
+
+  function buyDecor(state, id) {
+    const def = Data.decor(id);
+    if (!def || ownsDecor(state, id)) return false;
+    if (state.level < def.level || state.coins < def.price) return false;
+    state.coins -= def.price;
+    state.decor.push(id);
+    event(state, 'buy', `${def.emoji} ${def.name}をかざった！`);
+    return true;
+  }
+
   const nextFieldPrice = (state) => {
     const k = state.fieldsOwned - Data.FIELDS_AT_START;
     return Data.FIELD_UPGRADES[k] || null;
@@ -792,6 +811,7 @@
     loadBoat, loadBoatAll, boatLoadable, shipBoat, expireBoat,
     DAY_MS, TODAY_BONUS, todayCrop, sellPrice, unitPrice, rollToday,
     sell, nextFieldPrice, buyField, buyBarn, buyMachine,
+    ownsDecor, charm, buyDecor,
     rescue, timeLeft, score, store, take, event, achieveCount, checkAchievements
   };
 })(typeof window !== 'undefined' ? window : globalThis);

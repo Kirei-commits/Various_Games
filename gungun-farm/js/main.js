@@ -308,6 +308,8 @@
       buy(() => Engine.buyField(state), fieldHint());
     } else if (act === 'buy-machine') {
       buy(() => Engine.buyMachine(state, id), machineHint(id));
+    } else if (act === 'buy-decor') {
+      buy(() => Engine.buyDecor(state, id), decorHint(id));
     }
     Render.sync(state, game.ui);
   }
@@ -318,6 +320,13 @@
     const up = Engine.nextFieldPrice(game.state);
     if (!up) return 'これ以上は広げられない';
     return game.state.level < up.level ? `畑を増やすのは Lv${up.level} から` : `あと 🪙${up.price - Math.floor(game.state.coins)} 足りない`;
+  }
+
+  function decorHint(id) {
+    const def = Data.decor(id);
+    if (!def) return '';
+    if (game.state.level < def.level) return `${def.name}は Lv${def.level} から`;
+    return `あと 🪙${def.price - Math.floor(game.state.coins)} 足りない`;
   }
 
   function machineHint(id) {

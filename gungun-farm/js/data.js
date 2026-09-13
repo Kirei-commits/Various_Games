@@ -178,12 +178,48 @@
   const orderSlotsAt = (level) =>
     ORDER_SLOTS.reduce((a, r) => (level >= r.level ? r.slots : a), ORDER_SLOTS[0].slots);
 
+  /**
+   * かざり。**能力は上げない。終盤のコインの行き先。**
+   *
+   * 25分まわすと施設も畑も倉庫も買いきって、コインが十数万あまる。
+   * 使い道が無いと、後半は数字が増えるだけの画面になる。
+   *
+   * 1画面に収める約束があるので、**場所は取らない**。畑の上の空に重ねて出す
+   * （`pointer-events: none` の層。畑のタップを邪魔しない）。
+   *
+   * **出せるのは畑のいちばん上の帯だけ。** 一度、畑の真ん中と画面の下にも置いてみたが、
+   * 作物の絵に虫が重なり、知らせの1行に台が重なって、どちらも読みにくくなった。
+   * この画面に空きは無い——**空だけが、何かを足せる唯一の場所**。
+   * だから「空に浮かぶもの」しか作らない（地面に置く台や花だんは足さない）。
+   *
+   * **値段は「その時点で買えるどの施設よりも高い」**ように置く。
+   * 農園を育てるほうが先、かざりは本当に余ったぶんで買うもの、という順番にしたい。
+   * 合計 74,200 コインで、施設・畑・倉庫をぜんぶ買う額（157,279）のおよそ半分。
+   *
+   * 最初は「終盤はコインが十数万あまる」と見て10万コインの品まで置いたが、
+   * **あまっていたのは稼ぎの総額で、手元のコインではなかった**（25分で約2万）。
+   * タネ代が出ていくので、コインはそこまで積み上がらない。測って置き直した。
+   */
+  const DECOR = [
+    { id: 'kite',      name: 'たこ',     emoji: '🪁', level: 5,  price:  1200, charm: 1 },
+    { id: 'bee',       name: 'みつばち', emoji: '🐝', level: 7,  price:  2200, charm: 2 },
+    { id: 'butterfly', name: 'ちょうちょ', emoji: '🦋', level: 9,  price:  3800, charm: 3 },
+    { id: 'bird',      name: 'とり',     emoji: '🐦', level: 11, price:  6000, charm: 4 },
+    { id: 'cloud',     name: 'くも',     emoji: '☁️', level: 13, price:  9000, charm: 6 },
+    { id: 'balloon',   name: 'ききゅう', emoji: '🎈', level: 15, price: 13000, charm: 8 },
+    { id: 'rainbow',   name: 'にじ',     emoji: '🌈', level: 17, price: 17000, charm: 12 },
+    { id: 'blimp',     name: 'ひこうせん', emoji: '🛸', level: 20, price: 22000, charm: 20 }
+  ];
+  const decor = (id) => DECOR.find((d) => d.id === id) || null;
+  const decorAt = (level) => DECOR.filter((d) => d.level <= level);
+
   function unlockedAt(level) {
     const out = [];
     for (const c of CROPS) if (c.level === level) out.push({ kind: 'crop', id: c.id, name: ITEMS[c.id].name, emoji: ITEMS[c.id].emoji });
     for (const m of MACHINES) if (m.level === level && m.price > 0) out.push({ kind: 'machine', id: m.id, name: m.name, emoji: m.emoji });
     FIELD_UPGRADES.forEach((f) => { if (f.level === level) out.push({ kind: 'field', id: 'field', name: '畑の増設', emoji: '🟩' }); });
     for (const r of ORDER_SLOTS) if (r.level === level && r.level > 1) out.push({ kind: 'order', id: 'order', name: `注文が${r.slots}件に`, emoji: '📦' });
+    for (const d of DECOR) if (d.level === level) out.push({ kind: 'decor', id: d.id, name: d.name, emoji: d.emoji });
     return out;
   }
 
@@ -217,7 +253,7 @@
     FIELDS_AT_START, FIELD_SLOTS, FIELD_UPGRADES,
     BARN_AT_START, BARN_STEP, barnPrice,
     xpFor, MAX_LEVEL,
-    ORDER_SLOTS, orderSlotsAt,
+    ORDER_SLOTS, orderSlotsAt, DECOR, decor, decorAt,
     item, crop, machine, cropsAt, machinesAt, unlockedAt
   };
 })(typeof window !== 'undefined' ? window : globalThis);
