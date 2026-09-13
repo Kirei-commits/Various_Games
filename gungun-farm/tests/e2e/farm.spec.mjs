@@ -354,3 +354,22 @@ test('ふなびんの「つむ」は、ふつうの注文が欲しがるぶん�
   expect(s.barn[item]).toBe(3, '注文ぶんの3個は残っている');
   expect(s.boat.loaded[item]).toBe(2);
 });
+
+test('まとめて収穫したときは、まとめるほど早いことを伝える', async ({ page }) => {
+  const g = await openFarm(page, { speed: '1' });
+  await g.tap(page.locator('#btn-harvest'));      // 空の畑にまく
+  await waitAllReady(page);
+
+  await g.tap(page.locator('#btn-harvest'));
+  await expect(page.locator('#ticker')).toContainText('まとめて収穫');
+
+  // 1マスだけのときは出さない（毎回言われるとうるさい）
+  await page.evaluate(() => {
+    const s = window.GF.game.state;
+    s.fields.forEach((f, i) => { if (f.crop) f.readyAt = s.now + (i === 0 ? 0 : 60_000); });
+    window.GF.refresh();
+  });
+  await g.tap(page.locator('#btn-harvest'));
+  await expect(page.locator('#ticker')).toContainText('収穫して');
+  await expect(page.locator('#ticker')).not.toContainText('まとめて収穫');
+});

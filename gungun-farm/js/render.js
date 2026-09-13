@@ -490,13 +490,30 @@
     refs.ticker.dataset.kind = kind || '';
   }
 
-  /** +120 のような浮き文字。座標は押したところに出す。 */
-  function float(text, x, y, cls) {
+  /**
+   * +120 のような浮き文字。座標は押したところに出す。
+   * `toBarn` を立てると倉庫の表示めがけて飛ぶ——穫ったものが仕舞われた感じになる。
+   */
+  function float(text, x, y, cls, toBarn) {
     const n = el('span', cls || '', text);
     n.style.left = Math.round(x) + 'px';
     n.style.top = Math.round(y) + 'px';
+    if (toBarn && refs.barnStat) {
+      const box = refs.barnStat.getBoundingClientRect();
+      n.style.setProperty('--dx', Math.round(box.left + box.width / 2 - x) + 'px');
+      n.style.setProperty('--dy', Math.round(box.top + box.height / 2 - y) + 'px');
+      n.classList.add('to-barn');
+    }
     refs.floats.appendChild(n);
     setTimeout(() => n.remove(), 950);
+  }
+
+  /** 倉庫の表示を弾ませる。受け取ったことが分かる */
+  function barnPulse() {
+    if (!refs.barnStat) return;
+    refs.barnStat.classList.remove('got');
+    void refs.barnStat.offsetWidth;
+    refs.barnStat.classList.add('got');
   }
 
   function levelUp(level, unlocks, done) {
@@ -530,5 +547,5 @@
   const closeSheet = () => { refs.sheet.hidden = true; refs.sheet.replaceChildren(); };
 
   global.GF = global.GF || {};
-  global.GF.Render = { init, sync, invalidate, paint, ticker, float, levelUp, sheet, closeSheet, el, icon, nameOf, growth, refs: () => refs };
+  global.GF.Render = { init, sync, invalidate, paint, ticker, float, barnPulse, levelUp, sheet, closeSheet, el, icon, nameOf, growth, refs: () => refs };
 })(typeof window !== 'undefined' ? window : globalThis);

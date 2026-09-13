@@ -43,10 +43,33 @@
   /** 明るい和音。短く、重ねすぎない（連打されるので耳が痛くならない音量にする）。 */
   const chord = (freqs, opts = {}) => freqs.forEach((f, i) => tone(Object.assign({ freq: f, delay: i * 0.045 }, opts)));
 
+  /**
+   * 続けて鳴らすほど音が上がる（収穫のような繰り返す操作用）。
+   * 途切れると最初の高さに戻る。同じ音が続くより、段を上がるほうが手応えが出る。
+   */
+  const ladders = {};
+  function ladder(name, gap = 900, steps = 8) {
+    const now = (global.performance ? performance.now() : Date.now());
+    const l = ladders[name] || (ladders[name] = { at: 0, step: 0 });
+    l.step = (now - l.at < gap) ? Math.min(steps, l.step + 1) : 0;
+    l.at = now;
+    return Math.pow(2, l.step / 12);          // 半音ずつ上がる
+  }
+
   const SFX = {
     tap:     () => tone({ freq: 880, dur: 0.04, gain: 0.05 }),
     plant:   () => tone({ freq: 420, to: 700, dur: 0.09, type: 'sine', gain: 0.08 }),
-    harvest: () => tone({ freq: 760, to: 1180, dur: 0.09, type: 'sine', gain: 0.09 }),
+    harvest: () => {
+      const k = ladder('harvest');
+      tone({ freq: 760 * k, to: 1180 * k, dur: 0.09, type: 'sine', gain: 0.09 });
+    },
+    /** まとめて穫れたとき。段を駆け上がる */
+    harvestMany: (n) => {
+      const k = ladder('harvest');
+      for (let i = 0; i < Math.min(4, Math.max(2, Math.round(n / 3))); i++) {
+        tone({ freq: 660 * k * Math.pow(2, i / 12 * 2), dur: 0.07, type: 'sine', gain: 0.08, delay: i * 0.045 });
+      }
+    },
     craft:   () => tone({ freq: 300, to: 520, dur: 0.11, type: 'square', gain: 0.05 }),
     collect: () => chord([880, 1180], { dur: 0.08, gain: 0.07, type: 'sine' }),
     coin:    () => chord([1046, 1568], { dur: 0.1, gain: 0.09 }),
@@ -57,9 +80,9 @@
     finish:  () => chord([659, 880, 1318, 1760], { dur: 0.3, gain: 0.1 })
   };
 
-  function play(name) {
+  function play(name, arg) {
     const fn = SFX[name];
-    if (fn) { try { fn(); } catch (e) { /* 音が鳴らないだけなので握りつぶす */ } }
+    if (fn) { try { fn(arg); } catch (e) { /* 音が鳴らないだけなので握りつぶす */ } }
   }
 
   function setEnabled(on) {

@@ -198,8 +198,11 @@
       const f = state.fields[i];
       if (Engine.isReady(f, state.now)) {
         // 収穫すると、選んでいるタネがその場に植え直される（タネ代が無ければ空いたまま）
-        if (Engine.harvest(state, i, game.ui.seed)) { Audio.play('harvest'); Render.float(Render.icon(f.crop), x, y); }
-        else barnFullWarning();
+        if (Engine.harvest(state, i, game.ui.seed)) {
+          Audio.play('harvest');
+          Render.float(Render.icon(f.crop), x, y, '', true);
+          Render.barnPulse();
+        } else barnFullWarning();
       } else if (!f.crop) {
         plantAt(i, x, y);
       }
@@ -211,7 +214,11 @@
       const m = state.machines[i];
       if (m.done > 0) {
         const n = Engine.collect(state, i);
-        if (n > 0) { Audio.play('collect'); Render.float(Render.icon(Engine.machineDef(m).recipe.out) + '×' + n, x, y); }
+        if (n > 0) {
+          Audio.play('collect');
+          Render.float(Render.icon(Engine.machineDef(m).recipe.out) + '×' + n, x, y, '', true);
+          Render.barnPulse();
+        }
         else barnFullWarning();
       } else if (Engine.queue(state, i)) {
         Audio.play('craft');
@@ -316,18 +323,31 @@
   function doHarvest() {
     const state = game.state;
     const before = Math.floor(state.coins);
+    // 穫れたものを飛ばしたいので、収穫する前に見ておく（収穫後は植え直した作物になっている）
+    const reaped = state.fields.find((f, i) => i < state.fieldsOwned && Engine.isReady(f, state.now));
+    const grain = Render.icon(reaped ? reaped.crop : game.ui.seed);
     const n = Engine.harvestAll(state, game.ui.seed);
     const sown = n > 0 ? 0 : Engine.plantAll(state, game.ui.seed);   // 実りが無ければ、まくだけ
 
     if (n > 0) {
-      Audio.play('harvest');
+      Audio.play(n >= 3 ? 'harvestMany' : 'harvest', n);
       const box = $('#btn-harvest').getBoundingClientRect();
-      Render.float('+' + n, box.left + box.width / 2, box.top);
+      // 穫れたものが倉庫へ飛ぶ。数が多いほど粒を増やす（多すぎても散らかるので上限）
+      for (let k = 0; k < Math.min(5, n); k++) {
+        Render.float(grain, box.left + box.width * (0.25 + 0.12 * k), box.top - k * 3, '', true);
+      }
+      Render.barnPulse();
       const spent = before - Math.floor(state.coins);
       const planted = state.fields.filter((f, i) => i < state.fieldsOwned && f.crop).length;
-      Render.ticker(spent > 0
-        ? `${n}こ 収穫して、${Render.nameOf(game.ui.seed)}を植え直した（🪙${spent}）`
-        : `${n}こ 収穫した（タネ代が足りず ${state.fieldsOwned - planted}マス 空いている）`);
+      if (spent <= 0) {
+        Render.ticker(`${n}こ 収穫した（タネ代が足りず ${state.fieldsOwned - planted}マス 空いている）`);
+      } else if (n >= Math.max(4, Math.ceil(state.fieldsOwned * 0.5))) {
+        // まとめて蒔くほど実るのが早くなる（時間差まき）。
+        // 数字にしか出ない性質なので、まとまったときに言葉で伝える
+        Render.ticker(`${n}こ まとめて収穫！ まとめるほど つぎが早く実る`);
+      } else {
+        Render.ticker(`${n}こ 収穫して、${Render.nameOf(game.ui.seed)}を植え直した（🪙${spent}）`);
+      }
     } else if (sown > 0) {
       Audio.play('plant');
       Render.ticker(`${Render.nameOf(game.ui.seed)}を ${sown}マス まいた`);
@@ -348,7 +368,7 @@
     if (got > 0 || queued > 0) {
       Audio.play(got > 0 ? 'collect' : 'craft');
       const box = $('#btn-work').getBoundingClientRect();
-      if (got > 0) Render.float('+' + got, box.left + box.width / 2, box.top);
+      if (got > 0) { Render.float('+' + got, box.left + box.width / 2, box.top, '', true); Render.barnPulse(); }
       Render.ticker([got > 0 ? `${got}こ 取り出した` : '', queued > 0 ? `${queued}こ 仕込んだ` : '']
         .filter(Boolean).join('・'));
     } else if (state.machines.some((m) => m.done) && Engine.barnFree(state) < 1) {

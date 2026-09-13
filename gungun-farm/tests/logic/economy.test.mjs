@@ -7,7 +7,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { loadGF, mixSeed, seededRandom } from './helpers.mjs';
-import { simulate } from '../bot.mjs';
+import { simulate, botStep } from '../bot.mjs';
 
 const GF = loadGF(['data.js', 'engine.js']);
 const runs = (minutes, n) => Array.from({ length: n }, (_, i) => {
@@ -154,4 +154,47 @@ test('1秒あたりの儲けは短いほど良く、1枠の値打ちは長いほ
     assert.ok(GF.Data.item(byLevel[i].id).sell > GF.Data.item(byLevel[i - 1].id).sell,
       `${byLevel[i].id} の1枠の値打ちが上がっていない`);
   }
+});
+
+/**
+ * 手を動かす間隔だけを変えて成果を比べる。
+ * **連打がいちばん得になっていたら、それは我慢比べであって遊びではない。**
+ */
+function tempo(stepMs, minutes = 4, runs = 3) {
+  let coins = 0, taps = 0;
+  for (let r = 0; r < runs; r++) {
+    GF.Engine.setRandom(seededRandom(mixSeed(r)));
+    const s = GF.Engine.create({ mode: 'free' });
+    let n = 0;
+    for (let t = 0; t <= minutes * 60000; t += stepMs) {
+      GF.Engine.tick(s, t);
+      const before = s.stats.harvested + s.stats.crafted + s.stats.delivered;
+      botStep(GF, s);
+      if (s.stats.harvested + s.stats.crafted + s.stats.delivered > before) n++;
+    }
+    coins += s.stats.coinsEarned; taps += n;
+  }
+  return { coins: coins / runs, taps: taps / runs };
+}
+
+test('連打しても得をしない（落ち着いた間隔のほうが稼げる）', () => {
+  const fast = tempo(200);      // ひたすら連打
+  const calm = tempo(800);      // 1秒に1回くらい
+
+  assert.ok(calm.coins >= fast.coins,
+    `連打のほうが稼げてしまう（連打 ${Math.round(fast.coins)} / 落ち着き ${Math.round(calm.coins)}）。` +
+    'それは我慢比べになる');
+  assert.ok(calm.taps < fast.taps * 0.6,
+    `落ち着いた間隔で手数が減っていない（${Math.round(fast.taps)} → ${Math.round(calm.taps)}）`);
+});
+
+test('ちょうどよい間隔に幅がある（狙って合わせなくていい）', () => {
+  const best = tempo(800).coins;
+  for (const ms of [400, 1500]) {
+    const r = tempo(ms).coins;
+    assert.ok(r > best * 0.7,
+      `${ms}ms で大きく損をする（${Math.round(r)} 対 ${Math.round(best)}）。間隔がシビアすぎる`);
+  }
+  // 極端に放っておくと、さすがに落ちる（そうでないと手を動かす意味が無い）
+  assert.ok(tempo(6000).coins < best * 0.6, '放っておいても同じだけ稼げてしまう');
 });

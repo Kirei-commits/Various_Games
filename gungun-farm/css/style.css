@@ -275,6 +275,8 @@ body::after  { width: 220px; height: 220px; bottom: -120px; left: -60px; backgro
   animation: float-up .9s ease-out forwards;
 }
 .floats span.xp { color: var(--leaf-d); }
+.floats span.to-barn { animation: to-barn .62s cubic-bezier(.4,0,.6,1) forwards; }
+.stat.got { animation: barn-got .3s ease; }
 
 .pop {
   /* 早いうちはレベルアップが十数秒ごとに来る。農園を覆い隠すと遊びが止まるので、
@@ -324,6 +326,13 @@ body::after  { width: 220px; height: 220px; bottom: -120px; left: -60px; backgro
 @keyframes sway { from { transform: scale(1) rotate(-5deg); } to { transform: scale(1.08) rotate(5deg); } }
 @keyframes twinkle { 0%,100% { opacity: .3; transform: scale(.8); } 50% { opacity: 1; transform: scale(1.15); } }
 @keyframes float-up { from { opacity: 1; transform: translateY(0) scale(1); } to { opacity: 0; transform: translateY(-46px) scale(1.25); } }
+/* 穫ったものが倉庫めがけて飛ぶ。ちょっと持ち上がってから吸い込まれる */
+@keyframes to-barn {
+  0%   { opacity: 1; transform: translate(0, 0) scale(1); }
+  25%  { opacity: 1; transform: translate(calc(var(--dx) * .15), calc(var(--dy) * .15 - 16px)) scale(1.2); }
+  100% { opacity: 0; transform: translate(var(--dx), var(--dy)) scale(.45); }
+}
+@keyframes barn-got { 0%,100% { transform: scale(1); } 40% { transform: scale(1.18); } }
 @keyframes pop-in { from { opacity: 0; transform: scale(.7); } to { opacity: 1; transform: scale(1); } }
 @keyframes fall { from { transform: translateY(-20px) rotate(0); opacity: 1; } to { transform: translateY(105dvh) rotate(540deg); opacity: .9; } }
 @keyframes shake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-3px); } 75% { transform: translateX(3px); } }
