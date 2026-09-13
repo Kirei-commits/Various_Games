@@ -471,6 +471,7 @@
   }
 
   function sync(state, ui) {
+    sky(state);
     hud(state, ui);
     fields(state, ui);
     panel(state, ui);
@@ -478,7 +479,58 @@
   }
 
   /** 形が変わっていなくても作り直したいとき（タブを切り替えた直後など） */
-  function invalidate() { sigFields = sigPanel = ''; }
+  function invalidate() { sigFields = sigPanel = ''; lastPhase = -1; }
+
+  /* ------------------------------------------------------------ 一日の色 */
+
+  /**
+   * 農園の一日。待ち時間が無いので、**一日も速く回せる**（3分で一巡）。
+   * 空の色だけを動かし、カードやボタンの色には触らない（読みにくくしない）。
+   * 夜も黒くはしない——明るいゲームなので、濃い青どまり。
+   */
+  const DAY_MS = 180_000;
+  const SKY = [
+    // **昼と夜には平らな時間を作る。** 隣の色へずっと補間していると、
+    // 青と桃が混ざる帯（＝くすんだ灰色）が長く居座って、明るいゲームに見えなくなる。
+    // 平らにすると、夕焼けだけが短く劇的に通り過ぎる。
+    { at: 0.00, top: [0x9f, 0xdc, 0xff], bot: [0xff, 0xdd, 0xb4], sun: [0xff, 0xd2, 0x8a] },  // 朝
+    { at: 0.12, top: [0x7f, 0xd8, 0xff], bot: [0xa9, 0xed, 0xb4], sun: [0xff, 0xd8, 0x3d] },  // 昼
+    { at: 0.50, top: [0x7f, 0xd8, 0xff], bot: [0xa9, 0xed, 0xb4], sun: [0xff, 0xd8, 0x3d] },  // 昼（ここまで平ら）
+    // 夕は橙に振らない。**土の色（茶）と近づいて畑が読めなくなる。**
+    // 桃〜藤にすると夕焼けらしさは出たまま、茶色から離れる
+    { at: 0.62, top: [0xff, 0x92, 0xa6], bot: [0xd3, 0xb0, 0xe8], sun: [0xff, 0x7a, 0x5c] },  // 夕
+    { at: 0.74, top: [0x5b, 0x6d, 0xba], bot: [0x9d, 0xb6, 0xdc], sun: [0xe8, 0xef, 0xff] },  // 夜
+    { at: 0.90, top: [0x5b, 0x6d, 0xba], bot: [0x9d, 0xb6, 0xdc], sun: [0xe8, 0xef, 0xff] },  // 夜（ここまで平ら）
+    { at: 1.00, top: [0x9f, 0xdc, 0xff], bot: [0xff, 0xdd, 0xb4], sun: [0xff, 0xd2, 0x8a] }   // 朝へ戻る
+  ];
+  const mix = (a, b, t) => a.map((v, i) => Math.round(v + (b[i] - v) * t));
+  const rgb = (c) => `rgb(${c[0]},${c[1]},${c[2]})`;
+
+  /** 0..1 のうちどの時間帯か */
+  function skyAt(phase) {
+    for (let i = 1; i < SKY.length; i++) {
+      if (phase <= SKY[i].at) {
+        const a = SKY[i - 1], b = SKY[i];
+        const t = (phase - a.at) / (b.at - a.at || 1);
+        return { top: mix(a.top, b.top, t), bot: mix(a.bot, b.bot, t), sun: mix(a.sun, b.sun, t) };
+      }
+    }
+    return SKY[0];
+  }
+
+  let lastPhase = -1;
+  /** 空の色を進める。色が目に見えて変わるときだけ書き換える（毎フレーム触らない） */
+  function sky(state) {
+    const phase = (state.now % DAY_MS) / DAY_MS;
+    if (Math.abs(phase - lastPhase) < 0.004 && lastPhase >= 0) return;
+    lastPhase = phase;
+    const c = skyAt(phase);
+    const root = document.documentElement.style;
+    root.setProperty('--sky1', rgb(c.top));
+    root.setProperty('--sky2', rgb(c.bot));
+    root.setProperty('--sun', rgb(c.sun));
+    root.setProperty('--sky-mid', rgb(mix(c.top, c.bot, 0.5)));
+  }
 
   /* ---------------------------------------------------------------- 演出 */
 
@@ -547,5 +599,5 @@
   const closeSheet = () => { refs.sheet.hidden = true; refs.sheet.replaceChildren(); };
 
   global.GF = global.GF || {};
-  global.GF.Render = { init, sync, invalidate, paint, ticker, float, barnPulse, levelUp, sheet, closeSheet, el, icon, nameOf, growth, refs: () => refs };
+  global.GF.Render = { init, sync, invalidate, paint, ticker, float, barnPulse, skyAt, DAY_MS, levelUp, sheet, closeSheet, el, icon, nameOf, growth, refs: () => refs };
 })(typeof window !== 'undefined' ? window : globalThis);

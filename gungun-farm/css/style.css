@@ -2,7 +2,8 @@
    スクロールしないことが仕様なので、高さは必ず dvh を基準にした grid で配る。 */
 
 :root {
-  --sky1:#7fd8ff; --sky2:#a9edb4; --sun:#ffd83d;
+  /* 空と日の色は時間帯で入れ替わる（js/render.js の sky()）。ここは朝の値 */
+  --sky1:#7fd8ff; --sky2:#a9edb4; --sky-mid:#bfeaff; --sun:#ffd83d;
   --leaf:#41c46a; --leaf-d:#2f9e4f;
   --soil:#d3a06a; --soil-d:#b47e45;
   --ink:#3b332c; --ink-soft:#8a7c6d;
@@ -23,7 +24,8 @@ body {
   color: var(--ink);
   font-family: "Hiragino Maru Gothic ProN", "Zen Maru Gothic", "M PLUS Rounded 1c",
                "Hiragino Sans", "Noto Sans JP", system-ui, sans-serif;
-  background: linear-gradient(180deg, var(--sky1) 0%, #bfeaff 45%, var(--sky2) 100%) fixed;
+  background: linear-gradient(180deg, var(--sky1) 0%, var(--sky-mid) 45%, var(--sky2) 100%) fixed;
+  transition: background .6s linear;
   overflow: hidden;              /* ページ自体は絶対にスクロールさせない */
   overscroll-behavior: none;
   user-select: none;
@@ -32,7 +34,11 @@ body {
 body::before, body::after {
   content: ""; position: fixed; border-radius: 50%; pointer-events: none; z-index: 0;
 }
-body::before { width: 120px; height: 120px; top: -26px; right: -22px; background: radial-gradient(circle at 35% 35%, #fff6b0, var(--sun) 60%, rgba(255,216,61,0) 72%); }
+body::before {
+  width: 120px; height: 120px; top: -26px; right: -22px;
+  background: radial-gradient(circle at 35% 35%, #fff6b0, var(--sun) 60%, transparent 72%);
+  transition: background .6s linear;
+}
 body::after  { width: 220px; height: 220px; bottom: -120px; left: -60px; background: radial-gradient(circle, rgba(255,255,255,.55), rgba(255,255,255,0) 70%); }
 
 #app {
@@ -82,12 +88,13 @@ body::after  { width: 220px; height: 220px; bottom: -120px; left: -60px; backgro
   border: none; padding: 0; cursor: pointer; border-radius: 14px;
   display: grid; place-items: center;
   background: linear-gradient(180deg, var(--soil), var(--soil-d));
-  box-shadow: inset 0 -4px 0 rgba(0,0,0,.14), var(--shadow);
+  /* 薄い白縁。空の色が時間帯で変わっても、畑の輪郭が必ず読める */
+  box-shadow: inset 0 -4px 0 rgba(0,0,0,.14), var(--shadow), 0 0 0 2px rgba(255,255,255,.45);
   background-image: linear-gradient(180deg, var(--soil), var(--soil-d)),
                     repeating-linear-gradient(90deg, rgba(0,0,0,.06) 0 3px, transparent 3px 11px);
   background-blend-mode: normal;
 }
-.field:active { transform: translateY(2px); box-shadow: inset 0 -2px 0 rgba(0,0,0,.14); }
+.field:active { transform: translateY(2px); box-shadow: inset 0 -2px 0 rgba(0,0,0,.14), 0 0 0 2px rgba(255,255,255,.45); }
 .field .plant {
   font-size: clamp(19px, 6.4vw, 32px); line-height: 1;
   transform: scale(var(--s, .4)); transform-origin: 50% 78%;
