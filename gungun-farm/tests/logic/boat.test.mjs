@@ -145,3 +145,70 @@ test('積む量に見合った時間が与えられる', () => {
     assert.ok(boat.ttl / 1000 / units >= 2, `1個あたり2秒は要る（${units}個に ${boat.ttl / 1000}秒）`);
   }
 });
+
+/**
+ * **積むのが罰になってはいけない。**
+ *
+ * 船に積んだぶんは倉庫から引かれている。時計が止まって船ごと消えると、
+ * 積んだ人だけが損をする（3分チャレンジの終わりぎわで起きる）。
+ * 「出港できない船は出さない」を守れば `expiresAt <= limit` が必ず成り立ち、
+ * **終わる前に必ず期限切れの精算が通る**ので、この穴は塞がる。
+ */
+test('3分チャレンジに来る船は、必ず時間内に期限が来る', () => {
+  const { GF } = setup();
+  const E = GF.Engine;
+  for (let seed = 1; seed <= 30; seed++) {
+    E.setRandom(seededRandom(seed));
+    const limit = 180_000;
+    const s = E.create({ mode: 'rush', limit });
+    s.level = 6 + (seed % 12);
+    for (let t = 1000; t < limit; t += 5_000) {
+      s.now = t;
+      const boat = E.makeBoat(s);
+      if (!boat) continue;
+      assert.ok(boat.expiresAt <= limit,
+        `Lv${s.level} ${t}ms に、終わり(${limit}ms)を越える船が出た（${boat.expiresAt}ms）`);
+    }
+  }
+});
+
+test('積んだまま終わるゲームにならない（期限が来れば必ず戻る）', () => {
+  const { GF } = setup();
+  const E = GF.Engine;
+  const s = E.create({ mode: 'rush', limit: 600_000 });
+  s.level = 12;
+  E.tick(s, 1000);
+  s.boat = E.makeBoat(s);
+  assert.ok(s.boat, '局面を作れていない');
+
+  const [id] = Object.keys(s.boat.want);
+  E.store(s, id, 3);
+  E.loadBoat(s, id, 3);
+  assert.equal(s.barn[id] || 0, 0, '積んだぶんは倉庫から引かれている');
+
+  const before = s.coins;
+  const at = s.boat.expiresAt;
+  assert.ok(at <= 600_000, '期限が終わりを越えている');
+  E.tick(s, at);
+  assert.equal(s.boat, null, '船が残ったままになっている');
+  assert.equal(s.coins, before + E.sellPrice(s, id, 3), '積んだぶんが消えた');
+});
+
+test('出港できない船は来ない（進まない進捗バーを見せない）', () => {
+  const { GF } = setup();
+  const E = GF.Engine;
+  const s = E.create({ mode: 'rush', limit: 180_000 });
+  s.level = 12;
+  E.tick(s, 1000);
+
+  // 終わりまで残り10秒。どう積んでも間に合わない
+  s.now = 170_000;
+  assert.equal(E.makeBoat(s), null, '出港できない船が出ている');
+
+  // のんびりモードには終わりが無いので、いつでも来る
+  const free = E.create({ mode: 'free' });
+  free.level = 12;
+  E.tick(free, 1000);
+  free.now = 999_000;
+  assert.ok(E.makeBoat(free), 'のんびりモードで船が来なくなっている');
+});
