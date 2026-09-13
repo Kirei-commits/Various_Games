@@ -203,18 +203,26 @@ async function act(page, s, round) {
     await click('.card[data-act="buy-machine"]:not(.off)');
     await click('.card[data-act="buy-field"]:not(.off)');
   }
-  if (round % 8 === 0) {
+  if (round % 5 === 0) {
     // 船が待っている作物があればそれを植える。無ければいちばん格上を選ぶ。
     // （船は量を求めるので、畑ごと向けないといつまでも埋まらない）
     const wanted = await page.evaluate(() => {
       const st = window.GF.game.state, E = window.GF.Engine, D = window.GF.Data;
-      if (!st.boat) return null;
-      let worst = 0, pick = null;
-      for (const c of D.cropsAt(st.level)) {
-        const need = E.boatNeed(st.boat, c.id) - (st.barn[c.id] || 0);
-        if (need > worst) { worst = need; pick = c.id; }
+      const crops = D.cropsAt(st.level);
+      // 1. 開いている注文が欲しがっている作物（期限が短いので先に見る）
+      const want = E.reservedForOrders(st);
+      const ordered = crops.find((c) => (want[c.id] || 0) > (st.barn[c.id] || 0));
+      if (ordered) return ordered.id;
+      // 2. ふなびんがいちばん待っている作物
+      if (st.boat) {
+        let worst = 0, pick = null;
+        for (const c of crops) {
+          const need = E.boatNeed(st.boat, c.id) - (st.barn[c.id] || 0);
+          if (need > worst) { worst = need; pick = c.id; }
+        }
+        if (pick) return pick;
       }
-      return pick;
+      return null;
     }).catch(() => null);
 
     await tab('seed');
