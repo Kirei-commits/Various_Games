@@ -132,3 +132,28 @@ test('形を借りるだけのとき（bare）は乱数を消費しない', () =
   GF.Engine.create();
   assert.ok(calls > 0, 'ふつうに作るときは注文を引く');
 });
+
+test('直近の記録は配列のまま保存・復元される', () => {
+  const ls = fakeStorage();
+  const GF = withStorage(ls);
+  const recent = [{ score: 300, level: 5, combo: 3 }, { score: 120, level: 4, combo: 1 }];
+  GF.Store.save({ record: { recent } });
+
+  const back = withStorage(ls).Store.load().record.recent;
+  assert.ok(Array.isArray(back), '配列として戻ってこない');
+  assert.equal(back.length, 2);
+  assert.equal(back[0].score, 300);
+});
+
+/**
+ * `typeof [] === 'object'` なので、配列だと明示しないと
+ * 壊れた保存の `{}` がそのまま配列の席に座って、あとで `.slice` が落ちる。
+ */
+test('壊れた保存で配列の席が {} でも、配列として直る', () => {
+  const ls = fakeStorage();
+  const GF = withStorage(ls);
+  ls.map.set(GF.Store.KEY, JSON.stringify({ record: { recent: { bad: 1 } } }));
+  const back = withStorage(ls).Store.load().record.recent;
+  assert.ok(Array.isArray(back), '配列に直っていない');
+  assert.equal(back.length, 0);
+});

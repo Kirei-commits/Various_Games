@@ -23,16 +23,24 @@
       bestLevel: 1,
       bestCombo: 0,
       delivered: 0,
-      games: 0
+      games: 0,
+      // 直近の3分チャレンジ（新しい順・最大5件）。**伸びているかが見えないと、
+      // もう一度やる理由が「なんとなく」になる。** 最高記録1つでは分からない
+      recent: []
     }
   };
 
-  /** 既定値に定義の無いキーは捨てる。ここに書き忘れると保存しても復元されない。 */
+  /**
+   * 既定値に定義の無いキーは捨てる。ここに書き忘れると保存しても復元されない。
+   * **配列は丸ごと差し替える**（中身を混ぜない）。`typeof [] === 'object'` なので、
+   * 配列だと明示しておかないと、壊れた保存の `{}` がそのまま配列の席に座る。
+   */
   function merge(base, patch) {
     const out = {};
     for (const k of Object.keys(base)) {
       const b = base[k], p = patch && patch[k];
-      if (b && typeof b === 'object' && !Array.isArray(b)) out[k] = merge(b, p || {});
+      if (Array.isArray(b)) out[k] = Array.isArray(p) ? p : b;
+      else if (b && typeof b === 'object') out[k] = merge(b, p || {});
       else out[k] = (p === undefined || typeof p !== typeof b) ? b : p;
     }
     return out;

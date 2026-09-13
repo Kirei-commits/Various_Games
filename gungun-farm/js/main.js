@@ -443,6 +443,15 @@
 
     nodes.push(rows);
 
+    nodes.push(el('h3', '', 'これまでの記録'));
+    const rec = el('div', 'result');
+    rec.appendChild(stat(game.record.bestScore, '3分の最高コイン'));
+    rec.appendChild(stat(game.record.bestLevel, '最高レベル'));
+    rec.appendChild(stat(game.record.bestCombo, '最高コンボ'));
+    rec.appendChild(stat(game.record.delivered, '届けた数'));
+    nodes.push(rec);
+    const chart = recentChart(game.record.recent, game.record.bestScore, 1);
+    if (chart) nodes.push(chart);
     nodes.push(el('h3', '', `じっせき（${game.state.achieved.length}/${Data.ACHIEVEMENTS.length}）`));
     const grid = el('div', 'achieves');
     for (const a of Data.ACHIEVEMENTS) {
@@ -461,14 +470,34 @@
     }
     nodes.push(grid);
 
-    nodes.push(el('h3', '', 'これまでの記録'));
-    const rec = el('div', 'result');
-    rec.appendChild(stat(game.record.bestScore, '3分の最高コイン'));
-    rec.appendChild(stat(game.record.bestLevel, '最高レベル'));
-    rec.appendChild(stat(game.record.bestCombo, '最高コンボ'));
-    rec.appendChild(stat(game.record.delivered, '届けた数'));
-    nodes.push(rec);
     Render.sheet(nodes);
+  }
+
+  /**
+   * 直近の3分チャレンジを棒で並べる。**最高記録1つでは、伸びているかが分からない。**
+   * 1回目は棒が1本しか出ないので、比べるものが無いうちは出さない。
+   * 幅はいちばん高い回を基準にする（絶対値で引くと、序盤はどれも潰れて見える）。
+   */
+  const RECENT_MAX = 5;
+  function recentChart(recent, best, offset = 0) {
+    const list = (recent || []).slice(0, RECENT_MAX);
+    if (list.length < 2) return null;
+    const top = Math.max(best || 0, ...list.map((r) => r.score));
+    const box = el('div', 'recent');
+    list.forEach((r, i) => {
+      const row = el('div', 'recent-row' + (top > 0 && r.score >= top ? ' top' : ''));
+      // 「いま」は終わったばかりの回のこと。メニューから見るときは、いちばん上でも1回まえ
+      const ago = offset + i;
+      row.appendChild(el('span', 'when', ago === 0 ? 'いま' : `${ago}回まえ`));
+      const bar = el('span', 'bar');
+      const fill = el('i');
+      fill.style.width = Math.max(4, (r.score / (top || 1)) * 100) + '%';
+      bar.appendChild(fill);
+      row.appendChild(bar);
+      row.appendChild(el('span', 'num', String(r.score)));
+      box.appendChild(row);
+    });
+    return box;
   }
 
   function stat(value, label) {
@@ -501,13 +530,17 @@
     game.resultShown = game.state;
     const s = game.state;
     const best = Math.max(game.record.bestScore, Engine.score(s));
+    // 直近5回。**新しいものを先頭に**（下に伸びると、見たい回が画面の外へ出る）
+    const recent = [{ score: Engine.score(s), level: s.level, combo: s.bestCombo }]
+      .concat(game.record.recent || []).slice(0, RECENT_MAX);
     game.record = Store.save({
       record: {
         bestScore: best,
         bestLevel: Math.max(game.record.bestLevel, s.level),
         bestCombo: Math.max(game.record.bestCombo, s.bestCombo),
         delivered: game.record.delivered + s.stats.delivered,
-        games: game.record.games + 1
+        games: game.record.games + 1,
+        recent
       }
     }).record;
 
@@ -519,6 +552,8 @@
     grid.appendChild(stat(s.bestCombo, '最高コンボ'));
     nodes.push(grid);
     if (Engine.score(s) >= best) nodes.push(el('p', 'best', '🏆 自己ベスト更新！'));
+    const chart = recentChart(game.record.recent, best);
+    if (chart) { nodes.push(el('h3', '', 'ここ数回')); nodes.push(chart); }
 
     const rows = el('div', 'rows');
     const again = el('button', 'menu primary', 'もういちど');

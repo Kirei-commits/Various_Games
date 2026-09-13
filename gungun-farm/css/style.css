@@ -351,6 +351,19 @@ body::after  { width: 220px; height: 220px; bottom: -120px; left: -60px; backgro
 .sheet .result div { background: #fff6dd; border-radius: 13px; padding: 8px; text-align: center; }
 .sheet .result b { display: block; font-size: 19px; color: var(--leaf-d); }
 .sheet .result small { font-size: 10.5px; color: var(--ink-soft); }
+
+/* 直近の3分チャレンジ。伸びているかが1目で分かるように棒で並べる */
+.recent { display: grid; gap: 4px; margin-bottom: 10px; }
+.recent-row { display: grid; grid-template-columns: 52px 1fr 56px; align-items: center; gap: 6px; }
+.recent-row .when { font-size: 10.5px; color: var(--ink-soft); }
+.recent-row .bar { height: 12px; border-radius: 99px; background: #eee3cd; overflow: hidden; }
+.recent-row .bar i {
+  display: block; height: 100%; border-radius: 99px;
+  background: linear-gradient(90deg, var(--leaf), #9ae66e);
+}
+.recent-row .num { font-size: 12px; font-weight: 700; text-align: right; font-variant-numeric: tabular-nums; }
+.recent-row.top .bar i { background: linear-gradient(90deg, var(--orange), #ffd83d); }
+.recent-row.top .num { color: var(--orange); }
 .sheet .best { text-align: center; font-size: 12px; font-weight: 700; color: var(--gold); margin-bottom: 8px; }
 
 /* ------------------------------------------------------------------ 動き */

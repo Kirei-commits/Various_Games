@@ -462,3 +462,29 @@ test('日が変わると、きょうの作物が入れ替わって知らせが�
   await expect(page.locator(`.card[data-act="seed"][data-id="${next}"]`)).toHaveClass(/today/);
   expect(g.errors).toEqual([]);
 });
+
+test('3分チャレンジは、ここ数回の成績が並んで見える', async ({ page }) => {
+  const g = await openFarm(page, { mode: 'rush', limit: '2500', speed: '6' });
+  const earn = (n) => page.evaluate((n) => { window.GF.game.state.stats.coinsEarned = n; }, n);
+
+  // 1回目は比べる相手がいないので、棒は出さない
+  await earn(400);
+  await expect(page.locator('#sheet')).toBeVisible({ timeout: 15000 });
+  await expect(page.locator('.recent')).toHaveCount(0);
+
+  // 2回目を最後まで遊ぶと、2本並ぶ
+  await page.locator('#sheet .menu.primary').click();
+  await earn(900);
+  await expect(page.locator('#sheet')).toBeVisible({ timeout: 15000 });
+  await expect(page.locator('.recent-row')).toHaveCount(2);
+  await expect(page.locator('.recent-row').first().locator('.when')).toHaveText('いま');
+  // いちばん良い回に印が付く（どれが自己ベストか分かる）
+  await expect(page.locator('.recent-row.top')).toHaveCount(1);
+  await expect(page.locator('.recent-row.top .num')).toHaveText('900');
+
+  // 記録はメニューからも見える（結果の画面は1度きりで流れる）
+  await page.locator('#sheet .menu:not(.primary)').first().click();
+  await page.locator('#btn-menu').click();
+  await expect(page.locator('#sheet .recent-row')).toHaveCount(2);
+  expect(g.errors).toEqual([]);
+});
