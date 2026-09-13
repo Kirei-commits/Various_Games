@@ -1,5 +1,6 @@
 # 静的サイトとして GitHub Pages に公開する。
-# ビルド工程は無く、リポジトリの中身をそのまま配る（各ゲームは index.html だけで動く）。
+# 配るものの選び方は `.github/scripts/build-site.mjs` が持っていて、CIの「配信物の組み立て」
+# ジョブと同じものを使う。ここでゲーム名を数え上げない（増えても直さなくてよい）。
 #
 # 初回だけ手作業が要る:
 #   リポジトリの Settings → Pages → Build and deployment → Source を
@@ -37,16 +38,13 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      # 配信物に開発用のものを混ぜない（node_modules やテスト結果）
-      - name: 配信するファイルだけを集める
-        run: |
-          mkdir -p _site
-          cp index.html _site/ 2>/dev/null || true
-          for game in god-arena gomoku-narabe; do
-            mkdir -p "_site/$game"
-            cp -r "$game/index.html" "$game/css" "$game/js" "_site/$game/" 2>/dev/null || true
-          done
-          ls -R _site | head -40
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+
+      # 配信物に開発用のもの（node_modules・テスト・レポート）を混ぜない
+      - name: 配信するファイルを集める
+        run: node .github/scripts/build-site.mjs --out _site --budget 600
 
       - uses: actions/configure-pages@v6
 

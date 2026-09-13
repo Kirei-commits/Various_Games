@@ -10,10 +10,13 @@
     "test:logic": "node --test tests/logic/*.test.mjs",
     "test:e2e": "playwright test",
     "playtest": "node tests/playtest.mjs",
-    "test": "npm run lint && npm run test:logic && npm run test:e2e"
+    "test": "npm run lint && npm run test:logic && npm run test:e2e",
+    "playtest:ci": "node tests/playtest.mjs --games 1 --keep"
   },
   "devDependencies": {
     "@playwright/test": "1.63.0"
   },
-  "engines": { "node": ">=20" }
+  "engines": {
+    "node": ">=20"
+  }
 }

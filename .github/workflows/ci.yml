@@ -1,3 +1,7 @@
+# ゲームの一覧をこのファイルに書かない。
+# `.github/scripts/discover-games.mjs` が「package.json と index.html があるディレクトリ」を
+# ゲームとみなして数え上げ、それを matrix に流し込む。
+# ゲームを1つ足したときに、ここを直す必要はない（直していたら check-repo.mjs が怒る）。
 name: CI
 
 on:
@@ -17,14 +21,35 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  discover:
+    name: ゲームを数え上げる
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      games: ${{ steps.find.outputs.games }}
+      playtests: ${{ steps.find.outputs.playtests }}
+      simulates: ${{ steps.find.outputs.simulates }}
+      count: ${{ steps.find.outputs.count }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - id: find
+        name: ゲームを見つけて matrix に渡す
+        run: node .github/scripts/discover-games.mjs --github
+
+      # ゲームが増えたときに忘れがちなこと（入口のリンク、dependabot、CI用スクリプト）を押さえる
+      - name: リポジトリ全体の整合
+        run: node .github/scripts/check-repo.mjs
+
   checks:
     name: 静的検査とロジックテスト (${{ matrix.game }})
+    needs: discover
     runs-on: ubuntu-latest
     timeout-minutes: 10
     strategy:
       fail-fast: false
       matrix:
-        game: [god-arena, gomoku-narabe]
+        game: ${{ fromJSON(needs.discover.outputs.games) }}
     defaults:
       run:
         working-directory: ${{ matrix.game }}
@@ -49,12 +74,13 @@ jobs:
 
   e2e:
     name: ブラウザテスト (${{ matrix.game }})
+    needs: discover
     runs-on: ubuntu-latest
     timeout-minutes: 25
     strategy:
       fail-fast: false
       matrix:
-        game: [god-arena, gomoku-narabe]
+        game: ${{ fromJSON(needs.discover.outputs.games) }}
     defaults:
       run:
         working-directory: ${{ matrix.game }}
@@ -77,7 +103,7 @@ jobs:
       - name: E2Eテスト（デスクトップ + スマホのタッチ操作）
         run: npm run test:e2e
 
-      # 失敗したときこそレポートが要るので if: always() を必ず付ける
+      # 失敗したときこそレポートが要るので if: always() 相当を必ず付ける
       - name: テストレポートを保存
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v7
@@ -94,15 +120,22 @@ jobs:
           path: ${{ matrix.game }}/test-results/
           retention-days: 7
 
-  # 決められた局面を確かめる E2E とは別に、実ブラウザで決着まで通しプレイして
+  # 決められた局面を確かめる E2E とは別に、実ブラウザで最後まで遊んで
   # 「詰み・停止・表示崩れ」を探す。E2Eでは見つからない種類の壊れ方を拾う。
+  # 局数や分数といったCI用の加減は、各ゲームの "playtest:ci" が持っている。
   playtest:
-    name: 通しプレイ (god-arena)
+    name: 通しプレイ (${{ matrix.game }})
+    needs: discover
+    if: needs.discover.outputs.playtests != '[]'
     runs-on: ubuntu-latest
     timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        game: ${{ fromJSON(needs.discover.outputs.playtests) }}
     defaults:
       run:
-        working-directory: god-arena
+        working-directory: ${{ matrix.game }}
     steps:
       - uses: actions/checkout@v7
 
@@ -110,7 +143,7 @@ jobs:
         with:
           node-version: '22'
           cache: npm
-          cache-dependency-path: god-arena/package-lock.json
+          cache-dependency-path: ${{ matrix.game }}/package-lock.json
 
       - name: 依存をインストール
         run: npm ci
@@ -118,14 +151,66 @@ jobs:
       - name: Chromium と実行に必要なシステムライブラリを導入
         run: npx playwright install --with-deps chromium
 
-      # 局数はCIの時間に合わせて絞る。手元では --games を増やして回す。
-      - name: 決着までの通しプレイ
-        run: npm run playtest -- --games 1 --keep
+      - name: 最後まで遊んでみる
+        run: npm run playtest:ci
 
       - name: 通しプレイのスクリーンショットを保存
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v7
         with:
-          name: playtest-shots
-          path: god-arena/playtest-shots/
+          name: playtest-shots-${{ matrix.game }}
+          path: ${{ matrix.game }}/playtest-shots/
           retention-days: 7
+
+  # 遊びの数値（育ちの速さ・詰みの有無）を毎回測って、実行の要約に表として残す。
+  # 「バランスを変えたら測り直す」を、覚えていなくても回るようにするための仕組み。
+  balance:
+    name: バランス計測 (${{ matrix.game }})
+    needs: discover
+    if: needs.discover.outputs.simulates != '[]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        game: ${{ fromJSON(needs.discover.outputs.simulates) }}
+    defaults:
+      run:
+        working-directory: ${{ matrix.game }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+
+      # ブラウザを使わないので依存のインストールが要らない（数十秒で終わる）
+      - name: 実際の秒数ぶん遊んで数値を測る
+        run: npm run simulate:ci
+
+  # 配信するものを実際に組み立てて、中身と大きさを確かめる。
+  # PRでも成果物として残るので、公開前に手元へ落として開いて確かめられる。
+  site:
+    name: 配信物の組み立てと大きさ
+    needs: discover
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+
+      # 予算を超えたら失敗する。ビルド工程を持たない代わりに、
+      # 「開けばすぐ遊べる」大きさであることを機械で守る
+      - name: 組み立てて大きさを測る
+        run: node .github/scripts/build-site.mjs --out _site --budget 600
+
+      - name: 配信物を保存（落として開けば、そのまま遊べる）
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: site-preview
+          path: _site/
+          retention-days: 14
