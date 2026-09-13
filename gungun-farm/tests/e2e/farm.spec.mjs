@@ -373,3 +373,24 @@ test('まとめて収穫したときは、まとめるほど早いことを伝�
   await expect(page.locator('#ticker')).toContainText('収穫して');
   await expect(page.locator('#ticker')).not.toContainText('まとめて収穫');
 });
+
+test('じっせきがメニューに並び、取ると知らせが出る', async ({ page }) => {
+  const g = await openFarm(page, { speed: '1' });
+  await page.locator('#btn-menu').click();
+  const total = await page.evaluate(() => window.GF.Data.ACHIEVEMENTS.length);
+  await expect(page.locator('.achieve')).toHaveCount(total);
+  await expect(page.locator('.achieve.done')).toHaveCount(0, 'はじめは何も取っていない');
+  await page.locator('.sheet .menu', { hasText: 'とじる' }).click();
+
+  // ひとつ取る
+  await g.tap(page.locator('#btn-harvest'));
+  await waitReady(page);
+  await g.tap(page.locator('#btn-harvest'));
+  await expect(page.locator('#pop')).toBeVisible({ timeout: 5000 });
+  await expect(page.locator('#pop')).toContainText('じっせき');
+  await expect(page.locator('#pop')).toBeHidden({ timeout: 5000 });
+
+  await page.locator('#btn-menu').click();
+  await expect(page.locator('.achieve.done')).not.toHaveCount(0);
+  expect(g.errors).toEqual([]);
+});

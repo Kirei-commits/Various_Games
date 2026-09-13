@@ -55,6 +55,7 @@
       nextBoatAt: 0,
       combo: 0,
       bestCombo: 0,
+      achieved: [],
       stats: { harvested: 0, crafted: 0, delivered: 0, expired: 0, shipped: 0, boatMissed: 0, coinsEarned: 0, xpEarned: 0, rescues: 0 },
       events: [],
       eventSeq: 1
@@ -574,6 +575,31 @@
     return true;
   }
 
+  /* -------------------------------------------------------------- 実績 */
+
+  /** 実績の進み具合。数えるところを1か所にまとめる */
+  function achieveCount(state, on) {
+    if (on === 'level') return state.level;
+    if (on === 'machines') return state.machines.length;
+    if (on === 'fields') return state.fieldsOwned;
+    if (on === 'bestCombo') return state.bestCombo;
+    return state.stats[on] || 0;
+  }
+
+  /** まだ取っていない実績のうち、条件を満たしたものを取る */
+  function checkAchievements(state) {
+    const got = [];
+    for (const a of Data.ACHIEVEMENTS) {
+      if (state.achieved.includes(a.id)) continue;
+      if (achieveCount(state, a.on) >= a.goal) {
+        state.achieved.push(a.id);
+        got.push(a);
+        event(state, 'achieve', `${a.emoji} ${a.name}`, { achievement: a.id });
+      }
+    }
+    return got;
+  }
+
   /* ---------------------------------------------------------------- 進行 */
 
   /**
@@ -632,6 +658,7 @@
       if (state.boat) event(state, 'boat', 'ふなびんが着いた🚢');
     }
 
+    checkAchievements(state);
     rescue(state);
 
     if (state.mode === 'rush' && state.limit && state.now >= state.limit) {
@@ -658,6 +685,6 @@
     BOAT_LEVEL, BOAT_TTL, BOAT_BONUS, makeBoat, boatNeed, boatReady, boatProgress,
     loadBoat, loadBoatAll, boatLoadable, shipBoat, expireBoat,
     sell, nextFieldPrice, buyField, buyBarn, buyMachine,
-    rescue, timeLeft, score, store, take, event
+    rescue, timeLeft, score, store, take, event, achieveCount, checkAchievements
   };
 })(typeof window !== 'undefined' ? window : globalThis);

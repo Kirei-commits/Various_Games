@@ -590,6 +590,20 @@
     setTimeout(() => { refs.pop.hidden = true; refs.pop.replaceChildren(); if (done) done(); }, 1200);
   }
 
+  /**
+   * 実績を取ったときの小さな札。
+   * ティッカー（1行）に出すと、収穫や植え直しの知らせを押しのけてしまう。
+   * レベルアップと同じく、操作を止めない浮きもの（pointer-events: none）にする。
+   */
+  function award(emoji, name, done) {
+    const box = el('div', 'box award');
+    box.appendChild(el('div', 'award-tag', '🏅 じっせき'));
+    box.appendChild(el('div', 'award-name', `${emoji} ${name}`));
+    refs.pop.replaceChildren(box);
+    refs.pop.hidden = false;
+    setTimeout(() => { refs.pop.hidden = true; refs.pop.replaceChildren(); if (done) done(); }, 1400);
+  }
+
   function sheet(nodes) {
     const box = el('div', 'box');
     for (const n of nodes) box.appendChild(n);
@@ -599,5 +613,5 @@
   const closeSheet = () => { refs.sheet.hidden = true; refs.sheet.replaceChildren(); };
 
   global.GF = global.GF || {};
-  global.GF.Render = { init, sync, invalidate, paint, ticker, float, barnPulse, skyAt, DAY_MS, levelUp, sheet, closeSheet, el, icon, nameOf, growth, refs: () => refs };
+  global.GF.Render = { init, sync, invalidate, paint, ticker, float, barnPulse, award, skyAt, DAY_MS, levelUp, sheet, closeSheet, el, icon, nameOf, growth, refs: () => refs };
 })(typeof window !== 'undefined' ? window : globalThis);

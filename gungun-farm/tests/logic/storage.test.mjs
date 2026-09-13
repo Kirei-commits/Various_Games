@@ -97,6 +97,7 @@ test('あとから足した項目が無い古い保存でも、新しい仕掛�
   delete old.nextBoatAt;
   delete old.stats.shipped;
   delete old.stats.boatMissed;
+  delete old.achieved;
   GF.Store.saveFarm(old);
 
   const back = GF.Store.loadFarm();
@@ -107,6 +108,7 @@ test('あとから足した項目が無い古い保存でも、新しい仕掛�
   back.level = GF.Engine.BOAT_LEVEL;
   for (let t = 1000; t <= 60_000; t += 1000) GF.Engine.tick(back, t);
   assert.ok(back.boat, '古い保存でもふなびんが来る');
+  assert.ok(Array.isArray(back.achieved), 'あとから足した実績の入れ物も埋まっている');
 });
 
 test('壊れた stats でも落ちない', () => {

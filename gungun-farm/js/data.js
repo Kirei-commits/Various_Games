@@ -169,8 +169,32 @@
     return out;
   }
 
+  /**
+   * 実績。レベル20に着いたあとも目標が残るようにする。
+   * `on` は何を数えるか、`goal` はいくつで達成か。
+   * 進み具合は engine が state から数える（ここは純データのまま）。
+   */
+  const ACHIEVEMENTS = [
+    { id: 'harvest1',    name: 'はじめの一歩',   emoji: '🌱', on: 'harvested',   goal: 1 },
+    { id: 'harvest100',  name: '土いじり',       emoji: '🌾', on: 'harvested',   goal: 100 },
+    { id: 'harvest1000', name: '大農家',         emoji: '🚜', on: 'harvested',   goal: 1000 },
+    { id: 'craft50',     name: '職人',           emoji: '⚙️', on: 'crafted',     goal: 50 },
+    { id: 'craft500',    name: '工場長',         emoji: '🏭', on: 'crafted',     goal: 500 },
+    { id: 'deliver20',   name: '配達員',         emoji: '📦', on: 'delivered',   goal: 20 },
+    { id: 'deliver100',  name: '働きもの',       emoji: '🏃', on: 'delivered',   goal: 100 },
+    { id: 'combo10',     name: '10れんぞく',     emoji: '🔥', on: 'bestCombo',   goal: 10 },
+    { id: 'ship1',       name: 'はじめての出港', emoji: '🚢', on: 'shipped',     goal: 1 },
+    { id: 'ship10',      name: '船長',           emoji: '⚓', on: 'shipped',     goal: 10 },
+    { id: 'level10',     name: '半人前',         emoji: '⭐', on: 'level',       goal: 10 },
+    { id: 'level20',     name: '一人前',         emoji: '🌟', on: 'level',       goal: MAX_LEVEL },
+    { id: 'machines',    name: 'ぜんぶ揃えた',   emoji: '🎪', on: 'machines',    goal: MACHINES.length },
+    { id: 'fields',      name: '大地主',         emoji: '🟩', on: 'fields',      goal: FIELD_SLOTS },
+    { id: 'rich',        name: 'ひとやま当てた', emoji: '💰', on: 'coinsEarned', goal: 100_000 }
+  ];
+
   global.GF = global.GF || {};
   global.GF.Data = {
+    ACHIEVEMENTS,
     MAX_SEC, ITEMS, CROPS, MACHINES,
     FIELDS_AT_START, FIELD_SLOTS, FIELD_UPGRADES,
     BARN_AT_START, BARN_STEP, barnPrice,

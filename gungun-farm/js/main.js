@@ -150,12 +150,22 @@
         Render.ticker('ふなびんが着いた🚢 余ったものをどんどん積もう');
       } else if (ev.kind === 'ship') {
         Render.ticker('⛵ ' + ev.text);
+      } else if (ev.kind === 'achieve') {
+        // ティッカーは1行しかないので、収穫などの知らせを押しのけない形で出す
+        game.popQueue.push(ev);
+        Audio.play('coin');
       }
     }
     if (game.popQueue.length && !game.popping) {
       game.popping = true;
       const ev = game.popQueue.shift();
-      Render.levelUp(ev.level, ev.unlocks, () => { game.popping = false; Render.invalidate(); });
+      const done = () => { game.popping = false; Render.invalidate(); };
+      if (ev.kind === 'achieve') {
+        const a = Data.ACHIEVEMENTS.find((x) => x.id === ev.achievement);
+        Render.award(a ? a.emoji : '🏅', a ? a.name : ev.text, done);
+      } else {
+        Render.levelUp(ev.level, ev.unlocks, done);
+      }
     }
   }
 
@@ -426,6 +436,25 @@
     rows.appendChild(close);
 
     nodes.push(rows);
+
+    nodes.push(el('h3', '', `じっせき（${game.state.achieved.length}/${Data.ACHIEVEMENTS.length}）`));
+    const grid = el('div', 'achieves');
+    for (const a of Data.ACHIEVEMENTS) {
+      const done = game.state.achieved.includes(a.id);
+      const now = Engine.achieveCount(game.state, a.on);
+      const card = el('div', 'achieve' + (done ? ' done' : ''));
+      card.appendChild(el('span', 'ico', done ? a.emoji : '🔒'));
+      card.appendChild(el('span', 'nm', a.name));
+      card.appendChild(el('span', 'sub', done ? 'かんりょう' : `${Math.min(now, a.goal)} / ${a.goal}`));
+      const bar = el('span', 'bar');
+      const fill = el('i');
+      fill.style.width = Math.min(100, (now / a.goal) * 100) + '%';
+      bar.appendChild(fill);
+      card.appendChild(bar);
+      grid.appendChild(card);
+    }
+    nodes.push(grid);
+
     nodes.push(el('h3', '', 'これまでの記録'));
     const rec = el('div', 'result');
     rec.appendChild(stat(game.record.bestScore, '3分の最高コイン'));
