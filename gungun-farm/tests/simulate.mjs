@@ -20,13 +20,19 @@ const opt = (name, def) => {
 const minutes = Number(opt('minutes', 10));
 const runs = Number(opt('runs', 12));
 const wantSummary = args.includes('--summary');
+/**
+ * `--human` … 人らしい手の動きで測る。
+ * 既定は400ミリ秒おきに休まず触り続ける前提で、詰みやバランスを見るにはそれでよいが、
+ * 「10分でレベル14」を人の話として読むと嘘になる。
+ */
+const human = args.includes('--human');
 
 const GF = loadGF(['data.js', 'engine.js']);
 
 const results = [];
 for (let i = 0; i < runs; i++) {
   const seed = mixSeed(i);
-  results.push(simulate(GF, { minutes, seed, random: seededRandom(seed) }));
+  results.push(simulate(GF, { minutes, seed, random: seededRandom(seed), human }));
 }
 
 const med = (nums) => {
@@ -50,6 +56,7 @@ const rows = [
   ['注文で稼いだ割合(%)', stat('orderPct')],
   ['ふなびんで稼いだ割合(%)', stat('boatPct')],
   ['余りを売った割合(%)', stat('sellPct')],
+  ['1分あたりの手数', stat('stepsPerMin')],
   ['最大コンボ', stat('bestCombo')],
   ['救済の回数', stat('rescues')],
   ['何も起きない最長(ms)', stat('worstStuckMs')],
@@ -59,7 +66,7 @@ const rows = [
 ];
 
 const lines = [];
-lines.push(`## 農園シミュレーション — ${minutes}分 × ${runs}回`);
+lines.push(`## 農園シミュレーション — ${minutes}分 × ${runs}回${human ? '（人らしい手の動き）' : ''}`);
 lines.push('');
 lines.push('| 指標 | 最小 | 中央 | 最大 |');
 lines.push('| --- | ---: | ---: | ---: |');

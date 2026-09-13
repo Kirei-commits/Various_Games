@@ -166,8 +166,29 @@ const growing = (state, id) => state.fields.filter((f) => f.crop === id).length;
  * @param {object} GF window.GF 相当
  * @param {object} opts minutes=遊ぶ分数 / stepMs=手を動かす間隔 / seed
  */
+/**
+ * 人が遊んだときの手の動き。
+ *
+ * 既定の方策は**400ミリ秒おきに休まず触り続ける**。詰みやバランスを測るには
+ * それでよいが、「10分でレベル14」を人の話として読むと嘘になる。
+ * 人は毎秒1回くらいで、ときどき画面を見て止まる。
+ *
+ * - ふだんは 550〜1100ms（実測でいちばん稼げる帯）
+ * - 7回に1回くらい、1.5〜3秒の「考える間」
+ * - 40回に1回くらい、4〜9秒の「よそ見」
+ *
+ * 数字は当てずっぽうだが、**手を止めない前提よりは人に近い**。
+ * ここを動かしたら `ROADMAP.md` の「人が遊んだときのペース」も測り直す。
+ */
+function humanStep(rng) {
+  const r = rng();
+  if (r < 0.025) return 4000 + rng() * 5000;
+  if (r < 0.16) return 1500 + rng() * 1500;
+  return 550 + rng() * 550;
+}
+
 export function simulate(GF, opts = {}) {
-  const { minutes = 10, stepMs = 400, seed = 1, mode = 'free', random } = opts;
+  const { minutes = 10, stepMs = 400, seed = 1, mode = 'free', random, human = false } = opts;
   GF.Engine.setRandom(random || Math.random);
   const state = GF.Engine.create({ mode, limit: minutes * 60_000 });
   const total = minutes * 60_000;
@@ -185,12 +206,23 @@ export function simulate(GF, opts = {}) {
   const SAMPLE = 100;
   const FELT = 1000;       // 人が「待った」と感じ始めるあたり
 
-  for (let t = 0; t <= total; t += stepMs) {
+  // 人らしい間隔は、農園の乱数とは別の列から引く。
+  // 同じ列から引くと、間隔を変えただけで注文の抽選までずれて比べられなくなる
+  let handSeed = (seed * 2654435761) >>> 0;
+  const hand = () => {
+    handSeed = (handSeed * 1664525 + 1013904223) >>> 0;
+    return handSeed / 4294967296;
+  };
+
+  let steps = 0;
+  for (let t = 0, step = stepMs; t <= total; t += step) {
+    step = human ? Math.round(humanStep(hand)) : stepMs;
+    steps++;
     GF.Engine.tick(state, t);
     if (state.over) break;
 
     // 手を動かす前に「やることがあるか」を見る（あとで見ると自分で解消してしまう）
-    for (let u = 0; u < stepMs; u += SAMPLE) {
+    for (let u = 0; u < step; u += SAMPLE) {
       GF.Engine.tick(state, t + u);
       if (hasSomethingToDo(GF, state)) {
         if (idleRun >= FELT) feltMs += idleRun;
@@ -208,7 +240,7 @@ export function simulate(GF, opts = {}) {
     const progress = state.stats.harvested + state.stats.crafted + state.stats.delivered;
     const busy = state.fields.some((f) => f.crop) || state.machines.some((m) => m.queue.length || m.done);
     if (progress === prevProgress && !busy) {
-      stuckFor += stepMs;
+      stuckFor += step;
       worstStuck = Math.max(worstStuck, stuckFor);
     } else {
       stuckFor = 0;
@@ -229,6 +261,8 @@ export function simulate(GF, opts = {}) {
     rescues: state.stats.rescues,
     shipped: state.stats.shipped,
     boatMissed: state.stats.boatMissed,
+    steps,
+    stepsPerMin: Math.round((steps / minutes) * 10) / 10,
     // コインの出どころ。**注文が主筋であること**を毎回見張るための数字
     // （一度、稼ぎの55%が「余りを売っただけ」になって注文がおまけに落ちていた）
     orderPct: pct(state.stats.coinsOrder, state.stats.coinsEarned),

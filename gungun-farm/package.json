@@ -13,7 +13,8 @@
     "playtest": "node tests/playtest.mjs",
     "test": "npm run lint && npm run test:logic && npm run test:e2e",
     "playtest:ci": "node tests/playtest.mjs --minutes 3 --speed 3 --keep && node tests/playtest.mjs --minutes 2 --speed 3 --level 12 --port 8084",
-    "simulate:ci": "node tests/simulate.mjs --minutes 10 --runs 8 --summary"
+    "simulate:ci": "node tests/simulate.mjs --minutes 10 --runs 8 --summary && node tests/simulate.mjs --minutes 10 --runs 8 --human --summary",
+    "simulate:human": "node tests/simulate.mjs --minutes 10 --runs 8 --human"
   },
   "devDependencies": {
     "@playwright/test": "1.63.0"

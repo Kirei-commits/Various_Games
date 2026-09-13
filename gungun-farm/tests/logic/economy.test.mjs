@@ -236,3 +236,42 @@ test('注文の枠はレベルに沿って増える', () => {
       `Lv${r.level} の枠追加が「解放されたもの」に出ていない`);
   }
 });
+
+/**
+ * **人が遊んだときのペース。**
+ *
+ * ほかの計測は「400ミリ秒おきに休まず触り続ける」前提で、詰みやバランスを見るには
+ * それでよい。ただし「10分でレベル14」を人の話として読むと嘘になる。
+ * ふだんは毎秒1回くらいで、ときどき画面を見て止まる手の動きで測り直す。
+ *
+ * 閾値は実測より下に置く（実測 10分 Lv13 → 閾値 Lv10）。
+ */
+const human = (minutes, n) => Array.from({ length: n }, (_, i) => {
+  const seed = mixSeed(i);
+  return simulate(GF, { minutes, seed, random: seededRandom(seed), human: true });
+});
+
+test('人の手でも、10分でひととおり増えるところまで行く', () => {
+  const rs = human(10, 6);
+  const lv = med(rs.map((r) => r.level));
+  assert.ok(lv >= 10, `人らしい手つきだと10分で Lv${lv} までしか行かない`);
+  // 手数が現実離れしていないこと（毎秒1〜2回のあたり）
+  const taps = med(rs.map((r) => r.stepsPerMin));
+  assert.ok(taps > 30 && taps < 90, `1分あたり ${taps}手。人の手つきの想定から外れている`);
+  for (const r of rs) {
+    assert.equal(r.rescues, 0, `人の手つきで救済が出た（seed ${r.seed}）`);
+    assert.ok(r.worstIdleMs <= 3000, `人の手つきで ${r.worstIdleMs}ms 待たされた`);
+  }
+});
+
+test('人の手でも、25分あればレベル20に届く', () => {
+  const lv = med(human(25, 4).map((r) => r.level));
+  assert.ok(lv >= 17, `人らしい手つきだと25分で Lv${lv}。解放しきれない`);
+});
+
+test('手を止めない前提と、人の手つきで、差が開きすぎない', () => {
+  const fast = med(runs(10, 4).map((r) => r.level));
+  const slow = med(human(10, 4).map((r) => r.level));
+  assert.ok(fast - slow <= 4,
+    `手を止めない人が Lv${fast}、ふつうの人が Lv${slow}。速く叩けるほど有利すぎる`);
+});
