@@ -324,18 +324,16 @@
     const boat = state.boat;
     const row = el('div', 'boat' + (Engine.boatReady(boat) ? ' full' : ''));
 
-    const head = el('div', 'boat-head');
-    head.appendChild(el('span', 'boat-title', '🚢 ふなびん'));
-    head.appendChild(el('span', 'reward', `🪙${boat.coins} ・ ⭐${boat.xp}`));
-    row.appendChild(head);
-
+    // 見出しの行を別に持たない（注文と同じ理由。1画面に注文も入れるため）
     const want = el('div', 'want');
+    want.appendChild(el('span', 'boat-title', '🚢'));
     for (const [id, n] of Object.entries(boat.want)) {
       const got = Math.min(boat.loaded[id] || 0, n);
       const chip = el('span', got >= n ? 'done' : (state.barn[id] || 0) > 0 ? '' : 'lack', `${icon(id)}${got}/${n}`);
       chip.title = nameOf(id);
       want.appendChild(chip);
     }
+    want.appendChild(el('span', 'pay', `🪙${boat.coins}・⭐${boat.xp}`));
     row.appendChild(want);
 
     const ready = Engine.boatReady(boat);
@@ -382,20 +380,22 @@
       }
       row.appendChild(want);
 
+      // ごほうびも「チップ」として同じ行に並べる。
+      // **見出しの行を別に持つと、カード1枚が44pxのボタン2つぶんより高くなる**——
+      // いちばん小さい画面ではパネルが133pxしかなく、注文が1件も見えなくなっていた
+      want.appendChild(el('span', 'pay', `🪙${o.coins}・⭐${o.xp}`));
+
       const go = el('button', 'go', 'とどける');
       go.dataset.act = 'deliver';
       go.dataset.id = String(o.id);
       go.disabled = !Engine.canDeliver(state, o);
       row.appendChild(go);
 
-      const head = el('div', 'order-head');
-      head.appendChild(el('span', 'reward', `🪙${o.coins} ・ ⭐${o.xp}`));
       const x = el('button', 'x', '✕');
       x.dataset.act = 'dismiss';
       x.dataset.id = String(o.id);
       x.setAttribute('aria-label', 'この注文をことわる');
-      head.appendChild(x);
-      row.appendChild(head);
+      row.appendChild(x);
 
       const ttl = el('div', 'ttl');
       const fill = el('i');
@@ -471,22 +471,32 @@
   function decorSection(state) {
     const wrap = el('div');
     const list = Data.DECOR;
-    const have = list.filter((d) => Engine.ownsDecor(state, d.id)).length;
-    // 1行に収める。2行にすると、いちばん小さい画面でカードが1枚も見えなくなる
-    wrap.appendChild(el('p', 'shop-note',
-      `見ばえ ✨${Engine.charm(state)}（${have}/${list.length}）・ちからは上がらない`));
+    const owned = list.filter((d) => Engine.ownsDecor(state, d.id));
+    const rest = list.filter((d) => !Engine.ownsDecor(state, d.id));
+
+    // **持っているものをカードで並べ直さない。** 一覧の頭に来るので、
+    // いちばん小さい画面では「もう買ったもの」だけが見えて、買えるものが1枚も見えなかった。
+    // 持っているものは空に浮かんでいるので、ここでは絵だけを1行にまとめる。
+    const note = el('p', 'shop-note');
+    note.textContent = `${owned.map((d) => d.emoji).join('') || '　'} 見ばえ ✨${Engine.charm(state)}`
+      + `（${owned.length}/${list.length}）・ちからは上がらない`;
+    wrap.appendChild(note);
+
+    if (!rest.length) {
+      wrap.appendChild(el('p', 'empty-note', 'ぜんぶそろった！\n空がにぎやかになった。'));
+      return wrap;
+    }
 
     const grid = el('div', 'grid');
-    for (const d of list) {
-      const owned = Engine.ownsDecor(state, d.id);
+    for (const d of rest) {
       const known = state.level >= d.level;
-      const can = !owned && known && state.coins >= d.price;
-      const card = el('button', 'card' + (owned ? ' on' : can ? '' : ' off'));
-      card.dataset.act = owned ? 'noop' : 'buy-decor';
+      const can = known && state.coins >= d.price;
+      const card = el('button', 'card' + (can ? '' : ' off'));
+      card.dataset.act = 'buy-decor';
       card.dataset.id = d.id;
       card.appendChild(el('span', 'ico', known ? d.emoji : '🔒'));
       card.appendChild(el('span', 'nm', known ? d.name : `Lv${d.level}`));
-      card.appendChild(el('span', 'sub', owned ? `✨${d.charm}` : known ? `🪙${d.price}` : d.name));
+      card.appendChild(el('span', 'sub', known ? `🪙${d.price}` : d.name));
       grid.appendChild(card);
     }
     wrap.appendChild(grid);

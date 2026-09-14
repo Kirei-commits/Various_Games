@@ -13,23 +13,50 @@ const SCREENS = [
   { name: 'パソコン', width: 1280, height: 800 }
 ];
 
+/**
+ * **モードも振る。** 3分チャレンジは HUD に⏱が増える。
+ * のんびりモードだけ見ていたら、**320pxで横に5pxスクロールしていた**のを
+ * 長いあいだ見落としていた（HUDが入りきらず、経験値バーが29pxまで潰れていた）。
+ */
+const MODES = [
+  { name: 'のんびり', query: {} },
+  { name: '3分チャレンジ', query: { mode: 'rush', limit: '200000' } }
+];
+
 for (const sc of SCREENS) {
-  test(`${sc.name}（${sc.width}x${sc.height}）でページがスクロールしない`, async ({ page }) => {
-    await page.setViewportSize({ width: sc.width, height: sc.height });
-    await openFarm(page);
+  for (const mode of MODES) {
+    test(`${mode.name}: ${sc.name}（${sc.width}x${sc.height}）でページがスクロールしない`, async ({ page }) => {
+      await page.setViewportSize({ width: sc.width, height: sc.height });
+      await openFarm(page, mode.query);
 
-    const over = await page.evaluate(() => ({
-      y: document.documentElement.scrollHeight - document.documentElement.clientHeight,
-      x: document.documentElement.scrollWidth - document.documentElement.clientWidth
-    }));
-    expect(over.y, 'たてのはみ出し').toBeLessThanOrEqual(1);
-    expect(over.x, 'よこのはみ出し').toBeLessThanOrEqual(1);
+      const over = await page.evaluate(() => ({
+        y: document.documentElement.scrollHeight - document.documentElement.clientHeight,
+        x: document.documentElement.scrollWidth - document.documentElement.clientWidth
+      }));
+      expect(over.y, 'たてのはみ出し').toBeLessThanOrEqual(1);
+      expect(over.x, 'よこのはみ出し').toBeLessThanOrEqual(1);
 
-    // 下の段（タブ）まで画面の中にあること
-    const tabs = await page.locator('#tabs').boundingBox();
-    expect(tabs.y + tabs.height).toBeLessThanOrEqual(sc.height + 1);
-  });
+      // HUD が中身を押し出していないこと（はみ出しの出どころがすぐ分かるように）
+      const hud = await page.evaluate(() => {
+        const el = document.getElementById('hud');
+        return { has: Math.round(el.getBoundingClientRect().width), need: el.scrollWidth };
+      });
+      expect(hud.need, 'HUDが入りきっていない').toBeLessThanOrEqual(hud.has + 1);
+
+      // 下の段（タブ）まで画面の中にあること
+      const tabs = await page.locator('#tabs').boundingBox();
+      expect(tabs.y + tabs.height).toBeLessThanOrEqual(sc.height + 1);
+    });
+  }
 }
+
+test('3分チャレンジでも、経験値バーが読める太さで残る', async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 568 });   // いちばん狭い画面
+  await openFarm(page, { mode: 'rush', limit: '200000' });
+  await expect(page.locator('#timer')).toBeVisible();
+  const bar = await page.locator('.xpbar').boundingBox();
+  expect(bar.width, '⏱のぶん HUD が詰まって、経験値バーが潰れている').toBeGreaterThan(40);
+});
 
 test('畑は12マスぜんぶ見えている（買う前のマスも含めて）', async ({ page }) => {
   await page.setViewportSize({ width: 320, height: 568 });
@@ -238,5 +265,80 @@ test('みせの「かざり」で買えて、買ったものが空に出る', as
   const s = await g.state();
   expect(s.decor.length).toBe(1);
   expect(s.coins).toBe(99999 - price);
+  expect(g.errors).toEqual([]);
+});
+
+/**
+ * **下の段は「いま手を出せるもの」から見えていること。**
+ *
+ * いちばん小さい画面（320x568）で実際に測ったら、注文タブは
+ * **ふなびんのカードだけで埋まって、注文が1件も見えていなかった**。
+ * 押せるものが画面の外にあると、それは1画面に収まっていない。
+ */
+test('ふなびんが来ていても、注文が最低1件は見えている', async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 568 });
+  const g = await openFarm(page, { speed: '0.01' });
+  await page.evaluate(() => {
+    const s = window.GF.game.state, E = window.GF.Engine, D = window.GF.Data;
+    s.level = 15; s.coins = 9000; s.xpNext = D.xpFor(15);
+    s.orders.length = 0;
+    while (s.orders.length < E.orderSlots(s)) s.orders.push(E.makeOrder(s));
+    s.boat = E.makeBoat(s);
+    window.GF.game.popQueue.length = 0;
+    window.GF.refresh();
+  });
+  await openTab(page, 'order');
+  await expect(page.locator('.boat')).toHaveCount(1);
+  await expect(page.locator('.order')).toHaveCount(5);
+
+  const visible = await page.evaluate(() => {
+    const body = document.getElementById('panel-body').getBoundingClientRect();
+    return [...document.querySelectorAll('.order')].filter((o) => {
+      const b = o.getBoundingClientRect();
+      return b.top >= body.top - 1 && b.bottom <= body.bottom + 1;
+    }).length;
+  });
+  expect(visible, 'ふなびんのカードで注文が押し出されている').toBeGreaterThanOrEqual(1);
+
+  // ふなびんも押せる場所にいること（注文を出すために船を追い出さない）
+  const boat = await page.locator('.boat').boundingBox();
+  const body = await page.locator('#panel-body').boundingBox();
+  expect(boat.y + boat.height).toBeLessThanOrEqual(body.y + body.height + 1);
+  expect(g.errors).toEqual([]);
+});
+
+/**
+ * みせの「かざり」は**買えるものを見せる場所**。
+ * 持っているものをカードで並べ直すと、一覧の頭に来るので、
+ * いちばん小さい画面では「もう買ったもの」だけが見えて買えるものが1枚も見えなかった。
+ */
+test('かざりの棚は、買えるものから見えている', async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 568 });
+  const g = await openFarm(page, { speed: '0.01' });
+  await page.evaluate(() => {
+    const s = window.GF.game.state, D = window.GF.Data;
+    s.level = D.MAX_LEVEL; s.coins = 60000;
+    s.decor = D.DECOR.slice(0, 3).map((d) => d.id);   // 3つは持っている
+    window.GF.game.ui.tab = 'shop';
+    window.GF.game.ui.shopTab = 'decor';
+    window.GF.game.popQueue.length = 0;
+    window.GF.refresh();
+  });
+
+  // 持っているものはカードにしない（絵だけ見出しに並ぶ）
+  await expect(page.locator('.card[data-act="buy-decor"]')).toHaveCount(5);
+  await expect(page.locator('#panel-body .shop-note')).toContainText('3/8');
+
+  const seen = await page.evaluate(() => {
+    const body = document.getElementById('panel-body').getBoundingClientRect();
+    return [...document.querySelectorAll('#panel-body .card')]
+      .filter((c) => {
+        const b = c.getBoundingClientRect();
+        return b.top >= body.top - 1 && b.bottom <= body.bottom + 1;
+      })
+      .map((c) => c.dataset.act);
+  });
+  expect(seen.length, 'かざりが1枚も見えていない').toBeGreaterThanOrEqual(1);
+  expect(seen.every((a) => a === 'buy-decor'), '見えているのが買えないカードばかり').toBe(true);
   expect(g.errors).toEqual([]);
 });

@@ -79,6 +79,16 @@ body::after  { width: 220px; height: 220px; bottom: -120px; left: -60px; backgro
 .timer { background: #e2f1ff; }
 .timer.hurry { background: #ffd9d9; color: #c0392b; }
 
+/* いちばん狭い画面（320px）では、3分チャレンジの⏱が増えるぶん HUD が入りきらず、
+   **ページが横に5pxスクロールしていた**。狭いときだけ詰める。
+   ☰ の 44x44px は指の大きさの下限なので、ここは縮めない。 */
+@media (max-width: 359px) {
+  #hud { gap: 4px; padding: 6px; }
+  .stat { padding: 7px 6px; gap: 2px; font-size: 13px; }
+  .lv-num { font-size: 12px; }
+  .lv-num b { font-size: 16px; }
+}
+
 /* ------------------------------------------------------------------ 畑 */
 #farm { position: relative; display: grid; place-items: center; }
 
@@ -216,19 +226,27 @@ body::after  { width: 220px; height: 220px; bottom: -120px; left: -60px; backgro
 .card .bar i { display: block; height: 100%; width: 0; background: var(--orange); }
 .card .slots { font-size: 9px; letter-spacing: 1px; color: var(--orange); height: 11px; }
 
-/* 注文 */
+/* 注文
+   **1行に組む。** 見出しの行を別に持つと、カード1枚が「44pxのボタン＋見出し」で
+   100pxを超える。いちばん小さい画面（320x568）ではパネルが133pxしかなく、
+   ふなびんが来ていると**注文が1件も見えなかった**。
+   期限のバーはカードの下辺に重ねて置く（場所を取らせない）。 */
 .order {
-  border: 2px solid var(--line); border-radius: 13px; background: #fff; padding: 6px 8px;
-  display: grid; grid-template-columns: 1fr auto; gap: 4px 8px; align-items: center; margin-bottom: 6px;
+  position: relative;
+  border: 2px solid var(--line); border-radius: 13px; background: #fff; padding: 4px 8px 9px;
+  display: grid; grid-template-columns: 1fr auto auto; gap: 6px; align-items: center; margin-bottom: 6px;
 }
 .order:last-child { margin-bottom: 0; }
-.order .want { display: flex; flex-wrap: wrap; gap: 4px; }
+.order .want { display: flex; flex-wrap: wrap; gap: 3px; }
 .order .want span {
-  font-size: 12px; font-weight: 700; background: #fff4d6; border-radius: 9px; padding: 3px 6px;
+  font-size: 11px; font-weight: 700; background: #fff4d6; border-radius: 8px; padding: 2px 5px;
 }
 .order .want span.lack { background: #ffe0e0; color: #c0392b; }
-.order .reward { font-size: 12px; font-weight: 700; color: var(--gold); white-space: nowrap; }
-.order .ttl { grid-column: 1 / -1; height: 5px; border-radius: 99px; background: #eee3cd; overflow: hidden; }
+.order .want span.pay { background: transparent; color: var(--gold); padding: 2px 2px; }
+.ttl {
+  position: absolute; left: 8px; right: 8px; bottom: 3px;
+  height: 4px; border-radius: 99px; background: #eee3cd; overflow: hidden;
+}
 .order .ttl i { display: block; height: 100%; width: 100%; background: var(--blue); }
 .order .ttl.soon i { background: var(--pink); }
 .go {
@@ -236,32 +254,31 @@ body::after  { width: 220px; height: 220px; bottom: -120px; left: -60px; backgro
   border: none; background: var(--leaf); color: #fff; font-weight: 700; font-size: 13px;
   font-family: inherit; cursor: pointer; box-shadow: 0 3px 0 var(--leaf-d);
 }
-.order .go { grid-row: 1 / 3; grid-column: 2; }
 .go:active { transform: translateY(3px); box-shadow: none; }
 .go[disabled] { background: #d8d2c8; box-shadow: 0 3px 0 #bdb7ae; color: #fff; }
-.order-head { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
 .order .x {
   width: 44px; height: 44px; border: none; background: transparent; color: #c3bbae;
-  font-size: 16px; cursor: pointer; font-family: inherit;
+  font-size: 16px; cursor: pointer; font-family: inherit; padding: 0;
 }
 
 /* ふなびん。ふつうの注文より大きく、海の色で区別する */
 .boat {
-  border: 2px solid #a9d9f5; border-radius: 13px; padding: 6px 8px; margin-bottom: 7px;
+  position: relative;
+  border: 2px solid #a9d9f5; border-radius: 13px; padding: 4px 8px 9px; margin-bottom: 6px;
   background: linear-gradient(180deg, #eaf7ff, #ffffff);
-  display: grid; grid-template-columns: 1fr auto; gap: 4px 8px; align-items: center;
+  display: grid; grid-template-columns: 1fr auto; gap: 6px; align-items: center;
 }
 .boat.full { border-color: var(--leaf); background: linear-gradient(180deg, #eeffef, #ffffff); }
-.boat-head { grid-column: 1 / -1; display: flex; align-items: center; justify-content: space-between; gap: 6px; }
-.boat-title { font-size: 12.5px; font-weight: 700; color: #2b7cb3; }
-.boat .want { display: flex; flex-wrap: wrap; gap: 4px; }
-.boat .want span { font-size: 12px; font-weight: 700; background: #e2f1ff; border-radius: 9px; padding: 3px 6px; }
+.boat-title { background: transparent !important; font-size: 15px !important; padding: 0 !important; }
+.boat .want { display: flex; flex-wrap: wrap; gap: 3px; align-items: center; }
+.boat .want span { font-size: 11px; font-weight: 700; background: #e2f1ff; border-radius: 8px; padding: 2px 5px; }
 .boat .want span.done { background: #d9f7de; color: var(--leaf-d); }
 .boat .want span.lack { background: #ffe0e0; color: #c0392b; }
-.boat .ttl { grid-column: 1 / -1; height: 5px; border-radius: 99px; background: #e3ecf0; overflow: hidden; }
+.boat .want span.pay { background: transparent; color: var(--gold); padding: 2px 2px; }
+.boat .ttl { background: #e3ecf0; }
 .boat .ttl i { display: block; height: 100%; width: 100%; background: var(--blue); }
 .boat .ttl.soon i { background: var(--pink); }
-.boat-go { grid-row: 2; grid-column: 2; background: var(--blue); box-shadow: 0 3px 0 #2b86c9; }
+.boat-go { background: var(--blue); box-shadow: 0 3px 0 #2b86c9; }
 .boat.full .boat-go { background: var(--leaf); box-shadow: 0 3px 0 var(--leaf-d); }
 
 /* 店の見出し */
@@ -414,9 +431,11 @@ body::after  { width: 220px; height: 220px; bottom: -120px; left: -60px; backgro
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
 }
 
-/* 画面が低いとき（横向きなど）は畑を小さくして、下の段を守る */
+/* 画面が低いとき（横向きなど）は畑を小さくして、下の段を守る。
+   **46vh では下の段が133pxしか残らず、ふなびんが来ていると注文が1件も見えなかった。**
+   41vh にするとマスは54px（指の下限44pxは十分こえる）で、下の段が160px台になる。 */
 @media (max-height: 620px) {
-  .fields { width: min(100%, 46vh); gap: 5px; }
+  .fields { width: min(100%, 41vh); gap: 5px; }
   .big { min-height: 46px; font-size: 14px; }
   .tab { min-height: 44px; }
   .ticker { height: 18px; line-height: 18px; font-size: 11.5px; }
