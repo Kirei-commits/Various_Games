@@ -1,0 +1,18 @@
+{
+  "name": "rikaido-rally",
+  "version": "1.0.0",
+  "private": true,
+  "description": "理解度アップ・テストラリー — 記述式5問・ヒントで正解まで伴走・A〜E評価",
+  "type": "module",
+  "scripts": {
+    "start": "node tests/serve.mjs",
+    "lint": "node tests/lint.mjs",
+    "test:logic": "node --test tests/logic/*.test.mjs",
+    "test:e2e": "playwright test",
+    "test": "npm run lint && npm run test:logic && npm run test:e2e"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.63.0"
+  },
+  "engines": { "node": ">=20" }
+}

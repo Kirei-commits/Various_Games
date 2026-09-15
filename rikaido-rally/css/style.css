@@ -1,0 +1,200 @@
+/* 理解度アップ・テストラリー — テーマとレイアウト */
+
+:root {
+  --bg: #0a0f1a;
+  --panel: rgba(20, 29, 48, .72);
+  --panel-2: rgba(14, 21, 36, .9);
+  --line: rgba(120, 170, 220, .18);
+  --text: #e8eef8;
+  --muted: #92a3bd;
+  --green: #64e3b0;
+  --amber: #ffc857;
+  --red: #ff7b8a;
+  --blue: #7cc4ff;
+  --radius: 14px;
+}
+
+* { box-sizing: border-box; }
+
+/* 隠したものは必ず隠す。flex/grid の display 指定に負けないよう !important を付ける */
+[hidden] { display: none !important; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  padding: 28px 18px 60px;
+  background: var(--bg);
+  background-image: radial-gradient(75% 45% at 50% -8%, rgba(60, 120, 200, .28), transparent 70%);
+  color: var(--text);
+  font-family: "Hiragino Sans", "Noto Sans JP", "Yu Gothic", system-ui, sans-serif;
+  font-size: 15px;
+  line-height: 1.75;
+}
+
+.wrap { max-width: 1180px; margin: 0 auto; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.muted { color: var(--muted); }
+.small { font-size: 12px; line-height: 1.7; }
+
+/* ── ヘッダ ─────────────────────────────── */
+.top { display: flex; flex-wrap: wrap; gap: 18px; align-items: flex-start; justify-content: space-between; margin-bottom: 22px; }
+.top h1 { margin: 0 0 4px; font-size: 23px; letter-spacing: .04em; }
+.top h1 span { color: var(--green); }
+.top .lead { margin: 0; color: var(--muted); font-size: 13px; }
+.top-side { display: flex; flex-direction: column; gap: 10px; align-items: flex-start; }
+
+.banks { display: flex; gap: 8px; flex-wrap: wrap; }
+.banks button {
+  min-height: 44px; padding: 8px 16px; border-radius: 999px;
+  border: 1px solid var(--line); background: var(--panel); color: var(--muted);
+  font: inherit; font-size: 13px; cursor: pointer; transition: border-color .12s, color .12s;
+}
+.banks button[aria-selected="true"] { color: var(--text); border-color: var(--green); box-shadow: inset 0 0 0 1px rgba(100, 227, 176, .25); }
+.banks button:hover { color: var(--text); }
+
+.toggle { display: flex; gap: 8px; align-items: center; font-size: 12px; color: var(--muted); cursor: pointer; min-height: 32px; }
+.toggle input { width: 16px; height: 16px; accent-color: var(--green); }
+
+/* ── レイアウト ─────────────────────────── */
+.grid { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); gap: 18px; align-items: start; }
+@media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
+
+.stage, .mech, .result {
+  border: 1px solid var(--line); border-radius: var(--radius);
+  background: var(--panel); padding: 18px;
+}
+.result { grid-column: 1 / -1; }
+
+/* ── 出題ヘッダ ─────────────────────────── */
+.rally-head { display: flex; flex-wrap: wrap; gap: 14px; justify-content: space-between; align-items: flex-start;
+              padding-bottom: 14px; border-bottom: 1px dashed var(--line); margin-bottom: 14px; }
+.tag { display: inline-block; font-size: 10.5px; letter-spacing: .08em; color: var(--green);
+       border: 1px solid rgba(100, 227, 176, .35); border-radius: 999px; padding: 1px 9px; }
+.rally-title strong { display: block; font-size: 17px; margin-top: 6px; }
+.rally-title p { margin: 4px 0 0; font-size: 12px; max-width: 46ch; }
+
+.steps { display: flex; gap: 6px; list-style: none; margin: 0; padding: 0; }
+.steps li {
+  width: 40px; height: 44px; border-radius: 10px; border: 1px solid var(--line);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  font-size: 11px; color: var(--muted); background: var(--panel-2); line-height: 1.3;
+}
+.steps li b { font-size: 13px; color: var(--text); font-weight: 600; }
+.steps li.now { border-color: var(--green); color: var(--green); }
+.steps li.now b { color: var(--green); }
+.steps li.done { border-color: rgba(124, 196, 255, .45); }
+.steps li.done b { color: var(--blue); }
+
+/* ── 対話ログ ───────────────────────────── */
+.chat { display: flex; flex-direction: column; gap: 12px; max-height: 58vh; overflow-y: auto; padding-right: 4px; }
+.msg { border-radius: 12px; padding: 12px 14px; border: 1px solid var(--line); background: var(--panel-2); }
+.msg .who { font-size: 10.5px; letter-spacing: .08em; color: var(--muted); display: block; margin-bottom: 4px; }
+.msg p { margin: 0; white-space: pre-wrap; }
+.msg code { background: rgba(124, 196, 255, .12); border-radius: 4px; padding: 1px 5px; font-size: .92em; }
+
+.msg.q { border-left: 3px solid var(--blue); }
+.msg.q .lv { float: right; font-size: 11px; color: var(--blue); }
+.msg.a { border-left: 3px solid rgba(255, 255, 255, .25); background: rgba(255, 255, 255, .04); }
+.msg.hint { border-left: 3px solid var(--amber); }
+.msg.hint .who { color: var(--amber); }
+.msg.ok { border-left: 3px solid var(--green); }
+.msg.ok .who { color: var(--green); }
+
+.evidence { margin: 10px 0 0; padding: 10px 12px; border-radius: 10px; background: rgba(100, 227, 176, .07); font-size: 12.5px; }
+.evidence h4 { margin: 0 0 6px; font-size: 11.5px; letter-spacing: .06em; color: var(--green); }
+.evidence dl { margin: 0; display: grid; grid-template-columns: max-content 1fr; gap: 3px 10px; }
+.evidence dt { color: var(--muted); }
+.evidence dd { margin: 0; }
+
+/* ── 回答欄 ─────────────────────────────── */
+.answer { margin-top: 16px; }
+.answer textarea {
+  width: 100%; padding: 12px 14px; border-radius: 12px; resize: vertical;
+  border: 1px solid var(--line); background: rgba(8, 13, 24, .8); color: var(--text);
+  font: inherit; font-size: 15px; line-height: 1.7;
+}
+.answer textarea:focus { outline: none; border-color: var(--green); }
+.answer-actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 10px; }
+
+.btn {
+  min-height: 44px; min-width: 44px; padding: 10px 20px; border-radius: 10px;
+  border: 1px solid var(--line); background: var(--panel-2); color: var(--text);
+  font: inherit; font-size: 14px; cursor: pointer; transition: border-color .12s, background .12s;
+}
+.btn:hover { border-color: var(--green); }
+.btn.primary { background: rgba(100, 227, 176, .14); border-color: rgba(100, 227, 176, .5); color: var(--green); }
+.btn.ghost { background: transparent; color: var(--muted); font-size: 12.5px; min-height: 36px; padding: 6px 14px; }
+.btn:disabled { opacity: .45; cursor: default; }
+.hintcount { font-size: 12px; color: var(--muted); }
+
+/* ── 結果 ───────────────────────────────── */
+.result h2 { margin: 0 0 4px; font-size: 18px; }
+.gradebox { display: flex; gap: 20px; align-items: center; flex-wrap: wrap; margin: 14px 0 18px; }
+.gradebox .big {
+  width: 84px; height: 84px; border-radius: 20px; display: flex; align-items: center; justify-content: center;
+  font-size: 40px; font-weight: 700; border: 2px solid var(--green); color: var(--green); background: rgba(100, 227, 176, .08);
+}
+.gradebox.g-C .big, .gradebox.g-D .big { border-color: var(--amber); color: var(--amber); background: rgba(255, 200, 87, .08); }
+.gradebox.g-E .big { border-color: var(--red); color: var(--red); background: rgba(255, 123, 138, .08); }
+.gradebox .score { font-size: 27px; font-weight: 600; }
+
+.bars { display: grid; gap: 6px; margin: 8px 0 0; }
+.bar { display: grid; grid-template-columns: 8.5em 1fr max-content; gap: 10px; align-items: center; font-size: 12.5px; }
+.bar .track { height: 8px; border-radius: 99px; background: rgba(255, 255, 255, .08); overflow: hidden; }
+.bar .fill { height: 100%; background: var(--green); }
+
+/* ── しくみパネル ───────────────────────── */
+.mech h2 { margin: 0 0 4px; font-size: 15px; }
+.mech details { border: 1px solid var(--line); border-radius: 12px; margin-top: 10px; background: var(--panel-2); }
+.mech summary { cursor: pointer; padding: 10px 14px; font-size: 13px; list-style: none; min-height: 44px; display: flex; align-items: center; }
+.mech summary::-webkit-details-marker { display: none; }
+.mech summary::before { content: "▸"; color: var(--muted); margin-right: 8px; transition: transform .12s; }
+.mech details[open] > summary::before { transform: rotate(90deg); }
+.mech .m-body { padding: 0 14px 14px; font-size: 12.5px; line-height: 1.8; }
+.mech .m-body p { margin: 0 0 8px; }
+.mech h4 { margin: 12px 0 4px; font-size: 11.5px; letter-spacing: .06em; color: var(--blue); }
+.mech ul { margin: 0 0 8px; padding-left: 1.2em; }
+.mech ul li { margin-bottom: 2px; }
+.mech code { background: rgba(124, 196, 255, .12); border-radius: 4px; padding: 1px 5px; }
+
+table.k { width: 100%; border-collapse: collapse; font-size: 12px; margin: 4px 0 8px; }
+table.k th, table.k td { text-align: left; padding: 5px 7px; border-bottom: 1px solid var(--line); vertical-align: top; }
+table.k th { color: var(--muted); font-weight: 500; white-space: nowrap; }
+table.k tr.now td { background: rgba(100, 227, 176, .08); }
+
+.pill { display: inline-block; border-radius: 999px; padding: 0 8px; font-size: 11px; border: 1px solid var(--line); }
+.pill.hit { color: var(--green); border-color: rgba(100, 227, 176, .45); }
+.pill.miss { color: var(--red); border-color: rgba(255, 123, 138, .4); }
+.pill.opt { color: var(--amber); border-color: rgba(255, 200, 87, .4); }
+.mask { color: var(--muted); }
+
+.flow { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 6px 0 10px; }
+.flow span { border: 1px solid var(--line); border-radius: 8px; padding: 3px 10px; font-size: 11.5px; color: var(--muted); }
+.flow span.now { border-color: var(--green); color: var(--green); background: rgba(100, 227, 176, .08); }
+.flow i { color: var(--muted); font-style: normal; }
+
+footer { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-top: 22px; }
+
+/* ── 狭い画面 ───────────────────────────────
+   回答欄と送信ボタンは必ずファーストビューに入れる。
+   tests/e2e/layout.spec.mjs が「1画面に収まること」を検査している。 */
+@media (max-width: 700px) {
+  body { padding: 14px 14px 40px; font-size: 14.5px; }
+  .top { gap: 10px; margin-bottom: 12px; }
+  .top h1 { font-size: 19px; }
+  .top .lead { display: none; }
+  .top-side { flex-direction: row; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .banks button { padding: 6px 12px; font-size: 12px; }
+
+  .stage, .mech, .result { padding: 14px; }
+  .rally-head { padding-bottom: 10px; margin-bottom: 10px; gap: 10px; }
+  .rally-title strong { font-size: 15px; margin-top: 4px; }
+  .rally-title p { display: none; }        /* 理由は「しくみ」パネルに同じものが出る */
+  .steps li { width: 34px; }
+
+  .chat { max-height: 32vh; gap: 9px; }
+  .msg { padding: 10px 12px; }
+  .answer { margin-top: 12px; }
+  .answer textarea { font-size: 16px; }    /* 16px 未満だと iOS が勝手に拡大する */
+  .btn { padding: 10px 16px; }
+}

@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <meta name="color-scheme" content="dark" />
-<meta name="description" content="ブラウザだけで遊べるゲームのコレクション。サーバー不要・ビルド不要。" />
+<meta name="description" content="ブラウザだけで遊べるゲームと学習アプリのコレクション。サーバー不要・ビルド不要。" />
 <title>Various Games</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23120b22'/%3E%3Ccircle cx='11' cy='11' r='4' fill='%2300e5ff'/%3E%3Cpath d='M21 17l2.2 4.6L28 22.3l-3.6 3.6.8 5L21 28.6 16.8 31l.8-5L14 22.3l4.8-.7z' fill='%23f5c451'/%3E%3C/svg%3E" />
 <style>
@@ -25,6 +25,7 @@
   a.game h2 { margin:0 0 6px; font-size:17px; }
   a.game .arena { color: var(--gold); }
   a.game .neuro { color: var(--cyan); }
+  a.game .study { color: #64e3b0; }
   a.game p { margin:0; color:var(--muted); font-size:13px; line-height:1.7; }
   .tags { margin-top:10px; display:flex; gap:6px; flex-wrap:wrap; }
   .tags span { font-size:11px; color:var(--muted); border:1px solid var(--line); border-radius:999px; padding:2px 8px; }
@@ -35,8 +36,8 @@
 <body>
   <div class="wrap">
     <h1>Various <span>Games</span></h1>
-    <p class="lead">ブラウザだけで遊べるゲームのコレクションです。<br />
-      サーバーもインストールも要りません。リンクを開けばそのまま遊べます。</p>
+    <p class="lead">ブラウザだけで遊べるゲームと、学習アプリのコレクションです。<br />
+      サーバーもインストールも要りません。リンクを開けばそのまま動きます。</p>
 
     <div class="games">
       <a class="game" href="./god-arena/">
@@ -52,6 +53,14 @@
         <p>ネオンが走るサイバーパンク五目並べ。AI対戦・2人プレイ・詰め五目。
            長連・三三・四四の禁じ手ルールにも対応しています。</p>
         <div class="tags"><span>15×15</span><span>禁じ手あり</span><span>詰め五目</span></div>
+      </a>
+
+      <a class="game" href="./rikaido-rally/">
+        <h2><span class="study">RIKAIDO RALLY</span> — 理解度アップ・テストラリー</h2>
+        <p>記述式で5問。<strong>正解するまでヒントで伴走します</strong>。
+           評価は A〜E で、ヒントを使うほど下がる仕組み。
+           採点基準・単元の選び方・レベルの上げ下げまで、その場で開示します。</p>
+        <div class="tags"><span>Java の落とし穴</span><span>桑田佳祐とサザン</span><span>記述式・A〜E評価</span></div>
       </a>
     </div>
 

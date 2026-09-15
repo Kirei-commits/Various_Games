@@ -24,7 +24,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        game: [god-arena, gomoku-narabe]
+        game: [god-arena, gomoku-narabe, rikaido-rally]
     defaults:
       run:
         working-directory: ${{ matrix.game }}
@@ -54,7 +54,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        game: [god-arena, gomoku-narabe]
+        game: [god-arena, gomoku-narabe, rikaido-rally]
     defaults:
       run:
         working-directory: ${{ matrix.game }}
