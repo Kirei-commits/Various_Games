@@ -185,7 +185,7 @@
     if (result.correct) {
       rec.cleared = true;
       rec.optionalHit = result.optional.filter((o) => o.hit).length;
-      rec.missedKeys = [];
+      // missedKeys は消さない。最後に詰まった観点を、結果画面の「次に上げるならここ」で使う
       rec.score = Grade.scoreOne(rec);
       session.lastHint = null;
       session.phase = 'cleared';

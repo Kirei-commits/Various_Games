@@ -269,8 +269,8 @@
 
     const weak = s.weak.length
       ? `<h3>次に上げるならここ</h3><table class="k"><tr><th>Lv</th><th>単元</th><th>詰まった観点</th><th>失点</th></tr>`
-        + s.weak.slice(0, 5).map((w) => `<tr><td>L${w.level}</td><td>${esc(w.unit)}</td>`
-          + `<td>${w.missedKeys.length ? esc(w.missedKeys.join('、')) : (w.revealed ? '模範解答を開示' : 'ヒント' + w.hintsUsed + '回')}</td>`
+        + s.weak.slice(0, 5).map((w) => `<tr><td>L${w.level}</td><td>${esc(w.unitLabel)}</td>`
+          + `<td>${w.missedKeys.length ? esc(w.missedKeys.join('、')) + (w.revealed ? '（模範解答を開示）' : '') : 'ヒント' + w.hintsUsed + '回'}</td>`
           + `<td>${w.lost}</td></tr>`).join('') + '</table>'
       : '<p>取りこぼしはありません。全問ヒント無しで到達しています。</p>';
 

@@ -79,3 +79,25 @@ test('問題集を切り替えると出題が入れ替わる', async ({ page }) 
   expect(s.index).toBe(0);
   expect(ctx.errors).toEqual([]);
 });
+
+test('結果画面に、単元ごとの棒グラフと「詰まった観点」が出る', async ({ page }) => {
+  const ctx = await open(page, { bank: 'kuwata' });
+  for (let i = 0; i < 5; i++) {
+    await answer(page, 'ちょっと分かりません');           // 1回詰まってから通す
+    await expect(page.locator('.msg.hint').last()).toBeVisible();
+    await clearOne(page, ctx);
+  }
+  const result = page.locator('#result');
+  await expect(result).toBeVisible();
+  await expect(result).toContainText('次に上げるならここ');
+
+  // 棒は実際に伸びている（span を block にし忘れると幅が効かない）
+  const widths = await result.locator('.bar .fill').evaluateAll(
+    (els) => els.map((e) => e.getBoundingClientRect().width));
+  expect(widths.length).toBeGreaterThan(0);
+  for (const w of widths) expect(w).toBeGreaterThan(0);
+
+  // 単元は id ではなく日本語のラベルで出す
+  await expect(result.locator('table.k')).not.toContainText('songs');
+  expect(ctx.errors).toEqual([]);
+});

@@ -151,6 +151,18 @@ test('結果には、単元ごとの到達点と「次に上げる場所」が�
   assert.ok(s.summary.weak.length >= 1, '取りこぼしがあるのに弱点が空');
   assert.ok(s.summary.next, 'A未満なのに次の評価が出ていない');
   assert.equal(s.summary.levelPath.length, 5);
+
+  for (const w of s.summary.weak) {
+    // 単元は id ではなく画面に出せるラベルで持つ
+    assert.ok(w.unitLabel && w.unitLabel !== w.unit, `${w.qid} の単元ラベルが id のまま: ${w.unitLabel}`);
+    // 詰まった観点は、正解した後も残っている（正解時に消すと「何で詰まったか」が出せない）
+    assert.ok(w.missedKeys.length > 0, `${w.qid} の詰まった観点が空`);
+  }
+});
+
+test('一発正解した問題は、詰まった観点が空のまま', () => {
+  const s = runRally(RR, 'java', 0, 55);
+  for (const r of s.records) assert.equal(r.missedKeys.length, 0);
 });
 
 test('両方の問題集で、模範解答だけで最後まで走り切れる', () => {

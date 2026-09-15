@@ -140,8 +140,9 @@ body {
 
 .bars { display: grid; gap: 6px; margin: 8px 0 0; }
 .bar { display: grid; grid-template-columns: 8.5em 1fr max-content; gap: 10px; align-items: center; font-size: 12.5px; }
-.bar .track { height: 8px; border-radius: 99px; background: rgba(255, 255, 255, .08); overflow: hidden; }
-.bar .fill { height: 100%; background: var(--green); }
+.bar .track { display: block; height: 8px; border-radius: 99px; background: rgba(255, 255, 255, .08); overflow: hidden; }
+/* span は既定で inline。block にしないと width/height が効かず、棒が伸びない */
+.bar .fill { display: block; height: 100%; background: var(--green); }
 
 /* ── しくみパネル ───────────────────────── */
 .mech h2 { margin: 0 0 4px; font-size: 15px; }

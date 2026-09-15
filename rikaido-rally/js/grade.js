@@ -75,7 +75,7 @@
   function weakPoints(records) {
     return records.filter((r) => r.cleared)
       .map((r) => ({
-        qid: r.qid, level: r.level, unit: r.unit, prompt: r.prompt,
+        qid: r.qid, level: r.level, unit: r.unit, unitLabel: r.unitLabel || r.unit, prompt: r.prompt,
         lost: Math.round((1 - scoreOne(r)) * levelWeight(r.level) * 1000) / 1000,
         hintsUsed: r.hintsUsed, revealed: r.revealed,
         missedKeys: r.missedKeys || []
