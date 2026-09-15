@@ -1,9 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { loadRR } from './helpers.mjs';
-
-const RR = loadRR();
-const { Judge, Banks } = RR;
+import * as Judge from '../../js/core/judge.js';
+import { BANKS } from './helpers.mjs';
 
 test('正規化：全角・大文字・空白・句読点の差を吸収する', () => {
   assert.equal(Judge.normalize('ＥＱＵＡＬＳ　です。'), 'equalsです');
@@ -64,7 +62,7 @@ test('判定には、当たった語がそのまま残る（画面の根拠表�
 
 test('全問題：模範解答は自分の基準で正解になり、中身の無い回答は通らない', () => {
   const junk = ['', 'わかりません', 'あ', '？'];
-  for (const bank of Banks.all()) {
+  for (const bank of BANKS) {
     for (const q of bank.questions) {
       assert.equal(Judge.evaluate(q, q.model).correct, true, `${q.id} の模範解答が通らない`);
       for (const j of junk) {

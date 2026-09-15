@@ -1,9 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { loadRR } from './helpers.mjs';
-
-const RR = loadRR();
-const { Grade } = RR;
+import * as Grade from '../../js/core/grade.js';
 
 const rec = (over = {}) => Object.assign(
   { level: 3, hintsUsed: 0, revealed: false, optionalHit: 0, optionalTotal: 0, cleared: true }, over);
@@ -48,9 +45,7 @@ test('全問で模範解答を見たら E', () => {
 });
 
 test('評価の境目は A>B>C>D>E の順で、隙間も重なりも無い', () => {
-  // Grade.SCALE は vm の中で作られた配列なので、realm をまたぐ deepEqual は使わない
-  const g = Array.from(Grade.SCALE, (s) => s.grade);
-  assert.equal(g.join(','), 'A,B,C,D,E');
+  assert.deepEqual(Grade.SCALE.map((s) => s.grade), ['A', 'B', 'C', 'D', 'E']);
   for (let i = 1; i < Grade.SCALE.length; i++) {
     assert.ok(Grade.SCALE[i].min < Grade.SCALE[i - 1].min);
   }
@@ -75,6 +70,6 @@ test('弱点は失点の大きい順に並ぶ。取りこぼしが無ければ�
     rec({ level: 4, hintsUsed: 0, qid: 'clean' })
   ];
   const w = Grade.weakPoints(recs);
-  assert.equal(Array.from(w, (x) => x.qid).join(','), 'big,small');
+  assert.deepEqual(w.map((x) => x.qid), ['big', 'small']);
   assert.equal(Grade.weakPoints([rec()]).length, 0);
 });

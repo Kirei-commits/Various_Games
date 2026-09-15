@@ -8,7 +8,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const PORT = Number(process.env.PORT || 8080);
+const PORT = Number(process.env.PORT || 8082);
 
 const TYPES = {
   '.html': 'text/html; charset=utf-8',
@@ -23,6 +23,15 @@ const TYPES = {
 const server = http.createServer(async (req, res) => {
   try {
     const url = new URL(req.url, 'http://localhost');
+
+    // 講師画面は生成サーバーの有無をここで確かめる。
+    // このサーバーは静的配信だけなので、Claude は使えないと正直に答える（tools/studio.mjs は使える）。
+    if (url.pathname === '/api/status') {
+      res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' });
+      res.end(JSON.stringify({ ok: true, claude: false }));
+      return;
+    }
+
     let rel = decodeURIComponent(url.pathname);
     if (rel.endsWith('/')) rel += 'index.html';
 

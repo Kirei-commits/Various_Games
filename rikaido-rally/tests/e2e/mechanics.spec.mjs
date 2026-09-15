@@ -7,7 +7,7 @@ test('採点基準は、受講者モードでは伏せ、講師モードでは�
   await ctx.tap(criteria.locator('summary'));
   await expect(criteria).toContainText('回答後に開示');
 
-  await page.locator('#teacher').check();
+  await page.locator('#teacher-view').check();
   await expect(criteria).not.toContainText('回答後に開示');
   await expect(criteria).toContainText('達成基準');
   expect(ctx.errors).toEqual([]);

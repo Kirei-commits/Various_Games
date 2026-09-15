@@ -1,18 +1,18 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { loadRR } from './helpers.mjs';
-
-const RR = loadRR();
-const { Banks, Judge, Rally } = RR;
+import * as Judge from '../../js/core/judge.js';
+import * as Rally from '../../js/core/rally.js';
+import { coverage } from '../../js/core/banks.js';
+import { BANKS } from './helpers.mjs';
 
 const every = (fn) => {
-  for (const bank of Banks.all()) for (const q of bank.questions) fn(q, bank);
+  for (const bank of BANKS) for (const q of bank.questions) fn(q, bank);
 };
 
 test('問題集は2つあり、どちらも単元ごとに L1〜L5 が揃っている', () => {
-  assert.ok(Banks.all().length >= 2);
-  for (const bank of Banks.all()) {
-    for (const c of Banks.coverage(bank)) {
+  assert.ok(BANKS.length >= 2);
+  for (const bank of BANKS) {
+    for (const c of coverage(bank)) {
       for (let L = 1; L <= 5; L++) {
         assert.ok(c.levels[L] >= 1, `${bank.id}/${c.unit.id} に L${L} が無い`);
       }
@@ -38,7 +38,7 @@ test('必須観点は多くても3つ。レベルが上がるほど増える傾�
     assert.ok(q.criteria.required.length >= 1 && q.criteria.required.length <= 3,
       `${q.id} の必須観点が ${q.criteria.required.length} 件`);
   });
-  for (const bank of Banks.all()) {
+  for (const bank of BANKS) {
     const avg = (lv) => {
       const qs = bank.questions.filter((q) => q.level === lv);
       return qs.reduce((a, q) => a + q.criteria.required.length, 0) / qs.length;
@@ -61,14 +61,14 @@ test('どの問題も、いずれかのラリーで実際に出題されうる',
   // レベルの階段は結果で動くので、順調な人・少し詰まる人・かなり詰まる人の3通りを回す。
   // 全問一発正解だけだと段が 2→3→4→5→5 にしか進まず、L1 に一度も触れない。
   const seen = new Set();
-  for (const bank of Banks.all()) {
+  for (const bank of BANKS) {
     for (let seed = 0; seed < 120; seed++) {
       const history = { [bank.id]: {} };
       bank.units.forEach((u, i) => { history[bank.id][u.id] = { plays: 1, lastScore: (seed + i * 17) % 100, lastAt: i }; });
 
       for (const hist of [{}, history]) {
         for (const wrongTimes of [0, 1, 2]) {
-          const sess = Rally.create(bank.id, hist, seed);
+          const sess = Rally.create(bank, hist, seed);
           for (let i = 0; i < sess.size; i++) {
             seen.add(Rally.current(sess).id);
             for (let w = 0; w < wrongTimes; w++) Rally.submit(sess, 'まったく的外れな回答');

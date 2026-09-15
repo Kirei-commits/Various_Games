@@ -2,17 +2,21 @@
   "name": "rikaido-rally",
   "version": "1.0.0",
   "private": true,
-  "description": "理解度アップ・テストラリー — 記述式5問・ヒントで正解まで伴走・A〜E評価",
+  "description": "理解度アップ・テストラリー — 記述式・ヒントで伴走・A〜E評価。講師は手持ちの資料からテストを作れる",
   "type": "module",
   "scripts": {
     "start": "node tests/serve.mjs",
+    "studio": "node tools/studio.mjs",
     "lint": "node tests/lint.mjs",
     "test:logic": "node --test tests/logic/*.test.mjs",
     "test:e2e": "playwright test",
     "test": "npm run lint && npm run test:logic && npm run test:e2e"
   },
   "devDependencies": {
+    "@anthropic-ai/sdk": "^0.125.0",
     "@playwright/test": "1.63.0"
   },
-  "engines": { "node": ">=20" }
+  "engines": {
+    "node": ">=20"
+  }
 }

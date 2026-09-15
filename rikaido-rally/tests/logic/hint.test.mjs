@@ -1,11 +1,10 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { loadRR } from './helpers.mjs';
+import * as Hint from '../../js/core/hint.js';
+import * as Judge from '../../js/core/judge.js';
+import { BANKS, bankById } from './helpers.mjs';
 
-const RR = loadRR();
-const { Hint, Judge, Banks } = RR;
-
-const q = Banks.get('java').questions.find((x) => x.id === 'java-eq-1');
+const q = bankById('java').questions.find((x) => x.id === 'java-eq-1');
 const blank = () => Judge.evaluate(q, '');
 
 test('段階は必ず前へ進み、最終段で模範解答を開示する', () => {
@@ -57,7 +56,7 @@ test('著者のヒントが足りない問題でも、段が空振りしない',
 });
 
 test('全問題：どの段のヒントも空にならない', () => {
-  for (const bank of Banks.all()) {
+  for (const bank of BANKS) {
     for (const question of bank.questions) {
       const r = Judge.evaluate(question, '');
       for (let i = 1; i <= Hint.REVEAL_STAGE; i++) {

@@ -3,88 +3,204 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-<meta name="color-scheme" content="dark" />
-<meta name="description" content="記述式5問の理解度テストラリー。正解するまでヒントで伴走し、A〜Eで評価します。採点基準と制御の中身をその場で開示します。" />
+<meta name="color-scheme" content="light dark" />
+<meta name="description" content="記述式の理解度テストラリー。正解するまでヒントで伴走し、A〜Eで評価します。講師は手持ちの資料からテストを作れます。" />
 <title>理解度アップ・テストラリー</title>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230d1220'/%3E%3Cpath d='M7 21l5-10 5 10' stroke='%2364e3b0' stroke-width='2.4' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M9.4 18h5.2' stroke='%2364e3b0' stroke-width='2.4' stroke-linecap='round'/%3E%3Ccircle cx='23' cy='12' r='3' fill='%23ffc857'/%3E%3C/svg%3E" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23ffffff' stroke='%23d8deea' stroke-width='1.5'/%3E%3Cpath d='M7 21l5-10 5 10' stroke='%23177a55' stroke-width='2.4' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M9.4 18h5.2' stroke='%23177a55' stroke-width='2.4' stroke-linecap='round'/%3E%3Ccircle cx='23.5' cy='11.5' r='3' fill='%23e08c00'/%3E%3C/svg%3E" />
 <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
-<div class="wrap">
 
-  <header class="top">
-    <div class="top-main">
-      <h1>理解度アップ・<span>テストラリー</span></h1>
-      <p class="lead">記述式で5問。正解するまでヒントで伴走します。評価は A〜E。</p>
+<!-- ── ログイン（役割を選ぶ） ───────────────── -->
+<section class="screen gate" id="screen-login" aria-label="はじめに">
+  <div class="gate-inner">
+    <h1>理解度アップ・<span>テストラリー</span></h1>
+    <p class="lead">記述式で5問。正解するまでヒントで伴走し、A〜E で評価します。</p>
+
+    <div class="roles">
+      <button type="button" class="role" id="role-learner">
+        <span class="role-icon" aria-hidden="true">📝</span>
+        <strong>受講者としてはじめる</strong>
+        <span class="role-note">テストを受けます。評価とつまずいた場所が残ります。</span>
+      </button>
+
+      <button type="button" class="role" id="role-teacher">
+        <span class="role-icon" aria-hidden="true">🗂️</span>
+        <strong>講師として入る</strong>
+        <span class="role-note">手持ちの資料からテストを作り、達成基準と出題方針を決めます。</span>
+      </button>
     </div>
-    <div class="top-side">
-      <div class="banks" id="bank-tabs" role="tablist" aria-label="問題集"></div>
-      <label class="toggle">
-        <input type="checkbox" id="teacher" />
-        <span>講師モード（採点基準を先に開示）</span>
-      </label>
-    </div>
-  </header>
 
-  <main class="grid">
-
-    <section class="stage" aria-label="出題">
-      <div class="rally-head">
-        <div class="rally-title">
-          <span class="tag">今回の単元（自動生成）</span>
-          <strong id="unit-title">—</strong>
-          <p id="unit-reason" class="muted"></p>
-        </div>
-        <ol class="steps" id="steps" aria-label="進行"></ol>
+    <form class="passcode" id="passcode-form" hidden>
+      <label for="passcode">講師用の合言葉</label>
+      <div class="passcode-row">
+        <input type="password" id="passcode" autocomplete="current-password" placeholder="合言葉" />
+        <button type="submit" class="btn primary">入る</button>
+        <button type="button" class="btn ghost" id="passcode-cancel">やめる</button>
       </div>
+      <p class="note" id="passcode-note"></p>
+    </form>
 
-      <div class="chat" id="chat" aria-live="polite"></div>
+    <p class="gate-foot note">
+      これは端末の中だけで動くアプリです。成績も作った問題も、このブラウザから外へは出ません。<br />
+      <strong>合言葉は同席者への目隠しであって、認証ではありません。</strong>
+      本当に秘匿したい内容は、この画面に入れないでください。
+    </p>
+  </div>
+</section>
 
-      <form class="answer" id="answer-form">
-        <label class="sr-only" for="answer">回答</label>
-        <textarea id="answer" rows="3" placeholder="自分の言葉で書いてください（用語だけでなく理由も）" autocomplete="off"></textarea>
-        <div class="answer-actions">
-          <button type="submit" id="submit" class="btn primary">回答する</button>
-          <button type="button" id="next" class="btn" hidden>次の問題へ</button>
-          <button type="button" id="finish" class="btn primary" hidden>結果を見る</button>
-          <span class="hintcount" id="hintcount"></span>
+<!-- ── 受講者 ───────────────────────────────── -->
+<section class="screen" id="screen-learner" hidden>
+  <div class="wrap">
+    <header class="top">
+      <div>
+        <h1 class="mini">理解度アップ・<span>テストラリー</span></h1>
+        <p class="lead" id="learner-lead"></p>
+      </div>
+      <div class="top-side">
+        <label class="sel">
+          <span>問題集</span>
+          <select id="bank-select"></select>
+        </label>
+        <label class="toggle">
+          <input type="checkbox" id="teacher-view" />
+          <span>採点基準を先に開示</span>
+        </label>
+        <button type="button" class="btn ghost" data-go="login">役割を変える</button>
+      </div>
+    </header>
+
+    <main class="grid">
+      <section class="card stage" aria-label="出題">
+        <div class="rally-head">
+          <div class="rally-title">
+            <span class="tag">今回の単元（自動生成）</span>
+            <strong id="unit-title">—</strong>
+            <p id="unit-reason" class="note"></p>
+          </div>
+          <ol class="steps" id="steps" aria-label="進行"></ol>
         </div>
-      </form>
-    </section>
 
-    <section class="result" id="result" hidden aria-label="結果"></section>
+        <div class="chat" id="chat" aria-live="polite"></div>
 
-    <aside class="mech" aria-label="しくみ">
-      <h2>しくみを見る</h2>
-      <p class="muted small">ここに出る説明文と数字は、実際に動いているコードの定数と戻り値をそのまま表示しています。</p>
+        <form class="answer" id="answer-form">
+          <label class="sr-only" for="answer">回答</label>
+          <textarea id="answer" rows="3" placeholder="自分の言葉で書いてください（用語だけでなく理由も）" autocomplete="off"></textarea>
+          <div class="row">
+            <button type="submit" id="submit" class="btn primary">回答する</button>
+            <button type="button" id="next" class="btn" hidden>次の問題へ</button>
+            <button type="button" id="finish" class="btn primary" hidden>結果を見る</button>
+            <span class="note" id="hintcount"></span>
+          </div>
+        </form>
+      </section>
 
-      <details open id="m-plan"><summary>1. このラリーの組み立て</summary><div class="m-body"></div></details>
-      <details id="m-criteria"><summary>2. いまの問題の採点基準</summary><div class="m-body"></div></details>
-      <details open id="m-log"><summary>3. 直前の判定ログ</summary><div class="m-body"></div></details>
-      <details id="m-grade"><summary>4. 評価（A〜E）の出し方</summary><div class="m-body"></div></details>
-      <details id="m-state"><summary>5. 進行の制御（状態）</summary><div class="m-body"></div></details>
-      <details id="m-levels"><summary>6. 問題レベルの決め方と品揃え</summary><div class="m-body"></div></details>
-    </aside>
+      <section class="card result" id="result" hidden aria-label="結果"></section>
 
-  </main>
+      <aside class="card mech" aria-label="しくみ">
+        <h2>しくみを見る</h2>
+        <p class="note">ここに出る説明文と数字は、実際に動いているコードの定数と戻り値をそのまま表示しています。</p>
 
-  <footer>
-    <button type="button" id="restart" class="btn ghost">このラリーをやり直す</button>
-    <button type="button" id="wipe" class="btn ghost">成績を消す</button>
-    <span class="muted small" id="progress-note"></span>
-  </footer>
+        <details open id="m-plan"><summary>1. このラリーの組み立て</summary><div class="m-body"></div></details>
+        <details id="m-criteria"><summary>2. いまの問題の採点基準</summary><div class="m-body"></div></details>
+        <details open id="m-log"><summary>3. 直前の判定ログ</summary><div class="m-body"></div></details>
+        <details id="m-grade"><summary>4. 評価（A〜E）の出し方</summary><div class="m-body"></div></details>
+        <details id="m-state"><summary>5. 進行の制御（状態）</summary><div class="m-body"></div></details>
+        <details id="m-levels"><summary>6. 問題レベルの決め方と品揃え</summary><div class="m-body"></div></details>
+      </aside>
+    </main>
 
-</div>
+    <footer class="row foot">
+      <button type="button" id="restart" class="btn ghost">このラリーをやり直す</button>
+      <button type="button" id="wipe" class="btn ghost">成績を消す</button>
+      <span class="note" id="progress-note"></span>
+    </footer>
+  </div>
+</section>
 
-<script src="js/judge.js"></script>
-<script src="js/grade.js"></script>
-<script src="js/hint.js"></script>
-<script src="js/banks.js"></script>
-<script src="js/bank-java.js"></script>
-<script src="js/bank-kuwata.js"></script>
-<script src="js/rally.js"></script>
-<script src="js/storage.js"></script>
-<script src="js/render.js"></script>
-<script src="js/main.js"></script>
+<!-- ── 講師 ─────────────────────────────────── -->
+<section class="screen" id="screen-teacher" hidden>
+  <div class="wrap">
+    <header class="top">
+      <div>
+        <h1 class="mini">講師用 — <span>テストを作る</span></h1>
+        <p class="lead">資料を読み込み、達成基準と出題方針で制御して、記述式のテストを組み立てます。</p>
+      </div>
+      <div class="top-side">
+        <button type="button" class="btn" data-go="learner">受講者の画面を見る</button>
+        <button type="button" class="btn ghost" data-go="login">役割を変える</button>
+      </div>
+    </header>
+
+    <main class="grid teach">
+      <section class="card" aria-label="作る">
+        <h2>1. 資料を読み込む</h2>
+        <div class="drop" id="drop">
+          <input type="file" id="file" multiple hidden />
+          <p><strong>ここにファイルをドロップ</strong>、または</p>
+          <button type="button" class="btn" id="pick">ファイルを選ぶ</button>
+          <p class="note" id="drop-formats"></p>
+        </div>
+        <div class="extracted" id="extracted" hidden></div>
+        <label class="field">
+          <span>読み込んだ本文（ここを直接なおしても構いません）</span>
+          <textarea id="source-text" rows="8" placeholder="ファイルを読み込むか、資料の本文をそのまま貼り付けてください"></textarea>
+        </label>
+
+        <h2>2. 達成基準を決める</h2>
+        <p class="note">この資料を読んだ人に、何ができていてほしいか。ここに書いた言葉を含む文が優先して出題され、最後の総合問題（レベル5）にもなります。</p>
+        <label class="field">
+          <textarea id="rubric" rows="3"></textarea>
+        </label>
+
+        <h2>3. 出題方針を決める</h2>
+        <p class="note">どう問うてほしいか。Claude で作るときはこれがそのまま指示になり、この端末で作るときは重視する語として効きます。</p>
+        <label class="field">
+          <textarea id="prompt" rows="5"></textarea>
+        </label>
+
+        <h2>4. 作る</h2>
+        <div class="row">
+          <label class="sel"><span>作り方</span>
+            <select id="engine">
+              <option value="local">この端末で作る（鍵も通信も不要）</option>
+              <option value="claude">Claude に作らせる（生成サーバーが要ります）</option>
+            </select>
+          </label>
+          <label class="sel"><span>単元あたり</span>
+            <select id="per-unit">
+              <option value="3">3問</option><option value="4">4問</option>
+              <option value="5" selected>5問</option><option value="6">6問</option>
+            </select>
+          </label>
+          <label class="field inline"><span>テスト名</span>
+            <input type="text" id="bank-name" placeholder="（空ならファイル名から付けます）" />
+          </label>
+        </div>
+        <p class="note" id="engine-note"></p>
+        <div class="row">
+          <button type="button" class="btn primary" id="generate">テストを作る</button>
+          <span class="note" id="gen-status"></span>
+        </div>
+
+        <div id="gen-report" hidden></div>
+      </section>
+
+      <aside class="card" aria-label="保存されているテスト">
+        <h2>いまあるテスト</h2>
+        <div id="bank-list"></div>
+        <h2>取り込み・持ち出し</h2>
+        <p class="note">作ったテストは JSON で書き出せます。別の端末の講師に渡したり、あとから読み込み直したりできます。</p>
+        <div class="row">
+          <button type="button" class="btn" id="import">JSON を読み込む</button>
+          <input type="file" id="import-file" accept="application/json,.json" hidden />
+        </div>
+        <p class="note" id="import-note"></p>
+      </aside>
+    </main>
+  </div>
+</section>
+
+<script type="module" src="js/main.js"></script>
 </body>
 </html>

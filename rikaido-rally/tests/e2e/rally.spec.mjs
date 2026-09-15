@@ -72,9 +72,9 @@ test('問題集を切り替えると出題が入れ替わる', async ({ page }) 
   const ctx = await open(page);
   await expect(page.locator('.msg.q')).toContainText('レベル2');
 
-  await ctx.tap(page.locator('#bank-tabs button[data-bank="kuwata"]'));
-  await expect(page.locator('#bank-tabs button[data-bank="kuwata"]')).toHaveAttribute('aria-selected', 'true');
+  await page.selectOption('#bank-select', 'kuwata');
   const s = await ctx.session();
+  expect(s.bankId).toBe('kuwata');
   expect(s.qid.startsWith('kw-')).toBe(true);
   expect(s.index).toBe(0);
   expect(ctx.errors).toEqual([]);

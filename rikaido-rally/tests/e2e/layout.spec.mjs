@@ -3,7 +3,7 @@ import { open } from './fixtures.mjs';
 
 test('主要な操作は指で押せる大きさ（44×44px 以上）', async ({ page }) => {
   await open(page);
-  const targets = ['#submit', '#bank-tabs button', '#m-plan summary'];
+  const targets = ['#submit', '#bank-select', '#m-plan summary'];
   for (const sel of targets) {
     const box = await page.locator(sel).first().boundingBox();
     expect(box.height, `${sel} が低い`).toBeGreaterThanOrEqual(44);

@@ -1,29 +1,14 @@
 /**
- * ブラウザ用のクラシックスクリプト(js/*.js)を Node 上で読み込むための補助。
- * window 名前空間だけを用意して vm で評価する。render.js と main.js は DOM を触るので読まない。
+ * ロジックテストの補助。
+ * ES モジュールになったので、テストは js/ をそのまま import する
+ * （以前は vm でクラシックスクリプトを読み込んでいた。realm をまたぐぶん、比較で嵌まりやすかった）。
  */
-import fs from 'node:fs';
-import path from 'node:path';
-import vm from 'node:vm';
-import { fileURLToPath } from 'node:url';
+import * as Rally from '../../js/core/rally.js';
+import javaBank from '../../js/data/bank-java.js';
+import kuwataBank from '../../js/data/bank-kuwata.js';
 
-const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
-
-const DEFAULT_FILES = [
-  'judge.js', 'grade.js', 'hint.js', 'banks.js', 'bank-java.js', 'bank-kuwata.js', 'rally.js', 'storage.js'
-];
-
-export function loadRR(files = DEFAULT_FILES, extra = {}) {
-  const sandbox = {
-    window: Object.assign({}, extra),
-    console, JSON, Math, Date, String, Number, Array, Object, Map, Set, Error
-  };
-  vm.createContext(sandbox);
-  for (const f of files) {
-    vm.runInContext(fs.readFileSync(path.join(ROOT, 'js', f), 'utf8'), sandbox, { filename: f });
-  }
-  return sandbox.window.RR;
-}
+export const BANKS = [javaBank, kuwataBank];
+export const bankById = (id) => BANKS.find((b) => b.id === id);
 
 /** localStorage の代わり。例外を投げる版も作れるようにしてある。 */
 export function fakeStorage({ throwOnGet = false, throwOnSet = false } = {}) {
@@ -37,18 +22,18 @@ export function fakeStorage({ throwOnGet = false, throwOnSet = false } = {}) {
 }
 
 /** 1問を、指定した回数だけ間違えてから模範解答で通す。 */
-export function answerWith(RR, session, wrongTimes, text) {
-  for (let i = 0; i < wrongTimes; i++) RR.Rally.submit(session, 'ぜんぜん違うことを書きます');
-  const q = RR.Rally.current(session);
-  return RR.Rally.submit(session, text === undefined ? q.model : text);
+export function answerWith(session, wrongTimes, text) {
+  for (let i = 0; i < wrongTimes; i++) Rally.submit(session, 'ぜんぜん違うことを書きます');
+  const q = Rally.current(session);
+  return Rally.submit(session, text === undefined ? q.model : text);
 }
 
 /** ラリー1本を、毎問 wrongTimes 回だけ間違えながら最後まで通す。 */
-export function runRally(RR, bankId, wrongTimes = 0, seed = 12345, history = {}) {
-  const s = RR.Rally.create(bankId, history, seed);
+export function runRally(bank, wrongTimes = 0, seed = 12345, history = {}) {
+  const s = Rally.create(typeof bank === 'string' ? bankById(bank) : bank, history, seed);
   for (let i = 0; i < s.size; i++) {
-    answerWith(RR, s, wrongTimes);
-    RR.Rally.advance(s);
+    answerWith(s, wrongTimes);
+    Rally.advance(s);
   }
   return s;
 }
