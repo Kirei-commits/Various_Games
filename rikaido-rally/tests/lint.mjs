@@ -32,6 +32,19 @@ for (const f of jsFiles) {
   }
 }
 
+/* 1-b. 生の制御文字が紛れていないか
+   NUL を含むソースは、配信先やツールに丸ごと弾かれることがある（artifact への公開で実際に落ちた）。
+   正規表現に制御文字を書くときは \u0000 のようにエスケープする。 */
+const CONTROL = /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F\uFFFD]/;
+for (const f of [...jsFiles, path.join(ROOT, 'index.html'), path.join(ROOT, 'css', 'style.css')]) {
+  const src = fs.readFileSync(f, 'utf8');
+  const at = src.search(CONTROL);
+  if (at >= 0) {
+    const line = src.slice(0, at).split('\n').length;
+    problems.push(`生の制御文字が入っている: ${path.relative(ROOT, f)}:${line}（\\uXXXX で書く）`);
+  }
+}
+
 /* 2. index.html の参照 */
 const html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
 const refs = [...html.matchAll(/(?:src|href)="(?!https?:|data:)([^"]+)"/g)].map((m) => m[1]);

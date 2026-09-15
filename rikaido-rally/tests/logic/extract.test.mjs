@@ -109,7 +109,7 @@ test('空のファイルは読めたことにしない', async () => {
 
 test('化けの割合と正規化のふるまい', () => {
   assert.equal(garbledRatio(''), 1);
-  assert.ok(garbledRatio('��ああ') > 0.4);
+  assert.ok(garbledRatio('\uFFFD\uFFFDああ') > 0.4);
   assert.equal(garbledRatio('ふつうの文'), 0);
   assert.equal(tidy('  a  b  \n\n\n\n c '), 'a b\n\nc');
   assert.equal(decodeText(new Uint8Array([0xff, 0xfe, 0x42, 0x00])).encoding, 'utf-16le');
