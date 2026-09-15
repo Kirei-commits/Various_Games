@@ -9,11 +9,13 @@
  *   理解度スコア     = Σ(到達点 × レベル重み) / Σ(レベル重み) × 100
  *   評価             = 閾値表で A〜E に落とす
  */
-// ヒント0回＝満点。ヒントを重ねるほど下がる。模範解答を見てからの正解は最低点。
-export const BASE_BY_HINTS = [1.0, 0.8, 0.6, 0.45, 0.3];
-export const REVEALED_BASE = 0.15;
+// ヒント0回＝満点。ヒントを重ねるほど下がる。
+// ヒントは3段しかないので、1段ぶんの重みは大きい（段数を5→3に減らしたときに測り直した）。
+export const BASE_BY_HINTS = [1.0, 0.7, 0.45];
+export const REVEALED_BASE = 0.15;   // 答えを見てから通した
+export const SKIPPED_BASE = 0;       // 「わからない」で飛ばした
 // 加点観点を全部拾って +0.05。0.1 にすると「毎問ヒント1回＋加点満額」が
-// ちょうど90点になり、伴走してもらった人が A に届いてしまう（実際に測って下げた）。
+// A の下限に届いてしまう（実際に測って下げた）。
 export const OPTIONAL_BONUS = 0.05;
 
 // レベルが上の問題ほど重い。1..5 で 0.8 → 1.6（最大でも2倍に収める。
@@ -30,8 +32,12 @@ export const SCALE = [
   { grade: 'E', min: 0, label: 'これから', note: '初見に近い。まずは1周して言葉に触れる。' }
 ];
 
+/** その問題が「終わった」か。正解でも、飛ばしたのでも、評価には数える。 */
+export const isDone = (rec) => !!(rec.cleared || rec.skipped);
+
 /** 1問ぶんの到達点（0〜1） */
 export function scoreOne(rec) {
+  if (rec.skipped) return SKIPPED_BASE;        // 飛ばした問題は0点。飛ばし得にしない
   const base = rec.revealed
     ? REVEALED_BASE
     : BASE_BY_HINTS[Math.min(rec.hintsUsed, BASE_BY_HINTS.length - 1)];
@@ -41,7 +47,7 @@ export function scoreOne(rec) {
 
 /** ラリー全体のスコア（0〜100）。重み付き平均。 */
 export function scoreRally(records) {
-  const done = records.filter((r) => r.cleared);
+  const done = records.filter(isDone);
   if (!done.length) return 0;
   let num = 0, den = 0;
   for (const r of done) {
@@ -69,7 +75,7 @@ export function toNext(score) {
  * 感想ではなく、失点の大きい順（重み×取りこぼし）に並べただけのもの。
  */
 export function weakPoints(records) {
-  return records.filter((r) => r.cleared)
+  return records.filter(isDone)
     .map((r) => ({
       qid: r.qid, level: r.level, unit: r.unit, unitLabel: r.unitLabel || r.unit, prompt: r.prompt,
       lost: Math.round((1 - scoreOne(r)) * levelWeight(r.level) * 1000) / 1000,

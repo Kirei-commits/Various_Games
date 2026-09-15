@@ -6,18 +6,27 @@ const rec = (over = {}) => Object.assign(
   { level: 3, hintsUsed: 0, revealed: false, optionalHit: 0, optionalTotal: 0, cleared: true }, over);
 
 test('ヒントが増えるほど到達点は必ず下がる（同点で並ばない）', () => {
-  const scores = [0, 1, 2, 3, 4].map((h) => Grade.scoreOne(rec({ hintsUsed: h })));
+  const scores = Grade.BASE_BY_HINTS.map((_, h) => Grade.scoreOne(rec({ hintsUsed: h })));
   for (let i = 1; i < scores.length; i++) assert.ok(scores[i] < scores[i - 1], `${i}回目で下がっていない`);
   assert.equal(scores[0], 1);
 });
 
-test('模範解答を見てからの正解は、どのヒント回数より低い', () => {
-  const revealed = Grade.scoreOne(rec({ hintsUsed: 5, revealed: true }));
+test('答えを見てからの正解は、どのヒント回数より低い。飛ばしはさらに低い', () => {
+  const revealed = Grade.scoreOne(rec({ hintsUsed: 3, revealed: true }));
   assert.ok(revealed < Grade.BASE_BY_HINTS[Grade.BASE_BY_HINTS.length - 1]);
+  assert.ok(Grade.scoreOne(rec({ skipped: true, cleared: false })) < revealed);
+  assert.equal(Grade.scoreOne(rec({ skipped: true, cleared: false })), 0);
+});
+
+test('飛ばした問題も評価に数える（飛ばし得にしない）', () => {
+  const half = [1, 2, 3, 4, 5].map((L, i) => rec({ level: L, skipped: i % 2 === 0, cleared: i % 2 === 1 }));
+  const allCleared = [1, 2, 3, 4, 5].map((L) => rec({ level: L }));
+  assert.ok(Grade.scoreRally(half) < Grade.scoreRally(allCleared));
+  assert.equal(Grade.scoreRally([rec({ skipped: true, cleared: false })]), 0);
 });
 
 test('加点観点は上限つきで、1.0 を超えない', () => {
-  assert.equal(Grade.scoreOne(rec({ hintsUsed: 1, optionalHit: 2, optionalTotal: 2 })), 0.85);
+  assert.equal(Grade.scoreOne(rec({ hintsUsed: 1, optionalHit: 2, optionalTotal: 2 })), 0.75);
   assert.equal(Grade.scoreOne(rec({ hintsUsed: 0, optionalHit: 2, optionalTotal: 2 })), 1);
 });
 
@@ -39,8 +48,8 @@ test('全問一発正解は A、全問ヒント2回は A にならない', () =>
   assert.notEqual(Grade.gradeOf(Grade.scoreRally(struggled)).grade, 'A');
 });
 
-test('全問で模範解答を見たら E', () => {
-  const worst = [1, 2, 3, 4, 5].map((L) => rec({ level: L, hintsUsed: 5, revealed: true }));
+test('全問で答えを見たら E', () => {
+  const worst = [1, 2, 3, 4, 5].map((L) => rec({ level: L, hintsUsed: 3, revealed: true }));
   assert.equal(Grade.gradeOf(Grade.scoreRally(worst)).grade, 'E');
 });
 

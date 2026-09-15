@@ -169,16 +169,39 @@ test('作った問題集で、実際に5問のラリーが最後まで回る', (
   assert.equal(new Set(session.records.map((r) => r.qid)).size, session.size, '同じ問題が2度出た');
 });
 
-test('作った問題集でも、詰まればヒントが5段まで出て必ず通れる', () => {
+test('作った問題集でも、詰まればヒントが3段出て必ず通れる', () => {
   const { bank } = build();
-  const session = Rally.create(bank, {}, 7);
-  for (let i = 1; i <= 5; i++) {
+  const session = Rally.create(bank, {}, { seed: 7, choiceMode: false });
+  for (let i = 1; i <= 3; i++) {
     const out = Rally.submit(session, 'まったく的外れな回答');
     assert.equal(out.hint.stage, i);
     assert.ok(out.hint.text);
   }
   assert.equal(Rally.currentRecord(session).revealed, true);
   assert.equal(Rally.submit(session, Rally.current(session).model).result.correct, true);
+});
+
+test('作った問題には選択肢が付き、正解を選べば通る', () => {
+  const { bank } = build();
+  const withChoices = bank.questions.filter((q) => Array.isArray(q.choices));
+  assert.ok(withChoices.length >= bank.questions.length - 1, '選択肢の無い問題が多すぎる');
+
+  const session = Rally.create(bank, {}, { seed: 7 });
+  const q = Rally.current(session);
+  assert.equal(Rally.currentRecord(session).choiceMode, true);
+  assert.equal(Rally.choose(session, q.choices[1]).result.correct, false);
+  assert.equal(Rally.choose(session, q.choices[0]).result.correct, true);
+});
+
+test('誤答は資料の中から採る（作文した誤答を混ぜない）', () => {
+  const { bank } = build();
+  const material = Judge.normalize(MATERIAL);
+  for (const q of bank.questions) {
+    if (!q.choices || q.kind === '総合') continue;
+    for (const c of q.choices.slice(1)) {
+      assert.ok(material.includes(Judge.normalize(c)), `${q.id} の誤答が資料にない: ${c}`);
+    }
+  }
 });
 
 test('資料が空なら作らない（空の問題集を返さない）', () => {

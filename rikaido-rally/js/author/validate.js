@@ -13,6 +13,7 @@
 import * as Judge from '../core/judge.js';
 import * as Hint from '../core/hint.js';
 import { ALL_LEVELS, MIN_LEVEL, MAX_LEVEL, coverage } from '../core/banks.js';
+import * as Choice from '../core/choice.js';
 
 /** 「中身の無い回答」の見本。これで通る問題は採点基準が壊れている。 */
 export const JUNK_ANSWERS = ['', '   ', 'わかりません', 'わからない', 'あ', 'てすと', '？？？'];
@@ -36,6 +37,18 @@ export function validateQuestion(q, { where = q && q.id } = {}) {
   if (!q.source) at('出典(source)が無い');
   if (!Array.isArray(q.hints) || q.hints.length < 2) at('ヒントは2件以上必要');
   else if (q.hints.some((h) => !h || !String(h).trim())) at('空のヒントがある');
+
+  // 選択肢（あれば）。規約は「先頭が正解」。
+  if (q.choices !== undefined) {
+    if (!Array.isArray(q.choices) || q.choices.length < Choice.MIN_CHOICES || q.choices.length > Choice.MAX_CHOICES) {
+      at(`選択肢は ${Choice.MIN_CHOICES}〜${Choice.MAX_CHOICES} 個にする（いまは ${Array.isArray(q.choices) ? q.choices.length : '配列でない'}）`);
+    } else {
+      if (q.choices.some((c) => typeof c !== 'string' || !c.trim())) at('空の選択肢がある');
+      const norm = q.choices.map((c) => Judge.normalize(c));
+      if (new Set(norm).size !== norm.length) at('同じ選択肢が2つ以上ある（正解が2つになってしまう）');
+      if (norm.some((c) => !c)) at('正規化すると空になる選択肢がある');
+    }
+  }
 
   const c = q.criteria || {};
   const required = c.required || [];
@@ -71,13 +84,20 @@ export function validateQuestion(q, { where = q && q.id } = {}) {
   // 3. 設問文が答えを漏らしていないこと
   if (Judge.evaluate(q, q.prompt).correct) at('設問文をそのまま貼り付けると正解になる（答えを漏らしている）');
 
-  // 4. ヒントは空にならず、最終段で必ず模範解答を開示すること
+  // 4. ヒントは空にならず、最終段で必ず答えを開示すること（記述式でも選択式でも）
   const blank = Judge.evaluate(q, '');
-  for (let s = 1; s <= Hint.REVEAL_STAGE; s++) {
-    const h = Hint.next(q, blank, s);
-    if (!h.text) at(`${s}段目のヒントが空`);
+  for (const choiceMode of [false, true]) {
+    if (choiceMode && !Choice.hasChoices(q)) continue;
+    for (let s = 1; s <= Hint.REVEAL_STAGE; s++) {
+      const h = Hint.next(q, { attempt: s, result: blank, choiceMode, eliminated: '' });
+      if (!h.text) at(`${choiceMode ? '選択式' : '記述式'}の ${s}段目のヒントが空`);
+      // 1段目で答えを出してしまわない（段が進む意味が無くなる）
+      if (s === 1 && choiceMode && h.text.includes(Choice.correctText(q))) at('選択式の1段目が答えを出している');
+    }
+    if (!Hint.next(q, { attempt: Hint.REVEAL_STAGE, result: blank, choiceMode }).reveal) {
+      at('最終段のヒントが答えを開示していない');
+    }
   }
-  if (!Hint.next(q, blank, Hint.REVEAL_STAGE).reveal) at('最終段のヒントが模範解答を開示していない');
 
   return { ok: problems.length === 0, problems };
 }
@@ -89,7 +109,7 @@ export function validateQuestion(q, { where = q && q.id } = {}) {
  *   requireFullLevels … 単元ごとに L1〜L5 が揃っていることを必須にする（同梱の問題集はこちら）。
  *   講師が資料から作った問題集では、揃わないことが普通にあるので警告に落とす。
  */
-export function validateBank(bank, { requireFullLevels = false, minQuestions = 5 } = {}) {
+export function validateBank(bank, { requireFullLevels = false, minQuestions = 5, requireChoices = false } = {}) {
   const problems = [];
   const warnings = [];
   if (!bank || !bank.id) return { ok: false, problems: ['問題集に id が無い'], warnings, stats: null };
@@ -109,6 +129,7 @@ export function validateBank(bank, { requireFullLevels = false, minQuestions = 5
     if (seen.has(q.id)) problems.push(`問題idの重複: ${q.id}`);
     seen.add(q.id);
     if (!unitIds.has(q.unit)) problems.push(`${q.id}: 単元 ${q.unit} が定義されていない`);
+    if (requireChoices && !Choice.hasChoices(q)) problems.push(`${q.id}: 選択肢がない（選択式で出せない）`);
     problems.push(...validateQuestion(q).problems);
   }
 
@@ -126,7 +147,14 @@ export function validateBank(bank, { requireFullLevels = false, minQuestions = 5
     }
   }
 
+  const withChoices = (bank.questions || []).filter(Choice.hasChoices).length;
+  if (!requireChoices && withChoices && withChoices < (bank.questions || []).length) {
+    warnings.push(`選択肢のある問題が ${withChoices} / ${(bank.questions || []).length} 問です`
+      + '（選択肢の無い問題は記述式で出ます）');
+  }
+
   const stats = {
+    choices: withChoices,
     questions: (bank.questions || []).length,
     units: (bank.units || []).length,
     byLevel: Object.fromEntries(ALL_LEVELS.map((L) => [L, (bank.questions || []).filter((q) => q.level === L).length])),

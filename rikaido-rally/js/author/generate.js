@@ -15,6 +15,8 @@
  *   2. 総合問題     … 達成基準そのものを最後の1問（レベル5）にする
  */
 import { validateQuestion } from './validate.js';
+import * as Judge from '../core/judge.js';
+import { MIN_CHOICES } from '../core/choice.js';
 import { ALL_LEVELS } from '../core/banks.js';
 
 /* ── 文字列を刻む ─────────────────────────── */
@@ -197,7 +199,7 @@ export function candidatesFrom(sentence, ctx) {
 
     const answers = required.flatMap((g) => g.any);
     const masked = maskTerms(body, answers);
-    out.push({
+    const cand = {
       kind, level,
       prompt,
       criteria: {
@@ -216,7 +218,14 @@ export function candidatesFrom(sentence, ctx) {
         + `必須にしたのは、その文が成り立つために欠かせない語です。`,
       source: `${sourceName} / ${section.title}`,
       weight: groups.reduce((a, g) => a + g.weight, 0)
+    };
+    const choices = buildChoices(cand, {
+      kind, body, answers,
+      otherSentences: (ctx.otherSentences || []).filter((x) => x !== sentence),
+      termPool: (ctx.termPool || []).filter((t) => !answers.includes(t.term))
     });
+    if (choices) cand.choices = choices;
+    out.push(cand);
   };
 
   let m;
@@ -291,6 +300,35 @@ export function candidatesFrom(sentence, ctx) {
   return out;
 }
 
+/**
+ * 選択肢を作る。**誤答は必ず資料の中から採る**（作文した誤答は、もっともらしくても嘘になる）。
+ *   ふつうの問題 … 正解＝根拠の一文、誤答＝同じ資料の別の文
+ *   穴埋め       … 正解＝伏せた語、誤答＝資料の中の別の語
+ * 採点基準に照らして「正解になってしまう誤答」は外す（選択式と記述式で答えがずれないように）。
+ */
+function buildChoices(cand, { kind, body, answers, otherSentences, termPool }) {
+  const cloze = kind === '穴埋め';
+  const correct = cloze ? answers[0] : clip(body, 90);
+  const seen = new Set([Judge.normalize(correct)]);
+  const wrong = [];
+
+  const pool = cloze
+    ? termPool.map((t) => t.term)
+    : otherSentences.map((x) => clip(x.replace(/[。．]$/, ''), 90));
+
+  for (const option of pool) {
+    if (wrong.length >= 3) break;
+    const norm = Judge.normalize(option);
+    if (!norm || seen.has(norm)) continue;
+    if (answers.some((a) => option.includes(a))) continue;    // 答えの語を含む誤答は作らない
+    if (Judge.evaluate(cand, option).correct) continue;        // 採点でも誤りになること
+    seen.add(norm);
+    wrong.push(option);
+  }
+  // 誤答が足りないなら選択肢を付けない（その問題は記述式で出る）
+  return wrong.length + 1 >= MIN_CHOICES ? [correct, ...wrong] : undefined;
+}
+
 /* ── 組み立て ─────────────────────────────── */
 
 /**
@@ -328,6 +366,13 @@ export function generateBank({
 
   const { weights, boosted } = weighTerms(text, `${rubric}\n${prompt}`);
   const sections = splitSections(text);
+  // 誤答の材料。資料全体の文と語を、重い順に並べておく
+  const allSentences = splitSentences(text).filter((x) => x.length >= 12);
+  const termPool = [...weights.entries()]
+    .map(([term, w]) => ({ term, w }))
+    .filter((t) => t.term.length >= 2)
+    .sort((a, b) => b.w - a.w)
+    .slice(0, 40);
   const units = [];
   const questions = [];
   const rejected = [];
@@ -335,7 +380,7 @@ export function generateBank({
 
   for (const section of sections) {
     const unitId = `u${section.index + 1}`;
-    const ctx = { weights, section, sourceName: source };
+    const ctx = { weights, section, sourceName: source, otherSentences: allSentences, termPool };
     const pool = [];
 
     for (const sentence of splitSentences(section.body)) {
@@ -462,5 +507,23 @@ function rubricQuestion({ rubric, text, weights, source, unitId, sections }) {
       + '達成基準の文には出てこないものだけです（設問を写すだけでは通らないようにするため）。',
     source: `${source} / 達成基準`
   };
+
+  // 総合問題の選択肢は「どの2語が要点か」。誤答も資料の中の語だけで作る。
+  const spare = [...weights.entries()]
+    .map(([term, w]) => ({ term, w: w * (spread.get(term) || 1) }))
+    .filter((t) => !picked.some((x) => x.term.includes(t.term) || t.term.includes(x.term)))
+    .sort((a, b) => b.w - a.w)
+    .slice(0, 6)
+    .map((t) => t.term);
+  const pair = (a, b) => `「${a}」と「${b}」を軸に、資料全体の要点を説明する`;
+  if (spare.length >= 3) {
+    q.choices = [
+      pair(picked[0].term, picked[1].term),
+      pair(spare[0], spare[1]),
+      pair(picked[1].term, spare[2]),
+      pair(spare[1], spare[2])
+    ].filter((c, i, a) => a.indexOf(c) === i);
+  }
+
   return validateQuestion(q).ok ? q : null;
 }

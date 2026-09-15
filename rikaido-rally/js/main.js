@@ -5,10 +5,13 @@
  * 「いま誰か」「保存データ」「問題集の一覧」の3つだけで、中身の仕事は ui/ に任せる。
  *
  * URL パラメータ
- *   ?role=learner|teacher  ログイン画面を飛ばす（テストと、共有リンク用）
- *   ?bank=<id>             問題集を指定
- *   ?seed=123              出題の並びを固定（再現用）
- *   ?criteria=1            採点基準を先に開示した状態で始める
+ *   ?role=learner|teacher     ログイン画面を飛ばす（テストと、共有リンク用）
+ *   ?bank=<id>                テストを指定
+ *   ?mode=auto|level|review   出題の決め方
+ *   ?level=1..5               レベル別のときの段
+ *   ?style=choice|text        えらんで答える／書いて答える
+ *   ?seed=123                 出題の並びを固定（再現用）
+ *   ?criteria=1               採点基準を先に開示した状態で始める
  */
 import { byId, $$, on, showScreen } from './ui/dom.js';
 import * as Learner from './ui/learner.js';
@@ -111,6 +114,14 @@ function boot() {
   const seed = params.get('seed');
   if (seed !== null && seed !== '' && !Number.isNaN(Number(seed))) app.seed = Number(seed);
   if (params.get('criteria') === '1') app.data.settings.teacher = true;
+
+  const mode = params.get('mode');
+  if (['auto', 'level', 'review'].includes(mode)) app.data.settings.mode = mode;
+  const level = Number(params.get('level'));
+  if (level >= 1 && level <= 5) app.data.settings.level = level;
+  const style = params.get('style');
+  if (style === 'text') app.data.settings.choiceMode = false;
+  if (style === 'choice') app.data.settings.choiceMode = true;
 
   app.registry = buildRegistry();
   const wanted = params.get('bank') || app.data.settings.bank;

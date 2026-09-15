@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { openTeacher, open } from './fixtures.mjs';
+import { openTeacher, open, answerCorrectly, goNext } from './fixtures.mjs';
 
 const MATERIAL = `# 社内の情報取扱いルール
 
@@ -57,7 +57,7 @@ test('資料を貼り付けてテストを作り、保存して、受講者の�
   expect(ctx.errors).toEqual([]);
 });
 
-test('作った問題は、模範解答で必ず通る', async ({ page }) => {
+test('作った問題は、正解を選べば必ず通る', async ({ page }) => {
   const ctx = await openTeacher(page);
   await page.fill('#source-text', MATERIAL);
   await page.fill('#bank-name', '情報取扱い2');
@@ -67,13 +67,11 @@ test('作った問題は、模範解答で必ず通る', async ({ page }) => {
   const made = (await ctx.banks()).find((b) => b.origin === 'authored');
   await ctx.tap(page.locator('.bankrow[data-bank="' + made.id + '"] [data-act="use"]'));
 
-  for (let i = 0; i < 5; i++) {
-    await page.fill('#answer', await ctx.model());
-    await page.click('#submit');
+  const size = await page.evaluate(() => window.RR.session().size);
+  for (let i = 0; i < size; i++) {
+    await answerCorrectly(page, ctx);
     await expect(page.locator('.msg.ok').nth(i)).toBeVisible();
-    const next = page.locator('#next');
-    if (await next.isVisible()) await ctx.tap(next);
-    else await ctx.tap(page.locator('#finish'));
+    await goNext(page, ctx);
   }
   await expect(page.locator('#result')).toBeVisible();
   await expect(page.locator('.gradebox .big')).toHaveText('A');

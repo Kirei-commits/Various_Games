@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { open, answer } from './fixtures.mjs';
+import { open, answer, answerCorrectly, answerWrong } from './fixtures.mjs';
 
 test('採点基準は、受講者モードでは伏せ、講師モードでは開く', async ({ page }) => {
   const ctx = await open(page);
@@ -14,7 +14,7 @@ test('採点基準は、受講者モードでは伏せ、講師モードでは�
 });
 
 test('判定ログに、入力・正規化後の文字列・観点ごとの当たり外れが出る', async ({ page }) => {
-  const ctx = await open(page);
+  const ctx = await open(page, { style: 'text' });
   const log = page.locator('#m-log');
   await expect(log).toContainText('まだ回答がありません');
 
@@ -38,13 +38,14 @@ test('組み立てパネルに、単元の選定理由とレベルの階段が�
 
 test('評価パネルに、減点表と現在の暫定スコアと次の評価までの差が出る', async ({ page }) => {
   const ctx = await open(page);
+  await expect(page.locator('#m-grade')).toBeAttached();
   const grade = page.locator('#m-grade');
   await ctx.tap(grade.locator('summary'));
   await expect(grade).toContainText('1問ぶんの到達点');
   await expect(grade).toContainText('レベル重み');
   await expect(grade).toContainText('評価の境目');
 
-  await answer(page, await ctx.model());
+  await answerCorrectly(page, ctx);
   await expect(grade).toContainText('点 →');
   expect(ctx.errors).toEqual([]);
 });
@@ -55,10 +56,10 @@ test('状態パネルの現在地が、回答に合わせて動く', async ({ pa
   await ctx.tap(state.locator('summary'));
   await expect(state.locator('.flow span.now')).toHaveText('出題中');
 
-  await answer(page, 'ちがいます');
+  await answerWrong(page, ctx);
   await expect(state.locator('.flow span.now')).toHaveText('ヒント中');
 
-  await answer(page, await ctx.model());
+  await answerCorrectly(page, ctx);
   await expect(state.locator('.flow span.now')).toHaveText('正解・解説');
   expect(ctx.errors).toEqual([]);
 });

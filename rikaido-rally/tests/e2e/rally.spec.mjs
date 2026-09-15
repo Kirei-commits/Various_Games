@@ -1,77 +1,122 @@
 import { test, expect } from '@playwright/test';
-import { open, answer, clearOne } from './fixtures.mjs';
+import { open, answer, answerCorrectly, answerWrong, clearOne, goNext, finishAll } from './fixtures.mjs';
 
-test('出題される。正解すると根拠と模範解答が開く', async ({ page }) => {
+test('選択式で出る。キーボードの入力欄は出てこない', async ({ page }) => {
   const ctx = await open(page);
-  await expect(page.locator('#unit-title')).not.toHaveText('—');
-  await expect(page.locator('.msg.q')).toContainText('問題 1 / 5');
-
-  await answer(page, await ctx.model());
-  const ok = page.locator('.msg.ok');
-  await expect(ok).toHaveCount(1);
-  await expect(ok).toContainText('なぜこの回答で正解なのか');
-  await expect(ok).toContainText('模範解答');
-  await expect(ok).toContainText('出典');
+  await expect(page.locator('.msg.q')).toContainText('問題 1 / 10');
+  await expect(page.locator('#choices .choice')).toHaveCount(4);
+  await expect(page.locator('#answer-form')).toBeHidden();
+  await expect(page.locator('#skip')).toBeVisible();
   expect(ctx.errors).toEqual([]);
 });
 
-test('不正解では進まず、ヒントが段階的に出る', async ({ page }) => {
+test('正解を選ぶと、根拠と解説が開く', async ({ page }) => {
+  const ctx = await open(page);
+  await answerCorrectly(page, ctx);
+  const ok = page.locator('.msg.ok');
+  await expect(ok).toHaveCount(1);
+  await expect(ok).toContainText('なぜこれが正解なのか');
+  await expect(ok).toContainText('この基準にしている理由');
+  await expect(ok).toContainText('出典');
+  // 選んだものと正解が色分けされ、押せなくなる
+  await expect(page.locator('#choices .choice.right')).toHaveCount(1);
+  await expect(page.locator('#choices .choice:disabled')).toHaveCount(4);
+  expect(ctx.errors).toEqual([]);
+});
+
+test('ヒントは3段。1段目から中身のある手がかりが出る', async ({ page }) => {
   const ctx = await open(page);
   const firstQid = (await ctx.session()).qid;
 
-  for (let i = 1; i <= 5; i++) {
-    await answer(page, 'ぜんぜん違うことを書きます');
-    await expect(page.locator('.msg.hint')).toHaveCount(i);
-    const s = await ctx.session();
-    expect(s.index).toBe(0);
-    expect(s.qid).toBe(firstQid);
-    expect(s.hints[0]).toBe(i);
-  }
+  await answerWrong(page, ctx);
+  const first = page.locator('.msg.hint').first();
+  await expect(first).toContainText('ヒント 1 / 3（手がかり）');
+  // 「足りない観点が○個あります」のような足踏みヒントに戻っていないこと
+  await expect(first).not.toContainText('観点が');
 
-  // 5段目は模範解答の開示。そのまま書けば必ず通る
-  await expect(page.locator('.msg.hint').last()).toContainText('模範解答');
-  await answer(page, await ctx.model());
-  await expect(page.locator('.msg.ok')).toHaveCount(1);
+  await answerWrong(page, ctx);
+  await expect(page.locator('.msg.hint').nth(1)).toContainText('消しました');
+  await expect(page.locator('#choices .choice.gone')).toHaveCount(1);
+
+  await answerWrong(page, ctx);
+  await expect(page.locator('.msg.hint')).toHaveCount(3);
+  await expect(page.locator('.msg.hint').last()).toContainText('答えは');
+
+  const s = await ctx.session();
+  expect(s.index).toBe(0);
+  expect(s.qid).toBe(firstQid);
   expect(ctx.errors).toEqual([]);
 });
 
-test('1段目のヒントは観点だけで、認める語そのものは出さない', async ({ page }) => {
+test('わからない問題は飛ばせる。答えと解説は見せる', async ({ page }) => {
   const ctx = await open(page);
-  await answer(page, 'ぜんぜん違うことを書きます');
-  const hint = page.locator('.msg.hint').first();
-  await expect(hint).toContainText('まだ触れられていない観点');
-  await expect(hint).not.toContainText('参照');
+  await ctx.tap(page.locator('#skip'));
+
+  const skipped = page.locator('.msg.skip');
+  await expect(skipped).toHaveCount(1);
+  await expect(skipped).toContainText('0 点');
+  await expect(skipped).toContainText('解説');
+  await expect(page.locator('#skip')).toBeHidden();
+  await expect(page.locator('#next')).toBeVisible();
+
+  await goNext(page, ctx);
+  const s = await ctx.session();
+  expect(s.index).toBe(1);
   expect(ctx.errors).toEqual([]);
 });
 
-test('5問すべて一発正解すると A になる', async ({ page }) => {
+test('10問すべて一発正解すると A になる', async ({ page }) => {
   const ctx = await open(page);
-  for (let i = 0; i < 5; i++) await clearOne(page, ctx);
-
-  await expect(page.locator('#result')).toBeVisible();
+  await finishAll(page, ctx);
   await expect(page.locator('.gradebox .big')).toHaveText('A');
   const s = await ctx.session();
   expect(s.phase).toBe('result');
-  expect(s.levels.join(',')).toBe('2,3,4,5,5');
+  expect(s.levels.length).toBe(10);
   expect(ctx.errors).toEqual([]);
 });
 
-test('結果から次のラリーへ進むと、別の単元が選ばれる', async ({ page }) => {
+test('飛ばした問題は結果に出て、そこから復習に入れる', async ({ page }) => {
   const ctx = await open(page);
-  const firstUnit = await page.locator('#unit-title').textContent();
-  for (let i = 0; i < 5; i++) await clearOne(page, ctx);
+  await ctx.tap(page.locator('#skip'));
+  await goNext(page, ctx);
+  for (let i = 0; i < 9; i++) await clearOne(page, ctx);
 
-  await ctx.tap(page.locator('#again'));
-  await expect(page.locator('#result')).toBeHidden();
-  await expect(page.locator('.msg.q')).toHaveCount(1);
-  await expect(page.locator('#unit-title')).not.toHaveText(firstUnit);
+  await expect(page.locator('#result')).toContainText('飛ばした 1 問');
+  await expect(page.locator('#result')).toContainText('復習');
+  await ctx.tap(page.locator('#review'));
+
+  const s = await ctx.session();
+  expect(s.phase).toBe('asking');
+  await expect(page.locator('#unit-title')).toContainText('復習');
+  await expect(page.locator('#mode')).toHaveValue('review');
   expect(ctx.errors).toEqual([]);
 });
 
-test('問題集を切り替えると出題が入れ替わる', async ({ page }) => {
-  const ctx = await open(page);
-  await expect(page.locator('.msg.q')).toContainText('レベル2');
+test('レベル別を選ぶと、その段だけが出る', async ({ page }) => {
+  const ctx = await open(page, { mode: 'level', level: '5' });
+  await expect(page.locator('#level-pick')).toBeVisible();
+  await expect(page.locator('#unit-title')).toContainText('レベル5');
+  await expect(page.locator('.msg.q')).toContainText('レベル5');
 
+  await page.selectOption('#level', '1');
+  await expect(page.locator('#unit-title')).toContainText('レベル1');
+  await expect(page.locator('.msg.q')).toContainText('レベル1');
+  expect(ctx.errors).toEqual([]);
+});
+
+test('「キーボードで書いて答える」に切り替えると記述式になる', async ({ page }) => {
+  const ctx = await open(page);
+  await page.locator('#write-mode').check();
+  await expect(page.locator('#answer-form')).toBeVisible();
+  await expect(page.locator('#choices')).toBeHidden();
+
+  await answer(page, await ctx.correct());
+  await expect(page.locator('.msg.ok')).toContainText('なぜこの回答で正解なのか');
+  expect(ctx.errors).toEqual([]);
+});
+
+test('テストを切り替えると出題が入れ替わる', async ({ page }) => {
+  const ctx = await open(page);
   await page.selectOption('#bank-select', 'kuwata');
   const s = await ctx.session();
   expect(s.bankId).toBe('kuwata');
@@ -80,10 +125,10 @@ test('問題集を切り替えると出題が入れ替わる', async ({ page }) 
   expect(ctx.errors).toEqual([]);
 });
 
-test('結果画面に、単元ごとの棒グラフと「詰まった観点」が出る', async ({ page }) => {
+test('結果画面に、単元ごとの棒グラフと「つまずき」が出る', async ({ page }) => {
   const ctx = await open(page, { bank: 'kuwata' });
-  for (let i = 0; i < 5; i++) {
-    await answer(page, 'ちょっと分かりません');           // 1回詰まってから通す
+  for (let i = 0; i < 10; i++) {
+    await answerWrong(page, ctx);           // 1回詰まってから通す
     await expect(page.locator('.msg.hint').last()).toBeVisible();
     await clearOne(page, ctx);
   }
@@ -91,13 +136,11 @@ test('結果画面に、単元ごとの棒グラフと「詰まった観点」�
   await expect(result).toBeVisible();
   await expect(result).toContainText('次に上げるならここ');
 
-  // 棒は実際に伸びている（span を block にし忘れると幅が効かない）
   const widths = await result.locator('.bar .fill').evaluateAll(
     (els) => els.map((e) => e.getBoundingClientRect().width));
   expect(widths.length).toBeGreaterThan(0);
   for (const w of widths) expect(w).toBeGreaterThan(0);
 
-  // 単元は id ではなく日本語のラベルで出す
   await expect(result.locator('table.k')).not.toContainText('songs');
   expect(ctx.errors).toEqual([]);
 });

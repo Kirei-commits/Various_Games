@@ -1,23 +1,24 @@
 /**
  * ヒントの段階。
  *
- * 「不正解であれば正解になるまでヒントを出す」を、行き止まりが無い形で実装する。
- * 段階は必ず下へ進み、最後は模範解答を開示する。そこまで行けば必ず正解にできる
- * （tests/lint.mjs が「模範解答は自分の採点基準で必ず正解になる」を検査している）。
+ * 3段。どの段も「それ単体で手がかりになる」ことを条件にしている。
+ * 以前は1段目に「足りない観点の名前」を出していたが、
+ * 受講者にとっては答えに近づかないただの足踏みだった（くどい、と言われた）のでやめた。
  *
- *   1回目 … 観点ヒント（足りない観点の名前だけ。誤解を検出していればそれを先に指摘）
- *   2回目 … 著者が書いた具体ヒント その1
- *   3回目 … 著者が書いた具体ヒント その2（無ければ頭出しへ繰り上げ）
- *   4回目 … 頭出し（不足している語を 1文字目＋伏字＋文字数で見せる）
- *   5回目 … 模範解答を開示（以後は「自分の言葉で書き直す」ことだけが残る）
+ *   1段目 … 手がかり。問題ごとに用意した誘導をそのまま出す
+ *   2段目 … しぼる。選択式なら誤答を1つ消す。記述式なら不足語を頭出しする
+ *   3段目 … 答え。正解を開示する（選択式は正解の選択肢、記述式は模範解答）
+ *
+ * 3段目まで行けば必ず通れる。行き止まりを作らないための決まり。
  */
+
 export const STAGES = [
-  { stage: 1, kind: 'focus',  label: '観点',     desc: '足りない観点の名前だけを伝える' },
-  { stage: 2, kind: 'author', label: 'ヒント1',  desc: '問題ごとに用意した誘導' },
-  { stage: 3, kind: 'author', label: 'ヒント2',  desc: 'さらに絞り込む誘導' },
-  { stage: 4, kind: 'mask',   label: '頭出し',   desc: '不足語の1文字目と文字数' },
-  { stage: 5, kind: 'reveal', label: '模範解答', desc: '開示。自分の言葉で書き直して通過する' }
+  { stage: 1, kind: 'author', label: '手がかり', desc: '問題ごとに用意した誘導' },
+  { stage: 2, kind: 'narrow', label: 'しぼる', desc: '選択式は誤答を1つ消す／記述式は不足語の頭出し' },
+  { stage: 3, kind: 'reveal', label: '答え', desc: '正解を開示する' }
 ];
+
+export const REVEAL_STAGE = STAGES.length;
 
 /** 「equals」→「e○○○○○（6文字）」 */
 export function mask(word) {
@@ -26,53 +27,64 @@ export function mask(word) {
   return `${s[0]}${'○'.repeat(s.length - 1)}（${s.length}文字）`;
 }
 
-const listKeys = (groups) => groups.map((g) => `「${g.key}」`).join('、');
-
 /**
  * 次に出すヒントを決める。
+ *
  * @param {object} question 問題
- * @param {object} result   Judge.evaluate の戻り値
- * @param {number} attempt  今回を含めた誤答回数（1始まり）
+ * @param {object} ctx
+ * @param {number} ctx.attempt   今回を含めた誤答回数（1始まり）
+ * @param {object} ctx.result    記述式のときの Judge.evaluate の戻り値
+ * @param {boolean} ctx.choiceMode 選択式で出しているか
+ * @param {string} ctx.eliminated 2段目で消した選択肢の文言（rally が決めて渡す）
+ * @returns {{stage:number, kind:string, label:string, text:string, reveal:boolean}}
  */
-export function next(question, result, attempt) {
-  const n = Math.min(attempt, STAGES.length);
+export function next(question, { attempt = 1, result = null, choiceMode = false, eliminated = '' } = {}) {
+  const n = Math.min(Math.max(1, attempt), REVEAL_STAGE);
   const meta = STAGES[n - 1];
   const authored = question.hints || [];
-  const missing = result.missing;
-
-  if (meta.kind === 'focus') {
-    const trap = result.traps[0];
-    const head = trap && trap.hint ? `${trap.hint}\n` : '';
-    const body = missing.length
-      ? `まだ触れられていない観点が ${missing.length} 個あります：${listKeys(missing)}`
-      : '書き方は惜しいです。もう少し具体的な言葉で言い換えてみてください。';
-    return { stage: n, kind: 'focus', label: meta.label, text: head + body, reveal: false };
-  }
 
   if (meta.kind === 'author') {
-    const idx = n - 2;                       // stage2 → hints[0], stage3 → hints[1]
-    if (authored[idx]) {
-      return { stage: n, kind: 'author', label: meta.label, text: authored[idx], reveal: false };
-    }
-    // 用意が無ければ頭出しへ繰り上げる（段階が空振りして足踏みするのを避ける）
-    return maskHint(n, missing, meta.label);
+    // 誤解を検出していたら、まずそれを指摘してから誘導を出す
+    const trap = result && result.traps && result.traps[0];
+    const head = trap && trap.hint ? `${trap.hint}\n` : '';
+    const body = authored[0] || 'もう一度、問われていることだけに絞って考えてみてください。';
+    return { stage: n, kind: 'author', label: meta.label, text: head + body, reveal: false };
   }
 
-  if (meta.kind === 'mask') return maskHint(n, missing, meta.label);
+  if (meta.kind === 'narrow') {
+    if (choiceMode) {
+      const text = eliminated
+        ? `ちがう選択肢を1つ消しました（「${eliminated}」）。残りから選んでください。`
+        : '残りの選択肢から選んでください。';
+      const extra = authored[1] ? `\n${authored[1]}` : '';
+      return { stage: n, kind: 'narrow', label: meta.label, text: text + extra, reveal: false };
+    }
+    if (authored[1]) {
+      return { stage: n, kind: 'narrow', label: meta.label, text: authored[1], reveal: false };
+    }
+    return maskHint(n, meta.label, result);
+  }
 
   return {
     stage: n, kind: 'reveal', label: meta.label, reveal: true,
-    text: `模範解答：${question.model}\n\n読んだうえで、もう一度あなたの言葉で書いてください。`
-      + '（この問題は最低点での通過になります）'
+    text: choiceMode
+      ? `答えは「${correctChoice(question)}」です。選んで次へ進んでください。`
+      : `模範解答：${question.model}\n\n読んだうえで、もう一度あなたの言葉で書いてください。`
   };
 }
 
-function maskHint(stage, missing, label) {
+/** 記述式の2段目。不足している語を1文字目と文字数だけ見せる。 */
+function maskHint(stage, label, result) {
+  const missing = (result && result.missing) || [];
   if (!missing.length) {
-    return { stage, kind: 'mask', label, reveal: false, text: '必要な語はすべて揃っています。文として繋げて書いてみてください。' };
+    return {
+      stage, kind: 'narrow', label, reveal: false,
+      text: '必要な言葉は揃っています。文として繋げて書いてみてください。'
+    };
   }
   const lines = missing.map((g) => `・「${g.key}」… ${mask(g.any[0])}`);
-  return { stage, kind: 'mask', label, reveal: false, text: '不足している言葉の頭出しです。\n' + lines.join('\n') };
+  return { stage, kind: 'narrow', label, reveal: false, text: '足りない言葉の頭出しです。\n' + lines.join('\n') };
 }
 
-export const REVEAL_STAGE = STAGES.length;
+/** 選択式の正解。データの決まりとして choices の先頭が正解。 */
+export const correctChoice = (question) => (question.choices || [])[0] || question.model;

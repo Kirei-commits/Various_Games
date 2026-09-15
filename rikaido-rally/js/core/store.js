@@ -25,8 +25,11 @@ export const DEFAULT_PROMPT = `アップロードされた資料から、受講�
 export const DEFAULT_RUBRIC = `この資料の要点を、用語と理由の両方を使って自分の言葉で説明できる。`;
 
 export const DEFAULTS = {
-  settings: { role: null, bank: 'java', teacher: false, theme: 'light' },
+  settings: { role: null, bank: 'java', teacher: false, theme: 'light', mode: 'auto', level: 3, choiceMode: true },
   history: {},          // history[bankId][unitId] = { plays, lastScore, bestScore, lastAt }
+  // attempts[bankId][questionId] = { times, lastHints, lastRevealed, lastSkipped, lastAt }
+  // 「復習（過去に出た問題）」は、これだけを見て並べ直す
+  attempts: {},
   rallies: [],          // [{ at, bankId, unitTitle, score, grade }] 新しい順・最大50件
   authored: [],         // 講師が作った問題集（bank の形そのまま）
   studio: { rubric: DEFAULT_RUBRIC, prompt: DEFAULT_PROMPT, engine: 'local', perUnit: 5, passGrade: 'B' }
@@ -54,6 +57,7 @@ export function merge(saved) {
     }
   }
   if (saved.history && typeof saved.history === 'object') out.history = saved.history;
+  if (saved.attempts && typeof saved.attempts === 'object') out.attempts = saved.attempts;
   if (Array.isArray(saved.rallies)) out.rallies = saved.rallies.slice(0, 50);
   if (Array.isArray(saved.authored)) out.authored = saved.authored.filter(looksLikeBank);
   return out;
@@ -98,13 +102,33 @@ export function record(data, session) {
       lastAt: Date.now()
     };
   }
+  // 1問ずつの結果も残す。復習で「飛ばした問題」「詰まった問題」を先に出すために要る
+  const seen = (data.attempts[bankId] = data.attempts[bankId] || {});
+  for (const r of session.records) {
+    if (!r.cleared && !r.skipped) continue;
+    const cur = seen[r.qid] || { times: 0 };
+    seen[r.qid] = {
+      times: cur.times + 1,
+      lastHints: r.hintsUsed,
+      lastRevealed: !!r.revealed,
+      lastSkipped: !!r.skipped,
+      lastAt: Date.now()
+    };
+  }
+
   data.rallies.unshift({
-    at: Date.now(), bankId, unitTitle: session.plan.title,
-    score: s.score, grade: s.grade.grade
+    at: Date.now(), bankId, unitTitle: session.plan.title, mode: session.mode,
+    score: s.score, grade: s.grade.grade, skipped: s.skipped, size: s.size
   });
   data.rallies = data.rallies.slice(0, 50);
   return data;
 }
+
+/** その問題集で、これまでに解いた問題の記録（復習の材料） */
+export const attemptsOf = (data, bankId) => (data.attempts && data.attempts[bankId]) || {};
+
+/** 復習できる問題が何問あるか。0なら復習モードは選ばせない。 */
+export const reviewCount = (data, bankId) => Object.keys(attemptsOf(data, bankId)).length;
 
 /** 問題集ごとの到達状況（Aまであとどれくらいか、の表示に使う） */
 export function progress(data, bankId) {
@@ -128,6 +152,7 @@ export function putAuthored(data, bank) {
 export function removeAuthored(data, bankId) {
   data.authored = data.authored.filter((b) => b.id !== bankId);
   delete data.history[bankId];
+  delete data.attempts[bankId];
   data.rallies = data.rallies.filter((r) => r.bankId !== bankId);
   return data;
 }

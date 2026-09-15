@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <meta name="color-scheme" content="light dark" />
-<meta name="description" content="記述式の理解度テストラリー。正解するまでヒントで伴走し、A〜Eで評価します。講師は手持ちの資料からテストを作れます。" />
+<meta name="description" content="選択式10問の理解度テストラリー。ヒントは3段階、わからなければ飛ばせます。A〜Eで評価。講師は手持ちの資料からテストを作れます。" />
 <title>理解度アップ・テストラリー</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23ffffff' stroke='%23d8deea' stroke-width='1.5'/%3E%3Cpath d='M7 21l5-10 5 10' stroke='%23177a55' stroke-width='2.4' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M9.4 18h5.2' stroke='%23177a55' stroke-width='2.4' stroke-linecap='round'/%3E%3Ccircle cx='23.5' cy='11.5' r='3' fill='%23e08c00'/%3E%3C/svg%3E" />
 <link rel="stylesheet" href="css/style.css" />
@@ -15,13 +15,13 @@
 <section class="screen gate" id="screen-login" aria-label="はじめに">
   <div class="gate-inner">
     <h1>理解度アップ・<span>テストラリー</span></h1>
-    <p class="lead">記述式で5問。正解するまでヒントで伴走し、A〜E で評価します。</p>
+    <p class="lead">10問。えらんで答えます。まちがえたらヒントが3段階。評価は A〜E。</p>
 
     <div class="roles">
       <button type="button" class="role" id="role-learner">
         <span class="role-icon" aria-hidden="true">📝</span>
         <strong>受講者としてはじめる</strong>
-        <span class="role-note">テストを受けます。評価とつまずいた場所が残ります。</span>
+        <span class="role-note">10問のテストを受けます。えらんで答えるので、入力は要りません。</span>
       </button>
 
       <button type="button" class="role" id="role-teacher">
@@ -59,14 +59,26 @@
       </div>
       <div class="top-side">
         <label class="sel">
-          <span>問題集</span>
+          <span>テスト</span>
           <select id="bank-select"></select>
+        </label>
+        <label class="sel">
+          <span>出題</span>
+          <select id="mode"></select>
+        </label>
+        <label class="sel" id="level-pick" hidden>
+          <span>レベル</span>
+          <select id="level"></select>
+        </label>
+        <label class="toggle">
+          <input type="checkbox" id="write-mode" />
+          <span>キーボードで書いて答える</span>
         </label>
         <label class="toggle">
           <input type="checkbox" id="teacher-view" />
           <span>採点基準を先に開示</span>
         </label>
-        <button type="button" class="btn ghost" data-go="login">役割を変える</button>
+        <button type="button" class="btn ghost" data-go="login">最初の画面にもどる</button>
       </div>
     </header>
 
@@ -83,16 +95,24 @@
 
         <div class="chat" id="chat" aria-live="polite"></div>
 
-        <form class="answer" id="answer-form">
-          <label class="sr-only" for="answer">回答</label>
-          <textarea id="answer" rows="3" placeholder="自分の言葉で書いてください（用語だけでなく理由も）" autocomplete="off"></textarea>
+        <div class="answer">
+          <div class="choices" id="choices" role="group" aria-label="選択肢"></div>
+
+          <form id="answer-form" hidden>
+            <label class="sr-only" for="answer">回答</label>
+            <textarea id="answer" rows="3" placeholder="自分の言葉で書いてください（用語だけでなく理由も）" autocomplete="off"></textarea>
+            <div class="row">
+              <button type="submit" id="submit" class="btn primary">回答する</button>
+            </div>
+          </form>
+
           <div class="row">
-            <button type="submit" id="submit" class="btn primary">回答する</button>
-            <button type="button" id="next" class="btn" hidden>次の問題へ</button>
+            <button type="button" id="skip" class="btn">わからない（答えを見る）</button>
+            <button type="button" id="next" class="btn primary" hidden>次の問題へ</button>
             <button type="button" id="finish" class="btn primary" hidden>結果を見る</button>
             <span class="note" id="hintcount"></span>
           </div>
-        </form>
+        </div>
       </section>
 
       <section class="card result" id="result" hidden aria-label="結果"></section>
@@ -124,11 +144,11 @@
     <header class="top">
       <div>
         <h1 class="mini">講師用 — <span>テストを作る</span></h1>
-        <p class="lead">資料を読み込み、達成基準と出題方針で制御して、記述式のテストを組み立てます。</p>
+        <p class="lead">資料を読み込み、達成基準と出題方針で制御して、選択式のテストを組み立てます。</p>
       </div>
       <div class="top-side">
         <button type="button" class="btn" data-go="learner">受講者の画面を見る</button>
-        <button type="button" class="btn ghost" data-go="login">役割を変える</button>
+        <button type="button" class="btn ghost" data-go="login">最初の画面にもどる</button>
       </div>
     </header>
 

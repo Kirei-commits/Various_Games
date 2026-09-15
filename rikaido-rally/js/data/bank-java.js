@@ -36,6 +36,12 @@ questions: [
   /* ── 等価性と比較 ─────────────────────────────── */
   {
     id: 'java-eq-1', unit: 'equality', level: 1,
+    choices: [
+      'false。`==` は参照の比較で、`new` は毎回別のインスタンスを作るから',
+      'true。中身が同じ文字列なので、`==` でも等しくなる',
+      'true。`new String` は定数プールの同じ実体を返すから',
+      'false。文字列の比較には必ず compareTo を使わなければならないから'
+    ],
     prompt: '`String a = new String("neko"); String b = new String("neko");` のとき、'
       + '`a == b` は true と false のどちらになりますか。理由も一言で添えてください。',
     criteria: {
@@ -59,6 +65,12 @@ questions: [
   },
   {
     id: 'java-eq-2', unit: 'equality', level: 2,
+    choices: [
+      'equals を使う。左の変数が null なら NullPointerException が起きる',
+      'equals を使う。左の変数が null なら false が返るので安全',
+      '`==` を使う。null でも落ちずに中身を比べられる',
+      'compareTo を使う。null なら 0 が返って一致とみなされる'
+    ],
     prompt: '文字列の中身が同じか調べたいとき、何を使いますか。'
       + 'また、その呼び出しで左側の変数が null だったとき何が起きますか。',
     criteria: {
@@ -84,6 +96,12 @@ questions: [
   },
   {
     id: 'java-eq-3', unit: 'equality', level: 3,
+    choices: [
+      'HashMap や HashSet で、入れたはずのキーで取り出せなくなる',
+      'コンパイルエラーになり、ビルドが通らなくなる',
+      'equals の戻り値が常に false になる',
+      'ArrayList の contains が常に false を返すようになる'
+    ],
     prompt: 'equals をオーバーライドしたクラスで hashCode を直し忘れると、'
       + 'どこで、どんな困り方をしますか。',
     criteria: {
@@ -108,6 +126,12 @@ questions: [
   },
   {
     id: 'java-eq-4', unit: 'equality', level: 4,
+    choices: [
+      'Integer はオブジェクトで、valueOf が -128〜127 をキャッシュして同じインスタンスを返すから',
+      '128 以上は int に収まらず、内部で long に変わるから',
+      'オートボクシングは 127 までしか働かず、それ以上は文字列として比較されるから',
+      '`==` は値を比べるが、128 以上では桁あふれが起きて結果が狂うから'
+    ],
     prompt: '`Integer a = 127, b = 127;` では `a == b` が true になるのに、'
       + '`Integer a = 128, b = 128;` では false になります。なぜですか。',
     criteria: {
@@ -133,6 +157,12 @@ questions: [
   },
   {
     id: 'java-eq-5', unit: 'equality', level: 5,
+    choices: [
+      'getClass は対称性を守れるがサブクラスを親として等価に扱えず、instanceof は置換可能性を保てるがサブクラスで項目を足すと対称性が壊れる',
+      'getClass ならサブクラスも等価にでき、instanceof は同じクラスどうししか等価にできない',
+      'どちらも同じ意味になるので、書き方の好みの問題でしかない',
+      'instanceof は対称性を必ず守り、getClass は推移性を壊す'
+    ],
     prompt: 'equals の実装で、先頭のチェックを `getClass() != o.getClass()` と書く流儀と '
       + '`!(o instanceof Foo)` と書く流儀があります。それぞれ何を守り、何を壊しますか。',
     criteria: {
@@ -161,6 +191,12 @@ questions: [
   /* ── 文字列の扱い ─────────────────────────────── */
   {
     id: 'java-str-1', unit: 'strings', level: 1,
+    choices: [
+      's は元のまま。toUpperCase は大文字にした新しい String を返すだけ',
+      's の中身がその場で大文字に書き換わる',
+      's は元のままだが、2回呼ぶと書き換わる',
+      's が null になるので、戻り値を受け取らないと使えなくなる'
+    ],
     prompt: 'String が「不変（イミュータブル）」であるとはどういうことですか。'
       + '`s.toUpperCase()` を呼んだあと、`s` 自身はどうなりますか。',
     criteria: {
@@ -184,6 +220,12 @@ questions: [
   },
   {
     id: 'java-str-2', unit: 'strings', level: 2,
+    choices: [
+      '毎回それまでの全文をコピーした新しい String ができる。可変のバッファである StringBuilder に append する',
+      'コンパイラが必ず StringBuilder に置き換えるので、何も問題はない',
+      '文字列が長くなりすぎて途中で切り捨てられる。substring で分けて持つ',
+      '見た目が読みにくいだけで、実行時の速さは変わらない'
+    ],
     prompt: 'ループの中で `s += x;` を1万回繰り返すと何が問題になりますか。代わりに何を使いますか。',
     criteria: {
       required: [
@@ -207,6 +249,12 @@ questions: [
   },
   {
     id: 'java-str-3', unit: 'strings', level: 3,
+    choices: [
+      'リテラルは文字列定数プールで共有されるが、new は必ず別のインスタンスを作るから',
+      'たまたま同じ結果になっただけで、実行するたびに変わるから',
+      'リテラルどうしは値の比較になり、new したものは参照の比較になるから',
+      'new String は中身をコピーしないので、長さが違ってしまうから'
+    ],
     prompt: '`"a" == "a"` は true になりやすいのに、`new String("a") == "a"` は false になります。'
       + '何が違いますか。',
     criteria: {
@@ -232,6 +280,12 @@ questions: [
   },
   {
     id: 'java-str-4', unit: 'strings', level: 4,
+    choices: [
+      '3要素。末尾に並ぶ空文字列だけが取り除かれる',
+      '2要素。空文字列はすべて取り除かれる',
+      '4要素。区切り文字の数だけ必ず要素ができる',
+      '3要素。先頭の空文字列が取り除かれる'
+    ],
     prompt: '`"a,,b,".split(",")` の結果は要素がいくつの配列になりますか。なぜそうなりますか。',
     criteria: {
       required: [
@@ -255,6 +309,12 @@ questions: [
   },
   {
     id: 'java-str-5', unit: 'strings', level: 5,
+    choices: [
+      '実行環境の既定ロケールに左右されるから。比較や識別に使うなら Locale.ROOT を渡す',
+      '文字数が変わることがあるから。length を先に取っておけばよい',
+      '処理が遅いから。StringBuilder を経由すれば速くなる',
+      'null を返すことがあるから。呼ぶ前に null チェックを足せばよい'
+    ],
     prompt: '`s.toLowerCase()` を引数なしで呼ぶのが危ういのはなぜですか。どう書くべきですか。',
     criteria: {
       required: [
@@ -280,6 +340,12 @@ questions: [
   /* ── コレクションの選択 ───────────────────────── */
   {
     id: 'java-col-1', unit: 'collections', level: 1,
+    choices: [
+      'Set は同じ要素を重複して持てない',
+      'Set は並び順を必ず保つが、List は保たない',
+      'List は違う型を混ぜられるが、Set は混ぜられない',
+      'Set は null を必ず入れられるが、List は入れられない'
+    ],
     prompt: 'List と Set のいちばん大きな違いを一言で説明してください。',
     criteria: {
       required: [
@@ -300,6 +366,12 @@ questions: [
   },
   {
     id: 'java-col-2', unit: 'collections', level: 2,
+    choices: [
+      'Map を使う。キーに使うクラスには equals と hashCode の両方が要る',
+      'Map を使う。キーに使うクラスには Comparable の実装だけが要る',
+      'List を使う。indexOf で引けるので、特別な実装は要らない',
+      'Map を使う。キーに使うクラスには toString の実装だけが要る'
+    ],
     prompt: 'キーから値を引きたいときに使うのは何ですか。'
       + 'そのキーに自作クラスを使うとき、そのクラスに何が必要ですか。',
     criteria: {
@@ -324,6 +396,12 @@ questions: [
   },
   {
     id: 'java-col-3', unit: 'collections', level: 3,
+    choices: [
+      'ConcurrentModificationException が出る。Iterator の remove か removeIf を使う',
+      '何も起きないが、1つ飛ばしで削除されてしまう。添字を戻せばよい',
+      'スレッドが競合して固まる。synchronized を付ければよい',
+      'コンパイルエラーになる。拡張for文を while に書き換えればよい'
+    ],
     prompt: '拡張for文（for-each）で回している最中に `list.remove(x)` を呼ぶと何が起きますか。'
       + '正しくはどう書きますか。',
     criteria: {
@@ -349,6 +427,12 @@ questions: [
   },
   {
     id: 'java-col-4', unit: 'collections', level: 4,
+    choices: [
+      'UnsupportedOperationException が出る。元の配列を覆っているだけで、長さを変えられないから',
+      '4番目に追加され、元の配列も長さ4に伸びる',
+      'NullPointerException が出る。asList は中身を持たないビューを返すから',
+      '何も起きないが、追加した要素は黙って捨てられる'
+    ],
     prompt: '`List<Integer> list = Arrays.asList(1, 2, 3);` としたあと `list.add(4)` を呼ぶと何が起きますか。なぜですか。',
     criteria: {
       required: [
@@ -373,6 +457,12 @@ questions: [
   },
   {
     id: 'java-col-5', unit: 'collections', level: 5,
+    choices: [
+      'ハッシュ値が変わって探す場所がずれ、同じ参照で get しても取り出せなくなる。キーには不変なものを使う',
+      '入れ直しが自動で走るので何も起きない。キーは自由に変えてよい',
+      'その場で例外が出る。キーを変えるところを try/catch で囲めばよい',
+      '値だけが消える。もう一度 put すれば元に戻る'
+    ],
     prompt: 'HashMap のキーに可変オブジェクトを使い、put したあとでそのオブジェクトのフィールドを'
       + '書き換えると何が起きますか。設計としてはどうすべきですか。',
     criteria: {
@@ -400,6 +490,12 @@ questions: [
   /* ── 例外の扱い ───────────────────────────────── */
   {
     id: 'java-exc-1', unit: 'exceptions', level: 1,
+    choices: [
+      '異常が起きた事実そのものが消え、ログにも残らないので気づけなくなるから',
+      '空の catch はコンパイルが通らず、ビルドで落ちるから',
+      '例外が何度も再送出されて、処理が止まらなくなるから',
+      'メモリが解放されず、少しずつ漏れていくから'
+    ],
     prompt: 'catch ブロックを空にして何もしないのが、なぜいけないのですか。',
     criteria: {
       required: [
@@ -422,6 +518,12 @@ questions: [
   },
   {
     id: 'java-exc-2', unit: 'exceptions', level: 2,
+    choices: [
+      'try を抜けるときに close を自動で呼ぶ。AutoCloseable を実装していることが条件',
+      '例外を自動で握りつぶす。catch を書かなくてよくなる',
+      '使い終わったオブジェクトをその場でガベージコレクションする。条件は特にない',
+      '例外が出たら自動で再実行する。Retryable を実装していることが条件'
+    ],
     prompt: 'try-with-resources は何を自動でやってくれますか。使うための条件は何ですか。',
     criteria: {
       required: [
@@ -444,6 +546,12 @@ questions: [
   },
   {
     id: 'java-exc-3', unit: 'exceptions', level: 3,
+    choices: [
+      '一方はコンパイラが catch か throws を強制し、もう一方（RuntimeException の系統）は強制されない',
+      '一方の方が深刻な異常で、もう一方は無視してよい軽い異常である',
+      '一方は実行時にだけ出て、もう一方はコンパイル時に出る',
+      '一方はライブラリだけが投げられ、自分のコードでは書けない'
+    ],
     prompt: 'Java の例外は大きく2種類に分かれます。'
       + 'コードを書く人にとって何が違いますか。それぞれの呼び名も挙げてください。',
     criteria: {
@@ -468,6 +576,12 @@ questions: [
   },
   {
     id: 'java-exc-4', unit: 'exceptions', level: 4,
+    choices: [
+      'finally の return が優先され、投げられかけていた例外は捨てられる',
+      '例外が優先され、finally の return は無視される',
+      '例外と戻り値の両方が呼び出し元に届く',
+      'コンパイルエラーになるので、そもそも書けない'
+    ],
     prompt: 'try の中で例外が投げられ、finally の中に `return` が書かれていると何が起きますか。',
     criteria: {
       required: [
@@ -491,6 +605,12 @@ questions: [
   },
   {
     id: 'java-exc-5', unit: 'exceptions', level: 5,
+    choices: [
+      '捕まえた例外を cause として渡す。渡さないと元の発生箇所のスタックトレースが失われる',
+      'getMessage の文字列だけを引き継げば十分で、ほかに要るものはない',
+      'ログに出してから握りつぶし、新しい例外だけを投げればよい',
+      '包み直してはいけないので、そのまま再送出するしかない'
+    ],
     prompt: '下位層の例外を捕まえて、自分の層の例外に包み直して投げるとき、必ずやるべきことは何ですか。'
       + 'それを怠ると何が失われますか。',
     criteria: {
@@ -519,6 +639,12 @@ questions: [
   /* ── 継承と多態 ───────────────────────────────── */
   {
     id: 'java-oop-1', unit: 'oop', level: 1,
+    choices: [
+      'オーバーロードは同じクラスで引数を変えて並べること、オーバーライドは親のメソッドを子で定義し直すこと',
+      'オーバーロードは親のメソッドを子で定義し直すこと、オーバーライドは戻り値だけを変えること',
+      'どちらも同じ意味で、呼び方が2つあるだけである',
+      'オーバーロードは戻り値の型を変えること、オーバーライドは引数の型を変えること'
+    ],
     prompt: 'オーバーロードとオーバーライドの違いを説明してください。',
     criteria: {
       required: [
@@ -542,6 +668,12 @@ questions: [
   },
   {
     id: 'java-oop-2', unit: 'oop', level: 2,
+    choices: [
+      'インターフェースはいくつでも実装できる。抽象クラスはインスタンスのフィールド（状態）を持たせられる',
+      'インターフェースは実装を一切持てないが、抽象クラスは持てる',
+      '抽象クラスはいくつでも継承でき、インターフェースは1つしか実装できない',
+      '性能が違うだけで、書き分ける理由は特にない'
+    ],
     prompt: '抽象クラスとインターフェース、どちらを使うか迷ったときの判断基準は何ですか。',
     criteria: {
       required: [
@@ -566,6 +698,12 @@ questions: [
   },
   {
     id: 'java-oop-3', unit: 'oop', level: 3,
+    choices: [
+      'できない。同じ名前で書くと隠蔽になり、変数に宣言された型で呼ばれる方が決まる',
+      'できる。実行時の実際の型を見て、子クラス側が呼ばれる',
+      'できない。コンパイルエラーになるので、同じ名前では書けない',
+      'できる。ただし abstract を付けたときだけ有効になる'
+    ],
     prompt: 'static メソッドはオーバーライドできますか。'
       + '親クラス型の変数に子クラスのインスタンスを入れて static メソッドを呼ぶと、どちらが呼ばれますか。',
     criteria: {
@@ -596,6 +734,12 @@ questions: [
   },
   {
     id: 'java-oop-4', unit: 'oop', level: 4,
+    choices: [
+      '子クラスのオーバーライドが先に呼ばれてしまうのに、子のフィールドはまだ初期化されていないから',
+      '親のコンストラクタは子より後に走るので、呼ぶ順番が逆になってしまうから',
+      'コンストラクタからはメソッドを呼べない決まりになっているから',
+      'インスタンスが二重に作られて、メモリを余計に使ってしまうから'
+    ],
     prompt: 'コンストラクタの中から、オーバーライド可能な（final でも private でもない）メソッドを'
       + '呼んではいけないのはなぜですか。',
     criteria: {
@@ -622,6 +766,12 @@ questions: [
   },
   {
     id: 'java-oop-5', unit: 'oop', level: 5,
+    choices: [
+      '常に値渡し。渡るのは参照という値のコピーなので、中身は変えられるが、引数への再代入は呼び出し元に伝わらない',
+      '常に参照渡し。メソッドの中で引数に別のインスタンスを代入すると、呼び出し元の変数も差し替わる',
+      '基本型は値渡し、オブジェクトは参照渡しという二本立てになっている',
+      '常に値渡しなので、メソッドの中で setter を呼んでも呼び出し元には見えない'
+    ],
     prompt: 'Java の引数の渡し方は「値渡し」と「参照渡し」のどちらですか。'
       + 'オブジェクトを渡したときに何ができて、何ができないかも説明してください。',
     criteria: {

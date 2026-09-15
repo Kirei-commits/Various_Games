@@ -86,7 +86,9 @@ let questionCount = 0;
 for (const bank of [javaBank, kuwataBank]) {
   // 同梱ぶんは単元ごとに L1〜L5 が揃っていることまで必須にする（階段が必ず組めるように）。
   // 講師が資料から作ったものは、揃わないのが普通なので警告どまり（validateBank の既定）。
-  const verdict = validateBank(bank, { requireFullLevels: true });
+  // 同梱ぶんは、単元ごとの L1〜L5 が揃っていることと、全問に選択肢があることまで必須にする
+  // （選択式が既定なので、選択肢の無い問題があるとそこだけキーボードが出てしまう）。
+  const verdict = validateBank(bank, { requireFullLevels: true, requireChoices: true });
   problems.push(...verdict.problems);
   questionCount += bank.questions.length;
 }
@@ -97,4 +99,4 @@ if (problems.length) {
   for (const p of problems) console.error('  ✘ ' + p);
   process.exit(1);
 }
-console.log(`lint OK — JS ${jsFiles.length}件 / 参照 ${refs.length}件 / 到達 ${reached.size}件 / 同梱問題 ${questionCount}件`);
+console.log(`lint OK — JS ${jsFiles.length}件 / 参照 ${refs.length}件 / 到達 ${reached.size}件 / 同梱問題 ${questionCount}件（全問に選択肢あり）`);

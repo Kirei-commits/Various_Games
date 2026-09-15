@@ -2,180 +2,267 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import * as Rally from '../../js/core/rally.js';
 import * as Hint from '../../js/core/hint.js';
-import { BANKS, bankById, runRally } from './helpers.mjs';
+import * as Choice from '../../js/core/choice.js';
+import { BANKS, bankById, runRally, answerCorrectly, answerWrong } from './helpers.mjs';
 
-test('ラリーは5問。1問目は既定の開始レベルから始まる', () => {
-  const s = Rally.create(bankById('java'), {}, 1);
-  assert.equal(s.size, 5);
+const java = bankById('java');
+const start = (opts = {}) => Rally.create(java, {}, { seed: 1, ...opts });
+
+test('1ラリーは10問。1問目は既定の開始レベルから始まる', () => {
+  const s = start();
+  assert.equal(Rally.SIZE, 10);
+  assert.equal(s.size, 10);
   assert.equal(s.records[0].level, Rally.START_LEVEL);
   assert.equal(s.phase, 'asking');
 });
 
-test('不正解では問題が進まない。正解して初めて次へ行く', () => {
-  const s = Rally.create(bankById('java'), {}, 1);
-  const firstId = Rally.current(s).id;
-  for (let i = 0; i < 3; i++) {
-    Rally.submit(s, 'まったく的外れな回答');
-    assert.equal(s.index, 0, '不正解で番号が進んでいる');
-    assert.equal(Rally.current(s).id, firstId, '不正解で問題が差し替わっている');
-    assert.equal(s.phase, 'hinting');
-  }
-  assert.equal(Rally.advance(s), false, 'ヒント中に advance が通ってしまう');
-
-  Rally.submit(s, Rally.current(s).model);
-  assert.equal(s.phase, 'cleared');
-  Rally.advance(s);
-  assert.equal(s.index, 1);
+test('問題が10問に足りない問題集では、あるだけで終える', () => {
+  const small = { ...java, questions: java.questions.slice(0, 6) };
+  assert.equal(Rally.create(small, {}, { seed: 1 }).size, 6);
 });
 
-test('ヒントは段階的に進み、最終段で模範解答を開示する', () => {
-  const s = Rally.create(bankById('java'), {}, 1);
-  for (let i = 1; i <= Hint.REVEAL_STAGE; i++) {
-    const out = Rally.submit(s, 'ぜんぜん違います');
-    assert.equal(out.hint.stage, i);
-    assert.equal(Rally.currentRecord(s).hintsUsed, i);
-  }
-  assert.equal(Rally.currentRecord(s).revealed, true);
-  // 開示のあと、その模範解答を書けば必ず通る
+/* ── 選択式 ─────────────────────────────── */
+
+test('既定は選択式。選択肢は毎回ちがう順で並ぶ', () => {
+  const s = start();
+  const rec = Rally.currentRecord(s);
+  assert.equal(rec.choiceMode, true);
+  assert.equal(rec.choiceOrder.length, Rally.current(s).choices.length);
+  assert.deepEqual([...rec.choiceOrder].sort(), [...Rally.current(s).choices].sort());
+
+  const orders = [1, 2, 3, 4, 5, 6].map((seed) =>
+    Rally.currentRecord(Rally.create(java, {}, { seed })).choiceOrder.join('|'));
+  assert.ok(new Set(orders).size > 1, '並びがいつも同じ（位置で当てられてしまう）');
+});
+
+test('選択式は「先頭が正解」の規約で判定する。位置では当たらない', () => {
+  const s = start();
+  const q = Rally.current(s);
+  const wrong = q.choices[1];
+  assert.equal(Rally.choose(s, wrong).result.correct, false);
+  assert.equal(s.index, 0);
+  assert.equal(Rally.choose(s, Choice.correctText(q)).result.correct, true);
+  assert.equal(s.phase, 'cleared');
+});
+
+test('書いて答えるモードにすると、選択肢を使わず記述式になる', () => {
+  const s = Rally.create(java, {}, { seed: 1, choiceMode: false });
+  assert.equal(Rally.currentRecord(s).choiceMode, false);
   assert.equal(Rally.submit(s, Rally.current(s).model).result.correct, true);
 });
 
-test('レベルの階段：一発正解で+1、ヒント1回で据え置き、2回以上で−1', () => {
-  const up = Rally.nextLevel(3, { hintsUsed: 0, revealed: false });
-  const stay = Rally.nextLevel(3, { hintsUsed: 1, revealed: false });
-  const down = Rally.nextLevel(3, { hintsUsed: 2, revealed: false });
-  const shown = Rally.nextLevel(3, { hintsUsed: 0, revealed: true });
-  assert.equal(up.level, 4);
-  assert.equal(stay.level, 3);
-  assert.equal(down.level, 2);
-  assert.equal(shown.level, 2, '模範解答を見たら下げる');
+/* ── ヒント ─────────────────────────────── */
+
+test('不正解では進まず、ヒントは3段で打ち止め', () => {
+  const s = start();
+  const firstId = Rally.current(s).id;
+  for (let i = 1; i <= Hint.REVEAL_STAGE; i++) {
+    const out = answerWrong(s);
+    assert.equal(out.hint.stage, i);
+    assert.equal(s.index, 0, '不正解で番号が進んでいる');
+    assert.equal(Rally.current(s).id, firstId);
+  }
+  assert.equal(Rally.currentRecord(s).hintsUsed, 3);
+  assert.equal(Rally.currentRecord(s).revealed, true);
+  assert.equal(Rally.advance(s), false, 'ヒント中に advance が通ってしまう');
+  assert.equal(answerCorrectly(s).result.correct, true);
 });
 
-test('レベルは1〜5からはみ出さない', () => {
+test('選択式の2段目で、誤答が1つ実際に消える', () => {
+  const s = start();
+  answerWrong(s);
+  assert.equal(Rally.currentRecord(s).eliminated.length, 0);
+  answerWrong(s);
+  const rec = Rally.currentRecord(s);
+  assert.equal(rec.eliminated.length, 1);
+  assert.ok(!Choice.isCorrect(Rally.current(s), rec.eliminated[0]), '正解を消してしまっている');
+});
+
+/* ── 飛ばす ─────────────────────────────── */
+
+test('わからない問題は飛ばせる。0点で、答えは見せる', () => {
+  const s = start();
+  const out = Rally.skip(s);
+  assert.equal(out.skipped, true);
+  assert.ok(out.hint.text.includes(Choice.correctText(Rally.current(s))));
+  const rec = Rally.currentRecord(s);
+  assert.equal(rec.skipped, true);
+  assert.equal(rec.score, 0);
+  assert.equal(s.phase, 'skipped');
+  assert.equal(Rally.advance(s), true);
+  assert.equal(s.index, 1);
+});
+
+test('正解したあと・飛ばしたあとは、もう答えられない', () => {
+  const s = start();
+  Rally.skip(s);
+  assert.equal(Rally.choose(s, 'なんでも'), null);
+  assert.equal(Rally.submit(s, 'なんでも'), null);
+});
+
+test('全問飛ばすと E。飛ばした数が結果に出る', () => {
+  const s = start();
+  for (let i = 0; i < s.size; i++) { Rally.skip(s); Rally.advance(s); }
+  assert.equal(s.phase, 'result');
+  assert.equal(s.summary.grade.grade, 'E');
+  assert.equal(s.summary.skipped, s.size);
+  assert.equal(s.summary.score, 0);
+});
+
+/* ── レベルの階段（おまかせ） ───────────── */
+
+test('レベルの階段：一発正解で+1、ヒント1回で据え置き、2回以上・飛ばしで−1', () => {
+  assert.equal(Rally.nextLevel(3, { hintsUsed: 0, revealed: false }).level, 4);
+  assert.equal(Rally.nextLevel(3, { hintsUsed: 1, revealed: false }).level, 3);
+  assert.equal(Rally.nextLevel(3, { hintsUsed: 2, revealed: false }).level, 2);
+  assert.equal(Rally.nextLevel(3, { hintsUsed: 0, skipped: true }).level, 2, '飛ばしても下げる');
   assert.equal(Rally.nextLevel(5, { hintsUsed: 0, revealed: false }).level, 5);
   assert.equal(Rally.nextLevel(1, { hintsUsed: 3, revealed: false }).level, 1);
 });
 
-test('全問一発正解なら、実際のレベルが予定の階段と一致する', () => {
-  const s = runRally('java', 0, 777);
-  const actual = s.records.map((r) => r.level).join(',');
-  assert.equal(actual, s.plan.plannedLadder.join(','));
-  assert.equal(actual, '2,3,4,5,5');
+test('全問一発正解なら、狙いのレベルが予定の階段どおりに上がる', () => {
+  const s = runRally(java, 0, 777);
+  assert.equal(s.records.map((r) => r.targetLevel).join(','), s.plan.plannedLadder.join(','));
+  assert.equal(s.plan.plannedLadder.join(','), '2,3,4,5,5,5,5,5,5,5');
+  // 実際に出る問題は、その段を出し切ると近い段から借りるので予定とは限らない
+  assert.ok(s.records.every((r) => Math.abs(r.level - r.targetLevel) <= 2));
 });
 
-test('詰まり続けると段が下がっていく', () => {
-  const s = runRally('java', 2, 777);
-  const path = s.records.map((r) => r.level);
-  assert.ok(path[path.length - 1] < path[0], `下がっていない: ${path.join(',')}`);
-  assert.ok(Math.min(...path) >= 1);
+test('詰まり続けると狙いの段が下がっていく', () => {
+  const s = runRally(java, 2, 777);
+  const aim = s.records.map((r) => r.targetLevel);
+  assert.equal(aim[aim.length - 1], 1, `下がりきっていない: ${aim.join(',')}`);
+  assert.ok(Math.min(...aim) >= 1);
+  assert.ok(s.records.every((r) => r.hintsUsed === 2), 'ヒント回数が揃っていない');
 });
+
+/* ── 出題の決め方 ───────────────────────── */
+
+test('レベル別：選んだ段の問題が中心に出て、段は動かない', () => {
+  for (const level of [1, 3, 5]) {
+    const s = runRally(java, 0, 42, { mode: 'level', level });
+    const chosen = s.records.filter((r) => r.level === level).length;
+    assert.ok(chosen >= 5, `L${level} が ${chosen} 問しか出ていない`);
+    assert.ok(s.plan.title.includes(`レベル${level}`));
+    assert.equal(s.plan.plannedLadder.every((L) => L === level), true);
+  }
+});
+
+test('レベル別は、その段を出し切ったら近い段から借りる（10問を必ず埋める）', () => {
+  const s = runRally(java, 0, 42, { mode: 'level', level: 2 });
+  assert.equal(s.records.length, 10);
+  assert.equal(new Set(s.records.map((r) => r.qid)).size, 10);
+});
+
+test('復習：過去に出た問題だけを、飛ばした順・詰まった順に出す', () => {
+  const attempts = {
+    'java-eq-1': { times: 1, lastHints: 0, lastRevealed: false, lastSkipped: false, lastAt: 30 },
+    'java-str-2': { times: 1, lastHints: 3, lastRevealed: true, lastSkipped: false, lastAt: 20 },
+    'java-col-3': { times: 1, lastHints: 1, lastRevealed: false, lastSkipped: true, lastAt: 10 }
+  };
+  const s = Rally.create(java, {}, { seed: 5, mode: 'review', attempts });
+  assert.equal(s.mode, 'review');
+  assert.equal(s.size, 3, '過去に出た問題の数だけ出す');
+  assert.equal(s.plan.queue.join(','), 'java-col-3,java-str-2,java-eq-1');
+  assert.ok(s.plan.title.includes('復習'));
+  assert.ok(Rally.currentRecord(s).pickReason.includes('飛ばした'));
+});
+
+test('復習できる問題が無ければ、おまかせに落ちて理由を残す', () => {
+  const s = Rally.create(java, {}, { seed: 5, mode: 'review', attempts: {} });
+  assert.equal(s.mode, 'auto');
+  assert.ok(s.plan.fellBack.includes('まだ解いた問題がない'));
+  assert.equal(s.size, 10);
+});
+
+/* ── 全体 ───────────────────────────────── */
 
 test('同じ問題は1ラリーに2度出ない', () => {
-  for (const bank of ['java', 'kuwata']) {
+  for (const bank of BANKS) {
     for (const seed of [1, 2, 3, 99, 20260915]) {
-      const s = runRally(bank, 0, seed);
-      const ids = s.records.map((r) => r.qid);
-      assert.equal(new Set(ids).size, ids.length, `${bank}/seed=${seed} で重複: ${ids.join(',')}`);
+      for (const mode of ['auto', 'level']) {
+        const s = runRally(bank, 0, seed, { mode, level: 3 });
+        const ids = s.records.map((r) => r.qid);
+        assert.equal(new Set(ids).size, ids.length, `${bank.id}/${mode}/seed=${seed} で重複`);
+      }
     }
   }
 });
 
 test('単元の自動生成：未受験の単元が最優先で選ばれる', () => {
-  const bank = bankById('java');
   const history = { java: {} };
-  // 1つを除いて全部「やった・高得点」にしておく
-  for (const u of bank.units) history.java[u.id] = { plays: 3, lastScore: 95, lastAt: 1 };
-  const target = bank.units[3];
+  for (const u of java.units) history.java[u.id] = { plays: 3, lastScore: 95, lastAt: 1 };
+  const target = java.units[3];
   delete history.java[target.id];
 
-  const s = Rally.create(bankById('java'), history, 42);
+  const s = Rally.create(java, history, { seed: 42 });
   assert.equal(s.plan.main.id, target.id);
   assert.ok(s.plan.reason.includes('まだ出題していない'));
 });
 
 test('単元の自動生成：全部受験済みなら、直近スコアが最も低い単元が選ばれる', () => {
-  const bank = bankById('java');
   const history = { java: {} };
-  bank.units.forEach((u, i) => { history.java[u.id] = { plays: 1, lastScore: 90 - i * 3, lastAt: 100 + i }; });
-  const weakest = bank.units[bank.units.length - 1];
-
-  const s = Rally.create(bankById('java'), history, 42);
-  assert.equal(s.plan.main.id, weakest.id);
+  java.units.forEach((u, i) => { history.java[u.id] = { plays: 1, lastScore: 90 - i * 3, lastAt: 100 + i }; });
+  const s = Rally.create(java, history, { seed: 42 });
+  assert.equal(s.plan.main.id, java.units[java.units.length - 1].id);
   assert.ok(s.plan.reason.includes('いちばん低い'));
 });
 
-test('主単元で同じ段を出し切ったら補単元から借りる', () => {
-  const s = runRally('java', 0, 777);
-  const units = new Set(s.records.map((r) => r.unit));
-  assert.ok(units.size > 1, '5問目(L5の2問目)が補単元から来ていない');
-  assert.ok(s.plan.support, '補単元が決まっていない');
-  const borrowed = s.records.filter((r) => r.unit !== s.plan.main.id);
-  for (const b of borrowed) assert.equal(b.unit, s.plan.support.id, '補単元以外から借りている');
-});
-
 test('選定理由は必ず記録される（画面の説明はこれを表示している）', () => {
-  const s = runRally('kuwata', 1, 5);
-  for (const r of s.records) {
-    assert.ok(r.pickReason, `${r.qid} に選定理由が無い`);
-    assert.ok(r.levelRule, `${r.qid} にレベル決定の根拠が無い`);
+  for (const mode of ['auto', 'level']) {
+    const s = runRally('kuwata', 1, 5, { mode, level: 2 });
+    for (const r of s.records) {
+      assert.ok(r.pickReason, `${r.qid} に選定理由が無い`);
+      assert.ok(r.levelRule, `${r.qid} にレベル決定の根拠が無い`);
+    }
   }
 });
 
 test('同じシードなら同じ並びになる', () => {
-  const a = runRally('kuwata', 0, 31337).records.map((r) => r.qid).join(',');
-  const b = runRally('kuwata', 0, 31337).records.map((r) => r.qid).join(',');
-  assert.equal(a, b);
+  const ids = (n) => runRally('kuwata', 0, n).records.map((r) => r.qid).join(',');
+  assert.equal(ids(31337), ids(31337));
 });
 
-test('全問一発正解なら A、全問で模範解答を見たら E', () => {
-  const best = runRally('java', 0, 2024);
+test('全問一発正解なら A、全問で答えを見たら E', () => {
+  const best = runRally(java, 0, 2024);
   assert.equal(best.summary.grade.grade, 'A');
-  assert.equal(best.summary.perfect, 5);
+  assert.equal(best.summary.perfect, 10);
   assert.equal(best.summary.hintTotal, 0);
 
-  const worst = runRally('java', Hint.REVEAL_STAGE, 2024);
+  const worst = runRally(java, Hint.REVEAL_STAGE, 2024);
   assert.equal(worst.summary.grade.grade, 'E');
   assert.ok(worst.records.every((r) => r.revealed));
 });
 
 test('ヒント1回で通すと A には届かないが E でもない', () => {
-  const s = runRally('kuwata', 1, 808);
-  const grade = s.summary.grade.grade;
-  assert.ok(['B', 'C'].includes(grade), `想定外の評価: ${grade}（${s.summary.score}点）`);
+  const grade = runRally('kuwata', 1, 808).summary.grade.grade;
+  assert.ok(['B', 'C'].includes(grade), `想定外の評価: ${grade}`);
 });
 
 test('結果には、単元ごとの到達点と「次に上げる場所」が入る', () => {
-  const s = runRally('java', 2, 55);
+  const s = runRally(java, 2, 55);
   assert.ok(s.summary.units.length >= 1);
   assert.ok(s.summary.weak.length >= 1, '取りこぼしがあるのに弱点が空');
   assert.ok(s.summary.next, 'A未満なのに次の評価が出ていない');
-  assert.equal(s.summary.levelPath.length, 5);
-
+  assert.equal(s.summary.levelPath.length, 10);
   for (const w of s.summary.weak) {
-    // 単元は id ではなく画面に出せるラベルで持つ
-    assert.ok(w.unitLabel && w.unitLabel !== w.unit, `${w.qid} の単元ラベルが id のまま: ${w.unitLabel}`);
-    // 詰まった観点は、正解した後も残っている（正解時に消すと「何で詰まったか」が出せない）
-    assert.ok(w.missedKeys.length > 0, `${w.qid} の詰まった観点が空`);
+    assert.ok(w.unitLabel && w.unitLabel !== w.unit, `${w.qid} の単元ラベルが id のまま`);
   }
 });
 
-test('一発正解した問題は、詰まった観点が空のまま', () => {
-  const s = runRally('java', 0, 55);
-  for (const r of s.records) assert.equal(r.missedKeys.length, 0);
-});
-
-test('両方の問題集で、模範解答だけで最後まで走り切れる', () => {
+test('両方の問題集で、正解を選ぶだけで最後まで走り切れる', () => {
   for (const bank of BANKS) {
     for (const seed of [1, 7, 123, 4096]) {
       const s = runRally(bank, 0, seed);
       assert.equal(s.phase, 'result', `${bank.id}/seed=${seed} が終わらない`);
-      assert.equal(s.records.length, 5);
+      assert.equal(s.records.length, 10);
       assert.ok(s.records.every((r) => r.cleared));
     }
   }
 });
 
 test('結果が出たあとの回答は受け付けない', () => {
-  const s = runRally('java', 0, 9);
+  const s = runRally(java, 0, 9);
   assert.equal(Rally.submit(s, 'まだ書けますか'), null);
+  assert.equal(Rally.choose(s, 'まだ選べますか'), null);
 });

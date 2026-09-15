@@ -160,9 +160,15 @@ table.k tr.now td { background: var(--ok-soft); }
 .tag { display: inline-block; font-size: 10.5px; letter-spacing: .06em; color: var(--ok);
        border: 1px solid var(--ok); background: var(--ok-soft); border-radius: 999px; padding: 1px 9px; }
 .rally-title strong { display: block; font-size: 17px; margin-top: 6px; }
-.rally-title p { margin: 4px 0 0; max-width: 46ch; }
+/* 選定理由は2行で切る。ここが伸びると、その下の選択肢が画面の外へ押し出される
+   （全文は「しくみ」パネルの1番に同じものが出る）。 */
+.rally-title p {
+  margin: 4px 0 0; max-width: 46ch;
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden;
+}
 
-.steps { display: flex; gap: 6px; list-style: none; margin: 0; padding: 0; }
+/* 10問ぶん並ぶので必ず折り返す。折り返さないと狭い画面で横スクロールが出る。 */
+.steps { display: flex; flex-wrap: wrap; gap: 6px; list-style: none; margin: 0; padding: 0; }
 .steps li {
   width: 40px; height: 44px; border-radius: 9px; border: 1px solid var(--line);
   display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -173,26 +179,48 @@ table.k tr.now td { background: var(--ok-soft); }
 .steps li.now b { color: var(--ok); }
 .steps li.done { border-color: var(--brand); background: var(--brand-soft); }
 .steps li.done b { color: var(--brand); }
+.steps li.skip { border-style: dashed; }
+.steps li.skip b { color: var(--muted); }
 
 /* ── 受講者：対話 ───────────────────────── */
-.chat { display: flex; flex-direction: column; gap: 12px; max-height: 56vh; overflow-y: auto; padding-right: 4px; }
+/* 対話ログは伸ばさない。伸ばすと選択肢と「わからない」が画面の下に押し出される
+   （tests/e2e/layout.spec.mjs が、どちらもファーストビューに入ることを検査している）。 */
+.chat { display: flex; flex-direction: column; gap: 12px; max-height: 26vh; overflow-y: auto; padding-right: 4px; }
 .msg { border-radius: 11px; padding: 12px 14px; border: 1px solid var(--line); background: var(--surface-2); }
 .msg .who { font-size: 10.5px; letter-spacing: .06em; color: var(--muted); display: block; margin-bottom: 4px; }
 .msg p { margin: 0; white-space: pre-wrap; }
 
 .msg.q { border-left: 3px solid var(--brand); background: var(--surface); }
-.msg.q .lv { float: right; font-size: 11px; color: var(--brand); }
+.msg.q .who { color: var(--brand); }
 .msg.a { border-left: 3px solid var(--line); background: var(--surface); }
 .msg.hint { border-left: 3px solid var(--warn); background: var(--warn-soft); }
 .msg.hint .who { color: var(--warn); }
 .msg.ok { border-left: 3px solid var(--ok); background: var(--ok-soft); }
 .msg.ok .who { color: var(--ok); }
+.msg.skip { border-left: 3px solid var(--muted); }
+.msg.skip .who { color: var(--muted); font-weight: 600; }
 
 .evidence { margin: 10px 0 0; padding: 10px 12px; border-radius: 9px; background: var(--surface); border: 1px solid var(--line-soft); font-size: 12.5px; }
 .evidence h4 { margin: 0 0 6px; font-size: 11.5px; letter-spacing: .04em; color: var(--ok); }
 .evidence dl { margin: 0; display: grid; grid-template-columns: max-content 1fr; gap: 4px 10px; }
 .evidence dt { color: var(--muted); }
 .evidence dd { margin: 0; }
+
+/* ── 受講者：選択肢 ─────────────────────────
+   スマホで押しやすいことを最優先にする。1行ずつ、指1本ぶんの高さを確保する。 */
+.choices { display: grid; gap: 8px; margin-bottom: 12px; }
+.choice {
+  display: block; width: 100%; text-align: left;
+  min-height: 52px; padding: 12px 16px; border-radius: 10px;
+  border: 1px solid var(--line); background: var(--surface); color: var(--text);
+  font: inherit; font-size: 14.5px; line-height: 1.65; cursor: pointer;
+  transition: border-color .12s, background .12s;
+}
+.choice:hover:not(:disabled) { border-color: var(--brand); background: var(--brand-soft); }
+.choice:disabled { cursor: default; }
+.choice.gone { opacity: .45; text-decoration: line-through; }
+.choice.right { border-color: var(--ok); background: var(--ok-soft); color: var(--ok); font-weight: 600; }
+.choice.wrong { border-color: var(--bad); background: var(--bad-soft); color: var(--bad); }
 
 .answer { margin-top: 16px; }
 .answer textarea { font-size: 15px; }
@@ -273,19 +301,36 @@ table.k tr.now td { background: var(--ok-soft); }
    回答欄と送信ボタンは必ずファーストビューに入れる。
    tests/e2e/layout.spec.mjs が「1画面に収まること」を検査している。 */
 @media (max-width: 700px) {
-  .wrap { padding: 14px 14px 40px; }
+  .wrap { padding: 12px 14px 40px; }
   body { font-size: 14.5px; }
-  .top { gap: 10px; margin-bottom: 12px; }
+
+  /* 上の帯は限界まで小さくする。ここが太ると選択肢が画面の下に落ちる。 */
+  .top { gap: 8px; margin-bottom: 10px; }
+  .top h1.mini { font-size: 16px; }
   .top .lead { display: none; }
+  .top-side { width: 100%; gap: 8px 12px; }
+  .sel { flex: 1 1 130px; }
+  .sel > span { display: none; }        /* 選択肢そのものが何の設定かを語る */
+  .sel select { min-width: 0; width: 100%; }
+  .toggle { font-size: 11.5px; min-height: 26px; }
+  .top-side .btn.ghost { min-height: 32px; padding: 4px 8px; font-size: 12px; }
+
   .card { padding: 14px; }
-  .rally-head { padding-bottom: 10px; margin-bottom: 10px; gap: 10px; }
-  .rally-title strong { font-size: 15px; margin-top: 4px; }
+  .rally-head { padding-bottom: 10px; margin-bottom: 10px; gap: 8px; }
+  .rally-head .tag { display: none; }
+  .rally-title strong { font-size: 15px; margin-top: 0; }
   .rally-title p { display: none; }     /* 理由は「しくみ」パネルに同じものが出る */
-  .steps li { width: 34px; }
-  .chat { max-height: 30vh; gap: 9px; }
+  /* 10個が1行に収まる幅にする。はみ出すと「10」だけが2行目に落ちて間延びする */
+  .steps { gap: 4px; }
+  .steps li { width: 28px; height: 32px; font-size: 9.5px; }
+  .steps li b { font-size: 11.5px; }
+  .chat { gap: 9px; }
   .msg { padding: 10px 12px; }
   .answer { margin-top: 12px; }
   .answer textarea { font-size: 16px; }  /* 16px 未満だと iOS が勝手に拡大する */
+  .chat { max-height: 20vh; }
+  .choices { gap: 7px; margin-bottom: 10px; }
+  .choice { min-height: 48px; padding: 10px 13px; font-size: 14px; }
   .btn { padding: 10px 15px; }
   .sel select { min-width: 120px; }
 }
