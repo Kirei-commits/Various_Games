@@ -67,12 +67,24 @@ test('ラリーの結果が単元ごとの成績に畳み込まれ、次の単�
   assert.equal(data.rallies.length, 1);
   assert.equal(data.rallies[0].grade, s.summary.grade.grade);
 
-  // 次のラリーは「直近の点がいちばん低い単元」が主単元になる
-  const lowest = units.slice().sort((a, b) =>
-    data.history.java[a].lastScore - data.history.java[b].lastScore)[0];
-  const nextPlan = Rally.create(bankById('java'), data.history, { seed: 100 }).plan;
-  assert.equal(nextPlan.main.id, lowest, `弱い単元が主単元になっていない: ${nextPlan.main.id}`);
-  assert.ok(nextPlan.reason.includes('いちばん低い'));
+  // 次のラリーの主単元は「まだ出していない単元」か「直近の点がいちばん低い層」から選ばれる。
+  // 点は10点きざみに丸めて同点扱いにし、その中はランダムに混ぜているので、
+  // 「最下位の1単元」に固定されるとは限らない（毎回おなじ問題が出るのを避けるため）。
+  const bank = bankById('java');
+  const played = new Set(units);
+  const bucket = (u) => Math.round(data.history.java[u].lastScore / 10);
+  const lowestBucket = Math.min(...units.map(bucket));
+
+  for (const seed of [100, 7, 31, 2024]) {
+    const plan = Rally.create(bank, data.history, { seed }).plan;
+    const id = plan.main.id;
+    if (played.has(id)) {
+      assert.equal(bucket(id), lowestBucket, `弱い層の単元が主単元になっていない: ${id}`);
+      assert.ok(plan.reason.includes('いちばん低い'));
+    } else {
+      assert.ok(plan.reason.includes('まだ出題していない'), `未出題の理由が出ていない: ${plan.reason}`);
+    }
+  }
 });
 
 test('最高点は下がらない。通算回数は増える', () => {

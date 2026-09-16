@@ -365,8 +365,12 @@ function mechPlan() {
     <h4>この問題が選ばれた理由</h4>
     <p>${esc(Rally.currentRecord(session).pickReason)}</p>
     ${session.mode === 'auto' ? `<p class="note">選定コスト = |レベル差| × ${Rally.PICK_COST.levelDistance}
-      ＋ 単元（主 ${Rally.PICK_COST.mainUnit} / 補 ${Rally.PICK_COST.supportUnit} / 他 ${Rally.PICK_COST.otherUnit}）。
-      いちばん小さいものを出しています。</p>` : ''}`;
+      ＋ 単元（主 ${Rally.PICK_COST.mainUnit} / 補 ${Rally.PICK_COST.supportUnit} / 他 ${Rally.PICK_COST.otherUnit}）
+      ＋ 最近解いた問題への上乗せ（最大 ${Rally.PICK_COST.recent}）。</p>` : ''}
+    <h4>同じ問題ばかり出さないための規則</h4>
+    <ul>${Rally.SHUFFLE_RULES.map((r) => `<li>${esc(r.text)}</li>`).join('')}</ul>
+    ${session.mode === 'level' ? `<p class="note">レベル別では、選んだ段の未出題が残っているかぎり段を外しません
+      （この問題集にはレベル${session.level}が ${session.pool.filter((q) => q.level === session.level).length} 問あります）。</p>` : ''}`;
 }
 
 function mechCriteria() {

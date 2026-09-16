@@ -53,8 +53,28 @@ export const PICK_COST = {
   levelDistance: 3,   // 狙った段からのずれ1段ぶん
   mainUnit: 0,        // 主単元
   supportUnit: 1,     // 補単元（段が合わないときの借り先）
-  otherUnit: 4        // それ以外（最後の逃げ道）
+  otherUnit: 4,       // それ以外（最後の逃げ道）
+  recent: 3           // 最近出した問題への上乗せ（下の RECENT_DAYS で薄れていく）
 };
+
+/**
+ * いちばん小さいコストから、この幅に収まった候補は**同点とみなしてランダムに選ぶ**。
+ * 0 にすると毎回まったく同じ問題が出る（実際にそうなっていた）。
+ * ランダムにするのは**同じレベルの中だけ**。段を跨いでばらつくと、
+ * 「レベルに応じて難易度が変わる」という約束が崩れるため。
+ */
+export const RANDOM_WINDOW = 2;
+
+/** 最近出した問題を後回しにする日数。これを過ぎると上乗せは消える。 */
+export const RECENT_DAYS = 14;
+
+/** ランダム化の規則（画面の説明はこれをそのまま出す） */
+export const SHUFFLE_RULES = [
+  { key: 'tier', text: `同じレベルの中で、いちばん条件に合う問題から ${RANDOM_WINDOW} 点差以内のものは、同点とみなしてランダムに選ぶ` },
+  { key: 'recent', text: `最近解いた問題にはコストを上乗せして後回しにする（${RECENT_DAYS}日かけて薄れる）` },
+  { key: 'unit', text: '単元の順位は、直近スコアが10点差以内なら同じとみなして並びを混ぜる' },
+  { key: 'choices', text: '選択肢の並びもラリーごとに混ぜる' }
+];
 
 /** 固定シードの擬似乱数（mulberry32）。?seed= で並びを再現できるようにするため。 */
 export function seededRandom(seed) {
@@ -80,12 +100,17 @@ export function unitStat(history, bankId, unitId) {
 /* ── 単元の自動生成（おまかせ） ─────────────── */
 
 export function composePlan(bank, history, rng) {
+  // スコアと日付は粗い目盛りに丸める。丸めないと「72点と75点」で順位が固定され、
+  // 毎回おなじ単元が主単元になり続ける（＝毎回おなじ問題が出る）。
+  const scoreBucket = (v) => (v == null ? 0 : Math.round(v / 10));
+  const dayBucket = (v) => Math.floor((v || 0) / 86400000);
+
   const ranked = bank.units.map((u) => {
     const s = unitStat(history, bank.id, u.id);
     return {
       unit: u, stat: s,
-      // 未受験(0) → 低スコア → 古いもの、の順に並ぶキー
-      key: [s.played === 0 ? 0 : 1, s.lastScore == null ? 0 : s.lastScore, s.lastAt, rng()]
+      // 未受験(0) → 低スコア → 古いもの、の順に並ぶキー。最後の rng() で同点を混ぜる
+      key: [s.played === 0 ? 0 : 1, scoreBucket(s.lastScore), dayBucket(s.lastAt), rng()]
     };
   }).sort((a, b) => {
     for (let i = 0; i < 4; i++) if (a.key[i] !== b.key[i]) return a.key[i] - b.key[i];
@@ -130,25 +155,60 @@ export function nextLevel(prevLevel, rec) {
 
 /* ── 出題の選定 ───────────────────────────── */
 
-/** 狙った段にいちばん近い未出題の問題を取る。理由も一緒に返す。 */
-export function pick(bank, plan, usedIds, target, rng, pool = bank.questions) {
+/** 最近解いた問題ほど重くなる上乗せ。ここが無いと同じ問題が続けて出る。 */
+function recencyCost(q, attempts, now) {
+  const a = attempts && attempts[q.id];
+  if (!a || !a.lastAt) return 0;
+  const days = (now - a.lastAt) / 86400000;
+  if (days >= RECENT_DAYS) return 0;
+  return PICK_COST.recent * (1 - days / RECENT_DAYS);
+}
+
+/**
+ * 狙った段に合う未出題の問題を取る。理由も一緒に返す。
+ *
+ * **いちばん良い1つを必ず出す、という作りにしない。** それだと同じ条件からは
+ * 毎回まったく同じ問題が出る（実際にそうなっていた）。
+ * 最良から RANDOM_WINDOW 以内は同点とみなし、その中からランダムに選ぶ。
+ *
+ * @param {object} opts { attempts, now, strict }
+ *   strict: true なら狙った段の問題だけを見る（レベル別で段を守るため）。
+ *           その段が尽きたときだけ、近い段に逃がす。
+ */
+export function pick(bank, plan, usedIds, target, rng, pool = bank.questions, opts = {}) {
+  const { attempts = {}, now = Date.now(), strict = false } = opts;
   const rank = (q) => plan.main && q.unit === plan.main.id ? PICK_COST.mainUnit
     : (plan.support && q.unit === plan.support.id) ? PICK_COST.supportUnit
     : PICK_COST.otherUnit;
 
-  const ranked = pool
-    .filter((q) => !usedIds.includes(q.id))
-    .map((q) => ({ q, cost: Math.abs(q.level - target) * PICK_COST.levelDistance + rank(q), jitter: rng() }))
+  const left = pool.filter((q) => !usedIds.includes(q.id));
+  if (!left.length) return null;
+
+  // レベル別は、その段が残っているかぎり段を外さない。残っていなければ近い段から借りる。
+  const onLevel = left.filter((q) => q.level === target);
+  const source = strict && onLevel.length ? onLevel : left;
+  const borrowed = strict && !onLevel.length;
+
+  const ranked = source
+    .map((q) => ({
+      q,
+      cost: Math.abs(q.level - target) * PICK_COST.levelDistance + rank(q) + recencyCost(q, attempts, now),
+      jitter: rng()
+    }))
     .sort((a, b) => a.cost - b.cost || a.jitter - b.jitter);
 
-  if (!ranked.length) return null;
-  const best = ranked[0];
-  const label = unitLabel(bank, best.q.unit);
-  const gap = best.q.level - target;
+  // ランダムにするのは「いちばん近いレベル」の中だけ。段まで混ぜると難易度が揺れる。
+  const bestLevel = ranked[0].q.level;
+  const tier = ranked.filter((c) => c.q.level === bestLevel && c.cost <= ranked[0].cost + RANDOM_WINDOW);
+  const chosen = tier[Math.floor(rng() * tier.length)] || ranked[0];
+
+  const label = unitLabel(bank, chosen.q.unit);
+  const gap = chosen.q.level - target;
+  const among = tier.length > 1 ? `同じくらい条件に合う ${tier.length} 問からランダムに選びました。` : '';
   const reason = gap === 0
-    ? `狙いのレベル${target}に、単元「${label}」の未出題が残っていたのでそれを出しました。`
-    : `狙いはレベル${target}でしたが、残っている中で最も近いのが単元「${label}」のレベル${best.q.level}でした。`;
-  return { question: best.q, reason, target, considered: ranked.length };
+    ? `狙いのレベル${target}に、単元「${label}」の未出題が残っていたのでそれを出しました。${among}`
+    : `狙いはレベル${target}でしたが、${borrowed ? 'その段を出し切った' : '残っている中で'}ため、単元「${label}」のレベル${chosen.q.level}を出しました。${among}`;
+  return { question: chosen.q, reason, target, considered: ranked.length, tier: tier.length, borrowed };
 }
 
 /** 復習の並び。飛ばした → 答えを見た → ヒントが多い → 古い、の順。 */
@@ -277,7 +337,10 @@ function nextPick(session, target) {
   }
 
   const wanted = session.mode === 'level' ? session.level : target;
-  return pick(session.bank, session.plan, used, wanted, session.rng, session.pool);
+  return pick(session.bank, session.plan, used, wanted, session.rng, session.pool, {
+    attempts: session.attempts,      // 最近解いた問題を後回しにするために渡す
+    strict: session.mode === 'level' // レベル別は段を守る
+  });
 }
 
 export const current = (s) => s.questions[s.index];

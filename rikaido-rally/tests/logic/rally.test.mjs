@@ -138,20 +138,56 @@ test('詰まり続けると狙いの段が下がっていく', () => {
 
 /* ── 出題の決め方 ───────────────────────── */
 
-test('レベル別：選んだ段の問題が中心に出て、段は動かない', () => {
-  for (const level of [1, 3, 5]) {
-    const s = runRally(java, 0, 42, { mode: 'level', level });
-    const chosen = s.records.filter((r) => r.level === level).length;
-    assert.ok(chosen >= 5, `L${level} が ${chosen} 問しか出ていない`);
-    assert.ok(s.plan.title.includes(`レベル${level}`));
-    assert.equal(s.plan.plannedLadder.every((L) => L === level), true);
+test('レベル別：選んだ段の問題だけが出る（難易度が選択どおりになる）', () => {
+  for (const bank of BANKS) {
+    for (const level of [1, 2, 3, 4, 5]) {
+      const s = runRally(bank, 0, 42, { mode: 'level', level });
+      const off = s.records.filter((r) => r.level !== level);
+      assert.equal(off.length, 0,
+        `${bank.id}/L${level} に別の段が混ざった: ${off.map((r) => `${r.qid}(L${r.level})`).join(',')}`);
+      assert.equal(s.records.length, 10);
+      assert.ok(s.plan.title.includes(`レベル${level}`));
+      assert.equal(s.plan.plannedLadder.every((L) => L === level), true);
+    }
   }
 });
 
-test('レベル別は、その段を出し切ったら近い段から借りる（10問を必ず埋める）', () => {
-  const s = runRally(java, 0, 42, { mode: 'level', level: 2 });
+test('レベル別は、その段を出し切ったときだけ近い段から借りる', () => {
+  // 1段ぶんに満たない小さな問題集を作って、借りるところまで確かめる
+  const small = Object.assign({}, java, {
+    questions: java.questions.filter((q) => q.level !== 2 || q.unit === 'equality')
+  });
+  const s = runRally(small, 0, 42, { mode: 'level', level: 2 });
   assert.equal(s.records.length, 10);
   assert.equal(new Set(s.records.map((r) => r.qid)).size, 10);
+  const borrowed = s.records.filter((r) => r.level !== 2);
+  assert.ok(borrowed.length > 0, '足りないのに借りていない');
+  assert.ok(borrowed.every((r) => Math.abs(r.level - 2) <= 2), '遠い段から借りている');
+});
+
+test('同じ条件でも、ラリーごとに出る問題が変わる（毎回おなじ問題にならない）', () => {
+  for (const bank of BANKS) {
+    const seen = new Set();
+    for (let seed = 1; seed <= 6; seed++) {
+      seen.add(runRally(bank, 0, seed).records.map((r) => r.qid).join(','));
+    }
+    assert.ok(seen.size >= 5, `${bank.id}: 6回中 ${seen.size} 通りしか出題が変わらない`);
+  }
+});
+
+test('最近解いた問題は後回しになる', () => {
+  // 直近に解いた「レベル1」の問題は、同じ段の未出題より後ろに回る
+  const target = java.questions.filter((q) => q.level === 1);
+  const recent = target.slice(0, 5);
+  const attempts = {};
+  for (const q of recent) attempts[q.id] = { times: 1, lastAt: Date.now() };
+
+  let firstIsRecent = 0;
+  for (let seed = 1; seed <= 20; seed++) {
+    const s = Rally.create(java, {}, { seed, mode: 'level', level: 1, attempts });
+    if (recent.some((q) => q.id === s.records[0].qid)) firstIsRecent += 1;
+  }
+  assert.ok(firstIsRecent <= 4, `最近解いた問題が20回中 ${firstIsRecent} 回も先頭に来ている`);
 });
 
 test('復習：過去に出た問題だけを、飛ばした順・詰まった順に出す', () => {
