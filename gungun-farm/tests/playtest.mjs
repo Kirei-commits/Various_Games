@@ -98,7 +98,9 @@ async function main() {
         used: E.barnUsed(st), cap: E.barnCap(st),
         progress: st.stats.harvested + st.stats.crafted + st.stats.delivered,
         delivered: st.stats.delivered, expired: st.stats.expired, rescues: st.stats.rescues,
-        machines: st.machines.length, fields: st.fieldsOwned
+        machines: st.machines.length, fields: st.fieldsOwned,
+        // 畑をひと回し植え直すのに要るタネ代。**畑が1秒で回るので、ここが毎秒出ていく**
+        seedRound: (window.GF.Data.crop(g.ui.seed) || { cost: 0 }).cost * st.fieldsOwned
       };
     });
     if (s.now >= deadline || s.over) { await snap(page, 'final'); break; }
@@ -179,9 +181,13 @@ async function act(page, s, round) {
   await click('.boat .boat-go:not([disabled])');      // つむ
   await click('.boat .boat-go:not([disabled])');      // 満載ならしゅっこう
 
-  // 4. みせ。詰まりかけと、本当に金欠のときだけ寄る。
+  // 4. みせ。詰まりかけと、タネ代が心もとないときに寄る。
   //    売るのは安いもの（一覧の末尾）から。高いものは注文に使いたい。
-  if (s.used >= s.cap - 2 || s.coins < 5) {
+  //
+  //    **閾値は「ひと回しぶんのタネ代」で見る。** ここを「コイン5未満」のままにしていて、
+  //    畑が1秒で回るようになったとき Lv12 で資金が尽きて手が止まった
+  //    （倉庫にはまだ93個あったのに、売る判断に入らなかった）。
+  if (s.used >= s.cap - 2 || s.coins < s.seedRound * 2) {
     await tab('shop');
     await click('.seg-btn[data-id="sell"]');
     if (s.used >= s.cap - 2) {
@@ -189,7 +195,7 @@ async function act(page, s, round) {
       await click('.card[data-act="buy-barn"]:not(.off)');
       await click('.seg-btn[data-id="sell"]');
     }
-    for (let i = 0; i < 3; i++) {
+    for (let i = 0; i < 6; i++) {
       const cheapest = page.locator('.card[data-act="sell"]').last();
       if (await cheapest.count() === 0) break;
       await cheapest.click({ timeout: 2000 }).catch(() => {});

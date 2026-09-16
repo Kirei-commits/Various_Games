@@ -393,12 +393,16 @@
       Render.barnPulse();
       const spent = before - Math.floor(state.coins);
       const planted = state.fields.filter((f, i) => i < state.fieldsOwned && f.crop).length;
-      if (spent <= 0) {
-        Render.ticker(`${n}こ 収穫した（タネ代が足りず ${state.fieldsOwned - planted}マス 空いている）`);
-      } else if (n >= Math.max(4, Math.ceil(state.fieldsOwned * 0.5))) {
-        // まとめて蒔くほど実るのが早くなる（時間差まき）。
-        // 数字にしか出ない性質なので、まとまったときに言葉で伝える
-        Render.ticker(`${n}こ まとめて収穫！ まとめるほど つぎが早く実る`);
+      const short = state.fieldsOwned - planted;
+      if (short > 0) {
+        // **畑が1秒で回るので、タネ代は毎秒出ていく。** 手元が尽きると静かに畑が空く。
+        // 倉庫に売れるものがあるなら、売り場へ案内する（自力で抜けられると気づきにくい）
+        Render.ticker(`${n}こ 収穫した（タネ代が足りず ${short}マス 空いている）`);
+        if (Engine.barnUsed(state) > 0) {
+          game.ui.tab = 'shop';
+          game.ui.shopTab = 'sell';
+          Render.invalidate();
+        }
       } else {
         Render.ticker(`${n}こ 収穫して、${Render.nameOf(game.ui.seed)}を植え直した（🪙${spent}）`);
       }

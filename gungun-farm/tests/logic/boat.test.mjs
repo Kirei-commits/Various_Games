@@ -141,8 +141,12 @@ test('積む量に見合った時間が与えられる', () => {
     for (const def of GF.Data.machinesAt(s.level)) if (!GF.Engine.ownsMachine(s, def.id)) s.machines.push({ id: def.id, queue: [], done: 0 });
     const boat = GF.Engine.makeBoat(s);
     const units = Object.values(boat.want).reduce((a, b) => a + b, 0);
-    assert.ok(boat.ttl >= 180_000, '最低でも3分');
-    assert.ok(boat.ttl / 1000 / units >= 2, `1個あたり2秒は要る（${units}個に ${boat.ttl / 1000}秒）`);
+    // 畑が1秒で回るので、1個あたりに要る時間も短い（以前は1個2秒ぶん見ていた）。
+    // ただし**船が長く居座ると次が来ない**ので、上限も詰めてある
+    assert.ok(boat.ttl >= 60_000, '最低でも1分');
+    assert.ok(boat.ttl <= 150_000, `${boat.ttl / 1000}秒 は長すぎる。次の船が来なくなる`);
+    assert.ok(boat.ttl / 1000 / units >= 0.4,
+      `1個あたり0.4秒は要る（${units}個に ${boat.ttl / 1000}秒）`);
   }
 });
 

@@ -140,34 +140,38 @@ test('植え直しを頼まなければ、畑は空くまま（古い呼び方�
   assert.equal(s.fields[0].crop, null);
 });
 
-test('まとめて植えると順番に実る（時間差まき）', () => {
+/**
+ * **まとめて植えたら、まとめて実る。**
+ *
+ * 以前は j 番目が `sec * (j+1)/k` で実るようにずらしていた（時間差まき）。
+ * 「いつ見ても収穫できるものがある」という理屈だったが、遊ぶ側から見ると
+ * **同時に植えたのに1マスずつ待たされる**だけで、なぜ揃わないのか分からなかった。
+ */
+test('まとめて植えたら、まとめて実る', () => {
   const GF = setup();
   const s = GF.Engine.create({ coins: 999 });
-  s.level = GF.Data.MAX_LEVEL;                        // さとうきびは Lv6 から
-  const n = GF.Engine.plantAll(s, 'cane');            // 6秒の作物を12マス
+  s.level = GF.Data.MAX_LEVEL;
+  const n = GF.Engine.plantAll(s, 'cane');
+  assert.ok(n >= 2, '複数マス植わっている');
 
-  const times = s.fields.slice(0, n).map((f) => f.readyAt).sort((a, b) => a - b);
-  assert.equal(new Set(times).size, n, '実る時刻がひとつも重なっていない');
-  assert.ok(times[0] < times[n - 1], 'ばらけている');
+  const times = s.fields.slice(0, n).map((f) => f.readyAt);
+  assert.equal(new Set(times).size, 1, `実る時刻がばらけている（${[...new Set(times)].join(', ')}）`);
 });
 
-test('時間差まきでも、作物の秒数より長く待たせない（10秒の約束）', () => {
+test('どの作物も1秒で実る（これがこのゲームの速さ）', () => {
   const GF = setup();
   for (const c of GF.Data.CROPS) {
+    assert.equal(c.sec, 1, `${c.id} が ${c.sec}秒かかる`);
     const s = GF.Engine.create({ coins: 99999 });
     s.level = GF.Data.MAX_LEVEL;
     const n = GF.Engine.plantAll(s, c.id);
     for (let i = 0; i < n; i++) {
-      const wait = (s.fields[i].readyAt - s.now) / 1000;
-      assert.ok(wait <= c.sec + 0.001, `${c.id}: ${wait}秒 待たされた（上限 ${c.sec}秒）`);
-      assert.ok(wait > 0, `${c.id}: 秒数が0以下`);
+      assert.equal(s.fields[i].readyAt - s.now, 1000, `${c.id}: ${i}マス目が1秒で実っていない`);
     }
-    assert.ok(Math.max(...s.fields.slice(0, n).map((f) => f.readyAt)) - s.now <= c.sec * 1000 + 1,
-      `${c.id}: いちばん遅いマスがちょうど ${c.sec}秒`);
   }
 });
 
-test('1マスだけ植えたときは、作物どおりの秒数', () => {
+test('1マスだけ植えたときも、作物どおりの秒数', () => {
   const GF = setup();
   const s = GF.Engine.create({ coins: 999 });
   s.level = GF.Data.MAX_LEVEL;
@@ -175,41 +179,61 @@ test('1マスだけ植えたときは、作物どおりの秒数', () => {
   assert.equal(s.fields[0].readyAt - s.now, GF.Data.crop('cane').sec * 1000);
 });
 
-test('**いつ見ても何か実っている**（待ち時間が限りなく0であることの回帰テスト）', () => {
+/**
+ * **畑は自分のリズムで実る。**
+ *
+ * 作物をぜんぶ1秒・同時に実るようにしたら、**押すのが遅れたぶんがそのまま損**になり、
+ * 連打した人が落ち着いて押した人の1.7倍稼ぐようになった（実測）。
+ * このゲームは我慢比べにしないと決めているので、植え直しの実り時刻は
+ * 「押した瞬間」ではなく **さっき実った時刻** から数える。
+ */
+test('押すのが少し遅れても、畑のリズムはずれない', () => {
   const GF = setup();
   const s = GF.Engine.create({ coins: 99999 });
-  s.level = GF.Data.MAX_LEVEL;                       // ぶどうは Lv12 から
-  s.fieldsOwned = GF.Data.FIELD_SLOTS;               // ぶどうが解ける頃には畑も広がっている
-  GF.Engine.plantAll(s, 'grape');                    // いちばん長い9秒の作物で最悪値を見る
+  s.level = GF.Data.MAX_LEVEL;
+  GF.Engine.plantAll(s, 'wheat');
 
-  // 実ったら収穫してまき直す、を繰り返しながら「何も実っていない時間」を測る
-  let idle = 0, worst = 0;
-  for (let t = 0; t <= 120_000; t += 100) {
-    GF.Engine.tick(s, t);
-    if (GF.Engine.barnFree(s) < 4) s.barn = {};      // 倉庫は詰まらせない（ここで見たいのは畑）
-    const n = GF.Engine.harvestAll(s, 'grape');
-    if (n > 0) { idle = 0; continue; }
-    const ready = s.fields.slice(0, s.fieldsOwned).some((f) => GF.Engine.isReady(f, s.now));
-    if (ready) idle = 0;
-    else { idle += 100; worst = Math.max(worst, idle); }
-  }
-  // 12マスを9秒の作物で回すと、理屈のうえでは 9000/12 = 750ms おきに1マス実る
-  const expected = (GF.Data.crop('grape').sec * 1000) / s.fieldsOwned;
-  assert.ok(worst <= expected * 1.6,
-    `何も実っていない時間が最長 ${worst}ms あった（見込み ${Math.round(expected)}ms・時間差まきが効いていない）`);
+  // ちょうど1秒で実る。そこから400ms 遅れて収穫する
+  GF.Engine.tick(s, 1400);
+  assert.equal(GF.Engine.harvestAll(s, 'wheat'), s.fieldsOwned);
+  assert.equal(s.fields[0].readyAt, 2000, '押した時刻から1秒になっている（遅れが積み上がる）');
+
+  // さらに遅れても、次の実りは元のリズムのまま
+  GF.Engine.tick(s, 2900);
+  GF.Engine.harvestAll(s, 'wheat');
+  assert.equal(s.fields[0].readyAt, 3000, 'リズムが引き継がれていない');
 });
 
-test('最初のひと回しは、一斉に実るより早く手が動かせる', () => {
+test('ずっと放っておいても、待ちの「つけ」は溜まらない', () => {
   const GF = setup();
-  for (const fields of [GF.Data.FIELDS_AT_START, GF.Data.FIELD_SLOTS]) {
-    const s = GF.Engine.create({ coins: 99999 });
-    s.level = GF.Data.MAX_LEVEL;
-    s.fieldsOwned = fields;
-    GF.Engine.plantAll(s, 'grape');                  // いちばん長い9秒の作物
-    const sec = GF.Data.crop('grape').sec * 1000;
-    const first = Math.min(...s.fields.slice(0, fields).map((f) => f.readyAt)) - s.now;
-    assert.ok(first < sec, `${fields}マス: 最初の1マスが ${first}ms 待たされている（一斉まきと同じ）`);
-    // 畑が多いほど、最初の1マスは早く来る
-    assert.ok(Math.abs(first - sec / fields) < 2, `${fields}マス: 9秒 ÷ ${fields} で最初の1マスが実る`);
+  const s = GF.Engine.create({ coins: 99999 });
+  s.level = GF.Data.MAX_LEVEL;
+  GF.Engine.plantAll(s, 'wheat');
+
+  // 10秒放置してから収穫。**次が10回ぶん一気に実ることは無い**
+  GF.Engine.tick(s, 11_000);
+  GF.Engine.harvestAll(s, 'wheat');
+  assert.equal(s.fields[0].readyAt, 11_000, '遅れたぶんが先取りされている（連打で1秒より速く穫れる）');
+
+  GF.Engine.tick(s, 11_000);
+  GF.Engine.harvestAll(s, 'wheat');
+  assert.equal(s.fields[0].readyAt, 12_000, '2回目も即座に実っている');
+});
+
+test('待たされるのは、どんなに長くても1秒', () => {
+  const GF = setup();
+  const s = GF.Engine.create({ coins: 99999 });
+  s.level = GF.Data.MAX_LEVEL;
+  s.fieldsOwned = GF.Data.FIELD_SLOTS;
+  GF.Engine.plantAll(s, 'melon');                    // いちばん格上の作物で見る
+
+  let idle = 0, worst = 0;
+  for (let t = 0; t <= 60_000; t += 50) {
+    GF.Engine.tick(s, t);
+    if (GF.Engine.barnFree(s) < 4) s.barn = {};      // 倉庫は詰まらせない（見たいのは畑）
+    if (GF.Engine.harvestAll(s, 'melon') > 0) { idle = 0; continue; }
+    idle += 50;
+    worst = Math.max(worst, idle);
   }
+  assert.ok(worst <= 1050, `${worst}ms 待たされた。作物は1秒なので、それを超えてはいけない`);
 });

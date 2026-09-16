@@ -75,34 +75,41 @@ test('きょうの作物は乱数を引かない', () => {
   assert.ok(Engine.todayCrop(s), '引かないだけで、決まってはいる');
 });
 
-test('もうけが1.5倍になる（売値そのものは1.5倍にしない）', () => {
+test('もうけに倍率が掛かる（売値そのものには掛けない）', () => {
   const s = fresh(20);
   for (const c of Data.CROPS) {
     s.today = { day: 0, crop: c.id };
     const base = Data.item(c.id).sell;
     const up = Engine.unitPrice(s, c.id);
-    assert.equal(up - c.cost, Math.round((base - c.cost) * Engine.TODAY_BONUS),
-      `${c.id} のもうけが1.5倍になっていない`);
+    assert.equal(up - c.cost, Math.ceil((base - c.cost) * Engine.TODAY_BONUS),
+      `${c.id} のもうけに倍率が掛かっていない`);
     assert.ok(up < base * Engine.TODAY_BONUS || c.cost === 0,
       `${c.id} が売値まるごと1.5倍になっている（タネ代の高い作物ほど得をしてしまう）`);
   }
 });
 
 /**
- * **きょうの作物を「いつも正解」にしない。**
- * 売値そのものに倍率を掛けると、タネ代の高い作物ほど得が大きくなり、
- * 1秒あたりでも1枠の値打ちでも勝つ作物が生まれる（＝タネ選びが飾りに戻る）。
+ * **きょうの作物は「ひとつ格上」には勝ち、「ふたつ格上」には勝てない。**
+ *
+ * 勝てないと、きょうの作物はただの飾りになる（どうせ格上を植えたほうが得）。
+ * 勝ちすぎると、レベルを上げて作物を解放する意味が薄れる。
+ * 作物の坂は1段あたり およそ1.2〜1.3倍なので、そのあいだに倍率を置いてある。
  */
-test('きょうの作物になっても、1秒あたりと1枠の両方では勝てない', () => {
+test('きょうの作物は、ひとつ格上には勝ち、ふたつ格上には勝てない', () => {
   const s = fresh(20);
-  for (const c of Data.CROPS) {
-    s.today = { day: 0, crop: c.id };
-    const rate = (x) => (Engine.unitPrice(s, x.id) - x.cost) / x.sec;
-    const slot = (x) => Engine.unitPrice(s, x.id);
-    const topRate = Data.CROPS.every((x) => rate(c) >= rate(x));
-    const topSlot = Data.CROPS.every((x) => slot(c) >= slot(x));
-    assert.ok(!(topRate && topSlot),
-      `${c.id} がきょうの作物のとき、1秒あたりも1枠の値打ちも最強になる`);
+  const ladder = Data.CROPS.slice().sort((a, b) => a.cost - b.cost);
+  const gain = (c) => Engine.unitPrice(s, c.id) - c.cost;
+
+  for (let i = 0; i < ladder.length; i++) {
+    s.today = { day: 0, crop: ladder[i].id };
+    if (i + 1 < ladder.length) {
+      assert.ok(gain(ladder[i]) > gain(ladder[i + 1]),
+        `${ladder[i].id} が ひとつ格上（${ladder[i + 1].id}）に勝てない。きょうの作物が飾りになる`);
+    }
+    if (i + 2 < ladder.length) {
+      assert.ok(gain(ladder[i]) < gain(ladder[i + 2]),
+        `${ladder[i].id} が ふたつ格上（${ladder[i + 2].id}）にまで勝つ。レベルを上げる意味が薄れる`);
+    }
   }
 });
 

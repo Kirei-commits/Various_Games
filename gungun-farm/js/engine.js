@@ -19,9 +19,16 @@
   const orderSlots = (state) => Data.orderSlotsAt(state.level);
   const BOAT_LEVEL = 7;              // ふなびんが来はじめるレベル
   const BOAT_TTL = 240_000;          // 出港まで4分
-  const BOAT_BONUS = 2.2;            // 積みきったときの倍率（ふつうの注文は1.35倍）
-  const BOAT_GAP = 20_000;           // 次の船が来るまでの間
-  const ORDER_REFILL_MS = 2200;      // 空いた注文枠が埋まるまでの間
+  /**
+   * 届けたときの割り増し。
+   * **畑が1秒で回るようになって、1個の値打ちが落ちた**（いくらでも穫れる）。
+   * 品物そのものではなく「**いま欲しがられているもの**」が値打ちになるよう、
+   * 届ける側の倍率を上げてある（据え置きだと、稼ぎの6割が売却に戻る）。
+   */
+  const ORDER_BONUS = 1.8;
+  const BOAT_BONUS = 2.8;            // 積みきったときの倍率
+  const BOAT_GAP = 6_000;            // 次の船が来るまでの間（畑が1秒で回るので詰めた）
+  const ORDER_REFILL_MS = 1200;      // 空いた注文枠が埋まるまでの間（畑が1秒で回るので詰めた）
   const COMBO_MAX = 10;
   const COMBO_STEP = 0.05;           // 連続配達1回あたりの報酬倍率
   const QUICK_RATIO = 0.5;           // 期限の前半に届けると「はやうま」
@@ -37,12 +44,15 @@
    * （育ちを速くすると10秒の約束に、経験値を増やすとレベル設計に効いてしまう）。
    *
    * **売値そのものに掛けてはいけない。** タネ代の高い作物ほど得が大きくなり、
-   * 「短いほど1秒あたりが良い・長いほど1枠の値打ちが高い」という取引が壊れる
-   * （メロンは売値×1.5でもうけが3.4倍になり、1秒あたりでも1枠でも最強になった）。
-   * もうけに掛けるなら、どの作物も一律に1.5倍で、順位の関係はそのまま残る。
+   * 上位の作物だけが極端に強くなる（メロンは売値×1.5でもうけが3.4倍になった）。
+   * もうけに掛けるなら、どの作物も一律の倍率で、坂の形はそのまま残る。
+   *
+   * 倍率は **ひとつ格上には勝つが、ふたつ格上には勝てない** 大きさにしてある。
+   * 勝てないと「きょうの作物」が飾りになり、勝ちすぎるとレベルを上げる意味が薄れる。
+   * 作物の坂は1段あたり およそ1.2〜1.3倍なので、1.4倍がちょうどそこに収まる。
    */
   const DAY_MS = 180_000;
-  const TODAY_BONUS = 1.5;
+  const TODAY_BONUS = 1.4;
 
   /* ---------------------------------------------------------------- 状態 */
 
@@ -176,38 +186,37 @@
   };
 
   /**
-   * 植える。`readyIn` を渡すとその秒数で実る（時間差まきに使う）。
-   * 渡さなければ作物どおりの秒数。
+   * 植える。実るのは作物どおりの秒数（いまはどれも1秒）。
+   *
+   * `beat` を渡すと、**その時刻から数えて**次の実りを決める（畑のリズムを引き継ぐ）。
+   * 収穫して植え直すときに使う。詳しくは `harvest()` を参照。
    */
-  function plant(state, i, cropId, readyIn) {
+  function plant(state, i, cropId, beat) {
     if (!canPlant(state, i, cropId)) return false;
     const c = Data.crop(cropId);
+    const ms = c.sec * 1000;
+    // 押すのが遅れても、畑は自分のリズムで実っている。
+    // **`state.now` で頭打ちにする**——そうしないと、遅れたぶんの「つけ」が溜まって
+    // 連打で1秒より速く穫れてしまう。
+    const readyAt = beat === undefined ? state.now + ms : Math.max(state.now, beat + ms);
     state.coins -= c.cost;
-    const ms = readyIn === undefined ? c.sec * 1000 : Math.max(200, readyIn);
-    state.fields[i] = { crop: cropId, plantedAt: state.now, readyAt: state.now + ms };
+    state.fields[i] = { crop: cropId, plantedAt: state.now, readyAt };
     return true;
   }
 
   /**
-   * 時間差まき。まとめて植えたぶんを、順番に実るようにずらす。
+   * まとめてまく。**まとめて植えたものは、まとめて実る。**
    *
-   * **これが「待ち時間を限りなく0に近づける」仕掛け。**
-   * 畑が一斉に実って一斉に空くと、遊ぶ側は「全部タップ → 数秒なにもできない」の
-   * 繰り返しになる。測ったら**全体の33.8%が手持ち無沙汰**で、最長13.8秒あった。
-   * まとめて k マス植えるとき、j 番目が `sec * (j+1)/k` で実るようにすると、
-   * 畑は順番に実り続け、いつ見ても収穫できるものがある。
-   *
-   * **どの畑も作物の秒数より長くは待たせない**（いちばん遅い1マスがちょうど `sec`）。
-   * 上限が伸びないので「最長10秒」の約束は保たれる。
+   * 以前は j 番目が `sec * (j+1)/k` で実るようにずらしていた（時間差まき）。
+   * 「畑が順番に実り続けるので、いつ見ても収穫できるものがある」という理屈だったが、
+   * 遊ぶ側から見ると**同時に植えたのに1マスずつ待たされる**だけで、
+   * なぜ揃わないのかが分からない。まとめて植えたら同じ判定にする。
    */
-  function sow(state, indexes, cropId) {
+  function sow(state, indexes, cropId, beat) {
     const c = Data.crop(cropId);
     if (!c) return 0;
-    const k = indexes.length;
     let n = 0;
-    for (let j = 0; j < k; j++) {
-      if (plant(state, indexes[j], cropId, (c.sec * 1000 * (j + 1)) / k)) n++;
-    }
+    for (const i of indexes) if (plant(state, i, cropId, beat)) n++;
     return n;
   }
 
@@ -228,30 +237,43 @@
    * 71%が収穫と植え直しで、判断のある操作は11%しか残っていなかった。
    * 植え直しを収穫にくっつけて、その分を注文と店（＝考えるところ）に回す。
    */
+  /**
+   * 収穫して、頼まれていれば植え直す。
+   *
+   * **畑は自分のリズムで実る。** 植え直しの実り時刻は「押した瞬間」からではなく、
+   * **さっき実った時刻**から数える。
+   *
+   * 作物をぜんぶ1秒・同時に実るようにしたら、**押すのが遅れたぶんがそのまま損**になり、
+   * 連打した人が落ち着いて押した人の1.7倍稼ぐ状態になった（実測）。
+   * このゲームは我慢比べにしないと決めているので、
+   * **1周ぶんまでの遅れは取り返せる**ようにしてある。
+   * 1周より遅れたらリズムは途切れ、そこから数え直す（放っておいて得はしない）。
+   */
   function harvest(state, i, replant) {
     const f = state.fields[i];
     if (!f || !isReady(f, state.now)) return false;
     if (barnFree(state) < 1) return false;          // 倉庫がいっぱいなら収穫できない
     const c = Data.crop(f.crop);
+    const beat = f.readyAt;
     store(state, f.crop, 1);
     state.fields[i] = { crop: null, plantedAt: 0, readyAt: 0 };
     state.stats.harvested++;
     earn(state, 0, c.xp);
-    if (replant) plant(state, i, replant);          // タネ代が無ければ空いたまま
+    if (replant) plant(state, i, replant, beat);    // タネ代が無ければ空いたまま
     return true;
   }
 
-  /**
-   * 実ったものをまとめて収穫し、空いたところへ時間差でまき直す。
-   * 収穫のときに植え直しまでやってしまうと全部が同じ時刻に揃ってしまうので、
-   * **先に収穫だけ済ませてから、空いたマスをまとめて時間差まきする。**
-   */
+  /** 実ったものをまとめて収穫し、空いたところへまき直す（まとめて実る）。 */
   function harvestAll(state, replant) {
     const emptied = [];
+    // **畑のリズムを持ち越す。** ここで拾っておかないと、まとめ収穫のときだけ
+    // 「押した瞬間から1秒」になって、遅れたぶんがそのまま損になる（＝連打が得になる）
+    let beat = 0;
     for (let i = 0; i < state.fieldsOwned; i++) {
-      if (harvest(state, i)) emptied.push(i);
+      const at = state.fields[i].readyAt;
+      if (harvest(state, i)) { emptied.push(i); beat = Math.max(beat, at); }
     }
-    if (replant && emptied.length) sow(state, emptied, replant);
+    if (replant && emptied.length) sow(state, emptied, replant, beat);
     return emptied.length;
   }
 
@@ -360,7 +382,11 @@
    * （10分で67件 → 35件）、コンボの刻みが消えた。
    * 余剰をまとめて引き取るのは、ふつうの注文ではなく**ふなびん**の仕事。
    */
-  const orderScale = (state) => Math.min(2, 1 + (capacity(state) - 1) * 0.35);
+  /**
+   * 注文1件の大きさ。**畑が1秒で回るようになって、受け皿が足りなくなった。**
+   * 据え置きのままだと、稼ぎの7割が「余りを売っただけ」に戻る（実測 71%）。
+   */
+  const orderScale = (state) => Math.min(5, 1 + (capacity(state) - 1) * 0.9);
 
   function makeOrder(state) {
     const ids = obtainable(state);
@@ -392,7 +418,7 @@
     return {
       id: state.orderSeq++,
       want,
-      coins: Math.max(5, Math.round(value * 1.35)),
+      coins: Math.max(5, Math.round(value * ORDER_BONUS)),
       xp: Math.max(2, Math.round(value / 9) + chosen.length * 2),
       createdAt: state.now,
       expiresAt: state.now + ttl,
@@ -468,14 +494,17 @@
     for (const id of chosen) {
       const sell = Data.item(id).sell;
       // 安いものほど多く積む（余る量に合わせる）
-      const base = sell >= 250 ? 2 : sell >= 80 ? 4 : sell >= 25 ? 8 : 12;
-      const n = Math.max(2, Math.min(40, Math.round(base * scale * (0.8 + rng() * 0.4))));
+      // 畑が1秒で回るので、船も太くしないと「余りの行き先」にならない
+      const base = sell >= 250 ? 5 : sell >= 80 ? 10 : sell >= 25 ? 20 : 30;
+      const n = Math.max(2, Math.min(300, Math.round(base * scale * (0.8 + rng() * 0.4))));
       want[id] = n;
       units += n;
       value += sell * n;
     }
-    // 積む量に合わせて出港まで待つ。量だけ増やして時間を据え置くと、ただの無理難題になる
-    const ttl = Math.max(180_000, Math.min(360_000, 120_000 + units * 4_000));
+    // 積む量に合わせて出港まで待つ。量だけ増やして時間を据え置くと、ただの無理難題になる。
+    // **畑が1秒で回るので、1個あたりに要る時間も短くなった**（以前は1個4秒ぶん見ていた）。
+    // 長く居座らせると次の船が来ないので、上限も詰めてある。
+    const ttl = Math.max(60_000, Math.min(150_000, 45_000 + units * 800));
     // **出港できない船は出さない。** 3分チャレンジの終わりぎわに来る船は、
     // どうやっても満載にならず、進まない進捗バーを見せるだけになる。
     // しかも積んだぶんは倉庫から引かれたまま時計が止まる＝**積むのが罰になる**。
@@ -572,7 +601,9 @@
     if (!boat) return;
     let back = 0;
     for (const [id, n] of Object.entries(boat.loaded)) back += sellPrice(state, id, n);
-    if (back > 0) earn(state, back, 0, 'boat');   // 引き取りも船から出たコイン
+    // **引き取りは「売った」と数える。** 出港と同じ扱いにすると、
+    // 逃した船まで「注文で稼いだ」に混ざって、指標が実態より良く見える
+    if (back > 0) earn(state, back, 0, 'sell');
     state.boat = null;
     state.nextBoatAt = state.now + BOAT_GAP;
     state.stats.boatMissed++;
@@ -600,7 +631,9 @@
     const sell = Data.item(id).sell;
     if (id !== todayCrop(state)) return sell;
     const cost = (Data.crop(id) || {}).cost || 0;
-    return cost + Math.round((sell - cost) * TODAY_BONUS);
+    // 端数は遊ぶ側に寄せて切り上げる。切り捨てると、いちばん下の作物だけ
+    // ひとつ格上に並ばれて「きょうの作物」の意味が消える（こむぎ 8×1.4=11.2）
+    return cost + Math.ceil((sell - cost) * TODAY_BONUS);
   }
 
   /** 日数から作物を決めるための、状態を持たない撹拌 */
