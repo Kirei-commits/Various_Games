@@ -342,3 +342,105 @@ test('かざりの棚は、買えるものから見えている', async ({ page 
   expect(seen.every((a) => a === 'buy-decor'), '見えているのが買えないカードばかり').toBe(true);
   expect(g.errors).toEqual([]);
 });
+
+/**
+ * **畑だけ見えていても農園に見えない。** 買った施設は畑の上に建って並ぶ。
+ *
+ * ここは押せない飾り（操作はこうぼうタブ）。押せるものにすると 44x44px の
+ * 下限がかかり、いちばん低い画面で畑がその場所を失う。
+ */
+test('買った施設が、畑の上に建って並ぶ', async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 568 });
+  const g = await openFarm(page, { speed: '0.01' });
+
+  // 最初から持っているのは せいふんき 1台だけ
+  await expect(page.locator('.bld')).toHaveCount(1);
+
+  await page.evaluate(() => {
+    const s = window.GF.game.state, E = window.GF.Engine, D = window.GF.Data;
+    s.level = D.MAX_LEVEL; s.coins = 99999;
+    for (const m of D.MACHINES) if (!E.ownsMachine(s, m.id)) s.machines.push({ id: m.id, queue: [], done: 0 });
+    window.GF.refresh();
+  });
+  const all = await page.evaluate(() => window.GF.Data.MACHINES.length);
+  await expect(page.locator('.bld')).toHaveCount(all);
+
+  // 18台建てても、帯からはみ出さない（台数に合わせて小さくなる）
+  const spill = await page.evaluate(() => {
+    const y = document.getElementById('yard').getBoundingClientRect();
+    return [...document.querySelectorAll('.bld')]
+      .filter((b) => {
+        const r = b.getBoundingClientRect();
+        return r.right > y.right + 1 || r.left < y.left - 1 || r.top < y.top - 1 || r.bottom > y.bottom + 1;
+      }).length;
+  });
+  expect(spill, '建物が帯からこぼれている').toBe(0);
+
+  // 1画面から溢れない・マス目は指の下限を保つ
+  const m = await page.evaluate(() => ({
+    over: document.documentElement.scrollHeight - document.documentElement.clientHeight,
+    overX: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+    tile: document.querySelector('.field').getBoundingClientRect().height
+  }));
+  expect(m.over).toBeLessThanOrEqual(1);
+  expect(m.overX).toBeLessThanOrEqual(1);
+  expect(m.tile, 'けしきの帯に場所を取られて、マスが指の下限を割った').toBeGreaterThanOrEqual(44);
+
+  // どのマスも、けしきごしに押せる
+  for (let i = 0; i < 12; i++) {
+    const box = await page.locator('.field').nth(i).boundingBox();
+    const top = await page.evaluate(({ x, y }) => {
+      const el = document.elementFromPoint(x, y);
+      return el && el.closest('.field') ? 'field' : (el && el.className) || '?';
+    }, { x: box.x + box.width / 2, y: box.y + box.height / 2 });
+    expect(top, `${i}マス目が けしき に隠れている`).toBe('field');
+  }
+  expect(g.errors).toEqual([]);
+});
+
+test('施設は、仕込み中と出来上がりが見た目で分かる', async ({ page }) => {
+  const g = await openFarm(page, { speed: '0.01' });
+  await page.evaluate(() => {
+    const s = window.GF.game.state, E = window.GF.Engine;
+    E.store(s, 'wheat', 20);
+    E.queue(s, 0);                       // せいふんきに仕込む
+    window.GF.refresh();
+  });
+  await expect(page.locator('.bld.busy')).toHaveCount(1);
+
+  await page.evaluate(() => {
+    const s = window.GF.game.state;
+    window.GF.Engine.tick(s, s.now + 10_000);   // 出来上がる
+    window.GF.refresh();
+  });
+  await expect(page.locator('.bld.done')).toHaveCount(1);
+  await expect(page.locator('.bld.busy')).toHaveCount(0);
+  expect(g.errors).toEqual([]);
+});
+
+test('届けると、農園の道をトラックが走る', async ({ page }) => {
+  const g = await openFarm(page, { speed: '0.01' });
+  await expect(page.locator('.truck')).toHaveCount(0);
+
+  await page.evaluate(() => {
+    const s = window.GF.game.state, E = window.GF.Engine;
+    const o = s.orders[0];
+    for (const [id, n] of Object.entries(o.want)) E.store(s, id, n);
+    window.GF.refresh();
+  });
+  await openTab(page, 'order');
+  await g.tap(page.locator('.order .go:not([disabled])').first());
+
+  await expect(page.locator('.truck')).toHaveCount(1);
+  // 道の上を走る（帯からはみ出さない）
+  const inYard = await page.evaluate(() => {
+    const t = document.querySelector('.truck').getBoundingClientRect();
+    const y = document.getElementById('yard').getBoundingClientRect();
+    return t.top >= y.top - 1 && t.bottom <= y.bottom + 1;
+  });
+  expect(inYard, 'トラックが帯の外を走っている').toBe(true);
+
+  // 走り終わったら消える（溜まらない）
+  await expect(page.locator('.truck')).toHaveCount(0, { timeout: 4000 });
+  expect(g.errors).toEqual([]);
+});

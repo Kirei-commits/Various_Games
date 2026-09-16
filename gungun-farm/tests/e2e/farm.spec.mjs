@@ -358,23 +358,27 @@ test('ふなびんの「つむ」は、ふつうの注文が欲しがるぶん�
   expect(s.boat.loaded[item]).toBe(2);
 });
 
-test('まとめて収穫したときは、まとめるほど早いことを伝える', async ({ page }) => {
-  const g = await openFarm(page, { speed: '1' });
-  await g.tap(page.locator('#btn-harvest'));      // 空の畑にまく
-  await waitAllReady(page);
-
-  await g.tap(page.locator('#btn-harvest'));
-  await expect(page.locator('#ticker')).toContainText('まとめて収穫');
-
-  // 1マスだけのときは出さない（毎回言われるとうるさい）
+/**
+ * タネ代が尽きて畑が空いたら、売り場へ案内する。
+ * **畑が1秒で回るので、タネ代は毎秒出ていく**——静かに畑が空くと、
+ * 倉庫に売れるものがあっても気づけない。
+ */
+test('タネ代が尽きて畑が空いたら、売り場へ案内する', async ({ page }) => {
+  const g = await openFarm(page, { speed: '8' });
   await page.evaluate(() => {
     const s = window.GF.game.state;
-    s.fields.forEach((f, i) => { if (f.crop) f.readyAt = s.now + (i === 0 ? 0 : 60_000); });
+    window.GF.Engine.plantAll(s, 'wheat');
+    window.GF.Engine.store(s, 'wheat', 20);       // 売れるものはある
+    s.coins = 0;                                   // でもタネ代が無い
     window.GF.refresh();
   });
+  await waitAllReady(page);
   await g.tap(page.locator('#btn-harvest'));
-  await expect(page.locator('#ticker')).toContainText('収穫して');
-  await expect(page.locator('#ticker')).not.toContainText('まとめて収穫');
+
+  await expect(page.locator('#ticker')).toContainText('タネ代が足りず');
+  await expect(page.locator('#panel-title')).toHaveText('みせ');
+  await expect(page.locator('.card[data-act="sell"]').first()).toBeVisible();
+  expect(g.errors).toEqual([]);
 });
 
 test('じっせきがメニューに並び、取ると知らせが出る', async ({ page }) => {

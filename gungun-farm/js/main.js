@@ -153,6 +153,7 @@
         Audio.play('levelup');
       } else if (ev.kind === 'deliver') {
         Render.ticker(`${ev.quick ? '⚡はやうま！ ' : ''}${ev.text}${ev.combo > 1 ? `（${ev.combo}れんぞく）` : ''}`);
+        Render.truck();                       // 届けたら、農園の道をトラックが走る
       } else if (ev.kind === 'expire') {
         Render.ticker('注文が流れた…😢 コンボがリセット');
         Audio.play('nope');
@@ -168,6 +169,7 @@
         Render.ticker('ふなびんが着いた🚢 余ったものをどんどん積もう');
       } else if (ev.kind === 'ship') {
         Render.ticker('⛵ ' + ev.text);
+        Render.truck();
       } else if (ev.kind === 'achieve') {
         // ティッカーは1行しかないので、収穫などの知らせを押しのけない形で出す
         game.popQueue.push(ev);

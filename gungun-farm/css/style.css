@@ -90,7 +90,66 @@ body::after  { width: 220px; height: 220px; bottom: -120px; left: -60px; backgro
 }
 
 /* ------------------------------------------------------------------ 畑 */
-#farm { position: relative; display: grid; place-items: center; }
+/* 畑と、その上の「農園のけしき」。
+   けしきに場所を譲るため、**マス目は画面幅ではなく「与えられた高さ」から決める**
+   （`aspect-ratio` + `max-height`）。こうしないと、低い画面でマス目が44pxを割る。 */
+/* **畑の行は `auto`（下の段が `1fr`）。** けしきの帯を足したぶん、畑が場所を取ると
+   そのまま下の段が痩せる——実際、帯を45pxにしたら注文が1件も見えなくなった。
+   帯を厚くしたら、必ず畑の上限（`.fields` の vh）も下げて釣り合わせる。 */
+#farm {
+  position: relative; display: grid; gap: 4px;
+  grid-template-rows: auto auto; justify-items: center; align-items: center;
+}
+
+/* --------------------------------------------------------- 農園のけしき（施設） */
+/* 買った施設が、畑の上に建って並ぶ。**押せない飾り**（操作はこうぼうタブでやる）——
+   押せるものにすると 44x44px の下限がかかり、低い画面では畑がその場所を失う。
+   高さは「畑に場所を譲ったあまり」。狭い画面では建物が小さくなるだけで、消えはしない。 */
+.yard {
+  position: relative; width: min(100%, 54vh);
+  height: clamp(24px, 5vh, 56px); flex: none;
+  display: flex; align-items: flex-end; justify-content: center; gap: 2px;
+  pointer-events: none; overflow: hidden;
+}
+/* 地面と道。建物はこの上に建つ */
+.yard::after {
+  content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 7px;
+  background: linear-gradient(180deg, #e7c79a, #cfa571);
+  border-radius: 99px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.5);
+}
+.bld {
+  position: relative; z-index: 1;
+  font-size: var(--bs, 20px); line-height: 1;
+  margin-bottom: 4px;
+  filter: drop-shadow(0 1px 1px rgba(0,0,0,.22));
+  transition: transform .18s ease-out;
+}
+/* 仕込み中はゆっくり弾む。出来上がったら緑の点が付く */
+.bld.busy { animation: bld-work 1.1s ease-in-out infinite; }
+.bld.done::after {
+  content: ''; position: absolute; top: -2px; right: -3px;
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--leaf); box-shadow: 0 0 0 1.5px #fff;
+}
+@keyframes bld-work {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50%      { transform: translateY(-13%) scale(1.06); }
+}
+/* 配達トラック。届けたときだけ道を走る */
+.truck {
+  position: absolute; bottom: 1%; left: 0; z-index: 2;
+  font-size: var(--bs, 20px); line-height: 1;
+  animation: truck-run 1.5s linear forwards;
+}
+@keyframes truck-run {
+  from { transform: translateX(-30px) scaleX(-1); }
+  to   { transform: translateX(calc(100% + 100vw)) scaleX(-1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bld.busy, .truck { animation: none; }
+  .truck { display: none; }
+}
 
 /* ------------------------------------------------------------------ かざり */
 /* **場所を取らない層。** 1画面の約束があるので、畑と空の上に重ねるだけ。
@@ -119,7 +178,7 @@ body::after  { width: 220px; height: 220px; bottom: -120px; left: -60px; backgro
 
 .shop-note { text-align: center; margin: 0 0 5px; font-size: 10.5px; color: var(--ink-soft); }
 .fields {
-  width: min(100%, 54vh);
+  width: min(100%, 48vh);
   display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px;
 }
 .field {
@@ -432,10 +491,10 @@ body::after  { width: 220px; height: 220px; bottom: -120px; left: -60px; backgro
 }
 
 /* 画面が低いとき（横向きなど）は畑を小さくして、下の段を守る。
-   **46vh では下の段が133pxしか残らず、ふなびんが来ていると注文が1件も見えなかった。**
-   41vh にするとマスは54px（指の下限44pxは十分こえる）で、下の段が160px台になる。 */
+   46vh では下の段が133pxしか残らず、ふなびんが来ていると注文が1件も見えなかった。
+   **いまは けしきの帯 のぶんも引いて 34vh**（マスはちょうど44px＝指の下限）。 */
 @media (max-height: 620px) {
-  .fields { width: min(100%, 41vh); gap: 5px; }
+  .fields { width: min(100%, 34vh); gap: 5px; }
   .big { min-height: 46px; font-size: 14px; }
   .tab { min-height: 44px; }
   .ticker { height: 18px; line-height: 18px; font-size: 11.5px; }

@@ -37,6 +37,7 @@
   let refs = null;
   let sigFields = '';
   let sigDecor = '';
+  let sigYard = '';
   let sigPanel = '';
   /** 毎フレーム塗り直すところ。{el, set(state)} */
   let live = [];
@@ -46,7 +47,7 @@
       level: $('#level'), xpfill: $('#xpfill'), coins: $('#coins'),
       barn: $('#barn'), barnStat: $('#barn-stat'),
       timer: $('#timer'), timeleft: $('#timeleft'),
-      fields: $('#fields'), decor: $('#decor'), ticker: $('#ticker'),
+      fields: $('#fields'), decor: $('#decor'), yard: $('#yard'), ticker: $('#ticker'),
       panelTitle: $('#panel-title'), panelNote: $('#panel-note'), panelBody: $('#panel-body'),
       btnHarvest: $('#btn-harvest'),
       btnWork: $('#btn-work'),
@@ -55,7 +56,7 @@
       tabs: [...document.querySelectorAll('.tab')],
       floats: $('#floats'), pop: $('#pop'), sheet: $('#sheet')
     };
-    sigFields = sigPanel = sigDecor = '';
+    sigFields = sigPanel = sigDecor = sigYard = '';
     return refs;
   }
 
@@ -549,13 +550,63 @@
     sky(state);
     hud(state, ui);
     decor(state);
+    yard(state);
     fields(state, ui);
     panel(state, ui);
     paint(state);
   }
 
   /** 形が変わっていなくても作り直したいとき（タブを切り替えた直後など） */
-  function invalidate() { sigFields = sigPanel = sigDecor = ''; lastPhase = -1; }
+  function invalidate() { sigFields = sigPanel = sigDecor = sigYard = ''; lastPhase = -1; }
+
+  /* ------------------------------------------------------- 農園のけしき（施設） */
+
+  /**
+   * 買った施設を、畑の上に建てて並べる。**畑だけ見えていても農園に見えない。**
+   *
+   * ここは**押せない飾り**。操作はこうぼうタブでやる——
+   * 押せるものにすると 44x44px の下限がかかり、低い画面で畑がその場所を失う。
+   *
+   * 並びは `Data.MACHINES` の順（買った順ではない）。あとから1台建てても、
+   * もう建っているものが動かない。
+   * 大きさは台数から決める。**18台まで1列に収める**（折り返すと帯が2倍の高さになり、
+   * いちばん低い画面では畑がマス44pxを割る）。
+   */
+  function yard(state) {
+    const built = Data.MACHINES.filter((def) => Engine.ownsMachine(state, def.id));
+    const sig = built.map((def) => {
+      const m = state.machines.find((x) => x.id === def.id);
+      return def.id + (m.done ? 'd' : '') + (m.queue.length ? 'q' : '');
+    }).join(',');
+    if (sig === sigYard) return;
+    sigYard = sig;
+
+    // **帯の実寸から決める。** 決め打ちの割り算だと、広い画面で建物だけ小さいままになる。
+    // 高さにも収める（帯は畑に場所を譲ったあまりなので、低い画面では薄い）
+    const w = refs.yard.clientWidth || 300;
+    const h = refs.yard.clientHeight || 30;
+    // 絵文字は指定した字の大きさより横に広い（およそ1.2倍）。すき間2pxも引いておく——
+    // ここを見ないと、台数が増えたときに端の建物が帯からこぼれる
+    const per = w / Math.max(3, built.length) - 2;
+    const size = Math.max(9, Math.min(30, Math.floor(h * 0.72), Math.floor(per / 1.35)));
+    refs.yard.style.setProperty('--bs', size + 'px');
+
+    const nodes = built.map((def) => {
+      const m = state.machines.find((x) => x.id === def.id);
+      const n = el('span', 'bld' + (m.done ? ' done' : m.queue.length ? ' busy' : ''), def.emoji);
+      n.title = def.name;
+      return n;
+    });
+    refs.yard.replaceChildren(...nodes);
+  }
+
+  /** 配達トラックを1台走らせる。届けたときだけ */
+  function truck() {
+    if (!refs || !refs.yard) return;
+    const t = el('span', 'truck', '🚚');
+    refs.yard.appendChild(t);
+    setTimeout(() => t.remove(), 1600);
+  }
 
   /* -------------------------------------------------------------- かざり */
 
@@ -726,5 +777,5 @@
   const closeSheet = () => { refs.sheet.hidden = true; refs.sheet.replaceChildren(); };
 
   global.GF = global.GF || {};
-  global.GF.Render = { init, sync, invalidate, paint, decor, ticker, float, barnPulse, award, rich, skyAt, DAY_MS, levelUp, sheet, closeSheet, el, icon, nameOf, growth, refs: () => refs };
+  global.GF.Render = { init, sync, invalidate, paint, decor, yard, truck, ticker, float, barnPulse, award, rich, skyAt, DAY_MS, levelUp, sheet, closeSheet, el, icon, nameOf, growth, refs: () => refs };
 })(typeof window !== 'undefined' ? window : globalThis);
