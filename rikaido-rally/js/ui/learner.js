@@ -369,8 +369,8 @@ function mechPlan() {
       ＋ 最近解いた問題への上乗せ（最大 ${Rally.PICK_COST.recent}）。</p>` : ''}
     <h4>同じ問題ばかり出さないための規則</h4>
     <ul>${Rally.SHUFFLE_RULES.map((r) => `<li>${esc(r.text)}</li>`).join('')}</ul>
-    ${session.mode === 'level' ? `<p class="note">レベル別では、選んだ段の未出題が残っているかぎり段を外しません
-      （この問題集にはレベル${session.level}が ${session.pool.filter((q) => q.level === session.level).length} 問あります）。</p>` : ''}`;
+    ${session.mode === 'level' ? `<p class="note">レベル別では、選んだ段の未出題が残っているかぎり段を外しません。
+      借りるのは、その段を出し切ったときだけです。</p>` : ''}`;
 }
 
 function mechCriteria() {
