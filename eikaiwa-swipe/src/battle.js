@@ -5,7 +5,7 @@
  * - 正解で攻撃（コンボで得点アップ）。間違えると、その敵が一気に近づく。
  * - 敵が自分まで届くと HP が減る（ボスは2）。HP が 0 になったら終わり。
  * - ステージ: 章の単語から敵10体 → 最後にボス（HP3。攻撃のたびに別の単語を出してくる）。倒せばクリア。
- * - エンドレス: 8体倒すごとにレベルが上がり、敵が速く・多くなる。HP が尽きるまで続く。
+ * - エンドレス: 10体倒すごとにレベルが上がり、敵が少しずつ速く・多くなる（速さは最大2倍）。HP が尽きるまで続く。
  *
  * 進行の関数（tick / attack）は、毎フレーム呼ぶため battle オブジェクトを直接書き換える。
  */
@@ -17,8 +17,7 @@ export const BOSS_HP = 3;
 export const KILL_POINTS = 5;
 export const CLEAR_POINTS = 50;
 export const BEST_POINTS = 100;
-export const BATTLE_DAILY_CAP = 1000;
-const LEVEL_UP_KILLS = 8;
+export const LEVEL_UP_KILLS = 10;
 
 /** 答え方ごとの、敵が上から下まで届く時間（ms）と、次の敵が出るまでの間隔 */
 export const PACE = {
@@ -71,8 +70,10 @@ export function createBattle({ mode = "stage", items, answer = "choice", directi
   };
 }
 
-const speedOf = (b) => 1 + (b.mode === "endless" ? (b.level - 1) * 0.15 : 0);
-const maxOnField = (b) => (b.mode === "endless" ? Math.min(2 + Math.floor(b.level / 2), 5) : 3);
+/** エンドレスの敵の速さ（レベルごとに +7%、最大2倍） */
+export const speedOf = (b) => (b.mode === "endless" ? Math.min(1 + (b.level - 1) * 0.07, 2) : 1);
+/** 同時に出る敵の数（エンドレスは3レベルごとに1体増えて最大4体） */
+export const maxOnField = (b) => (b.mode === "endless" ? Math.min(2 + Math.floor((b.level - 1) / 3), 4) : 3);
 
 /** 敵が出る位置（3列）。上のほうにいる敵と重ならない列を選ぶ */
 const LANES = [0.2, 0.5, 0.8];
@@ -196,12 +197,12 @@ export const initialBattle = () => ({
   clears: 0,
   ticketStages: [], // 星3のレアチケットを受け取ったステージ
   day: null,
-  earned: 0, // その日にバトルでもらったポイント
+  earned: 0, // その日にバトルでもらったポイント（記録のみ。上限はない）
 });
 
 /**
  * バトルの結果を記録し、ガチャのポイント・チケットを渡す。
- * - 1体 5pt、ステージクリア +50pt、エンドレスの最高得点更新 +100pt（1日 1000pt まで）
+ * - 1体 5pt、ステージクリア +50pt、エンドレスの最高得点更新 +100pt（上限なし）
  * - ステージを初めて星3でクリアしたら、レアチケット1枚
  * @returns {{ state, reward: { points, tickets, stars, newBest } }}
  */
@@ -210,9 +211,8 @@ export function applyBattle(state, b, today) {
   const stars = starsOf(b);
   const stage = b.mode === "stage";
   const newBest = !stage && b.score > (rec.best[b.key] || 0);
-  let points = b.kills * KILL_POINTS + (b.cleared ? CLEAR_POINTS : 0) + (newBest && b.score > 0 ? BEST_POINTS : 0);
+  const points = b.kills * KILL_POINTS + (b.cleared ? CLEAR_POINTS : 0) + (newBest && b.score > 0 ? BEST_POINTS : 0);
   const earned = rec.day === today ? rec.earned : 0;
-  points = Math.max(0, Math.min(points, BATTLE_DAILY_CAP - earned));
   const tickets = stage && stars === 3 && !rec.ticketStages.includes(b.key) ? 1 : 0;
   const next = {
     ...rec,

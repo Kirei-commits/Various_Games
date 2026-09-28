@@ -17,7 +17,9 @@ import {
   PACE,
   KILL_POINTS,
   CLEAR_POINTS,
-  BATTLE_DAILY_CAP,
+  LEVEL_UP_KILLS,
+  speedOf,
+  maxOnField,
 } from "../../src/battle.js";
 
 const lib = buildLibrary(raw);
@@ -91,14 +93,14 @@ test("コンボが続くと得点が上がる（5連続ごとに倍率）", () =
 test("エンドレス: 倒すほどレベルが上がって敵が速くなり、敵は尽きない", () => {
   const rng = mulberry32(5);
   const b = createBattle({ mode: "endless", items: chapter.items.slice(0, 5), rng });
-  for (let i = 0; i < 20; i++) assert.ok(killNext(b, rng));
+  for (let i = 0; i < LEVEL_UP_KILLS * 2; i++) assert.ok(killNext(b, rng));
   assert.equal(b.level, 3);
   assert.equal(b.over, false);
   quit(b);
   assert.equal(b.over, true);
 });
 
-test("報酬: 1体5pt・クリア+50pt、初めての星3でレアチケット（2回目はなし）、1日の上限あり", () => {
+test("報酬: 1体5pt・クリア+50pt、初めての星3でレアチケット（2回目はなし）、1日の上限はない", () => {
   const rng = mulberry32(6);
   const play = () => {
     const b = createBattle({ mode: "stage", items: chapter.items, key: "ch51@en-ja", rng });
@@ -117,8 +119,8 @@ test("報酬: 1体5pt・クリア+50pt、初めての星3でレアチケット�
 
   s = second.state;
   for (let i = 0; i < 20; i++) s = applyBattle(s, play(), "2026-01-01").state;
-  assert.equal(s.battle.earned, BATTLE_DAILY_CAP);
-  assert.equal(applyBattle(s, play(), "2026-01-02").reward.points, kills * KILL_POINTS + CLEAR_POINTS);
+  assert.equal(applyBattle(s, play(), "2026-01-01").reward.points, kills * KILL_POINTS + CLEAR_POINTS);
+  assert.equal(s.battle.earned, 22 * (kills * KILL_POINTS + CLEAR_POINTS));
 });
 
 test("エンドレスの最高得点を記録し、更新したらボーナス", () => {
@@ -148,4 +150,15 @@ test("同時に出ている敵は、別々の列に出る（重ならない）",
   for (let i = 0; i < 3; i++) tick(b, PACE.choice.interval, rng, 0);
   assert.equal(b.enemies.length, 3);
   assert.equal(new Set(b.enemies.map((e) => e.x)).size, 3);
+});
+
+test("エンドレスの速さはゆっくり上がる（レベル10でも1.63倍、最大2倍）。同時に出る敵は最大4体", () => {
+  const at = (level) => ({ mode: "endless", level });
+  assert.equal(speedOf(at(1)), 1);
+  assert.ok(Math.abs(speedOf(at(10)) - 1.63) < 1e-9);
+  assert.equal(speedOf(at(50)), 2);
+  assert.equal(maxOnField(at(1)), 2);
+  assert.equal(maxOnField(at(4)), 3);
+  assert.equal(maxOnField(at(30)), 4);
+  assert.equal(speedOf({ mode: "stage", level: 1 }), 1);
 });

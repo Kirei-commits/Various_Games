@@ -143,3 +143,16 @@ test("ダブると Lv が上がり、MAX になると表示が変わる", async 
   await expect(page.getByTestId("word-sheet")).toContainText("MAX！この単語はもうガチャから出ません");
   await expect(page.getByTestId("word-sheet")).toContainText("強制労働");
 });
+
+test("引くと光の玉の演出が出て、スキップするとすぐに全部のカードが見られる", async ({ page }) => {
+  await openGacha(page);
+  await page.getByRole("button", { name: /10連/ }).click();
+  await expect(page.getByTestId("gacha-charge")).toBeVisible();
+  await page.getByRole("button", { name: /スキップ/ }).click();
+  await expect(page.getByTestId("gacha-charge")).toHaveCount(0);
+  const result = page.getByTestId("gacha-result");
+  await expect(result).toContainText("カードをタップすると詳しく見られます");
+  await expect(page.getByRole("button", { name: /スキップ/ })).toHaveCount(0);
+  await result.getByTestId("gacha-result-card").first().click();
+  await expect(page.getByTestId("word-sheet")).toBeVisible();
+});

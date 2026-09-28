@@ -33,7 +33,10 @@ import {
   BookOpen,
   Award,
   Swords,
+  Heart,
+  Music,
 } from "lucide-react";
+import { BattleArtDefs, BattleBackdrop, Monster, Dragon, Hero, monsterKindOf } from "./battle-art.jsx";
 import rawChapters, { PARTS, RENAMED } from "./data/index.js";
 import { analyzeLinking, LINK_LABELS } from "./linking.js";
 import {
@@ -67,7 +70,6 @@ import {
   STAGE_ENEMIES,
   KILL_POINTS,
   CLEAR_POINTS,
-  BATTLE_DAILY_CAP,
   applyBattle,
 } from "./battle.js";
 import {
@@ -248,6 +250,8 @@ const DEFAULT_SETTINGS = {
   linking: true,
   sfx: true,
   sfxVolume: 0.6,
+  battleBgm: true, // バトル中の BGM
+  bgmVolume: 0.35,
   test: { scope: "ch01", count: 10, direction: "en-ja", prompt: "text", answer: "type" },
   play: "test", // テスト画面で「テスト」「バトル」のどちらを開くか
   battle: { mode: "stage", chapter: "ch51", scope: "word", direction: "en-ja", answer: "choice" },
@@ -865,6 +869,39 @@ function SettingsSheet({ open, onClose, settings, setSettings, speech, onResetAl
               value={settings.sfxVolume}
               onChange={(e) => update({ sfxVolume: Number(e.target.value) })}
               onPointerUp={() => sound.play("correct")}
+              className="mt-2 w-full accent-indigo-600"
+            />
+          </>
+        )}
+
+        <p className="mt-5 text-xs font-bold text-slate-500">BGM</p>
+        <label className="mt-2 flex items-center gap-3 rounded-xl bg-slate-50 px-3 py-2.5">
+          <Music size={18} className="text-indigo-500" />
+          <span className="flex-1">
+            <span className="block text-sm font-bold text-slate-800">バトル中に BGM を流す</span>
+            <span className="block text-xs text-slate-500">バトルの間だけ流れます（ボス戦は曲が変わります）</span>
+          </span>
+          <input
+            id="toggle-bgm"
+            type="checkbox"
+            checked={settings.battleBgm}
+            onChange={(e) => update({ battleBgm: e.target.checked })}
+            className="h-5 w-5 accent-indigo-600"
+          />
+        </label>
+        {settings.battleBgm && (
+          <>
+            <label htmlFor="bgm-volume" className="mt-3 flex items-center justify-between text-xs font-bold text-slate-500">
+              BGM の音量 <span className="tabular-nums text-slate-700">{Math.round(settings.bgmVolume * 100)}%</span>
+            </label>
+            <input
+              id="bgm-volume"
+              type="range"
+              min="0.05"
+              max="1"
+              step="0.05"
+              value={settings.bgmVolume}
+              onChange={(e) => update({ bgmVolume: Number(e.target.value) })}
               className="mt-2 w-full accent-indigo-600"
             />
           </>
@@ -1851,8 +1888,30 @@ function TestResult({ results, scope, direction, speech, onRetryWrong, onRetry, 
 // ---------------------------------------------------------------------------
 // バトル（RPGモード）: 迫ってくる敵（単語）に答えて倒す
 // ---------------------------------------------------------------------------
-const MONSTERS = ["👾", "👻", "🦇", "🐺", "🧟", "🐍", "🦂", "👹", "🕷️", "🦖"];
-const BOSS_MONSTER = "🐉";
+/** 演出の色（敵の種類ごとの爆発の色） */
+const MONSTER_COLOR = {
+  slime: "#4ade80",
+  bat: "#a78bfa",
+  ghost: "#e0e7ff",
+  mushroom: "#f87171",
+  goblin: "#a3e635",
+  skull: "#67e8f9",
+  eye: "#c084fc",
+  fire: "#fb923c",
+  golem: "#94a3b8",
+  imp: "#f43f5e",
+  dragon: "#fbbf24",
+};
+const FX_LIFE = 1100; // 演出を表示しておく時間（ms）
+
+/** 要素をその場で少し動かす（Web Animations API。使えない環境では何もしない） */
+const wiggle = (el, keyframes, duration) => {
+  try {
+    el?.animate?.(keyframes, { duration, easing: "ease-out" });
+  } catch {
+    /* 古いブラウザ */
+  }
+};
 
 function TestKindSwitch({ value, onChange }) {
   return (
@@ -1901,7 +1960,7 @@ function BattleSetup({ config, setConfig, record, misses, onStart, onSettings, s
           <p className="mt-2 text-xs leading-relaxed text-slate-500">
             {stage
               ? `章がステージ。敵${STAGE_ENEMIES}体を倒すとボスが登場。ノーダメージでクリアすると★3（初回はレアチケット）。`
-              : "敵を倒すほど速く・多くなります。HP がなくなるまで何体倒せるか挑戦！"}
+              : "10体倒すごとにレベルアップ。敵が少しずつ速く・多くなります。HP がなくなるまで何体倒せるか挑戦！"}
           </p>
         </div>
 
@@ -1970,7 +2029,7 @@ function BattleSetup({ config, setConfig, record, misses, onStart, onSettings, s
       <div className="mt-3 rounded-2xl bg-slate-900 p-3 text-xs leading-relaxed text-slate-200">
         <p>⚔️ 一番近い敵の単語に答えると攻撃。正解が続くとコンボで得点アップ。</p>
         <p>💥 間違えると敵が一気に近づき、敵が届くと HP が減ります（ボスは2）。</p>
-        <p>🎁 1体 {KILL_POINTS}pt・クリア +{CLEAR_POINTS}pt のガチャポイント（1日 {BATTLE_DAILY_CAP}pt まで）。間違えた単語は「苦手」に入ります。</p>
+        <p>🎁 1体 {KILL_POINTS}pt・クリア +{CLEAR_POINTS}pt ・エンドレスの最高得点更新 +100pt のガチャポイント（上限なし）。間違えた単語は「苦手」に入ります。</p>
       </div>
 
       <button
@@ -1999,6 +2058,12 @@ function BattleRun({ session, speech, recognition, onFinish, active = true }) {
   const [input, setInput] = useState("");
   const inputRef = useRef(null);
   const finished = useRef(false);
+  const fieldRef = useRef(null);
+  const heroRef = useRef(null);
+  const enemyEls = useRef({}); // 敵の uid → 画面の要素（攻撃を受けたときに揺らす）
+  const fx = useRef([]); // 表示中の演出
+  const fxId = useRef(0);
+  const [casting, setCasting] = useState(0);
   // ほかのタブを見ているあいだは一時停止（テスト画面は裏でも表示したままにしているため）
   const activeRef = useRef(active);
   activeRef.current = active;
@@ -2010,8 +2075,39 @@ function BattleRun({ session, speech, recognition, onFinish, active = true }) {
     if (finished.current) return;
     finished.current = true;
     recognition.abort();
+    sound.stopBgm();
     onFinish(battle.current);
-  }, [onFinish, recognition]);
+  }, [onFinish, recognition, sound]);
+
+  // BGM: このタブを見ているあいだだけ流す（ボスが出たらボス戦の曲）
+  useEffect(() => {
+    const play = () => {
+      if (activeRef.current && !document.hidden && !finished.current) sound.startBgm(battle.current.bossSpawned ? "boss" : "battle");
+      else sound.stopBgm();
+    };
+    play();
+    document.addEventListener("visibilitychange", play);
+    return () => {
+      document.removeEventListener("visibilitychange", play);
+      sound.stopBgm();
+    };
+  }, [active, sound]);
+
+  const addFx = (list) => {
+    const at = performance.now();
+    fx.current = [...fx.current.filter((f) => at - f.at < FX_LIFE), ...list.map((f) => ({ ...f, id: ++fxId.current, at }))];
+  };
+  /** 敵の画面上の位置（px）。上ほど小さく見える（遠近） */
+  const layout = () => {
+    const el = fieldRef.current;
+    return { W: el?.clientWidth || 320, H: el?.clientHeight || 400 };
+  };
+  const enemyBox = (e, { W, H } = layout()) => {
+    const size = e.boss ? 110 : 60;
+    const scale = 0.72 + 0.38 * Math.min(e.y, 1);
+    const top = 8 + Math.min(e.y, 1) * (H - (e.boss ? 170 : 118));
+    return { x: e.x * W, top, cy: top + (size * scale) / 2, size, scale };
+  };
 
   // ゲームの時間を進める（画面が隠れているあいだは requestAnimationFrame が止まる）
   useEffect(() => {
@@ -2028,13 +2124,22 @@ function BattleRun({ session, speech, recognition, onFinish, active = true }) {
       const scale = typeof window.__swipetalkBattleSpeed === "number" ? window.__swipetalkBattleSpeed : 1;
       tick(bt, dt * clock, Math.random, scale);
       if (bt.hp < hp) {
-        sound.play("wrong");
+        sound.play("hurt");
         setFlash({ type: "damage", text: "ダメージ！", at: now });
+        addFx([{ kind: "vignette" }]);
+        wiggle(
+          fieldRef.current,
+          [{ transform: "translate(0,0)" }, { transform: "translate(-8px,3px)" }, { transform: "translate(7px,-4px)" }, { transform: "translate(-5px,2px)" }, { transform: "translate(3px,2px)" }, { transform: "translate(0,0)" }],
+          420
+        );
+        wiggle(heroRef.current, [{ opacity: 0.2 }, { opacity: 1 }, { opacity: 0.2 }, { opacity: 1 }], 600);
       }
       if (bt.bossSpawned && !bossSeen) {
         bossSeen = true;
         sound.play("complete");
+        if (activeRef.current) sound.startBgm("boss");
         setFlash({ type: "boss", text: "ボス出現！", at: now });
+        addFx([{ kind: "warning" }]);
       }
       setFrame((n) => n + 1);
       if (bt.over) {
@@ -2059,15 +2164,63 @@ function BattleRun({ session, speech, recognition, onFinish, active = true }) {
     const bt = battle.current;
     const cur = target(bt);
     if (!cur || cur.item.id !== itemId || bt.over) return;
+    const box = layout();
+    const pos = enemyBox(cur, box);
+    const hero = { x: box.W / 2, y: box.H - 44 };
+    const kind = cur.boss ? "dragon" : monsterKindOf(cur.item.id);
+    const color = MONSTER_COLOR[kind];
+    const before = { score: bt.score, level: bt.level };
     const item = attack(bt, correct);
     const ev = bt.lastEvent;
+    const now = performance.now();
     if (correct) {
-      sound.play(ev.type === "kill" ? (ev.boss ? "bonus" : "learned") : "correct");
-      setFlash({ type: "kill", text: ev.type === "kill" ? (ev.boss ? "ボス撃破！" : "撃破！") : "ヒット！", at: performance.now() });
+      const killed = ev.type === "kill";
+      sound.play("slash");
+      if (killed) sound.play(ev.boss ? "bonus" : "explode");
+      setCasting(now);
+      wiggle(heroRef.current, [{ transform: "translateY(0)" }, { transform: "translateY(-8px) rotate(-5deg)" }, { transform: "translateY(0)" }], 260);
+      const hit = [
+        { kind: "bolt", x: pos.x, y: pos.cy, fx: hero.x - pos.x, fy: hero.y - pos.cy },
+        { kind: "burst", x: pos.x, y: pos.cy, color, big: killed },
+        { kind: "slash", x: pos.x, y: pos.cy, rot: -30 - Math.random() * 30 },
+        { kind: "score", x: pos.x, y: pos.top, text: `+${bt.score - before.score}` },
+      ];
+      if (killed) {
+        const n = cur.boss ? 18 : 10;
+        for (let i = 0; i < n; i++) {
+          const a = (i / n) * Math.PI * 2 + Math.random() * 0.4;
+          const d = (cur.boss ? 70 : 38) + Math.random() * 30;
+          hit.push({ kind: "particle", x: pos.x, y: pos.cy, dx: Math.cos(a) * d, dy: Math.sin(a) * d, color: i % 3 ? color : "#fef08a" });
+        }
+        hit.push({ kind: "die", x: pos.x, top: pos.top, scale: pos.scale, monster: kind });
+      } else {
+        wiggle(
+          enemyEls.current[cur.uid],
+          [{ filter: "brightness(4) saturate(0)" }, { transform: "translateX(-6px)" }, { transform: "translateX(6px)" }, { filter: "none" }],
+          380
+        );
+      }
+      addFx(hit);
+      const levelUp = bt.level > before.level;
+      if (levelUp) setTimeout(() => sound.play("levelup"), 250);
+      setFlash({
+        type: levelUp ? "level" : "kill",
+        text: levelUp ? `LEVEL UP! Lv.${bt.level}` : killed ? (ev.boss ? "ボス撃破！" : "撃破！") : "ヒット！",
+        at: now,
+      });
       if (jaEn) speech.speak(item.english, null, item.id);
     } else {
       sound.play("wrong");
-      setFlash({ type: "wrong", text: `正解は「${jaEn ? item.english : item.japanese.split("／")[0]}」`, at: performance.now() });
+      addFx([
+        { kind: "fizzle", x: (pos.x + hero.x) / 2, y: (pos.cy + hero.y) / 2 },
+        { kind: "score", x: pos.x, y: pos.top, text: "MISS", miss: true },
+      ]);
+      wiggle(
+        enemyEls.current[cur.uid],
+        [{ transform: "translateY(0) scale(1)" }, { transform: "translateY(12px) scale(1.18)" }, { transform: "translateY(0) scale(1)" }],
+        400
+      );
+      setFlash({ type: "wrong", text: `正解は「${jaEn ? item.english : item.japanese.split("／")[0]}」`, at: now });
     }
     setInput("");
     setFrame((n) => n + 1);
@@ -2107,9 +2260,15 @@ function BattleRun({ session, speech, recognition, onFinish, active = true }) {
         >
           やめる
         </button>
-        <p className="text-base tracking-tight" data-testid="battle-hp" aria-label={`HP ${b.hp}`}>
-          {"❤️".repeat(b.hp)}
-          <span className="opacity-30">{"🤍".repeat(b.maxHp - b.hp)}</span>
+        <p className="flex items-center gap-0.5" data-testid="battle-hp" aria-label={`HP ${b.hp}`}>
+          {Array.from({ length: b.maxHp }, (_, i) => (
+            <Heart
+              key={i}
+              size={18}
+              className={i < b.hp ? "fill-rose-500 text-rose-600 drop-shadow" : "text-slate-300"}
+              strokeWidth={2.5}
+            />
+          ))}
         </p>
         <p className="ml-auto text-right text-xs font-bold tabular-nums text-slate-500">
           {stageLabel}
@@ -2121,11 +2280,15 @@ function BattleRun({ session, speech, recognition, onFinish, active = true }) {
 
       {/* 戦場: 敵が上から迫ってくる */}
       <div
-        className="relative mt-2 min-h-[200px] flex-1 overflow-hidden rounded-3xl bg-gradient-to-b from-indigo-950 via-violet-900 to-rose-900 shadow-inner"
+        ref={fieldRef}
+        className="relative mt-2 min-h-[220px] flex-1 overflow-hidden rounded-3xl bg-slate-950 shadow-inner ring-1 ring-black/20"
         data-testid="battle-field"
       >
-        {b.enemies.map((e, i) => {
+        <BattleArtDefs />
+        <BattleBackdrop />
+        {b.enemies.map((e) => {
           const isTarget = t && e.uid === t.uid;
+          const box = enemyBox(e);
           return (
             <div
               key={e.uid}
@@ -2133,20 +2296,26 @@ function BattleRun({ session, speech, recognition, onFinish, active = true }) {
               data-target={isTarget ? "1" : "0"}
               data-phrase-id={e.item.id}
               data-boss={e.boss ? "1" : "0"}
-              className="absolute flex -translate-x-1/2 flex-col items-center"
-              style={{ left: `${e.x * 100}%`, top: `calc(10px + ${Math.min(e.y, 1)} * (100% - ${e.boss ? 120 : 90}px))` }}
+              className="absolute flex flex-col items-center"
+              style={{ left: box.x, top: box.top, transform: `translateX(-50%) scale(${box.scale})`, transformOrigin: "50% 0", zIndex: 10 + Math.round(e.y * 100) }}
             >
-              <span className={`leading-none drop-shadow ${e.boss ? "text-6xl" : "text-4xl"} ${isTarget ? "animate-bounce" : ""}`}>
-                {e.boss ? BOSS_MONSTER : MONSTERS[e.uid % MONSTERS.length]}
-              </span>
+              <div className="relative" ref={(el) => (el ? (enemyEls.current[e.uid] = el) : delete enemyEls.current[e.uid])}>
+                <span
+                  className={`absolute bottom-0 left-1/2 block rounded-[50%] ${isTarget ? "bt-ring border-2 border-amber-300 bg-amber-300/20" : "bg-black/35"}`}
+                  style={{ width: box.size * 0.8, height: box.size * 0.22, transform: "translateX(-50%)", marginBottom: -box.size * 0.06 }}
+                />
+                <div className="relative drop-shadow-[0_4px_6px_rgba(0,0,0,0.5)]">
+                  {e.boss ? <Dragon size={box.size} /> : <Monster kind={monsterKindOf(e.item.id)} size={box.size} />}
+                </div>
+              </div>
               {e.boss && (
-                <div className="mt-1 h-1.5 w-20 overflow-hidden rounded-full bg-white/20">
-                  <div className="h-full bg-rose-400" style={{ width: `${(e.hp / e.maxHp) * 100}%` }} />
+                <div className="mt-1 h-2 w-24 overflow-hidden rounded-full bg-black/50 ring-1 ring-white/30">
+                  <div className="h-full bg-gradient-to-r from-rose-500 to-amber-400 transition-all" style={{ width: `${(e.hp / e.maxHp) * 100}%` }} />
                 </div>
               )}
               <span
-                className={`mt-1 max-w-[9rem] truncate rounded-full px-2 py-0.5 text-xs font-extrabold ${
-                  isTarget ? "bg-white text-slate-900 ring-2 ring-amber-400" : "bg-white/20 text-white"
+                className={`mt-1 max-w-[10rem] truncate rounded-full px-2.5 py-0.5 text-xs font-extrabold shadow ${
+                  isTarget ? "bg-white text-slate-900 ring-2 ring-amber-400" : "bg-slate-900/60 text-white ring-1 ring-white/20"
                 }`}
               >
                 {jaEn ? e.item.japanese.split("／")[0] : e.item.english}
@@ -2154,22 +2323,106 @@ function BattleRun({ session, speech, recognition, onFinish, active = true }) {
             </div>
           );
         })}
+
+        {/* 演出（弾・爆発・粒・得点） */}
+        <div className="pointer-events-none absolute inset-0" style={{ zIndex: 200 }}>
+          {fx.current
+            .filter((f) => performance.now() - f.at < FX_LIFE)
+            .map((f) => {
+              const at = { position: "absolute", left: f.x, top: f.y };
+              switch (f.kind) {
+                case "bolt":
+                  return (
+                    <span key={f.id} className="bt-bolt" style={{ ...at, marginLeft: -9, marginTop: -9, "--fx": `${f.fx}px`, "--fy": `${f.fy}px` }}>
+                      <span className="block h-[18px] w-[18px] rounded-full bg-cyan-100 shadow-[0_0_14px_6px_rgba(34,211,238,0.9)]" />
+                    </span>
+                  );
+                case "burst":
+                  return (
+                    <span
+                      key={f.id}
+                      className="bt-burst block rounded-full"
+                      style={{ ...at, width: f.big ? 70 : 44, height: f.big ? 70 : 44, background: `radial-gradient(circle, #fff 0%, ${f.color} 45%, transparent 70%)` }}
+                    />
+                  );
+                case "slash":
+                  return (
+                    <span
+                      key={f.id}
+                      className="bt-slash block h-[5px] w-24 rounded-full bg-white shadow-[0_0_10px_3px_rgba(255,255,255,0.9)]"
+                      style={{ ...at, "--rot": `${f.rot}deg` }}
+                    />
+                  );
+                case "particle":
+                  return (
+                    <span
+                      key={f.id}
+                      className="bt-particle block h-2 w-2 rounded-full"
+                      style={{ ...at, background: f.color, boxShadow: `0 0 6px 2px ${f.color}`, "--dx": `${f.dx}px`, "--dy": `${f.dy}px` }}
+                    />
+                  );
+                case "die":
+                  return (
+                    <span key={f.id} className="bt-die block" style={{ position: "absolute", left: f.x, top: f.top, transformOrigin: "50% 50%" }}>
+                      <span className="block" style={{ transform: `scale(${f.scale})`, transformOrigin: "50% 0" }}>
+                        {f.monster === "dragon" ? <Dragon size={110} /> : <Monster kind={f.monster} size={60} />}
+                      </span>
+                    </span>
+                  );
+                case "score":
+                  return (
+                    <span
+                      key={f.id}
+                      className={`bt-score block whitespace-nowrap text-xl font-black ${f.miss ? "text-rose-300" : "text-amber-200"}`}
+                      style={{ ...at, textShadow: "0 2px 0 rgba(0,0,0,0.6), 0 0 10px rgba(251,191,36,0.8)" }}
+                    >
+                      {f.text}
+                    </span>
+                  );
+                case "fizzle":
+                  return <span key={f.id} className="bt-fizzle block h-6 w-6 rounded-full border-2 border-slate-300/80" style={at} />;
+                case "vignette":
+                  return <span key={f.id} className="bt-vignette absolute inset-0 block" />;
+                case "warning":
+                  return <span key={f.id} className="bt-warning absolute inset-0 block" />;
+                default:
+                  return null;
+              }
+            })}
+        </div>
+
         {showFlash && (
           <p
             key={flash.at}
             data-testid="battle-flash"
-            className={`absolute inset-x-4 top-1/3 text-center text-2xl font-black drop-shadow ${
-              flash.type === "kill" ? "text-amber-300" : flash.type === "boss" ? "text-rose-300" : "text-white"
+            className={`bt-pop absolute inset-x-4 top-[38%] text-center text-3xl font-black italic tracking-tight ${
+              flash.type === "kill"
+                ? "text-amber-300"
+                : flash.type === "level"
+                ? "text-cyan-200"
+                : flash.type === "boss"
+                ? "text-rose-300"
+                : flash.type === "damage"
+                ? "text-rose-400"
+                : "text-white"
             }`}
+            style={{ zIndex: 300, textShadow: "0 3px 0 rgba(0,0,0,0.7), 0 0 16px rgba(0,0,0,0.6)" }}
           >
             {flash.text}
           </p>
         )}
-        <div className="absolute inset-x-0 bottom-0 flex items-end justify-center pb-1">
-          <span className={`text-4xl ${flash?.type === "damage" && showFlash ? "animate-pulse" : ""}`}>🧙</span>
+        <div className="absolute inset-x-0 bottom-0 flex items-end justify-center" style={{ zIndex: 150 }}>
+          <div ref={heroRef} className="drop-shadow-[0_4px_8px_rgba(0,0,0,0.6)]">
+            <Hero casting={performance.now() - casting < 300} />
+          </div>
         </div>
         {b.combo >= 2 && (
-          <p className="absolute right-3 top-2 text-sm font-black text-amber-300" data-testid="battle-combo">
+          <p
+            key={b.combo}
+            className="bt-combo absolute right-3 top-2 text-sm font-black text-amber-300"
+            style={{ zIndex: 300, textShadow: "0 0 8px rgba(251,191,36,0.9), 0 2px 0 rgba(0,0,0,0.6)" }}
+            data-testid="battle-combo"
+          >
             🔥 {b.combo} COMBO
           </p>
         )}
@@ -3327,54 +3580,190 @@ function WordSheet({ card, gacha, speech, onClose, onExchange }) {
   );
 }
 
-/** ガチャの結果 */
+/** ガチャの光の玉の色（レア度ごと） */
+const ORB = {
+  N: { core: "#f8fafc", glow: "rgba(203,213,225,0.9)", label: "" },
+  R: { core: "#e0f2fe", glow: "rgba(56,189,248,0.95)", label: "R 以上！" },
+  SR: { core: "#f3e8ff", glow: "rgba(168,85,247,0.95)", label: "SR 以上！？" },
+  SSR: { core: "#fffbeb", glow: "rgba(251,191,36,1)", label: "SSR の予感…！" },
+};
+
+const prefersReducedMotion = () => typeof window !== "undefined" && !!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+
+/**
+ * ガチャの結果。演出: 光の玉がたまる（一番いいカードのレア度まで色が変わる）→ はじける → カードが1枚ずつめくれる。
+ * 画面をタップするか「スキップ」で、すぐに全部めくる。
+ */
 function GachaResult({ result, onClose, onOpen }) {
-  const best = result.results.reduce((b, r) => (RARITIES.indexOf(r.rarity) > RARITIES.indexOf(b) ? r.rarity : b), "N");
+  const sound = useSound();
+  const cards = result.results;
+  const bestIndex = cards.reduce((b, r) => Math.max(b, RARITIES.indexOf(r.rarity)), 0);
+  const best = RARITIES[bestIndex];
+  const [phase, setPhase] = useState(() => (prefersReducedMotion() ? "done" : "charge")); // charge → reveal → done
+  const [orb, setOrb] = useState(0); // 光の玉の今の色（RARITIES の番号）
+  const [shown, setShown] = useState(() => (prefersReducedMotion() ? cards.length : 0)); // めくったカードの枚数
+  const timers = useRef([]);
+  const later = (ms, fn) => timers.current.push(setTimeout(fn, ms));
+  useEffect(() => () => timers.current.forEach(clearTimeout), []);
+
+  // 1) 光がたまり、レア度が上がるたびに色が変わる
+  useEffect(() => {
+    if (phase !== "charge") return;
+    sound.play("charge");
+    for (let i = 1; i <= bestIndex; i++) later(450 + i * 380, () => (setOrb(i), sound.play("tap")));
+    later(900 + bestIndex * 380, () => {
+      sound.play(best === "SSR" ? "ssr" : "burst");
+      setPhase("reveal");
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // 2) カードを1枚ずつめくる（SR 以上は少し溜めてから）
+  useEffect(() => {
+    if (phase !== "reveal") return;
+    if (shown >= cards.length) {
+      setPhase("done");
+      return;
+    }
+    const next = cards[shown];
+    const rare = next.rarity === "SR" || next.rarity === "SSR";
+    later(shown === 0 ? 350 : rare ? 420 : 170, () => {
+      sound.play(next.rarity === "SSR" ? "ssr" : rare ? "rare" : "flip");
+      setShown((n) => n + 1);
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phase, shown]);
+
+  const skip = () => {
+    timers.current.forEach(clearTimeout);
+    timers.current = [];
+    setPhase("done");
+    setShown(cards.length);
+  };
+  const animating = phase !== "done";
+  const multi = cards.length > 1;
   const head = {
     N: "bg-slate-700",
     R: "bg-sky-600",
     SR: "bg-violet-600",
     SSR: "bg-gradient-to-r from-amber-400 via-pink-500 to-violet-600",
   }[best];
+  const color = ORB[RARITIES[orb]];
+  const back = {
+    N: "from-indigo-500 to-indigo-800",
+    R: "from-indigo-500 to-indigo-800",
+    SR: "from-violet-500 to-fuchsia-800 gc-glow-sr",
+    SSR: "from-amber-300 via-pink-500 to-violet-700 gc-glow-ssr",
+  };
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 px-4" onClick={onClose}>
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/70 px-4"
+      onClick={() => (animating ? skip() : onClose())}
+    >
+      {phase === "charge" && (
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-950" data-testid="gacha-charge">
+          <div className="relative flex h-72 w-72 items-center justify-center">
+            {orb >= 2 && (
+              <div
+                className="gc-rays absolute inset-[-40%] rounded-full opacity-70"
+                style={{
+                  background: `repeating-conic-gradient(from 0deg, ${color.glow} 0deg 8deg, transparent 8deg 24deg)`,
+                  maskImage: "radial-gradient(circle, black 20%, transparent 65%)",
+                  WebkitMaskImage: "radial-gradient(circle, black 20%, transparent 65%)",
+                }}
+              />
+            )}
+            {Array.from({ length: 14 }, (_, i) => (
+              <span
+                key={i}
+                className="gc-spark absolute left-1/2 top-1/2 -ml-1 -mt-1 block h-2 w-2 rounded-full"
+                style={{ "--a": `${i * 26}deg`, animationDelay: `${(i % 7) * 0.12}s`, background: color.core, boxShadow: `0 0 8px 3px ${color.glow}` }}
+              />
+            ))}
+            <div className={orb >= 2 ? "gc-shake" : ""}>
+              <div className="gc-orb relative h-32 w-32" style={{ "--dur": `${0.9 + bestIndex * 0.38}s` }}>
+                <span
+                  className="gc-pulse absolute -inset-16 rounded-full"
+                  style={{ background: `radial-gradient(circle, ${color.glow} 0%, transparent 65%)` }}
+                />
+                <span
+                  className="absolute inset-0 rounded-full transition-all duration-300"
+                  style={{ background: `radial-gradient(circle at 40% 35%, #fff 0%, ${color.core} 40%, ${color.glow} 100%)` }}
+                />
+              </div>
+            </div>
+          </div>
+          <p key={orb} className="bt-pop mt-6 h-8 text-xl font-black text-white" style={{ textShadow: `0 0 14px ${color.glow}` }}>
+            {color.label}
+          </p>
+        </div>
+      )}
+      {phase !== "charge" && animating && shown === 0 && <div key="flash" className="gc-flash pointer-events-none absolute inset-0 bg-white" />}
+      {animating && (
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            skip();
+          }}
+          className="absolute right-4 top-4 z-10 flex items-center gap-1 rounded-full bg-white/15 px-3 py-1.5 text-xs font-bold text-white ring-1 ring-white/30"
+        >
+          スキップ <SkipForward size={14} />
+        </button>
+      )}
       <div
         role="dialog"
         aria-label="ガチャの結果"
         data-testid="gacha-result"
-        className="w-full max-w-md overflow-hidden rounded-3xl bg-white shadow-2xl"
-        onClick={(e) => e.stopPropagation()}
+        className={`w-full max-w-md overflow-hidden rounded-3xl bg-white shadow-2xl ${phase === "charge" ? "invisible" : ""}`}
+        onClick={(e) => {
+          e.stopPropagation();
+          if (animating) skip();
+        }}
       >
-        <div className={`px-5 py-4 text-center text-white ${head}`}>
+        <div className={`px-5 py-3 text-center text-white ${head} ${best === "SSR" && !animating ? "gacha-kira" : ""}`}>
           <p className="text-xs font-bold tracking-widest text-white/80">RESULT</p>
           <p className="text-2xl font-black">{best === "SSR" ? "SSR 出現！" : best === "SR" ? "SR 獲得！" : "ガチャ結果"}</p>
         </div>
-        <div className={`grid gap-2 p-4 ${result.results.length > 1 ? "grid-cols-2" : "grid-cols-1"}`} style={{ maxHeight: "55dvh", overflowY: "auto" }}>
-          {result.results.map((r, i) => {
+        <div className={`grid p-3 ${multi ? "grid-cols-2 gap-1.5" : "grid-cols-1 gap-2"}`} style={{ maxHeight: "58dvh", overflowY: "auto" }}>
+          {cards.map((r, i) => {
             const card = CATALOG.cards[r.id];
+            const open = i < shown;
             return (
-              <button
-                key={i}
-                type="button"
-                onClick={() => onOpen(r.id)}
-                data-testid="gacha-result-card"
-                data-rarity={r.rarity}
-                className={`relative rounded-2xl bg-gradient-to-b p-3 text-left ${RARITY_STYLE[r.rarity].tile} ${LEVEL_FRAME[r.level]}`}
-              >
-                <div className="flex items-center gap-1">
-                  <RarityChip rarity={r.rarity} />
-                  <span className={`ml-auto text-[10px] font-black ${r.result === "new" ? "text-rose-500" : "text-emerald-600"}`}>
-                    {r.result === "new" ? "NEW!" : r.level >= MAX_LEVEL ? "MAX!" : `Lv.${r.level}↑`}
-                  </span>
+              <div key={i} className="gc-card" ref={i === shown - 1 && animating ? (el) => el?.scrollIntoView?.({ block: "nearest" }) : undefined}>
+                <div className={`gc-inner ${open ? "" : "gc-back-up"}`}>
+                  <button
+                    type="button"
+                    onClick={() => onOpen(r.id)}
+                    data-testid="gacha-result-card"
+                    data-rarity={r.rarity}
+                    tabIndex={open ? 0 : -1}
+                    className={`gc-face relative block w-full rounded-2xl bg-gradient-to-b text-left ${multi ? "px-2.5 py-2" : "p-3"} ${RARITY_STYLE[r.rarity].tile} ${LEVEL_FRAME[r.level]} ${
+                      open && r.rarity === "SSR" ? "gc-glow-ssr" : open && r.rarity === "SR" ? "gc-glow-sr" : ""
+                    } ${open && animating ? "gc-land" : ""}`}
+                  >
+                    <div className="flex items-center gap-1">
+                      <RarityChip rarity={r.rarity} />
+                      <span className={`ml-auto text-[10px] font-black ${r.result === "new" ? "text-rose-500" : "text-emerald-600"}`}>
+                        {r.result === "new" ? "NEW!" : r.level >= MAX_LEVEL ? "MAX!" : `Lv.${r.level}↑`}
+                      </span>
+                    </div>
+                    <p className={`break-all font-extrabold text-slate-900 ${multi ? "mt-0.5 text-sm leading-tight" : "mt-1 text-base"}`}>{card.english}</p>
+                    <p className="line-clamp-1 text-xs text-slate-500">{card.japanese.split("／")[0]}</p>
+                    {r.byPity && (
+                      <p className={`font-bold text-amber-600 ${multi ? "text-[9px]" : "mt-1 text-[10px]"}`}>{r.byPity === "SSR" ? "天井で SSR 確定" : "10連の SR 以上確定枠"}</p>
+                    )}
+                  </button>
+                  <div aria-hidden="true" className={`gc-back flex items-center justify-center rounded-2xl bg-gradient-to-br ring-2 ring-white/60 ${back[r.rarity]}`}>
+                    <span className="flex h-9 w-9 items-center justify-center rounded-full bg-white/20 text-lg font-black text-white ring-2 ring-white/50">?</span>
+                  </div>
                 </div>
-                <p className="mt-1 break-all text-base font-extrabold text-slate-900">{card.english}</p>
-                <p className="line-clamp-1 text-xs text-slate-500">{card.japanese.split("／")[0]}</p>
-                {r.byPity && <p className="mt-1 text-[10px] font-bold text-amber-600">{r.byPity === "SSR" ? "天井で SSR 確定" : "10連の SR 以上確定枠"}</p>}
-              </button>
+              </div>
             );
           })}
         </div>
-        {(result.newSecrets?.length > 0 || result.newTitles?.length > 0) && (
+        {!animating && (result.newSecrets?.length > 0 || result.newTitles?.length > 0) && (
           <div className="mx-4 mb-2 space-y-1 rounded-2xl bg-slate-900 p-3 text-sm font-bold text-amber-300" data-testid="gacha-unlocks">
             {result.newSecrets.map((id) => (
               <p key={id}>🔓 シークレット単語「{CATALOG.cards[id].english}」が解放された！</p>
@@ -3385,7 +3774,7 @@ function GachaResult({ result, onClose, onOpen }) {
           </div>
         )}
         <p className="px-4 text-center text-xs text-slate-500">
-          交換ポイント +{result.results.reduce((n, r) => n + r.exGain, 0)}　カードをタップすると詳しく見られます
+          交換ポイント +{cards.reduce((n, r) => n + r.exGain, 0)}　{animating ? "タップでスキップ" : "カードをタップすると詳しく見られます"}
         </p>
         <div className="p-4">
           <button type="button" onClick={onClose} className="w-full rounded-2xl bg-slate-900 py-3 text-sm font-extrabold text-white">
@@ -4117,6 +4506,7 @@ export default function App() {
     };
   }, [sound]);
   useEffect(() => sound.set(settings.sfx, settings.sfxVolume), [sound, settings.sfx, settings.sfxVolume]);
+  useEffect(() => sound.setBgm(settings.battleBgm, settings.bgmVolume), [sound, settings.battleBgm, settings.bgmVolume]);
 
   useEffect(() => storage.save(STATE_KEY, state), [state]);
   useEffect(() => storage.save(SETTINGS_KEY, settings), [settings]);
