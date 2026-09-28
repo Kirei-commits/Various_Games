@@ -29,7 +29,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        game: [gomoku-narabe, tsuri-quest]
+        game: [gomoku-narabe, tsuri-quest, eikaiwa-swipe]
     defaults:
       run:
         working-directory: ${{ matrix.game }}
@@ -59,7 +59,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        game: [gomoku-narabe, tsuri-quest]
+        game: [gomoku-narabe, tsuri-quest, eikaiwa-swipe]
     defaults:
       run:
         working-directory: ${{ matrix.game }}

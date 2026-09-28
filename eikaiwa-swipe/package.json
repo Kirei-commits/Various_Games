@@ -1,0 +1,24 @@
+{
+  "name": "eikaiwa-swipe",
+  "version": "2.0.0",
+  "private": true,
+  "description": "SwipeTalk — スワイプとテストで覚える英会話フレーズ1000",
+  "type": "module",
+  "scripts": {
+    "build": "node tools/build.mjs",
+    "start": "node tests/serve.mjs",
+    "lint": "node tests/lint.mjs",
+    "test:logic": "node --test tests/logic/*.test.mjs",
+    "test:e2e": "playwright test",
+    "test": "npm run lint && npm run test:logic && npm run test:e2e"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.56.1",
+    "esbuild": "0.25.10",
+    "lucide-react": "0.263.1",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "tailwindcss": "3.4.17"
+  },
+  "engines": { "node": ">=20" }
+}

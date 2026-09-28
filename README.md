@@ -8,7 +8,7 @@
 |---|---|---|
 | [gomoku-narabe](./gomoku-narabe/) | 五目並べ（サイバーパンク風） | AI対戦・2人対戦・詰め五目。禁じ手ルール対応。 |
 | [tsuri-quest](./tsuri-quest/) | つりクエスト（釣り／レベルアップ） | 魚30種。名前とパスワードでセーブ、ログインボーナス、ブースト、パーツ、2種類のレベル。 |
-| [eikaiwa-swipe](./eikaiwa-swipe/) | SwipeTalk（英会話フレーズ学習） | スワイプで覚えた／覚えてないを仕分け。音声読み上げ付き。Claude Artifacts 用の単一 React コンポーネント。 |
+| [eikaiwa-swipe](./eikaiwa-swipe/) | SwipeTalk（英会話フレーズ学習） | 全20章・1000フレーズ。スワイプで仕分け、テストモード（入力・音声・4択）、抑揚つき音声読み上げ。 |
 
 ## 遊び方
 
