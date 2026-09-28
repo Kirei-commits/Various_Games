@@ -32,6 +32,16 @@ test("少しの言い回しの違いは「ほぼ正解」で、正解として�
   assert.ok(isCorrect(v));
 });
 
+test("言葉遣いの違い（助詞・です／ます・終助詞・〜ている）は正解かほぼ正解", () => {
+  const ok = (input, ja) => assert.ok(isCorrect(verdict(input, ja)), `${input} → ${ja}: ${verdict(input, ja)}`);
+  assert.equal(verdict("調子はどう？", "調子どう？"), "correct");
+  assert.equal(verdict("大丈夫", "気にしないで／大丈夫だよ"), "correct");
+  ok("筋が通ってる", "意味が通じる／筋が通る");
+  ok("ありがとうございます", "本当にありがとう");
+  ok("楽しみにしてます", "楽しみにしている");
+  ok("心配しないで", "気にしないで");
+});
+
 test("短すぎる部分一致や無関係な答えは不正解", () => {
   assert.equal(verdict("る", "意味が通じる"), "wrong");
   assert.equal(verdict("おなかがすいた", "意味が通じる／筋が通る"), "wrong");

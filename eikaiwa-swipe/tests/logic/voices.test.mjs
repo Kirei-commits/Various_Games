@@ -11,9 +11,15 @@ const IPHONE = [
   "Organ", "Ralph", "Samantha", "Superstar", "Trinoids", "Whisper", "Wobble", "Zarvox",
 ].map((n) => v(n)).concat([v("Daniel", "en-GB"), v("Karen", "en-AU"), v("Rishi", "en-IN")]);
 
-test("おもしろ音声・旧式の声は一覧から外す", () => {
+test("おもしろ音声・旧式の声・訛りの強い地域の声は一覧から外す", () => {
   const names = usableVoices(IPHONE).map((x) => x.name);
-  assert.deepEqual(names.sort(), ["Daniel", "Karen", "Rishi", "Samantha"].sort());
+  assert.deepEqual(names, ["Samantha", "Daniel"]);
+});
+
+test("聞き取りやすい声がない端末では、英語の声をそのまま使う", () => {
+  const android = [v("English United States"), v("English India", "en-IN")];
+  assert.deepEqual(usableVoices(android).map((x) => x.name), ["English United States"]);
+  assert.deepEqual(usableVoices([v("English India", "en-IN")]).map((x) => x.name), ["English India"]);
 });
 
 test("iPhone: A役は Samantha（女性）、B役は男性の Daniel", () => {
@@ -25,18 +31,18 @@ test("iPhone: A役は Samantha（女性）、B役は男性の Daniel", () => {
 });
 
 test("同じ地域の異性の声があればそれを優先する", () => {
-  const voices = usableVoices([v("Samantha"), v("Daniel", "en-GB"), v("Aaron"), v("Karen", "en-AU")]);
+  const voices = usableVoices([v("Samantha"), v("Daniel", "en-GB"), v("Aaron")]);
   assert.equal(pickVoices(voices).b.name, "Aaron");
 });
 
 test("A役に男性を選べば、B役は女性になる", () => {
-  const voices = usableVoices([v("Samantha"), v("Aaron"), v("Karen", "en-AU")]);
+  const voices = usableVoices([v("Samantha"), v("Aaron"), v("Ava (Premium)")]);
   assert.equal(pickVoices(voices, { aURI: "uri:Aaron" }).b.name, "Samantha");
 });
 
 test("B役を自分で選んだらそれを使う", () => {
-  const voices = usableVoices([v("Samantha"), v("Aaron"), v("Karen", "en-AU")]);
-  assert.equal(pickVoices(voices, { bURI: "uri:Karen" }).b.name, "Karen");
+  const voices = usableVoices([v("Samantha"), v("Aaron"), v("Ava (Premium)")]);
+  assert.equal(pickVoices(voices, { bURI: "uri:Ava (Premium)" }).b.name, "Ava (Premium)");
 });
 
 test("性別の分かる別の声がなければ同じ声（高さで区別）。声を分けない設定でも同じ声", () => {

@@ -169,24 +169,67 @@ export function similarity(a, b) {
 
 export const CLOSE_THRESHOLD = 0.6;
 
+// 意味の比較に関係ない部分: 文末の丁寧語・終助詞と、文中の助詞
+const JA_ENDING = /(でございます|ございます|ございました|でしょうか|でしょう|ですか|ですね|ですよ|でした|です|ましょう|ました|ます|だよね|だよ|だね|だった|だ|よね|かな|かも|よ|ね|な|わ|さ|か|の)+$/;
+const JA_PARTICLES = /[はがをにへでとも]/g;
+
+/**
+ * 言葉遣いの違いを落とした「意味の芯」。
+ * 「調子はどう」「調子どう」→ どちらも「調子どう」、「楽しみにしてます」「楽しみにしている」→「楽しみしてる」
+ */
+export function coreJa(text) {
+  return normalizeJa(text)
+    .replace(/ている/g, "てる")
+    .replace(/でいる/g, "でる")
+    .replace(JA_ENDING, "")
+    .replace(JA_PARTICLES, "");
+}
+
+/** 最長共通部分列の長さ（順番は保ったまま、飛び飛びでも一致する文字数） */
+export function lcsLength(a, b) {
+  const prev = new Array(b.length + 1).fill(0);
+  for (let i = 1; i <= a.length; i++) {
+    let diag = 0;
+    for (let j = 1; j <= b.length; j++) {
+      const tmp = prev[j];
+      prev[j] = a[i - 1] === b[j - 1] ? diag + 1 : Math.max(prev[j], prev[j - 1]);
+      diag = tmp;
+    }
+  }
+  return prev[b.length];
+}
+
 /**
  * 答えを採点する。
  * @returns {{ verdict: "correct" | "close" | "wrong" | "empty", score: number }}
- *  close は「ほぼ正解」。正解として数える。
+ *  close は「ほぼ正解」（言い回しは違うが意味の芯が合っている）。正解として数える。
  */
 export function gradeAnswer(input, japanese) {
   const a = normalizeJa(input);
   if (!a) return { verdict: "empty", score: 0 };
+  const ca = coreJa(input) || a;
   let best = 0;
-  for (const c of answerCandidates(japanese)) {
-    if (a === c) return { verdict: "correct", score: 1 };
-    // 候補の主要部分を答えている（「意味が通じる」に対して「通じる」など）
-    if (c.includes(a) && a.length >= Math.max(2, Math.ceil(c.length * 0.6))) {
-      return { verdict: "correct", score: 1 };
+  for (const part of japanese.split(/[／/]/)) {
+    const variants = [part, part.replace(/[（(][^）)]*[）)]/g, "")];
+    for (const v of variants) {
+      const c = normalizeJa(v);
+      if (!c) continue;
+      if (a === c) return { verdict: "correct", score: 1 };
+      // 候補の主要部分を答えている（「意味が通じる」に対して「通じる」など）
+      if (c.includes(a) && a.length >= Math.max(2, Math.ceil(c.length * 0.6))) return { verdict: "correct", score: 1 };
+      // 候補を含んだうえで言い足している（「コツをつかむこと」など）
+      if (c.length >= 2 && a.includes(c)) return { verdict: "correct", score: 1 };
+      // 助詞・語尾の違いだけ（「調子はどう」と「調子どう」など）
+      const cc = coreJa(v) || c;
+      if (ca === cc) return { verdict: "correct", score: 1 };
+
+      // ここからは「ほぼ正解」の判定: 意味の芯の文字がどれだけ同じ順で入っているか
+      const common = lcsLength(ca, cc);
+      const coverage = common / cc.length; // 正解のうち答えに含まれる割合
+      const precision = common / ca.length; // 答えのうち正解と重なる割合（長すぎる答えを弾く）
+      if (cc.length >= 2 && coverage >= 0.7 && precision >= 0.5) best = Math.max(best, coverage);
+      else best = Math.max(best, Math.min(similarity(a, c), 0.59), similarity(ca, cc) >= CLOSE_THRESHOLD ? similarity(ca, cc) : 0);
     }
-    // 候補を含んだうえで言い足している（「コツをつかむこと」など）
-    if (c.length >= 2 && a.includes(c)) return { verdict: "correct", score: 1 };
-    best = Math.max(best, similarity(a, c));
   }
   return best >= CLOSE_THRESHOLD ? { verdict: "close", score: best } : { verdict: "wrong", score: best };
 }

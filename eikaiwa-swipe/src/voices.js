@@ -86,11 +86,22 @@ function rank(v) {
   return r;
 }
 
-/** 使える英語の声だけを、おすすめ順に並べる */
+const langOf = (v) => (v.lang || "").toLowerCase().replace("_", "-");
+const CLEAR_LANGS = ["en-us", "en-gb"];
+const isQualityName = (v) => /premium|enhanced|natural|neural|google/i.test(v.name);
+
+/**
+ * 学習に使う英語の声だけを、おすすめ順に並べる。
+ * 聞き取りやすさを優先し、アメリカ英語・イギリス英語の、名前の分かる声（または高品質な声）に絞る。
+ * 訛りの強い地域の声や、効果音のような声は出さない。
+ * 絞った結果が空になる端末（Android の「English United States」だけ等）では、英語の声をそのまま使う。
+ */
 export function usableVoices(all) {
-  return (all || [])
-    .filter((v) => v.lang?.toLowerCase().replace("_", "-").startsWith("en") && !isExcludedVoice(v))
-    .sort((a, b) => rank(a) - rank(b) || a.name.localeCompare(b.name));
+  const english = (all || []).filter((v) => langOf(v).startsWith("en") && !isExcludedVoice(v));
+  const clear = english.filter((v) => CLEAR_LANGS.includes(langOf(v)) && (voiceGender(v) || isQualityName(v)));
+  const fallback = english.filter((v) => CLEAR_LANGS.includes(langOf(v)));
+  const list = clear.length ? clear : fallback.length ? fallback : english;
+  return [...list].sort((a, b) => rank(a) - rank(b) || a.name.localeCompare(b.name));
 }
 
 /**

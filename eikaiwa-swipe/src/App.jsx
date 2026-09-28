@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import {
   Volume2,
   X,
@@ -61,6 +61,31 @@ import {
 } from "./logic.js";
 import { cloud, authErrorMessage } from "./cloud.js";
 import { usableVoices, pickVoices, genderLabel } from "./voices.js";
+import { SoundEngine, silentSound } from "./audio.js";
+import { detectInAppBrowser } from "./env.js";
+
+const IN_APP = typeof navigator !== "undefined" ? detectInAppBrowser(navigator.userAgent) : null;
+const SKIP_LOGIN_KEY = "swipetalk:skipLogin";
+const session = {
+  get(key) {
+    try {
+      return window.sessionStorage.getItem(key);
+    } catch {
+      return null;
+    }
+  },
+  set(key, value) {
+    try {
+      window.sessionStorage.setItem(key, value);
+    } catch {
+      /* 使えない環境では、この表示中だけ覚えておく */
+    }
+  },
+};
+
+/** 効果音・BGM（画面のどこからでも鳴らせるように Context で渡す） */
+const SoundContext = createContext(silentSound);
+const useSound = () => useContext(SoundContext);
 
 /*
  * SwipeTalk — スワイプ式 英会話フレーズ学習アプリ
@@ -143,6 +168,9 @@ const DEFAULT_SETTINGS = {
   rate: 0.95,
   expressive: true,
   twoVoices: true,
+  sfx: true,
+  bgm: true,
+  bgmVolume: 0.35,
   test: { scope: "ch01", count: 10, direction: "en-ja", prompt: "text", answer: "type" },
 };
 
@@ -154,7 +182,7 @@ function loadSettings() {
 // ---------------------------------------------------------------------------
 // 音声読み上げ（Web Speech API）
 // ---------------------------------------------------------------------------
-function useSpeech(settings) {
+function useSpeech(settings, sound = silentSound) {
   const supported = typeof window !== "undefined" && "speechSynthesis" in window;
   const [voices, setVoices] = useState([]);
   const [speaking, setSpeaking] = useState(null);
@@ -212,9 +240,14 @@ function useSpeech(settings) {
       const finish = (completed) => {
         if (token.current !== my) return;
         setSpeaking(null);
+        sound.duck("speech", false);
         if (completed) onDone?.();
       };
-      utterances[0].onstart = () => token.current === my && setSpeaking(key);
+      utterances[0].onstart = () => {
+        if (token.current !== my) return;
+        setSpeaking(key);
+        sound.duck("speech", true); // 読み上げ中は BGM を小さく
+      };
       utterances[utterances.length - 1].onend = () => finish(true);
       // 声が使えないなどのエラーでも先へ進める（止めた・割り込まれたときは除く）
       utterances.forEach((u) => (u.onerror = (e) => finish(!["interrupted", "canceled"].includes(e?.error))));
@@ -222,7 +255,7 @@ function useSpeech(settings) {
       setTimeout(() => token.current === my && utterances.forEach((u) => synth.speak(u)), 0);
       return true;
     },
-    [supported, voiceA, voiceB, sameVoice, settings.expressive, settings.rate, settings.twoVoices]
+    [supported, voiceA, voiceB, sameVoice, settings.expressive, settings.rate, settings.twoVoices, sound]
   );
 
   const speak = useCallback((text, role = null) => speakLines([{ text, role }], text), [speakLines]);
@@ -230,8 +263,9 @@ function useSpeech(settings) {
   const stop = useCallback(() => {
     token.current++;
     setSpeaking(null);
+    sound.duck("speech", false);
     if (supported) window.speechSynthesis.cancel();
-  }, [supported]);
+  }, [supported, sound]);
 
   return { supported, speak, speakLines, stop, speaking, voices, voiceA, voiceB, sameVoice };
 }
@@ -240,58 +274,117 @@ function useSpeech(settings) {
 // 音声入力（Web Speech API の SpeechRecognition）
 // ---------------------------------------------------------------------------
 const RECOGNITION_ERRORS = {
-  "not-allowed": "マイクが許可されていません。この画面ではマイクが使えない可能性があります。入力か4択で答えてください。",
-  "service-not-allowed": "この環境では音声認識が使えません。入力か4択で答えてください。",
+  "not-allowed":
+    "マイクが許可されていません。iPhone は「設定 → Safari（または Chrome）→ マイク」、Android はアドレスバー左の鍵アイコンから許可してください。いまはキーボードのマイクで話して入力できます。",
+  "service-not-allowed": "このブラウザでは音声認識が使えません。キーボードのマイク（🎤）で話して入力してください。",
   "no-speech": "聞き取れませんでした。もう一度マイクを押して話してください。",
-  "audio-capture": "マイクが見つかりません。",
-  network: "音声認識サービスに接続できませんでした。",
+  "audio-capture": "マイクが見つかりません。キーボードのマイク（🎤）で話して入力してください。",
+  network: "音声認識サービスに接続できませんでした。通信を確認するか、キーボードのマイク（🎤）で入力してください。",
 };
 
+/** このエラーのあとは、ブラウザの音声認識は使えない（キーボードの音声入力に切り替える） */
+const RECOGNITION_BLOCKED = new Set(["not-allowed", "service-not-allowed", "audio-capture"]);
+
+/**
+ * ブラウザの音声認識。1つずつしか動かさず、古いセッションの結果は無視する
+ * （モードを切り替えた直後に前の聞き取り結果で答えてしまわないように）。
+ */
 function useRecognition() {
   const Ctor = typeof window !== "undefined" ? window.SpeechRecognition || window.webkitSpeechRecognition : null;
+  const sound = useSound();
   const [listening, setListening] = useState(false);
   const [interim, setInterim] = useState("");
   const [error, setError] = useState("");
+  const [blocked, setBlocked] = useState(false);
   const rec = useRef(null);
 
-  const stop = useCallback(() => rec.current?.stop(), []);
+  /** 聞き取りを止め、結果も捨てる */
+  const abort = useCallback(() => {
+    const r = rec.current;
+    rec.current = null;
+    sound.duck("mic", false);
+    if (r) {
+      try {
+        r.abort();
+      } catch {
+        /* すでに止まっている */
+      }
+    }
+    setListening(false);
+  }, [sound]);
+
+  /** 聞き取りを終える（話した分は結果として受け取る） */
+  const stop = useCallback(() => {
+    try {
+      rec.current?.stop();
+    } catch {
+      /* すでに止まっている */
+    }
+  }, []);
 
   const start = useCallback(
     (onFinal, lang = "ja-JP", onEnd) => {
-      if (!Ctor) return;
+      if (!Ctor) return false;
+      abort();
       setError("");
       setInterim("");
+      let r;
       try {
-        const r = new Ctor();
+        r = new Ctor();
         r.lang = lang;
         r.interimResults = true;
         r.maxAlternatives = 3;
         r.onresult = (e) => {
+          if (rec.current !== r) return;
           const res = e.results[e.results.length - 1];
           const alts = Array.from(res).map((a) => a.transcript);
           setInterim(alts[0] || "");
           if (res.isFinal) onFinal(alts);
         };
-        r.onerror = (e) => setError(RECOGNITION_ERRORS[e.error] || `音声認識エラー: ${e.error}`);
+        r.onerror = (e) => {
+          if (rec.current !== r || e.error === "aborted") return;
+          setError(RECOGNITION_ERRORS[e.error] || `音声認識エラー: ${e.error}`);
+          if (RECOGNITION_BLOCKED.has(e.error)) setBlocked(true);
+        };
         r.onend = () => {
+          if (rec.current !== r) return;
+          rec.current = null;
+          sound.duck("mic", false);
           setListening(false);
           onEnd?.();
         };
         rec.current = r;
+        sound.duck("mic", true); // マイクが BGM を拾わないよう、聞き取り中は無音にする
         r.start();
         setListening(true);
+        return true;
       } catch {
+        rec.current = null;
+        sound.duck("mic", false);
         setError(RECOGNITION_ERRORS["service-not-allowed"]);
+        setBlocked(true);
         setListening(false);
         onEnd?.();
+        return false;
       }
     },
-    [Ctor]
+    [Ctor, abort, sound]
   );
 
-  useEffect(() => () => rec.current?.abort?.(), []);
+  useEffect(() => () => abort(), [abort]);
 
-  return { supported: !!Ctor, listening, interim, error, start, stop, setInterim };
+  return {
+    // ブラウザの音声認識が使えるか（使えないときはキーボードの音声入力で答える）
+    supported: !!Ctor && !blocked,
+    listening,
+    interim,
+    error,
+    start,
+    stop,
+    abort,
+    setInterim,
+    clearError: () => setError(""),
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -436,12 +529,12 @@ function SettingsSheet({ open, onClose, settings, setSettings, speech }) {
       <div
         role="dialog"
         aria-label="音声の設定"
-        className="w-full max-w-md rounded-t-3xl bg-white p-5 shadow-2xl"
-        style={{ paddingBottom: "calc(1.25rem + env(safe-area-inset-bottom))" }}
+        className="w-full max-w-md overflow-y-auto rounded-t-3xl bg-white p-5 shadow-2xl"
+        style={{ paddingBottom: "calc(1.25rem + env(safe-area-inset-bottom))", maxHeight: "90dvh" }}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-extrabold text-slate-900">音声の設定</h2>
+          <h2 className="text-lg font-extrabold text-slate-900">音声・サウンドの設定</h2>
           <button type="button" onClick={onClose} aria-label="閉じる" className="rounded-full p-2 text-slate-400 hover:bg-slate-100">
             <X size={20} />
           </button>
@@ -538,6 +631,45 @@ function SettingsSheet({ open, onClose, settings, setSettings, speech }) {
             </label>
           ))}
         </div>
+
+        <p className="mt-5 text-xs font-bold text-slate-500">サウンド</p>
+        <div className="mt-2 space-y-2">
+          {[
+            ["sfx", "効果音", "覚えた・正解・テスト完了などで音が鳴ります"],
+            ["bgm", "BGM", "やさしい音楽を流します。読み上げ中は小さく、マイクで話すときは止まります"],
+          ].map(([key, label, hint]) => (
+            <label key={key} className="flex items-center gap-3 rounded-xl bg-slate-50 px-3 py-2.5">
+              <span className="flex-1">
+                <span className="block text-sm font-bold text-slate-800">{label}</span>
+                <span className="block text-xs text-slate-500">{hint}</span>
+              </span>
+              <input
+                id={`toggle-${key}`}
+                type="checkbox"
+                checked={settings[key]}
+                onChange={(e) => update({ [key]: e.target.checked })}
+                className="h-5 w-5 accent-indigo-600"
+              />
+            </label>
+          ))}
+        </div>
+        {settings.bgm && (
+          <>
+            <label htmlFor="bgm-volume" className="mt-3 flex items-center justify-between text-xs font-bold text-slate-500">
+              BGM の音量 <span className="tabular-nums text-slate-700">{Math.round(settings.bgmVolume * 100)}%</span>
+            </label>
+            <input
+              id="bgm-volume"
+              type="range"
+              min="0.05"
+              max="1"
+              step="0.05"
+              value={settings.bgmVolume}
+              onChange={(e) => update({ bgmVolume: Number(e.target.value) })}
+              className="mt-2 w-full accent-indigo-600"
+            />
+          </>
+        )}
 
         <button
           type="button"
@@ -694,6 +826,7 @@ function ScreenHeader({ title, sub, onSettings, right }) {
 }
 
 function StudyScreen({ active, state, onChapter, onSwipe, onResetChapter, speech, onSettings }) {
+  const sound = useSound();
   const chapter = CHAPTER_BY_ID[state.chapter] || CHAPTERS[0];
   const queue = useMemo(() => chapterQueue(state, chapter), [state, chapter]);
   const [exit, setExit] = useState(null);
@@ -713,6 +846,8 @@ function StudyScreen({ active, state, onChapter, onSwipe, onResetChapter, speech
     (dir) => {
       if (!current || exit) return;
       setExit(dir);
+      sound.play(dir === "right" ? "learned" : "again");
+      if (dir === "right" && queue.length === 1) setTimeout(() => sound.play("complete"), 350); // 章クリア
       pending.current = () => onSwipe(chapter, current.id, dir);
       timer.current = setTimeout(() => {
         pending.current = null;
@@ -722,7 +857,7 @@ function StudyScreen({ active, state, onChapter, onSwipe, onResetChapter, speech
         setRound((r) => r + 1);
       }, EXIT_MS);
     },
-    [current, exit, onSwipe, chapter]
+    [current, exit, onSwipe, chapter, sound, queue.length]
   );
 
   useEffect(
@@ -799,7 +934,10 @@ function StudyScreen({ active, state, onChapter, onSwipe, onResetChapter, speech
               exit={exit}
               onRelease={decide}
               flipped={flipped}
-              onFlip={() => setFlipped((f) => !f)}
+              onFlip={() => {
+                sound.play("flip");
+                setFlipped((f) => !f);
+              }}
               speech={speech}
             />
           </div>
@@ -1010,6 +1148,7 @@ function TestSetup({ config, setConfig, misses, tests, onStart, onSettings }) {
 }
 
 function TestRun({ quiz, config, pool, speech, recognition, onFinish, onQuit, active }) {
+  const sound = useSound();
   const [idx, setIdx] = useState(0);
   const [results, setResults] = useState([]);
   const [phase, setPhase] = useState("answer");
@@ -1034,14 +1173,24 @@ function TestRun({ quiz, config, pool, speech, recognition, onFinish, onQuit, ac
   useEffect(() => {
     setInput("");
     setHint(false);
+    recognition.abort();
     recognition.setInterim("");
     // 音声だけで出題するときは、問題が出た時点で読み上げる
     if (audioPrompt) speech.speak(item.english);
-    if (answerMode === "type") setTimeout(() => inputRef.current?.focus(), 50);
+    if (answerMode === "type" || (answerMode === "voice" && !recognition.supported)) setTimeout(() => inputRef.current?.focus(), 50);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [idx]);
 
+  /** 答え方を切り替える。聞き取り中なら止め、前の結果で答えてしまわないようにする */
+  const switchMode = (mode) => {
+    recognition.abort();
+    recognition.clearError();
+    setAnswerMode(mode);
+    if (mode !== "choice") setTimeout(() => inputRef.current?.focus(), 50);
+  };
+
   const submit = (answer, verdict) => {
+    sound.play(isCorrect(verdict) ? "correct" : "wrong");
     setResults((r) => [...r, { id: item.id, input: answer, verdict, correct: isCorrect(verdict) }]);
     setPhase("feedback");
     recognition.stop();
@@ -1063,6 +1212,7 @@ function TestRun({ quiz, config, pool, speech, recognition, onFinish, onQuit, ac
   };
 
   const override = () => {
+    sound.play("correct");
     setResults((r) => r.map((x, i) => (i === r.length - 1 ? { ...x, verdict: "override", correct: true } : x)));
   };
 
@@ -1155,7 +1305,19 @@ function TestRun({ quiz, config, pool, speech, recognition, onFinish, onQuit, ac
 
         {phase === "answer" && (
           <div className="mt-4">
-            {answerMode === "type" && (
+            <div className="mb-3">
+              <Segmented
+                name="answer-mode"
+                value={answerMode}
+                onChange={switchMode}
+                options={[
+                  { value: "type", label: "文字で", icon: Keyboard },
+                  { value: "voice", label: "声で", icon: Mic },
+                  { value: "choice", label: "選ぶ", icon: ListChecks },
+                ]}
+              />
+            </div>
+            {(answerMode === "type" || (answerMode === "voice" && !recognition.supported)) && (
               <form
                 onSubmit={(e) => {
                   e.preventDefault();
@@ -1168,7 +1330,13 @@ function TestRun({ quiz, config, pool, speech, recognition, onFinish, onQuit, ac
                   ref={inputRef}
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
-                  placeholder={jaEn ? "英語で入力" : "日本語で意味を入力"}
+                  placeholder={
+                    answerMode === "voice"
+                      ? "キーボードのマイク（🎤）を押して話す"
+                      : jaEn
+                        ? "英語で入力"
+                        : "日本語で意味を入力"
+                  }
                   autoComplete="off"
                   autoCapitalize="off"
                   autoCorrect="off"
@@ -1176,6 +1344,13 @@ function TestRun({ quiz, config, pool, speech, recognition, onFinish, onQuit, ac
                   lang={jaEn ? "en" : "ja"}
                   className="w-full rounded-2xl border-0 bg-white px-4 py-3.5 text-base text-slate-900 shadow-sm ring-1 ring-slate-200 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 />
+                {answerMode === "voice" && (
+                  <p className="rounded-xl bg-sky-50 px-3 py-2 text-xs leading-relaxed text-sky-800" data-testid="dictation-hint">
+                    {recognition.error ||
+                      "このブラウザでは音声認識が使えないため、キーボードの音声入力を使います。入力欄をタップして、キーボードのマイク（🎤）を押して話してください。"}
+                    {jaEn && " 英語で話すときは、キーボードを英語に切り替えてください。"}
+                  </p>
+                )}
                 <div className="grid grid-cols-3 gap-2">
                   <button type="button" onClick={() => submit("", "empty")} className="rounded-2xl bg-white py-3 text-sm font-bold text-slate-500 ring-1 ring-slate-200">
                     わからない
@@ -1191,42 +1366,32 @@ function TestRun({ quiz, config, pool, speech, recognition, onFinish, onQuit, ac
               </form>
             )}
 
-            {answerMode === "voice" && (
+            {answerMode === "voice" && recognition.supported && (
               <div className="flex flex-col items-center gap-3">
-                {!recognition.supported ? (
-                  <p className="rounded-xl bg-amber-50 px-3 py-2 text-xs text-amber-700">
-                    このブラウザは音声入力に対応していません（Chrome・Edge・Safari で使えます）。
-                  </p>
-                ) : (
-                  <>
-                    <button
-                      type="button"
-                      aria-label={recognition.listening ? "聞き取りを止める" : "話して答える"}
-                      onClick={() => (recognition.listening ? recognition.stop() : recognition.start(submitVoice, jaEn ? "en-US" : "ja-JP"))}
-                      className={`h-20 w-20 rounded-full flex items-center justify-center text-white shadow-lg transition active:scale-90 ${
-                        recognition.listening ? "bg-rose-500 animate-pulse" : "bg-indigo-600"
-                      }`}
-                    >
-                      <Mic size={34} />
-                    </button>
-                    <p className="text-sm text-slate-600 min-h-[1.5rem]">
-                      {recognition.listening
-                        ? recognition.interim || (jaEn ? "聞き取り中…英語で話してください" : "聞き取り中…日本語で話してください")
-                        : jaEn
-                          ? "マイクを押して英語で答える"
-                          : "マイクを押して日本語で答える"}
-                    </p>
-                  </>
-                )}
+                <button
+                  type="button"
+                  aria-label={recognition.listening ? "聞き取りを止める" : "話して答える"}
+                  onClick={() => {
+                    if (recognition.listening) return recognition.stop();
+                    recognition.start(submitVoice, jaEn ? "en-US" : "ja-JP");
+                  }}
+                  className={`h-20 w-20 rounded-full flex items-center justify-center text-white shadow-lg transition active:scale-90 ${
+                    recognition.listening ? "bg-rose-500 animate-pulse" : "bg-indigo-600"
+                  }`}
+                >
+                  <Mic size={34} />
+                </button>
+                <p className="text-sm text-slate-600 min-h-[1.5rem]">
+                  {recognition.listening
+                    ? recognition.interim || (jaEn ? "聞き取り中…英語で話してください" : "聞き取り中…日本語で話してください")
+                    : jaEn
+                      ? "マイクを押して英語で答える"
+                      : "マイクを押して日本語で答える"}
+                </p>
                 {recognition.error && <p className="rounded-xl bg-amber-50 px-3 py-2 text-xs text-amber-700">{recognition.error}</p>}
-                <div className="flex gap-2">
-                  <button type="button" onClick={() => setAnswerMode("type")} className="rounded-full bg-white px-3 py-1.5 text-xs font-bold text-slate-600 ring-1 ring-slate-200">
-                    入力で答える
-                  </button>
-                  <button type="button" onClick={() => submit("", "empty")} className="rounded-full bg-white px-3 py-1.5 text-xs font-bold text-slate-500 ring-1 ring-slate-200">
-                    わからない
-                  </button>
-                </div>
+                <button type="button" onClick={() => submit("", "empty")} className="rounded-full bg-white px-3 py-1.5 text-xs font-bold text-slate-500 ring-1 ring-slate-200">
+                  わからない
+                </button>
               </div>
             )}
 
@@ -1306,6 +1471,8 @@ function TestRun({ quiz, config, pool, speech, recognition, onFinish, onQuit, ac
 }
 
 function TestResult({ results, scope, direction, speech, onRetryWrong, onRetry, onBack }) {
+  const sound = useSound();
+  useEffect(() => sound.play("complete"), [sound]);
   const correct = results.filter((r) => r.correct).length;
   const pct = Math.round((correct / results.length) * 100);
   const wrong = results.filter((r) => !r.correct).map((r) => LIBRARY.byId[r.id]);
@@ -1467,7 +1634,7 @@ function ShadowScreen({ state, settings, speech, onShadowDone, onSettings }) {
     run.current++;
     clearTimeout(timer.current);
     speech.stop();
-    recognition.stop();
+    recognition.abort();
   }, [speech, recognition]);
 
   useEffect(() => () => halt(), []); // eslint-disable-line react-hooks/exhaustive-deps
@@ -1519,7 +1686,7 @@ function ShadowScreen({ state, settings, speech, onShadowDone, onSettings }) {
   function playStep(i) {
     const my = ++run.current;
     clearTimeout(timer.current);
-    recognition.stop();
+    recognition.abort();
     setLineIdx(i);
     setPhase("model");
     const step = steps[i];
@@ -1908,6 +2075,11 @@ function AccountCard({ account }) {
           <span className="text-base font-black text-indigo-600">G</span> Google でログイン
         </button>
         {authError && <p className="mt-2 rounded-xl bg-amber-50 px-3 py-2 text-xs text-amber-700">{authError}</p>}
+        {IN_APP && (
+          <div className="mt-2">
+            <InAppNotice app={IN_APP} />
+          </div>
+        )}
       </div>
     );
   }
@@ -2085,6 +2257,86 @@ function ProgressScreen({ state, onResetAll, onOpenChapter, storageOk, account }
 }
 
 // ---------------------------------------------------------------------------
+// 最初の画面（ログイン）
+// ---------------------------------------------------------------------------
+/** アプリ内ブラウザ（LINE 以外）で開かれたときの案内 */
+function InAppNotice({ app }) {
+  const [copied, setCopied] = useState(false);
+  const url = typeof location !== "undefined" ? location.href.split("?")[0] : "";
+  return (
+    <div className="rounded-2xl bg-amber-50 px-4 py-3 text-left text-xs leading-relaxed text-amber-800 ring-1 ring-amber-200" data-testid="in-app-notice">
+      <p className="font-bold">{app} のアプリ内で開いています</p>
+      <p className="mt-1">
+        ここでは Google ログインと音声入力が使えません。右上（または右下）のメニューから「ブラウザで開く」を選ぶか、
+        URL をコピーして Safari / Chrome に貼り付けてください。
+      </p>
+      <button
+        type="button"
+        onClick={() => {
+          navigator.clipboard?.writeText(url).then(() => setCopied(true), () => setCopied(false));
+        }}
+        className="mt-2 rounded-full bg-white px-3 py-1.5 font-bold text-amber-800 ring-1 ring-amber-300"
+      >
+        {copied ? "コピーしました" : "URL をコピー"}
+      </button>
+      <p className="mt-1 select-all break-all text-[11px] text-amber-700">{url}</p>
+    </div>
+  );
+}
+
+function WelcomeScreen({ account, onSkip }) {
+  const busy = account.sync.status === "loading" || account.sync.status === "checking";
+  return (
+    <div className="absolute inset-0 z-40 flex flex-col overflow-y-auto bg-gradient-to-b from-indigo-600 via-violet-600 to-fuchsia-600 px-6 text-white" data-testid="welcome">
+      <div className="flex flex-1 flex-col items-center justify-center py-10 text-center">
+        <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white/20 shadow-lg ring-1 ring-white/30">
+          <Sparkles size={32} />
+        </div>
+        <h1 className="mt-5 text-4xl font-black tracking-tight">SwipeTalk</h1>
+        <p className="mt-2 text-sm text-white/85">スワイプとテストで、話せる英語を。</p>
+
+        <ul className="mt-8 w-full max-w-xs space-y-3 text-left text-sm">
+          {[
+            [Layers, `${CHAPTERS.length}章・${TOTAL}フレーズ（アメリカ生活編つき）`],
+            [PenLine, "日本語→英語テストとシャドーイングで口から出す"],
+            [Cloud, "ログインすると、どの端末でも続きから"],
+          ].map(([Icon, text]) => (
+            <li key={text} className="flex items-start gap-3">
+              <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white/20">
+                <Icon size={15} />
+              </span>
+              <span className="leading-snug">{text}</span>
+            </li>
+          ))}
+        </ul>
+
+        <div className="mt-10 w-full max-w-xs space-y-3">
+          {IN_APP && <InAppNotice app={IN_APP} />}
+          <button
+            type="button"
+            onClick={account.signIn}
+            disabled={busy}
+            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-white py-3.5 text-base font-extrabold text-slate-800 shadow-lg transition active:scale-95 disabled:opacity-60"
+          >
+            <span className="text-lg font-black text-indigo-600">G</span>
+            {busy ? "読み込み中…" : "Google でログイン"}
+          </button>
+          {account.authError && (
+            <p className="rounded-xl bg-white/15 px-3 py-2 text-left text-xs leading-relaxed">{account.authError}</p>
+          )}
+          <button type="button" onClick={onSkip} className="w-full py-2 text-sm font-bold text-white/90 underline underline-offset-4">
+            ログインせずに使う
+          </button>
+          <p className="text-[11px] leading-relaxed text-white/70">
+            ログインしない場合、進捗はこの端末にだけ保存されます。あとから「進捗」タブでログインすると引き継げます。
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // アプリ本体
 // ---------------------------------------------------------------------------
 export default function App() {
@@ -2093,7 +2345,23 @@ export default function App() {
   const [tab, setTab] = useState("study");
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [storageOk] = useState(() => storage.available());
-  const speech = useSpeech(settings);
+  const [sound] = useState(() => new SoundEngine());
+  const speech = useSpeech(settings, sound);
+
+  // ブラウザは画面に触れるまで音を出させないので、最初のタップで効果音と BGM を有効にする
+  useEffect(() => {
+    const unlock = () => sound.unlock();
+    window.addEventListener("pointerdown", unlock);
+    window.addEventListener("keydown", unlock);
+    return () => {
+      window.removeEventListener("pointerdown", unlock);
+      window.removeEventListener("keydown", unlock);
+    };
+  }, [sound]);
+  useEffect(() => {
+    sound.setSfx(settings.sfx);
+    sound.setBgm(settings.bgm, settings.bgmVolume);
+  }, [sound, settings.sfx, settings.bgm, settings.bgmVolume]);
 
   useEffect(() => storage.save(STATE_KEY, state), [state]);
   useEffect(() => storage.save(SETTINGS_KEY, settings), [settings]);
@@ -2234,6 +2502,10 @@ export default function App() {
     retry: () => (ready.current ? flush() : user && connect(user)),
   };
 
+  // ログインしていなければ、起動時にログイン画面を出す（「ログインせずに使う」でこの起動中は出さない）
+  const [skipLogin, setSkipLogin] = useState(() => session.get(SKIP_LOGIN_KEY) === "1");
+  const showWelcome = cloud.available && !user && sync.status === "signedOut" && !skipLogin;
+
   const openSettings = () => setSettingsOpen(true);
   const navItems = [
     { key: "study", label: "学習", icon: Layers },
@@ -2244,6 +2516,7 @@ export default function App() {
   ];
 
   return (
+    <SoundContext.Provider value={sound}>
     <div className="w-full bg-slate-100" style={{ height: "100dvh" }}>
       <div className="relative mx-auto flex h-full w-full max-w-md flex-col bg-slate-50 shadow-xl">
         <main className="min-h-0 flex-1 overflow-hidden">
@@ -2296,7 +2569,10 @@ export default function App() {
                 <button
                   key={key}
                   type="button"
-                  onClick={() => setTab(key)}
+                  onClick={() => {
+                    sound.play("tap");
+                    setTab(key);
+                  }}
                   aria-current={current ? "page" : undefined}
                   className={`flex flex-col items-center gap-0.5 py-2.5 text-xs font-semibold transition ${
                     current ? "text-indigo-600" : "text-slate-400"
@@ -2310,8 +2586,19 @@ export default function App() {
           </div>
         </nav>
 
+        {showWelcome && (
+          <WelcomeScreen
+            account={account}
+            onSkip={() => {
+              session.set(SKIP_LOGIN_KEY, "1");
+              setSkipLogin(true);
+            }}
+          />
+        )}
+
         <SettingsSheet open={settingsOpen} onClose={() => setSettingsOpen(false)} settings={settings} setSettings={setSettings} speech={speech} />
       </div>
     </div>
+    </SoundContext.Provider>
   );
 }
