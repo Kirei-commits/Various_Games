@@ -350,6 +350,52 @@ export function prosodyPlan(text, { expressive = true, rate = 0.95, role = null 
 }
 
 // ---------------------------------------------------------------------------
+// シャドーイング
+// ---------------------------------------------------------------------------
+
+/** 1フレーズぶんの練習手順: 見出しの英語 → 会話例の各行 */
+export function shadowSteps(item) {
+  const ja = parseDialogue(item.exampleJapanese);
+  return [
+    { text: item.english, role: null, ja: item.japanese },
+    ...parseDialogue(item.exampleContext).map((l, i) => ({ text: l.text, role: l.speaker, ja: ja[i]?.text || "" })),
+  ];
+}
+
+/**
+ * 「あなたの番」の長さ（ミリ秒）。お手本と同じくらいの長さで言えるように、
+ * 単語数と話す速さから見積もり、倍率（1〜2倍）でゆとりを持たせる。
+ */
+export function pauseMs(text, rate = 1, multiplier = 1.5) {
+  const words = (text.match(/[A-Za-z0-9']+/g) || []).length;
+  const modelMs = 500 + (words * 380) / Math.max(rate, 0.3);
+  return Math.max(1200, Math.round(modelMs * multiplier));
+}
+
+/**
+ * 発音チェック: 音声認識で聞き取れた文と、お手本の単語を突き合わせる。
+ * 並び順は問わず、聞き取れた単語を1回ずつ消費していく。
+ */
+export function wordMatch(said, target) {
+  const bag = new Map();
+  for (const w of normalizeEn(said).split(" ").filter(Boolean)) bag.set(w, (bag.get(w) || 0) + 1);
+  let counted = 0;
+  let hit = 0;
+  const words = target.split(/\s+/).filter(Boolean).map((text) => {
+    const parts = normalizeEn(text).split(" ").filter(Boolean);
+    if (parts.length === 0) return { text, ok: true };
+    counted++;
+    const ok = parts.every((p) => (bag.get(p) || 0) > 0);
+    if (ok) {
+      hit++;
+      for (const p of parts) bag.set(p, bag.get(p) - 1);
+    }
+    return { text, ok };
+  });
+  return { words, ratio: counted ? hit / counted : 1 };
+}
+
+// ---------------------------------------------------------------------------
 // 学習状態
 // ---------------------------------------------------------------------------
 
@@ -368,6 +414,7 @@ export const LEGACY_V1_IDS = {
 export const initialStats = () => ({
   totalSwipes: 0,
   totalAnswers: 0,
+  totalShadows: 0,
   streak: 0,
   lastStudyDate: null,
   todayDate: null,
@@ -439,14 +486,15 @@ export function chapterQueue(state, chapter) {
   return out;
 }
 
-export function recordActivity(stats, today, yesterday, { swipes = 0, answers = 0 } = {}) {
+export function recordActivity(stats, today, yesterday, { swipes = 0, answers = 0, shadows = 0 } = {}) {
   let streak = stats.streak;
   if (stats.lastStudyDate !== today) streak = stats.lastStudyDate === yesterday ? streak + 1 : 1;
-  const n = swipes + answers;
+  const n = swipes + answers + shadows;
   return {
     ...stats,
     totalSwipes: stats.totalSwipes + swipes,
     totalAnswers: (stats.totalAnswers || 0) + answers,
+    totalShadows: (stats.totalShadows || 0) + shadows,
     streak,
     lastStudyDate: today,
     todayDate: today,

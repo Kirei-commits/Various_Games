@@ -22,6 +22,10 @@ import {
   ArrowRight,
   Ear,
   Eye,
+  Repeat,
+  Pause,
+  SkipBack,
+  SkipForward,
 } from "lucide-react";
 import rawChapters from "./data/index.js";
 import {
@@ -35,6 +39,7 @@ import {
   applyTestResult,
   freshState,
   currentStreak,
+  recordActivity,
   todayAndYesterday,
   gradeAnswer,
   gradeEnglish,
@@ -44,6 +49,9 @@ import {
   makeChoices,
   buildQuiz,
   prosodyPlan,
+  shadowSteps,
+  pauseMs,
+  wordMatch,
 } from "./logic.js";
 
 /*
@@ -174,10 +182,14 @@ function useSpeech(settings) {
     return sameLang[0] || voices.find((v) => v !== voiceA) || voiceA;
   }, [voices, voiceA, settings.twoVoices]);
 
-  /** lines: [{ text, role }] を順番に読み上げる。key は再生中表示に使う */
+  /**
+   * lines: [{ text, role }] を順番に読み上げる。key は再生中表示に使う。
+   * onDone は最後まで読み終えたときだけ呼ぶ（途中で止めた・別の再生に割り込まれたときは呼ばない）。
+   * 読み上げできない環境では false を返す。
+   */
   const speakLines = useCallback(
-    (lines, key) => {
-      if (!supported || !lines.length) return;
+    (lines, key, onDone) => {
+      if (!supported || !lines.length) return false;
       const synth = window.speechSynthesis;
       synth.cancel();
       const my = ++token.current;
@@ -197,22 +209,32 @@ function useSpeech(settings) {
           utterances.push(u);
         }
       }
-      if (!utterances.length) return;
-      const clear = () => {
-        if (token.current === my) setSpeaking(null);
+      if (!utterances.length) return false;
+      const finish = (completed) => {
+        if (token.current !== my) return;
+        setSpeaking(null);
+        if (completed) onDone?.();
       };
       utterances[0].onstart = () => token.current === my && setSpeaking(key);
-      utterances[utterances.length - 1].onend = clear;
-      utterances.forEach((u) => (u.onerror = clear));
+      utterances[utterances.length - 1].onend = () => finish(true);
+      // 声が使えないなどのエラーでも先へ進める（止めた・割り込まれたときは除く）
+      utterances.forEach((u) => (u.onerror = (e) => finish(!["interrupted", "canceled"].includes(e?.error))));
       // Chrome は cancel 直後の speak を取りこぼすことがあるので1拍おく
-      setTimeout(() => utterances.forEach((u) => synth.speak(u)), 0);
+      setTimeout(() => token.current === my && utterances.forEach((u) => synth.speak(u)), 0);
+      return true;
     },
     [supported, voiceA, voiceB, settings.expressive, settings.rate, settings.twoVoices]
   );
 
   const speak = useCallback((text, role = null) => speakLines([{ text, role }], text), [speakLines]);
 
-  return { supported, speak, speakLines, speaking, voices, voiceA };
+  const stop = useCallback(() => {
+    token.current++;
+    setSpeaking(null);
+    if (supported) window.speechSynthesis.cancel();
+  }, [supported]);
+
+  return { supported, speak, speakLines, stop, speaking, voices, voiceA };
 }
 
 // ---------------------------------------------------------------------------
@@ -236,7 +258,7 @@ function useRecognition() {
   const stop = useCallback(() => rec.current?.stop(), []);
 
   const start = useCallback(
-    (onFinal, lang = "ja-JP") => {
+    (onFinal, lang = "ja-JP", onEnd) => {
       if (!Ctor) return;
       setError("");
       setInterim("");
@@ -252,13 +274,17 @@ function useRecognition() {
           if (res.isFinal) onFinal(alts);
         };
         r.onerror = (e) => setError(RECOGNITION_ERRORS[e.error] || `音声認識エラー: ${e.error}`);
-        r.onend = () => setListening(false);
+        r.onend = () => {
+          setListening(false);
+          onEnd?.();
+        };
         rec.current = r;
         r.start();
         setListening(true);
       } catch {
         setError(RECOGNITION_ERRORS["service-not-allowed"]);
         setListening(false);
+        onEnd?.();
       }
     },
     [Ctor]
@@ -1360,6 +1386,294 @@ function TestScreen({ active, state, settings, setSettings, speech, onFinishTest
 }
 
 // ---------------------------------------------------------------------------
+// シャドーイング画面
+// ---------------------------------------------------------------------------
+const PAUSE_OPTIONS = [
+  { value: 1, label: "短め" },
+  { value: 1.5, label: "ふつう" },
+  { value: 2, label: "長め" },
+];
+
+function Toggle({ id, checked, onChange, label }) {
+  return (
+    <label
+      htmlFor={id}
+      className={`inline-flex cursor-pointer items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold ring-1 transition ${
+        checked ? "bg-indigo-600 text-white ring-indigo-600" : "bg-white text-slate-600 ring-slate-200"
+      }`}
+    >
+      <input id={id} type="checkbox" className="sr-only" checked={checked} onChange={(e) => onChange(e.target.checked)} />
+      {label}
+    </label>
+  );
+}
+
+function ShadowScreen({ state, settings, speech, onShadowDone, onSettings }) {
+  const recognition = useRecognition();
+  const [chapterId, setChapterId] = useState(state.chapter);
+  const chapter = CHAPTER_BY_ID[chapterId] || CHAPTERS[0];
+  const [itemIdx, setItemIdx] = useState(0);
+  const [lineIdx, setLineIdx] = useState(0);
+  const [phase, setPhase] = useState("idle"); // idle | model | turn | done
+  const [turnMs, setTurnMs] = useState(0);
+  const [checks, setChecks] = useState({});
+  const [opts, setOpts] = useState({ hideText: false, showJa: true, pause: 1.5, check: false });
+  const timer = useRef(null);
+  const run = useRef(0);
+  const autoStart = useRef(false);
+
+  const item = chapter.items[Math.min(itemIdx, chapter.items.length - 1)];
+  const steps = useMemo(() => shadowSteps(item), [item]);
+  const playing = phase === "model" || phase === "turn";
+
+  const halt = useCallback(() => {
+    run.current++;
+    clearTimeout(timer.current);
+    speech.stop();
+    recognition.stop();
+  }, [speech, recognition]);
+
+  useEffect(() => () => halt(), []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // マイクが使えないと分かったら発音チェックを切る（練習自体は続ける）
+  useEffect(() => {
+    if (recognition.error && opts.check) setOpts((o) => ({ ...o, check: false }));
+  }, [recognition.error]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const finishItem = (my) => {
+    if (run.current !== my) return;
+    onShadowDone();
+    if (itemIdx + 1 < chapter.items.length) {
+      autoStart.current = true;
+      setChecks({});
+      setLineIdx(0);
+      setItemIdx(itemIdx + 1);
+    } else {
+      setPhase("done");
+    }
+  };
+
+  const advance = (i, my) => {
+    if (run.current !== my) return;
+    if (i + 1 < steps.length) playStep(i + 1);
+    else finishItem(my);
+  };
+
+  const startTurn = (i, my) => {
+    if (run.current !== my) return;
+    const step = steps[i];
+    const ms = pauseMs(step.text, settings.rate, opts.pause);
+    setPhase("turn");
+    setTurnMs(ms);
+    if (opts.check && recognition.supported) {
+      recognition.start(
+        (alts) => run.current === my && setChecks((c) => ({ ...c, [i]: wordMatch(alts[0] || "", step.text) })),
+        "en-US",
+        () => {
+          if (run.current !== my) return;
+          timer.current = setTimeout(() => advance(i, my), 900);
+        }
+      );
+    } else {
+      timer.current = setTimeout(() => advance(i, my), ms);
+    }
+  };
+
+  function playStep(i) {
+    const my = ++run.current;
+    clearTimeout(timer.current);
+    recognition.stop();
+    setLineIdx(i);
+    setPhase("model");
+    const step = steps[i];
+    const ok = speech.speakLines([{ text: step.text, role: step.role }], `shadow:${item.id}:${i}`, () => startTurn(i, my));
+    // 読み上げできない環境では、お手本の長さを見積もって待つ
+    if (!ok) timer.current = setTimeout(() => startTurn(i, my), pauseMs(step.text, settings.rate, 1));
+  }
+
+  useEffect(() => {
+    if (autoStart.current) {
+      autoStart.current = false;
+      playStep(0);
+    }
+  }, [itemIdx]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const pause = () => {
+    halt();
+    setPhase("idle");
+  };
+
+  const jump = (nextIdx) => {
+    const wasPlaying = playing;
+    halt();
+    setChecks({});
+    setLineIdx(0);
+    setPhase("idle");
+    if (nextIdx === itemIdx) {
+      if (wasPlaying) playStep(0);
+      return;
+    }
+    autoStart.current = wasPlaying;
+    setItemIdx(nextIdx);
+  };
+
+  const changeChapter = (id) => {
+    halt();
+    autoStart.current = false;
+    setChapterId(id);
+    setItemIdx(0);
+    setLineIdx(0);
+    setChecks({});
+    setPhase("idle");
+  };
+
+  const togglePlay = () => {
+    if (playing) return pause();
+    if (phase === "done") {
+      jump(0);
+      autoStart.current = true;
+      return;
+    }
+    playStep(lineIdx);
+  };
+
+  const statusText = {
+    idle: "▶ を押すと、お手本 → あなたの番 の順に進みます",
+    model: "お手本を聞いて…",
+    turn: opts.check ? "あなたの番！マイクに向かって真似して言おう" : "あなたの番！すぐに真似して言おう",
+    done: "この章のシャドーイングが終わりました！",
+  }[phase];
+
+  return (
+    <div className="flex h-full flex-col px-5 pt-4 pb-3">
+      <ScreenHeader title="シャドーイング" sub="聞いて、すぐ真似して言う" onSettings={onSettings} />
+      <ChapterSelect id="shadow-chapter" value={chapter.id} onChange={changeChapter} className="mt-3" />
+
+      <div className="mt-2 flex flex-wrap items-center gap-2">
+        <Toggle id="shadow-hide" checked={opts.hideText} onChange={(v) => setOpts((o) => ({ ...o, hideText: v }))} label="英文を隠す" />
+        <Toggle id="shadow-ja" checked={opts.showJa} onChange={(v) => setOpts((o) => ({ ...o, showJa: v }))} label="訳を表示" />
+        {recognition.supported && (
+          <Toggle id="shadow-check" checked={opts.check} onChange={(v) => setOpts((o) => ({ ...o, check: v }))} label="発音チェック" />
+        )}
+      </div>
+      <div className="mt-2 flex items-center gap-2">
+        <span className="shrink-0 text-xs font-bold text-slate-500">あなたの番の長さ</span>
+        <div className="flex-1">
+          <Segmented name="pause" value={opts.pause} onChange={(pause) => setOpts((o) => ({ ...o, pause }))} options={PAUSE_OPTIONS} />
+        </div>
+      </div>
+      {recognition.error && <p className="mt-2 rounded-xl bg-amber-50 px-3 py-2 text-xs text-amber-700">{recognition.error}</p>}
+
+      <div className="mt-3 min-h-0 flex-1 overflow-y-auto rounded-3xl bg-white p-4 shadow-sm ring-1 ring-slate-200">
+        <p className="text-xs font-bold text-slate-400 tabular-nums" data-testid="shadow-counter">
+          {itemIdx + 1} / {chapter.items.length}
+        </p>
+        <ol className="mt-2 space-y-2">
+          {steps.map((step, i) => {
+            const current = i === lineIdx && phase !== "idle" && phase !== "done";
+            const done = i < lineIdx || phase === "done";
+            const hidden = opts.hideText && !done && !(current && phase === "turn");
+            const check = checks[i];
+            return (
+              <li
+                key={i}
+                data-testid="shadow-line"
+                className={`rounded-2xl px-3 py-2.5 transition ${
+                  current ? (phase === "turn" ? "bg-pink-50 ring-2 ring-pink-300" : "bg-indigo-50 ring-2 ring-indigo-300") : "bg-slate-50"
+                }`}
+              >
+                <div className="flex items-start gap-2">
+                  <span
+                    className={`mt-0.5 h-6 w-6 shrink-0 rounded-full text-xs font-bold flex items-center justify-center ${
+                      step.role === "B" ? "bg-pink-100 text-pink-600" : step.role === "A" ? "bg-sky-100 text-sky-600" : "bg-indigo-100 text-indigo-600"
+                    }`}
+                  >
+                    {step.role || "★"}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className={`leading-snug ${i === 0 ? "text-lg font-extrabold text-slate-900" : "text-sm text-slate-800"}`}>
+                      {hidden ? (
+                        <span className="select-none text-slate-300">{step.text.replace(/[A-Za-z]/g, "•")}</span>
+                      ) : check ? (
+                        check.words.map((w, k) => (
+                          <span key={k} className={w.ok ? "text-emerald-600" : "text-rose-500 underline decoration-2"}>
+                            {w.text}{" "}
+                          </span>
+                        ))
+                      ) : (
+                        step.text
+                      )}
+                    </p>
+                    {opts.showJa && step.ja && <p className="mt-0.5 text-xs text-slate-500">{step.ja}</p>}
+                    {check && (
+                      <p className="mt-1 text-xs font-bold text-slate-600" data-testid="shadow-score">
+                        発音チェック {Math.round(check.ratio * 100)}%
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </li>
+            );
+          })}
+        </ol>
+      </div>
+
+      <div className="mt-3">
+        <p className="text-center text-sm font-bold text-slate-700" data-testid="shadow-status">
+          {statusText}
+        </p>
+        <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-slate-200">
+          {phase === "turn" && (
+            <div
+              key={`${item.id}:${lineIdx}`}
+              className="h-full rounded-full bg-pink-400"
+              style={{ width: "100%", animation: `swipetalk-shrink ${opts.check ? 6000 : turnMs}ms linear forwards` }}
+            />
+          )}
+        </div>
+      </div>
+
+      <div className="mt-3 flex items-center justify-center gap-5">
+        <button
+          type="button"
+          aria-label="前のフレーズ"
+          disabled={itemIdx === 0}
+          onClick={() => jump(itemIdx - 1)}
+          className="h-11 w-11 rounded-full bg-white shadow ring-1 ring-slate-200 flex items-center justify-center text-slate-600 active:scale-90 disabled:opacity-30"
+        >
+          <SkipBack size={18} />
+        </button>
+        <button
+          type="button"
+          aria-label="この行をもう一度"
+          onClick={() => playStep(lineIdx)}
+          className="h-11 w-11 rounded-full bg-white shadow ring-1 ring-slate-200 flex items-center justify-center text-slate-600 active:scale-90"
+        >
+          <Repeat size={18} />
+        </button>
+        <button
+          type="button"
+          aria-label={playing ? "一時停止" : "シャドーイングを始める"}
+          onClick={togglePlay}
+          className="h-16 w-16 rounded-full bg-gradient-to-br from-indigo-500 to-violet-600 text-white shadow-lg flex items-center justify-center active:scale-90"
+        >
+          {playing ? <Pause size={28} /> : <Play size={28} />}
+        </button>
+        <button
+          type="button"
+          aria-label="次のフレーズ"
+          disabled={itemIdx + 1 >= chapter.items.length}
+          onClick={() => jump(itemIdx + 1)}
+          className="h-11 w-11 rounded-full bg-white shadow ring-1 ring-slate-200 flex items-center justify-center text-slate-600 active:scale-90 disabled:opacity-30"
+        >
+          <SkipForward size={18} />
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // 一覧画面
 // ---------------------------------------------------------------------------
 const PAGE = 60;
@@ -1544,6 +1858,8 @@ function ProgressScreen({ state, onResetAll, onOpenChapter, storageOk }) {
     { icon: <Target size={20} />, label: "今日の学習", value: `${todayCount}問`, color: "text-sky-500 bg-sky-50" },
     { icon: <Layers size={20} />, label: "累計スワイプ", value: `${s.totalSwipes}回`, color: "text-violet-500 bg-violet-50" },
     { icon: <PenLine size={20} />, label: "テスト解答数", value: `${s.totalAnswers || 0}問`, color: "text-amber-500 bg-amber-50" },
+    { icon: <Repeat size={20} />, label: "シャドーイング", value: `${s.totalShadows || 0}回`, color: "text-pink-500 bg-pink-50" },
+    { icon: <Target size={20} />, label: "苦手な問題", value: `${Object.keys(state.misses).length}問`, color: "text-rose-500 bg-rose-50" },
   ];
 
   return (
@@ -1661,6 +1977,10 @@ export default function App() {
     setState((s) => ({ ...freshState(CHAPTERS[0].id), stats: s.stats }));
     setTab("study");
   }, []);
+  const onShadowDone = useCallback(() => {
+    const { today, yesterday } = todayAndYesterday();
+    setState((s) => ({ ...s, stats: recordActivity(s.stats, today, yesterday, { shadows: 1 }) }));
+  }, []);
   const onFinishTest = useCallback((scope, results) => {
     const { today, yesterday } = todayAndYesterday();
     setState((s) => applyTestResult(s, LIBRARY, scope, results, today, yesterday));
@@ -1670,6 +1990,7 @@ export default function App() {
   const navItems = [
     { key: "study", label: "学習", icon: Layers },
     { key: "test", label: "テスト", icon: PenLine },
+    { key: "shadow", label: "シャドー", icon: Repeat },
     { key: "list", label: "一覧", icon: List },
     { key: "progress", label: "進捗", icon: Trophy },
   ];
@@ -1701,6 +2022,9 @@ export default function App() {
               onSettings={openSettings}
             />
           </div>
+          {tab === "shadow" && (
+            <ShadowScreen state={state} settings={settings} speech={speech} onShadowDone={onShadowDone} onSettings={openSettings} />
+          )}
           {tab === "list" && <ListScreen state={state} onToggle={onToggle} speech={speech} />}
           {tab === "progress" && (
             <ProgressScreen
@@ -1716,7 +2040,7 @@ export default function App() {
         </main>
 
         <nav className="border-t border-slate-200 bg-white/90 backdrop-blur" style={{ paddingBottom: "env(safe-area-inset-bottom)" }}>
-          <div className="grid grid-cols-4">
+          <div className="grid grid-cols-5">
             {navItems.map(({ key, label, icon: Icon }) => {
               const current = tab === key;
               return (
