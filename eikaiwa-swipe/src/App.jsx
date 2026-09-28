@@ -45,6 +45,7 @@ import {
   Feather as NotebookPen,
 } from "lucide-react";
 import { BattleBackdrop, Monster, Dragon, Hero, monsterKindOf } from "./battle-art.jsx";
+import { loadRecordedIndex, playRecorded, recordedCount, recordedUrls, stopRecorded } from "./recorded.js";
 import { Art, CARD_BACK_ART, CHEST_ART, MACHINE_ART, SHOP_ART, WALLET_ICON } from "./gacha-art.jsx";
 import { saveDiary, usedWords } from "./diary.js";
 import rawChapters, { PARTS, RENAMED } from "./data/index.js";
@@ -339,6 +340,7 @@ function loadInitialState() {
 const DEFAULT_SETTINGS = {
   voiceURI: "",
   voiceBURI: "",
+  recorded: true, // 用意した録音（Gemini の音声）があればそれを使う
   rate: 0.95,
   expressive: true,
   twoVoices: true,
@@ -375,7 +377,17 @@ function useSpeech(settings) {
   const supported = typeof window !== "undefined" && "speechSynthesis" in window;
   const [voices, setVoices] = useState([]);
   const [speaking, setSpeaking] = useState(null);
+  const [recorded, setRecorded] = useState(0); // 使える録音の数（audio/index.json を読んだあと）
   const token = useRef(0);
+
+  useEffect(() => {
+    let alive = true;
+    loadRecordedIndex().then(() => alive && setRecorded(recordedCount()));
+    return () => {
+      alive = false;
+      stopRecorded();
+    };
+  }, []);
 
   useEffect(() => {
     if (!supported) return undefined;
@@ -397,17 +409,11 @@ function useSpeech(settings) {
     [voices, settings.voiceURI, settings.voiceBURI, settings.twoVoices]
   );
 
-  /**
-   * lines: [{ text, role }] を順番に読み上げる。key は再生中表示に使う。
-   * onDone は最後まで読み終えたときだけ呼ぶ（途中で止めた・別の再生に割り込まれたときは呼ばない）。
-   * 読み上げできない環境では false を返す。
-   */
-  const speakLines = useCallback(
-    (lines, key, onDone, seed = key) => {
-      if (!supported || !lines.length) return false;
+  /** speechSynthesis で読み上げる（my は呼び出し側で進めたトークン） */
+  const synthLines = useCallback(
+    (lines, key, onDone, seed, my) => {
       const synth = window.speechSynthesis;
       synth.cancel();
-      const my = ++token.current;
       const utterances = [];
       // 「会話ごとにいろいろな人の声」なら、会話（seed）ごとに A・B の声の組み合わせを変える
       const cast = settings.voiceVariety
@@ -448,7 +454,38 @@ function useSpeech(settings) {
       setTimeout(() => token.current === my && utterances.forEach((u) => synth.speak(u)), 0);
       return true;
     },
-    [supported, voices, voiceA, voiceB, sameVoice, settings.expressive, settings.rate, settings.twoVoices, settings.voiceVariety]
+    [voices, voiceA, voiceB, sameVoice, settings.expressive, settings.rate, settings.twoVoices, settings.voiceVariety]
+  );
+
+  /**
+   * lines: [{ text, role }] を順番に読み上げる。key は再生中表示に使う。
+   * onDone は最後まで読み終えたときだけ呼ぶ（途中で止めた・別の再生に割り込まれたときは呼ばない）。
+   * 読み上げできない環境では false を返す。
+   */
+  const speakLines = useCallback(
+    (lines, key, onDone, seed = key) => {
+      if (!lines.length) return false;
+      // 録音がすべての行にあれば録音を再生する（再生できなければ読み上げに戻す）
+      const urls = settings.recorded ? recordedUrls(lines) : null;
+      if (urls) {
+        if (supported) window.speechSynthesis.cancel();
+        const my = ++token.current;
+        playRecorded(urls, { rate: settings.rate, onStart: () => token.current === my && setSpeaking(key) }).then((r) => {
+          if (token.current !== my) return;
+          if (r === "failed" && supported) {
+            synthLines(lines, key, onDone, seed, my);
+            return;
+          }
+          setSpeaking(null);
+          if (r === "done" || r === "failed") onDone?.();
+        });
+        return true;
+      }
+      if (!supported) return false;
+      stopRecorded();
+      return synthLines(lines, key, onDone, seed, ++token.current);
+    },
+    [supported, settings.recorded, settings.rate, synthLines]
   );
 
   /** seed を渡すと、その会話と同じ声で読む（見出しと会話例の声をそろえるため） */
@@ -457,10 +494,11 @@ function useSpeech(settings) {
   const stop = useCallback(() => {
     token.current++;
     setSpeaking(null);
+    stopRecorded();
     if (supported) window.speechSynthesis.cancel();
   }, [supported]);
 
-  return { supported, speak, speakLines, stop, speaking, voices, voiceA, voiceB, sameVoice };
+  return { supported, speak, speakLines, stop, speaking, voices, voiceA, voiceB, sameVoice, recorded };
 }
 
 // ---------------------------------------------------------------------------
@@ -838,6 +876,23 @@ function SettingsSheet({ open, onClose, settings, setSettings, speech, onResetAl
           <p className="mt-3 rounded-xl bg-amber-50 px-3 py-2 text-xs text-amber-700">このブラウザは音声読み上げに対応していません。</p>
         )}
 
+        {speech.recorded > 0 && (
+          <label className="mt-4 flex items-center gap-3 rounded-xl bg-emerald-50 px-3 py-2.5">
+            <span className="flex-1">
+              <span className="block text-sm font-bold text-slate-800">ネイティブ音声（録音）を使う</span>
+              <span className="block text-xs text-slate-500">
+                アメリカ英語の自然な発音・音のつながりで作った音声です（{speech.recorded.toLocaleString()}文ぶん）。録音の無い文は、この端末の声で読みます。速さは下の「話す速さ」に合わせます
+              </span>
+            </span>
+            <input
+              id="toggle-recorded"
+              type="checkbox"
+              checked={settings.recorded}
+              onChange={(e) => update({ recorded: e.target.checked })}
+              className="h-5 w-5 accent-emerald-600"
+            />
+          </label>
+        )}
         <label className="mt-4 flex items-center gap-3 rounded-xl bg-indigo-50 px-3 py-2.5">
           <span className="flex-1">
             <span className="block text-sm font-bold text-slate-800">会話ごとにいろいろな人の声にする</span>

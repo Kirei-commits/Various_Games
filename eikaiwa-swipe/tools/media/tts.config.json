@@ -1,0 +1,44 @@
+{
+  "_about": "録音（Gemini TTS）の設定。ここを変えて `python3 tools/media/tts.py plan ch01` を実行すると、作り直しになる文の数と費用の目安が出る。",
+  "model": "gemini-3.8-flash-tts",
+  "batch": {
+    "_about": "Batch API（料金が通常の半分・結果は最大24時間後）。chunk は1つのバッチに入れる文の数",
+    "chunk": 100
+  },
+  "output": { "format": "opus", "bitrate": "24k" },
+  "price": {
+    "_about": "費用の目安の計算にだけ使う（2026-09 時点のキャンペーン価格。2027-01-01 から変わる）。音声は約25トークン/秒",
+    "audioPerMillionTokens": 9.0,
+    "batchDiscount": 0.5,
+    "tokensPerSecond": 25
+  },
+  "notes": [
+    "You are a native speaker of General American English recording model audio for Japanese learners who study natural native pronunciation.",
+    "Speak at a natural, conversational native speed and rhythm. Do not slow down, pause between words, or over-enunciate.",
+    "Use real American connected speech: link words together, use the flap T (water, get it), and the natural weak forms and reductions of function words (to, and, of, you, can), while keeping every word intelligible.",
+    "Use clear, natural American intonation and sentence stress that fit the meaning. Questions, surprise and emotions should sound like a real person talking.",
+    "Say only the transcript. Never read these notes, the context or any labels aloud."
+  ],
+  "roles": {
+    "P": {
+      "voice": "Erinome",
+      "_voice": "女性・クリア/はっきり（General American, Conversational / Edu）",
+      "persona": "This is the model phrase on a flashcard. A clear, friendly, natural delivery, as if saying it to a friend."
+    },
+    "A": {
+      "voice": "Achird",
+      "_voice": "男性・親しみやすい/あたたかい（General American, Conversational / Edu）",
+      "persona": "You are person A in a casual everyday conversation. Friendly and relaxed."
+    },
+    "B": {
+      "voice": "Callirrhoe",
+      "_voice": "女性・気さく/リラックス（General American, Conversational / Edu）",
+      "persona": "You are person B in a casual everyday conversation, replying naturally. Friendly and relaxed."
+    }
+  },
+  "sampleVoices": {
+    "_about": "`tts.py sample` で聞き比べる候補（General American）",
+    "female": ["Erinome", "Callirrhoe", "Despina", "Aoede", "Sulafat"],
+    "male": ["Achird", "Iapetus", "Umbriel", "Zubenelgenubi", "Puck"]
+  }
+}

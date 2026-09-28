@@ -53,6 +53,8 @@ export const test = base.extend({
     await page.addInitScript(() => sessionStorage.setItem("swipetalk:skipLogin", "1"));
     // ログインボーナスの画面は bonus.spec で検証するので、ほかのテストでは出さない
     await page.addInitScript(() => (window.__swipetalkNoDailyBonus = true));
+    // 録音（audio/）はコミットされている章によって変わるので、ふだんは使わない（recorded.spec で検証）
+    await page.addInitScript(() => (window.__swipetalkNoRecorded = true));
     await page.goto("/");
     await expect(page.getByTestId("remaining")).toBeVisible();
     await use(page);

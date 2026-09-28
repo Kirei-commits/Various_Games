@@ -40,7 +40,8 @@
 | `src/diary.js` | 日記（保存だけで、採点はなし） |
 | `src/data/ch01.js`〜`ch110.js` | 問題データ（1行 = `英語 \| 訳 \| 会話例 \| 会話例の訳`）。全部で約5500問 |
 | `src/data/gacha-data.js` | ガチャの単語カード |
-| `tools/media/` | 音声・画像の変換ツール（下の 4-0） |
+| `tools/media/` | 音声・画像の生成と変換のツール（下の 4-0〜4-2） |
+| `src/recorded.js` | 録音（`audio/`）の再生。無ければ端末の声に戻す |
 
 - 読み上げは今はブラウザの `speechSynthesis` を使う。`App.jsx` の 374 行目付近の speak 処理がそれ
 - 敵の絵は `monsterKindOf(id)` が単語 ID から種類を決めている
@@ -113,32 +114,44 @@
 
 ### 4-1. 音声（TTS）
 
-- モデル: **`gemini-3.8-flash-tts`**。安くしたいなら `gemini-3.8-flash-lite-tts`
-- 公式ドキュメントの ai.google.dev はこの環境の WebFetch では開けない。API の形は WebSearch で調べる
-- 進め方（生成はユーザーの指示を受けてから）:
-  1. **まず第1章（ch01、約50問）だけ**作る
-  2. ユーザーに聞いてもらい、声と速さを決める
-  3. 気に入ったら全章に広げる
-- 読み上げる内容: 英語フレーズと会話例（A/B の2人。声を分けるとよい）
-- **保存方法**
-  - 全部で約6.5時間ぶんの音声になり、`index.html` にインライン化できる大きさではない
-  - `eikaiwa-swipe/audio/<章>/<問題ID>.opus` のような別ファイルにして、`index.html` から相対パスで読む
-  - opus（24kbps）なら全体で 70MB 前後の見込み。Safari の古い版で opus が鳴らないなら mp3 も検討する
-- アプリ側の変更:
-  - 用意した音声があればそれを再生する
-  - なければ今の `speechSynthesis` に戻す
-  - 学習 BGM を下げる処理（読み上げ中は音量を下げる）も、音声ファイルの再生中に効くようにする
-- 費用の目安（2026年9月時点で調べたもの）:
+**仕組みは用意済み（2026-09-28）。録音はまだ1つも作っていない。** アプリは今もすべて端末の声（`speechSynthesis`）で読む。
 
-  | 項目 | 目安 |
-  |---|---|
-  | 全体の文字数 | 約28.6万字 |
-  | 音声トークン | 25 トークン/秒 |
-  | 3.8 Flash TTS | 音声 $9 / 100万トークン、全部で約 $5.3 |
-  | Flash-Lite TTS | 約 $3.5 |
-  | 第1章だけの試作 | 数十円 |
+目標: 英語を学ぶ人向けに、**アメリカ英語（General American）のネイティブの自然な速さ・抑揚・音の変化（リンキング、フラップT、弱形）** を聞けるお手本にする。
+ゆっくり聞きたいときはアプリの「話す速さ」で再生速度を下げる（音の高さは変わらない）ので、録音は自然な速さで作る。
 
-  - この価格は 2026-12-31 までのキャンペーン価格。2027-01-01 から Flash-Lite は2倍になる
+**設定**: `tools/media/tts.config.json`
+- `model`（今は `gemini-3.8-flash-tts`）、役ごとの声（`roles.P` = 見出しのフレーズ、`A` / `B` = 会話）、全体の指示（`notes`）と役ごとの指示（`persona`）
+- 会話の2行目からは、直前の行を「読まない文脈」として渡している（返事らしい抑揚にするため）
+- 声の候補は API の `GET /v1beta/voices` で見られる（2,089種類。General American は30種類）。`sampleVoices` に聞き比べの候補を入れてある
+
+**スクリプト**: `tools/media/tts.py`（plan 以外は API を呼ぶ。頼まれたときだけ実行）
+
+```bash
+python3 tools/media/tts.py plan ch01            # 作る文の数・費用の目安・プロンプトの例（無料）
+python3 tools/media/tts.py sample --text "How's it going?"   # 声の候補を聞き比べ（raw/tts/samples/）
+python3 tools/media/tts.py generate ch01        # 通常の API ですぐ作る
+python3 tools/media/tts.py submit ch01 ch02     # Batch API（半額・最大24時間）。--dry-run で送らずに中身を確認
+python3 tools/media/tts.py status               # バッチの状態（無料）
+python3 tools/media/tts.py collect              # 終わったバッチを取り込む
+```
+
+- 読む文は、アプリと同じ関数で取り出す（`tools/media/tts-lines.mjs`）。同じ「役|英文」は1回だけ作る。全章で 13,278 文（見出し 5,500・A 5,393・B 2,385）
+- 目安: 全章で約8時間・出力 約72万トークン・通常 約$6.5 / Batch 約$3.2（音声の出力だけ。入力のプロンプト分は別）。opus 24kbps で約84MB
+- **Batch API の送り方・結果の形は公式ページを読めないまま実装した**（ai.google.dev はこの環境から開けない）。最初に ch01 で出して確かめる。結果の形が読めなければ `raw/tts/<名前>.response.json` に保存して止まる
+- 長さが不自然な録音（指示まで読み上げた、など）は、取り込むときに警告を出す
+
+**できるもの（コミットする）**
+- `audio/clips/<hash>.opus`: 録音。hash は「役|英文」から `src/recorded.js` の `clipHash` で決まる（テストで値を固定している。変えると録音が全部見つからなくなる）
+- `audio/index.json`: アプリが起動時に読む一覧 `{ clips: { hash: 版 } }`。作り直すと版が上がる
+- `audio/manifest.json`: 記録（英文・章・問題ID・モデル・声・設定の署名・長さ・作った日）。設定を変えると署名が変わり、`plan` で作り直しの対象になる
+
+**アプリ側**（`src/recorded.js`、`App.jsx` の `useSpeech`）
+- 読む行すべてに録音があれば録音を再生する。1行でも欠けていれば、声が混ざらないよう全部を端末の声で読む。再生に失敗したときも端末の声に戻す
+- 設定に「ネイティブ音声（録音）を使う」が出る（録音が1つ以上あるときだけ）。学習 BGM は録音の再生中も小さくなる
+- E2E テストはふだん録音を使わない（`window.__swipetalkNoRecorded`）。録音の動きは `tests/e2e/recorded.spec.mjs` で確かめる
+- GitHub Pages は `audio/` も配る（`.github/workflows/pages.yml`）
+
+**次にやること**: 声を決める（`sample`）→ ch01 を `submit` → `collect` → 聞いて確認 → 全章
 
 ### 4-2. 画像
 
