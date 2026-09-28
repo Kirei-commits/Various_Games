@@ -14,7 +14,9 @@ describe('puzzle — 出題の生成', () => {
   for (const level of ['easy', 'normal', 'hard']) {
     test(`${level}: 指定手数の問題が生成される`, () => {
       const cfg = Puzzle.LEVELS[level];
-      const p = Puzzle.generate({ level, budget: 6000 });
+      // generate は時間切れになると範囲外の問題を保険として返す。CI の遅いマシンでも
+      // 範囲内の問題を見つけられるよう、時間には余裕を持たせる（普段は 3 秒以内に見つかる）
+      const p = Puzzle.generate({ level, budget: 30000 });
       assert.ok(p, '問題を生成できなかった');
       assert.ok(p.plies >= cfg.min && p.plies <= cfg.max,
         `手数 ${p.plies} が範囲 ${cfg.min}〜${cfg.max} の外`);
