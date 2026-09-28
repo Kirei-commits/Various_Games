@@ -1,6 +1,6 @@
 {
   "_about": "録音（Gemini TTS）の設定。ここを変えて `python3 tools/media/tts.py plan ch01` を実行すると、作り直しになる文の数と費用の目安が出る。",
-  "_models": "使うモデルの順番（2026-09-28 ユーザーの指示: 上から順に使い、1日の上限に当たったら次へ）。上限は AI Studio の表示（Tier 1）。format: metadata = speechMetadata で話し方・話者を指定（3.x）/ plain = 文だけ（2.5。指示を混ぜると指示まで読むので入れない）。price は費用の目安用（$/100万音声トークン。不明は null）",
+  "_models": "使うモデルの順番（2026-09-28 ユーザーの指示: 上から順に使い、1日の上限に当たったら次へ）。上限は AI Studio の表示（Tier 1）。format: metadata = speechMetadata で話し方・話者を指定（3.x）/ plain = 文だけ（2.5。指示を混ぜると指示まで読むので入れない）。price は費用の目安用（$/100万音声トークン。不明は null）。2.5 Pro TTS は料金が2倍なので使わない（2026-09-28 ユーザーの指示: 高いモデルはとばす）",
   "models": [
     {
       "model": "gemini-3.8-flash-tts",
@@ -17,14 +17,6 @@
       "rpd": 100,
       "format": "plain",
       "price": 10
-    },
-    {
-      "model": "gemini-2.5-pro-preview-tts",
-      "rpm": 10,
-      "tpm": 10000,
-      "rpd": 50,
-      "format": "plain",
-      "price": 20
     },
     {
       "model": "gemini-3.1-flash-tts-preview",
@@ -49,7 +41,7 @@
     "_about": "1日のリクエスト数に上限があるので、複数の文を1回で読ませて、無音で1文ずつに切る（tools/media/tts_pack.py）。切れなかったまとまりは半分ずつにして作り直す",
     "phrases": 20,
     "dialogs": 10,
-    "maxWords": 60,
+    "maxWords": 120,
     "probe": {
       "phrases": 5,
       "dialogs": 3
@@ -58,7 +50,9 @@
     "dialogFormat": "parts",
     "_dialogFormat": "parts = 1行ずつ別の part にして speechMetadata.speaker で話者を指定 / text = 「A: 文」を改行でつないだ1つのテキスト",
     "pause": "Leave a clear pause of about one second after this line.",
-    "verifyModel": "gemini-3.5-flash"
+    "verifyModel": "gemini-3.5-flash",
+    "dialogMode": "roles",
+    "_dialogMode": "roles = 会話の行も役ごと（A だけ・B だけ）に1声でまとめて読む（間を確実に取れる。2026-09-28、2声でまとめると行の間が約0.5秒しか空かず切れなかったため）/ conversation = 会話ごと2声で読む"
   },
   "batch": {
     "_about": "Batch API（料金が通常の半分・結果は最大24時間後）。chunk は1つのバッチに入れる文の数",

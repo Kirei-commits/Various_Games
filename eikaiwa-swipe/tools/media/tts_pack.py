@@ -90,8 +90,9 @@ def split_pack(body, texts):
     ranked = sorted(cands, key=lambda c: -c[1])
     chosen, rest = ranked[: n - 1], ranked[n - 1:]
     shortest = min(ln for _, ln in chosen)
-    # 0.6秒: 1文の中の間（既存の録音で最大 0.54秒）より長いこと
-    if shortest >= 0.6 * fps and (not rest or shortest >= 1.35 * rest[0][1]):
+    # 区切りとみなせるのは、(a) 無音がちょうど n-1 個（ほかに間が無く、迷いようがない）か、
+    # (b) 選んだ n-1 個が、残りの無音（文の中の間）より 1.35 倍以上長いとき。どちらも 0.3秒以上
+    if shortest >= 0.3 * fps and (not rest or shortest >= 1.35 * rest[0][1]):
         chosen.sort()
         spans, prev = [], first
         for s0, ln in chosen:

@@ -264,7 +264,7 @@ def save_wav(cfg, clip, body):
     expected = estimate_seconds(clip["text"])
     if seconds > expected * 2 + 1.5 or seconds < expected * 0.25:
         return None, f"{clip['key']}: 長さが不自然なので取り込まなかった（{seconds:.1f}秒、目安 {expected:.1f}秒）。raw/tts/wav/{clip['hash']}.wav"
-    encode(cfg, wav_path, AUDIO / "clips" / f"{clip['hash']}.opus")
+    encode(cfg, wav_path, AUDIO / cfg.get("_outdir", "clips") / f"{clip['hash']}.opus")
     return seconds, None
 
 
@@ -353,13 +353,27 @@ def cmd_sample(args, cfg):
 # まとめて作る（generate）
 # ---------------------------------------------------------------------------
 QUOTA_FILE = RAW / "quota.json"  # 1日の上限に当たったモデルと、戻る時刻（次に動かすときに無駄に送らないため）
+MODELS_FILE = RAW / "models.json"  # 試しの結果（まとめて読ませられるか・送り方）。同じモデルで試しをくり返さないため
 
 
 def build_units(cfg, need, sizes):
     """作る文を「1回のリクエストで読むまとまり」に分ける。見出し（P）は1声、会話（A/B）は2声"""
     units, phrases, convs = [], [], []
-    order = []  # 章の順を保つ
     by_item = {}
+    if sizes.get("dialogMode", "roles") == "roles":
+        # 役（P・A・B）ごとに1声でまとめる。会話の行も1行ずつ別の文として読ませる
+        for role in ("P", "A", "B"):
+            cur = []
+            for c in (x for x in need if x["role"] == role):
+                words = sum(len(x["text"].split()) for x in cur)
+                if cur and (len(cur) >= sizes["phrases"] or words + len(c["text"].split()) > sizes["maxWords"]):
+                    units.append({"kind": role, "convs": [[x] for x in cur]})
+                    cur = []
+                cur.append(c)
+            if cur:
+                units.append({"kind": role, "convs": [[x] for x in cur]})
+        units.sort(key=lambda u: (u["convs"][0][0]["chapter"], "PAB".index(u["kind"])))
+        return units
     for c in need:
         if c["role"] == "P":
             phrases.append(c)
@@ -417,10 +431,11 @@ def pack_request(cfg, unit, fmt):
             "contents": [{"parts": [part]}],
             "generationConfig": {"responseModalities": ["AUDIO"], "speechConfig": {"voiceConfig": {"prebuiltVoiceConfig": {"voiceName": cfg["roles"][c["role"]]["voice"]}}}},
         }
-    if unit["kind"] == "P":
-        voice = {"voiceConfig": {"prebuiltVoiceConfig": {"voiceName": cfg["roles"]["P"]["voice"]}}}
+    if unit["kind"] in ("P", "A", "B"):
+        role = unit["kind"]
+        voice = {"voiceConfig": {"prebuiltVoiceConfig": {"voiceName": cfg["roles"][role]["voice"]}}}
         if fmt == "metadata":
-            style = f'{cfg["style"]} {cfg["roles"]["P"]["persona"]} Each part is a separate phrase: say it once, as its own natural utterance. {pause}'
+            style = f'{cfg["style"]} {cfg["roles"][role]["persona"]} Each part is a separate line: say it once, as its own natural utterance. {pause}'
             parts = [{"text": c["text"], "speechMetadata": {"style": style}} for c in clips]
         else:
             parts = [{"text": "\n\n".join(c["text"] for c in clips)}]
@@ -516,7 +531,7 @@ def cmd_generate(args, cfg):
     if not need:
         print("作る必要のある文はありません")
         return
-    sizes = cfg["packing"] if not args.single else {"phrases": 1, "dialogs": 1, "maxWords": 0}
+    sizes = cfg["packing"] if not args.single else {"phrases": 1, "dialogs": 1, "maxWords": 0, "dialogMode": "roles"}
     queue = build_units(cfg, need, sizes)
     if args.single:
         queue = [h for u in queue for h in ([u] if len(unit_clips(u)) == 1 else [{"kind": u["kind"], "convs": [[c]]} for c in unit_clips(u)])]
@@ -528,17 +543,29 @@ def cmd_generate(args, cfg):
         print("  今日の上限に達しているモデル（とばす）: " + "・".join(skipped))
     started, done, requests, warnings = time.time(), 0, 0, []
     for m in models:
-        if not queue:
+        # モデルが変わるたびに、まだ無い文からまとまりを作り直す（前のモデルで1文ずつにした分を引きずらない）
+        remaining = [c for c in need if c["hash"] not in man["clips"]]
+        if not remaining:
             break
+        if not args.single:
+            # 設定を読み直す（動かしたまま、まとまりの大きさなどを調整できるように）
+            fresh = load_config()
+            cfg["packing"] = fresh["packing"]
+            sizes = cfg["packing"]
+        queue = build_units(cfg, remaining, sizes)
         model, fmt = m["model"], m["format"]
         pacer = Pacer(m["rpm"], m["tpm"])
         print(f"\n== {model}（{fmt}・1分に {m['rpm']} 回・1日 {m['rpd']} 回まで）", flush=True)
         # 1) 試し: 小さいまとまりで、切り分けと文字起こしを確かめる（--single のときはしない）
         packing = not args.single
-        if packing:
+        known = load_json(MODELS_FILE, {}).get(model)
+        if packing and known:
+            fmt, packing = known["format"], known["packing"]
+            print(f"  試し済み: {'まとめて読ませる' if packing else '1文ずつ'}（{fmt}）", flush=True)
+        elif packing:
             probe_sizes = cfg["packing"]["probe"]
             head = queue.pop(0)
-            n = probe_sizes["phrases"] if head["kind"] == "P" else probe_sizes["dialogs"]
+            n = probe_sizes["dialogs"] if head["kind"] == "D" else probe_sizes["phrases"]
             probe, rest = {"kind": head["kind"], "convs": head["convs"][:n]}, head["convs"][n:]
             if rest:
                 queue.insert(0, {"kind": head["kind"], "convs": rest})
@@ -573,6 +600,9 @@ def cmd_generate(args, cfg):
                 print("  → このモデルは1文ずつ作ります")
                 packing = False
                 queue.insert(0, probe)
+            results = load_json(MODELS_FILE, {})
+            results[model] = {"format": fmt, "packing": packing, "at": datetime.now(timezone.utc).isoformat()}
+            MODELS_FILE.write_text(json.dumps(results, indent=1))
         if not packing:
             queue = [h for u in queue for h in ([u] if len(unit_clips(u)) == 1 else [{"kind": u["kind"], "convs": [[c]]} for c in unit_clips(u)])]
         # 2) 本番: 上限に当たるまで並列に作る
@@ -618,6 +648,74 @@ def cmd_generate(args, cfg):
     print(f"\n今回作ったもの {done} 文（リクエスト {requests} 回・{time.time() - started:.0f}秒）・残り {left} 文")
     if left:
         print("残りは、同じコマンドで続きから作れます（上限に達したモデルは、戻るまでとばします）")
+
+
+def cmd_cheers(args, cfg):
+    """合いの手の声を作る（元の文は tools/media/cheers.json、できるものは audio/cheers/ と audio/cheers.json）"""
+    src = json.loads((HERE / "cheers.json").read_text())
+    out_path = AUDIO / "cheers.json"
+    have = load_json(out_path, {"version": 1, "events": {}})
+    made = {c["key"]: c for ev in have["events"].values() for c in ev.get("clips", [])}
+    todo_by_voice = {}
+    plan = {}
+    for name, ev in src["events"].items():
+        group = src["voices"][ev["voice"]]
+        plan[name] = []
+        for text in ev["lines"]:
+            for voice in group["voices"]:
+                key = f"{voice}|{text}"
+                h = hashlib.sha1(key.encode()).hexdigest()[:14]
+                sig = hashlib.sha1(json.dumps([voice, text, group["style"]]).encode()).hexdigest()[:12]
+                clip = {"hash": h, "key": key, "role": "P", "text": text, "chapter": "cheers", "id": name, "context": "", "voice": voice, "sig": sig, "style": group["style"]}
+                plan[name].append(clip)
+                if made.get(key, {}).get("sig") != sig:
+                    todo_by_voice.setdefault((voice, group["style"]), []).append(clip)
+    need = sum(len(v) for v in todo_by_voice.values())
+    print(f"合いの手 {sum(len(v) for v in plan.values())} 本（作るもの {need} 本）")
+    quota = load_quota()
+    known = load_json(MODELS_FILE, {})
+    # 合いの手は気持ちの込め方が大事なので、話し方を指定できる（metadata の）モデルを先に使う
+    models = sorted((m for m in cfg["models"] if m["model"] not in quota), key=lambda m: known.get(m["model"], {}).get("format", m["format"]) != "metadata")
+        c2 = {**cfg, "style": style, "roles": {"P": {"voice": voice, "persona": ""}}, "_outdir": "cheers"}
+        units = build_units(c2, clips, {**cfg["packing"], "dialogMode": "roles"})
+        while units and models:
+            m = models[0]
+            info = known.get(m["model"])
+            if info is None:
+                print(f"  {m['model']} はまだ試していないので使わない（generate で試してから）")
+                models.pop(0)
+                continue
+            u = units.pop(0)
+            if not info["packing"] and len(unit_clips(u)) > 1:
+                units[0:0] = [{"kind": "P", "convs": [[c]]} for c in unit_clips(u)]
+                continue
+            r = run_unit(c2, u, m["model"], info["format"], Pacer(m["rpm"], m["tpm"]))
+            if r["status"] == "quota":
+                print(f"  {m['model']}: {r['message']}")
+                quota[m["model"]] = time.time() + 3600 * max(0.5, float(r["message"].split("約")[-1].split("時間")[0] or 1))
+                save_quota(quota)
+                models.pop(0)
+                units.insert(0, u)
+            elif r["status"] == "split":
+                units[0:0] = halves(u)
+            elif r["status"] != "ok":
+                print(f"  {voice}: {r['message']}")
+            else:
+                for c, sec in r["saved"]:
+                    old = made.get(c["key"], {})
+                    made[c["key"]] = {"key": c["key"], "text": c["text"], "voice": voice, "file": f"cheers/{c['hash']}.opus?v={old.get('rev', 0) + 1}",
+                                      "rev": old.get("rev", 0) + 1, "sig": c["sig"], "model": m["model"], "seconds": round(sec, 2)}
+                print(f"  {voice}: {len(r['saved'])} 本（{m['model']}）", flush=True)
+        if units:
+            print("  使えるモデルがなくなったので、残りは次に回します")
+            break
+    events = {}
+    for name, ev in src["events"].items():
+        clips = [made[c["key"]] for c in plan[name] if c["key"] in made]
+        events[name] = {"chance": ev["chance"], "clips": clips}
+    AUDIO.mkdir(parents=True, exist_ok=True)
+    out_path.write_text(json.dumps({"version": 1, "events": events}, ensure_ascii=False, indent=1) + "\n")
+    print(f"audio/cheers.json: {sum(len(e['clips']) for e in events.values())} 本")
 
 
 def cmd_submit(args, cfg):
@@ -771,6 +869,7 @@ def main():
     s.add_argument("--voices", help="カンマ区切り（省略すると sampleVoices を全部）")
     s.set_defaults(func=cmd_sample)
     sub.add_parser("status", help="出したバッチの状態").set_defaults(func=cmd_status)
+    sub.add_parser("cheers", help="合いの手の声を作る（tools/media/cheers.json）").set_defaults(func=cmd_cheers)
     sub.add_parser("collect", help="終わったバッチの結果を取り込む").set_defaults(func=cmd_collect)
     args = p.parse_args()
     try:

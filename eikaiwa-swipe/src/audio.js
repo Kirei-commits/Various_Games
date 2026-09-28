@@ -15,6 +15,7 @@
  * バトルの曲が優先。どちらも流さないときは止める。
  */
 import { isRecordedPlaying } from "./recorded.js";
+import { cheer } from "./cheers.js";
 
 const NOTE = (n) => 440 * Math.pow(2, (n - 69) / 12); // MIDI ノート番号 → 周波数
 
@@ -61,6 +62,11 @@ export class SoundEngine {
     this.on = on;
     this.volume = volume;
     if (this.out) this.out.gain.value = volume;
+  }
+
+  /** 合いの手（英語の声での応援。src/cheers.js）を流すか */
+  setCheers(on) {
+    this.cheers = on;
   }
 
   /** バトルの BGM の設定 */
@@ -299,6 +305,8 @@ export class SoundEngine {
   }
 
   play(name, n = 0) {
+    // 合いの手は効果音と別の設定（効果音をオフにしていても流せる）。音量は効果音に合わせる
+    if (this.cheers) cheer(name, n, this.volume);
     if (!this.on || !this.ctx || this.ctx.state !== "running") return;
     switch (name) {
       case "streak": { // ドーパミンモード: 連続正解ほど音が上がっていく（ペンタトニック）
@@ -418,6 +426,7 @@ export const silentSound = {
   play() {},
   unlock() {},
   set() {},
+  setCheers() {},
   setBgm() {},
   setStudyBgm() {},
   setBattleMusic() {},
