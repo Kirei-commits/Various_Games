@@ -597,3 +597,70 @@ export function todayAndYesterday(now = new Date()) {
   y.setDate(y.getDate() - 1);
   return { today: ymd(now), yesterday: ymd(y) };
 }
+
+// ---------------------------------------------------------------------------
+// クラウド同期（ログイン時の進捗の統合）
+// ---------------------------------------------------------------------------
+
+const later = (a, b) => ((a || "") >= (b || "") ? a : b);
+
+/**
+ * 2つの進捗を統合する（ログイン前に端末で進めた分をアカウントに取り込むとき用）。
+ * 「覚えた」は和集合、回数や最高点は大きい方、日付は新しい方を採用する。
+ * b（アカウント側）の章の並び順や選択中の章を優先する。
+ */
+export function mergeStates(a, b, library) {
+  const learned = { ...a.learned, ...b.learned };
+  const misses = { ...a.misses };
+  for (const [id, n] of Object.entries(b.misses || {})) misses[id] = Math.max(misses[id] || 0, n);
+  const tests = { ...a.tests };
+  for (const [key, t] of Object.entries(b.tests || {})) {
+    const o = tests[key];
+    tests[key] = o
+      ? { best: Math.max(o.best, t.best), last: t.count >= o.count ? t.last : o.last, count: Math.max(o.count, t.count) }
+      : t;
+  }
+  const sa = { ...initialStats(), ...a.stats };
+  const sb = { ...initialStats(), ...b.stats };
+  const newest = later(sa.lastStudyDate, sb.lastStudyDate) === sb.lastStudyDate ? sb : sa;
+  const today = later(sa.todayDate, sb.todayDate);
+  const stats = {
+    totalSwipes: Math.max(sa.totalSwipes, sb.totalSwipes),
+    totalAnswers: Math.max(sa.totalAnswers, sb.totalAnswers),
+    totalShadows: Math.max(sa.totalShadows, sb.totalShadows),
+    streak: Math.max(sa.lastStudyDate === sb.lastStudyDate ? Math.max(sa.streak, sb.streak) : newest.streak, 0),
+    lastStudyDate: newest.lastStudyDate,
+    todayDate: today,
+    todayCount: Math.max(sa.todayDate === today ? sa.todayCount : 0, sb.todayDate === today ? sb.todayCount : 0),
+  };
+  return restoreState(
+    { version: STATE_VERSION, learned, queues: { ...a.queues, ...b.queues }, misses, tests, stats, chapter: b.chapter },
+    library
+  );
+}
+
+/**
+ * ログインしたときに、どの進捗を使い、クラウドへ書き戻すかを決める。
+ * - 端末の進捗が同じアカウントのもの → 更新が新しい方を採用（同期のずれを解消）
+ * - 端末の進捗がログイン前のもの（owner なし）→ アカウントの進捗と統合
+ * - 端末の進捗が別のアカウントのもの → アカウントの進捗だけを使う（混ぜない）
+ * @param local  { state, owner, updatedAt }
+ * @param remote { state, updatedAt } | null
+ * @returns { state, upload } upload はクラウドへ保存し直すべきか
+ */
+export function resolveLogin(local, remote, uid, library) {
+  const hasLocalProgress = Object.keys(local.state.learned).length > 0 || local.state.stats.totalSwipes > 0 ||
+    (local.state.stats.totalAnswers || 0) > 0 || (local.state.stats.totalShadows || 0) > 0;
+  if (!remote) {
+    const own = local.owner === uid || !local.owner;
+    return { state: own ? local.state : freshState(library.chapters[0]?.id), upload: true };
+  }
+  const remoteState = restoreState(remote.state, library);
+  if (local.owner === uid) {
+    return (local.updatedAt || 0) > (remote.updatedAt || 0)
+      ? { state: local.state, upload: true }
+      : { state: remoteState, upload: false };
+  }
+  if (!local.owner && hasLocalProgress) return { state: mergeStates(local.state, remoteState, library), upload: true };
+  return { state: remoteState, upload: false };
+}

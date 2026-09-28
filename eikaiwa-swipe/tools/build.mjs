@@ -10,6 +10,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { createRequire } from "node:module";
+import { pathToFileURL } from "node:url";
 import * as esbuild from "esbuild";
 import { ROOT, sourceHash } from "./source-hash.mjs";
 
@@ -27,8 +28,17 @@ function buildCss() {
   return fs.readFileSync(out, "utf8").trim();
 }
 
-async function buildJs() {
+// Firebase を使わない版では cloud-firebase.js をスタブに差し替え、SDK を丸ごと外す
+const stubFirebase = {
+  name: "stub-firebase",
+  setup(build) {
+    build.onResolve({ filter: /[\\/]cloud-firebase\.js$/ }, () => ({ path: path.join(ROOT, "src/cloud-firebase-stub.js") }));
+  },
+};
+
+async function buildJs({ withCloud }) {
   const result = await esbuild.build({
+    plugins: withCloud ? [] : [stubFirebase],
     entryPoints: [path.join(ROOT, "src/main.jsx")],
     bundle: true,
     minify: true,
@@ -43,7 +53,9 @@ async function buildJs() {
   return result.outputFiles[0].text.replace(/<\/script/gi, "<\\/script").trim();
 }
 
-const [css, js] = [buildCss(), await buildJs()];
+const { default: cloudConfig } = await import(pathToFileURL(path.join(ROOT, "src/cloud-config.js")).href);
+const css = buildCss();
+const js = await buildJs({ withCloud: cloudConfig != null });
 const hash = sourceHash();
 const base = "html,body,#root{height:100%;margin:0}body{background:#f1f5f9;color:#0f172a}";
 
@@ -65,15 +77,17 @@ const page = `<!doctype html>
 </html>
 `;
 fs.writeFileSync(path.join(ROOT, "index.html"), page);
-console.log(`index.html (${(page.length / 1024).toFixed(0)} KB, source-hash ${hash})`);
+console.log(`index.html (${(page.length / 1024).toFixed(0)} KB, source-hash ${hash}, クラウド保存: ${cloudConfig ? "あり" : "未設定"})`);
 
 const i = process.argv.indexOf("--artifact");
 if (i > 0 && process.argv[i + 1]) {
   // Artifact の外枠が :root を安全領域ぶん余白で囲むので、100dvh ではなく親の高さに合わせる
+  // Artifact の中からは外部サービスに接続できないので、常に Firebase なしで出力する
+  const artifactJs = cloudConfig != null ? await buildJs({ withCloud: false }) : js;
   const artifact = `<title>SwipeTalk</title>
 <style>${base}#root>div{height:100%!important}#root nav{padding-bottom:0!important}${css}</style>
 <div id="root"></div>
-<script>${js}</script>
+<script>${artifactJs}</script>
 `;
   fs.writeFileSync(path.resolve(process.argv[i + 1]), artifact);
   console.log(`artifact → ${process.argv[i + 1]}`);

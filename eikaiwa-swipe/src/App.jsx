@@ -26,6 +26,9 @@ import {
   Pause,
   SkipBack,
   SkipForward,
+  Cloud,
+  CloudOff,
+  LogOut,
 } from "lucide-react";
 import rawChapters, { PARTS } from "./data/index.js";
 import {
@@ -52,7 +55,9 @@ import {
   shadowSteps,
   pauseMs,
   wordMatch,
+  resolveLogin,
 } from "./logic.js";
+import { cloud, authErrorMessage } from "./cloud.js";
 
 /*
  * SwipeTalk — スワイプ式 英会話フレーズ学習アプリ
@@ -74,6 +79,8 @@ const TOTAL = ALL_ITEMS.length;
 const STATE_KEY = "swipetalk:v2";
 const LEGACY_KEY = "swipetalk:v1";
 const SETTINGS_KEY = "swipetalk:settings";
+/** 端末に保存している進捗が誰のものか（owner = ログイン中のユーザーID）と、最後に変更した時刻 */
+const META_KEY = "swipetalk:meta";
 
 const SWIPE_THRESHOLD = 100;
 const TAP_SLOP = 8;
@@ -1844,7 +1851,89 @@ function motivation(learned) {
   return `${TOTAL}フレーズ コンプリート！素晴らしい！`;
 }
 
-function ProgressScreen({ state, onResetAll, onOpenChapter, storageOk }) {
+// ---------------------------------------------------------------------------
+// アカウント（Google ログインとクラウド保存）
+// ---------------------------------------------------------------------------
+const hhmm = (t) => new Date(t).toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" });
+
+function AccountCard({ account }) {
+  const { user, sync, authError, signIn, signOut, retry } = account;
+  const [confirming, setConfirming] = useState(false);
+  useEffect(() => {
+    if (!confirming) return undefined;
+    const t = setTimeout(() => setConfirming(false), 4000);
+    return () => clearTimeout(t);
+  }, [confirming]);
+
+  if (!user) {
+    return (
+      <div className="mt-4 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200" data-testid="account-card">
+        <p className="flex items-center gap-2 text-sm font-bold text-slate-800">
+          <CloudOff size={18} className="text-slate-400" /> この端末にだけ保存中
+        </p>
+        <p className="mt-1 text-xs leading-relaxed text-slate-500">
+          Google でログインすると、進捗をクラウドに保存して、スマホとパソコンなど別の端末でも続きから学習できます。
+          今までの進捗はそのままアカウントに引き継がれます。
+        </p>
+        <button
+          type="button"
+          onClick={signIn}
+          disabled={sync.status === "checking"}
+          className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-white py-2.5 text-sm font-bold text-slate-700 ring-1 ring-slate-300 transition active:scale-95 disabled:opacity-40"
+        >
+          <span className="text-base font-black text-indigo-600">G</span> Google でログイン
+        </button>
+        {authError && <p className="mt-2 rounded-xl bg-amber-50 px-3 py-2 text-xs text-amber-700">{authError}</p>}
+      </div>
+    );
+  }
+
+  const status = {
+    loading: { text: "クラウドから読み込み中…", cls: "text-slate-500" },
+    saving: { text: "保存中…", cls: "text-slate-500" },
+    saved: { text: `クラウドに保存済み${sync.at ? `（${hhmm(sync.at)}）` : ""}`, cls: "text-emerald-600" },
+    error: { text: sync.message || "保存できませんでした。", cls: "text-rose-600" },
+  }[sync.status] || { text: "", cls: "" };
+
+  return (
+    <div className="mt-4 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200" data-testid="account-card">
+      <div className="flex items-center gap-3">
+        {user.photo ? (
+          <img src={user.photo} alt="" referrerPolicy="no-referrer" className="h-10 w-10 rounded-full" />
+        ) : (
+          <span className="flex h-10 w-10 items-center justify-center rounded-full bg-indigo-100 font-bold text-indigo-600">
+            {(user.name || user.email || "?")[0]}
+          </span>
+        )}
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-sm font-bold text-slate-800">{user.name || "ログイン中"}</p>
+          <p className="truncate text-xs text-slate-500">{user.email}</p>
+        </div>
+        <Cloud size={20} className={sync.status === "error" ? "text-rose-400" : "text-indigo-500"} />
+      </div>
+      <p className={`mt-2 text-xs font-semibold ${status.cls}`} data-testid="sync-status">
+        {status.text}
+      </p>
+      {sync.status === "error" && (
+        <button type="button" onClick={retry} className="mt-2 rounded-full bg-slate-900 px-3 py-1.5 text-xs font-bold text-white">
+          もう一度試す
+        </button>
+      )}
+      <button
+        type="button"
+        onClick={() => (confirming ? (setConfirming(false), signOut()) : setConfirming(true))}
+        className={`mt-3 flex w-full items-center justify-center gap-2 rounded-xl py-2.5 text-xs font-bold transition ${
+          confirming ? "bg-rose-500 text-white" : "bg-slate-50 text-slate-500 ring-1 ring-slate-200"
+        }`}
+      >
+        <LogOut size={14} />
+        {confirming ? "もう一度タップでログアウト（この端末の進捗は消え、クラウドには残ります）" : "ログアウト"}
+      </button>
+    </div>
+  );
+}
+
+function ProgressScreen({ state, onResetAll, onOpenChapter, storageOk, account }) {
   const [confirming, setConfirming] = useState(false);
   const learned = ALL_ITEMS.filter((p) => state.learned[p.id]).length;
   const pct = Math.round((learned / TOTAL) * 100);
@@ -1872,6 +1961,7 @@ function ProgressScreen({ state, onResetAll, onOpenChapter, storageOk }) {
   return (
     <div className="h-full overflow-y-auto px-5 pt-4 pb-6">
       <h1 className="text-2xl font-extrabold text-slate-900">学習の進捗</h1>
+      {cloud.available && <AccountCard account={account} />}
 
       <div className="mt-4 rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-200 flex flex-col items-center">
         <div className="relative">
@@ -1984,25 +2074,134 @@ export default function App() {
   useEffect(() => storage.save(STATE_KEY, state), [state]);
   useEffect(() => storage.save(SETTINGS_KEY, settings), [settings]);
 
+  // ---- 端末の進捗の持ち主と最終更新時刻
+  const meta = useRef(storage.load(META_KEY) || { owner: null, updatedAt: 0 });
+  const setMeta = (m) => {
+    meta.current = m;
+    storage.save(META_KEY, m);
+  };
+  const stateRef = useRef(state);
+  stateRef.current = state;
+
+  /** 利用者の操作による変更。更新時刻を記録して、ログイン中ならクラウド保存の対象にする */
+  const update = useCallback((fn) => {
+    setMeta({ ...meta.current, updatedAt: Date.now() });
+    setState(fn);
+  }, []);
+
   const onSwipe = useCallback((chapter, id, dir) => {
     const { today, yesterday } = todayAndYesterday();
-    setState((s) => applySwipe(s, chapter, id, dir, today, yesterday));
-  }, []);
-  const onToggle = useCallback((chapter, id) => setState((s) => toggleLearned(s, chapter, id)), []);
-  const onChapter = useCallback((chapter) => setState((s) => ({ ...s, chapter })), []);
-  const onResetChapter = useCallback((chapter) => setState((s) => resetChapter(s, chapter)), []);
+    update((s) => applySwipe(s, chapter, id, dir, today, yesterday));
+  }, [update]);
+  const onToggle = useCallback((chapter, id) => update((s) => toggleLearned(s, chapter, id)), [update]);
+  const onChapter = useCallback((chapter) => update((s) => ({ ...s, chapter })), [update]);
+  const onResetChapter = useCallback((chapter) => update((s) => resetChapter(s, chapter)), [update]);
   const onResetAll = useCallback(() => {
-    setState((s) => ({ ...freshState(CHAPTERS[0].id), stats: s.stats }));
+    update((s) => ({ ...freshState(CHAPTERS[0].id), stats: s.stats }));
     setTab("study");
-  }, []);
+  }, [update]);
   const onShadowDone = useCallback(() => {
     const { today, yesterday } = todayAndYesterday();
-    setState((s) => ({ ...s, stats: recordActivity(s.stats, today, yesterday, { shadows: 1 }) }));
-  }, []);
+    update((s) => ({ ...s, stats: recordActivity(s.stats, today, yesterday, { shadows: 1 }) }));
+  }, [update]);
   const onFinishTest = useCallback((scope, results) => {
     const { today, yesterday } = todayAndYesterday();
-    setState((s) => applyTestResult(s, LIBRARY, scope, results, today, yesterday));
+    update((s) => applyTestResult(s, LIBRARY, scope, results, today, yesterday));
+  }, [update]);
+
+  // ---- クラウド同期（Google ログイン）
+  const [user, setUser] = useState(null);
+  const [sync, setSync] = useState({ status: cloud.available ? "checking" : "off" });
+  const [authError, setAuthError] = useState("");
+  const ready = useRef(false); // ログイン後の読み込みが終わり、保存してよい状態か
+  const syncedAt = useRef(0); // クラウドに保存済みの更新時刻
+
+  /** ログインしたら、端末とクラウドの進捗を突き合わせてから同期を始める */
+  const connect = useCallback(async (u) => {
+    ready.current = false;
+    setSync({ status: "loading" });
+    try {
+      const remote = await cloud.load(u.uid);
+      const decision = resolveLogin({ state: stateRef.current, ...meta.current }, remote, u.uid, LIBRARY);
+      const updatedAt = decision.upload ? Date.now() : remote.updatedAt;
+      setMeta({ owner: u.uid, updatedAt });
+      setState(decision.state);
+      if (decision.upload) await cloud.save(u.uid, decision.state, updatedAt);
+      syncedAt.current = updatedAt;
+      ready.current = true;
+      setSync({ status: "saved", at: Date.now() });
+    } catch {
+      setSync({ status: "error", message: "クラウドに接続できませんでした。進捗はこの端末に保存しています。" });
+    }
   }, []);
+
+  useEffect(() => {
+    if (!cloud.available) return undefined;
+    return cloud.onAuthChange((u) => {
+      setUser(u);
+      if (u) {
+        connect(u);
+        return;
+      }
+      ready.current = false;
+      setSync({ status: "signedOut" });
+      // ログアウトしたら、次にこの端末を使う人に前の人の進捗が見えないよう消す（クラウドには残っている）
+      if (meta.current.owner) {
+        setMeta({ owner: null, updatedAt: 0 });
+        setState(freshState(CHAPTERS[0].id));
+      }
+    });
+  }, [connect]);
+
+  const flush = useCallback(async () => {
+    if (!user || !ready.current || meta.current.updatedAt <= syncedAt.current) return;
+    const at = meta.current.updatedAt;
+    setSync({ status: "saving" });
+    try {
+      await cloud.save(user.uid, stateRef.current, at);
+      syncedAt.current = Math.max(syncedAt.current, at);
+      setSync({ status: "saved", at: Date.now() });
+    } catch {
+      setSync({ status: "error", message: "保存できませんでした。通信状況を確認してください（この端末には保存済み）。" });
+    }
+  }, [user]);
+
+  // 操作のたびに書き込まないよう、少し待ってまとめて保存する
+  useEffect(() => {
+    if (!user || !ready.current || meta.current.updatedAt <= syncedAt.current) return undefined;
+    const t = setTimeout(flush, 1500);
+    return () => clearTimeout(t);
+  }, [state, user, flush]);
+
+  // アプリを閉じる・切り替えるときと、通信が戻ったときはすぐ保存する
+  useEffect(() => {
+    const onHide = () => document.visibilityState === "hidden" && flush();
+    document.addEventListener("visibilitychange", onHide);
+    window.addEventListener("online", flush);
+    return () => {
+      document.removeEventListener("visibilitychange", onHide);
+      window.removeEventListener("online", flush);
+    };
+  }, [flush]);
+
+  const account = {
+    user,
+    sync,
+    authError,
+    signIn: async () => {
+      setAuthError("");
+      try {
+        await cloud.signIn();
+      } catch (e) {
+        setAuthError(authErrorMessage(e));
+      }
+    },
+    signOut: async () => {
+      await flush();
+      await cloud.signOut();
+    },
+    retry: () => (ready.current ? flush() : user && connect(user)),
+  };
 
   const openSettings = () => setSettingsOpen(true);
   const navItems = [
@@ -2053,6 +2252,7 @@ export default function App() {
                 setTab("study");
               }}
               storageOk={storageOk}
+              account={account}
             />
           )}
         </main>

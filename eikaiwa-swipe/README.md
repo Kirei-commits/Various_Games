@@ -35,6 +35,13 @@ Tinder 風のスワイプで英会話フレーズを仕分けて覚え、テス�
 
 どちらも、判定が厳しいときは「意味は合っているので正解にする」で自己判定できます。
 
+### 保存とログイン
+
+- 進捗はまず端末（LocalStorage）に保存します
+- **Google でログインすると、進捗をクラウド（Firebase）に保存**し、別の端末でも続きから学習できます。
+  人ごとにアカウントが分かれ、他の人の進捗は見えません（Firestore のルールで保証）
+- クラウド保存を使うには Firebase の設定が必要です → [CLOUD_SETUP.md](./CLOUD_SETUP.md)。未設定のあいだはログインボタンを表示しません
+
 ### 音声
 
 - 読み上げは Web Speech API の `SpeechSynthesis`。**抑揚をつける**設定では文ごとに区切り、
@@ -54,6 +61,10 @@ src/App.jsx        画面（React + Tailwind CSS + lucide-react）
 src/logic.js       純粋なロジック: 教材の読み込み・採点（日英両方向）・4択・抑揚・シャドーイング・学習状態（DOM に触らない）
 src/data/chNN.js   教材。1行 = 1問「英語 | 日本語訳 | 会話例（// 区切り） | 会話例の訳」
 src/data/index.js  章の並びと部（基本編・アメリカ生活編）の範囲
+src/cloud.js       クラウド保存の窓口（ログイン・読み込み・保存）。E2E では偽物に差し替える
+src/cloud-firebase.js  Firebase（Google ログイン + Firestore）での実装
+src/cloud-config.js    Firebase の設定値（null のあいだはクラウド保存なし）
+firestore.rules    Firestore のセキュリティルール（本人だけが自分の進捗を読み書きできる）
 tools/build.mjs    esbuild + Tailwind CLI で index.html を生成
 tests/lint.mjs     教材の形式・1000問・重複・index.html が最新かを検査（Node 標準のみ）
 tests/logic/       採点・状態遷移・抑揚のテスト（node --test）
