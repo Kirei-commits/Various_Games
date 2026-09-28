@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "[ \"$CLAUDE_CODE_REMOTE\" = true ] || exit 0; \"$CLAUDE_PROJECT_DIR\"/eikaiwa-swipe/tools/media/setup.sh || echo 'media tools setup failed' >&2",
+            "timeout": 300
+          }
+        ]
+      }
+    ]
+  }
+}
