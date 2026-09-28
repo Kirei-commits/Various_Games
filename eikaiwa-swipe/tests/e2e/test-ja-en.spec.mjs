@@ -29,6 +29,9 @@ test("日本語→英語: 英語の音声で答える", async ({ page }) => {
   const p = await currentQuestion(page);
   await page.evaluate((text) => (window.__nextSpeech = text), p.english);
   await page.getByRole("button", { name: "話して答える" }).click();
+  // 聞き取った答えを確認してから解答する
+  await expect(page.locator("#test-answer")).not.toHaveValue("");
+  await page.getByRole("button", { name: "この答えで解答" }).click();
   await expect(page.getByTestId("verdict")).toHaveText("正解！");
 });
 

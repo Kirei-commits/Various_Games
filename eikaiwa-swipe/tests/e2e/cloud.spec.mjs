@@ -6,6 +6,7 @@ import { swipe } from "./fixtures.mjs";
  * 「クラウド」の中身は __fakeCloudDb に置くので、アプリのデータを消せば「別の端末」を再現できる。
  */
 function installFakeCloud() {
+  window.__swipetalkNoDailyBonus = true;
   const db = JSON.parse(localStorage.getItem("__fakeCloudDb") || "{}");
   let user = JSON.parse(localStorage.getItem("__fakeCloudUser") || "null");
   const listeners = new Set();

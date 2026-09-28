@@ -53,7 +53,7 @@ test("一覧: 2000件から検索でき、章で絞り込める", async ({ page 
   await page.getByRole("button", { name: "一覧", exact: true }).click();
   await expect(page.getByRole("button", { name: /すべて 2000/ })).toBeVisible();
   await page.locator("#list-search").fill("cats and dogs");
-  const items = page.getByTestId("phrase-list").locator("> li");
+  const items = page.getByTestId("phrase-list").locator('> li[data-row="result"]');
   await expect(items).toHaveCount(1);
   await expect(items.first()).toContainText("It's raining cats and dogs.");
   await page.locator("#list-search").fill("土砂降り");
@@ -79,4 +79,26 @@ test("横スクロールが発生しない", async ({ page }) => {
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
     expect(overflow, tab).toBeLessThanOrEqual(0);
   }
+});
+
+test("一覧: 綴りが違っても「もしかして」で近いフレーズが出る", async ({ page }) => {
+  await page.getByRole("button", { name: "一覧", exact: true }).click();
+  await page.locator("#list-search").fill("raning cats");
+  await expect(page.getByTestId("did-you-mean")).toBeVisible();
+  await expect(page.getByTestId("phrase-list")).toContainText("It's raining cats and dogs.");
+});
+
+test("進捗のリセットは設定の中にあり、3回タップして初めて実行される", async ({ page }) => {
+  await page.getByRole("button", { name: "覚えた", exact: true }).click();
+  await expect(page.getByTestId("remaining")).toHaveText(/^49/);
+  await page.getByRole("button", { name: "進捗", exact: true }).click();
+  await expect(page.getByTestId("reset-button")).toHaveCount(0); // 進捗画面にはない
+  await page.getByRole("button", { name: "学習", exact: true }).click();
+  await page.getByRole("button", { name: "音声の設定" }).click();
+  const reset = page.getByTestId("reset-button");
+  await reset.click();
+  await reset.click();
+  await expect(page.getByTestId("remaining")).toHaveText(/^49/); // まだ消えていない
+  await reset.click();
+  await expect(page.getByTestId("remaining")).toHaveText(/^50/);
 });

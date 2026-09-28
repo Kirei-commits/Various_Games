@@ -51,6 +51,8 @@ export const test = base.extend({
     await page.addInitScript(installSpeechStubs);
     // 起動時のログイン画面は「ログインせずに使う」を選んだ状態から始める（ログイン画面は cloud.spec で検証）
     await page.addInitScript(() => sessionStorage.setItem("swipetalk:skipLogin", "1"));
+    // ログインボーナスの画面は bonus.spec で検証するので、ほかのテストでは出さない
+    await page.addInitScript(() => (window.__swipetalkNoDailyBonus = true));
     await page.goto("/");
     await expect(page.getByTestId("remaining")).toBeVisible();
     await use(page);

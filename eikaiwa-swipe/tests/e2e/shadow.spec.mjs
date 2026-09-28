@@ -18,7 +18,7 @@ test("お手本 → あなたの番 を行ごとに進み、フレーズを終�
   await page.getByRole("button", { name: "一時停止" }).click();
   await expect(page.getByTestId("shadow-status")).toContainText("▶ を押すと");
   await page.getByRole("button", { name: "進捗", exact: true }).click();
-  await expect(page.getByText("シャドーイング").locator("..")).toContainText("1回");
+  await expect(page.getByText("シャドーイング", { exact: true }).locator("..")).toContainText("1回");
 });
 
 test("英文を隠すと、あなたの番が来るまで伏せ字になる", async ({ page }) => {
@@ -45,4 +45,19 @@ test("発音チェック: 聞き取れた単語を色分けして割合を出す
   await page.getByRole("button", { name: "シャドーイングを始める" }).click();
   await expect(page.getByTestId("shadow-score").first()).toHaveText("発音チェック 100%");
   await page.getByRole("button", { name: "一時停止" }).click();
+});
+
+test("発音チェック: 違った語は、何と聞こえたかと直し方を出し、止まって「次へ」で進む。振り返りに残る", async ({ page }) => {
+  await openShadow(page);
+  await page.getByText("発音チェック").click();
+  await page.evaluate(() => (window.__nextSpeech = "how is it doing"));
+  await page.getByRole("button", { name: "シャドーイングを始める" }).click();
+  const issue = page.getByTestId("pron-issue").first();
+  await expect(issue).toContainText("「going」→「doing」と聞こえた");
+  await expect(page.getByTestId("shadow-status")).toContainText("もう一度");
+  await page.getByRole("button", { name: "次へ", exact: true }).click();
+  await expect(page.getByTestId("shadow-status")).not.toContainText("赤い語");
+  await page.getByRole("button", { name: "一時停止" }).click();
+  await page.getByRole("button", { name: /振り返り/ }).click();
+  await expect(page.getByRole("dialog", { name: "発音の振り返り" })).toContainText("よくあるつまずき");
 });

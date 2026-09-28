@@ -17,13 +17,15 @@ const EXCLUDED = new Set([
 
 const FEMALE = new Set([
   "Samantha", "Karen", "Moira", "Tessa", "Allison", "Ava", "Susan", "Zoe", "Nicky", "Serena", "Kate",
-  "Fiona", "Veena", "Catherine", "Isha", "Martha", "Siri Female",
+  "Fiona", "Veena", "Catherine", "Isha", "Martha", "Siri Female", "Joelle", "Noelle", "Stephanie", "Matilda",
+  "Amelie",
   "Google US English", "Google UK English Female",
   "Aria", "Jenny", "Emma", "Michelle", "Ana", "Libby", "Sonia", "Zira", "Hazel", "Natasha", "Clara", "Neerja",
 ]);
 
 const MALE = new Set([
   "Alex", "Daniel", "Tom", "Aaron", "Arthur", "Evan", "Nathan", "Oliver", "Gordon", "Lee", "Rishi", "Siri Male",
+  "Jamie", "Malcolm", "Russell", "James",
   "Google UK English Male",
   "Guy", "Andrew", "Brian", "Christopher", "Eric", "Roger", "Steffan", "Ryan", "David", "Mark", "George", "William",
 ]);
@@ -82,17 +84,20 @@ function rank(v) {
   if (/premium|enhanced|natural|neural/i.test(v.name)) r -= 40;
   if (v.lang === "en-US") r -= 10;
   else if (v.lang?.startsWith("en-GB")) r -= 5;
+  else r -= 2;
   if (voiceGender(v)) r -= 5;
   return r;
 }
 
 const langOf = (v) => (v.lang || "").toLowerCase().replace("_", "-");
-const CLEAR_LANGS = ["en-us", "en-gb"];
+// 聞き取りやすいと言われる地域の英語（アメリカ・イギリス・オーストラリア・カナダ）。
+// インド・南アフリカ・スコットランド・アイルランドなど訛りの強い声は入れない
+const CLEAR_LANGS = ["en-us", "en-gb", "en-au", "en-ca"];
 const isQualityName = (v) => /premium|enhanced|natural|neural|google/i.test(v.name);
 
 /**
  * 学習に使う英語の声だけを、おすすめ順に並べる。
- * 聞き取りやすさを優先し、アメリカ英語・イギリス英語の、名前の分かる声（または高品質な声）に絞る。
+ * 聞き取りやすさを優先し、アメリカ・イギリス・オーストラリア・カナダ英語の、名前の分かる声（または高品質な声）に絞る。
  * 訛りの強い地域の声や、効果音のような声は出さない。
  * 絞った結果が空になる端末（Android の「English United States」だけ等）では、英語の声をそのまま使う。
  */
@@ -125,3 +130,28 @@ export function pickVoices(voices, { aURI = "", bURI = "", twoVoices = true } = 
 }
 
 export const genderLabel = (voice) => ({ female: "女性", male: "男性" })[voiceGender(voice)] || "";
+
+/** 文字列から決まる小さな整数（同じ会話にはいつも同じ声を割り当てるため） */
+export function seedOf(text) {
+  let h = 2166136261;
+  for (let i = 0; i < text.length; i++) {
+    h ^= text.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return h >>> 0;
+}
+
+/**
+ * 「会話ごとにいろいろな人の声」: seed（問題IDなど）から A 役と B 役の声を選ぶ。
+ * 同じ seed ならいつも同じ組み合わせ。B 役は A 役と性別の違う声（なければ同じ声で高さを変える）。
+ */
+export function pickVoicesFor(voices, seed, { twoVoices = true } = {}) {
+  if (!voices.length) return { a: null, b: null, sameVoice: true };
+  const h = seedOf(String(seed));
+  const a = voices[h % voices.length];
+  if (!twoVoices) return { a, b: a, sameVoice: true };
+  const gA = voiceGender(a);
+  const others = voices.filter((v) => v !== a && voiceGender(v) && voiceGender(v) !== gA);
+  if (!others.length) return { a, b: a, sameVoice: true };
+  return { a, b: others[Math.floor(h / voices.length) % others.length], sameVoice: false };
+}

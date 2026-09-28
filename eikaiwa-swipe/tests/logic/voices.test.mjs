@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { usableVoices, pickVoices, voiceGender, baseName } from "../../src/voices.js";
+import { usableVoices, pickVoices, pickVoicesFor, voiceGender, baseName } from "../../src/voices.js";
 
 const v = (name, lang = "en-US") => ({ name, lang, voiceURI: `uri:${name}`, localService: true });
 
@@ -11,9 +11,21 @@ const IPHONE = [
   "Organ", "Ralph", "Samantha", "Superstar", "Trinoids", "Whisper", "Wobble", "Zarvox",
 ].map((n) => v(n)).concat([v("Daniel", "en-GB"), v("Karen", "en-AU"), v("Rishi", "en-IN")]);
 
-test("おもしろ音声・旧式の声・訛りの強い地域の声は一覧から外す", () => {
+test("おもしろ音声・旧式の声・訛りの強い地域（インド英語など）の声は一覧から外す", () => {
   const names = usableVoices(IPHONE).map((x) => x.name);
-  assert.deepEqual(names, ["Samantha", "Daniel"]);
+  assert.deepEqual(names, ["Samantha", "Karen", "Daniel"]);
+});
+
+test("会話ごとの声: 同じ会話ならいつも同じ組み合わせで、B役は異性。会話が違えば声も変わる", () => {
+  const voices = usableVoices([v("Samantha"), v("Ava (Premium)"), v("Aaron"), v("Evan (Enhanced)"), v("Daniel", "en-GB"), v("Karen", "en-AU")]);
+  const first = pickVoicesFor(voices, "make-sense");
+  assert.deepEqual(pickVoicesFor(voices, "make-sense"), first);
+  assert.notEqual(voiceGender(first.a), voiceGender(first.b));
+  const pairs = new Set(["a", "b", "c", "d", "e", "f", "g", "h"].map((seed) => {
+    const r = pickVoicesFor(voices, seed);
+    return `${r.a.name}/${r.b.name}`;
+  }));
+  assert.ok(pairs.size >= 3, [...pairs].join(", "));
 });
 
 test("聞き取りやすい声がない端末では、英語の声をそのまま使う", () => {
