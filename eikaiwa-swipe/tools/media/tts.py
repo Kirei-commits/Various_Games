@@ -849,11 +849,13 @@ def batch_results(res):
 
 ATTEMPTS = RAW / "attempts.json"  # 確認で捨てた回数（文ごと）
 STAGING = RAW / "staging"  # Batch の結果を確かめ終わるまで置く場所（git の外）
+HOLD = RAW / "hold"  # 確認を後回しにした「置き換え」の録音（確認に通るまで、アプリは古い録音のまま）
+HOLD_FILE = RAW / "hold.json"
 
 
-def check_clip(cfg, clip):
-    """録音を文字起こしして、元の文と語数が合うか確かめる。戻り値: (合っているか, 聞こえた文)"""
-    body = base64.b64encode((STAGING / f"{clip['hash']}.opus").read_bytes()).decode()
+def check_clip(cfg, clip, path=None):
+    """録音を文字起こしして、元の文と語数が合うか確かめる。戻り値: (合っているか, 聞こえた文, 失敗の種類)"""
+    body = base64.b64encode((path or STAGING / f"{clip['hash']}.opus").read_bytes()).decode()
     req = {"contents": [{"parts": [{"inlineData": {"mimeType": "audio/ogg", "data": body}},
                                    {"text": "Transcribe this audio verbatim, word for word, including any repeated words or false starts. Output only the transcript."}]}]}
     res = api("POST", f"/v1beta/models/{cfg['batch']['verify']['model']}:generateContent", req, pacer=Pacer(0))
@@ -912,6 +914,28 @@ def cmd_collect(args, cfg):
                 continue
             saved.append((clip, seconds))
         # 文字起こしで確かめる（並列）。合わないものは捨てて、次の submit で出し直す
+        if getattr(args, "defer_verify", False):
+            # 確認を後回しにする（残高切れなど）。新しい文はアプリに入れて unverified を付け、置き換えは hold に置く
+            hold = load_json(HOLD_FILE, {})
+            HOLD.mkdir(parents=True, exist_ok=True)
+            (AUDIO / "clips").mkdir(parents=True, exist_ok=True)
+            for clip, seconds in saved:
+                src = STAGING / f"{clip['hash']}.opus"
+                if clip["hash"] in man["clips"]:
+                    src.replace(HOLD / f"{clip['hash']}.opus")
+                    hold[clip["hash"]] = {"clip": clip, "seconds": seconds}
+                else:
+                    src.replace(AUDIO / "clips" / f"{clip['hash']}.opus")
+                    record(cfg, man, clip, seconds, "batch")
+                    man["clips"][clip["hash"]]["unverified"] = True
+                done += 1
+            HOLD_FILE.write_text(json.dumps(hold, ensure_ascii=False))
+            j["collected"] = datetime.now(timezone.utc).isoformat()
+            taken += 1
+            save_manifest(man)
+            JOBS.write_text(json.dumps(jobs, ensure_ascii=False, indent=1))
+            print(f"{j['display']}: {done}/{len(j['clips'])} 文を取り込みました（確認は後で: python3 tools/media/tts.py verify）")
+            continue
         checks = {}
         if verify and saved:
             with ThreadPoolExecutor(max_workers=8) as pool:
@@ -951,6 +975,59 @@ def cmd_collect(args, cfg):
     report(warnings)
 
 
+def cmd_verify(args, cfg):
+    """確認を後回しにした録音（collect --defer-verify）を確かめる。
+    通ったもの: unverified を外す／置き換えはアプリに入れる。通らないもの: 捨てて、次の submit（--replace-models）で出し直す"""
+    verify = cfg["batch"]["verify"]
+    man = load_manifest()
+    hold = load_json(HOLD_FILE, {})
+    attempts = load_json(ATTEMPTS, {})
+    items = [({"hash": h, "key": c["key"], "text": c["text"], "role": c["role"], "chapter": c["chapter"], "id": c["id"]}, AUDIO / "clips" / f"{h}.opus", None)
+             for h, c in man["clips"].items() if c.get("unverified")]
+    items += [(v["clip"], HOLD / f"{h}.opus", v["seconds"]) for h, v in hold.items()]
+    if args.limit:
+        items = items[: args.limit]
+    print(f"確かめる録音 {len(items)} 本（アプリに入っているもの {sum(1 for i in items if i[2] is None)}・置き換え待ち {sum(1 for i in items if i[2] is not None)}）", flush=True)
+    passed = failed = 0
+    with ThreadPoolExecutor(max_workers=8) as pool:
+        futs = {pool.submit(check_clip, cfg, clip, path): (clip, path, sec) for clip, path, sec in items}
+        for n, fut in enumerate(as_completed(futs), 1):
+            clip, path, sec = futs[fut]
+            ok, heard, kind = fut.result()
+            h = clip["hash"]
+            if ok:
+                passed += 1
+                if sec is None:
+                    man["clips"][h].pop("unverified", None)
+                else:
+                    path.replace(AUDIO / "clips" / f"{h}.opus")
+                    record(cfg, man, clip, sec, "batch")
+                    hold.pop(h, None)
+            else:
+                failed += 1
+                a = attempts.get(h, 0)
+                a = a if isinstance(a, dict) else {"n": a, "kinds": []}
+                a["n"] += 1
+                a["kinds"].append(kind)
+                attempts[h] = a
+                with open(RAW / "failures.jsonl", "a") as f:
+                    f.write(json.dumps({"key": clip["key"], "heard": heard, "kind": kind, "attempt": a["n"]}, ensure_ascii=False) + "\n")
+                if sec is not None:
+                    path.unlink(missing_ok=True)  # 置き換えは捨てる（古い録音が残る）
+                    hold.pop(h, None)
+                elif a["n"] < verify["maxAttempts"]:
+                    path.unlink(missing_ok=True)  # 新しい文は捨てて、録音の無い文に戻す
+                    man["clips"].pop(h, None)
+                else:
+                    man["clips"][h].pop("unverified", None)
+                    man["clips"][h]["check"] = heard
+            if n % 200 == 0 or n == len(items):
+                save_manifest(man)
+                HOLD_FILE.write_text(json.dumps(hold, ensure_ascii=False))
+                ATTEMPTS.write_text(json.dumps(attempts, indent=1))
+                print(f"  {n}/{len(items)}  通った {passed}・通らない {failed}", flush=True)
+
+
 def report(warnings):
     if warnings:
         print("\n注意:")
@@ -984,6 +1061,10 @@ def main():
     sub.add_parser("cheers", help="合いの手の声を作る（tools/media/cheers.json）").set_defaults(func=cmd_cheers)
     s = sub.add_parser("collect", help="終わったバッチの結果を取り込む")
     s.add_argument("--max-jobs", type=int, help="1回に取り込むバッチの数の上限（取り込むたびにコミットするため）")
+    s.add_argument("--defer-verify", action="store_true", help="文字起こしの確認を後回しにする（残高切れのときなど。あとで verify）")
+    v = sub.add_parser("verify", help="確認を後回しにした録音を確かめる")
+    v.add_argument("--limit", type=int)
+    v.set_defaults(func=cmd_verify)
     s.set_defaults(func=cmd_collect)
     args = p.parse_args()
     try:
