@@ -27,6 +27,9 @@ test("章を切り替えると、その章のカードが出る", async ({ page 
   await page.locator("#study-chapter").selectOption("ch15");
   await expect(page.getByTestId("swipe-card")).toContainText("get the hang of");
   await expect(page.getByTestId("swipe-card")).toContainText("第15章");
+  // アメリカ生活編の章も選べる
+  await page.locator("#study-chapter").selectOption("ch23");
+  await expect(page.getByTestId("swipe-card").locator("h2")).toHaveText("What's the purpose of your visit?");
 });
 
 test("カードをタップすると裏返って訳と会話例が出る。会話は抑揚つきで読み上げる", async ({ page }) => {
@@ -46,9 +49,9 @@ function assert(cond) {
   expect(cond).toBe(true);
 }
 
-test("一覧: 1000件から検索でき、章で絞り込める", async ({ page }) => {
+test("一覧: 2000件から検索でき、章で絞り込める", async ({ page }) => {
   await page.getByRole("button", { name: "一覧", exact: true }).click();
-  await expect(page.getByRole("button", { name: /すべて 1000/ })).toBeVisible();
+  await expect(page.getByRole("button", { name: /すべて 2000/ })).toBeVisible();
   await page.locator("#list-search").fill("cats and dogs");
   const items = page.getByTestId("phrase-list").locator("> li");
   await expect(items).toHaveCount(1);
@@ -65,7 +68,7 @@ test("進捗: 章ごとの進み具合が見え、章を選ぶと学習画面に
   await page.getByRole("button", { name: "覚えた", exact: true }).click();
   await page.getByRole("button", { name: "進捗", exact: true }).click();
   await expect(page.getByTestId("progress-pct")).toHaveText(/0%/);
-  await expect(page.getByText(/^1 \/ 1000 覚えた$/)).toBeVisible();
+  await expect(page.getByText(/^1 \/ 2000 覚えた$/)).toBeVisible();
   await page.getByRole("button", { name: /電話・メール・SNS/ }).click();
   await expect(page.getByTestId("swipe-card")).toContainText("第18章");
 });

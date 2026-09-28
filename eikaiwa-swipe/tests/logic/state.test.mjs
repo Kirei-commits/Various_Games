@@ -19,11 +19,11 @@ const ch1 = lib.chapters[0];
 const T = "2026-09-28";
 const Y = "2026-09-27";
 
-test("教材は20章×50問=1000問で、IDは英語から決まり重複しない", () => {
+test("教材は40章×50問=2000問で、IDは英語から決まり重複しない", () => {
   assert.equal(lib.errors.length, 0, lib.errors.join("\n"));
-  assert.equal(lib.chapters.length, 20);
+  assert.equal(lib.chapters.length, 40);
   assert.ok(lib.chapters.every((c) => c.items.length === 50));
-  assert.equal(Object.keys(lib.byId).length, 1000);
+  assert.equal(Object.keys(lib.byId).length, 2000);
   assert.equal(slugify("It's up to you."), "its-up-to-you");
   assert.equal(slugify("résumé"), "resume");
 });

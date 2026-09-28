@@ -27,7 +27,7 @@ import {
   SkipBack,
   SkipForward,
 } from "lucide-react";
-import rawChapters from "./data/index.js";
+import rawChapters, { PARTS } from "./data/index.js";
 import {
   buildLibrary,
   parseDialogue,
@@ -59,7 +59,7 @@ import {
  *
  * - 学習: 右スワイプ=覚えた（キューから外す）/ 左スワイプ=覚えてない（最後尾へ）
  * - テスト: 英語（文字 or 音声のみ）を見て、日本語の意味を「入力・音声・4択」で答える
- * - 全20章 × 50問 = 1000問（src/data/）
+ * - 全40章 × 50問 = 2000問（src/data/）。基本編（1〜20章）とアメリカ生活編（21〜40章）
  * - 音声: Web Speech API。文ごとに pitch/rate を変えて抑揚をつける（logic.js の prosodyPlan）
  * - 保存: LocalStorage。使えない環境ではメモリ上だけで動く
  */
@@ -80,6 +80,8 @@ const TAP_SLOP = 8;
 const EXIT_MS = 280;
 
 const chapterLabel = (c) => `第${CHAPTER_NO[c.id]}章 ${c.title}`;
+/** 部ごとの章（章選択のグループ分けと進捗画面の見出しに使う） */
+const PART_GROUPS = PARTS.map((p) => ({ ...p, chapters: CHAPTERS.slice(p.from - 1, p.to) }));
 
 // ---------------------------------------------------------------------------
 // 永続化
@@ -383,10 +385,14 @@ function ChapterSelect({ value, onChange, extra = [], id, className = "" }) {
             {label}
           </option>
         ))}
-        {CHAPTERS.map((c) => (
-          <option key={c.id} value={c.id}>
-            {chapterLabel(c)}
-          </option>
+        {PART_GROUPS.map((part) => (
+          <optgroup key={part.title} label={part.title}>
+            {part.chapters.map((c) => (
+              <option key={c.id} value={c.id}>
+                {chapterLabel(c)}
+              </option>
+            ))}
+          </optgroup>
         ))}
       </select>
       <ChevronDown size={16} className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400" />
@@ -1829,12 +1835,13 @@ function ProgressRing({ value, size = 180, stroke = 16 }) {
 }
 
 function motivation(learned) {
+  const ratio = learned / TOTAL;
   if (learned === 0) return "さあ、最初の1枚からはじめよう！";
   if (learned < 50) return "いいスタート！まずは第1章クリアを目指そう。";
-  if (learned < 250) return "順調です！毎日少しずつ積み上げよう。";
-  if (learned < 500) return "もうすぐ半分！ネイティブ表現が身についてきた。";
-  if (learned < 1000) return "後半戦！ここまで来たら全制覇も見えてくる。";
-  return "1000フレーズ コンプリート！素晴らしい！";
+  if (ratio < 0.25) return "順調です！毎日少しずつ積み上げよう。";
+  if (ratio < 0.5) return "もうすぐ半分！ネイティブ表現が身についてきた。";
+  if (ratio < 1) return "後半戦！ここまで来たら全制覇も見えてくる。";
+  return `${TOTAL}フレーズ コンプリート！素晴らしい！`;
 }
 
 function ProgressScreen({ state, onResetAll, onOpenChapter, storageOk }) {
@@ -1897,10 +1904,19 @@ function ProgressScreen({ state, onResetAll, onOpenChapter, storageOk }) {
         ))}
       </div>
 
-      <div className="mt-4 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200">
-        <p className="text-sm font-bold text-slate-800">章ごとの進み具合</p>
+      {PART_GROUPS.map((part) => {
+        const partLearned = part.chapters.reduce((n, c) => n + c.items.filter((p) => state.learned[p.id]).length, 0);
+        const partTotal = part.chapters.reduce((n, c) => n + c.items.length, 0);
+        return (
+      <div key={part.title} className="mt-4 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200">
+        <p className="flex items-baseline justify-between text-sm font-bold text-slate-800">
+          {part.title}（第{part.from}〜{part.to}章）
+          <span className="text-xs font-semibold text-slate-500 tabular-nums">
+            {partLearned} / {partTotal}
+          </span>
+        </p>
         <ul className="mt-2 divide-y divide-slate-100">
-          {CHAPTERS.map((c) => {
+          {part.chapters.map((c) => {
             const n = c.items.filter((p) => state.learned[p.id]).length;
             const best = state.tests[c.id]?.best;
             const bestJaEn = state.tests[testKey(c.id, "ja-en")]?.best;
@@ -1925,6 +1941,8 @@ function ProgressScreen({ state, onResetAll, onOpenChapter, storageOk }) {
           })}
         </ul>
       </div>
+        );
+      })}
 
       {!storageOk && (
         <p className="mt-4 rounded-xl bg-amber-50 px-3 py-2 text-xs text-amber-700">
