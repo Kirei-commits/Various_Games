@@ -8,6 +8,11 @@
             "type": "command",
             "command": "[ \"$CLAUDE_CODE_REMOTE\" = true ] || exit 0; \"$CLAUDE_PROJECT_DIR\"/eikaiwa-swipe/tools/media/setup.sh || echo 'media tools setup failed' >&2",
             "timeout": 300
+          },
+          {
+            "type": "command",
+            "command": "[ \"$CLAUDE_CODE_REMOTE\" = true ] || exit 0; cd \"$CLAUDE_PROJECT_DIR\"/eikaiwa-swipe && { [ -d node_modules ] || npm ci --no-audit --no-fund -q >/dev/null 2>&1 || echo 'eikaiwa-swipe npm ci failed' >&2; }",
+            "timeout": 300
           }
         ]
       }
