@@ -29,9 +29,47 @@ import {
   Cloud,
   CloudOff,
   LogOut,
+  Gift,
+  BookOpen,
+  Award,
+  Swords,
 } from "lucide-react";
 import rawChapters, { PARTS, RENAMED } from "./data/index.js";
 import { analyzeLinking, LINK_LABELS } from "./linking.js";
+import {
+  buildCatalog,
+  pull as gachaPull,
+  exchange as gachaExchange,
+  currentRates,
+  titleProgress,
+  claimStarter,
+  earnStudyPoints,
+  levelOf,
+  RARITIES,
+  MAX_LEVEL,
+  PULL_COST,
+  PITY_SSR,
+  EXCHANGE_COST,
+  LOGIN_POINTS,
+  GOAL_POINTS,
+  STUDY_POINTS,
+  STUDY_DAILY_CAP,
+  STARTER,
+} from "./gacha.js";
+import { POS_LABELS, TITLES } from "./data/gacha-data.js";
+import {
+  createBattle,
+  tick,
+  attack,
+  target,
+  quit,
+  resultsOf,
+  STAGE_ENEMIES,
+  KILL_POINTS,
+  CLEAR_POINTS,
+  BATTLE_DAILY_CAP,
+  applyBattle,
+} from "./battle.js";
 import {
   buildLibrary,
   parseDialogue,
@@ -67,6 +105,7 @@ import {
   dailyReward,
   THEMES,
   DAILY_GOAL,
+  mulberry32,
   GOAL_REWARD,
   stateVersionOf,
   STATE_VERSION,
@@ -131,7 +170,13 @@ const SETTINGS_KEY = "swipetalk:settings";
 /** 端末に保存している進捗が誰のものか（owner = ログイン中のユーザーID）と、最後に変更した時刻 */
 const META_KEY = "swipetalk:meta";
 
+/** この距離（px）を超えて離せば仕分ける。カードの幅の 22% と比べて小さい方（画面の小さいスマホでも届きやすく） */
 const SWIPE_THRESHOLD = 100;
+const SWIPE_RATIO = 0.22;
+const MIN_SWIPE = 56;
+/** 距離が短くても、この速さ（px/ms）以上で横に払えば仕分ける */
+const FLICK_VELOCITY = 0.35;
+const FLICK_MIN_DISTANCE = 24;
 const TAP_SLOP = 8;
 const EXIT_MS = 280;
 
@@ -142,6 +187,8 @@ const PART_GROUPS = PARTS.map((p) => {
   return { ...p, chapters, count: chapters.reduce((n, c) => n + c.items.length, 0) };
 });
 /** 種類ごとの問題（フレーズ全部・単語全部） */
+/** 単語ガチャの対象（単語の章 3000語＋シークレット） */
+const CATALOG = buildCatalog(LIBRARY, PARTS);
 const KIND_ITEMS = {
   phrase: PART_GROUPS.filter((p) => p.kind === "phrase").flatMap((p) => p.chapters.flatMap((c) => c.items)),
   word: PART_GROUPS.filter((p) => p.kind === "word").flatMap((p) => p.chapters.flatMap((c) => c.items)),
@@ -202,11 +249,18 @@ const DEFAULT_SETTINGS = {
   sfx: true,
   sfxVolume: 0.6,
   test: { scope: "ch01", count: 10, direction: "en-ja", prompt: "text", answer: "type" },
+  play: "test", // テスト画面で「テスト」「バトル」のどちらを開くか
+  battle: { mode: "stage", chapter: "ch51", scope: "word", direction: "en-ja", answer: "choice" },
 };
 
 function loadSettings() {
   const s = storage.load(SETTINGS_KEY) || {};
-  return { ...DEFAULT_SETTINGS, ...s, test: { ...DEFAULT_SETTINGS.test, ...(s.test || {}) } };
+  return {
+    ...DEFAULT_SETTINGS,
+    ...s,
+    test: { ...DEFAULT_SETTINGS.test, ...(s.test || {}) },
+    battle: { ...DEFAULT_SETTINGS.battle, ...(s.battle || {}) },
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -851,28 +905,54 @@ function SwipeCard({ phrase, exit, onRelease, flipped, onFlip, speech }) {
   const theme = useThemeColors();
   const [drag, setDrag] = useState({ dx: 0, dy: 0, active: false });
   const start = useRef(null);
+  const threshold = useRef(SWIPE_THRESHOLD);
 
   const onPointerDown = (e) => {
     if (exit) return;
-    start.current = { x: e.clientX, y: e.clientY, id: e.pointerId };
-    e.currentTarget.setPointerCapture?.(e.pointerId);
+    const now = e.timeStamp || performance.now();
+    start.current = { x: e.clientX, y: e.clientY, id: e.pointerId, last: { x: e.clientX, y: e.clientY, t: now }, prev: null };
+    const width = e.currentTarget.getBoundingClientRect?.().width || 0;
+    threshold.current = width ? Math.max(MIN_SWIPE, Math.min(SWIPE_THRESHOLD, width * SWIPE_RATIO)) : SWIPE_THRESHOLD;
+    try {
+      e.currentTarget.setPointerCapture?.(e.pointerId);
+    } catch {
+      // 合成イベントなどでキャプチャできなくても、スワイプは続けられる
+    }
     setDrag({ dx: 0, dy: 0, active: true });
   };
   const onPointerMove = (e) => {
-    if (!start.current || start.current.id !== e.pointerId) return;
-    setDrag({ dx: e.clientX - start.current.x, dy: e.clientY - start.current.y, active: true });
+    const st = start.current;
+    if (!st || st.id !== e.pointerId) return;
+    st.prev = st.last;
+    st.last = { x: e.clientX, y: e.clientY, t: e.timeStamp || performance.now() };
+    setDrag({ dx: e.clientX - st.x, dy: e.clientY - st.y, active: true });
   };
+  /**
+   * 指を離した（または OS に操作を奪われた）ときに、仕分けるかを決める。
+   * iPhone の Safari は、指の動きの途中で pointercancel を送ってくることがある。
+   * そのときも最後に分かっている位置で判定し、スワイプを無駄にしない。
+   */
   const finish = (e, cancelled) => {
-    if (!start.current || start.current.id !== e.pointerId) return;
-    const dx = e.clientX - start.current.x;
-    const dy = e.clientY - start.current.y;
+    const st = start.current;
+    if (!st || st.id !== e.pointerId) return;
     start.current = null;
+    const x = cancelled ? st.last.x : e.clientX;
+    const y = cancelled ? st.last.y : e.clientY;
+    const dx = x - st.x;
+    const dy = y - st.y;
     if (!cancelled && Math.hypot(dx, dy) < TAP_SLOP) {
       setDrag({ dx: 0, dy: 0, active: false });
       onFlip();
       return;
     }
-    if (!cancelled && Math.abs(dx) > SWIPE_THRESHOLD) {
+    // 直近の動きの速さ（払う動作）
+    const ref = st.prev || { x: st.x, y: st.y, t: st.last.t - 1 };
+    const dt = Math.max(1, st.last.t - ref.t);
+    const vx = (st.last.x - ref.x) / dt;
+    const horizontal = Math.abs(dx) > Math.abs(dy) * 0.8;
+    const far = Math.abs(dx) > threshold.current;
+    const flick = Math.abs(vx) > FLICK_VELOCITY && Math.abs(dx) > FLICK_MIN_DISTANCE && Math.sign(vx) === Math.sign(dx);
+    if (horizontal && (far || flick)) {
       setDrag({ dx, dy, active: false });
       onRelease(dx > 0 ? "right" : "left");
       return;
@@ -883,8 +963,8 @@ function SwipeCard({ phrase, exit, onRelease, flipped, onFlip, speech }) {
   const dx = exit ? (exit === "right" ? 1 : -1) * (typeof window !== "undefined" ? window.innerWidth + 200 : 800) : drag.dx;
   const dy = exit ? drag.dy : drag.dy * 0.3;
   const rotate = exit ? (exit === "right" ? 25 : -25) : drag.dx / 15;
-  const rightOpacity = exit === "right" ? 1 : Math.max(0, Math.min(drag.dx / SWIPE_THRESHOLD, 1));
-  const leftOpacity = exit === "left" ? 1 : Math.max(0, Math.min(-drag.dx / SWIPE_THRESHOLD, 1));
+  const rightOpacity = exit === "right" ? 1 : Math.max(0, Math.min(drag.dx / threshold.current, 1));
+  const leftOpacity = exit === "left" ? 1 : Math.max(0, Math.min(-drag.dx / threshold.current, 1));
   const face = "absolute inset-0 rounded-3xl bg-white shadow-xl ring-1 ring-slate-900/5 overflow-hidden flex flex-col";
   const hidden = { backfaceVisibility: "hidden", WebkitBackfaceVisibility: "hidden" };
 
@@ -1195,7 +1275,7 @@ function resultMessage(pct) {
   return "まずは学習カードで慣れていこう。";
 }
 
-function TestSetup({ config, setConfig, misses, tests, onStart, onSettings }) {
+function TestSetup({ config, setConfig, misses, tests, onStart, onSettings, switcher }) {
   const pool = scopeItems(config.scope, misses);
   const weakCount = Object.keys(misses).length;
   const record = tests[testKey(config.scope, config.direction)];
@@ -1204,6 +1284,7 @@ function TestSetup({ config, setConfig, misses, tests, onStart, onSettings }) {
   return (
     <div className="h-full overflow-y-auto px-5 pt-4 pb-6">
       <ScreenHeader title="テスト" sub="意味・英語を答えて定着度をチェック" onSettings={onSettings} />
+      {switcher}
 
       <div className="mt-4 space-y-4 rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
         <div>
@@ -1767,12 +1848,554 @@ function TestResult({ results, scope, direction, speech, onRetryWrong, onRetry, 
   );
 }
 
-function TestScreen({ active, state, settings, setSettings, speech, onFinishTest, onSettings }) {
+// ---------------------------------------------------------------------------
+// バトル（RPGモード）: 迫ってくる敵（単語）に答えて倒す
+// ---------------------------------------------------------------------------
+const MONSTERS = ["👾", "👻", "🦇", "🐺", "🧟", "🐍", "🦂", "👹", "🕷️", "🦖"];
+const BOSS_MONSTER = "🐉";
+
+function TestKindSwitch({ value, onChange }) {
+  return (
+    <div className="mt-3">
+      <Segmented
+        name="test-kind"
+        value={value}
+        onChange={onChange}
+        options={[
+          { value: "test", label: "テスト", icon: PenLine },
+          { value: "battle", label: "バトル", icon: Swords },
+        ]}
+      />
+    </div>
+  );
+}
+
+const battleKey = (config) => (config.mode === "stage" ? `${config.chapter}@${config.direction}` : `${config.scope}@${config.direction}`);
+
+function BattleSetup({ config, setConfig, record, misses, onStart, onSettings, switcher }) {
+  const set = (patch) => setConfig({ ...config, ...patch });
+  const stage = config.mode === "stage";
+  const items = stage ? CHAPTER_BY_ID[config.chapter]?.items || [] : scopeItems(config.scope, misses);
+  const key = battleKey(config);
+  const stars = record.stars[key] || 0;
+  const best = record.best[key] || 0;
+  const weakCount = Object.keys(misses).length;
+  return (
+    <div className="h-full overflow-y-auto px-5 pt-4 pb-6">
+      <ScreenHeader title="バトル" sub="迫ってくる単語を倒して覚える" onSettings={onSettings} />
+      {switcher}
+      <div className="mt-4 space-y-4 rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
+        <div>
+          <p className="text-xs font-bold text-slate-500">モード</p>
+          <div className="mt-1">
+            <Segmented
+              name="battle-mode"
+              value={config.mode}
+              onChange={(mode) => set({ mode })}
+              options={[
+                { value: "stage", label: "ステージ" },
+                { value: "endless", label: "エンドレス" },
+              ]}
+            />
+          </div>
+          <p className="mt-2 text-xs leading-relaxed text-slate-500">
+            {stage
+              ? `章がステージ。敵${STAGE_ENEMIES}体を倒すとボスが登場。ノーダメージでクリアすると★3（初回はレアチケット）。`
+              : "敵を倒すほど速く・多くなります。HP がなくなるまで何体倒せるか挑戦！"}
+          </p>
+        </div>
+
+        <div>
+          <label htmlFor={stage ? "battle-chapter" : "battle-scope"} className="text-xs font-bold text-slate-500">
+            {stage ? "ステージ（章）" : "出てくる単語"}
+          </label>
+          {stage ? (
+            <ChapterSelect id="battle-chapter" value={config.chapter} onChange={(chapter) => set({ chapter })} className="mt-1" />
+          ) : (
+            <ChapterSelect
+              id="battle-scope"
+              value={config.scope}
+              onChange={(scope) => set({ scope })}
+              extra={[
+                ["all", `全章から（${TOTAL}問）`],
+                ["phrase", `フレーズ全部から（${KIND_ITEMS.phrase.length}問）`],
+                ["word", `単語全部から（${KIND_ITEMS.word.length}問）`],
+                ["weak", `苦手な問題（${weakCount}問）`],
+              ]}
+              className="mt-1"
+            />
+          )}
+          <p className="mt-1 text-xs text-slate-500 tabular-nums" data-testid="battle-record">
+            {stage ? `このステージの記録 ${"★".repeat(stars)}${"☆".repeat(3 - stars)}` : `最高得点 ${best}`}
+          </p>
+        </div>
+
+        <div>
+          <p className="text-xs font-bold text-slate-500">出題の向き</p>
+          <div className="mt-1">
+            <Segmented
+              name="battle-direction"
+              value={config.direction}
+              onChange={(direction) => set({ direction })}
+              options={[
+                { value: "en-ja", label: "英語 → 意味" },
+                { value: "ja-en", label: "日本語 → 英語" },
+              ]}
+            />
+          </div>
+        </div>
+
+        <div>
+          <p className="text-xs font-bold text-slate-500">攻撃のしかた（答え方）</p>
+          <div className="mt-1">
+            <Segmented
+              name="battle-answer"
+              value={config.answer}
+              onChange={(answer) => set({ answer })}
+              options={[
+                { value: "choice", label: "4択", icon: ListChecks },
+                { value: "type", label: "入力", icon: Keyboard },
+                { value: "voice", label: "音声", icon: Mic },
+              ]}
+            />
+          </div>
+          <p className="mt-2 text-xs leading-relaxed text-slate-500">
+            {config.answer === "choice" && "4つから選んで即攻撃。テンポよく連打できます。"}
+            {config.answer === "type" && "答えを入力して Enter で攻撃。敵はゆっくり近づきます。"}
+            {config.answer === "voice" && "マイクを押して話すと攻撃。敵はゆっくり近づきます。"}
+          </p>
+        </div>
+      </div>
+
+      <div className="mt-3 rounded-2xl bg-slate-900 p-3 text-xs leading-relaxed text-slate-200">
+        <p>⚔️ 一番近い敵の単語に答えると攻撃。正解が続くとコンボで得点アップ。</p>
+        <p>💥 間違えると敵が一気に近づき、敵が届くと HP が減ります（ボスは2）。</p>
+        <p>🎁 1体 {KILL_POINTS}pt・クリア +{CLEAR_POINTS}pt のガチャポイント（1日 {BATTLE_DAILY_CAP}pt まで）。間違えた単語は「苦手」に入ります。</p>
+      </div>
+
+      <button
+        type="button"
+        disabled={items.length < 4}
+        onClick={() => onStart({ config, items, key })}
+        className="mt-5 flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-rose-500 to-orange-500 py-4 text-base font-extrabold text-white shadow-lg transition active:scale-95 disabled:opacity-40"
+      >
+        <Swords size={20} /> バトル開始！
+      </button>
+      {items.length < 4 && <p className="mt-2 text-center text-xs text-slate-500">苦手な問題が4問以上たまると挑戦できます。</p>}
+    </div>
+  );
+}
+
+function BattleRun({ session, speech, recognition, onFinish, active = true }) {
+  const sound = useSound();
+  const { config, items } = session;
+  const jaEn = config.direction === "ja-en";
+  const battle = useRef(null);
+  if (!battle.current) {
+    battle.current = createBattle({ mode: config.mode, items, answer: config.answer, direction: config.direction, key: session.key });
+  }
+  const [, setFrame] = useState(0);
+  const [flash, setFlash] = useState(null);
+  const [input, setInput] = useState("");
+  const inputRef = useRef(null);
+  const finished = useRef(false);
+  // ほかのタブを見ているあいだは一時停止（テスト画面は裏でも表示したままにしているため）
+  const activeRef = useRef(active);
+  activeRef.current = active;
+  const b = battle.current;
+  const t = target(b);
+  const pool = items.length >= 4 ? items : ALL_ITEMS;
+
+  const finish = useCallback(() => {
+    if (finished.current) return;
+    finished.current = true;
+    recognition.abort();
+    onFinish(battle.current);
+  }, [onFinish, recognition]);
+
+  // ゲームの時間を進める（画面が隠れているあいだは requestAnimationFrame が止まる）
+  useEffect(() => {
+    let raf;
+    let last = performance.now();
+    let bossSeen = false;
+    const loop = (now) => {
+      const bt = battle.current;
+      const dt = activeRef.current ? Math.min(100, Math.max(0, now - last)) : 0;
+      last = now;
+      const hp = bt.hp;
+      // E2E 用: __swipetalkBattleTime はゲーム内時間の速さ、__swipetalkBattleSpeed は敵の動きの速さ（0 で止まる）
+      const clock = typeof window.__swipetalkBattleTime === "number" ? window.__swipetalkBattleTime : 1;
+      const scale = typeof window.__swipetalkBattleSpeed === "number" ? window.__swipetalkBattleSpeed : 1;
+      tick(bt, dt * clock, Math.random, scale);
+      if (bt.hp < hp) {
+        sound.play("wrong");
+        setFlash({ type: "damage", text: "ダメージ！", at: now });
+      }
+      if (bt.bossSpawned && !bossSeen) {
+        bossSeen = true;
+        sound.play("complete");
+        setFlash({ type: "boss", text: "ボス出現！", at: now });
+      }
+      setFrame((n) => n + 1);
+      if (bt.over) {
+        finish();
+        return;
+      }
+      raf = requestAnimationFrame(loop);
+    };
+    raf = requestAnimationFrame(loop);
+    return () => cancelAnimationFrame(raf);
+  }, [finish, sound]);
+
+  const choices = useMemo(
+    () => (t && config.answer === "choice" ? makeChoices(t.item, pool, Math.random, 4, jaEn ? "english" : "japanese") : []),
+    // 狙う敵の単語が変わったときだけ選択肢を作り直す
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [t?.uid, t?.item.id, config.answer, jaEn]
+  );
+
+  /** 表示中の単語（itemId）に答える。狙う敵が入れ替わっていたら無視する */
+  const answer = (itemId, correct) => {
+    const bt = battle.current;
+    const cur = target(bt);
+    if (!cur || cur.item.id !== itemId || bt.over) return;
+    const item = attack(bt, correct);
+    const ev = bt.lastEvent;
+    if (correct) {
+      sound.play(ev.type === "kill" ? (ev.boss ? "bonus" : "learned") : "correct");
+      setFlash({ type: "kill", text: ev.type === "kill" ? (ev.boss ? "ボス撃破！" : "撃破！") : "ヒット！", at: performance.now() });
+      if (jaEn) speech.speak(item.english, null, item.id);
+    } else {
+      sound.play("wrong");
+      setFlash({ type: "wrong", text: `正解は「${jaEn ? item.english : item.japanese.split("／")[0]}」`, at: performance.now() });
+    }
+    setInput("");
+    setFrame((n) => n + 1);
+    if (bt.over) finish();
+    if (config.answer !== "choice") setTimeout(() => inputRef.current?.focus(), 0);
+  };
+
+  const grade = (text, item) => (jaEn ? gradeEnglish(text, item.english) : gradeAnswer(text, item.japanese));
+  const submitText = (e) => {
+    e.preventDefault();
+    if (!t || !input.trim()) return;
+    answer(t.item.id, isCorrect(grade(input, t.item).verdict));
+  };
+  const listen = () => {
+    if (!t) return;
+    const item = t.item;
+    recognition.start((alts) => {
+      const ok = alts.some((a) => isCorrect(grade(a, item).verdict));
+      answer(item.id, ok);
+    }, jaEn ? "en-US" : "ja-JP");
+  };
+
+  const showFlash = flash && performance.now() - flash.at < 1400;
+  const stageLabel =
+    b.mode === "stage" ? (b.bossSpawned ? "BOSS" : `敵 ${Math.min(b.kills, STAGE_ENEMIES)} / ${STAGE_ENEMIES}`) : `Lv.${b.level}`;
+
+  return (
+    <div className="flex h-full flex-col px-4 pt-3 pb-3" data-testid="battle">
+      <div className="flex items-center gap-2">
+        <button
+          type="button"
+          onClick={() => {
+            quit(battle.current);
+            finish();
+          }}
+          className="rounded-full bg-white px-3 py-1.5 text-xs font-bold text-slate-500 ring-1 ring-slate-200"
+        >
+          やめる
+        </button>
+        <p className="text-base tracking-tight" data-testid="battle-hp" aria-label={`HP ${b.hp}`}>
+          {"❤️".repeat(b.hp)}
+          <span className="opacity-30">{"🤍".repeat(b.maxHp - b.hp)}</span>
+        </p>
+        <p className="ml-auto text-right text-xs font-bold tabular-nums text-slate-500">
+          {stageLabel}
+          <span className="block text-base font-black text-slate-900" data-testid="battle-score">
+            {b.score}
+          </span>
+        </p>
+      </div>
+
+      {/* 戦場: 敵が上から迫ってくる */}
+      <div
+        className="relative mt-2 min-h-[200px] flex-1 overflow-hidden rounded-3xl bg-gradient-to-b from-indigo-950 via-violet-900 to-rose-900 shadow-inner"
+        data-testid="battle-field"
+      >
+        {b.enemies.map((e, i) => {
+          const isTarget = t && e.uid === t.uid;
+          return (
+            <div
+              key={e.uid}
+              data-testid="enemy"
+              data-target={isTarget ? "1" : "0"}
+              data-phrase-id={e.item.id}
+              data-boss={e.boss ? "1" : "0"}
+              className="absolute flex -translate-x-1/2 flex-col items-center"
+              style={{ left: `${e.x * 100}%`, top: `calc(10px + ${Math.min(e.y, 1)} * (100% - ${e.boss ? 120 : 90}px))` }}
+            >
+              <span className={`leading-none drop-shadow ${e.boss ? "text-6xl" : "text-4xl"} ${isTarget ? "animate-bounce" : ""}`}>
+                {e.boss ? BOSS_MONSTER : MONSTERS[e.uid % MONSTERS.length]}
+              </span>
+              {e.boss && (
+                <div className="mt-1 h-1.5 w-20 overflow-hidden rounded-full bg-white/20">
+                  <div className="h-full bg-rose-400" style={{ width: `${(e.hp / e.maxHp) * 100}%` }} />
+                </div>
+              )}
+              <span
+                className={`mt-1 max-w-[9rem] truncate rounded-full px-2 py-0.5 text-xs font-extrabold ${
+                  isTarget ? "bg-white text-slate-900 ring-2 ring-amber-400" : "bg-white/20 text-white"
+                }`}
+              >
+                {jaEn ? e.item.japanese.split("／")[0] : e.item.english}
+              </span>
+            </div>
+          );
+        })}
+        {showFlash && (
+          <p
+            key={flash.at}
+            data-testid="battle-flash"
+            className={`absolute inset-x-4 top-1/3 text-center text-2xl font-black drop-shadow ${
+              flash.type === "kill" ? "text-amber-300" : flash.type === "boss" ? "text-rose-300" : "text-white"
+            }`}
+          >
+            {flash.text}
+          </p>
+        )}
+        <div className="absolute inset-x-0 bottom-0 flex items-end justify-center pb-1">
+          <span className={`text-4xl ${flash?.type === "damage" && showFlash ? "animate-pulse" : ""}`}>🧙</span>
+        </div>
+        {b.combo >= 2 && (
+          <p className="absolute right-3 top-2 text-sm font-black text-amber-300" data-testid="battle-combo">
+            🔥 {b.combo} COMBO
+          </p>
+        )}
+      </div>
+
+      {/* 攻撃（答える） */}
+      <div className="mt-3">
+        <p className="text-center text-xs font-bold text-slate-500">
+          {t ? (
+            <>
+              <span className="text-slate-900" data-testid="battle-question">
+                {jaEn ? t.item.japanese : t.item.english}
+              </span>
+              {jaEn ? " を英語で！" : " の意味は？"}
+            </>
+          ) : (
+            "敵が来るのを待っています…"
+          )}
+        </p>
+        {config.answer === "choice" && (
+          <div className="mt-2 grid grid-cols-2 gap-2">
+            {choices.map((c) => (
+              <button
+                key={c.id}
+                type="button"
+                data-testid="battle-choice"
+                data-correct={c.id === t?.item.id ? "1" : "0"}
+                onClick={() => t && answer(t.item.id, c.id === t.item.id)}
+                className="min-h-[3.25rem] rounded-2xl bg-white px-2 py-2 text-sm font-bold text-slate-800 shadow-sm ring-1 ring-slate-200 transition active:scale-95"
+              >
+                {c.label}
+              </button>
+            ))}
+          </div>
+        )}
+        {(config.answer === "type" || (config.answer === "voice" && !recognition.supported)) && (
+          <form onSubmit={submitText} className="mt-2 flex gap-2">
+            <input
+              id="battle-answer"
+              ref={inputRef}
+              autoFocus
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder={config.answer === "voice" ? "キーボードのマイク（🎤）で話す" : jaEn ? "英語で入力" : "意味を入力"}
+              autoComplete="off"
+              autoCapitalize="off"
+              autoCorrect="off"
+              spellCheck={false}
+              lang={jaEn ? "en" : "ja"}
+              className="min-w-0 flex-1 rounded-2xl bg-white px-4 py-3 text-base shadow-sm ring-1 ring-slate-200 focus:outline-none focus:ring-2 focus:ring-rose-400"
+            />
+            <button type="submit" disabled={!t || !input.trim()} className="rounded-2xl bg-rose-500 px-4 text-sm font-extrabold text-white disabled:opacity-40">
+              攻撃
+            </button>
+          </form>
+        )}
+        {config.answer === "voice" && recognition.supported && (
+          <div className="mt-2 flex items-center justify-center gap-3">
+            <button
+              type="button"
+              aria-label="話して攻撃"
+              disabled={!t}
+              onClick={() => (recognition.listening ? recognition.stop() : listen())}
+              className={`flex h-16 w-16 items-center justify-center rounded-full text-white shadow-lg transition active:scale-90 disabled:opacity-40 ${
+                recognition.listening ? "animate-pulse bg-rose-500" : "bg-indigo-600"
+              }`}
+            >
+              {recognition.listening ? <Check size={28} strokeWidth={3} /> : <Mic size={28} />}
+            </button>
+            <p className="min-h-[1.5rem] max-w-[12rem] text-xs text-slate-600">
+              {recognition.listening ? recognition.interim || "聞き取り中…話し終わったら ✓" : "マイクを押して話すと攻撃"}
+            </p>
+          </div>
+        )}
+        {config.answer !== "choice" && (
+          <button
+            type="button"
+            disabled={!t}
+            onClick={() => t && answer(t.item.id, false)}
+            className="mx-auto mt-2 block rounded-full bg-white px-3 py-1.5 text-xs font-bold text-slate-500 ring-1 ring-slate-200 disabled:opacity-40"
+          >
+            わからない（答えを見る）
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function BattleResult({ battle, reward, speech, onRetry, onNext, onBack }) {
+  const sound = useSound();
+  useEffect(() => sound.play(battle.cleared ? "complete" : "again"), [sound, battle.cleared]);
+  const stage = battle.mode === "stage";
+  const wrong = resultsOf(battle)
+    .filter((r) => !r.correct)
+    .map((r) => LIBRARY.byId[r.id])
+    .filter(Boolean);
+  const title = stage ? (battle.cleared ? "STAGE CLEAR!" : "GAME OVER") : "RESULT";
+  return (
+    <div className="h-full overflow-y-auto px-5 pt-4 pb-6" data-testid="battle-result">
+      <div
+        className={`rounded-3xl p-6 text-center text-white shadow-lg ${
+          battle.cleared ? "bg-gradient-to-br from-amber-400 via-orange-500 to-rose-500" : "bg-gradient-to-br from-slate-700 to-indigo-900"
+        }`}
+      >
+        <p className="text-3xl font-black tracking-wide" data-testid="battle-result-title">
+          {title}
+        </p>
+        {stage && battle.cleared && (
+          <p className="mt-2 text-4xl tracking-widest text-yellow-200" data-testid="battle-stars">
+            {"★".repeat(reward.stars)}
+            <span className="opacity-40">{"★".repeat(3 - reward.stars)}</span>
+          </p>
+        )}
+        <p className="mt-3 text-5xl font-black tabular-nums">{battle.score}</p>
+        <p className="text-xs font-bold text-white/80 tabular-nums">
+          撃破 {battle.kills} ・ 最大コンボ {battle.maxCombo} ・ 残り HP {battle.hp}
+        </p>
+        {reward.newBest && <p className="mt-2 text-sm font-black text-yellow-200">最高得点を更新！</p>}
+      </div>
+
+      <div className="mt-3 rounded-2xl bg-indigo-50 px-4 py-3 text-center text-sm font-bold text-indigo-700" data-testid="battle-reward">
+        ガチャポイント +{reward.points}
+        {reward.tickets > 0 && "・レアチケット +1（初めての★3！）"}
+      </div>
+
+      {wrong.length > 0 && (
+        <div className="mt-4">
+          <p className="text-sm font-bold text-slate-800">間違えた・逃した単語（苦手に追加しました）</p>
+          <ul className="mt-2 space-y-2">
+            {wrong.map((p) => (
+              <li key={p.id} className="flex items-center gap-3 rounded-2xl bg-white p-3 shadow-sm ring-1 ring-slate-200">
+                <SpeakButton seed={p.id} text={p.english} speech={speech} size="sm" />
+                <div className="min-w-0 flex-1">
+                  <p className="font-bold text-slate-900">{p.english}</p>
+                  <p className="text-sm text-slate-500">{p.japanese}</p>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      <div className="mt-5 grid gap-2">
+        {onNext && (
+          <button type="button" onClick={onNext} className="rounded-2xl bg-gradient-to-r from-rose-500 to-orange-500 py-3.5 text-sm font-extrabold text-white">
+            次のステージへ
+          </button>
+        )}
+        <button type="button" onClick={onRetry} className="rounded-2xl bg-white py-3.5 text-sm font-bold text-slate-700 ring-1 ring-slate-200">
+          もう一度
+        </button>
+        <button type="button" onClick={onBack} className="rounded-2xl py-3 text-sm font-bold text-slate-500">
+          設定に戻る
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function TestScreen({ active, state, settings, setSettings, speech, onFinishTest, onFinishBattle, onSettings }) {
   const recognition = useRecognition();
   const [session, setSession] = useState(null); // { quiz, pool, runId }
   const [result, setResult] = useState(null);
+  const [battle, setBattle] = useState(null); // { config, items, key, runId }
+  const [battleResult, setBattleResult] = useState(null); // { battle, reward }
   const config = settings.test;
   const setConfig = (test) => setSettings((s) => ({ ...s, test }));
+  const battleConfig = settings.battle;
+  const setBattleConfig = (b) => setSettings((s) => ({ ...s, battle: b }));
+  const switcher = <TestKindSwitch value={settings.play} onChange={(play) => setSettings((s) => ({ ...s, play }))} />;
+  const startBattle = (b) => {
+    setBattleResult(null);
+    setBattle({ ...b, runId: Date.now() });
+  };
+  const onBattleOver = useCallback(
+    (b) => {
+      const reward = onFinishBattle(b);
+      setBattleResult({ battle: b, reward });
+    },
+    [onFinishBattle]
+  );
+
+  if (battleResult) {
+    const cfg = battle.config;
+    const nextChapter = cfg.mode === "stage" && battleResult.battle.cleared ? CHAPTERS[CHAPTER_NO[cfg.chapter]] : null;
+    return (
+      <BattleResult
+        battle={battleResult.battle}
+        reward={battleResult.reward}
+        speech={speech}
+        onRetry={() => startBattle(battle)}
+        onNext={
+          nextChapter
+            ? () => {
+                const next = { ...cfg, chapter: nextChapter.id };
+                setBattleConfig(next);
+                startBattle({ config: next, items: nextChapter.items, key: battleKey(next) });
+              }
+            : null
+        }
+        onBack={() => {
+          setBattleResult(null);
+          setBattle(null);
+        }}
+      />
+    );
+  }
+  if (battle) {
+    return (
+      <BattleRun key={battle.runId} active={active} session={battle} speech={speech} recognition={recognition} onFinish={onBattleOver} />
+    );
+  }
+  if (settings.play === "battle" && !session && !result) {
+    return (
+      <BattleSetup
+        config={battleConfig}
+        setConfig={setBattleConfig}
+        record={state.battle}
+        misses={state.misses}
+        onStart={startBattle}
+        onSettings={onSettings}
+        switcher={switcher}
+      />
+    );
+  }
 
   const start = (pool, items = null) => {
     const quiz = items || buildQuiz(pool, config.count, Math.random);
@@ -1822,6 +2445,7 @@ function TestScreen({ active, state, settings, setSettings, speech, onFinishTest
       tests={state.tests}
       onStart={(pool) => start(pool)}
       onSettings={onSettings}
+      switcher={switcher}
     />
   );
 }
@@ -2473,6 +3097,539 @@ function motivation(learned) {
 }
 
 // ---------------------------------------------------------------------------
+// 単語ガチャ・図鑑・称号
+// ---------------------------------------------------------------------------
+const RARITY_STYLE = {
+  N: { label: "N", chip: "bg-slate-100 text-slate-600", tile: "from-slate-50 to-white", text: "text-slate-600" },
+  R: { label: "R", chip: "bg-sky-100 text-sky-700", tile: "from-sky-50 to-white", text: "text-sky-600" },
+  SR: { label: "SR", chip: "bg-violet-100 text-violet-700", tile: "from-violet-100 to-white", text: "text-violet-600" },
+  SSR: { label: "SSR", chip: "bg-gradient-to-r from-amber-300 to-pink-400 text-white", tile: "from-amber-100 via-pink-50 to-white", text: "text-amber-600" },
+};
+/** ダブり進化の見た目: Lv.2 銅・Lv.3 銀・Lv.4 キラキラ */
+const LEVEL_FRAME = {
+  0: "ring-1 ring-slate-200",
+  1: "ring-1 ring-slate-200",
+  2: "ring-2 ring-amber-600/70",
+  3: "ring-2 ring-slate-400 shadow-md",
+  4: "ring-2 ring-amber-400 shadow-lg gacha-kira",
+};
+const GACHA_POS_OPTIONS = [
+  { value: "all", label: "全品詞" },
+  { value: "noun", label: "名詞" },
+  { value: "verb", label: "動詞" },
+  { value: "adj", label: "形容詞" },
+  { value: "other", label: "副詞など" },
+];
+const TITLE_BY_ID = Object.fromEntries(TITLES.map((t) => [t.id, t]));
+
+/** ガチャの乱数（暗号用の乱数。E2E ではシードを渡して結果を固定できる） */
+function gachaRng() {
+  if (typeof window !== "undefined" && Number.isInteger(window.__swipetalkGachaSeed)) {
+    const r = mulberry32(window.__swipetalkGachaSeed);
+    window.__swipetalkGachaSeed += 1;
+    return r;
+  }
+  return () => {
+    const a = new Uint32Array(1);
+    crypto.getRandomValues(a);
+    return a[0] / 2 ** 32;
+  };
+}
+
+const levelStars = (level) => "★".repeat(level) + "☆".repeat(Math.max(0, MAX_LEVEL - level));
+/** 未獲得の単語のシルエット: 頭文字と文字数だけ */
+const silhouette = (english) => english.replace(/[A-Za-z]/g, "・").replace(/^・/, english[0]);
+
+function RarityChip({ rarity, secret }) {
+  if (secret) return <span className="rounded-md bg-slate-900 px-1.5 py-0.5 text-[10px] font-black text-amber-300">SECRET</span>;
+  const s = RARITY_STYLE[rarity];
+  return <span className={`rounded-md px-1.5 py-0.5 text-[10px] font-black ${s.chip}`}>{s.label}</span>;
+}
+
+function Wallet({ g }) {
+  const items = [
+    ["ポイント", g.points, "pt", "text-indigo-600", "wallet-points"],
+    ["レアチケット", g.tickets, "枚", "text-rose-500", "wallet-tickets"],
+    ["交換pt", g.exPoints, "", "text-emerald-600", "wallet-ex"],
+  ];
+  return (
+    <div className="mt-3 grid grid-cols-3 gap-2">
+      {items.map(([label, v, unit, color, id]) => (
+        <div key={label} className="rounded-2xl bg-white px-2 py-2 text-center shadow-sm ring-1 ring-slate-200">
+          <p className="text-[10px] font-bold text-slate-400">{label}</p>
+          <p className={`text-lg font-black tabular-nums ${color}`} data-testid={id}>
+            {v}
+            <span className="ml-0.5 text-[10px] text-slate-400">{unit}</span>
+          </p>
+        </div>
+      ))}
+      {(g.selSR > 0 || g.selSSR > 0) && (
+        <p className="col-span-3 rounded-xl bg-amber-50 px-3 py-1.5 text-center text-xs font-bold text-amber-700" data-testid="wallet-select">
+          選択チケット SR×{g.selSR}・SSR×{g.selSSR}（図鑑で好きな未獲得の単語に使えます）
+        </p>
+      )}
+    </div>
+  );
+}
+
+function WordTile({ card, copies, onOpen }) {
+  const owned = copies > 0;
+  const level = levelOf(copies);
+  const style = RARITY_STYLE[card.rarity];
+  return (
+    <button
+      type="button"
+      onClick={() => onOpen(card.id)}
+      data-testid="zukan-tile"
+      data-owned={owned ? "1" : "0"}
+      className={`relative flex aspect-[3/4] flex-col items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-b p-1.5 text-center transition active:scale-95 ${
+        owned ? `${style.tile} ${LEVEL_FRAME[level]}` : "bg-slate-200 ring-1 ring-slate-300"
+      }`}
+    >
+      <span className="absolute left-1.5 top-1.5">
+        <RarityChip rarity={card.rarity} secret={card.secret} />
+      </span>
+      {owned ? (
+        <>
+          <span className="mt-3 break-all text-sm font-extrabold leading-tight text-slate-900">{card.english}</span>
+          <span className="mt-1 line-clamp-2 text-[10px] leading-tight text-slate-500">{card.japanese.split("／")[0]}</span>
+          <span className="mt-1 text-[10px] tracking-tighter text-amber-500">{levelStars(level)}</span>
+        </>
+      ) : (
+        <>
+          <span className="mt-3 text-sm font-extrabold tracking-widest text-slate-400">{card.secret ? "？？？" : silhouette(card.english)}</span>
+          <span className="mt-1 text-lg text-slate-400">？</span>
+        </>
+      )}
+    </button>
+  );
+}
+
+/** 単語カードの詳細（獲得済みはすべて、未獲得はチラ見せ）と交換所 */
+function WordSheet({ card, gacha, speech, onClose, onExchange }) {
+  const [message, setMessage] = useState("");
+  const copies = gacha.cards[card.id] || 0;
+  const owned = copies > 0;
+  const level = levelOf(copies);
+  const cost = EXCHANGE_COST[card.rarity];
+  const selectKey = card.rarity === "SR" ? "selSR" : card.rarity === "SSR" ? "selSSR" : null;
+  const [unlocks, setUnlocks] = useState([]);
+  const exchange = (payWith) => {
+    const r = onExchange(card.id, payWith);
+    setMessage(r.error || "");
+    if (!r.error) {
+      setUnlocks([
+        ...r.newSecrets.map((id) => `🔓 シークレット単語「${CATALOG.cards[id].english}」が解放された！`),
+        ...r.newTitles.map((id) => `🏅 称号【${TITLE_BY_ID[id].name}】を獲得！`),
+      ]);
+    }
+  };
+  return (
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-900/50" onClick={onClose}>
+      <div
+        role="dialog"
+        aria-label="単語カード"
+        data-testid="word-sheet"
+        className="w-full max-w-md overflow-y-auto rounded-t-3xl bg-white p-5 shadow-2xl"
+        style={{ paddingBottom: "calc(1.25rem + env(safe-area-inset-bottom))", maxHeight: "90dvh" }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center gap-2">
+          <RarityChip rarity={card.rarity} secret={card.secret} />
+          <span className="text-xs font-bold text-slate-400">{POS_LABELS[card.pos]}</span>
+          {owned && <span className="text-xs tracking-tighter text-amber-500">{levelStars(level)} Lv.{level}</span>}
+          <button type="button" onClick={onClose} aria-label="閉じる" className="ml-auto rounded-full p-2 text-slate-400 hover:bg-slate-100">
+            <X size={20} />
+          </button>
+        </div>
+
+        <div className={`mt-3 rounded-3xl bg-gradient-to-b p-5 ${owned ? `${RARITY_STYLE[card.rarity].tile} ${LEVEL_FRAME[level]}` : "bg-slate-100"}`}>
+          {owned ? (
+            <>
+              <div className="flex items-center gap-2">
+                <h3 className="flex-1 break-all text-3xl font-black text-slate-900">{card.english}</h3>
+                <SpeakButton text={card.english} seed={card.id} speech={speech} label="英語を再生" />
+              </div>
+              <p className="mt-1 text-xl font-bold text-indigo-600">{card.japanese}</p>
+              {card.example && (
+                <div className="mt-3 rounded-2xl bg-white/80 p-3">
+                  <div className="flex items-start gap-2">
+                    <p className="flex-1 text-sm leading-snug text-slate-800">
+                      <LinkedText text={card.example} />
+                    </p>
+                    <SpeakButton text={card.example} seed={card.id} speech={speech} size="sm" />
+                  </div>
+                  <p className="mt-1 text-xs text-slate-500">{card.exampleJa}</p>
+                </div>
+              )}
+              {card.trivia && (
+                <div className="mt-3 rounded-2xl bg-amber-50 p-3 ring-1 ring-amber-200" data-testid="word-trivia">
+                  <p className="text-[11px] font-bold tracking-wide text-amber-600">語源・豆知識</p>
+                  <p className="mt-1 text-sm font-bold leading-relaxed text-slate-800">{card.trivia.etymology}</p>
+                  <p className="mt-2 text-xs leading-relaxed text-slate-600">
+                    {card.trivia.teaser}
+                    <span className="mt-1 block font-bold text-rose-600">→ {card.trivia.reveal}</span>
+                  </p>
+                </div>
+              )}
+            </>
+          ) : (
+            <>
+              <p className="text-3xl font-black tracking-widest text-slate-400">{card.secret ? "？？？" : silhouette(card.english)}</p>
+              <p className="mt-1 text-sm font-bold text-slate-400">まだ持っていない単語です</p>
+              {card.trivia && (
+                <div className="mt-3 rounded-2xl bg-white p-3 ring-1 ring-amber-200" data-testid="word-teaser">
+                  <p className="text-[11px] font-bold tracking-wide text-amber-600">豆知識（チラ見せ）</p>
+                  <p className="mt-1 text-sm font-bold leading-relaxed text-slate-800">{card.trivia.teaser}</p>
+                  <p className="mt-1 text-xs text-slate-400">答えは、この単語を手に入れると見られます</p>
+                </div>
+              )}
+              {card.secret && <p className="mt-3 rounded-2xl bg-slate-900 p-3 text-sm font-bold text-amber-300">解放の条件: {card.hint}</p>}
+            </>
+          )}
+        </div>
+
+        {!card.secret && level < MAX_LEVEL && (
+          <div className="mt-4 space-y-2">
+            <p className="text-xs font-bold text-slate-500">交換所{owned ? `（Lv.${level + 1} に上げる）` : "（この単語を手に入れる）"}</p>
+            <button
+              type="button"
+              onClick={() => exchange("exPoints")}
+              disabled={gacha.exPoints < cost}
+              className="w-full rounded-2xl bg-emerald-600 py-3 text-sm font-extrabold text-white shadow transition active:scale-95 disabled:opacity-40"
+            >
+              交換ポイント {cost} で交換（所持 {gacha.exPoints}）
+            </button>
+            {selectKey && !owned && gacha[selectKey] > 0 && (
+              <button
+                type="button"
+                onClick={() => exchange(selectKey)}
+                className="w-full rounded-2xl bg-amber-500 py-3 text-sm font-extrabold text-white shadow transition active:scale-95"
+              >
+                {card.rarity} 選択チケットを使う（残り {gacha[selectKey]} 枚）
+              </button>
+            )}
+          </div>
+        )}
+        {owned && level >= MAX_LEVEL && (
+          <p className="mt-4 rounded-2xl bg-amber-50 px-3 py-2 text-center text-xs font-bold text-amber-700">MAX！この単語はもうガチャから出ません</p>
+        )}
+        {message && <p className="mt-2 text-center text-xs font-bold text-rose-500">{message}</p>}
+        {unlocks.length > 0 && (
+          <div className="mt-2 space-y-1 rounded-2xl bg-slate-900 p-3 text-sm font-bold text-amber-300" data-testid="exchange-unlocks">
+            {unlocks.map((t) => (
+              <p key={t}>{t}</p>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/** ガチャの結果 */
+function GachaResult({ result, onClose, onOpen }) {
+  const best = result.results.reduce((b, r) => (RARITIES.indexOf(r.rarity) > RARITIES.indexOf(b) ? r.rarity : b), "N");
+  const head = {
+    N: "bg-slate-700",
+    R: "bg-sky-600",
+    SR: "bg-violet-600",
+    SSR: "bg-gradient-to-r from-amber-400 via-pink-500 to-violet-600",
+  }[best];
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 px-4" onClick={onClose}>
+      <div
+        role="dialog"
+        aria-label="ガチャの結果"
+        data-testid="gacha-result"
+        className="w-full max-w-md overflow-hidden rounded-3xl bg-white shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className={`px-5 py-4 text-center text-white ${head}`}>
+          <p className="text-xs font-bold tracking-widest text-white/80">RESULT</p>
+          <p className="text-2xl font-black">{best === "SSR" ? "SSR 出現！" : best === "SR" ? "SR 獲得！" : "ガチャ結果"}</p>
+        </div>
+        <div className={`grid gap-2 p-4 ${result.results.length > 1 ? "grid-cols-2" : "grid-cols-1"}`} style={{ maxHeight: "55dvh", overflowY: "auto" }}>
+          {result.results.map((r, i) => {
+            const card = CATALOG.cards[r.id];
+            return (
+              <button
+                key={i}
+                type="button"
+                onClick={() => onOpen(r.id)}
+                data-testid="gacha-result-card"
+                data-rarity={r.rarity}
+                className={`relative rounded-2xl bg-gradient-to-b p-3 text-left ${RARITY_STYLE[r.rarity].tile} ${LEVEL_FRAME[r.level]}`}
+              >
+                <div className="flex items-center gap-1">
+                  <RarityChip rarity={r.rarity} />
+                  <span className={`ml-auto text-[10px] font-black ${r.result === "new" ? "text-rose-500" : "text-emerald-600"}`}>
+                    {r.result === "new" ? "NEW!" : r.level >= MAX_LEVEL ? "MAX!" : `Lv.${r.level}↑`}
+                  </span>
+                </div>
+                <p className="mt-1 break-all text-base font-extrabold text-slate-900">{card.english}</p>
+                <p className="line-clamp-1 text-xs text-slate-500">{card.japanese.split("／")[0]}</p>
+                {r.byPity && <p className="mt-1 text-[10px] font-bold text-amber-600">{r.byPity === "SSR" ? "天井で SSR 確定" : "10連の SR 以上確定枠"}</p>}
+              </button>
+            );
+          })}
+        </div>
+        {(result.newSecrets?.length > 0 || result.newTitles?.length > 0) && (
+          <div className="mx-4 mb-2 space-y-1 rounded-2xl bg-slate-900 p-3 text-sm font-bold text-amber-300" data-testid="gacha-unlocks">
+            {result.newSecrets.map((id) => (
+              <p key={id}>🔓 シークレット単語「{CATALOG.cards[id].english}」が解放された！</p>
+            ))}
+            {result.newTitles.map((id) => (
+              <p key={id}>🏅 称号【{TITLE_BY_ID[id].name}】を獲得！</p>
+            ))}
+          </div>
+        )}
+        <p className="px-4 text-center text-xs text-slate-500">
+          交換ポイント +{result.results.reduce((n, r) => n + r.exGain, 0)}　カードをタップすると詳しく見られます
+        </p>
+        <div className="p-4">
+          <button type="button" onClick={onClose} className="w-full rounded-2xl bg-slate-900 py-3 text-sm font-extrabold text-white">
+            閉じる
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function GachaPanel({ g, onPull }) {
+  const [pos, setPos] = useState("all");
+  const [error, setError] = useState("");
+  const rates = useMemo(() => currentRates(g, CATALOG, pos, "points"), [g, pos]);
+  const ticketRates = useMemo(() => currentRates(g, CATALOG, pos, "ticket"), [g, pos]);
+  const pull = (currency, times) => setError(onPull({ pos, currency, times }) || "");
+  const fmt = (v) => `${Math.round(v * 10) / 10}%`;
+  return (
+    <div className="space-y-3">
+      <Segmented name="gacha-pos" value={pos} onChange={setPos} options={GACHA_POS_OPTIONS} />
+      <div className="rounded-3xl bg-gradient-to-br from-indigo-600 via-violet-600 to-pink-500 p-4 text-white shadow-lg">
+        <p className="text-xs font-bold tracking-widest text-white/80">WORD GACHA</p>
+        <p className="text-xl font-black">{GACHA_POS_OPTIONS.find((o) => o.value === pos).label}ガチャ</p>
+        <p className="mt-1 text-[11px] text-white/85 tabular-nums" data-testid="gacha-rates">
+          いまの確率 N {fmt(rates.N)}・R {fmt(rates.R)}・SR {fmt(rates.SR)}・SSR {fmt(rates.SSR)}
+        </p>
+        <div className="mt-3 grid grid-cols-2 gap-2">
+          <button
+            type="button"
+            onClick={() => pull("points", 1)}
+            className="rounded-2xl bg-white/95 py-3 text-sm font-extrabold text-indigo-700 shadow transition active:scale-95"
+          >
+            1回引く
+            <span className="block text-[11px] font-bold text-slate-500">{PULL_COST}pt</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => pull("points", 10)}
+            className="rounded-2xl bg-amber-300 py-3 text-sm font-extrabold text-amber-900 shadow transition active:scale-95"
+          >
+            10連
+            <span className="block text-[11px] font-bold text-amber-800">{PULL_COST * 10}pt・SR以上1枚確定</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => pull("ticket", 1)}
+            className="col-span-2 rounded-2xl bg-rose-500 py-2.5 text-sm font-extrabold text-white shadow transition active:scale-95"
+          >
+            レアチケットで引く（R 以上）
+            <span className="block text-[11px] font-bold text-white/85 tabular-nums">
+              R {fmt(ticketRates.R)}・SR {fmt(ticketRates.SR)}・SSR {fmt(ticketRates.SSR)}
+            </span>
+          </button>
+        </div>
+        <p className="mt-2 text-[11px] font-bold text-white/90 tabular-nums" data-testid="gacha-pity">
+          SSR 確定まで あと {PITY_SSR.points - g.pity.points} 回（チケットは あと {PITY_SSR.ticket - g.pity.ticket} 枚）
+        </p>
+      </div>
+      {error && <p className="rounded-xl bg-rose-50 px-3 py-2 text-center text-xs font-bold text-rose-600">{error}</p>}
+      <div className="rounded-2xl bg-white p-3 text-xs leading-relaxed text-slate-600 ring-1 ring-slate-200">
+        <p className="font-bold text-slate-800">ポイントのもらい方（課金はありません）</p>
+        <p>・毎日のログインボーナス {LOGIN_POINTS}pt（7日ごとにレアチケット、連続30日で SR 選択チケット、累計100日で SSR 選択チケット）</p>
+        <p>・今日の目標（{DAILY_GOAL}問）達成で {GOAL_POINTS}pt</p>
+        <p>・「覚えた」1枚・テスト1問正解ごとに {STUDY_POINTS}pt（1日 {STUDY_DAILY_CAP}pt まで）</p>
+        <p className="mt-1 font-bold text-slate-800">ダブりもムダになりません</p>
+        <p>・同じ単語が出ると Lv が上がり、フレームが銅→銀→キラキラに（Lv.4 で MAX、以降は出なくなります）</p>
+        <p>・引くたびに交換ポイントが貯まり、図鑑から好きな単語と交換できます</p>
+      </div>
+    </div>
+  );
+}
+
+function Zukan({ g, onOpen }) {
+  const [query, setQuery] = useState("");
+  const [rarity, setRarity] = useState("all");
+  const [owned, setOwned] = useState("all");
+  const [limit, setLimit] = useState(60);
+  const list = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return CATALOG.order.filter((id) => {
+      const c = CATALOG.cards[id];
+      const has = (g.cards[id] || 0) > 0;
+      if (rarity === "secret" ? !c.secret : rarity !== "all" && (c.secret || c.rarity !== rarity)) return false;
+      if (owned === "owned" && !has) return false;
+      if (owned === "unowned" && has) return false;
+      if (!q) return true;
+      // 未獲得の単語は、答えがばれないよう英語と意味では検索しない（チラ見せの文だけ）
+      if (!has) return !!c.trivia && c.trivia.teaser.toLowerCase().includes(q);
+      return c.english.toLowerCase().includes(q) || c.japanese.includes(q) || (c.trivia && (c.trivia.etymology + c.trivia.reveal).includes(q));
+    });
+  }, [g.cards, query, rarity, owned]);
+  useEffect(() => setLimit(60), [query, rarity, owned]);
+  const ownedCount = CATALOG.order.filter((id) => (g.cards[id] || 0) > 0).length;
+  return (
+    <div className="space-y-2">
+      <p className="text-xs font-bold text-slate-500 tabular-nums" data-testid="zukan-count">
+        集めた単語 {ownedCount} / {CATALOG.order.length}
+      </p>
+      <div className="relative">
+        <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+        <input
+          id="zukan-search"
+          type="search"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="英語・日本語・豆知識で検索"
+          className="w-full rounded-xl bg-white py-2 pl-9 pr-3 text-sm shadow-sm ring-1 ring-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+        />
+      </div>
+      <div className="flex flex-wrap gap-1.5">
+        {[
+          ["all", "すべて"],
+          ["N", "N"],
+          ["R", "R"],
+          ["SR", "SR"],
+          ["SSR", "SSR"],
+          ["secret", "シークレット"],
+        ].map(([k, label]) => (
+          <button
+            key={k}
+            type="button"
+            onClick={() => setRarity(k)}
+            className={`rounded-full px-3 py-1 text-xs font-bold ${rarity === k ? "bg-slate-900 text-white" : "bg-white text-slate-500 ring-1 ring-slate-200"}`}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+      <Segmented
+        name="zukan-owned"
+        value={owned}
+        onChange={setOwned}
+        options={[
+          { value: "all", label: "すべて" },
+          { value: "owned", label: "獲得済み" },
+          { value: "unowned", label: "未獲得" },
+        ]}
+      />
+      <div className="grid grid-cols-3 gap-2">
+        {list.slice(0, limit).map((id) => (
+          <WordTile key={id} card={CATALOG.cards[id]} copies={g.cards[id] || 0} onOpen={onOpen} />
+        ))}
+      </div>
+      {list.length === 0 && <p className="py-10 text-center text-sm text-slate-400">該当する単語がありません</p>}
+      {list.length > limit && (
+        <button
+          type="button"
+          onClick={() => setLimit((l) => l + 60)}
+          className="w-full rounded-2xl bg-white py-3 text-sm font-bold text-indigo-600 ring-1 ring-slate-200"
+        >
+          さらに表示（残り {list.length - limit}）
+        </button>
+      )}
+    </div>
+  );
+}
+
+function TitleList({ g }) {
+  return (
+    <ul className="space-y-2">
+      {TITLES.map((t) => {
+        const got = g.titles.includes(t.id);
+        const { have, need } = titleProgress(g, CATALOG, t.rule);
+        return (
+          <li
+            key={t.id}
+            data-testid="title-item"
+            className={`rounded-2xl p-3 ring-1 ${got ? "bg-amber-50 ring-amber-300" : "bg-white ring-slate-200"}`}
+          >
+            <div className="flex items-center gap-2">
+              <Award size={18} className={got ? "text-amber-500" : "text-slate-300"} />
+              <p className={`flex-1 text-sm font-extrabold ${got ? "text-amber-700" : "text-slate-500"}`}>【{t.name}】</p>
+              <span className="text-xs font-bold tabular-nums text-slate-400">
+                {Math.min(have, need)} / {need}
+              </span>
+            </div>
+            <p className="mt-1 text-xs text-slate-500">{t.desc}</p>
+            <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-slate-100">
+              <div className="h-full rounded-full bg-amber-400" style={{ width: `${Math.min(100, (have / need) * 100)}%` }} />
+            </div>
+          </li>
+        );
+      })}
+      <li className="rounded-2xl bg-slate-900 p-3 text-xs leading-relaxed text-amber-200">
+        シークレット単語: 語源のパーツ（com＝一緒に、uni＝1つ など）が同じ単語を集めると、ガチャに出ない特別な単語が解放されます。ヒントは図鑑の「シークレット」で。
+      </li>
+    </ul>
+  );
+}
+
+function GachaScreen({ state, speech, onPull, onExchange, onStarter, onSettings }) {
+  const g = state.gacha;
+  const [view, setView] = useState("gacha");
+  const [result, setResult] = useState(null);
+  const [openId, setOpenId] = useState(null);
+  const [starterShown, setStarterShown] = useState(false);
+  useEffect(() => {
+    if (!g.starter) {
+      onStarter();
+      setStarterShown(true);
+    }
+  }, [g.starter, onStarter]);
+  const pull = (opts) => {
+    const r = onPull(opts);
+    if (r.error) return r.error;
+    setResult(r);
+    return null;
+  };
+  return (
+    <div className="flex h-full flex-col px-5 pt-4 pb-3">
+      <ScreenHeader title="単語ガチャ" sub="集めて、語源を知ろう" onSettings={onSettings} />
+      <Wallet g={g} />
+      {starterShown && (
+        <p className="mt-2 rounded-xl bg-indigo-50 px-3 py-2 text-center text-xs font-bold text-indigo-700" data-testid="gacha-starter">
+          はじめてボーナス！ {STARTER.points}pt とレアチケット {STARTER.tickets} 枚をプレゼント
+        </p>
+      )}
+      <div className="mt-3">
+        <Segmented
+          name="gacha-view"
+          value={view}
+          onChange={setView}
+          options={[
+            { value: "gacha", label: "ガチャ", icon: Gift },
+            { value: "zukan", label: "図鑑", icon: BookOpen },
+            { value: "titles", label: "称号", icon: Award },
+          ]}
+        />
+      </div>
+      <div className="mt-3 min-h-0 flex-1 overflow-y-auto pb-4">
+        {view === "gacha" && <GachaPanel g={g} onPull={pull} />}
+        {view === "zukan" && <Zukan g={g} onOpen={setOpenId} />}
+        {view === "titles" && <TitleList g={g} />}
+      </div>
+      {result && <GachaResult result={result} onClose={() => setResult(null)} onOpen={setOpenId} />}
+      {openId && (
+        <WordSheet card={CATALOG.cards[openId]} gacha={g} speech={speech} onClose={() => setOpenId(null)} onExchange={onExchange} />
+      )}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // ログインボーナス・今日の目標・着せかえ
 // ---------------------------------------------------------------------------
 function BonusModal({ reward, bonus, onClose }) {
@@ -2515,11 +3672,19 @@ function BonusModal({ reward, bonus, onClose }) {
             <span className="ml-1 text-base text-amber-600">コイン</span>
           </p>
           {reward.weekly && <p className="mt-1 text-sm font-bold text-rose-500">7日連続ボーナス +50 込み！</p>}
+          {reward.gacha && (
+            <p className="mt-2 rounded-xl bg-indigo-50 px-3 py-2 text-sm font-bold text-indigo-700" data-testid="bonus-gacha">
+              ガチャポイント +{reward.gacha.points}
+              {reward.gacha.tickets > 0 && "・レアチケット +1"}
+              {reward.gacha.selSR > 0 && "・SR 選択チケット +1"}
+              {reward.gacha.selSSR > 0 && "・SSR 選択チケット +1"}
+            </p>
+          )}
           <p className="mt-2 text-xs text-slate-500 tabular-nums">
             所持コイン {bonus.coins} ・ 明日は +{dailyReward(reward.day + 1).coins}
           </p>
           <p className="mt-3 text-xs leading-relaxed text-slate-500">
-            コインは「進捗」タブの着せかえに使えます。今日 {DAILY_GOAL} 問学習すると、さらに +{GOAL_REWARD}。
+            コインは「進捗」タブの着せかえに、ガチャポイントは「ガチャ」タブで使えます。今日 {DAILY_GOAL} 問学習すると、さらにコイン +{GOAL_REWARD}・ガチャポイント +{GOAL_POINTS}。
           </p>
           <button
             type="button"
@@ -2569,7 +3734,7 @@ function BonusCard({ state, onClaimGoal, onBuyTheme, onApplyTheme }) {
             onClick={onClaimGoal}
             className="mt-2 w-full rounded-xl bg-amber-400 py-2 text-sm font-extrabold text-white shadow active:scale-95"
           >
-            目標達成！ +{GOAL_REWARD} コインを受け取る
+            目標達成！ +{GOAL_REWARD} コイン・+{GOAL_POINTS}pt を受け取る
           </button>
         ) : (
           <p className="mt-2 text-[11px] text-slate-500">
@@ -2973,13 +4138,18 @@ export default function App() {
 
   const onSwipe = useCallback((chapter, id, dir) => {
     const { today, yesterday } = todayAndYesterday();
-    update((s) => applySwipe(s, chapter, id, dir, today, yesterday));
+    update((s) => {
+      const next = applySwipe(s, chapter, id, dir, today, yesterday);
+      // 「覚えた」でガチャポイント（覚えた数が増えたときだけ）
+      const gained = Object.keys(next.learned).length > Object.keys(s.learned).length;
+      return gained ? earnStudyPoints(next, today, 1) : next;
+    });
   }, [update]);
   const onToggle = useCallback((chapter, id) => update((s) => toggleLearned(s, chapter, id)), [update]);
   const onChapter = useCallback((chapter) => update((s) => ({ ...s, chapter })), [update]);
   const onResetChapter = useCallback((chapter) => update((s) => resetChapter(s, chapter)), [update]);
   const onResetAll = useCallback(() => {
-    update((s) => ({ ...freshState(CHAPTERS[0].id), stats: s.stats, bonus: s.bonus }));
+    update((s) => ({ ...freshState(CHAPTERS[0].id), stats: s.stats, bonus: s.bonus, gacha: s.gacha }));
     setTab("study");
   }, [update]);
   const onShadowDone = useCallback(() => {
@@ -2988,8 +4158,48 @@ export default function App() {
   }, [update]);
   const onFinishTest = useCallback((scope, results) => {
     const { today, yesterday } = todayAndYesterday();
-    update((s) => applyTestResult(s, LIBRARY, scope, results, today, yesterday));
+    const correct = results.filter((r) => r.correct).length;
+    update((s) => earnStudyPoints(applyTestResult(s, LIBRARY, scope, results, today, yesterday), today, correct));
   }, [update]);
+
+  // ---- バトル: 間違えた単語は苦手に入れ、ポイント・チケットを渡す
+  const onFinishBattle = useCallback(
+    (b) => {
+      const { today, yesterday } = todayAndYesterday();
+      const withMisses = applyTestResult(stateRef.current, LIBRARY, `battle@${b.direction}`, resultsOf(b), today, yesterday);
+      const res = applyBattle(withMisses, b, today);
+      stateRef.current = res.state;
+      update(() => res.state);
+      return res.reward;
+    },
+    [update]
+  );
+
+  // ---- 単語ガチャ
+  const onGachaPull = useCallback(
+    (opts) => {
+      const r = gachaPull(stateRef.current, CATALOG, opts, gachaRng());
+      if (r.error) return r;
+      stateRef.current = r.state;
+      update(() => r.state);
+      const best = r.results.reduce((b, x) => Math.max(b, RARITIES.indexOf(x.rarity)), 0);
+      sound.play(best >= 3 || r.newSecrets.length ? "bonus" : best >= 2 ? "complete" : "correct");
+      return r;
+    },
+    [update, sound]
+  );
+  const onGachaExchange = useCallback(
+    (id, payWith) => {
+      const r = gachaExchange(stateRef.current, CATALOG, id, payWith);
+      if (r.error) return r;
+      stateRef.current = r.state;
+      update(() => r.state);
+      sound.play(r.newSecrets.length || r.newTitles.length ? "bonus" : "correct");
+      return r;
+    },
+    [update, sound]
+  );
+  const onGachaStarter = useCallback(() => update((s) => claimStarter(s)), [update]);
 
   // ---- クラウド同期（Google ログイン）
   const [user, setUser] = useState(null);
@@ -3143,6 +4353,7 @@ export default function App() {
     { key: "test", label: "テスト", icon: PenLine },
     { key: "shadow", label: "シャドー", icon: Repeat },
     { key: "list", label: "一覧", icon: List },
+    { key: "gacha", label: "ガチャ", icon: Gift },
     { key: "progress", label: "進捗", icon: Trophy },
   ];
 
@@ -3173,6 +4384,7 @@ export default function App() {
               setSettings={setSettings}
               speech={speech}
               onFinishTest={onFinishTest}
+              onFinishBattle={onFinishBattle}
               onSettings={openSettings}
             />
           </div>
@@ -3180,6 +4392,16 @@ export default function App() {
             <ShadowScreen state={state} settings={settings} speech={speech} onShadowDone={onShadowDone} onSettings={openSettings} />
           )}
           {tab === "list" && <ListScreen state={state} onToggle={onToggle} speech={speech} />}
+          {tab === "gacha" && (
+            <GachaScreen
+              state={state}
+              speech={speech}
+              onPull={onGachaPull}
+              onExchange={onGachaExchange}
+              onStarter={onGachaStarter}
+              onSettings={openSettings}
+            />
+          )}
           {tab === "progress" && (
             <ProgressScreen
               state={state}
@@ -3195,7 +4417,7 @@ export default function App() {
         </main>
 
         <nav className="border-t border-slate-200 bg-white/90 backdrop-blur" style={{ paddingBottom: "env(safe-area-inset-bottom)" }}>
-          <div className="grid grid-cols-5">
+          <div className="grid grid-cols-6">
             {navItems.map(({ key, label, icon: Icon }) => {
               const current = tab === key;
               return (

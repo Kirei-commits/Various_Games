@@ -61,14 +61,20 @@ export const test = base.extend({
 
 export { expect };
 
-export async function swipe(page, dx) {
+/** カードを横に dx ドラッグする。slow のときは1歩ごとに待つ（払う速さにならない） */
+export async function swipe(page, dx, { slow = false } = {}) {
   const card = page.getByTestId("swipe-card");
+  await card.waitFor(); // 前のカードが消えて次のカードが出るまで待つ
   const box = await card.boundingBox();
   const x = box.x + box.width / 2;
   const y = box.y + box.height / 2;
   await page.mouse.move(x, y);
   await page.mouse.down();
-  for (let i = 1; i <= 10; i++) await page.mouse.move(x + (dx * i) / 10, y);
+  for (let i = 1; i <= 10; i++) {
+    await page.mouse.move(x + (dx * i) / 10, y);
+    if (slow) await page.waitForTimeout(40);
+  }
+  if (slow) await page.waitForTimeout(80);
   await page.mouse.up();
 }
 

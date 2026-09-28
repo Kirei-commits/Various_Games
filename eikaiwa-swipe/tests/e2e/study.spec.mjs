@@ -7,9 +7,37 @@ test("右スワイプで覚えた（残りが減る）、左スワイプで最�
   await expect(remaining).toHaveText(/^49/);
   await swipe(page, -220);
   await expect(remaining).toHaveText(/^49/);
-  // 小さく動かしただけでは仕分けない
-  await swipe(page, 40);
+  // ゆっくり少し動かしただけでは仕分けない
+  await swipe(page, 40, { slow: true });
   await expect(remaining).toHaveText(/^49/);
+});
+
+test("短くても素早く払えば仕分ける。途中で操作を奪われても（pointercancel）、そこまでの動きで判定する", async ({ page }) => {
+  const remaining = page.getByTestId("remaining");
+  await expect(remaining).toHaveText(/^50/);
+  const card = page.getByTestId("swipe-card");
+  // 指の動きを、実際のタッチと同じ速さで一気に送る
+  const gesture = (moves, end) =>
+    card.evaluate(
+      (el, { moves, end }) => {
+        const r = el.getBoundingClientRect();
+        const x = r.left + r.width / 2;
+        const y = r.top + r.height / 2;
+        const ev = (type, dx) =>
+          el.dispatchEvent(new PointerEvent(type, { pointerId: 7, clientX: x + dx, clientY: y, bubbles: true, pointerType: "touch", isPrimary: true }));
+        ev("pointerdown", 0);
+        for (const dx of moves) ev("pointermove", dx);
+        ev(end.type, end.dx);
+      },
+      { moves, end }
+    );
+  // 素早く 60px 払う
+  await gesture([15, 30, 45, 60], { type: "pointerup", dx: 60 });
+  await expect(remaining).toHaveText(/^49/);
+  // iPhone の Safari のように、動かしている途中で pointercancel が来る
+  await expect(card.locator("h2")).toBeVisible();
+  await gesture([25, 50, 75, 100, 125, 150], { type: "pointercancel", dx: 0 });
+  await expect(remaining).toHaveText(/^48/);
 });
 
 test("ボタンでも仕分けでき、リロードしても進捗が残る", async ({ page }) => {
