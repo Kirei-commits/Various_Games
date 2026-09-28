@@ -6,7 +6,7 @@ API は呼ばない。保存済みのレスポンスやファイルを変換す�
 
   python3 tools/media/media.py extract res.json out/name     # レスポンス JSON から中身を取り出す
   python3 tools/media/media.py audio in.wav out.opus         # 音声を opus / mp3 に変換
-  python3 tools/media/media.py image in.jpg out.webp         # 白背景を透明にして WebP に変換
+  python3 tools/media/media.py image in.jpg out.webp         # 背景（白・緑など単色）を透明にして WebP に変換
 """
 import argparse
 import base64
@@ -85,27 +85,36 @@ def cmd_audio(args):
     print(f"{out} ({out.stat().st_size} bytes)")
 
 
-def remove_background(img, tolerance):
-    """画像のふちとつながった白っぽい部分だけを透明にする。
+def border_color(rgb):
+    """画像のふち1周のピクセルの中央値（＝背景の色とみなす）。"""
+    w, h = rgb.size
+    px = rgb.load()
+    ring = [px[x, y] for x in range(w) for y in (0, h - 1)] + [px[x, y] for y in range(h) for x in (0, w - 1)]
+    return tuple(sorted(c[i] for c in ring)[len(ring) // 2] for i in range(3))
 
-    ふちから塗りつぶすので、キャラクターの中の白（目のハイライトなど）は残る。
-    境目は白さに応じて半透明にして、白いふちどりが残らないようにする。
+
+def remove_background(img, tolerance):
+    """画像のふちとつながった、背景色に近い部分だけを透明にする。
+
+    背景色はふちのピクセルから決めるので、白でも緑でもよい（白いキャラクターは緑の背景で描かせる）。
+    ふちから塗りつぶすので、キャラクターの中の同じ色（目のハイライトなど）は残る。
+    境目は背景色への近さに応じて半透明にして、背景色のふちどりが残らないようにする。
     """
     from PIL import Image, ImageChops, ImageDraw, ImageFilter, ImageOps
 
     rgb = img.convert("RGB")
-    r, g, b = rgb.split()
-    darkest = ImageChops.darker(ImageChops.darker(r, g), b)  # 各ピクセルで一番暗いチャンネル
-    limit = 255 - tolerance
-    white = darkest.point(lambda v: 255 if v >= limit else 0)
-    # まわりに 1px の白を足してから (0,0) を塗れば、ふちのどこから始まる白もひとつながりになる
-    padded = ImageOps.expand(white, border=1, fill=255)
+    diff = ImageChops.difference(rgb, Image.new("RGB", rgb.size, border_color(rgb)))
+    r, g, b = diff.split()
+    dist = ImageChops.lighter(ImageChops.lighter(r, g), b)  # 背景色との差（一番大きいチャンネル）
+    near = dist.point(lambda v: 255 if v <= tolerance else 0)
+    # まわりに 1px の背景を足してから (0,0) を塗れば、ふちのどこから始まる背景もひとつながりになる
+    padded = ImageOps.expand(near, border=1, fill=255)
     ImageDraw.floodfill(padded, (0, 0), 128)
     background = padded.crop((1, 1, padded.width - 1, padded.height - 1)).point(lambda v: 255 if v == 128 else 0)
 
-    # 背景に接するピクセルは、白に近いほど透明にする（JPEG のにじみ・アンチエイリアス対策）
+    # 背景に接するピクセルは、背景色に近いほど透明にする（JPEG のにじみ・アンチエイリアス対策）
     edge = ImageChops.subtract(background.filter(ImageFilter.MaxFilter(3)), background)
-    soft = darkest.point(lambda v: 255 if v < limit - 64 else max(0, min(255, (limit - v) * 4)))
+    soft = dist.point(lambda v: 255 if v > tolerance + 64 else max(0, min(255, (v - tolerance) * 4)))
     alpha = ImageChops.invert(background)
     alpha.paste(soft, mask=edge)
     out = rgb.convert("RGBA")
@@ -150,11 +159,11 @@ def main():
     a.add_argument("--bitrate", default="24k", help="既定 24k（mp3 なら 48k くらいが目安）")
     a.set_defaults(func=cmd_audio)
 
-    i = sub.add_parser("image", help="白背景を透明にして WebP にする")
+    i = sub.add_parser("image", help="単色の背景を透明にして WebP にする")
     i.add_argument("input")
     i.add_argument("out")
     i.add_argument("--size", type=int, default=512, help="正方形の一辺（0 なら切り抜いたままの大きさ）")
-    i.add_argument("--tolerance", type=int, default=24, help="白とみなす幅（0〜255）")
+    i.add_argument("--tolerance", type=int, default=24, help="背景色とみなす差の幅（0〜255）")
     i.add_argument("--quality", type=int, default=85)
     i.add_argument("--pixel", action="store_true", help="ドット絵用に最近傍で縮小する")
     i.add_argument("--keep-background", action="store_true", help="背景を抜かない（背景画像用）")

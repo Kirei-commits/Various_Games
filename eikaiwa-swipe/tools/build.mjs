@@ -48,6 +48,8 @@ async function buildJs({ withCloud, hash }) {
     target: "es2019",
     jsx: "automatic",
     legalComments: "none",
+    // バトルの絵などの画像は data URL にして JS に埋め込む（index.html 1枚で動かすため）
+    loader: { ".webp": "dataurl" },
     // __BUILD_HASH__ は公開中の index.html と比べて「新しい版が出たか」を知るのに使う
     define: { "process.env.NODE_ENV": '"production"', __BUILD_HASH__: JSON.stringify(hash) },
   });

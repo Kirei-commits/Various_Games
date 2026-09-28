@@ -44,7 +44,7 @@ import {
   Flame as FlameIcon,
   Feather as NotebookPen,
 } from "lucide-react";
-import { BattleArtDefs, BattleBackdrop, Monster, Dragon, Hero, monsterKindOf } from "./battle-art.jsx";
+import { BattleBackdrop, Monster, Dragon, Hero, monsterKindOf } from "./battle-art.jsx";
 import { saveDiary, usedWords } from "./diary.js";
 import rawChapters, { PARTS, RENAMED } from "./data/index.js";
 import { analyzeLinking, LINK_LABELS } from "./linking.js";
@@ -2670,7 +2670,6 @@ function BattleRun({ session, speech, recognition, onFinish, active = true, tool
         className="relative mt-2 min-h-[220px] flex-1 overflow-hidden rounded-3xl bg-slate-950 shadow-inner ring-1 ring-black/20"
         data-testid="battle-field"
       >
-        <BattleArtDefs />
         <BattleBackdrop />
         {b.enemies.map((e) => {
           const isTarget = t && e.uid === t.uid;

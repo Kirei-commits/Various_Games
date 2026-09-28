@@ -34,7 +34,7 @@
 | `src/logic.js` | 学習ロジック、状態、マイグレーション |
 | `src/gacha.js` | ガチャ、チケット、交換、メダル、ショップ、マイ称号、コード、時間ポイント、ブースト |
 | `src/battle.js` | バトル（難易度5段階、PACE、フリーズ/必殺、報酬、エンドレス） |
-| `src/battle-art.jsx` | バトルの SVG 絵（`Monster` / `Dragon` / `Hero` / `BattleBackdrop`）。**Gemini 画像への置き換え対象** |
+| `src/battle-art.jsx` | バトルの絵（`Monster` / `Dragon` / `Hero` / `BattleBackdrop`）。画像は `src/assets/battle/*.webp`（Gemini で作成済み） |
 | `src/audio.js` | Web Audio で作る効果音と BGM（`SoundEngine`、`setBattleMusic` / `setStudyMusic`） |
 | `src/voices.js` | ブラウザ読み上げ（speechSynthesis）の声の選び方 |
 | `src/diary.js` | 日記（保存だけで、採点はなし） |
@@ -142,17 +142,15 @@
 
 ### 4-2. 画像
 
-- ユーザーの要望: 「色々画像がお粗末すぎるから全て書き換えたい」
-- 対象:
-  - バトルの敵（`MONSTER_ART` の種類）、ボスのドラゴン、主人公、背景
-  - 必要ならアイコンや、ガチャ・図鑑の絵も
-- 進め方（生成はユーザーの指示を受けてから）:
-  1. **まず敵を3枚ほど試しに作る**
-  2. 今の SVG と見比べてもらう
-  3. 絵柄を決めてから全部作る
-- 背景を透明にして小さくする（`media.py image` で WebP に）。背景画像は `--keep-background`
-- 画像も別ファイルにするか、小さければ inline するかを、ファイルサイズで決める
-- 置き換えたら、E2E テストとスクリーンショットで表示が崩れていないか確認する
+**バトルの絵は置き換え済み（2026-09-28）。**
+- 敵10種・ドラゴン・主人公（後ろ姿）・背景を `gemini-3.1-flash-image` で作り、`src/assets/battle/*.webp`（合計約280KB）に置いた
+  - ビルドで data URL として JS に埋め込む（`tools/build.mjs` の `loader`）。GitHub Pages は `index.html` しか配らないので、別ファイルにはしていない
+  - 作り方とプロンプトは `tools/media/battle_art.py`。スライムを先に作り、それを見本にして絵柄をそろえた
+  - 白いキャラ（おばけ・どくろ）と灰色のゴーレムは緑の背景で描かせて抜いている
+  - 作り直すとき: `python3 tools/media/battle_art.py ghost`（API を呼ぶ。原画は `tools/media/raw/`、コミットしない）
+- 動きは画像全体の `bt-float` / `bt-squish` / `bt-flicker`。SVG のときの羽ばたきはなくなった
+- 主人公が魔法を撃つときの光は、杖の玉の位置（絵の右上 80%, 26%）に重ねている。主人公の絵を作り直したら位置を合わせる
+- まだの候補: アイコン、ガチャ・図鑑の絵
 
 ## 5. 調べてわかったこと（メモ）
 
