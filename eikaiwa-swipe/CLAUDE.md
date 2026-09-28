@@ -19,7 +19,7 @@ CI はリポジトリ直下の `.github/workflows/ci.yml`（matrix に `eikaiwa-
    - `restoreState` は今の教材にない問題の記録も捨てずに残す。この挙動を変えない。
    - クラウドのデータがアプリより新しい版なら上書きしない（`resolveLogin` の `newerRemote`）。
 5. **単語ガチャの記録（`state.gacha`）とバトルの記録（`state.battle`）も学習記録と同じく失わない。** カードは単語IDに結びついているので、上の ID のルールがそのまま効く。
-   形を変えるときも STATE_VERSION と MIGRATIONS で移行する（v3 でガチャとバトルを追加、v4 でブースト・コード入力を追加しコインを廃止、v5 でお気に入り `state.favorites` と日記 `state.diary` を追加）。日記の採点は `src/diary.js` の純粋関数。バトルの進行は `src/battle.js` の純粋な関数で行う。抽選は `src/gacha.js` の純粋関数だけで行い、
+   形を変えるときも STATE_VERSION と MIGRATIONS で移行する（v3 でガチャとバトルを追加、v4 でブースト・コード入力を追加しコインを廃止、v5 でお気に入り `state.favorites` と日記 `state.diary` を追加）。日記の保存は `src/diary.js` の純粋関数（採点はしない）。バトルの進行は `src/battle.js` の純粋な関数で行う。抽選は `src/gacha.js` の純粋関数だけで行い、
    乱数は引数で受け取る。語源・豆知識を足すときは、チラ見せ（teaser）に答えの単語を書かない（テストが止める）。
 6. **クラウド保存は `src/cloud.js` の窓口だけを通す。** 画面から Firebase を直接呼ばない。
    `cloud-config.js` が null のときと Artifact 用ビルドでは、`tools/build.mjs` が Firebase SDK をスタブに差し替える。

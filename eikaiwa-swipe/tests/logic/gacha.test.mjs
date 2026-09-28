@@ -74,9 +74,9 @@ test("品詞の推定: 〜る は動詞、〜い・〜な は形容詞、それ�
   assert.equal(catalog.cards.go.pos, "verb");
 });
 
-test("排出確率は通常 74.5/20/4.5/1.0、レアチケット 0/70/25/5", () => {
+test("排出確率は通常 93.9/5/1/0.1、レアチケット 0/70/25/5", () => {
   const r = currentRates(freshState().gacha, catalog, "all", "points");
-  assert.deepEqual([r.N, r.R, r.SR, r.SSR].map((x) => Math.round(x * 10) / 10), [74.5, 20, 4.5, 1]);
+  assert.deepEqual([r.N, r.R, r.SR, r.SSR].map((x) => Math.round(x * 10) / 10), [93.9, 5, 1, 0.1]);
   const t = currentRates(freshState().gacha, catalog, "all", "ticket");
   assert.deepEqual([t.N, t.R, t.SR, t.SSR], [0, 70, 25, 5]);
 });
@@ -92,9 +92,9 @@ test("たくさん引くと、出たレア度の割合が表示確率に近い",
     for (const x of r.results) count[x.rarity]++;
   }
   const n = 6000;
-  assert.ok(Math.abs(count.N / n - 0.745) < 0.03, JSON.stringify(count));
-  // SSR は 1% ＋100回天井で、平均すると約1.6%
-  assert.ok(count.SSR / n > 0.011 && count.SSR / n < 0.021, JSON.stringify(count));
+  assert.ok(Math.abs(count.N / n - 0.939) < 0.02, JSON.stringify(count));
+  // SSR は 0.1% ＋100回天井で、平均すると約1.05%（ほとんどが天井）
+  assert.ok(count.SSR / n > 0.007 && count.SSR / n < 0.014, JSON.stringify(count));
 });
 
 test("ポイントを使い、足りなければ引けない", () => {

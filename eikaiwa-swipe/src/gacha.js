@@ -21,7 +21,7 @@ const RANK = { N: 0, R: 1, SR: 2, SSR: 3 };
  * sr=SR ガチャチケット（SR 以上）、ssr=SSR ガチャチケット（SSR 確定）
  */
 export const RATES = {
-  points: { N: 7450, R: 2000, SR: 450, SSR: 100 },
+  points: { N: 9390, R: 500, SR: 100, SSR: 10 }, // N 93.9%・R 5%・SR 1%・SSR 0.1%（すぐにコンプリートしないように）
   ticket: { N: 0, R: 7000, SR: 2500, SSR: 500 },
   sr: { N: 0, R: 0, SR: 8500, SSR: 1500 },
   ssr: { N: 0, R: 0, SR: 0, SSR: 10000 },

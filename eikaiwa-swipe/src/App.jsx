@@ -45,7 +45,7 @@ import {
   Feather as NotebookPen,
 } from "lucide-react";
 import { BattleArtDefs, BattleBackdrop, Monster, Dragon, Hero, monsterKindOf } from "./battle-art.jsx";
-import { buildVocab, scoreDiary, saveDiary, diaryComment, DIARY_POINTS_PER_SCORE } from "./diary.js";
+import { saveDiary, usedWords } from "./diary.js";
 import rawChapters, { PARTS, RENAMED } from "./data/index.js";
 import { analyzeLinking, LINK_LABELS } from "./linking.js";
 import {
@@ -68,6 +68,7 @@ import {
   buyItem,
   consumeItem,
   SHOP,
+  BALANCE_KEY,
   TICKET_UPGRADE,
   DUP_MEDALS,
   LOGIN_SR_TICKETS,
@@ -2443,10 +2444,13 @@ function BattleRun({ session, speech, recognition, onFinish, active = true, tool
     return { W: el?.clientWidth || 320, H: el?.clientHeight || 400 };
   };
   const enemyBox = (e, { W, H } = layout()) => {
-    const size = e.boss ? 110 : 60;
     const scale = 0.72 + 0.38 * Math.min(e.y, 1);
-    const top = 8 + Math.min(e.y, 1) * (H - (e.boss ? 170 : 118));
-    return { x: e.x * W, top, cy: top + (size * scale) / 2, size, scale };
+    const size = Math.round((e.boss ? 110 : 60) * scale); // 上ほど小さく見える（文字は小さくしない）
+    const top = 8 + Math.min(e.y, 1) * (H - (e.boss ? 190 : 140));
+    // 単語の札は幅の44%まで。札が戦場の外にはみ出さないよう、端の列は内側に寄せる
+    const labelW = Math.min(W * 0.44, 190);
+    const x = Math.min(Math.max(e.x * W, labelW / 2 + 4), W - labelW / 2 - 4);
+    return { x, top, cy: top + size / 2, size, scale, labelW };
   };
 
   // ゲームの時間を進める（画面が隠れているあいだは requestAnimationFrame が止まる）
@@ -2537,7 +2541,7 @@ function BattleRun({ session, speech, recognition, onFinish, active = true, tool
           const d = (cur.boss ? 70 : 38) + Math.random() * 30;
           hit.push({ kind: "particle", x: pos.x, y: pos.cy, dx: Math.cos(a) * d, dy: Math.sin(a) * d, color: i % 3 ? color : "#fef08a" });
         }
-        hit.push({ kind: "die", x: pos.x, top: pos.top, scale: pos.scale, monster: kind });
+        hit.push({ kind: "die", x: pos.x, top: pos.top, size: pos.size, monster: kind });
       } else {
         wiggle(
           enemyEls.current[cur.uid],
@@ -2673,7 +2677,7 @@ function BattleRun({ session, speech, recognition, onFinish, active = true, tool
               data-phrase-id={e.item.id}
               data-boss={e.boss ? "1" : "0"}
               className="absolute flex flex-col items-center"
-              style={{ left: box.x, top: box.top, transform: `translateX(-50%) scale(${box.scale})`, transformOrigin: "50% 0", zIndex: 10 + Math.round(e.y * 100) }}
+              style={{ left: box.x, top: box.top, transform: "translateX(-50%)", zIndex: 10 + Math.round(e.y * 100) }}
             >
               <div className="relative" ref={(el) => (el ? (enemyEls.current[e.uid] = el) : delete enemyEls.current[e.uid])}>
                 <span
@@ -2690,8 +2694,10 @@ function BattleRun({ session, speech, recognition, onFinish, active = true, tool
                 </div>
               )}
               <span
-                className={`mt-1 max-w-[10rem] truncate rounded-full px-2.5 py-0.5 text-xs font-extrabold shadow ${
-                  isTarget ? "bg-white text-slate-900 ring-2 ring-amber-400" : "bg-slate-900/60 text-white ring-1 ring-white/20"
+                data-testid="enemy-label"
+                style={{ maxWidth: box.labelW }}
+                className={`mt-1 block break-words rounded-xl px-2.5 py-0.5 text-center text-xs font-extrabold leading-snug shadow ${
+                  isTarget ? "bg-white text-slate-900 ring-2 ring-amber-400" : "line-clamp-2 bg-slate-900/60 text-white ring-1 ring-white/20"
                 }`}
               >
                 {jaEn ? e.item.japanese.split("／")[0] : e.item.english}
@@ -2740,9 +2746,7 @@ function BattleRun({ session, speech, recognition, onFinish, active = true, tool
                 case "die":
                   return (
                     <span key={f.id} className="bt-die block" style={{ position: "absolute", left: f.x, top: f.top, transformOrigin: "50% 50%" }}>
-                      <span className="block" style={{ transform: `scale(${f.scale})`, transformOrigin: "50% 0" }}>
-                        {f.monster === "dragon" ? <Dragon size={110} /> : <Monster kind={f.monster} size={60} />}
-                      </span>
+                      {f.monster === "dragon" ? <Dragon size={f.size} /> : <Monster kind={f.monster} size={f.size} />}
                     </span>
                   );
                 case "score":
@@ -2840,7 +2844,7 @@ function BattleRun({ session, speech, recognition, onFinish, active = true, tool
         <p className="text-center text-xs font-bold text-slate-500">
           {t ? (
             <>
-              <span className="text-slate-900" data-testid="battle-question">
+              <span className="break-words text-sm text-slate-900" data-testid="battle-question">
                 {jaEn ? t.item.japanese : t.item.english}
               </span>
               {jaEn ? " を英語で！" : " の意味は？"}
@@ -3944,33 +3948,22 @@ function BoostBadge({ gacha, className = "" }) {
 
 function Wallet({ g, onUseBoost }) {
   const [message, setMessage] = useState("");
-  const items = [
-    ["ポイント", g.unlimited ? "∞" : g.points, g.unlimited ? "" : "pt", "text-indigo-600", "wallet-points"],
-    ["レアチケット", g.tickets, "枚", "text-rose-500", "wallet-tickets"],
-    ["交換pt", g.exPoints, "", "text-emerald-600", "wallet-ex"],
-  ];
   const active = boostActive(g, Date.now());
-  const small = [
+  const items = [
+    ["ポイント", g.unlimited ? "∞" : g.points, "text-indigo-600", "wallet-points"],
+    ["レアチケ", g.tickets, "text-rose-500", "wallet-tickets"],
     ["SR チケ", g.srTickets, "text-violet-600", "wallet-sr"],
     ["SSR チケ", g.ssrTickets, "text-amber-500", "wallet-ssr"],
+    ["交換pt", g.exPoints, "text-emerald-600", "wallet-ex"],
     ["メダル", g.medals, "text-orange-500", "wallet-medals"],
   ];
   return (
-    <div className="mt-3 grid grid-cols-3 gap-2">
-      {items.map(([label, v, unit, color, id]) => (
-        <div key={label} className="rounded-2xl bg-white px-2 py-2 text-center shadow-sm ring-1 ring-slate-200">
-          <p className="text-[10px] font-bold text-slate-400">{label}</p>
-          <p className={`text-lg font-black tabular-nums ${color}`} data-testid={id}>
-            {v}
-            <span className="ml-0.5 text-[10px] text-slate-400">{unit}</span>
-          </p>
-        </div>
-      ))}
-      {small.map(([label, v, color, id]) => (
-        <p key={label} className="flex items-center justify-between rounded-xl bg-white px-2.5 py-1 text-[10px] font-bold text-slate-400 ring-1 ring-slate-200">
+    <div className="mt-3 grid grid-cols-3 gap-1.5 rounded-2xl bg-white p-2 shadow-sm ring-1 ring-slate-200" data-testid="wallet">
+      {items.map(([label, v, color, id]) => (
+        <p key={label} className="rounded-lg bg-slate-50 px-2 py-1 text-[10px] font-bold leading-tight text-slate-400">
           {label}
-          <span className={`text-sm font-black tabular-nums ${color}`} data-testid={id}>
-            {v}
+          <span className={`block text-sm font-black tabular-nums ${color}`} data-testid={id}>
+            {typeof v === "number" ? v.toLocaleString() : v}
           </span>
         </p>
       ))}
@@ -4428,133 +4421,151 @@ function GachaResult({ result, onClose, onOpen }) {
   );
 }
 
+/** ガチャの種類（引くのに使うもの）ごとの見た目と、選べる連数 */
+const GACHA_KINDS = [
+  { currency: "points", label: "ポイント", sub: "通常ガチャ", counts: [1, 10, 50, 100, 500, 1000], bg: "from-indigo-600 via-violet-600 to-pink-500" },
+  { currency: "ticket", label: "レア", sub: "レアチケット（R 以上）", counts: [1, 10, 50, 100], bg: "from-rose-500 to-orange-500" },
+  { currency: "sr", label: "SR", sub: "SR チケット（SR 以上）", counts: [1, 10], bg: "from-violet-700 to-fuchsia-600" },
+  { currency: "ssr", label: "SSR", sub: "SSR チケット（SSR 確定）", counts: [1, 10], bg: "from-amber-400 via-pink-500 to-violet-600" },
+];
+
+/** 開閉できる説明の箱 */
+function Fold({ title, children, testId }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="rounded-2xl bg-white ring-1 ring-slate-200" data-testid={testId}>
+      <button type="button" aria-expanded={open} onClick={() => setOpen((o) => !o)} className="flex w-full items-center px-3 py-2.5 text-left text-xs font-bold text-slate-700">
+        <span className="flex-1">{title}</span>
+        <ChevronDown size={16} className={`text-slate-400 transition ${open ? "rotate-180" : ""}`} />
+      </button>
+      {open && <div className="border-t border-slate-100 px-3 py-2.5 text-xs leading-relaxed text-slate-600">{children}</div>}
+    </div>
+  );
+}
+
 function GachaPanel({ g, onPull, onUpgrade }) {
   const [pos, setPos] = useState("all");
+  const [currency, setCurrency] = useState("points");
   const [error, setError] = useState("");
-  const rates = useMemo(() => currentRates(g, CATALOG, pos, "points"), [g, pos]);
-  const ticketRates = useMemo(() => currentRates(g, CATALOG, pos, "ticket"), [g, pos]);
-  const pull = (currency, times) => setError(onPull({ pos, currency, times }) || "");
+  const kind = GACHA_KINDS.find((k) => k.currency === currency);
+  const rates = useMemo(() => currentRates(g, CATALOG, pos, currency), [g, pos, currency]);
+  const pull = (times) => setError(onPull({ pos, currency, times }) || "");
   const fmt = (v) => `${Math.round(v * 10) / 10}%`;
+  const have = currency === "points" ? g.points : g[BALANCE_KEY[currency]];
   // 「全部引く」: 持っているポイントで引ける回数（無限モードは1000回）
   const allTimes = g.unlimited ? 1000 : Math.min(MAX_PULLS, Math.floor(g.points / PULL_COST));
+  const costText = (n) => (currency === "points" ? (g.unlimited ? "∞" : `${(PULL_COST * n).toLocaleString()}pt`) : `${n}枚`);
+  const [first, second, ...rest] = kind.counts;
   return (
     <div className="space-y-3">
-      <Segmented name="gacha-pos" value={pos} onChange={setPos} options={GACHA_POS_OPTIONS} />
-      <div className="rounded-3xl bg-gradient-to-br from-indigo-600 via-violet-600 to-pink-500 p-4 text-white shadow-lg">
-        <p className="text-xs font-bold tracking-widest text-white/80">WORD GACHA</p>
-        <p className="text-xl font-black">{GACHA_POS_OPTIONS.find((o) => o.value === pos).label}ガチャ</p>
-        <p className="mt-1 text-[11px] text-white/85 tabular-nums" data-testid="gacha-rates">
-          いまの確率 N {fmt(rates.N)}・R {fmt(rates.R)}・SR {fmt(rates.SR)}・SSR {fmt(rates.SSR)}
+      <Segmented
+        name="gacha-currency"
+        value={currency}
+        onChange={(c) => {
+          setCurrency(c);
+          setError("");
+        }}
+        options={GACHA_KINDS.map((k) => ({ value: k.currency, label: k.label }))}
+      />
+      <div className={`rounded-3xl bg-gradient-to-br ${kind.bg} p-4 text-white shadow-lg`} data-testid="gacha-machine">
+        <div className="flex items-start gap-2">
+          <div className="min-w-0 flex-1">
+            <p className="text-[11px] font-bold tracking-widest text-white/80">{kind.sub}</p>
+            <p className="text-xl font-black">{GACHA_POS_OPTIONS.find((o) => o.value === pos).label}ガチャ</p>
+          </div>
+          <p className="rounded-full bg-black/20 px-2.5 py-1 text-xs font-black tabular-nums">
+            所持 {currency === "points" && g.unlimited ? "∞" : have.toLocaleString()}
+            {currency === "points" ? "pt" : "枚"}
+          </p>
+        </div>
+        <div className="mt-2 flex flex-wrap gap-1">
+          {GACHA_POS_OPTIONS.map((o) => (
+            <button
+              key={o.value}
+              type="button"
+              aria-pressed={pos === o.value}
+              onClick={() => setPos(o.value)}
+              className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${pos === o.value ? "bg-white text-slate-900" : "bg-white/15 text-white"}`}
+            >
+              {o.label}
+            </button>
+          ))}
+        </div>
+        <p className="mt-2 text-[11px] text-white/90 tabular-nums" data-testid="gacha-rates">
+          確率 {["N", "R", "SR", "SSR"].filter((r) => rates[r] > 0).map((r) => `${r} ${fmt(rates[r])}`).join("・")}
         </p>
         <div className="mt-3 grid grid-cols-2 gap-2">
-          <button
-            type="button"
-            onClick={() => pull("points", 1)}
-            className="rounded-2xl bg-white/95 py-3 text-sm font-extrabold text-indigo-700 shadow transition active:scale-95"
-          >
+          <button type="button" onClick={() => pull(first)} className="rounded-2xl bg-white py-3 text-sm font-extrabold text-slate-800 shadow transition active:scale-95">
             1回引く
-            <span className="block text-[11px] font-bold text-slate-500">{PULL_COST}pt</span>
+            <span className="block text-[11px] font-bold text-slate-500">{costText(first)}</span>
           </button>
-          <button
-            type="button"
-            onClick={() => pull("points", 10)}
-            className="rounded-2xl bg-amber-300 py-3 text-sm font-extrabold text-amber-900 shadow transition active:scale-95"
-          >
+          <button type="button" onClick={() => pull(second)} className="rounded-2xl bg-amber-300 py-3 text-sm font-extrabold text-amber-950 shadow transition active:scale-95">
             10連
-            <span className="block text-[11px] font-bold text-amber-800">{PULL_COST * 10}pt・SR以上1枚確定</span>
+            <span className="block text-[11px] font-bold text-amber-800">
+              {costText(second)}
+              {(currency === "points" || currency === "ticket") && "・SR 以上1枚確定"}
+            </span>
           </button>
-          <div className="col-span-2 grid grid-cols-4 gap-1.5">
-            {MULTI_PULLS.filter((n) => n > 10).map((n) => (
+        </div>
+        {rest.length > 0 && (
+          <div className="mt-2 grid gap-1.5" style={{ gridTemplateColumns: `repeat(${rest.length}, minmax(0, 1fr))` }}>
+            {rest.map((n) => (
               <button
                 key={n}
                 type="button"
-                onClick={() => pull("points", n)}
+                onClick={() => pull(n)}
                 className="rounded-xl bg-white/20 py-2 text-xs font-extrabold text-white ring-1 ring-white/40 transition active:scale-95"
               >
                 {n}連
-                <span className="block text-[10px] font-bold text-white/80 tabular-nums">{g.unlimited ? "∞" : `${(PULL_COST * n).toLocaleString()}pt`}</span>
+                <span className="block text-[10px] font-bold text-white/80 tabular-nums">{costText(n)}</span>
               </button>
             ))}
           </div>
+        )}
+        {currency === "points" && (
           <button
             type="button"
             disabled={allTimes < 1}
-            onClick={() => pull("points", allTimes)}
-            className="col-span-2 rounded-2xl bg-gradient-to-r from-amber-300 to-yellow-200 py-2.5 text-sm font-extrabold text-amber-900 shadow transition active:scale-95 disabled:opacity-50"
+            onClick={() => pull(allTimes)}
+            className="mt-2 w-full rounded-xl bg-black/20 py-2 text-xs font-extrabold text-white ring-1 ring-white/30 transition active:scale-95 disabled:opacity-50"
           >
             ポイントを全部使って引く
-            <span className="block text-[11px] font-bold text-amber-800 tabular-nums">
-              {allTimes > 0 ? `${allTimes.toLocaleString()} 回（${g.unlimited ? "無限モード" : `${(allTimes * PULL_COST).toLocaleString()}pt`}）・10回ごとに SR 以上確定` : `${PULL_COST}pt から引けます`}
+            <span className="ml-1 font-bold text-white/80 tabular-nums">
+              {allTimes > 0 ? `（${allTimes.toLocaleString()}回）` : `（${PULL_COST}pt から）`}
             </span>
           </button>
-          <button
-            type="button"
-            onClick={() => pull("ticket", 1)}
-            className="col-span-2 rounded-2xl bg-rose-500 py-2.5 text-sm font-extrabold text-white shadow transition active:scale-95"
-          >
-            レアチケットで引く（R 以上）
-            <span className="block text-[11px] font-bold text-white/85 tabular-nums">
-              R {fmt(ticketRates.R)}・SR {fmt(ticketRates.SR)}・SSR {fmt(ticketRates.SSR)}
-            </span>
-          </button>
-        </div>
-        <div className="mt-2 grid grid-cols-2 gap-2">
-          <button
-            type="button"
-            onClick={() => pull("sr", 1)}
-            className="rounded-2xl bg-violet-900/60 py-2 text-xs font-extrabold text-white ring-1 ring-violet-200/50 transition active:scale-95"
-          >
-            SR チケットで引く
-            <span className="block text-[10px] font-bold text-white/80">SR 以上確定（{g.srTickets}枚）</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => pull("ssr", 1)}
-            className="rounded-2xl bg-gradient-to-r from-amber-400 to-pink-500 py-2 text-xs font-extrabold text-white shadow transition active:scale-95"
-          >
-            SSR チケットで引く
-            <span className="block text-[10px] font-bold text-white/90">SSR 確定（{g.ssrTickets}枚）</span>
-          </button>
-          {g.srTickets >= 10 && (
-            <button
-              type="button"
-              onClick={() => pull("sr", Math.min(g.srTickets, 100))}
-              className="col-span-2 rounded-xl bg-white/15 py-1.5 text-xs font-extrabold text-white ring-1 ring-white/40 active:scale-95"
-            >
-              SR チケットをまとめて使う（{Math.min(g.srTickets, 100)}枚）
-            </button>
-          )}
-        </div>
-        <p className="mt-2 text-[11px] font-bold text-white/90 tabular-nums" data-testid="gacha-pity">
-          SSR 確定まで あと {PITY_SSR.points - g.pity.points} 回（チケットは あと {PITY_SSR.ticket - g.pity.ticket} 枚）
-        </p>
+        )}
+        {PITY_SSR[currency] && (
+          <p className="mt-2 text-[11px] font-bold text-white/90 tabular-nums" data-testid="gacha-pity">
+            SSR 確定まで あと {PITY_SSR[currency] - (g.pity[currency] || 0)} 回
+          </p>
+        )}
       </div>
       {error && <p className="rounded-xl bg-rose-50 px-3 py-2 text-center text-xs font-bold text-rose-600">{error}</p>}
-      <div className="rounded-2xl bg-white p-3 ring-1 ring-slate-200" data-testid="ticket-upgrade">
-        <p className="text-xs font-bold text-slate-800">チケット交換（{TICKET_UPGRADE}枚 → 1枚）</p>
-        <div className="mt-2 grid grid-cols-2 gap-2">
+
+      <Fold title={`チケット交換（${TICKET_UPGRADE}枚 → 上のチケット1枚）`} testId="ticket-upgrade">
+        <div className="grid grid-cols-2 gap-2">
           {[
             ["sr", "レアチケット → SR チケット", g.tickets],
             ["ssr", "SR チケット → SSR チケット", g.srTickets],
-          ].map(([to, label, have]) => (
+          ].map(([to, label, n]) => (
             <button
               key={to}
               type="button"
-              disabled={have < TICKET_UPGRADE}
+              disabled={n < TICKET_UPGRADE}
               onClick={() => setError(onUpgrade(to) || "")}
               className="rounded-xl bg-slate-900 px-2 py-2 text-[11px] font-bold text-white transition active:scale-95 disabled:opacity-40"
             >
               {label}
               <span className="block text-[10px] font-normal text-white/70 tabular-nums">
-                {have} / {TICKET_UPGRADE}
+                {n} / {TICKET_UPGRADE}
               </span>
             </button>
           ))}
         </div>
-      </div>
-      <div className="rounded-2xl bg-white p-3 text-xs leading-relaxed text-slate-600 ring-1 ring-slate-200">
-        <p className="font-bold text-slate-800">ポイントのもらい方</p>
-        <p>・学習（スワイプ）・シャドーイング・テスト・バトルは、取り組んだ時間に応じて 1分 約{POINTS_PER_MINUTE}pt（どれでもほぼ同じ）</p>
+      </Fold>
+      <Fold title="ポイントのもらい方・ルール">
+        <p>・学習（スワイプ）・シャドーイング・テスト・バトルは、取り組んだ時間に応じて 1分 約{POINTS_PER_MINUTE}pt</p>
         <p>
           ・バトルは1回 {BATTLE_POINTS.min.toLocaleString()}〜{BATTLE_POINTS.max.toLocaleString()}pt ＋ レアチケット {BATTLE_TICKETS.min}〜{BATTLE_TICKETS.max} 枚
         </p>
@@ -4563,13 +4574,13 @@ function GachaPanel({ g, onPull, onUpgrade }) {
         </p>
         <p>・今日の目標（{DAILY_GOAL}問）達成で {GOAL_POINTS.toLocaleString()}pt</p>
         <p>・「コード」タブで英単語を入れると、難しい単語ほどたくさん（1日 {CODE_DAILY_LIMIT} 回）</p>
-        <p className="mt-1 font-bold text-slate-800">ダブりもムダになりません</p>
+        <p>・天井: 通常 {PITY_SSR.points}回・レアチケット {PITY_SSR.ticket}枚・SR チケット {PITY_SSR.sr}枚で SSR 確定</p>
         <p>・同じ単語が出ると Lv が上がり、フレームが銅→銀→キラキラに（Lv.4 で MAX、以降は出なくなります）</p>
         <p>・引くたびに交換ポイントが1つ貯まり、図鑑から好きな単語と交換できます</p>
         <p>
-          ・ダブるとメダル（N {DUP_MEDALS.N}・R {DUP_MEDALS.R}・SR {DUP_MEDALS.SR}・SSR {DUP_MEDALS.SSR}枚）。「ショップ」で5倍ブーストやバトルの道具と交換
+          ・ダブるとメダル（N {DUP_MEDALS.N}・R {DUP_MEDALS.R}・SR {DUP_MEDALS.SR}・SSR {DUP_MEDALS.SSR}枚）。「ショップ」で道具と交換
         </p>
-      </div>
+      </Fold>
     </div>
   );
 }
@@ -4862,11 +4873,11 @@ function GachaScreen({ state, speech, onPull, onExchange, onStarter, onSettings,
           value={view}
           onChange={setView}
           options={[
-            { value: "gacha", label: "ガチャ", icon: Gift },
-            { value: "zukan", label: "図鑑", icon: BookOpen },
-            { value: "titles", label: "称号", icon: Award },
-            { value: "code", label: "コード", icon: Key },
-            { value: "shop", label: "ショップ", icon: Store },
+            { value: "gacha", label: "ガチャ" },
+            { value: "zukan", label: "図鑑" },
+            { value: "titles", label: "称号" },
+            { value: "code", label: "コード" },
+            { value: "shop", label: "ショップ" },
           ]}
         />
       </div>
@@ -5099,8 +5110,6 @@ function AccountCard({ account }) {
 // ---------------------------------------------------------------------------
 // 日記: 集めた単語で英語の日記を書き、その場で採点する
 // ---------------------------------------------------------------------------
-let vocabCache = null;
-const diaryVocab = () => (vocabCache ||= buildVocab(LIBRARY));
 /** 集めた単語（ガチャ）の、英語（小文字）→ { id, rarity } */
 function ownedCardsByWord(g) {
   const out = {};
@@ -5115,7 +5124,7 @@ function DiaryScreen({ state, speech, onSave, onSettings }) {
   const { today } = todayAndYesterday();
   const entry = state.diary?.[today];
   const [text, setText] = useState(entry?.text || "");
-  const [result, setResult] = useState(null); // { result, points }
+  const [saved, setSaved] = useState(false);
   const [query, setQuery] = useState("");
   const [openDate, setOpenDate] = useState(null);
   const textRef = useRef(null);
@@ -5148,10 +5157,10 @@ function DiaryScreen({ state, speech, onSave, onSettings }) {
   const history = Object.entries(state.diary || {})
     .filter(([d]) => d !== today)
     .sort((a, b) => (a[0] < b[0] ? 1 : -1));
-  const r = result?.result;
   return (
     <div className="h-full overflow-y-auto px-5 pt-4 pb-6" data-testid="diary">
       <ScreenHeader title="英語日記" sub="集めた単語で、今日のことを書こう" onSettings={onSettings} />
+      {entry && !saved && <p className="mt-2 text-center text-[11px] text-slate-500">今日の日記は保存済みです。書き直して「保存する」で上書きできます。</p>}
       <div className="mt-4 rounded-3xl bg-white p-4 shadow-sm ring-1 ring-slate-200">
         <p className="flex items-center justify-between text-xs font-bold text-slate-500">
           <span>{today.replace(/-/g, "/")} の日記</span>
@@ -5163,7 +5172,10 @@ function DiaryScreen({ state, speech, onSave, onSettings }) {
           id="diary-text"
           ref={textRef}
           value={text}
-          onChange={(e) => setText(e.target.value)}
+          onChange={(e) => {
+            setText(e.target.value);
+            setSaved(false);
+          }}
           rows={6}
           lang="en"
           spellCheck={false}
@@ -5175,10 +5187,13 @@ function DiaryScreen({ state, speech, onSave, onSettings }) {
           <button
             type="button"
             disabled={!text.trim()}
-            onClick={() => setResult(onSave(text))}
+            onClick={() => {
+              onSave(text);
+              setSaved(true);
+            }}
             className="flex-1 rounded-2xl bg-gradient-to-r from-indigo-600 to-fuchsia-600 py-3 text-sm font-extrabold text-white shadow active:scale-95 disabled:opacity-40"
           >
-            採点して保存
+            保存する
           </button>
           <button
             type="button"
@@ -5190,60 +5205,12 @@ function DiaryScreen({ state, speech, onSave, onSettings }) {
             <Volume2 size={18} />
           </button>
         </div>
-        {entry && !r && (
-          <p className="mt-2 text-center text-xs text-slate-500">
-            今日の点数 <span className="font-bold text-slate-800">{entry.score}点</span>（書き直して最高点が上がると、その分ポイントがもらえます）
+        {saved && (
+          <p className="mt-2 text-center text-xs font-bold text-emerald-600" data-testid="diary-saved">
+            保存しました。あとで「これまでの日記」から見返せます
           </p>
         )}
       </div>
-
-      {r && (
-        <div className="mt-3 rounded-3xl bg-gradient-to-br from-indigo-50 to-fuchsia-50 p-4 ring-1 ring-indigo-100" data-testid="diary-result">
-          <div className="flex items-end gap-3">
-            <p className="text-5xl font-black tabular-nums text-indigo-700" data-testid="diary-score">
-              {r.score}
-              <span className="text-lg">点</span>
-            </p>
-            <p className="pb-2 text-sm font-bold text-slate-700">{diaryComment(r.score)}</p>
-          </div>
-          <p className="mt-1 text-xs font-bold text-indigo-600">
-            {result.points > 0 ? `ガチャポイント +${result.points.toLocaleString()}` : "今日の最高点は超えなかったので、ポイントはそのまま"}
-          </p>
-          <div className="mt-3 space-y-1.5">
-            {[
-              ["長さ", r.parts.length, 25],
-              ["集めた単語", r.parts.collected, 30],
-              ["書き方", r.parts.mechanics, 25],
-              ["つづり", r.parts.spelling, 20],
-            ].map(([label, v, max]) => (
-              <div key={label} className="flex items-center gap-2 text-xs">
-                <span className="w-20 shrink-0 font-bold text-slate-600">{label}</span>
-                <span className="h-2 flex-1 overflow-hidden rounded-full bg-white">
-                  <span className="block h-full rounded-full bg-indigo-500" style={{ width: `${(v / max) * 100}%` }} />
-                </span>
-                <span className="w-12 text-right tabular-nums text-slate-500">
-                  {v}/{max}
-                </span>
-              </div>
-            ))}
-          </div>
-          {r.used.length > 0 && (
-            <p className="mt-3 text-xs text-slate-600">
-              使った単語: <span className="font-bold text-indigo-700">{r.used.map((c) => c.english).join(", ")}</span>
-            </p>
-          )}
-          {r.issues.length > 0 && (
-            <ul className="mt-2 space-y-1 text-xs text-rose-600" data-testid="diary-issues">
-              {r.issues.map((x) => (
-                <li key={x}>・{x}</li>
-              ))}
-            </ul>
-          )}
-          <p className="mt-2 text-[10px] leading-relaxed text-slate-400">
-            採点はルールで行っています（長さ・集めた単語・大文字や文末・a/an・つづり）。時制や語順などの文法は見ていません。100点で {(100 * DIARY_POINTS_PER_SCORE).toLocaleString()}pt。
-          </p>
-        </div>
-      )}
 
       <div className="mt-4">
         <p className="text-sm font-bold text-slate-800">集めた単語（タップで入れる）</p>
@@ -5290,7 +5257,7 @@ function DiaryScreen({ state, speech, onSave, onSettings }) {
               <button type="button" onClick={() => setOpenDate(openDate === date ? null : date)} className="flex w-full items-center gap-2 text-left">
                 <span className="text-xs font-bold text-slate-500">{date.replace(/-/g, "/")}</span>
                 <span className="min-w-0 flex-1 truncate text-sm text-slate-800">{e.text}</span>
-                <span className="text-xs font-black tabular-nums text-indigo-600">{e.score}点</span>
+                {e.words?.length > 0 && <span className="text-[10px] font-bold text-indigo-500">単語 {e.words.length}</span>}
               </button>
               {openDate === date && <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-slate-700">{e.text}</p>}
             </li>
@@ -5688,17 +5655,14 @@ export default function App() {
   }, [update, spentSeconds, showEarned, dopamine]);
   const onToggle = useCallback((chapter, id) => update((s) => toggleLearned(s, chapter, id)), [update]);
   const onToggleFavorite = useCallback((id) => update((s) => toggleFavorite(s, id)), [update]);
-  /** 日記を採点して保存する（その日の最高点が上がった分のポイントをもらう） */
+  /** 日記を保存する（同じ日は上書き） */
   const onSaveDiary = useCallback(
     (text) => {
       const { today } = todayAndYesterday();
-      const result = scoreDiary(text, { vocab: diaryVocab(), cards: ownedCardsByWord(stateRef.current.gacha) });
-      const saved = saveDiary(stateRef.current, today, text, result, Date.now());
-      const next = grant(saved.state, { points: saved.points });
+      const next = saveDiary(stateRef.current, today, text, usedWords(text, ownedCardsByWord(stateRef.current.gacha)), Date.now());
       stateRef.current = next;
       update(() => next);
-      sound.play(result.score >= 75 ? "complete" : "correct");
-      return { result, points: saved.points };
+      sound.play("correct");
     },
     [update, sound]
   );

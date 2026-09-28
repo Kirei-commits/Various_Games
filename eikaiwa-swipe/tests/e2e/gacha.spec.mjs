@@ -33,9 +33,9 @@ test.beforeEach(async ({ page }) => {
 test("はじめてボーナスで10連を引ける。結果が出て、ポイントが減り、交換ポイントが貯まる", async ({ page }) => {
   await openGacha(page);
   await expect(page.getByTestId("gacha-starter")).toBeVisible();
-  await expect(page.getByTestId("wallet-points")).toHaveText(/^1000/);
+  await expect(page.getByTestId("wallet-points")).toHaveText("1,000");
   await expect(page.getByTestId("wallet-tickets")).toHaveText(/^1/);
-  await expect(page.getByTestId("gacha-rates")).toContainText("SSR 1%");
+  await expect(page.getByTestId("gacha-rates")).toContainText("SSR 0.1%");
 
   await page.getByRole("button", { name: /10連/ }).click();
   const result = page.getByTestId("gacha-result");
@@ -59,7 +59,8 @@ test("はじめてボーナスで10連を引ける。結果が出て、ポイン
   await expect(page.getByText(/ポイントが 100 足りません/)).toBeVisible();
 
   // レアチケットは R 以上
-  await page.getByRole("button", { name: /レアチケットで引く/ }).click();
+  await page.getByRole("button", { name: "レア", exact: true }).click();
+  await page.getByRole("button", { name: /^1回引く/ }).click();
   const card = page.getByTestId("gacha-result").getByTestId("gacha-result-card");
   await expect(card).toHaveCount(1);
   expect(await card.getAttribute("data-rarity")).not.toBe("N");
@@ -213,14 +214,17 @@ test("SR / SSR ガチャチケットで引ける。チケットは100枚で上�
   await seedGacha(page, { tickets: 100, srTickets: 1, ssrTickets: 1 });
   await openGacha(page);
   const result = page.getByTestId("gacha-result");
-  await page.getByRole("button", { name: /^SR チケットで引く/ }).click();
+  await page.getByRole("button", { name: "SR", exact: true }).click();
+  await page.getByRole("button", { name: /^1回引く/ }).click();
   expect(["SR", "SSR"]).toContain(await result.getByTestId("gacha-result-card").getAttribute("data-rarity"));
   await result.getByRole("button", { name: "閉じる" }).click();
-  await page.getByRole("button", { name: /^SSR チケットで引く/ }).click();
+  await page.getByRole("button", { name: "SSR", exact: true }).click();
+  await page.getByRole("button", { name: /^1回引く/ }).click();
   expect(await result.getByTestId("gacha-result-card").getAttribute("data-rarity")).toBe("SSR");
   await result.getByRole("button", { name: "閉じる" }).click();
   await expect(page.getByTestId("wallet-ssr")).toHaveText("0");
 
+  await page.getByTestId("ticket-upgrade").getByRole("button", { name: /チケット交換/ }).click();
   await page.getByTestId("ticket-upgrade").getByRole("button", { name: /レアチケット → SR チケット/ }).click();
   await expect(page.getByTestId("wallet-tickets")).toHaveText(/^0/);
   await expect(page.getByTestId("wallet-sr")).toHaveText("1");
@@ -246,4 +250,25 @@ test("図鑑は品詞ごとに見られる", async ({ page }) => {
   await page.getByRole("button", { name: "動詞", exact: true }).click();
   await expect(page.getByTestId("zukan-tile")).toHaveCount(1);
   await expect(page.getByTestId("zukan-tile")).toContainText("run");
+});
+
+test("レアチケットは 10・50・100 連、SR / SSR チケットは 10 連まで引ける", async ({ page }) => {
+  await seedGacha(page, { tickets: 60, srTickets: 10, ssrTickets: 10 });
+  await openGacha(page);
+  await page.getByRole("button", { name: "レア", exact: true }).click();
+  const machine = page.getByTestId("gacha-machine");
+  await expect(machine.getByRole("button", { name: /^50連/ })).toBeVisible();
+  await expect(machine.getByRole("button", { name: /^100連/ })).toBeVisible();
+  await machine.getByRole("button", { name: /^50連/ }).click();
+  await page.getByRole("button", { name: /スキップ/ }).click();
+  await expect(page.getByTestId("gacha-summary")).toContainText("50 回引いて");
+  await page.getByTestId("gacha-result").getByRole("button", { name: "閉じる" }).click();
+  await expect(page.getByTestId("wallet-tickets")).toHaveText("10");
+
+  await page.getByRole("button", { name: "SSR", exact: true }).click();
+  await expect(machine.getByRole("button", { name: /^50連/ })).toHaveCount(0);
+  await machine.getByRole("button", { name: /^10連/ }).click();
+  await page.getByRole("button", { name: /スキップ/ }).click();
+  const rarities = await page.getByTestId("gacha-result-card").evaluateAll((els) => els.map((e) => e.dataset.rarity));
+  expect(rarities).toEqual(Array(10).fill("SSR"));
 });

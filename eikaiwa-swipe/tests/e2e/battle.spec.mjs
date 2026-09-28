@@ -49,7 +49,7 @@ test("ステージ: 4択で敵10体とボスを倒すとクリア。ノーダメ
   await expect(page.getByTestId("battle-record")).toContainText("★★★");
   // ガチャのポイントとチケットに入っている（はじめてボーナス 1000pt・1枚と合わせて）
   await page.getByRole("button", { name: "ガチャ", exact: true }).first().click();
-  await expect(page.getByTestId("wallet-points")).toHaveText(new RegExp(`^${1000 + points}`));
+  await expect(page.getByTestId("wallet-points")).toHaveText((1000 + points).toLocaleString("en-US"));
   await expect(page.getByTestId("wallet-tickets")).toHaveText(/^9/);
 });
 
@@ -213,4 +213,30 @@ test("道具: 時止めで敵が止まり、必殺技でわからない敵を倒
   await expect(page.locator(`[data-testid="enemy"][data-phrase-id="${id}"]`)).toHaveCount(0);
   await page.getByRole("button", { name: "バトルをやめる" }).click();
   await expect(page.getByText("間違えた・逃した単語（苦手に追加しました）")).toBeVisible();
+});
+
+test("長いフレーズでも、敵の札と問題文が見切れない（折り返して戦場の中に収まる）", async ({ page }) => {
+  await page.addInitScript(() => {
+    window.__swipetalkBattleTime = 10;
+    window.__swipetalkBattleSpeed = 0;
+  });
+  await page.reload();
+  await openBattle(page);
+  await page.getByTestId("battle-chapter").click();
+  const panel = page.getByTestId("battle-chapter-panel");
+  await panel.getByRole("button", { name: /もっと話せる編/ }).click();
+  await panel.getByRole("button", { name: /^第41章/ }).click();
+  await page.getByRole("button", { name: /バトル開始/ }).click();
+  await expect(page.getByTestId("enemy")).toHaveCount(3);
+  const field = await page.getByTestId("battle-field").boundingBox();
+  for (const label of await page.getByTestId("enemy-label").all()) {
+    const box = await label.boundingBox();
+    expect(box.x).toBeGreaterThanOrEqual(field.x - 1);
+    expect(box.x + box.width).toBeLessThanOrEqual(field.x + field.width + 1);
+    // 文字が札からはみ出していない（… で切れていない）
+    expect(await label.evaluate((el) => el.scrollWidth <= el.clientWidth + 1)).toBe(true);
+  }
+  const target = page.locator('[data-testid="enemy"][data-target="1"]');
+  const id = await target.getAttribute("data-phrase-id");
+  await expect(target.getByTestId("enemy-label")).toHaveText(LIB.byId[id].english);
 });
