@@ -127,6 +127,20 @@
    "via": "sync",
    "at": "2026-09-28"
   },
+  "00b0389e96e3fa": {
+   "key": "A|Get up! You'll be late.",
+   "text": "Get up! You'll be late.",
+   "role": "A",
+   "chapter": "ch04",
+   "id": "get-up",
+   "model": "gemini-2.5-flash-preview-tts",
+   "voice": "Achird",
+   "sig": "b7c6f99888b5",
+   "rev": 1,
+   "seconds": 1.18,
+   "via": "pack",
+   "at": "2026-09-28"
+  },
   "00cbb3ea21c88c": {
    "key": "B|I see.",
    "text": "I see.",
@@ -250,6 +264,20 @@
    "sig": "01168d4b0226",
    "rev": 1,
    "seconds": 2.4,
+   "via": "pack",
+   "at": "2026-09-28"
+  },
+  "0124166693e39d": {
+   "key": "A|Can I take a shower first?",
+   "text": "Can I take a shower first?",
+   "role": "A",
+   "chapter": "ch04",
+   "id": "take-a-shower",
+   "model": "gemini-2.5-flash-preview-tts",
+   "voice": "Achird",
+   "sig": "49c33da298b5",
+   "rev": 1,
+   "seconds": 1.28,
    "via": "pack",
    "at": "2026-09-28"
   },
@@ -472,6 +500,20 @@
    "model": "gemini-2.5-flash-preview-tts",
    "voice": "Callirrhoe",
    "sig": "7ec00388e750",
+   "rev": 1,
+   "seconds": 0.93,
+   "via": "pack",
+   "at": "2026-09-28"
+  },
+  "02889df9c667f0": {
+   "key": "A|Why were you late?",
+   "text": "Why were you late?",
+   "role": "A",
+   "chapter": "ch04",
+   "id": "oversleep",
+   "model": "gemini-2.5-flash-preview-tts",
+   "voice": "Achird",
+   "sig": "3c47ed0f96ec",
    "rev": 1,
    "seconds": 0.93,
    "via": "pack",
@@ -1023,6 +1065,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "05215bb3e37366": {
+   "key": "A|The flight is on time.",
+   "text": "The flight is on time.",
+   "role": "A",
+   "chapter": "ch03",
+   "id": "its-a-relief",
+   "model": "gemini-2.5-flash-preview-tts",
+   "voice": "Achird",
+   "sig": "a86d221548a5",
+   "rev": 1,
+   "seconds": 1.35,
+   "via": "pack",
+   "at": "2026-09-28"
+  },
   "05399187bd039b": {
    "key": "B|Wow, that's amazing.",
    "text": "Wow, that's amazing.",
@@ -1485,6 +1541,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "0730951dcd69cf": {
+   "key": "A|I cooked, so you do the dishes.",
+   "text": "I cooked, so you do the dishes.",
+   "role": "A",
+   "chapter": "ch04",
+   "id": "do-the-dishes",
+   "model": "gemini-2.5-flash-preview-tts",
+   "voice": "Achird",
+   "sig": "5a7eeab919ef",
+   "rev": 1,
+   "seconds": 1.71,
+   "via": "pack",
+   "at": "2026-09-28"
+  },
   "073453831bea00": {
    "key": "B|Are you sure? I don't see it.",
    "text": "Are you sure? I don't see it.",
@@ -1541,6 +1611,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "077ed088e39a5d": {
+   "key": "A|What are you doing this afternoon?",
+   "text": "What are you doing this afternoon?",
+   "role": "A",
+   "chapter": "ch04",
+   "id": "do-the-laundry",
+   "model": "gemini-2.5-flash-preview-tts",
+   "voice": "Achird",
+   "sig": "355163cd6c49",
+   "rev": 1,
+   "seconds": 1.34,
+   "via": "pack",
+   "at": "2026-09-28"
+  },
   "0788a12746a520": {
    "key": "B|Okay, I'll wait here.",
    "text": "Okay, I'll wait here.",
@@ -1552,6 +1636,20 @@
    "sig": "7e86e3b7c593",
    "rev": 1,
    "seconds": 1.29,
+   "via": "pack",
+   "at": "2026-09-28"
+  },
+  "07a66d479c5b08": {
+   "key": "A|Is it okay if we eat later?",
+   "text": "Is it okay if we eat later?",
+   "role": "A",
+   "chapter": "ch03",
+   "id": "im-fine-with-it",
+   "model": "gemini-2.5-flash-preview-tts",
+   "voice": "Achird",
+   "sig": "82457592cc20",
+   "rev": 1,
+   "seconds": 1.51,
    "via": "pack",
    "at": "2026-09-28"
   },
@@ -1723,6 +1821,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "08f399fe7b0e34": {
+   "key": "A|What time do you usually wake up?",
+   "text": "What time do you usually wake up?",
+   "role": "A",
+   "chapter": "ch04",
+   "id": "wake-up",
+   "model": "gemini-2.5-flash-preview-tts",
+   "voice": "Achird",
+   "sig": "c7220cac856e",
+   "rev": 1,
+   "seconds": 1.64,
+   "via": "pack",
+   "at": "2026-09-28"
+  },
   "08fbe33cdd652f": {
    "key": "A|How's life abroad?",
    "text": "How's life abroad?",
@@ -1846,6 +1958,20 @@
    "sig": "f264d16bf509",
    "rev": 1,
    "seconds": 2.17,
+   "via": "pack",
+   "at": "2026-09-28"
+  },
+  "09d111a4f497df": {
+   "key": "A|Are you ready?",
+   "text": "Are you ready?",
+   "role": "A",
+   "chapter": "ch04",
+   "id": "get-dressed",
+   "model": "gemini-2.5-flash-preview-tts",
+   "voice": "Achird",
+   "sig": "2d808342741d",
+   "rev": 1,
+   "seconds": 0.68,
    "via": "pack",
    "at": "2026-09-28"
   },
@@ -2115,6 +2241,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "0b5e68f922e43f": {
+   "key": "A|What happened?",
+   "text": "What happened?",
+   "role": "A",
+   "chapter": "ch03",
+   "id": "i-lost-my-temper",
+   "model": "gemini-2.5-flash-preview-tts",
+   "voice": "Achird",
+   "sig": "628195ff26ee",
+   "rev": 1,
+   "seconds": 0.66,
+   "via": "pack",
+   "at": "2026-09-28"
+  },
   "0b80fe7ffcc153": {
    "key": "A|I should get going.",
    "text": "I should get going.",
@@ -2339,6 +2479,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "0ca92531cfd2f3": {
+   "key": "A|Work has been so tough lately.",
+   "text": "Work has been so tough lately.",
+   "role": "A",
+   "chapter": "ch03",
+   "id": "hang-in-there",
+   "model": "gemini-2.5-flash-preview-tts",
+   "voice": "Achird",
+   "sig": "d343d75a05ba",
+   "rev": 1,
+   "seconds": 1.84,
+   "via": "pack",
+   "at": "2026-09-28"
+  },
   "0cdd8858213e21": {
    "key": "P|Good point.",
    "text": "Good point.",
@@ -2518,6 +2672,20 @@
    "sig": "1419bf30459b",
    "rev": 1,
    "seconds": 1.77,
+   "via": "pack",
+   "at": "2026-09-28"
+  },
+  "0dc33525e13446": {
+   "key": "A|I didn't get the part.",
+   "text": "I didn't get the part.",
+   "role": "A",
+   "chapter": "ch03",
+   "id": "cheer-up",
+   "model": "gemini-2.5-flash-preview-tts",
+   "voice": "Achird",
+   "sig": "6a1a6d90f2b0",
+   "rev": 1,
+   "seconds": 1.22,
    "via": "pack",
    "at": "2026-09-28"
   },
@@ -2927,6 +3095,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "0f715f86cc45d7": {
+   "key": "A|Sorry I broke your mug.",
+   "text": "Sorry I broke your mug.",
+   "role": "A",
+   "chapter": "ch03",
+   "id": "dont-worry-about-it",
+   "model": "gemini-2.5-flash-preview-tts",
+   "voice": "Achird",
+   "sig": "ecc55520678b",
+   "rev": 1,
+   "seconds": 1.33,
+   "via": "pack",
+   "at": "2026-09-28"
+  },
   "0f74daa5a285b1": {
    "key": "A|My roommate never washes the dishes.",
    "text": "My roommate never washes the dishes.",
@@ -2994,6 +3176,20 @@
    "sig": "aff6c6389389",
    "rev": 1,
    "seconds": 0.67,
+   "via": "pack",
+   "at": "2026-09-28"
+  },
+  "0fdec43ae71f5d": {
+   "key": "A|The party's over. Let's clean up.",
+   "text": "The party's over. Let's clean up.",
+   "role": "A",
+   "chapter": "ch04",
+   "id": "clean-up",
+   "model": "gemini-2.5-flash-preview-tts",
+   "voice": "Achird",
+   "sig": "9a0bbb1c3466",
+   "rev": 1,
+   "seconds": 1.72,
    "via": "pack",
    "at": "2026-09-28"
   },
@@ -3291,6 +3487,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "11e2256e735e41": {
+   "key": "A|I'm getting married!",
+   "text": "I'm getting married!",
+   "role": "A",
+   "chapter": "ch03",
+   "id": "im-so-happy-for-you",
+   "model": "gemini-2.5-flash-preview-tts",
+   "voice": "Achird",
+   "sig": "d0d038aae525",
+   "rev": 1,
+   "seconds": 1.0,
+   "via": "pack",
+   "at": "2026-09-28"
+  },
   "11e3c560c0ad69": {
    "key": "A|She broke up with me.",
    "text": "She broke up with me.",
@@ -3344,6 +3554,20 @@
    "sig": "75383492eca8",
    "rev": 1,
    "seconds": 0.75,
+   "via": "pack",
+   "at": "2026-09-28"
+  },
+  "1228a6b4f3499e": {
+   "key": "A|Can you take out the trash?",
+   "text": "Can you take out the trash?",
+   "role": "A",
+   "chapter": "ch04",
+   "id": "take-out-the-trash",
+   "model": "gemini-2.5-flash-preview-tts",
+   "voice": "Achird",
+   "sig": "ba5a15bfee78",
+   "rev": 1,
+   "seconds": 1.21,
    "via": "pack",
    "at": "2026-09-28"
   },
@@ -3823,6 +4047,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "14f4203eb47b51": {
+   "key": "A|You look happy.",
+   "text": "You look happy.",
+   "role": "A",
+   "chapter": "ch03",
+   "id": "im-on-cloud-nine",
+   "model": "gemini-2.5-flash-preview-tts",
+   "voice": "Achird",
+   "sig": "de96e510aba0",
+   "rev": 1,
+   "seconds": 0.83,
+   "via": "pack",
+   "at": "2026-09-28"
+  },
   "1501d408ebe35d": {
    "key": "P|I'm annoyed.",
    "text": "I'm annoyed.",
@@ -3974,6 +4212,20 @@
    "sig": "2f42a6fe418a",
    "rev": 1,
    "seconds": 0.95,
+   "via": "pack",
+   "at": "2026-09-28"
+  },
+  "15e0143b542468": {
+   "key": "A|Did you brush your teeth?",
+   "text": "Did you brush your teeth?",
+   "role": "A",
+   "chapter": "ch04",
+   "id": "brush-my-teeth",
+   "model": "gemini-2.5-flash-preview-tts",
+   "voice": "Achird",
+   "sig": "f0ee45f65b66",
+   "rev": 1,
+   "seconds": 0.9,
    "via": "pack",
    "at": "2026-09-28"
   },
@@ -4436,6 +4688,20 @@
    "sig": "08078d3ec64a",
    "rev": 1,
    "seconds": 1.69,
+   "via": "pack",
+   "at": "2026-09-28"
+  },
+  "18c5fdb280bd8a": {
+   "key": "A|Do you like that old house?",
+   "text": "Do you like that old house?",
+   "role": "A",
+   "chapter": "ch03",
+   "id": "it-gives-me-the-creeps",
+   "model": "gemini-2.5-flash-preview-tts",
+   "voice": "Achird",
+   "sig": "3ded0f491eef",
+   "rev": 1,
+   "seconds": 1.33,
    "via": "pack",
    "at": "2026-09-28"
   },
@@ -5584,6 +5850,20 @@
    "sig": "e8a980457504",
    "rev": 1,
    "seconds": 0.91,
+   "via": "pack",
+   "at": "2026-09-28"
+  },
+  "1f34a2942b6992": {
+   "key": "A|I'm going to miss my flight!",
+   "text": "I'm going to miss my flight!",
+   "role": "A",
+   "chapter": "ch03",
+   "id": "calm-down",
+   "model": "gemini-2.5-flash-preview-tts",
+   "voice": "Achird",
+   "sig": "1666415ad754",
+   "rev": 1,
+   "seconds": 1.34,
    "via": "pack",
    "at": "2026-09-28"
   },
