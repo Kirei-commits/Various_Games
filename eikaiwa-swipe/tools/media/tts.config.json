@@ -1,0 +1,54 @@
+{
+  "_about": "録音（Gemini TTS）の設定。ここを変えて `python3 tools/media/tts.py plan ch01` を実行すると、作り直しになる文の数と費用の目安が出る。",
+  "model": "gemini-3.8-flash-tts",
+  "batch": {
+    "_about": "Batch API（料金が通常の半分・結果は最大24時間後）。chunk は1つのバッチに入れる文の数",
+    "chunk": 100
+  },
+  "output": {
+    "format": "opus",
+    "bitrate": "24k"
+  },
+  "price": {
+    "_about": "費用の目安の計算にだけ使う（2026-09 時点のキャンペーン価格。2027-01-01 から変わる）。音声は約25トークン/秒",
+    "audioPerMillionTokens": 9.0,
+    "batchDiscount": 0.5,
+    "tokensPerSecond": 25
+  },
+  "_style": "声の出し方の指示。テキストに混ぜると指示まで読んだり同じ文を繰り返したりするので、リクエストの speechMetadata.style として送る（読み上げられない）。style ＋ 役の persona ＋ 会話の文脈 をつないで使う",
+  "style": "A native speaker of General American English talking naturally in a casual conversation, recorded as model audio for English learners. Natural native speed and rhythm, real American connected speech (linking, flap T, weak forms and reductions), clear and natural intonation and sentence stress.",
+  "roles": {
+    "P": {
+      "voice": "Erinome",
+      "_voice": "女性・クリア/はっきり（General American, Conversational / Edu）",
+      "persona": "A clear, friendly delivery of a key everyday phrase."
+    },
+    "A": {
+      "voice": "Achird",
+      "_voice": "男性・親しみやすい/あたたかい（General American, Conversational / Edu）",
+      "persona": "Person A, friendly and relaxed."
+    },
+    "B": {
+      "voice": "Callirrhoe",
+      "_voice": "女性・気さく/リラックス（General American, Conversational / Edu）",
+      "persona": "Person B, replying naturally, friendly and relaxed."
+    }
+  },
+  "sampleVoices": {
+    "_about": "`tts.py sample` で聞き比べる候補（General American）",
+    "female": [
+      "Erinome",
+      "Callirrhoe",
+      "Despina",
+      "Aoede",
+      "Sulafat"
+    ],
+    "male": [
+      "Achird",
+      "Iapetus",
+      "Umbriel",
+      "Zubenelgenubi",
+      "Puck"
+    ]
+  }
+}

@@ -14,6 +14,7 @@
  *   読み上げ中は小さくする（英語が聞きとりやすいように）。
  * バトルの曲が優先。どちらも流さないときは止める。
  */
+import { isRecordedPlaying } from "./recorded.js";
 
 const NOTE = (n) => 440 * Math.pow(2, (n - 69) / 12); // MIDI ノート番号 → 周波数
 
@@ -173,7 +174,7 @@ export class SoundEngine {
     const schedule = () => {
       // 学習中の曲は、読み上げのあいだ小さくする
       if (study) {
-        const speaking = typeof window !== "undefined" && window.speechSynthesis?.speaking;
+        const speaking = isRecordedPlaying() || (typeof window !== "undefined" && window.speechSynthesis?.speaking);
         this.music.gain.setTargetAtTime(this.volumeOf(kind) * (speaking ? 0.3 : 1), this.ctx.currentTime, 0.15);
       }
       // 0.2 秒先までの音符を予約する（タイマーが多少遅れても音が途切れない）

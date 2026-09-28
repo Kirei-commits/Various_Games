@@ -12,6 +12,9 @@ export const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "
 
 const INPUTS = ["src", "tailwind.config.cjs", "tools/build.mjs", "tools/source-hash.mjs", "package-lock.json"];
 
+// 画像などはバイト列のままハッシュする（文字として読むと壊れたバイトが同じ文字になり、変更に気づけない）
+const BINARY = /\.(webp|png|jpe?g|opus|mp3)$/i;
+
 function walk(rel) {
   const abs = path.join(ROOT, rel);
   if (fs.statSync(abs).isDirectory()) {
@@ -28,8 +31,10 @@ export function sourceHash() {
   for (const rel of INPUTS.flatMap(walk)) {
     h.update(rel);
     h.update("\0");
+    const abs = path.join(ROOT, rel);
+    if (BINARY.test(rel)) h.update(fs.readFileSync(abs));
     // 改行コードの違い（Windows の autocrlf）でハッシュが変わらないようにする
-    h.update(fs.readFileSync(path.join(ROOT, rel), "utf8").replace(/\r\n/g, "\n"));
+    else h.update(fs.readFileSync(abs, "utf8").replace(/\r\n/g, "\n"));
     h.update("\0");
   }
   return h.digest("hex").slice(0, 16);

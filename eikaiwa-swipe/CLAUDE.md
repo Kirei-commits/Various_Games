@@ -30,3 +30,9 @@ CI はリポジトリ直下の `.github/workflows/ci.yml`（matrix に `eikaiwa-
 ```bash
 npm ci && npm run build && npm test
 ```
+
+## 音声・画像の生成（Gemini API）
+
+作業の引き継ぎと現状は `HANDOFF.md`。**API での生成はユーザーがはっきり指示したときだけ行う。**
+録音は `tools/media/tts.py`（設定は `tts.config.json`、できるものは `audio/`）、絵は `tools/media/game_art.py`。
+生成した音声・画像の変換は `tools/media/`（先に `tools/media/setup.sh` で ffmpeg と Pillow を入れる。コンテナには入っていない）。

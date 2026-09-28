@@ -44,7 +44,9 @@ import {
   Flame as FlameIcon,
   Feather as NotebookPen,
 } from "lucide-react";
-import { BattleArtDefs, BattleBackdrop, Monster, Dragon, Hero, monsterKindOf } from "./battle-art.jsx";
+import { BattleBackdrop, Monster, Dragon, Hero, monsterKindOf } from "./battle-art.jsx";
+import { loadRecordedIndex, playRecorded, recordedCount, recordedUrls, stopRecorded } from "./recorded.js";
+import { Art, CARD_BACK_ART, CHEST_ART, MACHINE_ART, SHOP_ART, WALLET_ICON } from "./gacha-art.jsx";
 import { saveDiary, usedWords } from "./diary.js";
 import rawChapters, { PARTS, RENAMED } from "./data/index.js";
 import { analyzeLinking, LINK_LABELS } from "./linking.js";
@@ -338,6 +340,7 @@ function loadInitialState() {
 const DEFAULT_SETTINGS = {
   voiceURI: "",
   voiceBURI: "",
+  recorded: true, // 用意した録音（Gemini の音声）があればそれを使う
   rate: 0.95,
   expressive: true,
   twoVoices: true,
@@ -374,7 +377,17 @@ function useSpeech(settings) {
   const supported = typeof window !== "undefined" && "speechSynthesis" in window;
   const [voices, setVoices] = useState([]);
   const [speaking, setSpeaking] = useState(null);
+  const [recorded, setRecorded] = useState(0); // 使える録音の数（audio/index.json を読んだあと）
   const token = useRef(0);
+
+  useEffect(() => {
+    let alive = true;
+    loadRecordedIndex().then(() => alive && setRecorded(recordedCount()));
+    return () => {
+      alive = false;
+      stopRecorded();
+    };
+  }, []);
 
   useEffect(() => {
     if (!supported) return undefined;
@@ -396,17 +409,11 @@ function useSpeech(settings) {
     [voices, settings.voiceURI, settings.voiceBURI, settings.twoVoices]
   );
 
-  /**
-   * lines: [{ text, role }] を順番に読み上げる。key は再生中表示に使う。
-   * onDone は最後まで読み終えたときだけ呼ぶ（途中で止めた・別の再生に割り込まれたときは呼ばない）。
-   * 読み上げできない環境では false を返す。
-   */
-  const speakLines = useCallback(
-    (lines, key, onDone, seed = key) => {
-      if (!supported || !lines.length) return false;
+  /** speechSynthesis で読み上げる（my は呼び出し側で進めたトークン） */
+  const synthLines = useCallback(
+    (lines, key, onDone, seed, my) => {
       const synth = window.speechSynthesis;
       synth.cancel();
-      const my = ++token.current;
       const utterances = [];
       // 「会話ごとにいろいろな人の声」なら、会話（seed）ごとに A・B の声の組み合わせを変える
       const cast = settings.voiceVariety
@@ -447,7 +454,38 @@ function useSpeech(settings) {
       setTimeout(() => token.current === my && utterances.forEach((u) => synth.speak(u)), 0);
       return true;
     },
-    [supported, voices, voiceA, voiceB, sameVoice, settings.expressive, settings.rate, settings.twoVoices, settings.voiceVariety]
+    [voices, voiceA, voiceB, sameVoice, settings.expressive, settings.rate, settings.twoVoices, settings.voiceVariety]
+  );
+
+  /**
+   * lines: [{ text, role }] を順番に読み上げる。key は再生中表示に使う。
+   * onDone は最後まで読み終えたときだけ呼ぶ（途中で止めた・別の再生に割り込まれたときは呼ばない）。
+   * 読み上げできない環境では false を返す。
+   */
+  const speakLines = useCallback(
+    (lines, key, onDone, seed = key) => {
+      if (!lines.length) return false;
+      // 録音がすべての行にあれば録音を再生する（再生できなければ読み上げに戻す）
+      const urls = settings.recorded ? recordedUrls(lines) : null;
+      if (urls) {
+        if (supported) window.speechSynthesis.cancel();
+        const my = ++token.current;
+        playRecorded(urls, { rate: settings.rate, onStart: () => token.current === my && setSpeaking(key) }).then((r) => {
+          if (token.current !== my) return;
+          if (r === "failed" && supported) {
+            synthLines(lines, key, onDone, seed, my);
+            return;
+          }
+          setSpeaking(null);
+          if (r === "done" || r === "failed") onDone?.();
+        });
+        return true;
+      }
+      if (!supported) return false;
+      stopRecorded();
+      return synthLines(lines, key, onDone, seed, ++token.current);
+    },
+    [supported, settings.recorded, settings.rate, synthLines]
   );
 
   /** seed を渡すと、その会話と同じ声で読む（見出しと会話例の声をそろえるため） */
@@ -456,10 +494,11 @@ function useSpeech(settings) {
   const stop = useCallback(() => {
     token.current++;
     setSpeaking(null);
+    stopRecorded();
     if (supported) window.speechSynthesis.cancel();
   }, [supported]);
 
-  return { supported, speak, speakLines, stop, speaking, voices, voiceA, voiceB, sameVoice };
+  return { supported, speak, speakLines, stop, speaking, voices, voiceA, voiceB, sameVoice, recorded };
 }
 
 // ---------------------------------------------------------------------------
@@ -837,6 +876,23 @@ function SettingsSheet({ open, onClose, settings, setSettings, speech, onResetAl
           <p className="mt-3 rounded-xl bg-amber-50 px-3 py-2 text-xs text-amber-700">このブラウザは音声読み上げに対応していません。</p>
         )}
 
+        {speech.recorded > 0 && (
+          <label className="mt-4 flex items-center gap-3 rounded-xl bg-emerald-50 px-3 py-2.5">
+            <span className="flex-1">
+              <span className="block text-sm font-bold text-slate-800">ネイティブ音声（録音）を使う</span>
+              <span className="block text-xs text-slate-500">
+                アメリカ英語の自然な発音・音のつながりで作った音声です（{speech.recorded.toLocaleString()}文ぶん）。録音の無い文は、この端末の声で読みます。速さは下の「話す速さ」に合わせます
+              </span>
+            </span>
+            <input
+              id="toggle-recorded"
+              type="checkbox"
+              checked={settings.recorded}
+              onChange={(e) => update({ recorded: e.target.checked })}
+              className="h-5 w-5 accent-emerald-600"
+            />
+          </label>
+        )}
         <label className="mt-4 flex items-center gap-3 rounded-xl bg-indigo-50 px-3 py-2.5">
           <span className="flex-1">
             <span className="block text-sm font-bold text-slate-800">会話ごとにいろいろな人の声にする</span>
@@ -2670,7 +2726,6 @@ function BattleRun({ session, speech, recognition, onFinish, active = true, tool
         className="relative mt-2 min-h-[220px] flex-1 overflow-hidden rounded-3xl bg-slate-950 shadow-inner ring-1 ring-black/20"
         data-testid="battle-field"
       >
-        <BattleArtDefs />
         <BattleBackdrop />
         {b.enemies.map((e) => {
           const isTarget = t && e.uid === t.uid;
@@ -3966,12 +4021,15 @@ function Wallet({ g, onUseBoost }) {
   return (
     <div className="mt-3 grid grid-cols-3 gap-1.5 rounded-2xl bg-white p-2 shadow-sm ring-1 ring-slate-200" data-testid="wallet">
       {items.map(([label, v, color, id]) => (
-        <p key={label} className="rounded-lg bg-slate-50 px-2 py-1 text-[10px] font-bold leading-tight text-slate-400">
-          {label}
-          <span className={`block text-sm font-black tabular-nums ${color}`} data-testid={id}>
-            {typeof v === "number" ? v.toLocaleString() : v}
-          </span>
-        </p>
+        <div key={label} className="flex items-center gap-1.5 rounded-lg bg-slate-50 px-1.5 py-1">
+          <Art src={WALLET_ICON[id.slice("wallet-".length)]} size={24} />
+          <p className="min-w-0 text-[10px] font-bold leading-tight text-slate-400">
+            {label}
+            <span className={`block text-sm font-black tabular-nums ${color}`} data-testid={id}>
+              {typeof v === "number" ? v.toLocaleString() : v}
+            </span>
+          </p>
+        </div>
       ))}
       {(g.boosts > 0 || active) && (
         <div className="col-span-3 flex items-center gap-2 rounded-xl bg-amber-50 px-3 py-1.5 text-xs font-bold text-amber-800" data-testid="wallet-boost">
@@ -4324,9 +4382,10 @@ function GachaResult({ result, onClose, onOpen }) {
                   style={{ background: `radial-gradient(circle, ${color.glow} 0%, transparent 65%)` }}
                 />
                 <span
-                  className="absolute inset-0 rounded-full transition-all duration-300"
-                  style={{ background: `radial-gradient(circle at 40% 35%, #fff 0%, ${color.core} 40%, ${color.glow} 100%)` }}
+                  className="absolute inset-2 rounded-full transition-all duration-300"
+                  style={{ background: `radial-gradient(circle, ${color.core} 0%, ${color.glow} 45%, transparent 72%)` }}
                 />
+                <Art src={CHEST_ART} size={128} className="relative" />
               </div>
             </div>
           </div>
@@ -4395,7 +4454,7 @@ function GachaResult({ result, onClose, onOpen }) {
                     )}
                   </button>
                   <div aria-hidden="true" className={`gc-back flex items-center justify-center rounded-2xl bg-gradient-to-br ring-2 ring-white/60 ${back[r.rarity]}`}>
-                    <span className="flex h-9 w-9 items-center justify-center rounded-full bg-white/20 text-lg font-black text-white ring-2 ring-white/50">?</span>
+                    <Art src={CARD_BACK_ART} size={multi ? 44 : 64} className="drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)]" />
                   </div>
                 </div>
               </div>
@@ -4475,6 +4534,7 @@ function GachaPanel({ g, onPull, onUpgrade }) {
       />
       <div className={`rounded-3xl bg-gradient-to-br ${kind.bg} p-4 text-white shadow-lg`} data-testid="gacha-machine">
         <div className="flex items-start gap-2">
+          <Art src={MACHINE_ART[currency]} size={72} className="-my-2 -ml-1 bt-float drop-shadow-[0_4px_6px_rgba(0,0,0,0.35)]" />
           <div className="min-w-0 flex-1">
             <p className="text-[11px] font-bold tracking-widest text-white/80">{kind.sub}</p>
             <p className="text-xl font-black">{GACHA_POS_OPTIONS.find((o) => o.value === pos).label}ガチャ</p>
@@ -4897,7 +4957,6 @@ function AchievementList({ g }) {
 /** メダルショップ: ダブりで貯まったメダルで道具を買う */
 function ShopPanel({ g, onBuy }) {
   const [message, setMessage] = useState(null);
-  const icons = { boost: Zap, freeze: Hourglass, special: FlameIcon };
   const have = { boost: g.boosts, freeze: g.items.freeze, special: g.items.special };
   return (
     <div className="space-y-2" data-testid="shop">
@@ -4906,11 +4965,10 @@ function ShopPanel({ g, onBuy }) {
         <span className="tabular-nums">{g.medals}</span> 枚
       </p>
       {SHOP.map((item) => {
-        const Icon = icons[item.id];
         return (
           <div key={item.id} className="flex items-center gap-3 rounded-2xl bg-white p-3 shadow-sm ring-1 ring-slate-200" data-testid="shop-item">
-            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-orange-400 to-rose-500 text-white">
-              <Icon size={22} />
+            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-orange-50 ring-1 ring-orange-200">
+              <Art src={SHOP_ART[item.id]} size={40} />
             </span>
             <div className="min-w-0 flex-1">
               <p className="text-sm font-extrabold text-slate-900">
