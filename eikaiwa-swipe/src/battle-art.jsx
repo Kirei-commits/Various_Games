@@ -1,6 +1,6 @@
 /*
  * バトルの絵（敵10種・ボス（ドラゴン）・主人公（魔法使い）・戦場の背景）。
- * - 絵は src/assets/battle/*.webp（tools/media/battle_art.py が Gemini で作ったもの）。
+ * - 絵は src/assets/battle/*.webp（tools/media/game_art.py が Gemini で作ったもの）。
  *   ビルドで data URL として index.html に埋め込むので、index.html 1枚で動くのは変わらない
  * - 動き（ふわふわ・ぷにぷに・炎のゆらぎ）は styles.css の bt-* アニメーション
  */

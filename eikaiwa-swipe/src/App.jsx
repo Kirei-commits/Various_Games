@@ -45,6 +45,7 @@ import {
   Feather as NotebookPen,
 } from "lucide-react";
 import { BattleBackdrop, Monster, Dragon, Hero, monsterKindOf } from "./battle-art.jsx";
+import { Art, CARD_BACK_ART, CHEST_ART, MACHINE_ART, SHOP_ART, WALLET_ICON } from "./gacha-art.jsx";
 import { saveDiary, usedWords } from "./diary.js";
 import rawChapters, { PARTS, RENAMED } from "./data/index.js";
 import { analyzeLinking, LINK_LABELS } from "./linking.js";
@@ -3965,12 +3966,15 @@ function Wallet({ g, onUseBoost }) {
   return (
     <div className="mt-3 grid grid-cols-3 gap-1.5 rounded-2xl bg-white p-2 shadow-sm ring-1 ring-slate-200" data-testid="wallet">
       {items.map(([label, v, color, id]) => (
-        <p key={label} className="rounded-lg bg-slate-50 px-2 py-1 text-[10px] font-bold leading-tight text-slate-400">
-          {label}
-          <span className={`block text-sm font-black tabular-nums ${color}`} data-testid={id}>
-            {typeof v === "number" ? v.toLocaleString() : v}
-          </span>
-        </p>
+        <div key={label} className="flex items-center gap-1.5 rounded-lg bg-slate-50 px-1.5 py-1">
+          <Art src={WALLET_ICON[id.slice("wallet-".length)]} size={24} />
+          <p className="min-w-0 text-[10px] font-bold leading-tight text-slate-400">
+            {label}
+            <span className={`block text-sm font-black tabular-nums ${color}`} data-testid={id}>
+              {typeof v === "number" ? v.toLocaleString() : v}
+            </span>
+          </p>
+        </div>
       ))}
       {(g.boosts > 0 || active) && (
         <div className="col-span-3 flex items-center gap-2 rounded-xl bg-amber-50 px-3 py-1.5 text-xs font-bold text-amber-800" data-testid="wallet-boost">
@@ -4323,9 +4327,10 @@ function GachaResult({ result, onClose, onOpen }) {
                   style={{ background: `radial-gradient(circle, ${color.glow} 0%, transparent 65%)` }}
                 />
                 <span
-                  className="absolute inset-0 rounded-full transition-all duration-300"
-                  style={{ background: `radial-gradient(circle at 40% 35%, #fff 0%, ${color.core} 40%, ${color.glow} 100%)` }}
+                  className="absolute inset-2 rounded-full transition-all duration-300"
+                  style={{ background: `radial-gradient(circle, ${color.core} 0%, ${color.glow} 45%, transparent 72%)` }}
                 />
+                <Art src={CHEST_ART} size={128} className="relative" />
               </div>
             </div>
           </div>
@@ -4394,7 +4399,7 @@ function GachaResult({ result, onClose, onOpen }) {
                     )}
                   </button>
                   <div aria-hidden="true" className={`gc-back flex items-center justify-center rounded-2xl bg-gradient-to-br ring-2 ring-white/60 ${back[r.rarity]}`}>
-                    <span className="flex h-9 w-9 items-center justify-center rounded-full bg-white/20 text-lg font-black text-white ring-2 ring-white/50">?</span>
+                    <Art src={CARD_BACK_ART} size={multi ? 44 : 64} className="drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)]" />
                   </div>
                 </div>
               </div>
@@ -4474,6 +4479,7 @@ function GachaPanel({ g, onPull, onUpgrade }) {
       />
       <div className={`rounded-3xl bg-gradient-to-br ${kind.bg} p-4 text-white shadow-lg`} data-testid="gacha-machine">
         <div className="flex items-start gap-2">
+          <Art src={MACHINE_ART[currency]} size={72} className="-my-2 -ml-1 bt-float drop-shadow-[0_4px_6px_rgba(0,0,0,0.35)]" />
           <div className="min-w-0 flex-1">
             <p className="text-[11px] font-bold tracking-widest text-white/80">{kind.sub}</p>
             <p className="text-xl font-black">{GACHA_POS_OPTIONS.find((o) => o.value === pos).label}ガチャ</p>
@@ -4896,7 +4902,6 @@ function AchievementList({ g }) {
 /** メダルショップ: ダブりで貯まったメダルで道具を買う */
 function ShopPanel({ g, onBuy }) {
   const [message, setMessage] = useState(null);
-  const icons = { boost: Zap, freeze: Hourglass, special: FlameIcon };
   const have = { boost: g.boosts, freeze: g.items.freeze, special: g.items.special };
   return (
     <div className="space-y-2" data-testid="shop">
@@ -4905,11 +4910,10 @@ function ShopPanel({ g, onBuy }) {
         <span className="tabular-nums">{g.medals}</span> 枚
       </p>
       {SHOP.map((item) => {
-        const Icon = icons[item.id];
         return (
           <div key={item.id} className="flex items-center gap-3 rounded-2xl bg-white p-3 shadow-sm ring-1 ring-slate-200" data-testid="shop-item">
-            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-orange-400 to-rose-500 text-white">
-              <Icon size={22} />
+            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-orange-50 ring-1 ring-orange-200">
+              <Art src={SHOP_ART[item.id]} size={40} />
             </span>
             <div className="min-w-0 flex-1">
               <p className="text-sm font-extrabold text-slate-900">
