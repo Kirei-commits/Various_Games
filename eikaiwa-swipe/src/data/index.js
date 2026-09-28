@@ -40,6 +40,8 @@ import ch38 from "./ch38.js";
 import ch39 from "./ch39.js";
 import ch40 from "./ch40.js";
 
+export { RENAMED, RETIRED } from "./id-changes.js";
+
 /** 章のまとまり（章番号の範囲） */
 export const PARTS = [
   { title: "基本編", from: 1, to: 20 },

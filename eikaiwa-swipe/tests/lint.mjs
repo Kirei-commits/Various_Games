@@ -1,19 +1,21 @@
 /**
  * 依存パッケージなし（Node 標準のみ）で動く静的検査。CI では npm ci より前に走る。
  *  1. 教材データ: 40章 × 50問 = 2000問、形式・重複・会話例の対応、部の範囲
- *  2. index.html が src/ から再ビルドされた最新のものか
+ *  2. 公開済みの問題IDが黙って消えていないか（学習記録の引き継ぎ。src/data/id-changes.js）
+ *  3. index.html が src/ から再ビルドされた最新のものか
  */
 import fs from "node:fs";
 import path from "node:path";
-import rawChapters, { PARTS } from "../src/data/index.js";
+import rawChapters, { PARTS, RENAMED, RETIRED } from "../src/data/index.js";
 import { buildLibrary, parseDialogue, answerCandidates } from "../src/logic.js";
 import { ROOT, sourceHash, HASH_MARKER } from "../tools/source-hash.mjs";
+import { readLock, checkLock } from "../tools/id-lock.mjs";
 
 const EXPECTED_CHAPTERS = 40;
 const PER_CHAPTER = 50;
 const problems = [];
 
-const lib = buildLibrary(rawChapters);
+const lib = buildLibrary(rawChapters, { renamed: RENAMED });
 problems.push(...lib.errors);
 
 if (lib.chapters.length !== EXPECTED_CHAPTERS) {
@@ -48,6 +50,9 @@ if (covered.length !== lib.chapters.length || covered.some((n, i) => n !== i + 1
 }
 const total = lib.chapters.reduce((n, c) => n + c.items.length, 0);
 if (total !== EXPECTED_CHAPTERS * PER_CHAPTER) problems.push(`総問題数が ${total} です（期待値 ${EXPECTED_CHAPTERS * PER_CHAPTER}）`);
+
+// 公開済みの問題IDが消えていたら、変更履歴への記入を求める
+problems.push(...checkLock(lib, readLock(), { renamed: RENAMED, retired: RETIRED }));
 
 const htmlPath = path.join(ROOT, "index.html");
 if (!fs.existsSync(htmlPath)) {

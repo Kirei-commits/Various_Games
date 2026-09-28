@@ -30,7 +30,7 @@ import {
   CloudOff,
   LogOut,
 } from "lucide-react";
-import rawChapters, { PARTS } from "./data/index.js";
+import rawChapters, { PARTS, RENAMED } from "./data/index.js";
 import {
   buildLibrary,
   parseDialogue,
@@ -56,8 +56,11 @@ import {
   pauseMs,
   wordMatch,
   resolveLogin,
+  stateVersionOf,
+  STATE_VERSION,
 } from "./logic.js";
 import { cloud, authErrorMessage } from "./cloud.js";
+import { usableVoices, pickVoices, genderLabel } from "./voices.js";
 
 /*
  * SwipeTalk — スワイプ式 英会話フレーズ学習アプリ
@@ -69,7 +72,7 @@ import { cloud, authErrorMessage } from "./cloud.js";
  * - 保存: LocalStorage。使えない環境ではメモリ上だけで動く
  */
 
-const LIBRARY = buildLibrary(rawChapters);
+const LIBRARY = buildLibrary(rawChapters, { renamed: RENAMED });
 const CHAPTERS = LIBRARY.chapters;
 const CHAPTER_BY_ID = Object.fromEntries(CHAPTERS.map((c) => [c.id, c]));
 const CHAPTER_NO = Object.fromEntries(CHAPTERS.map((c, i) => [c.id, i + 1]));
@@ -121,8 +124,22 @@ const storage = {
   },
 };
 
+/**
+ * 端末に保存された進捗を読み込む。古い形のデータを新しい形に移すときは、
+ * 念のため移行前のデータを swipetalk:backup:v{版} に残しておく（万一の復旧用）。
+ */
+function loadInitialState() {
+  const saved = storage.load(STATE_KEY) || storage.load(LEGACY_KEY);
+  if (saved && stateVersionOf(saved) < STATE_VERSION) {
+    const key = `swipetalk:backup:v${stateVersionOf(saved)}`;
+    if (!storage.load(key)) storage.save(key, saved);
+  }
+  return restoreState(saved, LIBRARY);
+}
+
 const DEFAULT_SETTINGS = {
   voiceURI: "",
+  voiceBURI: "",
   rate: 0.95,
   expressive: true,
   twoVoices: true,
@@ -137,28 +154,6 @@ function loadSettings() {
 // ---------------------------------------------------------------------------
 // 音声読み上げ（Web Speech API）
 // ---------------------------------------------------------------------------
-const PREFERRED_VOICES = [
-  "Microsoft Aria Online (Natural) - English (United States)",
-  "Microsoft Jenny Online (Natural) - English (United States)",
-  "Microsoft Guy Online (Natural) - English (United States)",
-  "Google US English",
-  "Samantha",
-  "Alex",
-  "Karen",
-  "Daniel",
-  "Google UK English Female",
-  "Google UK English Male",
-];
-
-function rankVoice(v) {
-  const i = PREFERRED_VOICES.indexOf(v.name);
-  if (i >= 0) return i;
-  if (/natural|neural|premium|enhanced/i.test(v.name)) return 20;
-  if (v.lang === "en-US") return 30;
-  if (v.lang?.startsWith("en-GB")) return 40;
-  return 50;
-}
-
 function useSpeech(settings) {
   const supported = typeof window !== "undefined" && "speechSynthesis" in window;
   const [voices, setVoices] = useState([]);
@@ -169,8 +164,7 @@ function useSpeech(settings) {
     if (!supported) return undefined;
     const synth = window.speechSynthesis;
     const update = () => {
-      const en = synth.getVoices().filter((v) => v.lang?.toLowerCase().startsWith("en"));
-      setVoices([...en].sort((a, b) => rankVoice(a) - rankVoice(b) || a.name.localeCompare(b.name)));
+      setVoices(usableVoices(synth.getVoices()));
     };
     update();
     synth.addEventListener?.("voiceschanged", update);
@@ -180,16 +174,11 @@ function useSpeech(settings) {
     };
   }, [supported]);
 
-  const voiceA = useMemo(
-    () => voices.find((v) => v.voiceURI === settings.voiceURI) || voices[0] || null,
-    [voices, settings.voiceURI]
+  // B役（会話の相手）は A役と性別が違う声。見つからなければ同じ声を少し高くして区別する
+  const { a: voiceA, b: voiceB, sameVoice } = useMemo(
+    () => pickVoices(voices, { aURI: settings.voiceURI, bURI: settings.voiceBURI, twoVoices: settings.twoVoices }),
+    [voices, settings.voiceURI, settings.voiceBURI, settings.twoVoices]
   );
-  // B役は別の声（見つからなければ同じ声を少し高く）
-  const voiceB = useMemo(() => {
-    if (!settings.twoVoices || !voiceA) return voiceA;
-    const sameLang = voices.filter((v) => v !== voiceA && v.lang === voiceA.lang);
-    return sameLang[0] || voices.find((v) => v !== voiceA) || voiceA;
-  }, [voices, voiceA, settings.twoVoices]);
 
   /**
    * lines: [{ text, role }] を順番に読み上げる。key は再生中表示に使う。
@@ -208,7 +197,8 @@ function useSpeech(settings) {
         for (const chunk of prosodyPlan(line.text, {
           expressive: settings.expressive,
           rate: settings.rate,
-          role: settings.twoVoices ? line.role : null,
+          // 声の高さで役を区別するのは、B役も同じ声を使うときだけ（別の声を高くすると不自然になる）
+          role: settings.twoVoices && sameVoice ? line.role : null,
         })) {
           const u = new SpeechSynthesisUtterance(chunk.text);
           u.lang = voice?.lang || "en-US";
@@ -232,7 +222,7 @@ function useSpeech(settings) {
       setTimeout(() => token.current === my && utterances.forEach((u) => synth.speak(u)), 0);
       return true;
     },
-    [supported, voiceA, voiceB, settings.expressive, settings.rate, settings.twoVoices]
+    [supported, voiceA, voiceB, sameVoice, settings.expressive, settings.rate, settings.twoVoices]
   );
 
   const speak = useCallback((text, role = null) => speakLines([{ text, role }], text), [speakLines]);
@@ -243,7 +233,7 @@ function useSpeech(settings) {
     if (supported) window.speechSynthesis.cancel();
   }, [supported]);
 
-  return { supported, speak, speakLines, stop, speaking, voices, voiceA };
+  return { supported, speak, speakLines, stop, speaking, voices, voiceA, voiceB, sameVoice };
 }
 
 // ---------------------------------------------------------------------------
@@ -429,6 +419,8 @@ function Segmented({ value, onChange, options, name }) {
   );
 }
 
+const voiceLabel = (v) => `${v.name}（${[genderLabel(v), v.lang].filter(Boolean).join("・")}）`;
+
 // ---------------------------------------------------------------------------
 // 音声設定
 // ---------------------------------------------------------------------------
@@ -460,7 +452,7 @@ function SettingsSheet({ open, onClose, settings, setSettings, speech }) {
         )}
 
         <label htmlFor="voice-select" className="mt-4 block text-xs font-bold text-slate-500">
-          声の種類
+          声の種類（A役・見出しの読み上げ）
         </label>
         <div className="relative mt-1">
           <select
@@ -472,13 +464,45 @@ function SettingsSheet({ open, onClose, settings, setSettings, speech }) {
             {speech.voices.length === 0 && <option value="">（利用できる英語の声がありません）</option>}
             {speech.voices.map((v) => (
               <option key={v.voiceURI} value={v.voiceURI}>
-                {v.name}（{v.lang}）
+                {voiceLabel(v)}
               </option>
             ))}
           </select>
           <ChevronDown size={16} className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400" />
         </div>
-        <p className="mt-1 text-xs text-slate-400">「Natural」「Google」と付く声は抑揚が自然です（端末により異なります）。</p>
+        <p className="mt-1 text-xs text-slate-400">「Natural」「Google」「Premium」と付く声は抑揚が自然です（端末により異なります）。</p>
+
+        {settings.twoVoices && (
+          <>
+            <label htmlFor="voice-b-select" className="mt-4 block text-xs font-bold text-slate-500">
+              会話の相手（B役）の声
+            </label>
+            <div className="relative mt-1">
+              <select
+                id="voice-b-select"
+                value={settings.voiceBURI || ""}
+                onChange={(e) => update({ voiceBURI: e.target.value })}
+                className="w-full appearance-none rounded-xl bg-slate-50 py-2.5 pl-3 pr-9 text-sm text-slate-800 ring-1 ring-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              >
+                <option value="">
+                  自動{speech.voiceB && !speech.sameVoice && !settings.voiceBURI ? `（${voiceLabel(speech.voiceB)}）` : "（おすすめ）"}
+                </option>
+                {speech.voices
+                  .filter((v) => v !== speech.voiceA)
+                  .map((v) => (
+                    <option key={v.voiceURI} value={v.voiceURI}>
+                      {voiceLabel(v)}
+                    </option>
+                  ))}
+              </select>
+              <ChevronDown size={16} className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            </div>
+            <p className="mt-1 text-xs text-slate-400">
+              自動では A役と性別の違う声を選びます。
+              {speech.sameVoice && speech.voices.length > 0 && "この端末では別の声が見つからないため、同じ声を少し高くして区別しています。"}
+            </p>
+          </>
+        )}
 
         <label htmlFor="rate-range" className="mt-4 flex items-center justify-between text-xs font-bold text-slate-500">
           話す速さ <span className="tabular-nums text-slate-700">×{settings.rate.toFixed(2)}</span>
@@ -497,7 +521,7 @@ function SettingsSheet({ open, onClose, settings, setSettings, speech }) {
         <div className="mt-4 space-y-2">
           {[
             ["expressive", "抑揚をつける", "疑問文は語尾を上げ、感嘆文は明るく読み上げます"],
-            ["twoVoices", "会話のAとBで声を変える", "B役を別の声（なければ少し高い声）にします"],
+            ["twoVoices", "会話のAとBで声を変える", "B役（会話の相手）を別の声にします"],
           ].map(([key, label, hint]) => (
             <label key={key} className="flex items-center gap-3 rounded-xl bg-slate-50 px-3 py-2.5">
               <span className="flex-1">
@@ -2064,7 +2088,7 @@ function ProgressScreen({ state, onResetAll, onOpenChapter, storageOk, account }
 // アプリ本体
 // ---------------------------------------------------------------------------
 export default function App() {
-  const [state, setState] = useState(() => restoreState(storage.load(STATE_KEY) || storage.load(LEGACY_KEY), LIBRARY));
+  const [state, setState] = useState(loadInitialState);
   const [settings, setSettings] = useState(loadSettings);
   const [tab, setTab] = useState("study");
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -2123,6 +2147,13 @@ export default function App() {
     try {
       const remote = await cloud.load(u.uid);
       const decision = resolveLogin({ state: stateRef.current, ...meta.current }, remote, u.uid, LIBRARY);
+      if (decision.newerRemote) {
+        setSync({
+          status: "error",
+          message: "新しい版のアプリで保存された進捗です。上書きしないよう同期を止めています。ページを再読み込みしてください。",
+        });
+        return;
+      }
       const updatedAt = decision.upload ? Date.now() : remote.updatedAt;
       setMeta({ owner: u.uid, updatedAt });
       setState(decision.state);
