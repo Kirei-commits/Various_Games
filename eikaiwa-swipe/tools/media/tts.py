@@ -25,6 +25,7 @@ import json
 import os
 import subprocess
 import sys
+import threading
 import time
 import urllib.error
 import urllib.request
@@ -109,14 +110,23 @@ def api(method, path, body=None, base=API):
     data = json.dumps(body).encode() if body is not None else None
     req = urllib.request.Request(f"{base}{path}", data=data, method=method, headers={"x-goog-api-key": key, "Content-Type": "application/json"})
     for attempt in range(6):
+        if method == "POST":
+            PACER.wait()
         try:
             with urllib.request.urlopen(req, timeout=300) as res:
                 raw = res.read()
                 return raw if base != API else json.loads(raw)
         except urllib.error.HTTPError as e:
             detail = e.read().decode()
+            if e.code == 429 and "PerDay" in detail:
+                hours = retry_delay(e, detail, attempt) / 3600
+                raise QuotaExhausted(f"1日の上限（{quota_value(detail)} リクエスト/日）に達しました。約{hours:.0f}時間後にリセットされます") from None
             if e.code in (429, 500, 502, 503, 504) and attempt < 5:
-                time.sleep(retry_delay(e, detail, attempt))
+                wait = retry_delay(e, detail, attempt)
+                # 何が起きているか見えるように、待つたびに表示する（429 の中身の最初の部分も）
+                reason = detail.replace("\n", " ")[:160] if e.code == 429 else ""
+                print(f"    [{time.strftime('%H:%M:%S')}] {e.code} → {wait:.0f}秒待って再試行 {reason}", file=sys.stderr, flush=True)
+                time.sleep(wait)
                 continue
             raise ApiError(f"API エラー {e.code} ({method} {path}): {detail[:800]}") from None
         except (urllib.error.URLError, TimeoutError) as e:
@@ -128,6 +138,41 @@ def api(method, path, body=None, base=API):
 
 class ApiError(Exception):
     pass
+
+
+class QuotaExhausted(ApiError):
+    """1日の上限に達した（待っても今日中には戻らないので、すぐに止める）"""
+
+
+class Pacer:
+    """リクエストを送る間隔をそろえる（1分あたりの上限を超えないように。スレッドから同時に呼んでよい）"""
+
+    def __init__(self, per_minute):
+        self.interval = 60.0 / per_minute if per_minute else 0
+        self.lock = threading.Lock()
+        self.next = 0.0
+
+    def wait(self):
+        with self.lock:
+            now = time.monotonic()
+            at = max(now, self.next)
+            self.next = at + self.interval
+        time.sleep(max(0.0, at - now))
+
+
+PACER = Pacer(0)
+
+
+def quota_value(detail):
+    """429 の中身から上限の値を取り出す（読めなければ ?）"""
+    try:
+        for d in json.loads(detail)["error"].get("details", []):
+            for v in d.get("violations", []):
+                if "quotaValue" in v:
+                    return v["quotaValue"]
+    except (ValueError, KeyError, TypeError):
+        pass
+    return "?"
 
 
 def retry_delay(err, detail, attempt):
@@ -290,32 +335,52 @@ def cmd_generate(args, cfg):
     man = load_manifest()
     need = todo(cfg, clips, man, args.force)
     workers = args.workers or cfg["concurrency"]
-    print(f"{len(need)} 文を通常の API で作ります（{cfg['model']}、同時に {workers} 件）")
+    rpm = cfg.get("requestsPerMinute", 0)
+    global PACER
+    PACER = Pacer(rpm)
+    print(f"{len(need)} 文を通常の API で作ります（{cfg['model']}、同時に {workers} 件・1分に {rpm or '制限なし'} 件まで）", flush=True)
+
+    stop = threading.Event()
 
     def one(clip):
         # API を呼んで、保存・opus への変換まで並列に行う（manifest の更新だけはメインのスレッドで）
+        if stop.is_set():
+            return clip, None, None
         try:
             res = api("POST", f"/v1beta/models/{cfg['model']}:generateContent", request_for(cfg, clip))
+        except QuotaExhausted as e:
+            stop.set()
+            return clip, None, f"QUOTA:{e}"
         except ApiError as e:
             return clip, None, f"{clip['key']}: {e}"
         return (clip, *save_audio(cfg, clip, res))
 
     warnings = []
+    quota = None
+    done = 0
     started = time.time()
     # 終わった順に保存する（遅い1件に全体が待たされないように）。途中で止めても、保存済みの分は plan で作り直しの対象から外れる
     with ThreadPoolExecutor(max_workers=workers) as pool:
         futures = [pool.submit(one, c) for c in need]
         for i, fut in enumerate(as_completed(futures), 1):
             clip, seconds, warning = fut.result()
-            if warning:
+            if warning and warning.startswith("QUOTA:"):
+                quota = warning[len("QUOTA:"):]
+            elif warning:
                 warnings.append(warning)
-            else:
+            elif seconds is not None:
                 record(cfg, man, clip, seconds, "sync")
-            if i % 20 == 0 or i == len(need):
-                save_manifest(man)
+                done += 1
+                save_manifest(man)  # 1文ごとに保存する（途中で止まっても作った分を失わない）
+            if (i % 10 == 0 or i == len(need)) and not stop.is_set():
                 elapsed = time.time() - started
-                print(f"  {i}/{len(need)}  {elapsed:.0f}秒（残り 約{elapsed / i * (len(need) - i):.0f}秒）")
+                print(f"  {i}/{len(need)}  {elapsed:.0f}秒（残り 約{elapsed / i * (len(need) - i):.0f}秒）", flush=True)
     report(warnings)
+    left = len(need) - done
+    if quota:
+        print(f"\n止めました: {quota}\n今回作ったもの {done} 文・残り {left} 文（同じコマンドで続きから作れます）")
+    elif left:
+        print(f"\n残り {left} 文（同じコマンドで作り直せます）")
 
 
 def cmd_submit(args, cfg):

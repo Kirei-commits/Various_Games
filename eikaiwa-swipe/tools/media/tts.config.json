@@ -3,6 +3,8 @@
   "model": "gemini-3.8-flash-tts",
   "_concurrency": "同時に送るリクエストの数（generate / sample）。1回 約2秒かかるので、並べるほど速い。429（送りすぎ）が出たら下げる",
   "concurrency": 8,
+  "_limits": "API の上限（2026-09-28 に 429 の中身で確認）: gemini-3.8-flash-tts は1日100リクエスト（プロジェクトごと・太平洋時間の0時にリセット）。1分あたりの上限もあり、超えると 429。requestsPerMinute はこちらで送る速さを抑える値",
+  "requestsPerMinute": 10,
   "batch": {
     "_about": "Batch API（料金が通常の半分・結果は最大24時間後）。chunk は1つのバッチに入れる文の数",
     "chunk": 100
