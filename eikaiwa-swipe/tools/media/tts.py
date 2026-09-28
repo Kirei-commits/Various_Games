@@ -676,6 +676,7 @@ def cmd_cheers(args, cfg):
     known = load_json(MODELS_FILE, {})
     # 合いの手は気持ちの込め方が大事なので、話し方を指定できる（metadata の）モデルを先に使う
     models = sorted((m for m in cfg["models"] if m["model"] not in quota), key=lambda m: known.get(m["model"], {}).get("format", m["format"]) != "metadata")
+    for (voice, style), clips in todo_by_voice.items():
         c2 = {**cfg, "style": style, "roles": {"P": {"voice": voice, "persona": ""}}, "_outdir": "cheers"}
         units = build_units(c2, clips, {**cfg["packing"], "dialogMode": "roles"})
         while units and models:
@@ -724,6 +725,8 @@ def cmd_submit(args, cfg):
     need = todo(cfg, clips, man, args.force)
     pending = {h for j in load_json(JOBS, []) if not j.get("collected") for h in j["clips"]}
     need = [c for c in need if c["hash"] not in pending]  # 結果待ちのものは出し直さない
+    if args.limit:
+        need = need[: args.limit]
     if not need:
         print("作る必要のある文はありません")
         return
@@ -862,6 +865,7 @@ def main():
             s.add_argument("--refresh", action="store_true", help="設定（声・話し方）が今と違う録音も作り直す")
         if name == "submit":
             s.add_argument("--dry-run", action="store_true", help="送らずにリクエストを raw/tts/ に保存する")
+            s.add_argument("--limit", type=int, help="出す文の数の上限（試しに少しだけ出すとき）")
     s = sub.add_parser("sample", help="声の候補を聞き比べる")
     s.add_argument("--text", required=True)
     s.add_argument("--role", default="P", choices=["P", "A", "B"])
