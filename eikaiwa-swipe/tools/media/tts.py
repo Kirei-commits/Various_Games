@@ -52,17 +52,18 @@ def lines_for(chapters):
     return json.loads(out.stdout)
 
 
-def prompt_for(cfg, clip):
-    role = cfg["roles"][clip["role"]]
-    parts = [*cfg["notes"], role["persona"]]
+def style_for(cfg, clip):
+    """声の出し方の指示（speechMetadata.style で送る。テキストには混ぜない）"""
+    parts = [cfg["style"], cfg["roles"][clip["role"]]["persona"]]
     if clip.get("context"):
-        parts.append(f'Context (do not read aloud): this line replies to "{clip["context"]}".')
-    return "\n".join(parts) + "\n\nTRANSCRIPT:\n" + clip["text"]
+        parts.append(f'Replying to: "{clip["context"]}"')
+    return " ".join(parts)
 
 
 def request_for(cfg, clip):
+    # テキストは読む文だけにする（指示を混ぜると、指示まで読んだり文を何度も繰り返したりした）
     return {
-        "contents": [{"parts": [{"text": prompt_for(cfg, clip)}]}],
+        "contents": [{"parts": [{"text": clip["text"], "speechMetadata": {"style": style_for(cfg, clip)}}]}],
         "generationConfig": {
             "responseModalities": ["AUDIO"],
             "speechConfig": {"voiceConfig": {"prebuiltVoiceConfig": {"voiceName": cfg["roles"][clip["role"]]["voice"]}}},
@@ -72,7 +73,7 @@ def request_for(cfg, clip):
 
 def signature(cfg, clip):
     """この文をどの設定で作るかの署名。設定（モデル・声・プロンプト）が変わると変わる"""
-    src = json.dumps([cfg["model"], cfg["roles"][clip["role"]]["voice"], prompt_for(cfg, clip), cfg["output"]], ensure_ascii=False)
+    src = json.dumps([cfg["model"], cfg["roles"][clip["role"]]["voice"], clip["text"], style_for(cfg, clip), cfg["output"]], ensure_ascii=False)
     return hashlib.sha1(src.encode()).hexdigest()[:12]
 
 
@@ -171,6 +172,10 @@ def store(cfg, man, clip, response, via):
     wav_path.write_bytes(body)
     with wave.open(str(wav_path)) as w:
         seconds = w.getnframes() / w.getframerate()
+    # 文を繰り返した・指示まで読んだなど、長さが明らかにおかしいものは取り込まない（plan で作り直しの対象に残る）
+    expected = estimate_seconds(clip["text"])
+    if seconds > expected * 2 + 1.5 or seconds < expected * 0.25:
+        return f"{clip['key']}: 長さが不自然なので取り込まなかった（{seconds:.1f}秒、目安 {expected:.1f}秒）。raw/tts/wav/{clip['hash']}.wav"
     encode(cfg, wav_path, AUDIO / "clips" / f"{clip['hash']}.opus")
     old = man["clips"].get(clip["hash"], {})
     man["clips"][clip["hash"]] = {
@@ -187,10 +192,6 @@ def store(cfg, man, clip, response, via):
         "via": via,
         "at": datetime.now(timezone.utc).strftime("%Y-%m-%d"),
     }
-    # プロンプトの指示まで読み上げてしまったなど、長さが明らかにおかしいものを知らせる
-    expected = estimate_seconds(clip["text"])
-    if seconds > expected * 2.5 + 2 or seconds < expected * 0.25:
-        return f"{clip['key']}: 長さが不自然（{seconds:.1f}秒、目安 {expected:.1f}秒）。聞いて確認してください"
     return None
 
 
@@ -213,7 +214,8 @@ def cmd_plan(args, cfg):
     print(f"費用の目安（音声の出力だけ）: 通常 ${usd:.2f} / Batch ${usd * price['batchDiscount']:.2f}")
     print(f"opus {cfg['output']['bitrate']} でのファイルの大きさの目安: {secs * int(cfg['output']['bitrate'].rstrip('k')) / 8 / 1024:.1f}MB")
     if need:
-        print("\n--- プロンプトの例 ---\n" + prompt_for(cfg, next((c for c in need if c.get("context")), need[0])))
+        ex = next((c for c in need if c.get("context")), need[0])
+        print(f"\n--- リクエストの例 ---\n読む文: {ex['text']}\nstyle: {style_for(cfg, ex)}")
 
 
 def cmd_sample(args, cfg):
@@ -231,7 +233,10 @@ def cmd_sample(args, cfg):
         wav_path = out / f"{v}.wav"
         wav_path.write_bytes(body)
         encode(cfg, wav_path, out / f"{v}.opus")
-        print(out / f"{v}.opus")
+        with wave.open(str(wav_path)) as w:
+            seconds = w.getnframes() / w.getframerate()
+        flag = "  ← 長さが不自然" if seconds > estimate_seconds(args.text) * 2 + 1.5 else ""
+        print(f"{out / (v + '.opus')}  {seconds:.1f}秒{flag}")
 
 
 def cmd_generate(args, cfg):

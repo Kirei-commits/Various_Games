@@ -120,7 +120,11 @@
 ゆっくり聞きたいときはアプリの「話す速さ」で再生速度を下げる（音の高さは変わらない）ので、録音は自然な速さで作る。
 
 **設定**: `tools/media/tts.config.json`
-- `model`（今は `gemini-3.8-flash-tts`）、役ごとの声（`roles.P` = 見出しのフレーズ、`A` / `B` = 会話）、全体の指示（`notes`）と役ごとの指示（`persona`）
+- `model`（今は `gemini-3.8-flash-tts`）、役ごとの声（`roles.P` = 見出しのフレーズ、`A` / `B` = 会話）、話し方の指示（`style`）と役ごとの指示（`persona`）
+- **指示は読む文に混ぜず、リクエストの `speechMetadata.style` で送る**（`contents[0].parts[0] = { text: 読む文, speechMetadata: { style } }`）
+  - 2026-09-28 に確かめたこと: 指示を文の前に書くと、10声中5声で 34〜55 秒の音声になり、2声は同じ文を2回読んだ。短い1行の指示でも約14秒に伸びた
+  - `systemInstruction` はこのモデルでは使えない（400 "Developer instruction is not enabled for this model"）
+  - `speechMetadata.style` は効いている（"whisper very slowly" で 3.9秒→7.8秒、音量も約1/4 になった）。これにしてからは10声すべて 3.2〜4.3 秒で、文字起こしも一致
 - 会話の2行目からは、直前の行を「読まない文脈」として渡している（返事らしい抑揚にするため）
 - 声の候補は API の `GET /v1beta/voices` で見られる（2,089種類。General American は30種類）。`sampleVoices` に聞き比べの候補を入れてある
 
@@ -138,7 +142,7 @@ python3 tools/media/tts.py collect              # 終わったバッチを取り
 - 読む文は、アプリと同じ関数で取り出す（`tools/media/tts-lines.mjs`）。同じ「役|英文」は1回だけ作る。全章で 13,278 文（見出し 5,500・A 5,393・B 2,385）
 - 目安: 全章で約8時間・出力 約72万トークン・通常 約$6.5 / Batch 約$3.2（音声の出力だけ。入力のプロンプト分は別）。opus 24kbps で約84MB
 - **Batch API の送り方・結果の形は公式ページを読めないまま実装した**（ai.google.dev はこの環境から開けない）。最初に ch01 で出して確かめる。結果の形が読めなければ `raw/tts/<名前>.response.json` に保存して止まる
-- 長さが不自然な録音（指示まで読み上げた、など）は、取り込むときに警告を出す
+- 長さが不自然な録音（文を繰り返した、など）は取り込まずに警告する。`plan` で作り直しの対象に残る
 
 **できるもの（コミットする）**
 - `audio/clips/<hash>.opus`: 録音。hash は「役|英文」から `src/recorded.js` の `clipHash` で決まる（テストで値を固定している。変えると録音が全部見つからなくなる）
