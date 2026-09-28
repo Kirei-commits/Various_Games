@@ -16,16 +16,35 @@ import { CHAPTER_POS, POS_OVERRIDES, TRIVIA, SECRETS, TITLES } from "./data/gach
 
 export const RARITIES = ["N", "R", "SR", "SSR"];
 const RANK = { N: 0, R: 1, SR: 2, SSR: 3 };
-/** 排出の重み（1万分率）。points=通常ガチャ、ticket=レアチケット */
+/**
+ * 排出の重み（1万分率）。points=通常ガチャ、ticket=レアチケット（R 以上）、
+ * sr=SR ガチャチケット（SR 以上）、ssr=SSR ガチャチケット（SSR 確定）
+ */
 export const RATES = {
   points: { N: 7450, R: 2000, SR: 450, SSR: 100 },
   ticket: { N: 0, R: 7000, SR: 2500, SSR: 500 },
+  sr: { N: 0, R: 0, SR: 8500, SSR: 1500 },
+  ssr: { N: 0, R: 0, SR: 0, SSR: 10000 },
 };
+/** 通貨ごとの、ガチャの記録の中の残高の名前 */
+export const BALANCE_KEY = { points: "points", ticket: "tickets", sr: "srTickets", ssr: "ssrTickets" };
+/** その通貨で出る最低のレア度 */
+const FLOOR_RANK = { points: 0, ticket: 1, sr: 2, ssr: 3 };
 export const PULL_COST = 100; // 通常ガチャ1回のポイント
-export const PITY_SSR = { points: 100, ticket: 20 }; // この回数目で SSR 確定
+export const PITY_SSR = { points: 100, ticket: 20, sr: 10 }; // この回数目で SSR 確定
 export const MAX_LEVEL = 4;
-export const EXCHANGE_COST = { N: 20, R: 60, SR: 150, SSR: 300 };
-export const DUP_BONUS = { N: 1, R: 2, SR: 5, SSR: 10 }; // ダブったときに追加でもらえる交換ポイント
+/** 図鑑の交換所で1枚もらうのに必要な交換ポイント（やり込み向けに高め） */
+export const EXCHANGE_COST = { N: 200, R: 800, SR: 3000, SSR: 10000 };
+/** ダブったときにもらえるメダル（ショップで道具と交換） */
+export const DUP_MEDALS = { N: 1, R: 3, SR: 10, SSR: 30 };
+/** チケットの交換: 下のチケット100枚で上のチケット1枚 */
+export const TICKET_UPGRADE = 100;
+/** メダルショップ */
+export const SHOP = [
+  { id: "boost", name: "5倍ブースト", price: 150, desc: "1時間、学習・テスト・バトルのポイントが5倍" },
+  { id: "freeze", name: "時止めの砂時計", price: 40, desc: "バトル中、敵の動きを5秒止める" },
+  { id: "special", name: "必殺技の巻物", price: 60, desc: "バトル中、わからない単語の敵を一撃で倒す（苦手に入ります）" },
+];
 export const POS_KEYS = ["all", "noun", "verb", "adj", "other"];
 
 // ポイントのもらい方
@@ -49,7 +68,7 @@ export const initialGacha = () => ({
   selSR: 0, // SR 選択チケット
   selSSR: 0, // SSR 選択チケット
   cards: {}, // 単語ID → 引いた枚数（Lv は min(枚数, 4)）
-  pity: { points: 0, ticket: 0 }, // 最後の SSR から何回引いたか
+  pity: { points: 0, ticket: 0, sr: 0 }, // 最後の SSR から何回引いたか
   titles: [],
   secrets: [],
   pulls: 0,
@@ -63,6 +82,10 @@ export const initialGacha = () => ({
   codeCount: 0, // その日に入れた回数
   codesUsed: [], // 入れたことのある単語ID（同じ単語は1回だけ）
   unlimited: false, // 開発者コードでポイント無限
+  srTickets: 0, // SR ガチャチケット（SR 以上）
+  ssrTickets: 0, // SSR ガチャチケット（SSR 確定）
+  medals: 0, // ダブりメダル
+  items: { freeze: 0, special: 0 }, // バトルの道具
 });
 
 // ---------------------------------------------------------------------------
@@ -165,13 +188,14 @@ const normalize = (g) => ({
   titles: [...(g?.titles || [])],
   secrets: [...(g?.secrets || [])],
   codesUsed: [...(g?.codesUsed || [])],
+  items: { ...initialGacha().items, ...(g?.items || {}) },
 });
 
 const notMax = (g) => (id) => (g.cards[id] || 0) < MAX_LEVEL;
 
 /** 空になったレア度の確率の行き先: 1つ下（保証・チケットの下限より下には行かない）→ なければ上 */
 function redistributeTarget(r, avail, currency, guarantee) {
-  const floor = Math.max(guarantee ? RANK[guarantee] : 0, currency === "ticket" ? RANK.R : 0);
+  const floor = Math.max(guarantee ? RANK[guarantee] : 0, FLOOR_RANK[currency] || 0);
   for (let k = RANK[r] - 1; k >= floor; k--) if (avail[RARITIES[k]] > 0) return RARITIES[k];
   for (let k = RANK[r] + 1; k <= RANK.SSR; k++) if (avail[RARITIES[k]] > 0) return RARITIES[k];
   return null;
@@ -229,11 +253,14 @@ function pickRarity(weights, total, rng) {
  */
 export function pull(state, catalog, { pos = "all", currency = "points", times = 1 } = {}, rng = Math.random) {
   const g = normalize(state.gacha);
+  if (!RATES[currency]) return { state, error: "ない種類のガチャです" };
+  const key = BALANCE_KEY[currency];
   const free = currency === "points" && g.unlimited;
   const cost = free ? 0 : currency === "points" ? PULL_COST * times : times;
-  const balance = currency === "points" ? g.points : g.tickets;
+  const balance = g[key];
   if (balance < cost) {
-    return { state, error: currency === "points" ? `ポイントが ${cost - balance} 足りません` : "レアチケットが足りません" };
+    const names = { ticket: "レアチケット", sr: "SR ガチャチケット", ssr: "SSR ガチャチケット" };
+    return { state, error: currency === "points" ? `ポイントが ${cost - balance} 足りません` : `${names[currency]}が足りません` };
   }
   if (effectiveWeights(g, catalog, pos, currency).total === 0) {
     return { state, error: "この種類の単語は、すべて MAX です" };
@@ -245,7 +272,7 @@ export function pull(state, catalog, { pos = "all", currency = "points", times =
     // 10回ごとに SR 以上1枚確定（50連なら5回分）
     if (i % 10 === 0) gotSrPlus = false;
     let guarantee = null;
-    if (g.pity[currency] + 1 >= PITY_SSR[currency]) guarantee = "SSR";
+    if ((g.pity[currency] || 0) + 1 >= PITY_SSR[currency]) guarantee = "SSR";
     else if (times >= 10 && i % 10 === 9 && !gotSrPlus) guarantee = "SR";
     let { weights, total } = effectiveWeights(g, catalog, pos, currency, guarantee);
     if (total === 0) {
@@ -260,9 +287,11 @@ export function pull(state, catalog, { pos = "all", currency = "points", times =
     const id = pickFrom(unowned.length ? unowned : candidates, rng);
     const before = g.cards[id] || 0;
     g.cards[id] = before + 1;
-    const exGain = 1 + (before > 0 ? DUP_BONUS[rarity] : 0);
+    const exGain = 1;
+    const medals = before > 0 ? DUP_MEDALS[rarity] : 0;
     g.exPoints += exGain;
-    g.pity[currency] = rarity === "SSR" ? 0 : g.pity[currency] + 1;
+    g.medals += medals;
+    if (PITY_SSR[currency]) g.pity[currency] = rarity === "SSR" ? 0 : (g.pity[currency] || 0) + 1;
     if (RANK[rarity] >= RANK.SR) gotSrPlus = true;
     results.push({
       id,
@@ -271,11 +300,11 @@ export function pull(state, catalog, { pos = "all", currency = "points", times =
       level: levelOf(before + 1),
       byPity: guarantee && RANK[rarity] >= RANK[guarantee] ? guarantee : null,
       exGain,
+      medals,
     });
   }
   const used = free ? 0 : currency === "points" ? PULL_COST * results.length : results.length;
-  if (currency === "points") g.points -= used;
-  else g.tickets -= used;
+  g[key] -= used;
   g.pulls += results.length;
   g.rev += 1;
   const { gacha, newTitles, newSecrets } = evaluateRewards(g, catalog);
@@ -377,24 +406,30 @@ export function claimStarter(state) {
   });
 }
 
+/** 毎日のログインでもらえる SR ガチャチケットの枚数 */
+export const LOGIN_SR_TICKETS = 3;
 /**
- * ログインボーナスのガチャ分: 毎日 1000pt と5倍ブースト1つ、7日ごとにレアチケット、
- * 連続30日ごとに SR 選択チケット、累計100日ごとに SSR 選択チケット。
+ * ログインボーナスのガチャ分: 毎日 1000pt・5倍ブースト1つ・SR ガチャチケット3枚、
+ * 累計3日ごとに SSR ガチャチケット1枚、連続7日ごとにレアチケット1枚。
+ * （以前の選択チケットは配らない。持っている分は図鑑でそのまま使える）
  */
 export function loginGachaReward(day, totalDays) {
   return {
     points: LOGIN_POINTS,
     boosts: 1,
+    srTickets: LOGIN_SR_TICKETS,
+    ssrTickets: totalDays % 3 === 0 ? 1 : 0,
     tickets: day % 7 === 0 ? 1 : 0,
-    selSR: day % 30 === 0 ? 1 : 0,
-    selSSR: totalDays % 100 === 0 ? 1 : 0,
   };
 }
 
-export function grant(state, { points = 0, tickets = 0, selSR = 0, selSSR = 0, boosts = 0 }) {
-  if (!points && !tickets && !selSR && !selSSR && !boosts) return state;
+export function grant(state, { points = 0, tickets = 0, selSR = 0, selSSR = 0, boosts = 0, srTickets = 0, ssrTickets = 0, medals = 0 }) {
+  if (!points && !tickets && !selSR && !selSSR && !boosts && !srTickets && !ssrTickets && !medals) return state;
   return withGacha(state, (g) => {
     g.boosts += boosts;
+    g.srTickets += srTickets;
+    g.ssrTickets += ssrTickets;
+    g.medals += medals;
     g.points += points;
     g.tickets += tickets;
     g.selSR += selSR;
@@ -419,6 +454,45 @@ export function earnTimePoints(state, seconds, now) {
   const points = pointsForTime(seconds) * boostRate(state.gacha, now);
   if (points <= 0) return { state, points: 0 };
   return { state: withGacha(state, (g) => (g.points += points)), points };
+}
+
+/**
+ * チケットを上のチケットに交換する（100枚 → 1枚）。
+ * @param to "sr"（レアチケット → SR ガチャチケット）| "ssr"（SR → SSR ガチャチケット）
+ */
+export function upgradeTickets(state, to) {
+  const from = to === "sr" ? "tickets" : to === "ssr" ? "srTickets" : null;
+  if (!from) return { state, error: "交換できないチケットです" };
+  const g0 = normalize(state.gacha);
+  if (g0[from] < TICKET_UPGRADE) return { state, error: `あと ${TICKET_UPGRADE - g0[from]} 枚で交換できます` };
+  return {
+    state: withGacha(state, (g) => {
+      g[from] -= TICKET_UPGRADE;
+      g[BALANCE_KEY[to]] += 1;
+    }),
+  };
+}
+
+/** メダルショップで買う（ブーストはブーストの所持数、ほかはバトルの道具に入る） */
+export function buyItem(state, id) {
+  const item = SHOP.find((x) => x.id === id);
+  if (!item) return { state, error: "ない商品です" };
+  const g0 = normalize(state.gacha);
+  if (g0.medals < item.price) return { state, error: `メダルが ${item.price - g0.medals} 枚足りません` };
+  return {
+    state: withGacha(state, (g) => {
+      g.medals -= item.price;
+      if (id === "boost") g.boosts += 1;
+      else g.items[id] = (g.items[id] || 0) + 1;
+    }),
+  };
+}
+
+/** バトルの道具を1つ使う（なければ error） */
+export function consumeItem(state, id) {
+  const g0 = normalize(state.gacha);
+  if (!(g0.items[id] > 0)) return { state, error: "持っていません" };
+  return { state: withGacha(state, (g) => (g.items[id] -= 1)) };
 }
 
 /** 5倍ブーストを1つ使う（使用中なら1時間延長） */
@@ -521,7 +595,7 @@ export function restoreGacha(saved, rename = (id) => id) {
     selSR: nonNegInt(saved.selSR),
     selSSR: nonNegInt(saved.selSSR),
     cards,
-    pity: { points: nonNegInt(saved.pity?.points), ticket: nonNegInt(saved.pity?.ticket) },
+    pity: { points: nonNegInt(saved.pity?.points), ticket: nonNegInt(saved.pity?.ticket), sr: nonNegInt(saved.pity?.sr) },
     titles: Array.isArray(saved.titles) ? [...new Set(saved.titles)] : [],
     secrets: Array.isArray(saved.secrets) ? [...new Set(saved.secrets)] : [],
     pulls: nonNegInt(saved.pulls),
@@ -535,6 +609,10 @@ export function restoreGacha(saved, rename = (id) => id) {
     codeCount: nonNegInt(saved.codeCount),
     codesUsed: Array.isArray(saved.codesUsed) ? [...new Set(saved.codesUsed.map(rename))] : [],
     unlimited: !!saved.unlimited,
+    srTickets: nonNegInt(saved.srTickets),
+    ssrTickets: nonNegInt(saved.ssrTickets),
+    medals: nonNegInt(saved.medals),
+    items: { freeze: nonNegInt(saved.items?.freeze), special: nonNegInt(saved.items?.special) },
   };
 }
 

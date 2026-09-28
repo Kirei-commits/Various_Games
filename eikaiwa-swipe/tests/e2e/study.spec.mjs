@@ -98,7 +98,23 @@ test("進捗: 章ごとの進み具合が見え、章を選ぶと学習画面に
   await expect(page.getByTestId("progress-pct")).toHaveText(/0%/);
   await expect(page.getByText(/^1 \/ 5500 覚えた$/)).toBeVisible();
   await page.getByRole("button", { name: /電話・メール・SNS/ }).click();
+  await page.getByTestId("chapter-chooser").getByRole("button", { name: /学習する/ }).click();
   await expect(page.getByTestId("swipe-card")).toContainText("第18章");
+});
+
+test("進捗: 章を選んで「一覧で単語を見る」にすると、その章の一覧が出る", async ({ page }) => {
+  await page.getByRole("button", { name: "進捗", exact: true }).click();
+  await page.getByRole("button", { name: /電話・メール・SNS/ }).click();
+  await page.getByTestId("chapter-chooser").getByRole("button", { name: /一覧で単語を見る/ }).click();
+  await expect(page.locator("#list-chapter")).toHaveValue("ch18");
+});
+
+test("お気に入り: 学習カードで ⭐ を付けると、一覧の ⭐ で絞り込める", async ({ page }) => {
+  await page.getByRole("button", { name: "お気に入りに追加" }).first().click();
+  await expect(page.getByRole("button", { name: "お気に入りから外す" }).first()).toBeVisible();
+  await page.getByRole("button", { name: "一覧", exact: true }).click();
+  await page.getByRole("button", { name: /^⭐/ }).click();
+  await expect(page.getByTestId("phrase-list").locator("li[data-row]")).toHaveCount(1);
 });
 
 test("横スクロールが発生しない", async ({ page }) => {

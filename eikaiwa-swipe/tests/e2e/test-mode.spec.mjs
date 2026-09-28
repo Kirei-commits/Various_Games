@@ -110,3 +110,18 @@ test("音声認識がないブラウザでは、声モードはキーボード�
   await page.locator("#test-answer").press("Enter");
   await expect(page.getByTestId("verdict")).toHaveText("正解！");
 });
+
+test("ドーパミンモード: 正解すると演出と連続正解の数が出て、待たずに次の問題へ進む", async ({ page }) => {
+  await page.getByRole("button", { name: "音声の設定" }).first().click();
+  await page.locator("#toggle-dopamine").check();
+  await page.getByRole("dialog", { name: "音声の設定" }).getByRole("button", { name: "閉じる" }).click();
+  await startTest(page, { answer: "4択" });
+  for (let i = 1; i <= 2; i++) {
+    await expect(page.getByTestId("test-progress")).toHaveText(`${i} / 10`);
+    const p = await currentPhrase(page);
+    await page.getByRole("button", { name: p.japanese, exact: true }).click();
+    await expect(page.getByTestId("dopamine-streak")).toContainText(`×${i}`);
+  }
+  // 「次へ」を押さなくても進んでいる
+  await expect(page.getByTestId("test-progress")).toHaveText("3 / 10");
+});

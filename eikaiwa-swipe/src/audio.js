@@ -8,7 +8,11 @@
  *
  * ブラウザは利用者が画面に触れるまで音を出させないので、最初のタップで unlock() する。
  *
- * BGM はバトル中だけ流す（startBgm / stopBgm）。効果音とは別の音量で、少し先の音符を予約しながらループさせる。
+ * BGM は2種類。どちらも効果音とは別の音量で、少し先の音符を予約しながらループさせる。
+ * - バトル: 冒険っぽいループ（ボス戦は速く）。setBattleMusic("battle" | "boss" | null)
+ * - 学習中: 勉強の邪魔にならない、ゆったりしたローファイ風のループ。setStudyMusic(true | false)
+ *   読み上げ中は小さくする（英語が聞きとりやすいように）。
+ * バトルの曲が優先。どちらも流さないときは止める。
  */
 
 const NOTE = (n) => 440 * Math.pow(2, (n - 69) / 12); // MIDI ノート番号 → 周波数
@@ -20,6 +24,9 @@ export class SoundEngine {
     this.volume = 0.6;
     this.bgmOn = true;
     this.bgmVolume = 0.35;
+    this.studyOn = true;
+    this.studyVolume = 0.25;
+    this.want = { battle: null, study: false }; // いま流したい曲
     this.bgm = null; // 再生中の BGM { kind, timer, step, next }
   }
 
@@ -46,6 +53,7 @@ export class SoundEngine {
       soften.connect(this.ctx.destination);
     }
     if (this.ctx.state === "suspended") this.ctx.resume().catch(() => {});
+    this.refresh();
   }
 
   set(on, volume = this.volume) {
@@ -54,11 +62,42 @@ export class SoundEngine {
     if (this.out) this.out.gain.value = volume;
   }
 
+  /** バトルの BGM の設定 */
   setBgm(on, volume = this.bgmVolume) {
     this.bgmOn = on;
     this.bgmVolume = volume;
-    if (this.music) this.music.gain.value = volume;
-    if (!on) this.stopBgm();
+    this.refresh(true);
+  }
+
+  /** 学習中の BGM の設定 */
+  setStudyBgm(on, volume = this.studyVolume) {
+    this.studyOn = on;
+    this.studyVolume = volume;
+    this.refresh(true);
+  }
+
+  /** バトルの曲を流す（"battle" | "boss"）／やめる（null） */
+  setBattleMusic(kind) {
+    this.want.battle = kind;
+    this.refresh();
+  }
+
+  /** 学習中の曲を流す／やめる */
+  setStudyMusic(on) {
+    this.want.study = on;
+    this.refresh();
+  }
+
+  /** いま流すべき曲に切りかえる */
+  refresh(volumeChanged = false) {
+    const kind = this.want.battle && this.bgmOn ? this.want.battle : this.want.study && this.studyOn ? "study" : null;
+    if (!kind) return this.stopBgm();
+    if (volumeChanged && this.music && this.bgm) this.music.gain.value = this.volumeOf(kind);
+    this.startBgm(kind);
+  }
+
+  volumeOf(kind) {
+    return kind === "study" ? this.studyVolume : this.bgmVolume;
   }
 
   /** ノイズ（打楽器・爆発に使う）。毎回作らず使い回す */
@@ -119,19 +158,30 @@ export class SoundEngine {
   // バトルの BGM（ラ短調の冒険っぽいループ。ボス戦はテンポを上げてドラムを増やす）
   // -------------------------------------------------------------------------
 
-  /** BGM を始める（kind: "battle" | "boss"）。同じ曲が流れていれば何もしない */
+  /** BGM を始める（kind: "battle" | "boss" | "study"）。同じ曲が流れていれば何もしない */
   startBgm(kind = "battle") {
-    if (!this.bgmOn || !this.ctx) return;
+    if (!this.ctx) return;
     if (this.ctx.state === "suspended") this.ctx.resume().catch(() => {});
     if (this.bgm?.kind === kind) return;
     this.stopBgm();
-    const bgm = { kind, step: 0, next: this.ctx.currentTime + 0.08, tempo: kind === "boss" ? 156 : 132 };
+    const study = kind === "study";
+    const bars = study ? STUDY_BARS : BARS;
+    const bgm = { kind, step: 0, next: this.ctx.currentTime + 0.08, tempo: kind === "boss" ? 156 : study ? 74 : 132 };
+    const volume = this.volumeOf(kind);
+    this.music.gain.cancelScheduledValues(this.ctx.currentTime);
+    this.music.gain.setValueAtTime(volume, this.ctx.currentTime);
     const schedule = () => {
+      // 学習中の曲は、読み上げのあいだ小さくする
+      if (study) {
+        const speaking = typeof window !== "undefined" && window.speechSynthesis?.speaking;
+        this.music.gain.setTargetAtTime(this.volumeOf(kind) * (speaking ? 0.3 : 1), this.ctx.currentTime, 0.15);
+      }
       // 0.2 秒先までの音符を予約する（タイマーが多少遅れても音が途切れない）
       while (bgm.next < this.ctx.currentTime + 0.2) {
-        this.bgmStep(bgm, bgm.step, bgm.next);
+        if (study) this.studyStep(bgm, bgm.step, bgm.next);
+        else this.bgmStep(bgm, bgm.step, bgm.next);
         bgm.next += 60 / bgm.tempo / 4; // 16分音符
-        bgm.step = (bgm.step + 1) % (BARS.length * 16);
+        bgm.step = (bgm.step + 1) % (bars.length * 16);
       }
     };
     schedule();
@@ -143,6 +193,31 @@ export class SoundEngine {
     if (!this.bgm) return;
     clearInterval(this.bgm.timer);
     this.bgm = null;
+  }
+
+  /** 学習中の曲: エレピ風の和音・やわらかいベース・ブラシのような小さな打楽器・ときどき短いメロディ */
+  studyStep(bgm, step, t) {
+    const dest = this.music;
+    const bar = STUDY_BARS[Math.floor(step / 16)];
+    const s = step % 16;
+    const beat = 60 / bgm.tempo;
+    if (s === 0 || s === 10) {
+      // エレピ風: 正弦波に少しだけ倍音を足し、ゆっくり消える（少しずらして弾く）
+      bar.chord.forEach((n, i) => {
+        const at = t + i * 0.018;
+        this.tone(at, { from: NOTE(n), dur: beat * (s === 0 ? 2.4 : 1.4), gain: 0.045, attack: 0.02, dest });
+        this.tone(at, { type: "triangle", from: NOTE(n + 12), dur: beat * 0.8, gain: 0.008, attack: 0.01, dest });
+      });
+    }
+    if (s === 0 || s === 7 || s === 10) this.tone(t, { from: NOTE(bar.chord[0] - 12), dur: beat * 1.2, gain: 0.16, attack: 0.02, dest });
+    if (s === 0 || s === 10) this.tone(t, { from: 90, to: 45, dur: 0.22, gain: 0.12, dest });
+    if (s === 4 || s === 12) this.hiss(t, { type: "bandpass", freq: 2200, dur: 0.14, gain: 0.03, dest });
+    if (s % 2 === 0) this.hiss(t, { freq: 7000, dur: 0.03, gain: s % 4 === 2 ? 0.012 : 0.006, dest });
+    const n = bar.melody[s];
+    if (n) {
+      this.tone(t, { from: NOTE(n), dur: beat * 1.6, gain: 0.035, attack: 0.01, dest });
+      this.tone(t, { from: NOTE(n) * 4, dur: beat * 0.2, gain: 0.004, dest });
+    }
   }
 
   bgmStep(bgm, step, t) {
@@ -222,9 +297,18 @@ export class SoundEngine {
     src.stop(t + dur + 0.02);
   }
 
-  play(name) {
+  play(name, n = 0) {
     if (!this.on || !this.ctx || this.ctx.state !== "running") return;
     switch (name) {
+      case "streak": { // ドーパミンモード: 連続正解ほど音が上がっていく（ペンタトニック）
+        const scale = [0, 2, 4, 7, 9];
+        const k = Math.min(n, 24);
+        const midi = 72 + Math.floor(k / 5) * 12 + scale[k % 5];
+        this.mallet(midi, { gain: 0.26, decay: 0.35 });
+        this.mallet(midi + 7, { at: 0.05, gain: 0.18, decay: 0.3 });
+        if (n > 0 && n % 5 === 0) [0, 4, 7, 12].forEach((d, i) => this.mallet(midi + d, { at: 0.1 + i * 0.05, gain: 0.2, decay: 0.8 }));
+        break;
+      }
       case "learned": // 覚えた: さっ（右へ）＋ 明るい2音
         this.whoosh({ from: 1200, to: 2400 });
         this.mallet(79, { at: 0.05, gain: 0.28 });
@@ -316,5 +400,27 @@ const BARS = [
 ];
 const BASS_PATTERN = [0, 0, 12, 0, 0, 12, 0, 7];
 
+/** 学習中の曲の小節（Fmaj7 → Em7 → Dm7 → Cmaj7、後半は B♭maj7 → Am7 → Gm7 → C7）。melody は16分音符の位置 → 音 */
+const STUDY_BARS = [
+  { chord: [53, 57, 60, 64], melody: { 2: 72, 6: 69 } },
+  { chord: [52, 55, 59, 62], melody: { 4: 71 } },
+  { chord: [50, 53, 57, 60], melody: { 2: 69, 8: 72, 12: 74 } },
+  { chord: [48, 52, 55, 59], melody: { 6: 67 } },
+  { chord: [46, 50, 53, 57], melody: { 2: 74, 6: 72 } },
+  { chord: [45, 48, 52, 55], melody: { 4: 72, 10: 69 } },
+  { chord: [43, 46, 50, 53], melody: { 2: 70, 8: 69 } },
+  { chord: [48, 52, 55, 58], melody: { 0: 67, 12: 72 } },
+];
+
 /** 何もしない代わり（テストやサーバー描画で使う） */
-export const silentSound = { play() {}, unlock() {}, set() {}, setBgm() {}, startBgm() {}, stopBgm() {} };
+export const silentSound = {
+  play() {},
+  unlock() {},
+  set() {},
+  setBgm() {},
+  setStudyBgm() {},
+  setBattleMusic() {},
+  setStudyMusic() {},
+  startBgm() {},
+  stopBgm() {},
+};

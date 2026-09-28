@@ -20,6 +20,13 @@ export const BATTLE_POINTS = { min: 1000, max: 3000 };
 export const BATTLE_TICKETS = { min: 1, max: 8 };
 /** 報酬をもらうのに必要な撃破数（すぐやめて報酬だけもらうのを防ぐ） */
 export const REWARD_MIN_KILLS = 3;
+/** エンドレスのレベルボーナス: レベル L まで到達すると 500 × (1 + 2 + … + (L-1)) pt（長く続けるほど大きく増える） */
+export const ENDLESS_LEVEL_BONUS = 500;
+export const endlessLevelBonus = (level) => (ENDLESS_LEVEL_BONUS * (level - 1) * level) / 2;
+/** 時止めの砂時計で敵が止まる時間 */
+export const FREEZE_MS = 5000;
+/** 難易度の段階の数 */
+export const TIERS = 5;
 export const LEVEL_UP_KILLS = 10;
 
 /** 答え方ごとの、敵が上から下まで届く時間（ms）と、次の敵が出るまでの間隔 */
@@ -42,6 +49,16 @@ const shuffle = (list, rng) => {
  * 単語の難しさ（大きいほど難しい）。章が後ろほど難しく（単語編は 基礎→生活→応用）、同じ章なら長い単語ほど難しい。
  */
 export const difficultyOf = (item) => Number(String(item.chapterId || "").replace(/\D/g, "") || 0) * 100 + item.english.length;
+
+/**
+ * 単語を難しさで5段階に分ける（やさしい順に並べて均等に5つに分ける）。
+ * @returns 5つの配列（[0] が ★1 = いちばんやさしい）
+ */
+export function difficultyTiers(items) {
+  const sorted = [...items].sort((a, b) => difficultyOf(a) - difficultyOf(b) || (a.id < b.id ? -1 : 1));
+  const size = Math.ceil(sorted.length / TIERS);
+  return Array.from({ length: TIERS }, (_, i) => sorted.slice(i * size, (i + 1) * size));
+}
 
 /**
  * 難易度順のランダム: おおむね やさしい → むずかしい の順に並べ、近い難しさの中ではランダムにする。
@@ -119,6 +136,11 @@ function spawn(b, item, rng, boss = false) {
 export function tick(b, dt, rng = Math.random, moveScale = 1) {
   if (b.over) return b;
   b.elapsed += dt;
+  // 時止め中: 敵は動かず、新しい敵も出ない（止まっていた分だけ次の敵を遅らせる）
+  if (isFrozen(b)) {
+    b.nextSpawn += dt;
+    return b;
+  }
   const pace = PACE[b.answer] || PACE.choice;
   const speed = speedOf(b);
 
@@ -199,6 +221,32 @@ export function attack(b, correct, rng = Math.random) {
   return item;
 }
 
+/** 時止めの砂時計: 敵の動きを ms だけ止める（使用中ならのばす） */
+export function freeze(b, ms = FREEZE_MS) {
+  if (b.over) return false;
+  b.frozenUntil = Math.max(b.frozenUntil || 0, b.elapsed) + ms;
+  b.lastEvent = { type: "freeze", at: b.elapsed };
+  return true;
+}
+
+export const isFrozen = (b) => (b.frozenUntil || 0) > b.elapsed;
+
+/**
+ * 必殺技の巻物: 狙う敵に答えずに攻撃する（ザコは一撃。ボスは1ダメージ）。
+ * コンボは増えも切れもせず、その単語は「わからなかった」として苦手に入る。
+ * @returns 攻撃した問題（なければ null）
+ */
+export function special(b, rng = Math.random) {
+  const t = target(b);
+  if (!t || b.over) return null;
+  const combo = b.combo;
+  const item = attack(b, true, rng);
+  b.combo = combo;
+  b.results[item.id] = false;
+  b.lastEvent = { ...b.lastEvent, special: true };
+  return item;
+}
+
 /** 途中でやめる */
 export function quit(b) {
   b.over = true;
@@ -233,7 +281,8 @@ const accuracyOf = (b) => {
 
 /**
  * バトルの報酬（ブースト前）。
- * - ポイント: 遊んだ時間ぶん（学習・テストと同じ1分あたりの量）に、正解率・クリア・最高得点更新で上乗せし、1000〜3000 に収める
+ * - ポイント: 遊んだ時間ぶん（学習・テストと同じ1分あたりの量）に、正解率・クリア・最高得点更新で上乗せし、1000〜3000 に収める。
+ *   エンドレスは、さらに到達レベルのボーナス（endlessLevelBonus。Lv5 で 5,000、Lv10 で 22,500）
  * - レアチケット: ステージは ★1=2・★2=4・★3=6 枚（初めての★3はさらに +2）、クリアできなければ1枚。
  *   エンドレスは 1 + (レベル-1)/2 枚。どちらも 1〜8 枚
  * - 撃破が REWARD_MIN_KILLS 体未満なら、時間ぶんのポイントだけ（チケットなし）
@@ -243,13 +292,14 @@ export function battleReward(b, rec = initialBattle()) {
   const stars = starsOf(b);
   const newBest = !stage && b.score > 0 && b.score > (rec.best?.[b.key] || 0);
   const timePoints = pointsForTime(b.elapsed / 1000);
-  if (b.kills < REWARD_MIN_KILLS) return { points: Math.min(timePoints, BATTLE_POINTS.max), tickets: 0, stars, newBest };
+  if (b.kills < REWARD_MIN_KILLS) return { points: Math.min(timePoints, BATTLE_POINTS.max), tickets: 0, stars, newBest, levelBonus: 0 };
   const bonus = 1 + 0.5 * accuracyOf(b) + (b.cleared ? 0.5 : 0) + (newBest ? 0.3 : 0);
-  const points = Math.round(Math.min(BATTLE_POINTS.max, Math.max(BATTLE_POINTS.min, timePoints * bonus)) / 10) * 10;
+  const levelBonus = stage ? 0 : endlessLevelBonus(b.level);
+  const points = Math.round(Math.min(BATTLE_POINTS.max, Math.max(BATTLE_POINTS.min, timePoints * bonus)) / 10) * 10 + levelBonus;
   const firstStar3 = stage && stars === 3 && !(rec.ticketStages || []).includes(b.key);
   const raw = stage ? (b.cleared ? stars * 2 + (firstStar3 ? 2 : 0) : 1) : 1 + Math.floor((b.level - 1) / 2);
   const tickets = Math.min(BATTLE_TICKETS.max, Math.max(BATTLE_TICKETS.min, raw));
-  return { points, tickets, stars, newBest, firstStar3 };
+  return { points, tickets, stars, newBest, firstStar3, levelBonus };
 }
 
 /**
@@ -260,7 +310,7 @@ export function battleReward(b, rec = initialBattle()) {
 export function applyBattle(state, b, today, now = 0) {
   const rec = { ...initialBattle(), ...state.battle };
   const stage = b.mode === "stage";
-  const { points: base, tickets, stars, newBest, firstStar3 } = battleReward(b, rec);
+  const { points: base, tickets, stars, newBest, firstStar3, levelBonus } = battleReward(b, rec);
   const rate = boostRate(state.gacha, now);
   const points = base * rate;
   const earned = rec.day === today ? rec.earned : 0;
@@ -274,7 +324,7 @@ export function applyBattle(state, b, today, now = 0) {
     day: today,
     earned: earned + points,
   };
-  return { state: grant({ ...state, battle: next }, { points, tickets }), reward: { points, tickets, stars, newBest, firstStar3: !!firstStar3, boosted: rate > 1 } };
+  return { state: grant({ ...state, battle: next }, { points, tickets }), reward: { points, tickets, stars, newBest, firstStar3: !!firstStar3, levelBonus: levelBonus * rate, boosted: rate > 1 } };
 }
 
 const nonNeg = (v) => (Number.isFinite(v) && v > 0 ? Math.floor(v) : 0);

@@ -37,6 +37,11 @@ import {
   POINTS_PER_MINUTE,
   BOOST_MS,
   CODE_DAILY_LIMIT,
+  upgradeTickets,
+  buyItem,
+  consumeItem,
+  DUP_MEDALS,
+  SHOP,
 } from "../../src/gacha.js";
 
 const lib = buildLibrary(raw);
@@ -186,7 +191,7 @@ test("選択チケットは、そのレア度の未所持の単語にだけ使�
 
 test("シークレット単語: com の付く単語を3つ集めると companion が解放される", () => {
   let s = grant(freshState(), {});
-  s = { ...s, gacha: { ...s.gacha, exPoints: 10000 } };
+  s = { ...s, gacha: { ...s.gacha, exPoints: 100000 } };
   s = exchange(s, catalog, "company").state;
   s = exchange(s, catalog, "combine").state;
   const r = exchange(s, catalog, "compete");
@@ -195,7 +200,7 @@ test("シークレット単語: com の付く単語を3つ集めると companion
 });
 
 test("称号: テーマの単語をそろえると獲得（天体観測者）", () => {
-  let s = { ...freshState(), gacha: { ...freshState().gacha, exPoints: 10000 } };
+  let s = { ...freshState(), gacha: { ...freshState().gacha, exPoints: 100000 } };
   let got = [];
   for (const id of ["sun", "moon", "star", "planet", "sky"]) {
     const r = exchange(s, catalog, id);
@@ -205,7 +210,7 @@ test("称号: テーマの単語をそろえると獲得（天体観測者）", 
   assert.ok(got.includes("stargazer"));
 });
 
-test("ポイントのもらい方: はじめてボーナス・ログイン・今日の目標・学習（1日の上限あり）", () => {
+test("ポイントのもらい方: はじめてボーナス・ログイン・今日の目標", () => {
   let s = claimStarter(freshState());
   assert.equal(s.gacha.points, STARTER.points);
   assert.equal(claimStarter(s).gacha.points, STARTER.points); // 2回目はもらえない
@@ -221,6 +226,10 @@ test("ポイントのもらい方: はじめてボーナス・ログイン・今
     w = claimDailyBonus(w, day, prev).state;
   }
   assert.equal(w.gacha.tickets, 1);
+  // 毎日 SR ガチャチケット3枚、累計3日ごとに SSR ガチャチケット1枚（選択チケットはもう配らない）
+  assert.equal(w.gacha.srTickets, 21);
+  assert.equal(w.gacha.ssrTickets, 2);
+  assert.equal(w.gacha.selSR + w.gacha.selSSR, 0);
 
   let g = { ...freshState(), stats: { ...freshState().stats, todayDate: "2026-01-01", todayCount: 20 } };
   g = claimGoalBonus(g, "2026-01-01");
@@ -298,7 +307,7 @@ test("50連以上: 10回ごとに SR 以上が1枚確定", () => {
 });
 
 test("保存データ: v2 から最新へ移行し、ガチャのデータは端末をまたいでも失わない", () => {
-  assert.equal(STATE_VERSION, 4);
+  assert.equal(STATE_VERSION, 5);
   const old = { version: 2, learned: { "make-sense": true }, queues: {}, misses: {}, tests: {}, stats: {} };
   const s = restoreState(old, lib);
   assert.equal(s.gacha.points, 0);
@@ -319,4 +328,56 @@ test("チラ見せの文は、答えの単語そのもの（英語）を含ま�
     const english = catalog.cards[id].english.toLowerCase();
     assert.ok(!t.teaser.toLowerCase().includes(english), `${id}: ${t.teaser}`);
   }
+});
+
+test("SR ガチャチケットは SR 以上、SSR ガチャチケットは SSR 確定", () => {
+  const s = grant(freshState(), { srTickets: 50, ssrTickets: 5 });
+  const sr = pull(s, catalog, { currency: "sr", times: 50 }, mulberry32(3));
+  assert.equal(sr.results.length, 50);
+  assert.ok(sr.results.every((r) => r.rarity === "SR" || r.rarity === "SSR"));
+  assert.equal(sr.state.gacha.srTickets, 0);
+  const ssr = pull(s, catalog, { currency: "ssr", times: 5 }, mulberry32(4));
+  assert.ok(ssr.results.every((r) => r.rarity === "SSR"));
+  assert.match(pull(ssr.state, catalog, { currency: "ssr", times: 1 }).error, /足りません/);
+});
+
+test("チケット交換: レアチケット100枚で SR ガチャチケット、SR ガチャチケット100枚で SSR ガチャチケット", () => {
+  let s = grant(freshState(), { tickets: 150, srTickets: 99 });
+  assert.match(upgradeTickets(s, "ssr").error, /あと 1 枚/);
+  s = upgradeTickets(s, "sr").state;
+  assert.deepEqual([s.gacha.tickets, s.gacha.srTickets], [50, 100]);
+  s = upgradeTickets(s, "ssr").state;
+  assert.deepEqual([s.gacha.srTickets, s.gacha.ssrTickets], [0, 1]);
+});
+
+test("図鑑の交換は高め（やり込み向け）: SSR は交換ポイント 10000", () => {
+  assert.deepEqual(EXCHANGE_COST, { N: 200, R: 800, SR: 3000, SSR: 10000 });
+});
+
+test("ダブるとメダルが貯まり、ショップで5倍ブースト・時止め・必殺技と交換できる", () => {
+  let s = { ...freshState(), gacha: { ...freshState().gacha, cards: { go: 1 } } };
+  // go（N）しか出ないように、ほかの N を全部 MAX にする代わりに、同じ単語をもう一度引く状況を作る
+  const nIds = catalog.pools.all.N.filter((id) => id !== "go");
+  const cards = { go: 1 };
+  for (const id of nIds) cards[id] = MAX_LEVEL;
+  s = { ...s, gacha: { ...s.gacha, cards, points: 100 } };
+  const r = pull(s, catalog, { times: 1 }, () => 0.01);
+  assert.equal(r.results[0].id, "go");
+  assert.equal(r.results[0].medals, DUP_MEDALS.N);
+  assert.equal(r.state.gacha.medals, DUP_MEDALS.N);
+  assert.equal(r.results[0].exGain, 1);
+
+  let m = grant(freshState(), { medals: 300 });
+  assert.match(buyItem(grant(freshState(), { medals: 10 }), "freeze").error, /足りません/);
+  m = buyItem(m, "boost").state;
+  m = buyItem(m, "freeze").state;
+  m = buyItem(m, "special").state;
+  assert.equal(m.gacha.medals, 300 - SHOP.reduce((n, x) => n + x.price, 0));
+  assert.equal(m.gacha.boosts, 1);
+  assert.deepEqual(m.gacha.items, { freeze: 1, special: 1 });
+  m = consumeItem(m, "freeze").state;
+  assert.equal(m.gacha.items.freeze, 0);
+  assert.ok(consumeItem(m, "freeze").error);
+  // 保存データから復元できる
+  assert.deepEqual(restoreState(JSON.parse(JSON.stringify(m)), lib).gacha.items, { freeze: 0, special: 1 });
 });

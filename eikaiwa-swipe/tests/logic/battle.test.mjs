@@ -20,6 +20,13 @@ import {
   difficultyOf,
   BATTLE_POINTS,
   BATTLE_TICKETS,
+  endlessLevelBonus,
+  difficultyTiers,
+  freeze,
+  isFrozen,
+  special,
+  FREEZE_MS,
+  TIERS,
   LEVEL_UP_KILLS,
   speedOf,
   maxOnField,
@@ -126,17 +133,19 @@ test("報酬: ポイントは 1000〜3000（時間と成績）、レアチケッ
   assert.equal(s.battle.earned, 22 * BATTLE_POINTS.min);
 });
 
-test("報酬: 長く遊ぶほどポイントが増えるが 3000 まで。すぐやめたら時間ぶんだけでチケットなし", () => {
+test("報酬: 長く遊ぶほどポイントが増える（時間ぶんは 3000 まで＋エンドレスはレベルボーナス）。すぐやめたら時間ぶんだけでチケットなし", () => {
   const rng = mulberry32(9);
   const b = createBattle({ mode: "endless", items: chapter.items, rng });
   for (let i = 0; i < 25; i++) killNext(b, rng);
   b.elapsed = 4 * 60 * 1000; // 4分遊んだ
   quit(b);
   const r = battleReward(b);
-  assert.ok(r.points > BATTLE_POINTS.min && r.points <= BATTLE_POINTS.max, `${r.points}`);
+  assert.equal(r.levelBonus, endlessLevelBonus(b.level));
+  const base = r.points - r.levelBonus;
+  assert.ok(base > BATTLE_POINTS.min && base <= BATTLE_POINTS.max, `${base}`);
   assert.equal(r.tickets, 1 + Math.floor((b.level - 1) / 2));
   b.elapsed = 60 * 60 * 1000;
-  assert.equal(battleReward(b).points, BATTLE_POINTS.max);
+  assert.equal(battleReward(b).points, BATTLE_POINTS.max + r.levelBonus);
 
   const early = createBattle({ mode: "stage", items: chapter.items, rng });
   killNext(early, rng);
@@ -211,4 +220,46 @@ test("エンドレスの速さはゆっくり上がる（レベル10でも1.63�
   assert.equal(maxOnField(at(4)), 3);
   assert.equal(maxOnField(at(30)), 4);
   assert.equal(speedOf({ mode: "stage", level: 1 }), 1);
+});
+
+test("エンドレスのレベルボーナスは、後半ほど大きく増える", () => {
+  assert.deepEqual([1, 2, 5, 10, 15].map(endlessLevelBonus), [0, 500, 5000, 22500, 52500]);
+});
+
+test("難易度5段階: 単語をやさしい順に均等に5つに分ける", () => {
+  const words = lib.chapters.slice(50).flatMap((c) => c.items);
+  const tiers = difficultyTiers(words);
+  assert.equal(tiers.length, TIERS);
+  assert.equal(tiers.reduce((n, t) => n + t.length, 0), words.length);
+  assert.ok(tiers[0].every((x) => Number(x.chapterId.slice(2)) <= 71)); // ★1 は基礎の章
+  assert.ok(tiers[4].every((x) => Number(x.chapterId.slice(2)) >= 90)); // ★5 は応用の章
+});
+
+test("時止め: 5秒間は敵が動かず、新しい敵も出ない", () => {
+  const rng = mulberry32(11);
+  const b = createBattle({ mode: "stage", items: chapter.items, rng });
+  tick(b, 10, rng);
+  const y = target(b).y;
+  const count = b.enemies.length;
+  assert.ok(freeze(b));
+  tick(b, FREEZE_MS - 100, rng);
+  assert.equal(isFrozen(b), true);
+  assert.equal(target(b).y, y);
+  assert.equal(b.enemies.length, count);
+  tick(b, 200, rng);
+  assert.equal(isFrozen(b), false);
+  tick(b, 500, rng);
+  assert.ok(target(b).y > y);
+});
+
+test("必殺技: 答えずに敵を倒せる。コンボはそのままで、その単語は苦手に入る", () => {
+  const rng = mulberry32(12);
+  const b = createBattle({ mode: "stage", items: chapter.items, rng });
+  killNext(b, rng);
+  killNext(b, rng);
+  tick(b, 3000, rng, 0);
+  const item = special(b, rng);
+  assert.equal(b.kills, 3);
+  assert.equal(b.combo, 2);
+  assert.equal(resultsOf(b).find((r) => r.id === item.id).correct, false);
 });
