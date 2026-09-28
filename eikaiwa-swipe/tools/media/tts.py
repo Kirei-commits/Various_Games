@@ -34,6 +34,9 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import tts_pack  # noqa: E402
+
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parent.parent
 AUDIO = ROOT / "audio"
@@ -43,7 +46,9 @@ API = "https://generativelanguage.googleapis.com"
 
 
 def load_config():
-    return json.loads((HERE / "tts.config.json").read_text())
+    cfg = json.loads((HERE / "tts.config.json").read_text())
+    cfg["model"] = cfg["models"][0]["model"]  # sample・Batch API は一番上のモデルを使う
+    return cfg
 
 
 def lines_for(chapters):
@@ -74,7 +79,8 @@ def request_for(cfg, clip):
 
 def signature(cfg, clip):
     """この文をどの設定で作るかの署名。設定（モデル・声・プロンプト）が変わると変わる"""
-    src = json.dumps([cfg["model"], cfg["roles"][clip["role"]]["voice"], clip["text"], style_for(cfg, clip), cfg["output"]], ensure_ascii=False)
+    # モデルは含めない（上限に当たると次のモデルに切り替えるので。どのモデルで作ったかは manifest の model に残す）
+    src = json.dumps([cfg["roles"][clip["role"]]["voice"], clip["text"], style_for(cfg, clip), cfg["output"]], ensure_ascii=False)
     return hashlib.sha1(src.encode()).hexdigest()[:12]
 
 
@@ -94,8 +100,14 @@ def save_manifest(man):
     (AUDIO / "index.json").write_text(json.dumps(index, separators=(",", ":")) + "\n")
 
 
-def todo(cfg, clips, man, force=False):
-    return [c for c in clips if force or man["clips"].get(c["hash"], {}).get("sig") != signature(cfg, c)]
+def todo(cfg, clips, man, force=False, refresh=False):
+    """作る文。ふだんは録音の無い文だけ（モデルや設定を変えても、できている録音は作り直さない）。
+    refresh なら設定が今と違う録音も、force なら全部"""
+    if force:
+        return list(clips)
+    if refresh:
+        return [c for c in clips if man["clips"].get(c["hash"], {}).get("sig") != signature(cfg, c)]
+    return [c for c in clips if c["hash"] not in man["clips"]]
 
 
 def estimate_seconds(text):
@@ -103,7 +115,7 @@ def estimate_seconds(text):
     return 0.6 + len(text.split()) / 2.6
 
 
-def api(method, path, body=None, base=API):
+def api(method, path, body=None, base=API, pacer=None, tokens=0):
     key = os.environ.get("GEMINI_API_KEY")
     if not key:
         sys.exit("GEMINI_API_KEY がありません")
@@ -111,7 +123,7 @@ def api(method, path, body=None, base=API):
     req = urllib.request.Request(f"{base}{path}", data=data, method=method, headers={"x-goog-api-key": key, "Content-Type": "application/json"})
     for attempt in range(6):
         if method == "POST":
-            PACER.wait()
+            (pacer or PACER).wait(tokens)
         try:
             with urllib.request.urlopen(req, timeout=300) as res:
                 raw = res.read()
@@ -147,16 +159,18 @@ class QuotaExhausted(ApiError):
 class Pacer:
     """リクエストを送る間隔をそろえる（1分あたりの上限を超えないように。スレッドから同時に呼んでよい）"""
 
-    def __init__(self, per_minute):
-        self.interval = 60.0 / per_minute if per_minute else 0
+    def __init__(self, per_minute, tokens_per_minute=0):
+        # 上限ちょうどだと 429 になりやすいので 9割で使う
+        self.interval = 60.0 / (per_minute * 0.9) if per_minute else 0
+        self.token_s = 60.0 / (tokens_per_minute * 0.9) if tokens_per_minute else 0
         self.lock = threading.Lock()
         self.next = 0.0
 
-    def wait(self):
+    def wait(self, tokens=0):
         with self.lock:
             now = time.monotonic()
             at = max(now, self.next)
-            self.next = at + self.interval
+            self.next = at + max(self.interval, tokens * self.token_s)
         time.sleep(max(0.0, at - now))
 
 
@@ -236,6 +250,11 @@ def save_audio(cfg, clip, response):
     body = audio_bytes(response) if response else None
     if body is None:
         return None, f"{clip['key']}: 音声が返ってこなかった ({json.dumps(response)[:200]})"
+    return save_wav(cfg, clip, body)
+
+
+def save_wav(cfg, clip, body):
+    """1文ぶんの WAV（バイト列）を保存して opus にする。戻り値は save_audio と同じ"""
     wav_path = RAW / "wav" / f"{clip['hash']}.wav"
     wav_path.parent.mkdir(parents=True, exist_ok=True)
     wav_path.write_bytes(body)
@@ -249,7 +268,7 @@ def save_audio(cfg, clip, response):
     return seconds, None
 
 
-def record(cfg, man, clip, seconds, via):
+def record(cfg, man, clip, seconds, via, model=None):
     """manifest に1文ぶんを書き込む（メインのスレッドからだけ呼ぶ）"""
     old = man["clips"].get(clip["hash"], {})
     man["clips"][clip["hash"]] = {
@@ -258,7 +277,7 @@ def record(cfg, man, clip, seconds, via):
         "role": clip["role"],
         "chapter": clip["chapter"],
         "id": clip["id"],
-        "model": cfg["model"],
+        "model": model or cfg["model"],
         "voice": cfg["roles"][clip["role"]]["voice"],
         "sig": signature(cfg, clip),
         "rev": old.get("rev", 0) + 1,
@@ -284,7 +303,7 @@ def store(cfg, man, clip, response, via):
 def cmd_plan(args, cfg):
     clips = lines_for(args.chapters)
     man = load_manifest()
-    need = todo(cfg, clips, man, args.force)
+    need = todo(cfg, clips, man, args.force, args.refresh)
     secs = sum(estimate_seconds(c["text"]) for c in need)
     price = cfg["price"]
     tokens = secs * price["tokensPerSecond"]
@@ -330,57 +349,275 @@ def cmd_sample(args, cfg):
     print(f"かかった時間 {time.time() - started:.1f}秒（1本ずつ送っていたら 約{waited:.0f}秒）")
 
 
+# ---------------------------------------------------------------------------
+# まとめて作る（generate）
+# ---------------------------------------------------------------------------
+QUOTA_FILE = RAW / "quota.json"  # 1日の上限に当たったモデルと、戻る時刻（次に動かすときに無駄に送らないため）
+
+
+def build_units(cfg, need, sizes):
+    """作る文を「1回のリクエストで読むまとまり」に分ける。見出し（P）は1声、会話（A/B）は2声"""
+    units, phrases, convs = [], [], []
+    order = []  # 章の順を保つ
+    by_item = {}
+    for c in need:
+        if c["role"] == "P":
+            phrases.append(c)
+        else:
+            k = (c["chapter"], c["id"])
+            if k not in by_item:
+                by_item[k] = []
+                convs.append(by_item[k])
+            by_item[k].append(c)
+    cur = []
+    for c in phrases:
+        words = sum(len(x["text"].split()) for x in cur)
+        if cur and (len(cur) >= sizes["phrases"] or words + len(c["text"].split()) > sizes["maxWords"]):
+            units.append({"kind": "P", "convs": [[x] for x in cur]})
+            cur = []
+        cur.append(c)
+    if cur:
+        units.append({"kind": "P", "convs": [[x] for x in cur]})
+    cur = []
+    for conv in convs:
+        lines = sum(len(x) for x in cur)
+        if cur and (len(cur) >= sizes["dialogs"] or lines + len(conv) > sizes["dialogs"] * 2.5):
+            units.append({"kind": "D", "convs": cur})
+            cur = []
+        cur.append(conv)
+    if cur:
+        units.append({"kind": "D", "convs": cur})
+    # 章の順（見出しと会話を交互に）に並べ直す
+    units.sort(key=lambda u: (u["convs"][0][0]["chapter"], u["kind"]))
+    return units
+
+
+def unit_clips(unit):
+    return [c for conv in unit["convs"] for c in conv]
+
+
+def halves(unit):
+    """切り分けに失敗したまとまりを2つに分ける（会話1つだけなら1行ずつに）"""
+    convs = unit["convs"]
+    if len(convs) > 1:
+        mid = len(convs) // 2
+        return [{"kind": unit["kind"], "convs": convs[:mid]}, {"kind": unit["kind"], "convs": convs[mid:]}]
+    return [{"kind": unit["kind"], "convs": [[c]]} for c in convs[0]]
+
+
+def pack_request(cfg, unit, fmt):
+    clips = unit_clips(unit)
+    pause = cfg["packing"]["pause"]
+    if len(clips) == 1:
+        c = clips[0]
+        part = {"text": c["text"]}
+        if fmt == "metadata":
+            part["speechMetadata"] = {"style": style_for(cfg, c)}
+        return {
+            "contents": [{"parts": [part]}],
+            "generationConfig": {"responseModalities": ["AUDIO"], "speechConfig": {"voiceConfig": {"prebuiltVoiceConfig": {"voiceName": cfg["roles"][c["role"]]["voice"]}}}},
+        }
+    if unit["kind"] == "P":
+        voice = {"voiceConfig": {"prebuiltVoiceConfig": {"voiceName": cfg["roles"]["P"]["voice"]}}}
+        if fmt == "metadata":
+            style = f'{cfg["style"]} {cfg["roles"]["P"]["persona"]} Each part is a separate phrase: say it once, as its own natural utterance. {pause}'
+            parts = [{"text": c["text"], "speechMetadata": {"style": style}} for c in clips]
+        else:
+            parts = [{"text": "\n\n".join(c["text"] for c in clips)}]
+        return {"contents": [{"parts": parts}], "generationConfig": {"responseModalities": ["AUDIO"], "speechConfig": voice}}
+    speakers = {
+        "multiSpeakerVoiceConfig": {
+            "speakerVoiceConfigs": [
+                {"speaker": r, "voiceConfig": {"prebuiltVoiceConfig": {"voiceName": cfg["roles"][r]["voice"]}}} for r in ("A", "B")
+            ]
+        }
+    }
+    if fmt == "metadata" and cfg["packing"]["dialogFormat"] == "parts":
+        parts = [
+            {"text": c["text"], "speechMetadata": {"speaker": c["role"], "style": f'{cfg["style"]} {cfg["roles"][c["role"]]["persona"]} {pause}'}}
+            for c in clips
+        ]
+    else:
+        text = "\n\n".join("\n".join(f'{c["role"]}: {c["text"]}' for c in conv) for conv in unit["convs"])
+        parts = [{"text": text}]
+    return {"contents": [{"parts": parts}], "generationConfig": {"responseModalities": ["AUDIO"], "speechConfig": speakers}}
+
+
+def unit_tokens(unit):
+    """音声の出力トークンの見込み（1分あたりの上限を守るため。32トークン/秒・文のあとに約1秒の間）"""
+    return int(sum(estimate_seconds(c["text"]) + 1.0 for c in unit_clips(unit)) * 32)
+
+
+def load_quota():
+    q = load_json(QUOTA_FILE, {})
+    now = time.time()
+    return {m: t for m, t in q.items() if t > now}
+
+
+def save_quota(q):
+    RAW.mkdir(parents=True, exist_ok=True)
+    QUOTA_FILE.write_text(json.dumps(q, indent=1))
+
+
+def transcribe(cfg, body):
+    """確認用の文字起こし（Gemini のテキストのモデル。音声のモデルとは上限が別）"""
+    wav = RAW / "verify.wav"
+    wav.write_bytes(body)
+    opus = RAW / "verify.opus"
+    encode(cfg, wav, opus)
+    req = {"contents": [{"parts": [{"inlineData": {"mimeType": "audio/ogg", "data": base64.b64encode(opus.read_bytes()).decode()}},
+                                   {"text": "Transcribe this audio verbatim, word for word. Output only the transcript."}]}]}
+    res = api("POST", f"/v1beta/models/{cfg['packing']['verifyModel']}:generateContent", req, pacer=Pacer(0))
+    return res["candidates"][0]["content"]["parts"][0]["text"]
+
+
+def words_of(text):
+    import re
+    return re.sub(r"[^a-z0-9' ]", " ", text.lower().replace("’", "'")).split()
+
+
+def run_unit(cfg, unit, model, fmt, pacer):
+    """1つのまとまりを作る。戻り値: {"status": ok|split|format|quota|error, ...}"""
+    clips = unit_clips(unit)
+    try:
+        res = api("POST", f"/v1beta/models/{model}:generateContent", pack_request(cfg, unit, fmt), pacer=pacer, tokens=unit_tokens(unit))
+    except QuotaExhausted as e:
+        return {"status": "quota", "message": str(e)}
+    except ApiError as e:
+        if " 400 " in str(e) and fmt == "metadata":
+            return {"status": "format", "message": str(e)}
+        return {"status": "error", "message": str(e)}
+    body = audio_bytes(res)
+    if body is None:
+        return {"status": "error", "message": f"音声が返ってこなかった: {json.dumps(res)[:200]}"}
+    if len(clips) == 1:
+        seconds, warning = save_wav(cfg, clips[0], body)
+        return {"status": "ok" if warning is None else "error", "saved": [(clips[0], seconds)] if warning is None else [], "message": warning, "body": body}
+    segs, why = tts_pack.split_pack(body, [c["text"] for c in clips])
+    if segs is None:
+        name = f"{clips[0]['hash']}-{len(clips)}.wav"
+        (RAW / "packs").mkdir(parents=True, exist_ok=True)
+        (RAW / "packs" / name).write_bytes(body)
+        return {"status": "split", "message": f"{why}（raw/tts/packs/{name}）"}
+    saved, problems = [], []
+    for c, seg in zip(clips, segs):
+        seconds, warning = save_wav(cfg, c, seg)
+        if warning:
+            problems.append(warning)
+        else:
+            saved.append((c, seconds))
+    return {"status": "ok", "saved": saved, "message": "・".join(problems) or None, "body": body}
+
+
 def cmd_generate(args, cfg):
     clips = lines_for(args.chapters)
     man = load_manifest()
-    need = todo(cfg, clips, man, args.force)
-    workers = args.workers or cfg["concurrency"]
-    rpm = cfg.get("requestsPerMinute", 0)
-    global PACER
-    PACER = Pacer(rpm)
-    print(f"{len(need)} 文を通常の API で作ります（{cfg['model']}、同時に {workers} 件・1分に {rpm or '制限なし'} 件まで）", flush=True)
-
-    stop = threading.Event()
-
-    def one(clip):
-        # API を呼んで、保存・opus への変換まで並列に行う（manifest の更新だけはメインのスレッドで）
-        if stop.is_set():
-            return clip, None, None
-        try:
-            res = api("POST", f"/v1beta/models/{cfg['model']}:generateContent", request_for(cfg, clip))
-        except QuotaExhausted as e:
-            stop.set()
-            return clip, None, f"QUOTA:{e}"
-        except ApiError as e:
-            return clip, None, f"{clip['key']}: {e}"
-        return (clip, *save_audio(cfg, clip, res))
-
-    warnings = []
-    quota = None
-    done = 0
-    started = time.time()
-    # 終わった順に保存する（遅い1件に全体が待たされないように）。途中で止めても、保存済みの分は plan で作り直しの対象から外れる
-    with ThreadPoolExecutor(max_workers=workers) as pool:
-        futures = [pool.submit(one, c) for c in need]
-        for i, fut in enumerate(as_completed(futures), 1):
-            clip, seconds, warning = fut.result()
-            if warning and warning.startswith("QUOTA:"):
-                quota = warning[len("QUOTA:"):]
-            elif warning:
-                warnings.append(warning)
-            elif seconds is not None:
-                record(cfg, man, clip, seconds, "sync")
+    need = todo(cfg, clips, man, args.force, args.refresh)
+    if not need:
+        print("作る必要のある文はありません")
+        return
+    sizes = cfg["packing"] if not args.single else {"phrases": 1, "dialogs": 1, "maxWords": 0}
+    queue = build_units(cfg, need, sizes)
+    if args.single:
+        queue = [h for u in queue for h in ([u] if len(unit_clips(u)) == 1 else [{"kind": u["kind"], "convs": [[c]]} for c in unit_clips(u)])]
+    quota = load_quota()
+    models = [dict(m) for m in cfg["models"] if m["model"] not in quota]
+    skipped = [m["model"] for m in cfg["models"] if m["model"] in quota]
+    print(f"{len(need)} 文を {len(queue)} 回のリクエストで作ります（見出し {cfg['packing']['phrases']}文・会話 {cfg['packing']['dialogs']}会話ずつ）", flush=True)
+    if skipped:
+        print("  今日の上限に達しているモデル（とばす）: " + "・".join(skipped))
+    started, done, requests, warnings = time.time(), 0, 0, []
+    for m in models:
+        if not queue:
+            break
+        model, fmt = m["model"], m["format"]
+        pacer = Pacer(m["rpm"], m["tpm"])
+        print(f"\n== {model}（{fmt}・1分に {m['rpm']} 回・1日 {m['rpd']} 回まで）", flush=True)
+        # 1) 試し: 小さいまとまりで、切り分けと文字起こしを確かめる（--single のときはしない）
+        packing = not args.single
+        if packing:
+            probe_sizes = cfg["packing"]["probe"]
+            head = queue.pop(0)
+            n = probe_sizes["phrases"] if head["kind"] == "P" else probe_sizes["dialogs"]
+            probe, rest = {"kind": head["kind"], "convs": head["convs"][:n]}, head["convs"][n:]
+            if rest:
+                queue.insert(0, {"kind": head["kind"], "convs": rest})
+            r = run_unit(cfg, probe, model, fmt, pacer)
+            requests += 1
+            if r["status"] == "format":
+                print(f"  speechMetadata が使えない → 文だけで送る（{r['message'][:120]}）")
+                fmt = "plain"
+                r = run_unit(cfg, probe, model, fmt, pacer)
+                requests += 1
+            if r["status"] == "quota":
+                print(f"  {r['message']}")
+                quota[model] = time.time() + 3600 * max(0.5, float(r["message"].split("約")[-1].split("時間")[0] or 1))
+                save_quota(quota)
+                queue.insert(0, probe)
+                continue
+            ok = r["status"] == "ok" and not r.get("message")
+            if ok and len(unit_clips(probe)) > 1:
+                heard = words_of(transcribe(cfg, r["body"]))
+                want = [w for c in unit_clips(probe) for w in words_of(c["text"])]
+                same = sum(1 for a, b in zip(heard, want) if a == b) / max(len(want), 1)
+                print(f"  試し {len(unit_clips(probe))}文: 切り分けOK・文字起こしの一致 {same:.0%}", flush=True)
+                ok = same >= 0.85 and abs(len(heard) - len(want)) <= max(2, len(want) * 0.1)
+            else:
+                print(f"  試し {len(unit_clips(probe))}文: {r['status']} {r.get('message') or ''}", flush=True)
+            for c, sec in r.get("saved", []) if ok else []:
+                record(cfg, man, c, sec, "pack", model)
                 done += 1
-                save_manifest(man)  # 1文ごとに保存する（途中で止まっても作った分を失わない）
-            if (i % 10 == 0 or i == len(need)) and not stop.is_set():
-                elapsed = time.time() - started
-                print(f"  {i}/{len(need)}  {elapsed:.0f}秒（残り 約{elapsed / i * (len(need) - i):.0f}秒）", flush=True)
+            save_manifest(man)
+            if not ok:
+                # まとめて読ませるとうまくいかないモデルは、1文ずつにする（ほかのモデルに回す手もあるが、止めずに進める）
+                print("  → このモデルは1文ずつ作ります")
+                packing = False
+                queue.insert(0, probe)
+        if not packing:
+            queue = [h for u in queue for h in ([u] if len(unit_clips(u)) == 1 else [{"kind": u["kind"], "convs": [[c]]} for c in unit_clips(u)])]
+        # 2) 本番: 上限に当たるまで並列に作る
+        exhausted = threading.Event()
+        pending = []
+        with ThreadPoolExecutor(max_workers=cfg["concurrency"]) as pool:
+            futs = {}
+            def feed():
+                while queue and len(futs) < cfg["concurrency"] and not exhausted.is_set():
+                    u = queue.pop(0)
+                    futs[pool.submit(run_unit, cfg, u, model, fmt, pacer)] = u
+            feed()
+            while futs:
+                fut = next(as_completed(futs))
+                u = futs.pop(fut)
+                r = fut.result()
+                requests += 1
+                if r["status"] == "quota":
+                    if not exhausted.is_set():
+                        print(f"  {r['message']}", flush=True)
+                        quota[model] = time.time() + 3600 * max(0.5, float(r["message"].split("約")[-1].split("時間")[0] or 1))
+                        save_quota(quota)
+                    exhausted.set()
+                    pending.append(u)
+                elif r["status"] == "split":
+                    queue[0:0] = halves(u)
+                    warnings.append(f"{model}: 切り分けに失敗 → 小さく分けて作り直し（{r['message']}）")
+                elif r["status"] in ("error", "format"):
+                    warnings.append(f"{model}: {r['message']}")
+                else:
+                    for c, sec in r["saved"]:
+                        record(cfg, man, c, sec, "pack" if len(unit_clips(u)) > 1 else "sync", model)
+                        done += 1
+                    if r.get("message"):
+                        warnings.append(r["message"])
+                    save_manifest(man)
+                if requests % 10 == 0:
+                    print(f"  {done}/{len(need)} 文  {time.time() - started:.0f}秒・リクエスト {requests} 回", flush=True)
+                feed()
+        queue[0:0] = pending
     report(warnings)
     left = len(need) - done
-    if quota:
-        print(f"\n止めました: {quota}\n今回作ったもの {done} 文・残り {left} 文（同じコマンドで続きから作れます）")
-    elif left:
-        print(f"\n残り {left} 文（同じコマンドで作り直せます）")
+    print(f"\n今回作ったもの {done} 文（リクエスト {requests} 回・{time.time() - started:.0f}秒）・残り {left} 文")
+    if left:
+        print("残りは、同じコマンドで続きから作れます（上限に達したモデルは、戻るまでとばします）")
 
 
 def cmd_submit(args, cfg):
@@ -522,7 +759,9 @@ def main():
         s.add_argument("--force", action="store_true", help="設定が同じでも作り直す")
         s.set_defaults(func=func)
         if name == "generate":
-            s.add_argument("--workers", type=int, help="同時に送る数（省略すると設定の concurrency）")
+            s.add_argument("--single", action="store_true", help="まとめずに1文ずつ作る")
+        if name in ("generate", "plan"):
+            s.add_argument("--refresh", action="store_true", help="設定（声・話し方）が今と違う録音も作り直す")
         if name == "submit":
             s.add_argument("--dry-run", action="store_true", help="送らずにリクエストを raw/tts/ に保存する")
     s = sub.add_parser("sample", help="声の候補を聞き比べる")
