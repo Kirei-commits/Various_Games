@@ -755,6 +755,10 @@ def cmd_submit(args, cfg):
     clips = lines_for(args.chapters)
     man = load_manifest()
     need = todo(cfg, clips, man, args.force)
+    if args.replace_models:
+        # ほかのモデルで作った録音も、今のモデルで作り直す（古い録音は、新しい録音が確認に通るまで残る）
+        have = {c["hash"] for c in need}
+        need += [c for c in clips if c["hash"] not in have and man["clips"].get(c["hash"], {}).get("model", cfg["model"]) != cfg["model"]]
     pending = {h for j in load_json(JOBS, []) if not j.get("collected") for h in j["clips"]}
     need = [c for c in need if c["hash"] not in pending]  # 結果待ちのものは出し直さない
     if args.limit:
@@ -969,6 +973,7 @@ def main():
         if name == "submit":
             s.add_argument("--dry-run", action="store_true", help="送らずにリクエストを raw/tts/ に保存する")
             s.add_argument("--limit", type=int, help="出す文の数の上限（試しに少しだけ出すとき）")
+            s.add_argument("--replace-models", action="store_true", help="ほかのモデルで作った録音も今のモデルで作り直す")
     s = sub.add_parser("sample", help="声の候補を聞き比べる")
     s.add_argument("--text", required=True)
     s.add_argument("--role", default="P", choices=["P", "A", "B"])
