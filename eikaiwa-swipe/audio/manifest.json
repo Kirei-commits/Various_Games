@@ -435,6 +435,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "002d12c57a86bb": {
+   "key": "B|Credit is safer online.",
+   "text": "Credit is safer online.",
+   "role": "B",
+   "chapter": "ch30",
+   "id": "debit-card",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "a25fe8f05391",
+   "rev": 1,
+   "seconds": 1.96,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "002ec333b4910b": {
    "key": "A|Let's cut to the chase. How much is it?",
    "text": "Let's cut to the chase. How much is it?",
@@ -503,6 +517,20 @@
    "rev": 1,
    "seconds": 1.98,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "0033da652bc04d": {
+   "key": "P|allergy medicine",
+   "text": "allergy medicine",
+   "role": "P",
+   "chapter": "ch29",
+   "id": "allergy-medicine",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "4f056e8802f1",
+   "rev": 1,
+   "seconds": 1.64,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "0036f79fea292f": {
@@ -603,6 +631,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "0043504e25a52b": {
+   "key": "A|What's the problem?",
+   "text": "What's the problem?",
+   "role": "A",
+   "chapter": "ch29",
+   "id": "its-sensitive-to-cold",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "51b748dabb6d",
+   "rev": 1,
+   "seconds": 1.48,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "00462c65764903": {
    "key": "A|Can I get a container for the leftovers?",
    "text": "Can I get a container for the leftovers?",
@@ -684,6 +726,20 @@
    "sig": "f06e8b4c5fd5",
    "rev": 1,
    "seconds": 3.6,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "00602789735617": {
+   "key": "B|A utility bill or a lease.",
+   "text": "A utility bill or a lease.",
+   "role": "B",
+   "chapter": "ch30",
+   "id": "proof-of-address",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "c1337330fb8b",
+   "rev": 1,
+   "seconds": 2.44,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -880,6 +936,20 @@
    "sig": "3ae6ef7725d9",
    "rev": 1,
    "seconds": 1.48,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "0071e708e76d5c": {
+   "key": "A|What's this letter from my insurance?",
+   "text": "What's this letter from my insurance?",
+   "role": "A",
+   "chapter": "ch29",
+   "id": "explanation-of-benefits",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "6d7499a86f4a",
+   "rev": 1,
+   "seconds": 2.0,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -1639,6 +1709,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "00c049030ba33b": {
+   "key": "A|How much is the copay?",
+   "text": "How much is the copay?",
+   "role": "A",
+   "chapter": "ch29",
+   "id": "copay",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "183fa8725676",
+   "rev": 1,
+   "seconds": 1.6,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "00c5dc6867eccd": {
    "key": "P|Is this seat taken?",
    "text": "Is this seat taken?",
@@ -2267,6 +2351,20 @@
    "rev": 1,
    "seconds": 1.0,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "00fa6666051b59": {
+   "key": "P|mental health",
+   "text": "mental health",
+   "role": "P",
+   "chapter": "ch29",
+   "id": "mental-health",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "9981cc632199",
+   "rev": 1,
+   "seconds": 1.16,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "00fb32b95dcd21": {
@@ -3347,6 +3445,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "017abb02dc3326": {
+   "key": "A|Can I pay you back with Zelle?",
+   "text": "Can I pay you back with Zelle?",
+   "role": "A",
+   "chapter": "ch30",
+   "id": "zelle",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "0047f4564d2c",
+   "rev": 1,
+   "seconds": 1.68,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "017b9940b641cf": {
    "key": "P|float",
    "text": "float",
@@ -4089,6 +4201,20 @@
    "via": "sync",
    "at": "2026-09-28"
   },
+  "01b5f0ad785e14": {
+   "key": "A|Do you get paid by check?",
+   "text": "Do you get paid by check?",
+   "role": "A",
+   "chapter": "ch30",
+   "id": "direct-deposit",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "9a577f6c2550",
+   "rev": 1,
+   "seconds": 1.6,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "01b7f548a32ff4": {
    "key": "A|Look at this pizza.",
    "text": "Look at this pizza.",
@@ -4551,6 +4677,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "01f17696e5c1de": {
+   "key": "A|My company offers mental health days.",
+   "text": "My company offers mental health days.",
+   "role": "A",
+   "chapter": "ch29",
+   "id": "mental-health",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "ac49c86c637a",
+   "rev": 1,
+   "seconds": 2.6,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "01f1b5d5ac2e20": {
    "key": "P|ask someone out",
    "text": "ask someone out",
@@ -4901,6 +5041,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "0219e72a5a65f3": {
+   "key": "B|At the pharmacy counter in the back.",
+   "text": "At the pharmacy counter in the back.",
+   "role": "B",
+   "chapter": "ch29",
+   "id": "pharmacy-counter",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "957dc3a41de6",
+   "rev": 1,
+   "seconds": 1.96,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "021a5b9cca44b8": {
    "key": "P|bummer",
    "text": "bummer",
@@ -5221,6 +5375,20 @@
    "rev": 1,
    "seconds": 2.39,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "0239bbfe84a3d6": {
+   "key": "P|dentist",
+   "text": "dentist",
+   "role": "P",
+   "chapter": "ch29",
+   "id": "dentist",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "6d6eb269b779",
+   "rev": 1,
+   "seconds": 1.24,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "023a273bf384c9": {
@@ -5965,6 +6133,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "0295e064644bfa": {
+   "key": "B|One to three business days.",
+   "text": "One to three business days.",
+   "role": "B",
+   "chapter": "ch30",
+   "id": "wire-transfer",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "b433de263521",
+   "rev": 1,
+   "seconds": 1.72,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "0295eb25331864": {
    "key": "P|Small, please.",
    "text": "Small, please.",
@@ -6525,6 +6707,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "02d6495e05513e": {
+   "key": "B|We have an opening next Monday.",
+   "text": "We have an opening next Monday.",
+   "role": "B",
+   "chapter": "ch29",
+   "id": "teeth-cleaning",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "32270692c697",
+   "rev": 1,
+   "seconds": 1.92,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "02d6d2af86320c": {
    "key": "P|killer",
    "text": "killer",
@@ -6651,6 +6847,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "02e0898c1d4d9a": {
+   "key": "P|sleeping pills",
+   "text": "sleeping pills",
+   "role": "P",
+   "chapter": "ch29",
+   "id": "sleeping-pills",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "37dd3710bc54",
+   "rev": 1,
+   "seconds": 1.36,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "02e1c29b02dd96": {
    "key": "P|tough",
    "text": "tough",
@@ -6733,6 +6943,20 @@
    "rev": 1,
    "seconds": 1.68,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "02ebcc01dea47f": {
+   "key": "B|Let's open a dispute.",
+   "text": "Let's open a dispute.",
+   "role": "B",
+   "chapter": "ch30",
+   "id": "theres-a-charge-i-dont-recognize",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "64730e5da7ef",
+   "rev": 1,
+   "seconds": 1.56,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "02ec7f11dbd28e": {
@@ -7096,6 +7320,20 @@
    "sig": "268442d5a235",
    "rev": 1,
    "seconds": 1.84,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "031673f2a20794": {
+   "key": "A|My gums are bleeding when I brush.",
+   "text": "My gums are bleeding when I brush.",
+   "role": "A",
+   "chapter": "ch29",
+   "id": "my-gums-are-bleeding",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "b369eba2bef4",
+   "rev": 1,
+   "seconds": 2.56,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -8233,6 +8471,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "0399a7bc36bdfd": {
+   "key": "P|eye doctor",
+   "text": "eye doctor",
+   "role": "P",
+   "chapter": "ch29",
+   "id": "eye-doctor",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "83ba46cc0cad",
+   "rev": 1,
+   "seconds": 1.16,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "039b0da52e26f1": {
    "key": "P|lit",
    "text": "lit",
@@ -8483,6 +8735,20 @@
    "rev": 1,
    "seconds": 1.74,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "03c21eda1801c6": {
+   "key": "B|Vitamin D in the winter.",
+   "text": "Vitamin D in the winter.",
+   "role": "B",
+   "chapter": "ch29",
+   "id": "vitamins",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "d950d3c95e7c",
+   "rev": 1,
+   "seconds": 2.08,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "03c29ec12f722c": {
@@ -9029,6 +9295,20 @@
    "rev": 1,
    "seconds": 1.61,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "03f6dc4cf2fd71": {
+   "key": "P|copay",
+   "text": "copay",
+   "role": "P",
+   "chapter": "ch29",
+   "id": "copay",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "74fcad2a2b1c",
+   "rev": 1,
+   "seconds": 1.24,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "03f856a542600f": {
@@ -10627,6 +10907,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "04b01bc5649345": {
+   "key": "P|I'd like to withdraw some cash.",
+   "text": "I'd like to withdraw some cash.",
+   "role": "P",
+   "chapter": "ch30",
+   "id": "id-like-to-withdraw-some-cash",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "35681969f461",
+   "rev": 1,
+   "seconds": 1.8,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "04b2075a65f58d": {
    "key": "A|Did anyone feed the cat?",
    "text": "Did anyone feed the cat?",
@@ -10652,6 +10946,20 @@
    "sig": "4c53c4370d07",
    "rev": 1,
    "seconds": 2.88,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "04b573f1e53984": {
+   "key": "A|Do you have a savings account?",
+   "text": "Do you have a savings account?",
+   "role": "A",
+   "chapter": "ch30",
+   "id": "savings-account",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "09a536eef74d",
+   "rev": 1,
+   "seconds": 1.52,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -10905,6 +11213,20 @@
    "rev": 1,
    "seconds": 0.7,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "04ca1867c1ba72": {
+   "key": "B|Put an ice pack on it.",
+   "text": "Put an ice pack on it.",
+   "role": "B",
+   "chapter": "ch29",
+   "id": "ice-pack",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "0a45643c8285",
+   "rev": 1,
+   "seconds": 1.8,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "04cad9454bb43d": {
@@ -11201,6 +11523,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "04e9343f736ff6": {
+   "key": "B|Have you thought about seeing a therapist?",
+   "text": "Have you thought about seeing a therapist?",
+   "role": "B",
+   "chapter": "ch29",
+   "id": "therapist",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "d63cd88ddb29",
+   "rev": 1,
+   "seconds": 2.28,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "04ea0c1d488b53": {
    "key": "B|Are you able to keep water down?",
    "text": "Are you able to keep water down?",
@@ -11226,6 +11562,20 @@
    "sig": "ed0e488e42a5",
    "rev": 1,
    "seconds": 1.0,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "04ea8f4c7c9a9b": {
+   "key": "P|pay off the balance",
+   "text": "pay off the balance",
+   "role": "P",
+   "chapter": "ch30",
+   "id": "pay-off-the-balance",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "8dc39d8aa09b",
+   "rev": 1,
+   "seconds": 1.4,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -11282,6 +11632,20 @@
    "sig": "ddaf480e29c1",
    "rev": 1,
    "seconds": 1.68,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "04f67833bd5c8c": {
+   "key": "P|open enrollment",
+   "text": "open enrollment",
+   "role": "P",
+   "chapter": "ch29",
+   "id": "open-enrollment",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "de7948fd6418",
+   "rev": 1,
+   "seconds": 1.52,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -11450,6 +11814,20 @@
    "sig": "c95bd0e767cc",
    "rev": 1,
    "seconds": 1.8,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "050945b40669f9": {
+   "key": "A|I lost my card. Can you cancel it?",
+   "text": "I lost my card. Can you cancel it?",
+   "role": "A",
+   "chapter": "ch30",
+   "id": "i-lost-my-card",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "aa33195dc85c",
+   "rev": 1,
+   "seconds": 2.48,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -12321,6 +12699,34 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "05572be35b6b66": {
+   "key": "B|There's one inside the grocery store.",
+   "text": "There's one inside the grocery store.",
+   "role": "B",
+   "chapter": "ch30",
+   "id": "atm",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "eff5da36787e",
+   "rev": 1,
+   "seconds": 2.04,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "0557e244074031": {
+   "key": "A|Why is building credit important?",
+   "text": "Why is building credit important?",
+   "role": "A",
+   "chapter": "ch30",
+   "id": "credit-score",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "7c3c6bcfb49f",
+   "rev": 1,
+   "seconds": 2.32,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "0558b4f6e3d9da": {
    "key": "A|Did you need stitches?",
    "text": "Did you need stitches?",
@@ -12389,6 +12795,20 @@
    "rev": 1,
    "seconds": 1.14,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "056007895896b7": {
+   "key": "B|I had a wisdom tooth pulled.",
+   "text": "I had a wisdom tooth pulled.",
+   "role": "B",
+   "chapter": "ch29",
+   "id": "wisdom-tooth",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "5e360a8a9766",
+   "rev": 1,
+   "seconds": 1.84,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "05638215f33f0b": {
@@ -12473,6 +12893,20 @@
    "rev": 1,
    "seconds": 0.86,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "056abe3425ae25": {
+   "key": "B|Yes, it's one of the benefits.",
+   "text": "Yes, it's one of the benefits.",
+   "role": "B",
+   "chapter": "ch29",
+   "id": "health-insurance",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "7588163e4eea",
+   "rev": 1,
+   "seconds": 2.04,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "056ca3cc82cbb4": {
@@ -12909,6 +13343,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "059355b7c39baa": {
+   "key": "A|Which account do you use for bills?",
+   "text": "Which account do you use for bills?",
+   "role": "A",
+   "chapter": "ch30",
+   "id": "checking-account",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "db65e8c3c6e6",
+   "rev": 1,
+   "seconds": 2.04,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "0593b34f981849": {
    "key": "B|Be careful and meet them first.",
    "text": "Be careful and meet them first.",
@@ -13032,6 +13480,20 @@
    "sig": "92239b57e16b",
    "rev": 1,
    "seconds": 1.32,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "059b345051c056": {
+   "key": "P|band-aid",
+   "text": "band-aid",
+   "role": "P",
+   "chapter": "ch29",
+   "id": "band-aid",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "eff4f51aac49",
+   "rev": 1,
+   "seconds": 1.2,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -14211,6 +14673,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "062e063e886e09": {
+   "key": "B|I'm afraid so.",
+   "text": "I'm afraid so.",
+   "role": "B",
+   "chapter": "ch29",
+   "id": "root-canal",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "70d2c35c51bb",
+   "rev": 1,
+   "seconds": 1.64,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "062f435e98a2d0": {
    "key": "A|Can I get on standby for the next flight?",
    "text": "Can I get on standby for the next flight?",
@@ -14743,6 +15219,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "066fd50dd2c047": {
+   "key": "A|How do I transfer money to Japan?",
+   "text": "How do I transfer money to Japan?",
+   "role": "A",
+   "chapter": "ch30",
+   "id": "transfer-money",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "9d03331ada83",
+   "rev": 1,
+   "seconds": 2.4,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "0671eadb71eb03": {
    "key": "B|At the baggage service office.",
    "text": "At the baggage service office.",
@@ -14939,6 +15429,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "0689765083ead5": {
+   "key": "P|ice pack",
+   "text": "ice pack",
+   "role": "P",
+   "chapter": "ch29",
+   "id": "ice-pack",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "a7e5f4f863b0",
+   "rev": 1,
+   "seconds": 1.0,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "068aded3eee61d": {
    "key": "A|You look terrible.",
    "text": "You look terrible.",
@@ -14951,6 +15455,20 @@
    "rev": 1,
    "seconds": 0.99,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "068be7817846c7": {
+   "key": "P|freeze my card",
+   "text": "freeze my card",
+   "role": "P",
+   "chapter": "ch30",
+   "id": "freeze-my-card",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "5a1a6f81fa6a",
+   "rev": 1,
+   "seconds": 1.44,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "068fc5ea46d2e4": {
@@ -15009,6 +15527,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "069345ba34c268": {
+   "key": "A|How can I build credit?",
+   "text": "How can I build credit?",
+   "role": "A",
+   "chapter": "ch30",
+   "id": "build-credit",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "f403d9bbba2a",
+   "rev": 1,
+   "seconds": 1.84,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "069b5405341a54": {
    "key": "P|out of the blue",
    "text": "out of the blue",
@@ -15062,6 +15594,20 @@
    "sig": "35b0c0151d16",
    "rev": 1,
    "seconds": 1.52,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "069f7c027714af": {
+   "key": "A|When did you last see a dentist?",
+   "text": "When did you last see a dentist?",
+   "role": "A",
+   "chapter": "ch29",
+   "id": "dentist",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "aa5c792f74f6",
+   "rev": 1,
+   "seconds": 1.84,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -15261,6 +15807,34 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "06bc762dee2d71": {
+   "key": "B|It's an explanation of benefits. It's not a bill.",
+   "text": "It's an explanation of benefits. It's not a bill.",
+   "role": "B",
+   "chapter": "ch29",
+   "id": "explanation-of-benefits",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "9deb1e0be953",
+   "rev": 1,
+   "seconds": 3.0,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "06bcf6dd2a340c": {
+   "key": "B|Use a wire transfer or an online service.",
+   "text": "Use a wire transfer or an online service.",
+   "role": "B",
+   "chapter": "ch30",
+   "id": "transfer-money",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "ee1aeaf37a92",
+   "rev": 1,
+   "seconds": 3.28,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "06bd67c79b5091": {
    "key": "P|After you.",
    "text": "After you.",
@@ -15315,6 +15889,20 @@
    "rev": 1,
    "seconds": 1.12,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "06c376f04d0f54": {
+   "key": "P|pharmacy counter",
+   "text": "pharmacy counter",
+   "role": "P",
+   "chapter": "ch29",
+   "id": "pharmacy-counter",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "f002ed1f1370",
+   "rev": 1,
+   "seconds": 1.36,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "06c390ad09d850": {
@@ -15412,6 +16000,20 @@
    "sig": "9800f4c31c70",
    "rev": 1,
    "seconds": 1.96,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "06cd3281506f2b": {
+   "key": "B|This one is for ages six and up.",
+   "text": "This one is for ages six and up.",
+   "role": "B",
+   "chapter": "ch29",
+   "id": "is-it-safe-for-kids",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "bf7b6de8b550",
+   "rev": 1,
+   "seconds": 2.16,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -15527,6 +16129,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "06db5de77a82d0": {
+   "key": "P|direct deposit",
+   "text": "direct deposit",
+   "role": "P",
+   "chapter": "ch30",
+   "id": "direct-deposit",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "c90722045a84",
+   "rev": 1,
+   "seconds": 1.32,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "06dc2de66a6849": {
    "key": "A|We saw ancient ruins in Greece.",
    "text": "We saw ancient ruins in Greece.",
@@ -15539,6 +16155,20 @@
    "rev": 1,
    "seconds": 1.88,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "06dfab7a67ed56": {
+   "key": "A|Is there a monthly fee?",
+   "text": "Is there a monthly fee?",
+   "role": "A",
+   "chapter": "ch30",
+   "id": "is-there-a-monthly-fee",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "8783c3be8557",
+   "rev": 1,
+   "seconds": 1.6,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "06e1130a2bc363": {
@@ -15905,6 +16535,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "070264e38f9b90": {
+   "key": "B|Don't click the link. Call your bank directly.",
+   "text": "Don't click the link. Call your bank directly.",
+   "role": "B",
+   "chapter": "ch30",
+   "id": "fraud-alert",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "aff07e5bbdcd",
+   "rev": 1,
+   "seconds": 2.56,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "0706b56fecb6bc": {
    "key": "A|I'd like to check out.",
    "text": "I'd like to check out.",
@@ -16000,6 +16644,20 @@
    "sig": "52928ce72cd7",
    "rev": 1,
    "seconds": 1.48,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "070b07c57fac26": {
+   "key": "P|Is it safe for kids?",
+   "text": "Is it safe for kids?",
+   "role": "P",
+   "chapter": "ch29",
+   "id": "is-it-safe-for-kids",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "1e0d28d24705",
+   "rev": 1,
+   "seconds": 1.72,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -16213,6 +16871,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "071f06b85c9040": {
+   "key": "B|Please sign the back.",
+   "text": "Please sign the back.",
+   "role": "B",
+   "chapter": "ch30",
+   "id": "id-like-to-deposit-this-check",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "6f85aff44621",
+   "rev": 1,
+   "seconds": 1.36,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "071f5fdec65eff": {
    "key": "P|go grocery shopping",
    "text": "go grocery shopping",
@@ -16239,6 +16911,20 @@
    "rev": 1,
    "seconds": 1.24,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "0724903f4c6fa2": {
+   "key": "B|Try these eye drops.",
+   "text": "Try these eye drops.",
+   "role": "B",
+   "chapter": "ch29",
+   "id": "eye-drops",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "0132ca53edca",
+   "rev": 1,
+   "seconds": 1.56,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "0726f38b5e2ff0": {
@@ -16479,6 +17165,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "0745227e61c072": {
+   "key": "P|fraud alert",
+   "text": "fraud alert",
+   "role": "P",
+   "chapter": "ch30",
+   "id": "fraud-alert",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "66b99fa13b77",
+   "rev": 1,
+   "seconds": 1.08,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "07455fc7c23dd1": {
    "key": "B|Got it, thanks.",
    "text": "Got it, thanks.",
@@ -16687,6 +17387,34 @@
    "rev": 1,
    "seconds": 1.41,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "0759aeecdce76a": {
+   "key": "B|Your credit score affects everything, even renting.",
+   "text": "Your credit score affects everything, even renting.",
+   "role": "B",
+   "chapter": "ch30",
+   "id": "credit-score",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "698623626571",
+   "rev": 1,
+   "seconds": 2.96,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "075a62ea1a8365": {
+   "key": "P|cough drops",
+   "text": "cough drops",
+   "role": "P",
+   "chapter": "ch29",
+   "id": "cough-drops",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "2a29df256bf2",
+   "rev": 1,
+   "seconds": 1.32,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "075b51d5fde6b4": {
@@ -17431,6 +18159,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "07a1fa8457426a": {
+   "key": "P|in-network",
+   "text": "in-network",
+   "role": "P",
+   "chapter": "ch29",
+   "id": "in-network",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "0576349bcd77",
+   "rev": 1,
+   "seconds": 1.2,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "07a66d479c5b08": {
    "key": "A|Is it okay if we eat later?",
    "text": "Is it okay if we eat later?",
@@ -17711,6 +18453,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "07d3408217c37e": {
+   "key": "P|Is this covered by my insurance?",
+   "text": "Is this covered by my insurance?",
+   "role": "P",
+   "chapter": "ch29",
+   "id": "is-this-covered-by-my-insurance",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "143a9714c1d2",
+   "rev": 1,
+   "seconds": 2.16,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "07d4a62731b6d1": {
    "key": "P|figure out",
    "text": "figure out",
@@ -17804,6 +18560,20 @@
    "model": "gemini-3.8-flash-tts",
    "voice": "Callirrhoe",
    "sig": "6d9cf2cc679e",
+   "rev": 1,
+   "seconds": 1.92,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "07e299277cf20c": {
+   "key": "A|Can I talk to the pharmacist?",
+   "text": "Can I talk to the pharmacist?",
+   "role": "A",
+   "chapter": "ch29",
+   "id": "pharmacist",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "47794d963faa",
    "rev": 1,
    "seconds": 1.92,
    "via": "batch",
@@ -18019,6 +18789,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "07fd1b4f4027ac": {
+   "key": "B|Freeze your card in the app.",
+   "text": "Freeze your card in the app.",
+   "role": "B",
+   "chapter": "ch30",
+   "id": "freeze-my-card",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "8ab36cd58323",
+   "rev": 1,
+   "seconds": 1.72,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "07fdae3442bf52": {
    "key": "B|I have a family history of diabetes.",
    "text": "I have a family history of diabetes.",
@@ -18059,6 +18843,20 @@
    "rev": 1,
    "seconds": 0.69,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "080372ccbaf466": {
+   "key": "A|Do I have any cavities?",
+   "text": "Do I have any cavities?",
+   "role": "A",
+   "chapter": "ch29",
+   "id": "cavity",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "92ac62d18e25",
+   "rev": 1,
+   "seconds": 1.64,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "0804a6a7be9cd4": {
@@ -18747,6 +19545,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "085d1ee46fa5db": {
+   "key": "A|I need a refill on my allergy medicine.",
+   "text": "I need a refill on my allergy medicine.",
+   "role": "A",
+   "chapter": "ch29",
+   "id": "refill",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "816ce0cea06d",
+   "rev": 1,
+   "seconds": 2.4,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "085efcdd615ade": {
    "key": "P|come along",
    "text": "come along",
@@ -18829,6 +19641,20 @@
    "rev": 1,
    "seconds": 2.54,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "086446c327cab6": {
+   "key": "P|generic",
+   "text": "generic",
+   "role": "P",
+   "chapter": "ch29",
+   "id": "generic",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "2aadc8e298a2",
+   "rev": 1,
+   "seconds": 1.12,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "0865a546afc728": {
@@ -19251,6 +20077,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "0899a2480e776d": {
+   "key": "A|I'd like to withdraw some cash.",
+   "text": "I'd like to withdraw some cash.",
+   "role": "A",
+   "chapter": "ch30",
+   "id": "id-like-to-withdraw-some-cash",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "0eecc782c1e2",
+   "rev": 1,
+   "seconds": 1.88,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "089a3e9af0eca3": {
    "key": "P|post",
    "text": "post",
@@ -19419,6 +20259,34 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "08b145eaf936d4": {
+   "key": "B|Yes, I'll freeze it right now.",
+   "text": "Yes, I'll freeze it right now.",
+   "role": "B",
+   "chapter": "ch30",
+   "id": "i-lost-my-card",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "364f39ce2574",
+   "rev": 1,
+   "seconds": 1.72,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "08b35ba6429f8f": {
+   "key": "A|I paid for the tickets.",
+   "text": "I paid for the tickets.",
+   "role": "A",
+   "chapter": "ch30",
+   "id": "venmo-me",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "d48fff0bbe70",
+   "rev": 1,
+   "seconds": 1.44,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "08b3a8f194d0aa": {
    "key": "A|The smoke alarm keeps beeping.",
    "text": "The smoke alarm keeps beeping.",
@@ -19557,6 +20425,20 @@
    "rev": 1,
    "seconds": 1.02,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "08c151b43c7529": {
+   "key": "P|wisdom tooth",
+   "text": "wisdom tooth",
+   "role": "P",
+   "chapter": "ch29",
+   "id": "wisdom-tooth",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "373787414e05",
+   "rev": 1,
+   "seconds": 1.28,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "08c1b942f8cdaf": {
@@ -20595,6 +21477,20 @@
    "via": "sync",
    "at": "2026-09-28"
   },
+  "092af193f61e58": {
+   "key": "A|I got a fraud alert text.",
+   "text": "I got a fraud alert text.",
+   "role": "A",
+   "chapter": "ch30",
+   "id": "fraud-alert",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "d1e319e44c71",
+   "rev": 1,
+   "seconds": 1.92,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "092c484a76f29f": {
    "key": "A|Can you help me pick out a gift?",
    "text": "Can you help me pick out a gift?",
@@ -20607,6 +21503,20 @@
    "rev": 1,
    "seconds": 1.52,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "092cdfc4382c79": {
+   "key": "B|Sure, use my phone number.",
+   "text": "Sure, use my phone number.",
+   "role": "B",
+   "chapter": "ch30",
+   "id": "zelle",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "62e400cb846f",
+   "rev": 1,
+   "seconds": 1.84,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "092eb28bbb447c": {
@@ -21113,6 +22023,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "096c8ba4ee5dd5": {
+   "key": "P|medical bill",
+   "text": "medical bill",
+   "role": "P",
+   "chapter": "ch29",
+   "id": "medical-bill",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "c97160bb222d",
+   "rev": 1,
+   "seconds": 1.24,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "096f44106db8b6": {
    "key": "A|What time is it?",
    "text": "What time is it?",
@@ -21435,6 +22359,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "099db41d90fe1e": {
+   "key": "A|Do I need a root canal?",
+   "text": "Do I need a root canal?",
+   "role": "A",
+   "chapter": "ch29",
+   "id": "root-canal",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "1311116ad6f7",
+   "rev": 1,
+   "seconds": 1.44,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "099fcb7e188332": {
    "key": "B|Yeah, I'm still in shock.",
    "text": "Yeah, I'm still in shock.",
@@ -21673,6 +22611,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "09bf5694f09608": {
+   "key": "P|ATM",
+   "text": "ATM",
+   "role": "P",
+   "chapter": "ch30",
+   "id": "atm",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "bbda3147f567",
+   "rev": 1,
+   "seconds": 1.08,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "09c0687968b6be": {
    "key": "A|You have to press both buttons at once.",
    "text": "You have to press both buttons at once.",
@@ -21754,6 +22706,20 @@
    "sig": "00ce5a3603b6",
    "rev": 1,
    "seconds": 2.16,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "09cb4dd4562e5a": {
+   "key": "A|Is this covered by my insurance?",
+   "text": "Is this covered by my insurance?",
+   "role": "A",
+   "chapter": "ch29",
+   "id": "is-this-covered-by-my-insurance",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "5af19a7536ec",
+   "rev": 1,
+   "seconds": 2.2,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -21923,6 +22889,20 @@
    "rev": 1,
    "seconds": 1.24,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "09d9cc595f529e": {
+   "key": "A|My card was declined.",
+   "text": "My card was declined.",
+   "role": "A",
+   "chapter": "ch30",
+   "id": "my-card-was-declined",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "1c055225d4ce",
+   "rev": 1,
+   "seconds": 1.48,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "09dbbf61bfb2fe": {
@@ -22118,6 +23098,20 @@
    "sig": "19d99db996fd",
    "rev": 1,
    "seconds": 1.24,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "09ed1797d6723d": {
+   "key": "B|Sure. What are you taking?",
+   "text": "Sure. What are you taking?",
+   "role": "B",
+   "chapter": "ch29",
+   "id": "can-you-check-if-this-interacts-with-my-medication",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "130f4ea730df",
+   "rev": 1,
+   "seconds": 1.36,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -22667,6 +23661,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "0a380d6267b8ca": {
+   "key": "P|cavity",
+   "text": "cavity",
+   "role": "P",
+   "chapter": "ch29",
+   "id": "cavity",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "69ea29d789a5",
+   "rev": 1,
+   "seconds": 1.36,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "0a39b411e114dc": {
    "key": "B|That's the thing. I'm too shy.",
    "text": "That's the thing. I'm too shy.",
@@ -22707,6 +23715,20 @@
    "rev": 1,
    "seconds": 1.01,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "0a3d31bf76fff9": {
+   "key": "P|checking account",
+   "text": "checking account",
+   "role": "P",
+   "chapter": "ch30",
+   "id": "checking-account",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "798aba2e1230",
+   "rev": 1,
+   "seconds": 1.08,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "0a3d9ca20b7656": {
@@ -23113,6 +24135,20 @@
    "rev": 1,
    "seconds": 1.68,
    "via": "sync",
+   "at": "2026-09-28"
+  },
+  "0a66ad02ef51ee": {
+   "key": "P|out-of-network",
+   "text": "out-of-network",
+   "role": "P",
+   "chapter": "ch29",
+   "id": "out-of-network",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "f7b5923f9c11",
+   "rev": 1,
+   "seconds": 1.4,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "0a6e887a2705b1": {
@@ -23829,6 +24865,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "0abcb6e3fcd8cb": {
+   "key": "B|It's been a while.",
+   "text": "It's been a while.",
+   "role": "B",
+   "chapter": "ch29",
+   "id": "dentist",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "c79113891364",
+   "rev": 1,
+   "seconds": 1.64,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "0ac0b28d3dbdf3": {
    "key": "A|Do you ship overseas?",
    "text": "Do you ship overseas?",
@@ -23925,6 +24975,20 @@
    "rev": 1,
    "seconds": 1.71,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "0acbe2470e9555": {
+   "key": "P|routing number",
+   "text": "routing number",
+   "role": "P",
+   "chapter": "ch30",
+   "id": "routing-number",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "60bbd4f89695",
+   "rev": 1,
+   "seconds": 1.2,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "0ace32055ec313": {
@@ -24177,6 +25241,20 @@
    "rev": 1,
    "seconds": 0.88,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "0aeb8c6dbec618": {
+   "key": "B|Always. I hate paying interest.",
+   "text": "Always. I hate paying interest.",
+   "role": "B",
+   "chapter": "ch30",
+   "id": "pay-off-the-balance",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "dd138e6874cf",
+   "rev": 1,
+   "seconds": 2.64,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "0aedc3ed685613": {
@@ -24694,6 +25772,20 @@
    "sig": "ee7b90850f93",
    "rev": 1,
    "seconds": 2.56,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "0b2718e3f566ae": {
+   "key": "A|Do you pay off the balance every month?",
+   "text": "Do you pay off the balance every month?",
+   "role": "A",
+   "chapter": "ch30",
+   "id": "pay-off-the-balance",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "281511d8234e",
+   "rev": 1,
+   "seconds": 1.96,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -25817,6 +26909,20 @@
    "via": "sync",
    "at": "2026-09-28"
   },
+  "0bb552dd37ca46": {
+   "key": "A|My eyes have been blurry lately.",
+   "text": "My eyes have been blurry lately.",
+   "role": "A",
+   "chapter": "ch29",
+   "id": "eye-doctor",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "da2ea2baf2f9",
+   "rev": 1,
+   "seconds": 2.24,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "0bb5ef2b5e68ac": {
    "key": "A|Conversely, prices dropped in winter.",
    "text": "Conversely, prices dropped in winter.",
@@ -26011,6 +27117,20 @@
    "rev": 1,
    "seconds": 0.87,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "0bc43c5e1286db": {
+   "key": "P|debit card",
+   "text": "debit card",
+   "role": "P",
+   "chapter": "ch30",
+   "id": "debit-card",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "b6eb6ed593c6",
+   "rev": 1,
+   "seconds": 1.04,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "0bc491ef792b64": {
@@ -26234,6 +27354,20 @@
    "sig": "d36c10800b8f",
    "rev": 1,
    "seconds": 1.92,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "0bdee589db94c6": {
+   "key": "B|No, contact lenses.",
+   "text": "No, contact lenses.",
+   "role": "B",
+   "chapter": "ch29",
+   "id": "contact-lenses",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "59d176a5b1de",
+   "rev": 1,
+   "seconds": 1.84,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -27315,6 +28449,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "0c541428c46dd7": {
+   "key": "P|teeth cleaning",
+   "text": "teeth cleaning",
+   "role": "P",
+   "chapter": "ch29",
+   "id": "teeth-cleaning",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "5f504d580dbc",
+   "rev": 1,
+   "seconds": 1.08,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "0c554c8d988db4": {
    "key": "P|Take a chill pill.",
    "text": "Take a chill pill.",
@@ -28295,6 +29443,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "0cc0e8191340f3": {
+   "key": "P|Can I set up a payment plan?",
+   "text": "Can I set up a payment plan?",
+   "role": "P",
+   "chapter": "ch29",
+   "id": "can-i-set-up-a-payment-plan",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "b1e07ad119ea",
+   "rev": 1,
+   "seconds": 1.96,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "0cc129265a47b2": {
    "key": "A|The mailman left a package.",
    "text": "The mailman left a package.",
@@ -28657,6 +29819,20 @@
    "rev": 1,
    "seconds": 0.99,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "0ce02f8d4c138a": {
+   "key": "P|refill",
+   "text": "refill",
+   "role": "P",
+   "chapter": "ch29",
+   "id": "refill",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "2b3a13479f1d",
+   "rev": 1,
+   "seconds": 0.88,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "0ce08e2b5e5bb1": {
@@ -29065,6 +30241,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "0d114112230358": {
+   "key": "A|Do we have a thermometer?",
+   "text": "Do we have a thermometer?",
+   "role": "A",
+   "chapter": "ch29",
+   "id": "thermometer",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "c16e5060f569",
+   "rev": 1,
+   "seconds": 1.8,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "0d12e71b404c16": {
    "key": "B|There's some in the first-aid kit.",
    "text": "There's some in the first-aid kit.",
@@ -29231,6 +30421,20 @@
    "rev": 1,
    "seconds": 1.55,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "0d28f91a31c1ef": {
+   "key": "B|Maybe your bank flagged it. Call them.",
+   "text": "Maybe your bank flagged it. Call them.",
+   "role": "B",
+   "chapter": "ch30",
+   "id": "my-card-was-declined",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "a811aa59308f",
+   "rev": 1,
+   "seconds": 2.44,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "0d2ca648008791": {
@@ -29737,6 +30941,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "0d71adac15f492": {
+   "key": "P|Can you check if this interacts with my medication?",
+   "text": "Can you check if this interacts with my medication?",
+   "role": "P",
+   "chapter": "ch29",
+   "id": "can-you-check-if-this-interacts-with-my-medication",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "9405a7dfabb0",
+   "rev": 1,
+   "seconds": 2.68,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "0d71e0251fc309": {
    "key": "P|Spot on.",
    "text": "Spot on.",
@@ -29888,6 +31106,20 @@
    "sig": "08ceface7c2d",
    "rev": 1,
    "seconds": 1.36,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "0d837653ac2c4b": {
+   "key": "B|It's on the bottom of your checks.",
+   "text": "It's on the bottom of your checks.",
+   "role": "B",
+   "chapter": "ch30",
+   "id": "routing-number",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "f9262653dfe7",
+   "rev": 1,
+   "seconds": 1.88,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -30043,6 +31275,20 @@
    "rev": 1,
    "seconds": 1.38,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "0d956657fcf507": {
+   "key": "P|What do I need to open an account?",
+   "text": "What do I need to open an account?",
+   "role": "P",
+   "chapter": "ch30",
+   "id": "what-do-i-need-to-open-an-account",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "83870c110d72",
+   "rev": 1,
+   "seconds": 2.16,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "0d963b467fb575": {
@@ -30521,6 +31767,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "0dc16ea37a2f5b": {
+   "key": "P|root canal",
+   "text": "root canal",
+   "role": "P",
+   "chapter": "ch29",
+   "id": "root-canal",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "031f53a39a0a",
+   "rev": 1,
+   "seconds": 1.52,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "0dc33525e13446": {
    "key": "A|I didn't get the part.",
    "text": "I didn't get the part.",
@@ -30756,6 +32016,20 @@
    "sig": "c3c325a64548",
    "rev": 1,
    "seconds": 2.04,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "0ddb3b81b7c2ff": {
+   "key": "P|thermometer",
+   "text": "thermometer",
+   "role": "P",
+   "chapter": "ch29",
+   "id": "thermometer",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "a32d0ff92ae3",
+   "rev": 1,
+   "seconds": 1.28,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -31065,6 +32339,20 @@
    "rev": 1,
    "seconds": 2.48,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "0e0231abecdd6a": {
+   "key": "P|My gums are bleeding.",
+   "text": "My gums are bleeding.",
+   "role": "P",
+   "chapter": "ch29",
+   "id": "my-gums-are-bleeding",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "d5243bf1c0fb",
+   "rev": 1,
+   "seconds": 1.92,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "0e0311f175340a": {
@@ -32341,6 +33629,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "0e9f915ed5d4d7": {
+   "key": "P|It's sensitive to cold.",
+   "text": "It's sensitive to cold.",
+   "role": "P",
+   "chapter": "ch29",
+   "id": "its-sensitive-to-cold",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "5df818e1b6e3",
+   "rev": 1,
+   "seconds": 1.6,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "0ea01898ca0d3f": {
    "key": "P|You too.",
    "text": "You too.",
@@ -33081,6 +34383,20 @@
    "rev": 1,
    "seconds": 1.5,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "0ee3b2d0d2af4c": {
+   "key": "P|savings account",
+   "text": "savings account",
+   "role": "P",
+   "chapter": "ch30",
+   "id": "savings-account",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "44821075bb7b",
+   "rev": 1,
+   "seconds": 1.36,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "0ee582404729cb": {
@@ -34315,6 +35631,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "0f70d392bf2193": {
+   "key": "P|pharmacist",
+   "text": "pharmacist",
+   "role": "P",
+   "chapter": "ch29",
+   "id": "pharmacist",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "39ed93305c89",
+   "rev": 1,
+   "seconds": 1.24,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "0f715f86cc45d7": {
    "key": "A|Sorry I broke your mug.",
    "text": "Sorry I broke your mug.",
@@ -34889,6 +36219,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "0fb84a3a570747": {
+   "key": "A|My ankle is swollen.",
+   "text": "My ankle is swollen.",
+   "role": "A",
+   "chapter": "ch29",
+   "id": "ice-pack",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "518b1d7e539a",
+   "rev": 1,
+   "seconds": 2.04,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "0fb89bac766d3f": {
    "key": "A|Thanks, buddy.",
    "text": "Thanks, buddy.",
@@ -35377,6 +36721,20 @@
    "rev": 1,
    "seconds": 0.93,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "0ff32ac927f894": {
+   "key": "P|build credit",
+   "text": "build credit",
+   "role": "P",
+   "chapter": "ch30",
+   "id": "build-credit",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "1c76c231ff55",
+   "rev": 1,
+   "seconds": 1.12,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "0ff37fe0d820d7": {
@@ -36009,6 +37367,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "104952bbaaead4": {
+   "key": "A|Where do I pay for this?",
+   "text": "Where do I pay for this?",
+   "role": "A",
+   "chapter": "ch29",
+   "id": "pharmacy-counter",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "5a2bad1efdfd",
+   "rev": 1,
+   "seconds": 1.2,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "104a6608fdcbb2": {
    "key": "P|tasty",
    "text": "tasty",
@@ -36191,6 +37563,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "106068980b9601": {
+   "key": "B|Your passport and proof of address.",
+   "text": "Your passport and proof of address.",
+   "role": "B",
+   "chapter": "ch30",
+   "id": "what-do-i-need-to-open-an-account",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "90ee20d836e1",
+   "rev": 1,
+   "seconds": 2.48,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "10614fcf1e79ca": {
    "key": "A|What did you do this weekend?",
    "text": "What did you do this weekend?",
@@ -36245,6 +37631,20 @@
    "rev": 1,
    "seconds": 1.96,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "1066975f595fac": {
+   "key": "A|My filling fell out.",
+   "text": "My filling fell out.",
+   "role": "A",
+   "chapter": "ch29",
+   "id": "filling",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "51d44bdcc915",
+   "rev": 1,
+   "seconds": 1.88,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "1069ae40378ed8": {
@@ -36357,6 +37757,20 @@
    "rev": 1,
    "seconds": 0.67,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "10778854f90d11": {
+   "key": "A|Is there a generic version?",
+   "text": "Is there a generic version?",
+   "role": "A",
+   "chapter": "ch29",
+   "id": "generic",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "405253fed877",
+   "rev": 1,
+   "seconds": 1.96,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "107cffe464fde3": {
@@ -37381,6 +38795,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "10dbe3f0f98171": {
+   "key": "P|ATM fee",
+   "text": "ATM fee",
+   "role": "P",
+   "chapter": "ch30",
+   "id": "atm-fee",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "27fce54fb5c6",
+   "rev": 1,
+   "seconds": 1.4,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "10dc145da04a34": {
    "key": "B|Okay. I crashed your car.",
    "text": "Okay. I crashed your car.",
@@ -38095,6 +39523,48 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "1146f6d092c6f6": {
+   "key": "P|I have a toothache.",
+   "text": "I have a toothache.",
+   "role": "P",
+   "chapter": "ch29",
+   "id": "i-have-a-toothache",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "5dac7696c0b2",
+   "rev": 1,
+   "seconds": 1.88,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "114717e431c489": {
+   "key": "P|My card was declined.",
+   "text": "My card was declined.",
+   "role": "P",
+   "chapter": "ch30",
+   "id": "my-card-was-declined",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "5c904c544f70",
+   "rev": 1,
+   "seconds": 2.04,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "11478170bfbe73": {
+   "key": "P|vitamins",
+   "text": "vitamins",
+   "role": "P",
+   "chapter": "ch29",
+   "id": "vitamins",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "ff974a595d61",
+   "rev": 1,
+   "seconds": 1.24,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "1149fe1e80fdbd": {
    "key": "A|Do you want to come over for dinner?",
    "text": "Do you want to come over for dinner?",
@@ -38571,6 +40041,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "11766001db2d72": {
+   "key": "A|How long does a wire transfer take?",
+   "text": "How long does a wire transfer take?",
+   "role": "A",
+   "chapter": "ch30",
+   "id": "wire-transfer",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "ff2620ac8c4f",
+   "rev": 1,
+   "seconds": 2.12,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "117750a05e5da5": {
    "key": "P|hit the sack",
    "text": "hit the sack",
@@ -38916,6 +40400,20 @@
    "model": "gemini-3.8-flash-tts",
    "voice": "Callirrhoe",
    "sig": "cd21341aad6d",
+   "rev": 1,
+   "seconds": 2.24,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "11a04812d53f10": {
+   "key": "A|This clinic is out-of-network.",
+   "text": "This clinic is out-of-network.",
+   "role": "A",
+   "chapter": "ch29",
+   "id": "out-of-network",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "087707a51d18",
    "rev": 1,
    "seconds": 2.24,
    "via": "batch",
@@ -39369,6 +40867,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "11d4146c670413": {
+   "key": "A|What counts as proof of address?",
+   "text": "What counts as proof of address?",
+   "role": "A",
+   "chapter": "ch30",
+   "id": "proof-of-address",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "12a5ecfacaa1",
+   "rev": 1,
+   "seconds": 1.92,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "11d48cff0a890c": {
    "key": "P|wander",
    "text": "wander",
@@ -39674,6 +41186,20 @@
    "sig": "823488a2104c",
    "rev": 1,
    "seconds": 1.56,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "11f630672dd101": {
+   "key": "B|So I'll have to pay more?",
+   "text": "So I'll have to pay more?",
+   "role": "B",
+   "chapter": "ch29",
+   "id": "out-of-network",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "4f8d7d467138",
+   "rev": 1,
+   "seconds": 2.04,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -40041,6 +41567,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "121d2a254b5a5c": {
+   "key": "B|Yes, in the first-aid kit.",
+   "text": "Yes, in the first-aid kit.",
+   "role": "B",
+   "chapter": "ch29",
+   "id": "band-aid",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "ec9402555d9c",
+   "rev": 1,
+   "seconds": 1.8,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "121dc399991490": {
    "key": "A|My bag didn't arrive.",
    "text": "My bag didn't arrive.",
@@ -40066,6 +41606,20 @@
    "sig": "40ea3217676b",
    "rev": 1,
    "seconds": 2.8,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "121ed0b24f936a": {
+   "key": "P|eye drops",
+   "text": "eye drops",
+   "role": "P",
+   "chapter": "ch29",
+   "id": "eye-drops",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "9af70a383f8d",
+   "rev": 1,
+   "seconds": 1.2,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -40363,6 +41917,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "12371c5475c6c6": {
+   "key": "P|transfer money",
+   "text": "transfer money",
+   "role": "P",
+   "chapter": "ch30",
+   "id": "transfer-money",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "c047e80c4d42",
+   "rev": 1,
+   "seconds": 1.24,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "1239382b2ee670": {
    "key": "P|résumé",
    "text": "résumé",
@@ -40489,6 +42057,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "1243422dc19f30": {
+   "key": "B|Yes, and it's much cheaper.",
+   "text": "Yes, and it's much cheaper.",
+   "role": "B",
+   "chapter": "ch29",
+   "id": "generic",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "f33b10d047b4",
+   "rev": 1,
+   "seconds": 2.36,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "12447ae7801eb1": {
    "key": "P|Are you sure?",
    "text": "Are you sure?",
@@ -40501,6 +42083,20 @@
    "rev": 1,
    "seconds": 0.95,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "1249d7e75aafc5": {
+   "key": "A|My eyes are so dry.",
+   "text": "My eyes are so dry.",
+   "role": "A",
+   "chapter": "ch29",
+   "id": "eye-drops",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "fb9fc13fa76e",
+   "rev": 1,
+   "seconds": 2.16,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "124ac60f69e126": {
@@ -41189,6 +42785,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "12a35bc8aa9e87": {
+   "key": "B|Yes, in the bathroom cabinet.",
+   "text": "Yes, in the bathroom cabinet.",
+   "role": "B",
+   "chapter": "ch29",
+   "id": "thermometer",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "469b0a80b5dd",
+   "rev": 1,
+   "seconds": 2.08,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "12a599f571831b": {
    "key": "P|top",
    "text": "top",
@@ -41340,6 +42950,20 @@
    "sig": "da4656ece64a",
    "rev": 1,
    "seconds": 1.4,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "12ae18ad4ce9a9": {
+   "key": "A|Do you have any cough drops?",
+   "text": "Do you have any cough drops?",
+   "role": "A",
+   "chapter": "ch29",
+   "id": "cough-drops",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "21ae39973661",
+   "rev": 1,
+   "seconds": 1.52,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -42841,6 +44465,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "13642778434600": {
+   "key": "A|Why can't I get the MRI yet?",
+   "text": "Why can't I get the MRI yet?",
+   "role": "A",
+   "chapter": "ch29",
+   "id": "prior-authorization",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "4100964240b6",
+   "rev": 1,
+   "seconds": 1.96,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "1366764c15d460": {
    "key": "A|My hands were trembling.",
    "text": "My hands were trembling.",
@@ -43175,6 +44813,20 @@
    "rev": 1,
    "seconds": 1.91,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "13867c8a77b580": {
+   "key": "B|My checking account.",
+   "text": "My checking account.",
+   "role": "B",
+   "chapter": "ch30",
+   "id": "checking-account",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "2969af16ca86",
+   "rev": 1,
+   "seconds": 1.6,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "1387c9aa0df52d": {
@@ -43667,6 +45319,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "13b79b04c709c0": {
+   "key": "P|prior authorization",
+   "text": "prior authorization",
+   "role": "P",
+   "chapter": "ch29",
+   "id": "prior-authorization",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "9c9e8794cc59",
+   "rev": 1,
+   "seconds": 1.76,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "13b7a3c6c26c09": {
    "key": "P|primarily",
    "text": "primarily",
@@ -43947,6 +45613,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "13ca4f302c38be": {
+   "key": "A|I got a huge medical bill.",
+   "text": "I got a huge medical bill.",
+   "role": "A",
+   "chapter": "ch29",
+   "id": "medical-bill",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "539d0ace214c",
+   "rev": 1,
+   "seconds": 2.4,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "13ca62e9af94a3": {
    "key": "P|connecting flight",
    "text": "connecting flight",
@@ -43975,6 +45655,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "13cb75cd6a7b3d": {
+   "key": "A|What do I need to open an account?",
+   "text": "What do I need to open an account?",
+   "role": "A",
+   "chapter": "ch30",
+   "id": "what-do-i-need-to-open-an-account",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "ffcb254ff412",
+   "rev": 1,
+   "seconds": 1.96,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "13cb8b5a6aadd9": {
    "key": "A|Pumpkin spice lattes are so basic.",
    "text": "Pumpkin spice lattes are so basic.",
@@ -43987,6 +45681,20 @@
    "rev": 1,
    "seconds": 2.86,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "13cdad3c5d85cd": {
+   "key": "P|mobile deposit",
+   "text": "mobile deposit",
+   "role": "P",
+   "chapter": "ch30",
+   "id": "mobile-deposit",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "5020a117aa50",
+   "rev": 1,
+   "seconds": 1.36,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "13cf4ed5e896bf": {
@@ -44350,6 +46058,34 @@
    "sig": "901389c4e10e",
    "rev": 1,
    "seconds": 1.72,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "13f5f5db849146": {
+   "key": "A|What's the minimum balance?",
+   "text": "What's the minimum balance?",
+   "role": "A",
+   "chapter": "ch30",
+   "id": "minimum-balance",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "f6fdaf2cbca0",
+   "rev": 1,
+   "seconds": 1.8,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "13f64f1f216e4e": {
+   "key": "B|Call and ask for an itemized bill.",
+   "text": "Call and ask for an itemized bill.",
+   "role": "B",
+   "chapter": "ch29",
+   "id": "medical-bill",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "820e8161730a",
+   "rev": 1,
+   "seconds": 2.44,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -44812,6 +46548,20 @@
    "sig": "ecfb95e770e2",
    "rev": 1,
    "seconds": 2.24,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "1434161febe29c": {
+   "key": "A|There's a charge I don't recognize.",
+   "text": "There's a charge I don't recognize.",
+   "role": "A",
+   "chapter": "ch30",
+   "id": "theres-a-charge-i-dont-recognize",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "7c92eac44f19",
+   "rev": 1,
+   "seconds": 2.12,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -45627,6 +47377,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "148782a2d67c13": {
+   "key": "B|Tap the transaction in the app and select \"dispute.\"",
+   "text": "Tap the transaction in the app and select \"dispute.\"",
+   "role": "B",
+   "chapter": "ch30",
+   "id": "dispute-a-charge",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "3a144d05399e",
+   "rev": 1,
+   "seconds": 3.8,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "1487a2a5904b0c": {
    "key": "P|It hurts when I swallow.",
    "text": "It hurts when I swallow.",
@@ -46103,6 +47867,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "14bf272a36eebb": {
+   "key": "A|Do you have a band-aid?",
+   "text": "Do you have a band-aid?",
+   "role": "A",
+   "chapter": "ch29",
+   "id": "band-aid",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "8e1617e345c2",
+   "rev": 1,
+   "seconds": 1.2,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "14bf790491124f": {
    "key": "A|Can I change my seat to a window?",
    "text": "Can I change my seat to a window?",
@@ -46551,6 +48329,34 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "14ebe78a54799a": {
+   "key": "P|Venmo me.",
+   "text": "Venmo me.",
+   "role": "P",
+   "chapter": "ch30",
+   "id": "venmo-me",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "8e7dbb7d8718",
+   "rev": 1,
+   "seconds": 1.36,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "14ec92ee0b9719": {
+   "key": "B|Just one small one.",
+   "text": "Just one small one.",
+   "role": "B",
+   "chapter": "ch29",
+   "id": "cavity",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "4ec6b16a7dd2",
+   "rev": 1,
+   "seconds": 1.8,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "14ee56c714b728": {
    "key": "P|I think there's a mistake on the bill.",
    "text": "I think there's a mistake on the bill.",
@@ -46661,6 +48467,20 @@
    "rev": 1,
    "seconds": 1.14,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "14f7ea418dbb87": {
+   "key": "B|You should see an eye doctor.",
+   "text": "You should see an eye doctor.",
+   "role": "B",
+   "chapter": "ch29",
+   "id": "eye-doctor",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "ebcfe9b7a14f",
+   "rev": 1,
+   "seconds": 2.04,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "14f867d32dbb09": {
@@ -47391,6 +49211,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "15525753939427": {
+   "key": "P|Is there a monthly fee?",
+   "text": "Is there a monthly fee?",
+   "role": "P",
+   "chapter": "ch30",
+   "id": "is-there-a-monthly-fee",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "4dfcdf982e22",
+   "rev": 1,
+   "seconds": 1.56,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "155585a3b44c73": {
    "key": "B|Yeah, I've ordered from it before.",
    "text": "Yeah, I've ordered from it before.",
@@ -47671,6 +49505,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "156ada4f5aa18b": {
+   "key": "B|During open enrollment in November.",
+   "text": "During open enrollment in November.",
+   "role": "B",
+   "chapter": "ch29",
+   "id": "open-enrollment",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "800f0c24491b",
+   "rev": 1,
+   "seconds": 2.36,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "156d355d4c1133": {
    "key": "P|sign up",
    "text": "sign up",
@@ -47752,6 +49600,20 @@
    "sig": "391ff7a33db5",
    "rev": 1,
    "seconds": 1.16,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "1579482af6805c": {
+   "key": "P|explanation of benefits",
+   "text": "explanation of benefits",
+   "role": "P",
+   "chapter": "ch29",
+   "id": "explanation-of-benefits",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "9dd3090c1b16",
+   "rev": 1,
+   "seconds": 1.8,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -47892,6 +49754,20 @@
    "sig": "ba0ed7a2d271",
    "rev": 1,
    "seconds": 2.2,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "1593b0056e8de8": {
+   "key": "P|proof of address",
+   "text": "proof of address",
+   "role": "P",
+   "chapter": "ch30",
+   "id": "proof-of-address",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "64d792897920",
+   "rev": 1,
+   "seconds": 1.48,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -48102,6 +49978,20 @@
    "sig": "e44bc92345bf",
    "rev": 1,
    "seconds": 1.2,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "15ab197f550446": {
+   "key": "P|I'd like to deposit this check.",
+   "text": "I'd like to deposit this check.",
+   "role": "P",
+   "chapter": "ch30",
+   "id": "id-like-to-deposit-this-check",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "56b086160c13",
+   "rev": 1,
+   "seconds": 1.96,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -48382,6 +50272,20 @@
    "sig": "bb7551e92a04",
    "rev": 1,
    "seconds": 1.36,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "15c50f4c016c17": {
+   "key": "B|You have two refills left.",
+   "text": "You have two refills left.",
+   "role": "B",
+   "chapter": "ch29",
+   "id": "refill",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "5ac812cc6b51",
+   "rev": 1,
+   "seconds": 2.64,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -49687,6 +51591,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "164665dae56887": {
+   "key": "A|I've been really stressed.",
+   "text": "I've been really stressed.",
+   "role": "A",
+   "chapter": "ch29",
+   "id": "therapist",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "1bb1ee83f104",
+   "rev": 1,
+   "seconds": 2.12,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "164677b15ece6d": {
    "key": "B|That's so annoying.",
    "text": "That's so annoying.",
@@ -50009,6 +51927,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "1677a7f5200676": {
+   "key": "B|Don't take sleeping pills without asking a doctor.",
+   "text": "Don't take sleeping pills without asking a doctor.",
+   "role": "B",
+   "chapter": "ch29",
+   "id": "sleeping-pills",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "11cc8430facd",
+   "rev": 1,
+   "seconds": 2.8,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "167985111261fb": {
    "key": "B|It's cloudy, so maybe.",
    "text": "It's cloudy, so maybe.",
@@ -50091,6 +52023,20 @@
    "rev": 1,
    "seconds": 1.54,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "168a069378e860": {
+   "key": "P|There's a charge I don't recognize.",
+   "text": "There's a charge I don't recognize.",
+   "role": "P",
+   "chapter": "ch30",
+   "id": "theres-a-charge-i-dont-recognize",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "7dba473c9215",
+   "rev": 1,
+   "seconds": 2.16,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "168b497c4964b4": {
@@ -50441,6 +52387,20 @@
    "rev": 1,
    "seconds": 0.62,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "16ad8d78ea4ad2": {
+   "key": "B|My tooth is sensitive to cold.",
+   "text": "My tooth is sensitive to cold.",
+   "role": "B",
+   "chapter": "ch29",
+   "id": "its-sensitive-to-cold",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "6456b1e3669d",
+   "rev": 1,
+   "seconds": 2.4,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "16ae7530ef3173": {
@@ -50919,6 +52879,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "16e03cf2bf254c": {
+   "key": "A|Do I have to go to the bank?",
+   "text": "Do I have to go to the bank?",
+   "role": "A",
+   "chapter": "ch30",
+   "id": "mobile-deposit",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "27e0f16ca9de",
+   "rev": 1,
+   "seconds": 2.12,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "16e7420abced75": {
    "key": "A|And then my cat...",
    "text": "And then my cat...",
@@ -51031,6 +53005,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "16f7c7ffc23d34": {
+   "key": "B|Sure, she'll be right with you.",
+   "text": "Sure, she'll be right with you.",
+   "role": "B",
+   "chapter": "ch29",
+   "id": "pharmacist",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "92c1846d882f",
+   "rev": 1,
+   "seconds": 1.8,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "16f80583396a8b": {
    "key": "A|Who will take over your work?",
    "text": "Who will take over your work?",
@@ -51043,6 +53031,20 @@
    "rev": 1,
    "seconds": 1.41,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "16f93180feff7c": {
+   "key": "A|I have a toothache on the left side.",
+   "text": "I have a toothache on the left side.",
+   "role": "A",
+   "chapter": "ch29",
+   "id": "i-have-a-toothache",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "8e92cc695165",
+   "rev": 1,
+   "seconds": 2.48,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "16fa8a6196913e": {
@@ -51138,6 +53140,20 @@
    "model": "gemini-3.8-flash-tts",
    "voice": "Erinome",
    "sig": "ac31e22a7f2b",
+   "rev": 1,
+   "seconds": 1.44,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "1705aeb01b0a59": {
+   "key": "P|health insurance",
+   "text": "health insurance",
+   "role": "P",
+   "chapter": "ch29",
+   "id": "health-insurance",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "914b069a941d",
    "rev": 1,
    "seconds": 1.44,
    "via": "batch",
@@ -51451,6 +53467,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "172315bbd04eaf": {
+   "key": "B|Let me check your plan.",
+   "text": "Let me check your plan.",
+   "role": "B",
+   "chapter": "ch29",
+   "id": "in-network",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "c08e3701d2ac",
+   "rev": 1,
+   "seconds": 1.72,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "1723815d1534ec": {
    "key": "A|I'm thinking about quitting my job.",
    "text": "I'm thinking about quitting my job.",
@@ -51700,6 +53730,20 @@
    "sig": "fc18e6d243c6",
    "rev": 1,
    "seconds": 1.44,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "174e9d40dd80a9": {
+   "key": "P|therapist",
+   "text": "therapist",
+   "role": "P",
+   "chapter": "ch29",
+   "id": "therapist",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "a545610d2955",
+   "rev": 1,
+   "seconds": 1.12,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -52375,6 +54419,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "17ae1be6cb6145": {
+   "key": "A|Pollen season is killing me.",
+   "text": "Pollen season is killing me.",
+   "role": "A",
+   "chapter": "ch29",
+   "id": "allergy-medicine",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "0e74dd98c6e2",
+   "rev": 1,
+   "seconds": 2.8,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "17af6604da1af9": {
    "key": "A|Why did you unfollow her?",
    "text": "Why did you unfollow her?",
@@ -52849,6 +54907,20 @@
    "rev": 1,
    "seconds": 1.0,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "17d05c8bf757ca": {
+   "key": "P|filling",
+   "text": "filling",
+   "role": "P",
+   "chapter": "ch29",
+   "id": "filling",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "fef1a151f9bd",
+   "rev": 1,
+   "seconds": 1.12,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "17d298fb993cf2": {
@@ -53509,6 +55581,34 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "1820504fd69b1a": {
+   "key": "A|Do you take any vitamins?",
+   "text": "Do you take any vitamins?",
+   "role": "A",
+   "chapter": "ch29",
+   "id": "vitamins",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "c0c63968ad67",
+   "rev": 1,
+   "seconds": 1.8,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "18205f059aabde": {
+   "key": "A|I'd like to book a teeth cleaning.",
+   "text": "I'd like to book a teeth cleaning.",
+   "role": "A",
+   "chapter": "ch29",
+   "id": "teeth-cleaning",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "fb2a20f45c32",
+   "rev": 1,
+   "seconds": 1.92,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "18219002477776": {
    "key": "P|roll",
    "text": "roll",
@@ -53929,6 +56029,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "184406e7e93461": {
+   "key": "B|You should floss more.",
+   "text": "You should floss more.",
+   "role": "B",
+   "chapter": "ch29",
+   "id": "my-gums-are-bleeding",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "62d5715e9d6a",
+   "rev": 1,
+   "seconds": 1.56,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "18445732050abd": {
    "key": "B|Kind of. I didn't sleep well last night.",
    "text": "Kind of. I didn't sleep well last night.",
@@ -54125,6 +56239,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "18529e2ed04e80": {
+   "key": "B|No, just use mobile deposit.",
+   "text": "No, just use mobile deposit.",
+   "role": "B",
+   "chapter": "ch30",
+   "id": "mobile-deposit",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "6c134881a1e2",
+   "rev": 1,
+   "seconds": 2.12,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "18538560dddffd": {
    "key": "B|I'm so happy for you!",
    "text": "I'm so happy for you!",
@@ -54220,6 +56348,20 @@
    "sig": "0c1d5cb1d97b",
    "rev": 1,
    "seconds": 1.36,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "1864ff65ab6246": {
+   "key": "P|I'd like to open a bank account.",
+   "text": "I'd like to open a bank account.",
+   "role": "P",
+   "chapter": "ch30",
+   "id": "id-like-to-open-a-bank-account",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "7453c06a83c5",
+   "rev": 1,
+   "seconds": 1.92,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -54867,6 +57009,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "18b15235f8a9cf": {
+   "key": "B|Yes, honey lemon or cherry?",
+   "text": "Yes, honey lemon or cherry?",
+   "role": "B",
+   "chapter": "ch29",
+   "id": "cough-drops",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "d5c3bcaeb214",
+   "rev": 1,
+   "seconds": 2.16,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "18b3f0d39dec90": {
    "key": "A|The liquor store closes at ten.",
    "text": "The liquor store closes at ten.",
@@ -55399,6 +57555,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "18d94308d7685b": {
+   "key": "B|Let's take a look.",
+   "text": "Let's take a look.",
+   "role": "B",
+   "chapter": "ch29",
+   "id": "i-have-a-toothache",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "3ddbf8383729",
+   "rev": 1,
+   "seconds": 1.32,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "18db7137a7c6d3": {
    "key": "P|host",
    "text": "host",
@@ -55424,6 +57594,20 @@
    "sig": "e51730131ad6",
    "rev": 1,
    "seconds": 1.8,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "18e0186e6c9d1c": {
+   "key": "A|Does your job offer health insurance?",
+   "text": "Does your job offer health insurance?",
+   "role": "A",
+   "chapter": "ch29",
+   "id": "health-insurance",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "4efb9e39c260",
+   "rev": 1,
+   "seconds": 1.92,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -55707,6 +57891,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "18ff896b725b45": {
+   "key": "B|That's the ATM fee. It wasn't your bank.",
+   "text": "That's the ATM fee. It wasn't your bank.",
+   "role": "B",
+   "chapter": "ch30",
+   "id": "atm-fee",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "9331b3fb1e86",
+   "rev": 1,
+   "seconds": 2.88,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "1901085260ef78": {
    "key": "B|Yes, hurry!",
    "text": "Yes, hurry!",
@@ -55861,6 +58059,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "1911b9bdb6694b": {
+   "key": "A|Why did I pay so much?",
+   "text": "Why did I pay so much?",
+   "role": "A",
+   "chapter": "ch29",
+   "id": "deductible",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "817351fbacb7",
+   "rev": 1,
+   "seconds": 2.04,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "1912bc3c2e540a": {
    "key": "P|let the cat out of the bag",
    "text": "let the cat out of the bag",
@@ -55900,6 +58112,20 @@
    "sig": "84e1b30bbe89",
    "rev": 1,
    "seconds": 2.28,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "191828b578fbd8": {
+   "key": "A|Can you check if this interacts with my medication?",
+   "text": "Can you check if this interacts with my medication?",
+   "role": "A",
+   "chapter": "ch29",
+   "id": "can-you-check-if-this-interacts-with-my-medication",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "dd7c2fb3ca8c",
+   "rev": 1,
+   "seconds": 2.56,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -56027,6 +58253,20 @@
    "rev": 1,
    "seconds": 1.85,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "192e08a552b09e": {
+   "key": "A|My employer needs my routing number.",
+   "text": "My employer needs my routing number.",
+   "role": "A",
+   "chapter": "ch30",
+   "id": "routing-number",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "043082282207",
+   "rev": 1,
+   "seconds": 1.92,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "192e8a93033858": {
@@ -56841,6 +59081,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "1985d44150c394": {
+   "key": "B|Your insurance needs prior authorization.",
+   "text": "Your insurance needs prior authorization.",
+   "role": "B",
+   "chapter": "ch29",
+   "id": "prior-authorization",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "ce731e2e033c",
+   "rev": 1,
+   "seconds": 2.72,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "19860ca5e6c353": {
    "key": "A|How's your appetite?",
    "text": "How's your appetite?",
@@ -57272,6 +59526,20 @@
    "sig": "a3b7866d803b",
    "rev": 1,
    "seconds": 1.44,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "19af536da4e021": {
+   "key": "B|Yes, we offer monthly payments.",
+   "text": "Yes, we offer monthly payments.",
+   "role": "B",
+   "chapter": "ch29",
+   "id": "can-i-set-up-a-payment-plan",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "d8b19c23f51d",
+   "rev": 1,
+   "seconds": 2.28,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -57779,6 +60047,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "19ea45cdebe0f2": {
+   "key": "A|Is this cough syrup safe for kids?",
+   "text": "Is this cough syrup safe for kids?",
+   "role": "A",
+   "chapter": "ch29",
+   "id": "is-it-safe-for-kids",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "9102aef7b294",
+   "rev": 1,
+   "seconds": 2.32,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "19ea651f568d88": {
    "key": "P|to be honest",
    "text": "to be honest",
@@ -57846,6 +60128,34 @@
    "sig": "a3699f8f195d",
    "rev": 1,
    "seconds": 1.8,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "19efd71194ed56": {
+   "key": "B|That's great.",
+   "text": "That's great.",
+   "role": "B",
+   "chapter": "ch29",
+   "id": "mental-health",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "ab4d41af3216",
+   "rev": 1,
+   "seconds": 1.4,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "19f168329a98ed": {
+   "key": "P|deductible",
+   "text": "deductible",
+   "role": "P",
+   "chapter": "ch29",
+   "id": "deductible",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "fb2357bf4abe",
+   "rev": 1,
+   "seconds": 1.24,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -58605,6 +60915,20 @@
    "via": "sync",
    "at": "2026-09-28"
   },
+  "1a5514be2aa454": {
+   "key": "B|How much would you like?",
+   "text": "How much would you like?",
+   "role": "B",
+   "chapter": "ch30",
+   "id": "id-like-to-withdraw-some-cash",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "51f4ce3c16e9",
+   "rev": 1,
+   "seconds": 1.32,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "1a55a203788fe2": {
    "key": "A|New shoes again?",
    "text": "New shoes again?",
@@ -58899,6 +61223,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "1a713153a34124": {
+   "key": "P|interest rate",
+   "text": "interest rate",
+   "role": "P",
+   "chapter": "ch30",
+   "id": "interest-rate",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "57a4c3f25c21",
+   "rev": 1,
+   "seconds": 1.12,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "1a7155280dcc07": {
    "key": "P|likewise",
    "text": "likewise",
@@ -58952,6 +61290,20 @@
    "sig": "d51b84b32f0f",
    "rev": 1,
    "seconds": 1.32,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "1a7cec6206a98e": {
+   "key": "A|Is there an ATM around here?",
+   "text": "Is there an ATM around here?",
+   "role": "A",
+   "chapter": "ch30",
+   "id": "atm",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "e8f7fbd268f4",
+   "rev": 1,
+   "seconds": 2.0,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -60453,6 +62805,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "1b273675b5574e": {
+   "key": "B|We can fix that today.",
+   "text": "We can fix that today.",
+   "role": "B",
+   "chapter": "ch29",
+   "id": "filling",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "cd94e55ae5d5",
+   "rev": 1,
+   "seconds": 1.48,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "1b2891bf9d9ea3": {
    "key": "A|I'm not going. Period.",
    "text": "I'm not going. Period.",
@@ -60971,6 +63337,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "1b642acb8478dd": {
+   "key": "A|Should I use my debit card or credit card?",
+   "text": "Should I use my debit card or credit card?",
+   "role": "A",
+   "chapter": "ch30",
+   "id": "debit-card",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "2a7963fbb1a7",
+   "rev": 1,
+   "seconds": 2.28,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "1b66f7bb42ab46": {
    "key": "P|eat out",
    "text": "eat out",
@@ -61052,6 +63432,20 @@
    "sig": "10786bea5543",
    "rev": 1,
    "seconds": 1.8,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "1b6f6279389b7e": {
+   "key": "B|Yes, for emergencies.",
+   "text": "Yes, for emergencies.",
+   "role": "B",
+   "chapter": "ch30",
+   "id": "savings-account",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "d8a1857d7dd6",
+   "rev": 1,
+   "seconds": 2.24,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -61207,6 +63601,20 @@
    "rev": 1,
    "seconds": 0.6,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "1b84140b410bff": {
+   "key": "A|How do I dispute a charge?",
+   "text": "How do I dispute a charge?",
+   "role": "A",
+   "chapter": "ch30",
+   "id": "dispute-a-charge",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "97975af8870b",
+   "rev": 1,
+   "seconds": 1.84,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "1b8598c9557ee8": {
@@ -61501,6 +63909,20 @@
    "rev": 1,
    "seconds": 0.83,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "1bb471c43e55b6": {
+   "key": "A|When can I change my health plan?",
+   "text": "When can I change my health plan?",
+   "role": "A",
+   "chapter": "ch29",
+   "id": "open-enrollment",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "8e8d3347e644",
+   "rev": 1,
+   "seconds": 2.28,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "1bb88748e44200": {
@@ -62049,6 +64471,20 @@
    "via": "sync",
    "at": "2026-09-28"
   },
+  "1bede869e9920e": {
+   "key": "P|contact lenses",
+   "text": "contact lenses",
+   "role": "P",
+   "chapter": "ch29",
+   "id": "contact-lenses",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "921f082825b3",
+   "rev": 1,
+   "seconds": 1.56,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "1bf0a9a6c8dd05": {
    "key": "P|nonetheless",
    "text": "nonetheless",
@@ -62187,6 +64623,20 @@
    "rev": 1,
    "seconds": 0.96,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "1bfa7133c8073f": {
+   "key": "B|Checking or savings?",
+   "text": "Checking or savings?",
+   "role": "B",
+   "chapter": "ch30",
+   "id": "id-like-to-open-a-bank-account",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "d8112a2a4851",
+   "rev": 1,
+   "seconds": 1.76,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "1bfb27fdb0ffe4": {
@@ -65045,6 +67495,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "1d4744bd4cf4a1": {
+   "key": "B|No, direct deposit.",
+   "text": "No, direct deposit.",
+   "role": "B",
+   "chapter": "ch30",
+   "id": "direct-deposit",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "2d43d7200a11",
+   "rev": 1,
+   "seconds": 1.76,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "1d4801dd1214a6": {
    "key": "A|Look at that sunset!",
    "text": "Look at that sunset!",
@@ -65633,6 +68097,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "1d74ba6d33e174": {
+   "key": "A|Can I see your insurance card?",
+   "text": "Can I see your insurance card?",
+   "role": "A",
+   "chapter": "ch29",
+   "id": "insurance-card",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "d355aea154f7",
+   "rev": 1,
+   "seconds": 2.0,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "1d7519659ed816": {
    "key": "P|texture",
    "text": "texture",
@@ -65728,6 +68206,20 @@
    "sig": "3f42d628b07e",
    "rev": 1,
    "seconds": 1.08,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "1d7cf561ac9300": {
+   "key": "P|I lost my card.",
+   "text": "I lost my card.",
+   "role": "P",
+   "chapter": "ch30",
+   "id": "i-lost-my-card",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "74310e5ffe59",
+   "rev": 1,
+   "seconds": 1.84,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -65841,6 +68333,20 @@
    "rev": 1,
    "seconds": 0.86,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "1d9109eedf1e37": {
+   "key": "P|wire transfer",
+   "text": "wire transfer",
+   "role": "P",
+   "chapter": "ch30",
+   "id": "wire-transfer",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "f6db35cefc03",
+   "rev": 1,
+   "seconds": 1.32,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "1d9175e2c48304": {
@@ -66039,6 +68545,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "1da4efe567eeda": {
+   "key": "A|I'd like to deposit this check.",
+   "text": "I'd like to deposit this check.",
+   "role": "A",
+   "chapter": "ch30",
+   "id": "id-like-to-deposit-this-check",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "00a9dc0c543c",
+   "rev": 1,
+   "seconds": 2.04,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "1da7dbdd757f93": {
    "key": "A|Are you tired?",
    "text": "Are you tired?",
@@ -66121,6 +68641,20 @@
    "rev": 1,
    "seconds": 1.8,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "1daf740c740596": {
+   "key": "P|insurance card",
+   "text": "insurance card",
+   "role": "P",
+   "chapter": "ch29",
+   "id": "insurance-card",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "7e34edca7c74",
+   "rev": 1,
+   "seconds": 1.32,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "1dafe352409af9": {
@@ -68013,6 +70547,34 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "1e83a6680d0850": {
+   "key": "B|You haven't met your deductible yet.",
+   "text": "You haven't met your deductible yet.",
+   "role": "B",
+   "chapter": "ch29",
+   "id": "deductible",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "e58b27959404",
+   "rev": 1,
+   "seconds": 2.04,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "1e844cbf47dd35": {
+   "key": "A|I'd like to open a bank account.",
+   "text": "I'd like to open a bank account.",
+   "role": "A",
+   "chapter": "ch30",
+   "id": "id-like-to-open-a-bank-account",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "d7cdd21f6a8b",
+   "rev": 1,
+   "seconds": 1.88,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "1e847b46243ad3": {
    "key": "B|Contact your embassy right away.",
    "text": "Contact your embassy right away.",
@@ -68080,6 +70642,20 @@
    "sig": "d39c4213d20e",
    "rev": 1,
    "seconds": 2.24,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "1e89c1e3c369ae": {
+   "key": "A|I can't find my wallet.",
+   "text": "I can't find my wallet.",
+   "role": "A",
+   "chapter": "ch30",
+   "id": "freeze-my-card",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "352007611593",
+   "rev": 1,
+   "seconds": 1.48,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -68683,6 +71259,20 @@
    "rev": 1,
    "seconds": 1.19,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "1eca27b5fc34fb": {
+   "key": "B|Thanks! I'll Venmo you.",
+   "text": "Thanks! I'll Venmo you.",
+   "role": "B",
+   "chapter": "ch30",
+   "id": "venmo-me",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "be5145836331",
+   "rev": 1,
+   "seconds": 1.68,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "1ecacbd45cf579": {
@@ -69819,6 +72409,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "1f38a9c425d13f": {
+   "key": "A|I can't sleep at all.",
+   "text": "I can't sleep at all.",
+   "role": "A",
+   "chapter": "ch29",
+   "id": "sleeping-pills",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "4dceb48a6f0c",
+   "rev": 1,
+   "seconds": 1.92,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "1f3c31cd59fa00": {
    "key": "P|fall for",
    "text": "fall for",
@@ -69956,6 +72560,20 @@
    "sig": "7af4123543a7",
    "rev": 1,
    "seconds": 2.4,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "1f47497762bd17": {
+   "key": "A|Why is your face swollen?",
+   "text": "Why is your face swollen?",
+   "role": "A",
+   "chapter": "ch29",
+   "id": "wisdom-tooth",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "0146885fd262",
+   "rev": 1,
+   "seconds": 1.8,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -70181,6 +72799,20 @@
    "rev": 1,
    "seconds": 1.8,
    "via": "sync",
+   "at": "2026-09-28"
+  },
+  "1f64646fc7be60": {
+   "key": "P|minimum balance",
+   "text": "minimum balance",
+   "role": "P",
+   "chapter": "ch30",
+   "id": "minimum-balance",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "560fdf608ea9",
+   "rev": 1,
+   "seconds": 1.68,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "1f6574621c8eea": {
@@ -70729,6 +73361,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "1faf954984594d": {
+   "key": "P|Zelle",
+   "text": "Zelle",
+   "role": "P",
+   "chapter": "ch30",
+   "id": "zelle",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "57bccd34b722",
+   "rev": 1,
+   "seconds": 0.88,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "1fb2f43cb20875": {
    "key": "A|The cat disappeared under the bed.",
    "text": "The cat disappeared under the bed.",
@@ -70979,6 +73625,20 @@
    "rev": 1,
    "seconds": 0.87,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "1fc7c1317d0941": {
+   "key": "A|Do you wear glasses?",
+   "text": "Do you wear glasses?",
+   "role": "A",
+   "chapter": "ch29",
+   "id": "contact-lenses",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "f191a9f6d8f5",
+   "rev": 1,
+   "seconds": 1.4,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "1fc84a8da44337": {
@@ -71275,6 +73935,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "1febcbf1ca23dd": {
+   "key": "B|Take some allergy medicine.",
+   "text": "Take some allergy medicine.",
+   "role": "B",
+   "chapter": "ch29",
+   "id": "allergy-medicine",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "2cd13c60dd7e",
+   "rev": 1,
+   "seconds": 2.0,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "1fef236a8e1b5f": {
    "key": "A|I don't like the texture of tofu.",
    "text": "I don't like the texture of tofu.",
@@ -71331,6 +74005,34 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "1ff83f227bbea4": {
+   "key": "B|Get a card and pay it off every month.",
+   "text": "Get a card and pay it off every month.",
+   "role": "B",
+   "chapter": "ch30",
+   "id": "build-credit",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "0e42fae8e736",
+   "rev": 1,
+   "seconds": 2.36,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "1ffcba7ab48c82": {
+   "key": "P|credit score",
+   "text": "credit score",
+   "role": "P",
+   "chapter": "ch30",
+   "id": "credit-score",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "ed8a26737fad",
+   "rev": 1,
+   "seconds": 1.16,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "1ffde8fad7776b": {
    "key": "P|story",
    "text": "story",
@@ -71343,6 +74045,20 @@
    "rev": 1,
    "seconds": 0.65,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "1ffec06013a434": {
+   "key": "A|Is this doctor in-network?",
+   "text": "Is this doctor in-network?",
+   "role": "A",
+   "chapter": "ch29",
+   "id": "in-network",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "e7b6974d8ce9",
+   "rev": 1,
+   "seconds": 1.88,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "1fffe6d281f7f7": {
