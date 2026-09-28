@@ -19,11 +19,11 @@ const ch1 = lib.chapters[0];
 const T = "2026-09-28";
 const Y = "2026-09-27";
 
-test("教材は40章×50問=2000問で、IDは英語から決まり重複しない", () => {
+test("教材は110章×50問=5500問（フレーズ2500・単語3000）で、IDは英語から決まり重複しない", () => {
   assert.equal(lib.errors.length, 0, lib.errors.join("\n"));
-  assert.equal(lib.chapters.length, 40);
+  assert.equal(lib.chapters.length, 110);
   assert.ok(lib.chapters.every((c) => c.items.length === 50));
-  assert.equal(Object.keys(lib.byId).length, 2000);
+  assert.equal(Object.keys(lib.byId).length, 5500);
   assert.equal(slugify("It's up to you."), "its-up-to-you");
   assert.equal(slugify("résumé"), "resume");
 });
@@ -107,7 +107,7 @@ test("v1（22フレーズ版）の保存データを引き継ぐ", () => {
 
 test("壊れた・古い保存データでも起動できる", () => {
   assert.deepEqual(restoreState(null, lib), freshState());
-  const s = restoreState({ version: 2, learned: {}, queues: { ch01: ["x"] }, chapter: "ch99" }, lib);
+  const s = restoreState({ version: 2, learned: {}, queues: { ch01: ["x"] }, chapter: "ch999" }, lib);
   assert.equal(s.chapter, "ch01");
   assert.equal(chapterQueue(s, ch1).length, 50);
 });

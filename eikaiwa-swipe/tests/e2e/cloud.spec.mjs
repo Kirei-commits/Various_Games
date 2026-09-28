@@ -6,6 +6,7 @@ import { swipe } from "./fixtures.mjs";
  * 「クラウド」の中身は __fakeCloudDb に置くので、アプリのデータを消せば「別の端末」を再現できる。
  */
 function installFakeCloud() {
+  window.__swipetalkNoDailyBonus = true;
   const db = JSON.parse(localStorage.getItem("__fakeCloudDb") || "{}");
   let user = JSON.parse(localStorage.getItem("__fakeCloudUser") || "null");
   const listeners = new Set();
@@ -120,7 +121,7 @@ test("ログイン中の操作はまとめてクラウドに保存され、別�
   await expect(page.getByTestId("remaining")).toHaveText(/^49/);
   await page.getByRole("button", { name: "進捗", exact: true }).click();
   await expect(page.getByTestId("sync-status")).toHaveText(/クラウドに保存済み/);
-  await expect(page.getByText(/^1 \/ 2000 覚えた$/)).toBeVisible();
+  await expect(page.getByText(/^1 \/ 5500 覚えた$/)).toBeVisible();
 });
 
 test("ログアウトすると、この端末から進捗が消える（クラウドには残る）", async ({ page }) => {
@@ -131,12 +132,12 @@ test("ログアウトすると、この端末から進捗が消える（クラ�
   await page.getByRole("button", { name: "ログアウト" }).click();
   await page.getByRole("button", { name: /もう一度タップでログアウト/ }).click();
   await expect(page.getByTestId("account-card").getByRole("button", { name: /Google でログイン/ })).toBeVisible();
-  await expect(page.getByText(/^0 \/ 2000 覚えた$/)).toBeVisible();
+  await expect(page.getByText(/^0 \/ 5500 覚えた$/)).toBeVisible();
   expect(await cloudLearned(page)).toBe(1);
 
   // 同じアカウントで入り直すと戻ってくる
   await page.getByTestId("account-card").getByRole("button", { name: /Google でログイン/ }).click();
-  await expect(page.getByText(/^1 \/ 2000 覚えた$/)).toBeVisible();
+  await expect(page.getByText(/^1 \/ 5500 覚えた$/)).toBeVisible();
 });
 
 test("LINE などのアプリ内ブラウザでは、ブラウザで開き直す案内を出す", async ({ browser }) => {

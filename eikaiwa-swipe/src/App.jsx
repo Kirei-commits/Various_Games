@@ -31,6 +31,7 @@ import {
   LogOut,
 } from "lucide-react";
 import rawChapters, { PARTS, RENAMED } from "./data/index.js";
+import { analyzeLinking, LINK_LABELS } from "./linking.js";
 import {
   buildLibrary,
   parseDialogue,
@@ -54,15 +55,27 @@ import {
   prosodyPlan,
   shadowSteps,
   pauseMs,
-  wordMatch,
   resolveLogin,
+  fuzzySearch,
+  claimDailyBonus,
+  claimGoalBonus,
+  canClaimGoal,
+  todayProgress,
+  buyTheme,
+  applyTheme,
+  themeOf,
+  dailyReward,
+  THEMES,
+  DAILY_GOAL,
+  GOAL_REWARD,
   stateVersionOf,
   STATE_VERSION,
 } from "./logic.js";
 import { cloud, authErrorMessage } from "./cloud.js";
-import { usableVoices, pickVoices, genderLabel } from "./voices.js";
+import { usableVoices, pickVoices, pickVoicesFor, genderLabel } from "./voices.js";
 import { SoundEngine, silentSound } from "./audio.js";
 import { detectInAppBrowser } from "./env.js";
+import { analyzePronunciation, verdictText, commonIssues } from "./pronounce.js";
 
 const IN_APP = typeof navigator !== "undefined" ? detectInAppBrowser(navigator.userAgent) : null;
 const SKIP_LOGIN_KEY = "swipetalk:skipLogin";
@@ -83,16 +96,24 @@ const session = {
   },
 };
 
-/** 効果音・BGM（画面のどこからでも鳴らせるように Context で渡す） */
+/** 効果音（画面のどこからでも鳴らせるように Context で渡す） */
 const SoundContext = createContext(silentSound);
 const useSound = () => useContext(SoundContext);
+
+/** 着せかえの色（カードの帯とアイコン） */
+const ThemeContext = createContext(THEMES[0]);
+const useThemeColors = () => useContext(ThemeContext);
+/** リンキング（音のつながり）を表示するか（設定） */
+const LinkingContext = createContext(true);
+const gradient = (theme, dir = "90deg") => ({ background: `linear-gradient(${dir}, ${theme.colors.join(", ")})` });
 
 /*
  * SwipeTalk — スワイプ式 英会話フレーズ学習アプリ
  *
  * - 学習: 右スワイプ=覚えた（キューから外す）/ 左スワイプ=覚えてない（最後尾へ）
  * - テスト: 英語（文字 or 音声のみ）を見て、日本語の意味を「入力・音声・4択」で答える
- * - 全40章 × 50問 = 2000問（src/data/）。基本編（1〜20章）とアメリカ生活編（21〜40章）
+ * - 全110章 × 50問 = 5500問（src/data/）。フレーズ50章（基本編・アメリカ生活編・もっと話せる編）と単語60章
+ * - リンキング: 単語どうしの音のつながりを ‿ と説明で表示（linking.js）
  * - 音声: Web Speech API。文ごとに pitch/rate を変えて抑揚をつける（logic.js の prosodyPlan）
  * - 保存: LocalStorage。使えない環境ではメモリ上だけで動く
  */
@@ -116,7 +137,15 @@ const EXIT_MS = 280;
 
 const chapterLabel = (c) => `第${CHAPTER_NO[c.id]}章 ${c.title}`;
 /** 部ごとの章（章選択のグループ分けと進捗画面の見出しに使う） */
-const PART_GROUPS = PARTS.map((p) => ({ ...p, chapters: CHAPTERS.slice(p.from - 1, p.to) }));
+const PART_GROUPS = PARTS.map((p) => {
+  const chapters = CHAPTERS.slice(p.from - 1, p.to);
+  return { ...p, chapters, count: chapters.reduce((n, c) => n + c.items.length, 0) };
+});
+/** 種類ごとの問題（フレーズ全部・単語全部） */
+const KIND_ITEMS = {
+  phrase: PART_GROUPS.filter((p) => p.kind === "phrase").flatMap((p) => p.chapters.flatMap((c) => c.items)),
+  word: PART_GROUPS.filter((p) => p.kind === "word").flatMap((p) => p.chapters.flatMap((c) => c.items)),
+};
 
 // ---------------------------------------------------------------------------
 // 永続化
@@ -168,9 +197,10 @@ const DEFAULT_SETTINGS = {
   rate: 0.95,
   expressive: true,
   twoVoices: true,
+  voiceVariety: true,
+  linking: true,
   sfx: true,
-  bgm: true,
-  bgmVolume: 0.35,
+  sfxVolume: 0.6,
   test: { scope: "ch01", count: 10, direction: "en-ja", prompt: "text", answer: "type" },
 };
 
@@ -182,7 +212,7 @@ function loadSettings() {
 // ---------------------------------------------------------------------------
 // 音声読み上げ（Web Speech API）
 // ---------------------------------------------------------------------------
-function useSpeech(settings, sound = silentSound) {
+function useSpeech(settings) {
   const supported = typeof window !== "undefined" && "speechSynthesis" in window;
   const [voices, setVoices] = useState([]);
   const [speaking, setSpeaking] = useState(null);
@@ -214,19 +244,23 @@ function useSpeech(settings, sound = silentSound) {
    * 読み上げできない環境では false を返す。
    */
   const speakLines = useCallback(
-    (lines, key, onDone) => {
+    (lines, key, onDone, seed = key) => {
       if (!supported || !lines.length) return false;
       const synth = window.speechSynthesis;
       synth.cancel();
       const my = ++token.current;
       const utterances = [];
+      // 「会話ごとにいろいろな人の声」なら、会話（seed）ごとに A・B の声の組み合わせを変える
+      const cast = settings.voiceVariety
+        ? pickVoicesFor(voices, seed, { twoVoices: settings.twoVoices })
+        : { a: voiceA, b: voiceB, sameVoice };
       for (const line of lines) {
-        const voice = line.role === "B" ? voiceB : voiceA;
+        const voice = line.role === "B" ? cast.b : cast.a;
         for (const chunk of prosodyPlan(line.text, {
           expressive: settings.expressive,
           rate: settings.rate,
           // 声の高さで役を区別するのは、B役も同じ声を使うときだけ（別の声を高くすると不自然になる）
-          role: settings.twoVoices && sameVoice ? line.role : null,
+          role: settings.twoVoices && cast.sameVoice ? line.role : null,
         })) {
           const u = new SpeechSynthesisUtterance(chunk.text);
           u.lang = voice?.lang || "en-US";
@@ -240,13 +274,11 @@ function useSpeech(settings, sound = silentSound) {
       const finish = (completed) => {
         if (token.current !== my) return;
         setSpeaking(null);
-        sound.duck("speech", false);
         if (completed) onDone?.();
       };
       utterances[0].onstart = () => {
         if (token.current !== my) return;
         setSpeaking(key);
-        sound.duck("speech", true); // 読み上げ中は BGM を小さく
       };
       utterances[utterances.length - 1].onend = () => finish(true);
       // 声が使えないなどのエラーでも先へ進める（止めた・割り込まれたときは除く）
@@ -255,17 +287,17 @@ function useSpeech(settings, sound = silentSound) {
       setTimeout(() => token.current === my && utterances.forEach((u) => synth.speak(u)), 0);
       return true;
     },
-    [supported, voiceA, voiceB, sameVoice, settings.expressive, settings.rate, settings.twoVoices, sound]
+    [supported, voices, voiceA, voiceB, sameVoice, settings.expressive, settings.rate, settings.twoVoices, settings.voiceVariety]
   );
 
-  const speak = useCallback((text, role = null) => speakLines([{ text, role }], text), [speakLines]);
+  /** seed を渡すと、その会話と同じ声で読む（見出しと会話例の声をそろえるため） */
+  const speak = useCallback((text, role = null, seed = text) => speakLines([{ text, role }], text, undefined, seed), [speakLines]);
 
   const stop = useCallback(() => {
     token.current++;
     setSpeaking(null);
-    sound.duck("speech", false);
     if (supported) window.speechSynthesis.cancel();
-  }, [supported, sound]);
+  }, [supported]);
 
   return { supported, speak, speakLines, stop, speaking, voices, voiceA, voiceB, sameVoice };
 }
@@ -291,7 +323,6 @@ const RECOGNITION_BLOCKED = new Set(["not-allowed", "service-not-allowed", "audi
  */
 function useRecognition() {
   const Ctor = typeof window !== "undefined" ? window.SpeechRecognition || window.webkitSpeechRecognition : null;
-  const sound = useSound();
   const [listening, setListening] = useState(false);
   const [interim, setInterim] = useState("");
   const [error, setError] = useState("");
@@ -302,7 +333,6 @@ function useRecognition() {
   const abort = useCallback(() => {
     const r = rec.current;
     rec.current = null;
-    sound.duck("mic", false);
     if (r) {
       try {
         r.abort();
@@ -311,7 +341,7 @@ function useRecognition() {
       }
     }
     setListening(false);
-  }, [sound]);
+  }, []);
 
   /** 聞き取りを終える（話した分は結果として受け取る） */
   const stop = useCallback(() => {
@@ -349,26 +379,23 @@ function useRecognition() {
         r.onend = () => {
           if (rec.current !== r) return;
           rec.current = null;
-          sound.duck("mic", false);
-          setListening(false);
+                setListening(false);
           onEnd?.();
         };
         rec.current = r;
-        sound.duck("mic", true); // マイクが BGM を拾わないよう、聞き取り中は無音にする
         r.start();
         setListening(true);
         return true;
       } catch {
         rec.current = null;
-        sound.duck("mic", false);
-        setError(RECOGNITION_ERRORS["service-not-allowed"]);
+            setError(RECOGNITION_ERRORS["service-not-allowed"]);
         setBlocked(true);
         setListening(false);
         onEnd?.();
         return false;
       }
     },
-    [Ctor, abort, sound]
+    [Ctor, abort]
   );
 
   useEffect(() => () => abort(), [abort]);
@@ -390,7 +417,7 @@ function useRecognition() {
 // ---------------------------------------------------------------------------
 // 共通パーツ
 // ---------------------------------------------------------------------------
-function SpeakButton({ text, role = null, speech, size = "md", className = "", label }) {
+function SpeakButton({ text, role = null, seed, speech, size = "md", className = "", label }) {
   const active = speech.speaking === text;
   const dims = size === "sm" ? "h-8 w-8" : size === "lg" ? "h-12 w-12" : "h-10 w-10";
   const icon = size === "sm" ? 16 : size === "lg" ? 24 : 20;
@@ -402,7 +429,7 @@ function SpeakButton({ text, role = null, speech, size = "md", className = "", l
       onPointerDown={(e) => e.stopPropagation()}
       onClick={(e) => {
         e.stopPropagation();
-        speech.speak(text, role);
+        speech.speak(text, role, seed ?? text);
       }}
       className={`${dims} shrink-0 inline-flex items-center justify-center rounded-full transition active:scale-90 disabled:opacity-30 ${
         active ? "bg-indigo-600 text-white shadow-lg" : "bg-indigo-50 text-indigo-600 hover:bg-indigo-100"
@@ -413,7 +440,52 @@ function SpeakButton({ text, role = null, speech, size = "md", className = "", l
   );
 }
 
-function Dialogue({ context, translation, speech }) {
+/**
+ * 英文を表示し、つながって発音される単語の間に ‿ を重ねる（文字列そのものは変えない）。
+ * 語の中で t の音が変わる語（water, twenty など）には点線の下線を引く。
+ */
+function LinkedText({ text }) {
+  const on = useContext(LinkingContext);
+  const tokens = useMemo(() => (on ? analyzeLinking(text).tokens : null), [text, on]);
+  if (!tokens) return text;
+  return tokens.map((t, i) => (
+    <React.Fragment key={i}>
+      <span className={t.inner.length ? "underline decoration-dotted decoration-amber-400 underline-offset-4" : undefined}>{t.text}</span>
+      {i < tokens.length - 1 &&
+        (t.link ? (
+          <span className="lk" data-k={t.link} title={LINK_LABELS[t.link]}>
+            {" "}
+          </span>
+        ) : (
+          " "
+        ))}
+    </React.Fragment>
+  ));
+}
+
+/** 英文の「音のつながり」の説明（どこが・どう聞こえるか・なぜか） */
+function LinkingNotes({ text, className = "" }) {
+  const on = useContext(LinkingContext);
+  const notes = useMemo(() => (on ? analyzeLinking(text).notes : []), [text, on]);
+  if (!notes.length) return null;
+  return (
+    <div className={`rounded-2xl bg-indigo-50/60 p-3 ${className}`} data-testid="linking-notes">
+      <p className="text-[11px] font-bold tracking-wide text-indigo-500">音のつながり（リンキング）</p>
+      <ul className="mt-1.5 space-y-1.5">
+        {notes.map((n, i) => (
+          <li key={i} className="text-xs leading-relaxed text-slate-700">
+            <span className="mr-1.5 rounded bg-white px-1.5 py-0.5 text-[10px] font-bold text-indigo-600 ring-1 ring-indigo-100">{n.label}</span>
+            <span className="font-bold text-slate-900">{n.words}</span>
+            {n.sound && <span className="ml-1 inline-block whitespace-nowrap font-bold text-rose-500">→ {n.sound}</span>}
+            <span className="block text-[11px] text-slate-500">{n.tip}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function Dialogue({ context, translation, speech, seed = context }) {
   const lines = parseDialogue(context);
   const ja = parseDialogue(translation);
   const key = `dialogue:${context}`;
@@ -426,7 +498,9 @@ function Dialogue({ context, translation, speech }) {
           e.stopPropagation();
           speech.speakLines(
             lines.map((l) => ({ text: l.text, role: l.speaker })),
-            key
+            key,
+            undefined,
+            seed
           );
         }}
         disabled={!speech.supported}
@@ -434,7 +508,7 @@ function Dialogue({ context, translation, speech }) {
           speech.speaking === key ? "bg-indigo-600 text-white" : "bg-slate-100 text-slate-600"
         }`}
       >
-        <Play size={12} /> 会話を通して再生
+        <Play size={12} /> {lines.length > 1 ? "会話を通して再生" : "例文を再生"}
       </button>
       {lines.map((line, i) => {
         const isB = line.speaker === "B";
@@ -449,8 +523,10 @@ function Dialogue({ context, translation, speech }) {
             </span>
             <div className={`min-w-0 flex-1 rounded-2xl px-3 py-2 ${isB ? "bg-pink-50 rounded-tr-sm" : "bg-sky-50 rounded-tl-sm"}`}>
               <div className="flex items-start gap-2">
-                <p className="flex-1 text-sm text-slate-800 leading-snug">{line.text}</p>
-                <SpeakButton text={line.text} role={line.speaker} speech={speech} size="sm" />
+                <p className="flex-1 text-sm text-slate-800 leading-snug">
+                  <LinkedText text={line.text} />
+                </p>
+                <SpeakButton text={line.text} role={line.speaker} seed={seed} speech={speech} size="sm" />
               </div>
               {ja[i] && <p className="mt-1 text-xs text-slate-500 leading-snug">{ja[i].text}</p>}
             </div>
@@ -476,10 +552,10 @@ function ChapterSelect({ value, onChange, extra = [], id, className = "" }) {
           </option>
         ))}
         {PART_GROUPS.map((part) => (
-          <optgroup key={part.title} label={part.title}>
+          <optgroup key={part.title} label={`${part.title}（${part.count}問）`}>
             {part.chapters.map((c) => (
               <option key={c.id} value={c.id}>
-                {chapterLabel(c)}
+                {chapterLabel(c)}（{c.items.length}問）
               </option>
             ))}
           </optgroup>
@@ -512,12 +588,45 @@ function Segmented({ value, onChange, options, name }) {
   );
 }
 
+/** 3回タップしてはじめて実行される、全進捗のリセット（何もしなければ5秒で元に戻る） */
+const RESET_STEPS = [
+  "進捗をリセット",
+  "本当にリセットしますか？（あと2回タップ）",
+  "覚えた・テストの記録・苦手がすべて消えます（あと1回）",
+];
+
+function ResetButton({ onReset }) {
+  const [step, setStep] = useState(0);
+  useEffect(() => {
+    if (step === 0) return undefined;
+    const t = setTimeout(() => setStep(0), 5000);
+    return () => clearTimeout(t);
+  }, [step]);
+  return (
+    <button
+      type="button"
+      data-testid="reset-button"
+      onClick={() => {
+        if (step + 1 < RESET_STEPS.length) return setStep(step + 1);
+        setStep(0);
+        onReset();
+      }}
+      className={`w-full rounded-xl py-2.5 text-xs font-bold transition ${
+        step === 0 ? "bg-slate-50 text-slate-400 ring-1 ring-slate-200" : step === 1 ? "bg-rose-100 text-rose-700" : "bg-rose-500 text-white"
+      }`}
+    >
+      {RESET_STEPS[step]}
+    </button>
+  );
+}
+
 const voiceLabel = (v) => `${v.name}（${[genderLabel(v), v.lang].filter(Boolean).join("・")}）`;
 
 // ---------------------------------------------------------------------------
 // 音声設定
 // ---------------------------------------------------------------------------
-function SettingsSheet({ open, onClose, settings, setSettings, speech }) {
+function SettingsSheet({ open, onClose, settings, setSettings, speech, onResetAll }) {
+  const sound = useSound();
   if (!open) return null;
   const update = (patch) => setSettings((s) => ({ ...s, ...patch }));
   const sample = [
@@ -534,7 +643,7 @@ function SettingsSheet({ open, onClose, settings, setSettings, speech }) {
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-extrabold text-slate-900">音声・サウンドの設定</h2>
+          <h2 className="text-lg font-extrabold text-slate-900">音声・表示・効果音の設定</h2>
           <button type="button" onClick={onClose} aria-label="閉じる" className="rounded-full p-2 text-slate-400 hover:bg-slate-100">
             <X size={20} />
           </button>
@@ -544,6 +653,24 @@ function SettingsSheet({ open, onClose, settings, setSettings, speech }) {
           <p className="mt-3 rounded-xl bg-amber-50 px-3 py-2 text-xs text-amber-700">このブラウザは音声読み上げに対応していません。</p>
         )}
 
+        <label className="mt-4 flex items-center gap-3 rounded-xl bg-indigo-50 px-3 py-2.5">
+          <span className="flex-1">
+            <span className="block text-sm font-bold text-slate-800">会話ごとにいろいろな人の声にする</span>
+            <span className="block text-xs text-slate-500">
+              フレーズごとに話す人が変わります（聞き取りやすい声だけ・{speech.voices.length}人）。オフにすると声を選んで固定できます
+            </span>
+          </span>
+          <input
+            id="toggle-voiceVariety"
+            type="checkbox"
+            checked={settings.voiceVariety}
+            onChange={(e) => update({ voiceVariety: e.target.checked })}
+            className="h-5 w-5 accent-indigo-600"
+          />
+        </label>
+
+        {!settings.voiceVariety && (
+          <>
         <label htmlFor="voice-select" className="mt-4 block text-xs font-bold text-slate-500">
           声の種類（A役・見出しの読み上げ）
         </label>
@@ -597,6 +724,13 @@ function SettingsSheet({ open, onClose, settings, setSettings, speech }) {
           </>
         )}
 
+          </>
+        )}
+        <p className="mt-2 text-[11px] leading-relaxed text-slate-400">
+          iPhone は「設定 → アクセシビリティ → 読み上げコンテンツ → 声 → 英語」で「Ava（プレミアム）」「Zoe（プレミアム）」「Evan（拡張）」などを
+          ダウンロードすると、とても自然な声が使えるようになります（無料）。
+        </p>
+
         <label htmlFor="rate-range" className="mt-4 flex items-center justify-between text-xs font-bold text-slate-500">
           話す速さ <span className="tabular-nums text-slate-700">×{settings.rate.toFixed(2)}</span>
         </label>
@@ -632,40 +766,51 @@ function SettingsSheet({ open, onClose, settings, setSettings, speech }) {
           ))}
         </div>
 
-        <p className="mt-5 text-xs font-bold text-slate-500">サウンド</p>
-        <div className="mt-2 space-y-2">
-          {[
-            ["sfx", "効果音", "覚えた・正解・テスト完了などで音が鳴ります"],
-            ["bgm", "BGM", "やさしい音楽を流します。読み上げ中は小さく、マイクで話すときは止まります"],
-          ].map(([key, label, hint]) => (
-            <label key={key} className="flex items-center gap-3 rounded-xl bg-slate-50 px-3 py-2.5">
-              <span className="flex-1">
-                <span className="block text-sm font-bold text-slate-800">{label}</span>
-                <span className="block text-xs text-slate-500">{hint}</span>
-              </span>
-              <input
-                id={`toggle-${key}`}
-                type="checkbox"
-                checked={settings[key]}
-                onChange={(e) => update({ [key]: e.target.checked })}
-                className="h-5 w-5 accent-indigo-600"
-              />
-            </label>
-          ))}
-        </div>
-        {settings.bgm && (
+        <p className="mt-5 text-xs font-bold text-slate-500">表示</p>
+        <label className="mt-2 flex items-center gap-3 rounded-xl bg-slate-50 px-3 py-2.5">
+          <span className="flex-1">
+            <span className="block text-sm font-bold text-slate-800">リンキング（音のつながり）を表示</span>
+            <span className="block text-xs text-slate-500">
+              つながって発音される単語の間に ‿ を付け、wanna・gonna などの崩れ方や、やわらかい t の説明を出します
+            </span>
+          </span>
+          <input
+            id="toggle-linking"
+            type="checkbox"
+            checked={settings.linking}
+            onChange={(e) => update({ linking: e.target.checked })}
+            className="h-5 w-5 accent-indigo-600"
+          />
+        </label>
+
+        <p className="mt-5 text-xs font-bold text-slate-500">効果音</p>
+        <label className="mt-2 flex items-center gap-3 rounded-xl bg-slate-50 px-3 py-2.5">
+          <span className="flex-1">
+            <span className="block text-sm font-bold text-slate-800">効果音を鳴らす</span>
+            <span className="block text-xs text-slate-500">覚えた・正解・テスト完了・ログインボーナスなど</span>
+          </span>
+          <input
+            id="toggle-sfx"
+            type="checkbox"
+            checked={settings.sfx}
+            onChange={(e) => update({ sfx: e.target.checked })}
+            className="h-5 w-5 accent-indigo-600"
+          />
+        </label>
+        {settings.sfx && (
           <>
-            <label htmlFor="bgm-volume" className="mt-3 flex items-center justify-between text-xs font-bold text-slate-500">
-              BGM の音量 <span className="tabular-nums text-slate-700">{Math.round(settings.bgmVolume * 100)}%</span>
+            <label htmlFor="sfx-volume" className="mt-3 flex items-center justify-between text-xs font-bold text-slate-500">
+              効果音の音量 <span className="tabular-nums text-slate-700">{Math.round(settings.sfxVolume * 100)}%</span>
             </label>
             <input
-              id="bgm-volume"
+              id="sfx-volume"
               type="range"
-              min="0.05"
+              min="0.1"
               max="1"
               step="0.05"
-              value={settings.bgmVolume}
-              onChange={(e) => update({ bgmVolume: Number(e.target.value) })}
+              value={settings.sfxVolume}
+              onChange={(e) => update({ sfxVolume: Number(e.target.value) })}
+              onPointerUp={() => sound.play("correct")}
               className="mt-2 w-full accent-indigo-600"
             />
           </>
@@ -679,6 +824,21 @@ function SettingsSheet({ open, onClose, settings, setSettings, speech }) {
         >
           <Play size={16} /> 試しに聞く
         </button>
+
+        <div className="mt-8 border-t border-slate-100 pt-4">
+          <p className="text-xs font-bold text-slate-400">進捗のリセット</p>
+          <p className="mt-1 text-[11px] leading-relaxed text-slate-400">
+            すべての章の「覚えた」、テストの記録、苦手な問題を消して最初からやり直します。ログイン中はクラウドの進捗も消えます。
+          </p>
+          <div className="mt-2">
+            <ResetButton
+              onReset={() => {
+                onResetAll();
+                onClose();
+              }}
+            />
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -688,6 +848,7 @@ function SettingsSheet({ open, onClose, settings, setSettings, speech }) {
 // 学習画面
 // ---------------------------------------------------------------------------
 function SwipeCard({ phrase, exit, onRelease, flipped, onFlip, speech }) {
+  const theme = useThemeColors();
   const [drag, setDrag] = useState({ dx: 0, dy: 0, active: false });
   const start = useRef(null);
 
@@ -734,7 +895,9 @@ function SwipeCard({ phrase, exit, onRelease, flipped, onFlip, speech }) {
       style={{
         transform: `translate(${dx}px, ${dy}px) rotate(${rotate}deg)`,
         transition: drag.active ? "none" : `transform ${EXIT_MS}ms ease-out`,
-        touchAction: "pan-y",
+        // 表面は縦の動きも受け取ってスワイプに使う（ページが上下に動かないように）。
+        // 裏面は会話例が長いと中身をスクロールしたいので、縦の動きはブラウザに任せる
+        touchAction: flipped ? "pan-y" : "none",
       }}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
@@ -751,13 +914,13 @@ function SwipeCard({ phrase, exit, onRelease, flipped, onFlip, speech }) {
           }}
         >
           <div className={face} style={hidden}>
-            <div className="h-2 bg-gradient-to-r from-indigo-500 via-violet-500 to-pink-500" />
+            <div className="h-2" style={gradient(theme)} />
             <div className="flex-1 flex flex-col items-center justify-center px-6 text-center">
               <span className="mb-4 rounded-full bg-indigo-50 px-3 py-1 text-xs font-semibold tracking-wide text-indigo-600">
                 第{CHAPTER_NO[phrase.chapterId]}章
               </span>
               <h2 className="text-4xl font-extrabold leading-tight text-slate-900 break-words">{phrase.english}</h2>
-              <SpeakButton text={phrase.english} size="lg" className="mt-8" label="英語を再生" speech={speech} />
+              <SpeakButton text={phrase.english} seed={phrase.id} size="lg" className="mt-8" label="英語を再生" speech={speech} />
             </div>
             <p className="pb-5 text-center text-xs text-slate-400 flex items-center justify-center gap-1">
               <Hand size={14} /> タップで意味と例文を表示
@@ -765,15 +928,20 @@ function SwipeCard({ phrase, exit, onRelease, flipped, onFlip, speech }) {
           </div>
 
           <div className={face} style={{ ...hidden, transform: "rotateY(180deg)" }}>
-            <div className="h-2 bg-gradient-to-r from-pink-500 via-violet-500 to-indigo-500" />
+            <div className="h-2" style={gradient(theme, "270deg")} />
             <div className="flex-1 overflow-y-auto px-5 py-5">
               <div className="flex items-center gap-2">
-                <h3 className="flex-1 text-xl font-bold text-slate-900">{phrase.english}</h3>
-                <SpeakButton text={phrase.english} label="英語を再生" speech={speech} />
+                <h3 className="flex-1 text-xl font-bold text-slate-900">
+                  <LinkedText text={phrase.english} />
+                </h3>
+                <SpeakButton text={phrase.english} seed={phrase.id} label="英語を再生" speech={speech} />
               </div>
               <p className="mt-2 text-2xl font-bold text-indigo-600">{phrase.japanese}</p>
-              <div className="mt-5 mb-2 text-xs font-semibold tracking-wide text-slate-400">CONVERSATION</div>
-              <Dialogue context={phrase.exampleContext} translation={phrase.exampleJapanese} speech={speech} />
+              <LinkingNotes text={phrase.english} className="mt-3" />
+              <div className="mt-5 mb-2 text-xs font-semibold tracking-wide text-slate-400">
+                {parseDialogue(phrase.exampleContext).length > 1 ? "CONVERSATION" : "EXAMPLE"}
+              </div>
+              <Dialogue context={phrase.exampleContext} translation={phrase.exampleJapanese} seed={phrase.id} speech={speech} />
             </div>
             <p className="pb-4 pt-1 text-center text-xs text-slate-400">タップで表に戻る</p>
           </div>
@@ -797,10 +965,11 @@ function SwipeCard({ phrase, exit, onRelease, flipped, onFlip, speech }) {
 }
 
 function ScreenHeader({ title, sub, onSettings, right }) {
+  const theme = useThemeColors();
   return (
     <header className="flex items-center justify-between gap-3">
       <div className="flex min-w-0 items-center gap-2">
-        <div className="h-9 w-9 shrink-0 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-white shadow">
+        <div className="h-9 w-9 shrink-0 rounded-xl flex items-center justify-center text-white shadow" style={gradient(theme, "135deg")}>
           <Sparkles size={18} />
         </div>
         <div className="min-w-0">
@@ -891,7 +1060,7 @@ function StudyScreen({ active, state, onChapter, onSwipe, onResetChapter, speech
     <div className="flex h-full flex-col px-5 pt-4">
       <ScreenHeader
         title="SwipeTalk"
-        sub={`全${CHAPTERS.length}章・${TOTAL}フレーズ`}
+        sub={`全${CHAPTERS.length}章・${TOTAL}問`}
         onSettings={onSettings}
         right={
           <div className="text-right">
@@ -1005,12 +1174,15 @@ const COUNT_OPTIONS = [10, 20, 50];
 
 function scopeItems(scope, misses) {
   if (scope === "all") return ALL_ITEMS;
+  if (scope === "phrase" || scope === "word") return KIND_ITEMS[scope];
   if (scope === "weak") return ALL_ITEMS.filter((p) => misses[p.id]);
   return CHAPTER_BY_ID[scope]?.items || [];
 }
 
 function scopeLabel(scope) {
   if (scope === "all") return "全章から";
+  if (scope === "phrase") return "フレーズ全部から";
+  if (scope === "word") return "単語全部から";
   if (scope === "weak") return "苦手な問題";
   return chapterLabel(CHAPTER_BY_ID[scope]);
 }
@@ -1044,6 +1216,8 @@ function TestSetup({ config, setConfig, misses, tests, onStart, onSettings }) {
             onChange={(scope) => set({ scope })}
             extra={[
               ["all", `全章から（${TOTAL}問）`],
+              ["phrase", `フレーズ全部から（${KIND_ITEMS.phrase.length}問）`],
+              ["word", `単語全部から（${KIND_ITEMS.word.length}問）`],
               ["weak", `苦手な問題（${weakCount}問）`],
             ]}
             className="mt-1"
@@ -1172,11 +1346,12 @@ function TestRun({ quiz, config, pool, speech, recognition, onFinish, onQuit, ac
 
   useEffect(() => {
     setInput("");
+    setHeard([]);
     setHint(false);
     recognition.abort();
     recognition.setInterim("");
     // 音声だけで出題するときは、問題が出た時点で読み上げる
-    if (audioPrompt) speech.speak(item.english);
+    if (audioPrompt) speech.speak(item.english, null, item.id);
     if (answerMode === "type" || (answerMode === "voice" && !recognition.supported)) setTimeout(() => inputRef.current?.focus(), 50);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [idx]);
@@ -1185,6 +1360,7 @@ function TestRun({ quiz, config, pool, speech, recognition, onFinish, onQuit, ac
   const switchMode = (mode) => {
     recognition.abort();
     recognition.clearError();
+    setHeard([]);
     setAnswerMode(mode);
     if (mode !== "choice") setTimeout(() => inputRef.current?.focus(), 50);
   };
@@ -1195,16 +1371,24 @@ function TestRun({ quiz, config, pool, speech, recognition, onFinish, onQuit, ac
     setPhase("feedback");
     recognition.stop();
     // 日本語→英語では、答え合わせのときに正しい英語を聞かせて真似できるようにする
-    if (jaEn) speech.speak(item.english);
+    if (jaEn) speech.speak(item.english, null, item.id);
   };
 
   const submitText = (text) => submit(text, grade(text).verdict);
 
-  const submitVoice = (alternatives) => {
-    // 候補の中で一番よい判定を採用する
+  // 音声認識の結果は、すぐ採点せずに入力欄に入れて確認してもらう（聞き違いを直せるように）
+  const [heard, setHeard] = useState([]);
+  const onHeard = (alternatives) => {
+    setHeard(alternatives);
+    setInput(alternatives[0] || "");
+  };
+
+  /** 声で答えた内容を採点する。書き換えていなければ、認識候補の中で一番よい判定を採用する */
+  const submitVoice = () => {
+    const candidates = heard.length && input === heard[0] ? heard : [input];
     const order = { correct: 3, close: 2, wrong: 1, empty: 0 };
-    let best = { text: alternatives[0] || "", verdict: "empty" };
-    for (const text of alternatives) {
+    let best = { text: candidates[0] || "", verdict: "empty" };
+    for (const text of candidates) {
       const { verdict } = grade(text);
       if (order[verdict] > order[best.verdict]) best = { text, verdict };
     }
@@ -1290,7 +1474,7 @@ function TestRun({ quiz, config, pool, speech, recognition, onFinish, onQuit, ac
             </div>
           ) : audioPrompt && phase === "answer" ? (
             <div className="mt-4 flex flex-col items-center gap-2">
-              <SpeakButton text={item.english} size="lg" speech={speech} label="問題を再生" />
+              <SpeakButton seed={item.id} text={item.english} size="lg" speech={speech} label="問題を再生" />
               <p className="text-xs text-slate-500">音声を聞いて答えてください（何度でも再生できます）</p>
             </div>
           ) : (
@@ -1298,7 +1482,7 @@ function TestRun({ quiz, config, pool, speech, recognition, onFinish, onQuit, ac
               <h2 className="text-3xl font-extrabold text-slate-900 break-words" data-testid="test-question" data-phrase-id={item.id}>
                 {item.english}
               </h2>
-              <SpeakButton text={item.english} speech={speech} label="問題を再生" />
+              <SpeakButton seed={item.id} text={item.english} speech={speech} label="問題を再生" />
             </div>
           )}
         </div>
@@ -1368,30 +1552,83 @@ function TestRun({ quiz, config, pool, speech, recognition, onFinish, onQuit, ac
 
             {answerMode === "voice" && recognition.supported && (
               <div className="flex flex-col items-center gap-3">
-                <button
-                  type="button"
-                  aria-label={recognition.listening ? "聞き取りを止める" : "話して答える"}
-                  onClick={() => {
-                    if (recognition.listening) return recognition.stop();
-                    recognition.start(submitVoice, jaEn ? "en-US" : "ja-JP");
-                  }}
-                  className={`h-20 w-20 rounded-full flex items-center justify-center text-white shadow-lg transition active:scale-90 ${
-                    recognition.listening ? "bg-rose-500 animate-pulse" : "bg-indigo-600"
-                  }`}
-                >
-                  <Mic size={34} />
-                </button>
-                <p className="text-sm text-slate-600 min-h-[1.5rem]">
-                  {recognition.listening
-                    ? recognition.interim || (jaEn ? "聞き取り中…英語で話してください" : "聞き取り中…日本語で話してください")
-                    : jaEn
-                      ? "マイクを押して英語で答える"
-                      : "マイクを押して日本語で答える"}
-                </p>
+                {recognition.listening ? (
+                  <>
+                    <button
+                      type="button"
+                      aria-label="話し終わった"
+                      onClick={() => recognition.stop()}
+                      className="h-20 w-20 rounded-full bg-rose-500 flex items-center justify-center text-white shadow-lg animate-pulse transition active:scale-90"
+                    >
+                      <Check size={34} strokeWidth={3} />
+                    </button>
+                    <p className="min-h-[1.5rem] text-sm text-slate-600">
+                      {recognition.interim || (jaEn ? "聞き取り中…英語で話してください" : "聞き取り中…日本語で話してください")}
+                    </p>
+                    <p className="text-xs text-slate-400">話し終わったら ✓ を押す</p>
+                  </>
+                ) : heard.length ? (
+                  <form
+                    className="w-full space-y-2"
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      if (input.trim()) submitVoice();
+                    }}
+                  >
+                    <p className="text-xs font-bold text-slate-400">聞き取った答え（聞き違いは直せます）</p>
+                    <input
+                      id="test-answer"
+                      ref={inputRef}
+                      value={input}
+                      onChange={(e) => setInput(e.target.value)}
+                      autoComplete="off"
+                      autoCapitalize="off"
+                      spellCheck={false}
+                      lang={jaEn ? "en" : "ja"}
+                      className="w-full rounded-2xl border-0 bg-white px-4 py-3.5 text-base text-slate-900 shadow-sm ring-1 ring-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    />
+                    <div className="grid grid-cols-3 gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setHeard([]);
+                          setInput("");
+                          recognition.start(onHeard, jaEn ? "en-US" : "ja-JP");
+                        }}
+                        className="flex items-center justify-center gap-1 rounded-2xl bg-white py-3 text-xs font-bold text-slate-600 ring-1 ring-slate-200"
+                      >
+                        <Mic size={14} /> もう一度
+                      </button>
+                      <button
+                        type="submit"
+                        disabled={!input.trim()}
+                        className="col-span-2 rounded-2xl bg-indigo-600 py-3 text-sm font-bold text-white transition active:scale-95 disabled:opacity-40"
+                      >
+                        この答えで解答
+                      </button>
+                    </div>
+                  </form>
+                ) : (
+                  <>
+                    <button
+                      type="button"
+                      aria-label="話して答える"
+                      onClick={() => recognition.start(onHeard, jaEn ? "en-US" : "ja-JP")}
+                      className="h-20 w-20 rounded-full bg-indigo-600 flex items-center justify-center text-white shadow-lg transition active:scale-90"
+                    >
+                      <Mic size={34} />
+                    </button>
+                    <p className="min-h-[1.5rem] text-sm text-slate-600">
+                      {jaEn ? "マイクを押して英語で答える" : "マイクを押して日本語で答える"}
+                    </p>
+                  </>
+                )}
                 {recognition.error && <p className="rounded-xl bg-amber-50 px-3 py-2 text-xs text-amber-700">{recognition.error}</p>}
-                <button type="button" onClick={() => submit("", "empty")} className="rounded-full bg-white px-3 py-1.5 text-xs font-bold text-slate-500 ring-1 ring-slate-200">
-                  わからない
-                </button>
+                {!heard.length && (
+                  <button type="button" onClick={() => submit("", "empty")} className="rounded-full bg-white px-3 py-1.5 text-xs font-bold text-slate-500 ring-1 ring-slate-200">
+                    わからない
+                  </button>
+                )}
               </div>
             )}
 
@@ -1424,7 +1661,7 @@ function TestRun({ quiz, config, pool, speech, recognition, onFinish, onQuit, ac
               {audioPrompt && (
                 <div className="mb-2 flex items-center gap-2">
                   <p className="flex-1 text-lg font-bold text-slate-900">{item.english}</p>
-                  <SpeakButton text={item.english} speech={speech} size="sm" />
+                  <SpeakButton seed={item.id} text={item.english} speech={speech} size="sm" />
                 </div>
               )}
               <p className="text-xs font-bold text-slate-400">正解</p>
@@ -1433,7 +1670,7 @@ function TestRun({ quiz, config, pool, speech, recognition, onFinish, onQuit, ac
                   <p className="flex-1 text-2xl font-bold text-indigo-600" data-testid="answer-english">
                     {item.english}
                   </p>
-                  <SpeakButton text={item.english} speech={speech} label="正解の英語を再生" />
+                  <SpeakButton seed={item.id} text={item.english} speech={speech} label="正解の英語を再生" />
                 </div>
               ) : (
                 <p className="text-xl font-bold text-indigo-600">{item.japanese}</p>
@@ -1450,7 +1687,7 @@ function TestRun({ quiz, config, pool, speech, recognition, onFinish, onQuit, ac
                 </button>
               )}
               <div className="mt-4">
-                <Dialogue context={item.exampleContext} translation={item.exampleJapanese} speech={speech} />
+                <Dialogue context={item.exampleContext} translation={item.exampleJapanese} seed={item.id} speech={speech} />
               </div>
             </div>
           </div>
@@ -1502,7 +1739,7 @@ function TestResult({ results, scope, direction, speech, onRetryWrong, onRetry, 
           <ul className="mt-2 space-y-2">
             {wrong.map((p) => (
               <li key={p.id} className="flex items-center gap-3 rounded-2xl bg-white p-3 shadow-sm ring-1 ring-slate-200">
-                <SpeakButton text={p.english} speech={speech} size="sm" />
+                <SpeakButton seed={p.id} text={p.english} speech={speech} size="sm" />
                 <div className="min-w-0 flex-1">
                   <p className="font-bold text-slate-900">{p.english}</p>
                   <p className="text-sm text-slate-500">{p.japanese}</p>
@@ -1612,6 +1849,107 @@ function Toggle({ id, checked, onChange, label }) {
   );
 }
 
+const PRON_KEY = "swipetalk:pronunciation";
+
+/** 1行ぶんの発音チェック結果: 色分け・聞こえた文・講評・つまずきと直し方 */
+function PronunciationDetail({ check }) {
+  return (
+    <div className="mt-2 space-y-1.5 rounded-xl bg-white/70 p-2.5 ring-1 ring-slate-200" data-testid="pron-detail">
+      <p className="flex items-center justify-between text-xs font-bold text-slate-700">
+        <span data-testid="shadow-score">発音チェック {Math.round(check.ratio * 100)}%</span>
+        <span className="text-slate-500">{verdictText(check.ratio)}</span>
+      </p>
+      <p className="text-xs text-slate-500">
+        聞こえた文: <span className="font-semibold text-slate-700">{check.heard || "（聞き取れませんでした）"}</span>
+      </p>
+      {check.issues.length > 0 && (
+        <ul className="space-y-1.5">
+          {check.issues.map((issue, k) => (
+            <li key={k} className="rounded-lg bg-rose-50 px-2.5 py-2 text-xs leading-relaxed text-rose-900" data-testid="pron-issue">
+              <p className="font-bold">
+                「{issue.word}」{issue.heardAs ? `→「${issue.heardAs}」と聞こえた` : "が聞き取られなかった"}
+                <span className="ml-1 rounded bg-rose-200/70 px-1.5 py-0.5 text-[10px]">{issue.label}</span>
+              </p>
+              <p className="mt-0.5 text-rose-800/90">{issue.tip}</p>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+/** これまでの発音チェックの振り返り（よくあるつまずき + 履歴） */
+function PronunciationReview({ log, speech, onClose, onClear }) {
+  const common = commonIssues(log).slice(0, 3);
+  const [confirmClear, setConfirmClear] = useState(false);
+  return (
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-900/40" onClick={onClose}>
+      <div
+        role="dialog"
+        aria-label="発音の振り返り"
+        className="w-full max-w-md overflow-y-auto rounded-t-3xl bg-white p-5 shadow-2xl"
+        style={{ maxHeight: "88dvh", paddingBottom: "calc(1.25rem + env(safe-area-inset-bottom))" }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-extrabold text-slate-900">発音の振り返り</h2>
+          <button type="button" onClick={onClose} aria-label="閉じる" className="rounded-full p-2 text-slate-400 hover:bg-slate-100">
+            <X size={20} />
+          </button>
+        </div>
+        {common.length > 0 && (
+          <div className="mt-3 rounded-2xl bg-amber-50 p-3 ring-1 ring-amber-200">
+            <p className="text-xs font-bold text-amber-800">よくあるつまずき</p>
+            <ul className="mt-2 space-y-2">
+              {common.map((c) => (
+                <li key={c.kind} className="text-xs leading-relaxed text-amber-900">
+                  <span className="font-bold">
+                    {c.label}（{c.count}回）
+                  </span>
+                  ：{c.tip}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+        <ul className="mt-4 space-y-3">
+          {log.map((entry, k) => (
+            <li key={`${entry.at}-${k}`} className="rounded-2xl bg-slate-50 p-3 ring-1 ring-slate-200">
+              <div className="flex items-start gap-2">
+                <p className="flex-1 text-sm font-bold text-slate-800">
+                  {entry.words.map((w, j) => (
+                    <span key={j} className={w.ok ? "text-emerald-600" : "text-rose-500 underline decoration-2"}>
+                      {w.text}{" "}
+                    </span>
+                  ))}
+                </p>
+                <SpeakButton text={entry.text} role={entry.role} seed={entry.id} speech={speech} size="sm" label="お手本を聞く" />
+              </div>
+              <p className="mt-1 text-xs text-slate-500">
+                {Math.round(entry.ratio * 100)}% ・ 聞こえた文: {entry.heard || "（聞き取れず）"} ・{" "}
+                {new Date(entry.at).toLocaleDateString("ja-JP", { month: "numeric", day: "numeric" })}
+              </p>
+              {entry.issues.map((issue, j) => (
+                <p key={j} className="mt-1 text-xs text-rose-700">
+                  ・「{issue.word}」{issue.heardAs ? `→「${issue.heardAs}」` : "が抜けた"}（{issue.label}）
+                </p>
+              ))}
+            </li>
+          ))}
+        </ul>
+        <button
+          type="button"
+          onClick={() => (confirmClear ? onClear() : setConfirmClear(true))}
+          className={`mt-4 w-full rounded-xl py-2.5 text-xs font-bold ${confirmClear ? "bg-rose-500 text-white" : "bg-slate-50 text-slate-400 ring-1 ring-slate-200"}`}
+        >
+          {confirmClear ? "もう一度タップで振り返りを消す" : "振り返りを消す"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function ShadowScreen({ state, settings, speech, onShadowDone, onSettings }) {
   const recognition = useRecognition();
   const [chapterId, setChapterId] = useState(state.chapter);
@@ -1629,9 +1967,20 @@ function ShadowScreen({ state, settings, speech, onShadowDone, onSettings }) {
   const item = chapter.items[Math.min(itemIdx, chapter.items.length - 1)];
   const steps = useMemo(() => shadowSteps(item), [item]);
   const playing = phase === "model" || phase === "turn";
+  const reviewAt = useRef(null);
+  const [pronLog, setPronLog] = useState(() => storage.load(PRON_KEY) || []);
+  const [showReview, setShowReview] = useState(false);
+  /** 発音チェックの結果を振り返り用に残す（この端末に最新100件） */
+  const savePronunciation = (entry) =>
+    setPronLog((log) => {
+      const next = [{ ...entry, at: Date.now() }, ...log].slice(0, 100);
+      storage.save(PRON_KEY, next);
+      return next;
+    });
 
   const halt = useCallback(() => {
     run.current++;
+    reviewAt.current = null;
     clearTimeout(timer.current);
     speech.stop();
     recognition.abort();
@@ -1670,12 +2019,23 @@ function ShadowScreen({ state, settings, speech, onShadowDone, onSettings }) {
     setPhase("turn");
     setTurnMs(ms);
     if (opts.check && recognition.supported) {
+      let result = null;
       recognition.start(
-        (alts) => run.current === my && setChecks((c) => ({ ...c, [i]: wordMatch(alts[0] || "", step.text) })),
+        (alts) => {
+          if (run.current !== my) return;
+          result = analyzePronunciation(alts[0] || "", step.text);
+          setChecks((c) => ({ ...c, [i]: result }));
+          savePronunciation({ id: item.id, text: step.text, role: step.role, ...result });
+        },
         "en-US",
         () => {
           if (run.current !== my) return;
-          timer.current = setTimeout(() => advance(i, my), 900);
+          // ほぼ完璧なら次へ。直すところがあれば止まって、結果を読んでから進めるようにする
+          if (result && result.ratio >= 0.95) timer.current = setTimeout(() => advance(i, my), 900);
+          else {
+            reviewAt.current = { i, my };
+            setPhase("review");
+          }
         }
       );
     } else {
@@ -1690,7 +2050,7 @@ function ShadowScreen({ state, settings, speech, onShadowDone, onSettings }) {
     setLineIdx(i);
     setPhase("model");
     const step = steps[i];
-    const ok = speech.speakLines([{ text: step.text, role: step.role }], `shadow:${item.id}:${i}`, () => startTurn(i, my));
+    const ok = speech.speakLines([{ text: step.text, role: step.role }], `shadow:${item.id}:${i}`, () => startTurn(i, my), item.id);
     // 読み上げできない環境では、お手本の長さを見積もって待つ
     if (!ok) timer.current = setTimeout(() => startTurn(i, my), pauseMs(step.text, settings.rate, 1));
   }
@@ -1731,8 +2091,16 @@ function ShadowScreen({ state, settings, speech, onShadowDone, onSettings }) {
     setPhase("idle");
   };
 
+  const nextFromReview = () => {
+    const at = reviewAt.current;
+    if (!at) return;
+    run.current = at.my; // 止まっていた位置から続ける
+    advance(at.i, at.my);
+  };
+
   const togglePlay = () => {
     if (playing) return pause();
+    if (phase === "review") return nextFromReview();
     if (phase === "done") {
       jump(0);
       autoStart.current = true;
@@ -1745,6 +2113,7 @@ function ShadowScreen({ state, settings, speech, onShadowDone, onSettings }) {
     idle: "▶ を押すと、お手本 → あなたの番 の順に進みます",
     model: "お手本を聞いて…",
     turn: opts.check ? "あなたの番！マイクに向かって真似して言おう" : "あなたの番！すぐに真似して言おう",
+    review: "赤い語を確認して「もう一度」か「次へ」",
     done: "この章のシャドーイングが終わりました！",
   }[phase];
 
@@ -1759,7 +2128,28 @@ function ShadowScreen({ state, settings, speech, onShadowDone, onSettings }) {
         {recognition.supported && (
           <Toggle id="shadow-check" checked={opts.check} onChange={(v) => setOpts((o) => ({ ...o, check: v }))} label="発音チェック" />
         )}
+        {pronLog.length > 0 && (
+          <button
+            type="button"
+            onClick={() => setShowReview(true)}
+            className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-3 py-1.5 text-xs font-bold text-amber-700 ring-1 ring-amber-200"
+          >
+            振り返り {pronLog.length}
+          </button>
+        )}
       </div>
+      {showReview && (
+        <PronunciationReview
+          log={pronLog}
+          speech={speech}
+          onClose={() => setShowReview(false)}
+          onClear={() => {
+            storage.save(PRON_KEY, []);
+            setPronLog([]);
+            setShowReview(false);
+          }}
+        />
+      )}
       <div className="mt-2 flex items-center gap-2">
         <span className="shrink-0 text-xs font-bold text-slate-500">あなたの番の長さ</span>
         <div className="flex-1">
@@ -1805,15 +2195,12 @@ function ShadowScreen({ state, settings, speech, onShadowDone, onSettings }) {
                           </span>
                         ))
                       ) : (
-                        step.text
+                        <LinkedText text={step.text} />
                       )}
                     </p>
                     {opts.showJa && step.ja && <p className="mt-0.5 text-xs text-slate-500">{step.ja}</p>}
-                    {check && (
-                      <p className="mt-1 text-xs font-bold text-slate-600" data-testid="shadow-score">
-                        発音チェック {Math.round(check.ratio * 100)}%
-                      </p>
-                    )}
+                    {i === 0 && !hidden && !check && <LinkingNotes text={step.text} className="mt-2" />}
+                    {check && <PronunciationDetail check={check} />}
                   </div>
                 </div>
               </li>
@@ -1826,6 +2213,16 @@ function ShadowScreen({ state, settings, speech, onShadowDone, onSettings }) {
         <p className="text-center text-sm font-bold text-slate-700" data-testid="shadow-status">
           {statusText}
         </p>
+        {phase === "review" && (
+          <div className="mt-2 grid grid-cols-2 gap-2">
+            <button type="button" onClick={() => playStep(lineIdx)} className="rounded-2xl bg-white py-2.5 text-sm font-bold text-slate-700 ring-1 ring-slate-200">
+              もう一度
+            </button>
+            <button type="button" onClick={nextFromReview} className="rounded-2xl bg-indigo-600 py-2.5 text-sm font-bold text-white">
+              次へ
+            </button>
+          </div>
+        )}
         <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-slate-200">
           {phase === "turn" && (
             <div
@@ -1889,7 +2286,7 @@ function ListScreen({ state, onToggle, speech }) {
   const [openId, setOpenId] = useState(null);
   const [limit, setLimit] = useState(PAGE);
 
-  const base = scope === "all" ? ALL_ITEMS : CHAPTER_BY_ID[scope].items;
+  const base = scope === "all" ? ALL_ITEMS : KIND_ITEMS[scope] || CHAPTER_BY_ID[scope].items;
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     return base.filter((p) => {
@@ -1902,6 +2299,55 @@ function ListScreen({ state, onToggle, speech }) {
   }, [base, query, filter, state.learned]);
 
   useEffect(() => setLimit(PAGE), [query, scope, filter]);
+
+  // 「もしかして」: 綴りや言い回しが少し違っても近いものを、検索結果のあとに出す。
+  // 全件と1件ずつ比べるので少し重い。入力が止まってから計算して、文字入力を引っかからせない
+  const [settledQuery, setSettledQuery] = useState(query);
+  useEffect(() => {
+    const t = setTimeout(() => setSettledQuery(query), 250);
+    return () => clearTimeout(t);
+  }, [query]);
+  const suggestions = useMemo(() => {
+    if (settledQuery !== query || query.trim().length < 2) return [];
+    const inScope = base.filter((p) => {
+      const learned = !!state.learned[p.id];
+      return filter === "all" || (filter === "learned" ? learned : !learned);
+    });
+    return fuzzySearch(inScope, query, { exclude: new Set(filtered.map((p) => p.id)), limit: 10 });
+  }, [base, query, settledQuery, filter, filtered, state.learned]);
+
+  const renderRow = (kind) => (p) => {
+    const open = openId === p.id;
+    const learned = !!state.learned[p.id];
+    return (
+      <li key={p.id} data-row={kind} className="rounded-2xl bg-white shadow-sm ring-1 ring-slate-200 overflow-hidden">
+        <div className="flex items-center gap-3 p-3">
+          <SpeakButton seed={p.id} text={p.english} speech={speech} />
+          <button type="button" onClick={() => setOpenId(open ? null : p.id)} className="min-w-0 flex-1 text-left" aria-expanded={open}>
+            <p className="font-bold text-slate-900 truncate">{p.english}</p>
+            <p className="text-sm text-slate-500 truncate">{p.japanese}</p>
+          </button>
+          <button
+            type="button"
+            onClick={() => onToggle(CHAPTER_BY_ID[p.chapterId], p.id)}
+            aria-label={learned ? "未習得に戻す" : "覚えたにする"}
+            className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-bold transition active:scale-95 ${
+              learned ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-500"
+            }`}
+          >
+            {learned ? "⭕️ 覚えた" : "未習得"}
+          </button>
+        </div>
+        {open && (
+          <div className="border-t border-slate-100 bg-slate-50 px-3 py-3">
+            <p className="mb-2 text-xs text-slate-400">{chapterLabel(CHAPTER_BY_ID[p.chapterId])}</p>
+            <LinkingNotes text={p.english} className="mb-3" />
+            <Dialogue context={p.exampleContext} translation={p.exampleJapanese} seed={p.id} speech={speech} />
+          </div>
+        )}
+      </li>
+    );
+  };
 
   const learnedCount = base.filter((p) => state.learned[p.id]).length;
   const counts = { all: base.length, unlearned: base.length - learnedCount, learned: learnedCount };
@@ -1931,7 +2377,11 @@ function ListScreen({ state, onToggle, speech }) {
             </button>
           )}
         </div>
-        <ChapterSelect id="list-chapter" value={scope} onChange={setScope} extra={[["all", `すべての章（${TOTAL}）`]]} className="mt-2" />
+        <ChapterSelect id="list-chapter" value={scope} onChange={setScope} extra={[
+            ["all", `すべての章（${TOTAL}問）`],
+            ["phrase", `フレーズ全部（${KIND_ITEMS.phrase.length}問）`],
+            ["word", `単語全部（${KIND_ITEMS.word.length}問）`],
+          ]} className="mt-2" />
         <div className="mt-2 flex gap-2">
           {[
             ["all", "すべて"],
@@ -1953,38 +2403,10 @@ function ListScreen({ state, onToggle, speech }) {
       </div>
 
       <ul className="flex-1 overflow-y-auto px-5 pb-6 space-y-2" data-testid="phrase-list">
-        {filtered.length === 0 && <li className="py-16 text-center text-sm text-slate-400">該当するフレーズがありません</li>}
-        {filtered.slice(0, limit).map((p) => {
-          const open = openId === p.id;
-          const learned = !!state.learned[p.id];
-          return (
-            <li key={p.id} className="rounded-2xl bg-white shadow-sm ring-1 ring-slate-200 overflow-hidden">
-              <div className="flex items-center gap-3 p-3">
-                <SpeakButton text={p.english} speech={speech} />
-                <button type="button" onClick={() => setOpenId(open ? null : p.id)} className="min-w-0 flex-1 text-left" aria-expanded={open}>
-                  <p className="font-bold text-slate-900 truncate">{p.english}</p>
-                  <p className="text-sm text-slate-500 truncate">{p.japanese}</p>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => onToggle(CHAPTER_BY_ID[p.chapterId], p.id)}
-                  aria-label={learned ? "未習得に戻す" : "覚えたにする"}
-                  className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-bold transition active:scale-95 ${
-                    learned ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-500"
-                  }`}
-                >
-                  {learned ? "⭕️ 覚えた" : "未習得"}
-                </button>
-              </div>
-              {open && (
-                <div className="border-t border-slate-100 bg-slate-50 px-3 py-3">
-                  <p className="mb-2 text-xs text-slate-400">{chapterLabel(CHAPTER_BY_ID[p.chapterId])}</p>
-                  <Dialogue context={p.exampleContext} translation={p.exampleJapanese} speech={speech} />
-                </div>
-              )}
-            </li>
-          );
-        })}
+        {filtered.length === 0 && (
+          <li className={`text-center text-sm text-slate-400 ${suggestions.length ? "py-4" : "py-16"}`}>該当するフレーズがありません</li>
+        )}
+        {filtered.slice(0, limit).map(renderRow("result"))}
         {filtered.length > limit && (
           <li>
             <button
@@ -1995,6 +2417,14 @@ function ListScreen({ state, onToggle, speech }) {
               さらに表示（残り {filtered.length - limit}）
             </button>
           </li>
+        )}
+        {suggestions.length > 0 && (
+          <>
+            <li className="pt-3 text-xs font-bold text-slate-500" data-testid="did-you-mean">
+              もしかして：
+            </li>
+            {suggestions.map(renderRow("suggestion"))}
+          </>
         )}
       </ul>
     </div>
@@ -2039,7 +2469,143 @@ function motivation(learned) {
   if (ratio < 0.25) return "順調です！毎日少しずつ積み上げよう。";
   if (ratio < 0.5) return "もうすぐ半分！ネイティブ表現が身についてきた。";
   if (ratio < 1) return "後半戦！ここまで来たら全制覇も見えてくる。";
-  return `${TOTAL}フレーズ コンプリート！素晴らしい！`;
+  return `${TOTAL}問 コンプリート！素晴らしい！`;
+}
+
+// ---------------------------------------------------------------------------
+// ログインボーナス・今日の目標・着せかえ
+// ---------------------------------------------------------------------------
+function BonusModal({ reward, bonus, onClose }) {
+  const theme = useThemeColors();
+  const weekDay = ((reward.day - 1) % 7) + 1; // 1週間のうち何日目か
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 px-6" onClick={onClose}>
+      <div
+        role="dialog"
+        aria-label="ログインボーナス"
+        data-testid="bonus-modal"
+        className="w-full max-w-sm overflow-hidden rounded-3xl bg-white text-center shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="px-6 pb-5 pt-6 text-white" style={gradient(theme, "135deg")}>
+          <p className="text-xs font-bold tracking-widest text-white/80">DAILY BONUS</p>
+          <p className="mt-1 text-2xl font-black">ログインボーナス</p>
+          <p className="mt-1 text-sm font-bold text-white/90">{reward.day}日連続ログイン！</p>
+        </div>
+        <div className="px-6 py-5">
+          <div className="grid grid-cols-7 gap-1.5">
+            {Array.from({ length: 7 }, (_, i) => {
+              const d = i + 1;
+              const got = d <= weekDay;
+              return (
+                <div
+                  key={d}
+                  className={`flex aspect-square flex-col items-center justify-center rounded-xl text-[10px] font-bold ${
+                    got ? "bg-amber-100 text-amber-700 ring-2 ring-amber-300" : "bg-slate-100 text-slate-400"
+                  } ${d === weekDay ? "scale-110" : ""}`}
+                >
+                  <span className="text-base leading-none">{got ? "★" : d === 7 ? "🎁" : "・"}</span>
+                  {d}日
+                </div>
+              );
+            })}
+          </div>
+          <p className="mt-5 text-4xl font-black text-amber-500 tabular-nums" data-testid="bonus-coins">
+            +{reward.coins}
+            <span className="ml-1 text-base text-amber-600">コイン</span>
+          </p>
+          {reward.weekly && <p className="mt-1 text-sm font-bold text-rose-500">7日連続ボーナス +50 込み！</p>}
+          <p className="mt-2 text-xs text-slate-500 tabular-nums">
+            所持コイン {bonus.coins} ・ 明日は +{dailyReward(reward.day + 1).coins}
+          </p>
+          <p className="mt-3 text-xs leading-relaxed text-slate-500">
+            コインは「進捗」タブの着せかえに使えます。今日 {DAILY_GOAL} 問学習すると、さらに +{GOAL_REWARD}。
+          </p>
+          <button
+            type="button"
+            onClick={onClose}
+            className="mt-5 w-full rounded-2xl py-3.5 text-base font-extrabold text-white shadow-lg transition active:scale-95"
+            style={gradient(theme)}
+          >
+            受け取る
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function BonusCard({ state, onClaimGoal, onBuyTheme, onApplyTheme }) {
+  const { today } = todayAndYesterday();
+  const b = state.bonus;
+  const progress = Math.min(todayProgress(state, today), DAILY_GOAL);
+  const goalDone = b.goalClaimed === today;
+  const [message, setMessage] = useState("");
+  return (
+    <div className="mt-4 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200" data-testid="bonus-card">
+      <div className="flex items-center justify-between">
+        <p className="text-sm font-bold text-slate-800">ログインボーナス</p>
+        <p className="text-sm font-black text-amber-500 tabular-nums" data-testid="coin-count">
+          🪙 {b.coins}
+        </p>
+      </div>
+      <p className="mt-1 text-xs text-slate-500 tabular-nums">
+        連続ログイン {b.lastClaim ? b.loginStreak : 0}日 ・ 合計 {b.totalDays}日
+      </p>
+
+      <div className="mt-3 rounded-xl bg-slate-50 p-3">
+        <p className="flex items-center justify-between text-xs font-bold text-slate-600">
+          今日の目標：{DAILY_GOAL}問学習
+          <span className="tabular-nums">
+            {progress} / {DAILY_GOAL}
+          </span>
+        </p>
+        <div className="mt-2 h-2 overflow-hidden rounded-full bg-slate-200">
+          <div className="h-full rounded-full bg-amber-400 transition-all" style={{ width: `${(progress / DAILY_GOAL) * 100}%` }} />
+        </div>
+        {canClaimGoal(state, today) ? (
+          <button
+            type="button"
+            onClick={onClaimGoal}
+            className="mt-2 w-full rounded-xl bg-amber-400 py-2 text-sm font-extrabold text-white shadow active:scale-95"
+          >
+            目標達成！ +{GOAL_REWARD} コインを受け取る
+          </button>
+        ) : (
+          <p className="mt-2 text-[11px] text-slate-500">
+            {goalDone ? "今日の目標ボーナスは受け取り済みです。また明日！" : "スワイプ・テスト・シャドーイングが数に入ります"}
+          </p>
+        )}
+      </div>
+
+      <p className="mt-4 text-xs font-bold text-slate-500">着せかえ（カードと画面の色）</p>
+      <div className="mt-2 grid grid-cols-3 gap-2">
+        {THEMES.map((t) => {
+          const owned = b.unlocked.includes(t.id);
+          const active = b.theme === t.id;
+          return (
+            <button
+              key={t.id}
+              type="button"
+              onClick={() => {
+                if (owned) return onApplyTheme(t.id);
+                const err = onBuyTheme(t.id);
+                setMessage(err || `${t.name} を手に入れました！`);
+              }}
+              className={`overflow-hidden rounded-xl text-left ring-1 transition active:scale-95 ${active ? "ring-2 ring-slate-900" : "ring-slate-200"}`}
+            >
+              <div className="h-8" style={gradient(t)} />
+              <div className="px-2 py-1.5">
+                <p className="text-xs font-bold text-slate-800">{t.name}</p>
+                <p className="text-[10px] text-slate-500 tabular-nums">{active ? "使用中" : owned ? "使う" : `🪙 ${t.price}`}</p>
+              </div>
+            </button>
+          );
+        })}
+      </div>
+      {message && <p className="mt-2 text-xs font-bold text-slate-600">{message}</p>}
+    </div>
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -2129,8 +2695,7 @@ function AccountCard({ account }) {
   );
 }
 
-function ProgressScreen({ state, onResetAll, onOpenChapter, storageOk, account }) {
-  const [confirming, setConfirming] = useState(false);
+function ProgressScreen({ state, onOpenChapter, storageOk, account, bonusActions }) {
   const learned = ALL_ITEMS.filter((p) => state.learned[p.id]).length;
   const pct = Math.round((learned / TOTAL) * 100);
   const { today, yesterday } = todayAndYesterday();
@@ -2138,12 +2703,6 @@ function ProgressScreen({ state, onResetAll, onOpenChapter, storageOk, account }
   const streak = currentStreak(s, today, yesterday);
   const todayCount = s.todayDate === today ? s.todayCount : 0;
   const clearedChapters = CHAPTERS.filter((c) => c.items.every((p) => state.learned[p.id])).length;
-
-  useEffect(() => {
-    if (!confirming) return undefined;
-    const t = setTimeout(() => setConfirming(false), 4000);
-    return () => clearTimeout(t);
-  }, [confirming]);
 
   const tiles = [
     { icon: <Flame size={20} />, label: "連続学習", value: `${streak}日`, color: "text-orange-500 bg-orange-50" },
@@ -2158,6 +2717,7 @@ function ProgressScreen({ state, onResetAll, onOpenChapter, storageOk, account }
     <div className="h-full overflow-y-auto px-5 pt-4 pb-6">
       <h1 className="text-2xl font-extrabold text-slate-900">学習の進捗</h1>
       {cloud.available && <AccountCard account={account} />}
+      <BonusCard state={state} {...bonusActions} />
 
       <div className="mt-4 rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-200 flex flex-col items-center">
         <div className="relative">
@@ -2236,21 +2796,54 @@ function ProgressScreen({ state, onResetAll, onOpenChapter, storageOk, account }
         </p>
       )}
 
-      <button
-        type="button"
-        onClick={() => {
-          if (confirming) {
-            onResetAll();
-            setConfirming(false);
-          } else {
-            setConfirming(true);
-          }
-        }}
-        className={`mt-6 w-full rounded-2xl py-3 text-sm font-bold transition ${
-          confirming ? "bg-rose-500 text-white" : "bg-white text-slate-500 ring-1 ring-slate-200"
-        }`}
-      >
-        {confirming ? "もう一度タップで全ての進捗をリセット" : "進捗をリセット"}
+
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// 新しい版のお知らせ
+// ---------------------------------------------------------------------------
+/* global __BUILD_HASH__ */
+const BUILD_HASH = typeof __BUILD_HASH__ !== "undefined" ? __BUILD_HASH__ : null;
+
+/**
+ * 公開中の index.html を取り直し、埋め込まれた source-hash が今動いている版と違えば新しい版がある。
+ * 開いたときと、別のアプリから戻ってきたときに確かめる（ブラウザのキャッシュで古い版が残るのを防ぐ）。
+ */
+function useUpdateCheck() {
+  const [newHash, setNewHash] = useState(null);
+  useEffect(() => {
+    if (!BUILD_HASH || typeof location === "undefined" || !/^https?:$/.test(location.protocol)) return undefined;
+    let alive = true;
+    const check = async () => {
+      try {
+        const res = await fetch(`${location.pathname}?check=${Date.now()}`, { cache: "no-store" });
+        const m = (await res.text()).match(/source-hash: ([0-9a-f]+)/);
+        if (alive && m && m[1] !== BUILD_HASH) setNewHash(m[1]);
+      } catch {
+        /* オフラインなど。次の機会に確かめる */
+      }
+    };
+    const t = setTimeout(check, 2000);
+    const onVisible = () => document.visibilityState === "visible" && check();
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      alive = false;
+      clearTimeout(t);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
+  }, []);
+  return newHash;
+}
+
+function UpdateBanner({ onUpdate }) {
+  return (
+    <div className="absolute inset-x-3 top-3 z-50 flex items-center gap-3 rounded-2xl bg-slate-900 px-4 py-3 text-white shadow-xl" data-testid="update-banner">
+      <Sparkles size={18} className="shrink-0 text-amber-300" />
+      <p className="flex-1 text-sm font-bold">新しいバージョンがあります</p>
+      <button type="button" onClick={onUpdate} className="rounded-full bg-white px-3 py-1.5 text-xs font-extrabold text-slate-900">
+        更新する
       </button>
     </div>
   );
@@ -2297,7 +2890,7 @@ function WelcomeScreen({ account, onSkip }) {
 
         <ul className="mt-8 w-full max-w-xs space-y-3 text-left text-sm">
           {[
-            [Layers, `${CHAPTERS.length}章・${TOTAL}フレーズ（アメリカ生活編つき）`],
+            [Layers, `${CHAPTERS.length}章・${TOTAL}問（フレーズ${KIND_ITEMS.phrase.length}・単語${KIND_ITEMS.word.length}）`],
             [PenLine, "日本語→英語テストとシャドーイングで口から出す"],
             [Cloud, "ログインすると、どの端末でも続きから"],
           ].map(([Icon, text]) => (
@@ -2346,9 +2939,9 @@ export default function App() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [storageOk] = useState(() => storage.available());
   const [sound] = useState(() => new SoundEngine());
-  const speech = useSpeech(settings, sound);
+  const speech = useSpeech(settings);
 
-  // ブラウザは画面に触れるまで音を出させないので、最初のタップで効果音と BGM を有効にする
+  // ブラウザは画面に触れるまで音を出させないので、最初のタップで効果音を有効にする
   useEffect(() => {
     const unlock = () => sound.unlock();
     window.addEventListener("pointerdown", unlock);
@@ -2358,10 +2951,7 @@ export default function App() {
       window.removeEventListener("keydown", unlock);
     };
   }, [sound]);
-  useEffect(() => {
-    sound.setSfx(settings.sfx);
-    sound.setBgm(settings.bgm, settings.bgmVolume);
-  }, [sound, settings.sfx, settings.bgm, settings.bgmVolume]);
+  useEffect(() => sound.set(settings.sfx, settings.sfxVolume), [sound, settings.sfx, settings.sfxVolume]);
 
   useEffect(() => storage.save(STATE_KEY, state), [state]);
   useEffect(() => storage.save(SETTINGS_KEY, settings), [settings]);
@@ -2389,7 +2979,7 @@ export default function App() {
   const onChapter = useCallback((chapter) => update((s) => ({ ...s, chapter })), [update]);
   const onResetChapter = useCallback((chapter) => update((s) => resetChapter(s, chapter)), [update]);
   const onResetAll = useCallback(() => {
-    update((s) => ({ ...freshState(CHAPTERS[0].id), stats: s.stats }));
+    update((s) => ({ ...freshState(CHAPTERS[0].id), stats: s.stats, bonus: s.bonus }));
     setTab("study");
   }, [update]);
   const onShadowDone = useCallback(() => {
@@ -2506,6 +3096,47 @@ export default function App() {
   const [skipLogin, setSkipLogin] = useState(() => session.get(SKIP_LOGIN_KEY) === "1");
   const showWelcome = cloud.available && !user && sync.status === "signedOut" && !skipLogin;
 
+  // ---- ログインボーナス（その日最初に開いたとき。ログイン中はクラウドの進捗を読んでから）
+  const [bonusReward, setBonusReward] = useState(null);
+  const bonusChecked = useRef(false);
+  const bonusReady =
+    !showWelcome &&
+    (!cloud.available || (user ? sync.status === "saved" || sync.status === "error" : sync.status === "signedOut"));
+  useEffect(() => {
+    if (!bonusReady || bonusChecked.current) return;
+    bonusChecked.current = true;
+    if (typeof window !== "undefined" && window.__swipetalkNoDailyBonus) return; // E2E 用
+    const { today, yesterday } = todayAndYesterday();
+    const result = claimDailyBonus(stateRef.current, today, yesterday);
+    if (!result.reward) return;
+    update(() => result.state);
+    setBonusReward(result.reward);
+    sound.play("bonus");
+  }, [bonusReady, update, sound]);
+
+  const bonusActions = {
+    onClaimGoal: () => {
+      const { today } = todayAndYesterday();
+      sound.play("bonus");
+      update((s) => claimGoalBonus(s, today));
+    },
+    onBuyTheme: (id) => {
+      const result = buyTheme(stateRef.current, id);
+      if (result.error) return result.error;
+      sound.play("complete");
+      update(() => result.state);
+      return null;
+    },
+    onApplyTheme: (id) => update((s) => applyTheme(s, id)),
+  };
+  const theme = themeOf(state);
+
+  const newVersion = useUpdateCheck();
+  const applyUpdate = async () => {
+    await flush(); // 進捗をクラウドに保存してから読み込み直す（端末には常に保存済み）
+    location.replace(`${location.pathname}?v=${newVersion}`);
+  };
+
   const openSettings = () => setSettingsOpen(true);
   const navItems = [
     { key: "study", label: "学習", icon: Layers },
@@ -2517,6 +3148,8 @@ export default function App() {
 
   return (
     <SoundContext.Provider value={sound}>
+    <ThemeContext.Provider value={theme}>
+    <LinkingContext.Provider value={settings.linking}>
     <div className="w-full bg-slate-100" style={{ height: "100dvh" }}>
       <div className="relative mx-auto flex h-full w-full max-w-md flex-col bg-slate-50 shadow-xl">
         <main className="min-h-0 flex-1 overflow-hidden">
@@ -2550,7 +3183,7 @@ export default function App() {
           {tab === "progress" && (
             <ProgressScreen
               state={state}
-              onResetAll={onResetAll}
+              bonusActions={bonusActions}
               onOpenChapter={(id) => {
                 onChapter(id);
                 setTab("study");
@@ -2586,6 +3219,9 @@ export default function App() {
           </div>
         </nav>
 
+        {newVersion && <UpdateBanner onUpdate={applyUpdate} />}
+        {bonusReward && <BonusModal reward={bonusReward} bonus={state.bonus} onClose={() => setBonusReward(null)} />}
+
         {showWelcome && (
           <WelcomeScreen
             account={account}
@@ -2596,9 +3232,18 @@ export default function App() {
           />
         )}
 
-        <SettingsSheet open={settingsOpen} onClose={() => setSettingsOpen(false)} settings={settings} setSettings={setSettings} speech={speech} />
+        <SettingsSheet
+          open={settingsOpen}
+          onClose={() => setSettingsOpen(false)}
+          settings={settings}
+          setSettings={setSettings}
+          speech={speech}
+          onResetAll={onResetAll}
+        />
       </div>
     </div>
+    </LinkingContext.Provider>
+    </ThemeContext.Provider>
     </SoundContext.Provider>
   );
 }

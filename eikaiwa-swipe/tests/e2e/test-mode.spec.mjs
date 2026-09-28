@@ -59,6 +59,9 @@ test("音声で答える（音声認識の結果で採点する）", async ({ pa
   const p = await currentPhrase(page);
   await page.evaluate((text) => (window.__nextSpeech = text), p.japanese.split("／")[0]);
   await page.getByRole("button", { name: "話して答える" }).click();
+  // 聞き取った答えを確認してから解答する
+  await expect(page.locator("#test-answer")).not.toHaveValue("");
+  await page.getByRole("button", { name: "この答えで解答" }).click();
   await expect(page.getByTestId("verdict")).toHaveText("正解！");
 });
 
@@ -88,6 +91,9 @@ test("答え方はテスト中にいつでも切り替えられ、声→文字�
   const p = await currentPhrase(page);
   await page.evaluate((text) => (window.__nextSpeech = text), p.japanese.split("／")[0]);
   await page.getByRole("button", { name: "話して答える" }).click();
+  // 聞き取った答えを確認してから解答する
+  await expect(page.locator("#test-answer")).not.toHaveValue("");
+  await page.getByRole("button", { name: "この答えで解答" }).click();
   await expect(page.getByTestId("verdict")).toHaveText("正解！");
 });
 

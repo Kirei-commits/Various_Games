@@ -1,6 +1,6 @@
 # CLAUDE.md — SwipeTalk（英会話フレーズ学習）
 
-全40章・2000フレーズのスワイプ学習・テスト（英→日／日→英）・シャドーイングアプリ。詳しくは README.md。
+全110章・5500問（フレーズ50章・単語60章）のスワイプ学習・テスト（英→日／日→英）・シャドーイングアプリ。詳しくは README.md。
 CI はリポジトリ直下の `.github/workflows/ci.yml`（matrix に `eikaiwa-swipe` を登録済み）。
 
 ## 壊してはいけない約束
@@ -10,7 +10,7 @@ CI はリポジトリ直下の `.github/workflows/ci.yml`（matrix に `eikaiwa-
 2. **`src/logic.js` は DOM・音声API・LocalStorage に触らない純粋関数だけにする。**
    「今日」や乱数は引数で受け取る。これにより lint とロジックテストが依存なしの Node だけで動く。
 3. **教材は各章ちょうど50問、英語の重複なし。** 章を増やしたら `src/data/index.js` の import・配列・`PARTS` と、
-   `tests/lint.mjs` の章数を更新する。章ID（chNN）はテスト記録のキーなので、既存の章の番号は変えず、新しい章は末尾に足す。
+   `tests/lint.mjs` の章数を更新する（単語の章は例文1行「A: 例文 | A: 訳」の形）。章ID（chNN）はテスト記録のキーなので、既存の章の番号は変えず、新しい章は末尾に足す。
 4. **利用者の学習記録を絶対に失わない。** アプリを改修しても進捗が引き継がれるよう、次を守る。
    - 問題IDは英語から作る。**英語を書き換えたら `src/data/id-changes.js` の `RENAMED` に「古いID: 新しいID」を、
      問題を消したら `RETIRED` に古いIDを書く。** 公開済みIDは `src/data/ids.lock.json`（ビルドが追記する。手で消さない）に

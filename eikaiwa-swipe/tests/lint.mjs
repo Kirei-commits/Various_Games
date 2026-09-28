@@ -1,6 +1,6 @@
 /**
  * 依存パッケージなし（Node 標準のみ）で動く静的検査。CI では npm ci より前に走る。
- *  1. 教材データ: 40章 × 50問 = 2000問、形式・重複・会話例の対応、部の範囲
+ *  1. 教材データ: 110章 × 50問 = 5500問（フレーズ2500・単語3000）、形式・重複・会話例の対応、部の範囲
  *  2. 公開済みの問題IDが黙って消えていないか（学習記録の引き継ぎ。src/data/id-changes.js）
  *  3. index.html が src/ から再ビルドされた最新のものか
  */
@@ -11,7 +11,7 @@ import { buildLibrary, parseDialogue, answerCandidates } from "../src/logic.js";
 import { ROOT, sourceHash, HASH_MARKER } from "../tools/source-hash.mjs";
 import { readLock, checkLock } from "../tools/id-lock.mjs";
 
-const EXPECTED_CHAPTERS = 40;
+const EXPECTED_CHAPTERS = 110;
 const PER_CHAPTER = 50;
 const problems = [];
 

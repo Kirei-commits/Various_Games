@@ -475,9 +475,92 @@ export function freshState(firstChapterId = "ch01") {
     stats: initialStats(),
     tests: {},
     misses: {},
+    bonus: initialBonus(),
     chapter: firstChapterId,
   };
 }
+
+// ---------------------------------------------------------------------------
+// ログインボーナス・今日の目標・着せかえ
+// ---------------------------------------------------------------------------
+
+/** 1日に学習（スワイプ・テスト解答・シャドーイング）してほしい数 */
+export const DAILY_GOAL = 20;
+export const GOAL_REWARD = 20;
+
+export const initialBonus = () => ({
+  lastClaim: null, // 最後にログインボーナスを受け取った日
+  loginStreak: 0, // 連続ログイン日数
+  totalDays: 0, // 受け取った日数の合計
+  coins: 0,
+  goalClaimed: null, // 今日の目標ボーナスを受け取った日
+  unlocked: ["default"],
+  theme: "default",
+});
+
+/** 着せかえ（カードと画面の色）。price はコイン */
+export const THEMES = [
+  { id: "default", name: "スタンダード", price: 0, colors: ["#6366f1", "#8b5cf6", "#ec4899"] },
+  { id: "sakura", name: "桜", price: 100, colors: ["#f9a8d4", "#f472b6", "#fb7185"] },
+  { id: "ocean", name: "海", price: 150, colors: ["#38bdf8", "#0ea5e9", "#6366f1"] },
+  { id: "forest", name: "森", price: 200, colors: ["#4ade80", "#10b981", "#0d9488"] },
+  { id: "sunset", name: "夕焼け", price: 300, colors: ["#fbbf24", "#f97316", "#e11d48"] },
+  { id: "night", name: "夜空", price: 500, colors: ["#1e3a8a", "#4c1d95", "#0f172a"] },
+];
+
+/**
+ * 連続ログイン day 日目のボーナス。続けるほど少しずつ増え（10〜22）、7日ごとに +50。
+ * @returns {{ coins: number, weekly: boolean }}
+ */
+export function dailyReward(day) {
+  const weekly = day % 7 === 0;
+  return { coins: 10 + Math.min(day - 1, 6) * 2 + (weekly ? 50 : 0), weekly };
+}
+
+/** 今日のログインボーナスを受け取る（受け取り済みなら reward は null） */
+export function claimDailyBonus(state, today, yesterday) {
+  const b = { ...initialBonus(), ...state.bonus };
+  if (b.lastClaim === today) return { state, reward: null };
+  const day = b.lastClaim === yesterday ? b.loginStreak + 1 : 1;
+  const reward = { ...dailyReward(day), day };
+  return {
+    state: {
+      ...state,
+      bonus: { ...b, lastClaim: today, loginStreak: day, totalDays: b.totalDays + 1, coins: b.coins + reward.coins },
+    },
+    reward,
+  };
+}
+
+/** 今日の学習数（目標に向けた進み具合） */
+export const todayProgress = (state, today) => (state.stats.todayDate === today ? state.stats.todayCount : 0);
+
+export const canClaimGoal = (state, today) =>
+  todayProgress(state, today) >= DAILY_GOAL && (state.bonus || {}).goalClaimed !== today;
+
+/** 今日の目標達成ボーナスを受け取る */
+export function claimGoalBonus(state, today) {
+  if (!canClaimGoal(state, today)) return state;
+  const b = { ...initialBonus(), ...state.bonus };
+  return { ...state, bonus: { ...b, goalClaimed: today, coins: b.coins + GOAL_REWARD } };
+}
+
+/** 着せかえを買う（買えないときは error を返す） */
+export function buyTheme(state, id) {
+  const theme = THEMES.find((t) => t.id === id);
+  const b = { ...initialBonus(), ...state.bonus };
+  if (!theme) return { state, error: "ない着せかえです" };
+  if (b.unlocked.includes(id)) return { state };
+  if (b.coins < theme.price) return { state, error: `コインが ${theme.price - b.coins} 枚足りません` };
+  return { state: { ...state, bonus: { ...b, coins: b.coins - theme.price, unlocked: [...b.unlocked, id], theme: id } } };
+}
+
+export function applyTheme(state, id) {
+  const b = { ...initialBonus(), ...state.bonus };
+  return b.unlocked.includes(id) ? { ...state, bonus: { ...b, theme: id } } : state;
+}
+
+export const themeOf = (state) => THEMES.find((t) => t.id === state.bonus?.theme) || THEMES[0];
 
 /**
  * 保存データの形の移行。キーは「移行元のバージョン」で、1つ新しい形に変換する。
@@ -555,6 +638,7 @@ export function restoreState(saved, library) {
     misses,
     tests: s.tests && typeof s.tests === "object" ? s.tests : {},
     stats: { ...initialStats(), ...(s.stats || {}) },
+    bonus: { ...initialBonus(), ...(s.bonus || {}) },
     chapter,
   };
 }
@@ -722,8 +806,19 @@ export function mergeStates(a, b, library) {
     todayDate: today,
     todayCount: Math.max(sa.todayDate === today ? sa.todayCount : 0, sb.todayDate === today ? sb.todayCount : 0),
   };
+  const ba = { ...initialBonus(), ...a.bonus };
+  const bb = { ...initialBonus(), ...b.bonus };
+  const newerBonus = later(ba.lastClaim, bb.lastClaim) === bb.lastClaim ? bb : ba;
+  const bonus = {
+    ...newerBonus,
+    coins: Math.max(ba.coins, bb.coins),
+    totalDays: Math.max(ba.totalDays, bb.totalDays),
+    goalClaimed: later(ba.goalClaimed, bb.goalClaimed),
+    unlocked: [...new Set([...ba.unlocked, ...bb.unlocked])],
+    theme: bb.theme,
+  };
   return restoreState(
-    { version: STATE_VERSION, learned, queues: { ...a.queues, ...b.queues }, misses, tests, stats, chapter: b.chapter },
+    { version: STATE_VERSION, learned, queues: { ...a.queues, ...b.queues }, misses, tests, stats, bonus, chapter: b.chapter },
     library
   );
 }
@@ -755,4 +850,64 @@ export function resolveLogin(local, remote, uid, library) {
   }
   if (!local.owner && hasLocalProgress) return { state: mergeStates(local.state, remoteState, library), upload: true };
   return { state: remoteState, upload: false };
+}
+
+// ---------------------------------------------------------------------------
+// あいまい検索（一覧の「もしかして」）
+// ---------------------------------------------------------------------------
+
+/** 入れ替わり（maek → make）も1回の間違いと数える編集距離 */
+export function typoDistance(a, b) {
+  const d = Array.from({ length: a.length + 1 }, (_, i) => Array.from({ length: b.length + 1 }, (_, j) => (i === 0 ? j : j === 0 ? i : 0)));
+  for (let i = 1; i <= a.length; i++) {
+    for (let j = 1; j <= b.length; j++) {
+      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+      d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + cost);
+      if (i > 1 && j > 1 && a[i - 1] === b[j - 2] && a[i - 2] === b[j - 1]) d[i][j] = Math.min(d[i][j], d[i - 2][j - 2] + 1);
+    }
+  }
+  return d[a.length][b.length];
+}
+
+const HAS_JA = /[぀-ヿ㐀-鿿]/;
+export const FUZZY_THRESHOLD = 0.6;
+
+/** 検索語と1問の近さ（0〜1）。英語は単語ごとの綴りの近さ、日本語は文字の並びの一致で測る */
+export function fuzzyScore(item, query) {
+  let score = 0;
+  const qEn = normalizeEn(query);
+  if (qEn && /[a-z]/.test(qEn)) {
+    const words = normalizeEn(`${item.english}`).split(" ").filter(Boolean);
+    const qWords = qEn.split(" ").filter(Boolean);
+    let sum = 0;
+    for (const qw of qWords) {
+      let best = 0;
+      for (const w of words) best = Math.max(best, 1 - typoDistance(qw, w) / Math.max(qw.length, w.length));
+      sum += best;
+    }
+    score = Math.max(score, sum / qWords.length);
+  }
+  if (HAS_JA.test(query)) {
+    const q = normalizeJa(query);
+    for (const cand of answerCandidates(item.japanese)) {
+      if (!cand) continue;
+      score = Math.max(score, (2 * lcsLength(q, cand)) / (q.length + cand.length));
+    }
+  }
+  return score;
+}
+
+/**
+ * 「もしかして」: 完全一致では見つからなかったが近い問題を、近い順に返す。
+ * @param exclude すでに検索結果に出ている問題のID
+ */
+export function fuzzySearch(items, query, { exclude = new Set(), limit = 10 } = {}) {
+  if ((query || "").trim().length < 2) return [];
+  return items
+    .filter((p) => !exclude.has(p.id))
+    .map((p) => ({ item: p, score: fuzzyScore(p, query) }))
+    .filter((r) => r.score >= FUZZY_THRESHOLD)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, limit)
+    .map((r) => r.item);
 }

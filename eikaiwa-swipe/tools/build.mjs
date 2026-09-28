@@ -37,7 +37,7 @@ const stubFirebase = {
   },
 };
 
-async function buildJs({ withCloud }) {
+async function buildJs({ withCloud, hash }) {
   const result = await esbuild.build({
     plugins: withCloud ? [] : [stubFirebase],
     entryPoints: [path.join(ROOT, "src/main.jsx")],
@@ -48,7 +48,8 @@ async function buildJs({ withCloud }) {
     target: "es2019",
     jsx: "automatic",
     legalComments: "none",
-    define: { "process.env.NODE_ENV": '"production"' },
+    // __BUILD_HASH__ は公開中の index.html と比べて「新しい版が出たか」を知るのに使う
+    define: { "process.env.NODE_ENV": '"production"', __BUILD_HASH__: JSON.stringify(hash) },
   });
   // インライン <script> を途中で閉じさせない
   return result.outputFiles[0].text.replace(/<\/script/gi, "<\\/script").trim();
@@ -61,9 +62,15 @@ const { default: rawChapters, RENAMED } = await import(pathToFileURL(path.join(R
 const { buildLibrary } = await import(pathToFileURL(path.join(ROOT, "src/logic.js")).href);
 if (updateLock(buildLibrary(rawChapters, { renamed: RENAMED }))) console.log("ids.lock.json に新しい問題IDを追記しました");
 const css = buildCss();
-const js = await buildJs({ withCloud: cloudConfig != null });
 const hash = sourceHash();
-const base = "html,body,#root{height:100%;margin:0}body{background:#f1f5f9;color:#0f172a}";
+const js = await buildJs({ withCloud: cloudConfig != null, hash });
+// アプリ全体を画面に固定し、iPhone のページの揺れ（ゴムのような上下の動き）や引っぱって更新を止める。
+// スクロールは各画面の中の一覧だけで行い、端に達しても外側へ伝えない（overscroll-behavior）。
+const base =
+  "html,body{height:100%;margin:0;overflow:hidden;overscroll-behavior:none}" +
+  "#root{position:fixed;inset:0}" +
+  "body{background:#f1f5f9;color:#0f172a;-webkit-tap-highlight-color:transparent}" +
+  ".overflow-y-auto{overscroll-behavior:contain}";
 
 const page = `<!doctype html>
 <html lang="ja">
@@ -89,9 +96,9 @@ const i = process.argv.indexOf("--artifact");
 if (i > 0 && process.argv[i + 1]) {
   // Artifact の外枠が :root を安全領域ぶん余白で囲むので、100dvh ではなく親の高さに合わせる
   // Artifact の中からは外部サービスに接続できないので、常に Firebase なしで出力する
-  const artifactJs = cloudConfig != null ? await buildJs({ withCloud: false }) : js;
+  const artifactJs = cloudConfig != null ? await buildJs({ withCloud: false, hash }) : js;
   const artifact = `<title>SwipeTalk</title>
-<style>${base}#root>div{height:100%!important}#root nav{padding-bottom:0!important}${css}</style>
+<style>${base}#root{position:static;height:100%}#root>div{height:100%!important}#root nav{padding-bottom:0!important}${css}</style>
 <div id="root"></div>
 <script>${artifactJs}</script>
 `;
