@@ -7,7 +7,7 @@ import { defineConfig, devices } from '@playwright/test';
  */
 const executablePath = process.env.PW_CHROMIUM || undefined;
 
-const PORT = 8080;
+const PORT = 8081;
 const baseURL = `http://127.0.0.1:${PORT}`;
 
 export default defineConfig({
@@ -22,14 +22,14 @@ export default defineConfig({
   use: {
     baseURL,
     launchOptions: executablePath ? { executablePath } : {},
-    trace: 'on-first-retry',        // 失敗した時だけ再実行してトレースを残す
+    trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     video: 'off'
   },
 
   projects: [
     { name: 'desktop', use: { ...devices['Desktop Chrome'] } },
-    // 指での操作を実機に近い条件で検証する（hasTouch / pointer:coarse になる）
+    // 指での操作を実機に近い条件で検証する
     { name: 'mobile', use: { ...devices['Pixel 5'] } }
   ],
 

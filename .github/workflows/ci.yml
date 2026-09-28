@@ -1,15 +1,11 @@
-# このリポジトリ唯一の CI 定義。
-#
-# 重要: GitHub Actions は **リポジトリ直下の .github/workflows/ しか読まない**。
-# 各ゲームのディレクトリの中にワークフローを置いても実行されない
-# （実際、gomoku-narabe/.github/workflows/ci.yml はこのリポジトリでは動いていなかった。
-#  あれは単独リポジトリとして切り出したときのために残してある）。
-# ゲームを追加したら、下の matrix に**ディレクトリ名を足すこと**。
+# ゲームを追加したら、下の checks と e2e の matrix にディレクトリ名を足すこと。
 name: CI
 
 on:
   push:
-    branches: [main]
+    # このリポジトリのデフォルトブランチは claude/cyberpunk-gomoku-game-70crr8。
+    # 作業ブランチでも回して、PRを開く前に緑かどうかを確かめられるようにする
+    branches: [main, 'claude/**']
   pull_request:
   workflow_dispatch:
 
@@ -29,14 +25,14 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        game: [gomoku-narabe, tsuri-quest, eikaiwa-swipe]
+        game: [god-arena, gomoku-narabe, tsuri-quest, eikaiwa-swipe]
     defaults:
       run:
         working-directory: ${{ matrix.game }}
     steps:
       - uses: actions/checkout@v7
 
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v7
         with:
           node-version: '22'
           cache: npm
@@ -55,18 +51,18 @@ jobs:
   e2e:
     name: ブラウザテスト (${{ matrix.game }})
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
     strategy:
       fail-fast: false
       matrix:
-        game: [gomoku-narabe, tsuri-quest, eikaiwa-swipe]
+        game: [god-arena, gomoku-narabe, tsuri-quest, eikaiwa-swipe]
     defaults:
       run:
         working-directory: ${{ matrix.game }}
     steps:
       - uses: actions/checkout@v7
 
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v7
         with:
           node-version: '22'
           cache: npm
@@ -82,7 +78,7 @@ jobs:
       - name: E2Eテスト（デスクトップ + スマホのタッチ操作）
         run: npm run test:e2e
 
-      # 失敗したときこそレポートが要るので必ず保存する
+      # 失敗したときこそレポートが要るので if: always() を必ず付ける
       - name: テストレポートを保存
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v7
@@ -95,6 +91,42 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@v7
         with:
-          name: playwright-test-results-${{ matrix.game }}
+          name: playwright-results-${{ matrix.game }}
           path: ${{ matrix.game }}/test-results/
+          retention-days: 7
+
+  # 決められた局面を確かめる E2E とは別に、実ブラウザで決着まで通しプレイして
+  # 「詰み・停止・表示崩れ」を探す。E2Eでは見つからない種類の壊れ方を拾う。
+  playtest:
+    name: 通しプレイ (god-arena)
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    defaults:
+      run:
+        working-directory: god-arena
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: god-arena/package-lock.json
+
+      - name: 依存をインストール
+        run: npm ci
+
+      - name: Chromium と実行に必要なシステムライブラリを導入
+        run: npx playwright install --with-deps chromium
+
+      # 局数はCIの時間に合わせて絞る。手元では --games を増やして回す。
+      - name: 決着までの通しプレイ
+        run: npm run playtest -- --games 1 --keep
+
+      - name: 通しプレイのスクリーンショットを保存
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: playtest-shots
+          path: god-arena/playtest-shots/
           retention-days: 7

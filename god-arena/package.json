@@ -1,14 +1,15 @@
 {
-  "name": "gomoku-narabe",
-  "version": "1.1.0",
+  "name": "god-arena",
+  "version": "1.0.0",
   "private": true,
-  "description": "NEURO GOMOKU — ビルド不要のサイバーパンク五目並べ",
+  "description": "GOD ARENA — ビルド不要の属性つき多人数バトル（ゴッドフィールド風）",
   "type": "module",
   "scripts": {
     "start": "node tests/serve.mjs",
     "lint": "node tests/lint.mjs",
     "test:logic": "node --test tests/logic/*.test.mjs",
     "test:e2e": "playwright test",
+    "playtest": "node tests/playtest.mjs",
     "test": "npm run lint && npm run test:logic && npm run test:e2e"
   },
   "devDependencies": {

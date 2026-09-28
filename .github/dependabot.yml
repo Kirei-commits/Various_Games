@@ -1,0 +1,21 @@
+# 開発用の依存（Playwright）と Actions のバージョンを追従させる。
+# 実行時の依存はゼロなので、更新が配信物に影響することはない。
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /god-arena
+    schedule:
+      interval: monthly
+    open-pull-requests-limit: 3
+
+  - package-ecosystem: npm
+    directory: /gomoku-narabe
+    schedule:
+      interval: monthly
+    open-pull-requests-limit: 3
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    open-pull-requests-limit: 3

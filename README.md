@@ -6,42 +6,31 @@
 
 | ディレクトリ | ゲーム | 説明 |
 |---|---|---|
+| [god-arena](./god-arena/) | 神器大戦（ゴッドフィールド風） | 属性つきの多人数バトル。武器を引いて撃ち合い、同じ属性の防具で受ける。 |
 | [gomoku-narabe](./gomoku-narabe/) | 五目並べ（サイバーパンク風） | AI対戦・2人対戦・詰め五目。禁じ手ルール対応。 |
 | [tsuri-quest](./tsuri-quest/) | つりクエスト（釣り／レベルアップ） | 魚30種。名前とパスワードでセーブ、ログインボーナス、ブースト、パーツ、2種類のレベル。 |
-| [eikaiwa-swipe](./eikaiwa-swipe/) | SwipeTalk（英会話フレーズ学習） | 全40章・2000フレーズ（基本編＋アメリカ生活編）。スワイプで仕分け、英→日／日→英テスト、シャドーイング、抑揚つき音声。 |
+| [eikaiwa-swipe](./eikaiwa-swipe/) | SwipeTalk（英会話フレーズ学習） | 全40章・2000フレーズ（基本編＋アメリカ生活編）。スワイプで仕分け、英→日／日→英テスト、シャドーイング、抑揚つき音声。Google ログインでクラウド保存。 |
 
 ## 遊び方
 
-各ゲームのディレクトリを開き、`index.html` をブラウザで直接開くか、GitHub Pages でホストして遊べます。
+`index.html` をブラウザで直接開けば、そのまま遊べます（サーバー不要）。
 
-## 共通の作りかた
-
-どのゲームも次の方針でそろえています。
-
-- **ビルド不要・実行時依存ゼロ。** `index.html` を開けば動く。
-  npm の依存は開発用（Playwright）だけで、配信物には含めない。
-- **ESモジュールを使わない。** `file://` で直接開けるように、
-  各JSは即時関数でグローバル名前空間に公開するクラシックスクリプトにする。
-  したがって `index.html` の `<script>` の順序が依存関係であり、lint がそれを検査する。
-- **乱数と時間は外から注入する。** テストを決定的にするため。
-- **手で確認したことはテストとして残し、CIで回す。**
-  「一度動いた」ことより「壊れたら気づける」ことを優先する。
-
-## CI
-
-CI の定義は **リポジトリ直下の [`.github/workflows/ci.yml`](./.github/workflows/ci.yml) 1つだけ** です。
-GitHub Actions は**リポジトリ直下の `.github/workflows/` しか読まない**ため、
-ゲームのディレクトリの中にワークフローを置いても実行されません。
+GitHub Pages でも公開しています。
 
 ```
-checks : 各ゲームの lint とロジックテスト
-e2e    : 各ゲームの Playwright（desktop + mobile）
+https://kirei-commits.github.io/Various_Games/
+https://kirei-commits.github.io/Various_Games/eikaiwa-swipe/   ← SwipeTalk
 ```
 
-いずれも `matrix.game` でゲームのディレクトリを回しています。
-**ゲームを追加したら matrix にディレクトリ名を足してください。**
+> 初回だけ、リポジトリの Settings → Pages → Source を「GitHub Actions」にする必要があります。
+> 公開は `.github/workflows/pages.yml` が行います。ゲームを追加したら、そこの `for game in ...` にも足してください。
 
-各ゲームは、単独のリポジトリとして切り出しても動くように
-それぞれ `package.json` と `CLAUDE.md` を持っています。
-`gomoku-narabe/.github/workflows/ci.yml` は切り出したとき用に残してありますが、
-このリポジトリでは実行されません。
+## 開発
+
+各ゲームのディレクトリで `npm ci && npm test`。
+god-arena には実ブラウザで通しプレイする `npm run playtest` もあります。
+eikaiwa-swipe は `src/` から `index.html` を生成するので、変更後は `npm run build` して `index.html` もコミットします。
+
+CI はリポジトリ直下の `.github/workflows/ci.yml` だけです（GitHub Actions はリポジトリ直下しか読みません）。
+**ゲームを追加したら、CI の matrix と Pages の対象にディレクトリ名を足してください。**
+このリポジトリの改善は自動ループで進めています。手順は [LOOP.md](./LOOP.md) を参照してください。
