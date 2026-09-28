@@ -134,3 +134,15 @@
 .gc-glow-sr { animation: gc-glow-sr 1.4s ease-in-out infinite; }
 @keyframes gc-land { 0% { transform: scale(1.25); } 100% { transform: scale(1); } }
 .gc-land { animation: gc-land 0.35s ease-out; }
+
+/* 必殺技: 画面が金色に光ってはじける */
+@keyframes bt-special { 0% { opacity: 0; } 15% { opacity: 1; } 100% { opacity: 0; } }
+.bt-special { animation: bt-special 0.7s ease-out both; background: radial-gradient(circle at 50% 40%, rgba(255, 255, 255, 0.95), rgba(251, 191, 36, 0.7) 35%, rgba(244, 63, 94, 0.3) 70%, transparent); }
+
+/* ドーパミンモード */
+@keyframes dp-confetti { 0% { transform: translate(-50%, 0) rotate(0) scale(1); opacity: 1; } 100% { transform: translate(calc(-50% + var(--dx)), var(--dy)) rotate(var(--rot)) scale(0.6); opacity: 0; } }
+.dp-confetti { animation: dp-confetti 0.9s cubic-bezier(0.15, 0.7, 0.3, 1) both; }
+@keyframes dp-glow { 0% { opacity: 0.95; } 100% { opacity: 0; } }
+.dp-glow { animation: dp-glow 0.5s ease-out both; }
+@keyframes dp-meter { 0% { transform: scale(1.6); } 100% { transform: scale(1); } }
+.dp-meter { animation: dp-meter 0.25s ease-out; }

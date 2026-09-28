@@ -30,7 +30,8 @@ test("ステージ: 4択で敵10体とボスを倒すとクリア。ノーダメ
   });
   await page.reload();
   await openBattle(page);
-  await page.locator("#battle-chapter").selectOption("ch51");
+  // ステージは最初から第51章（単語編・基礎）
+  await expect(page.getByTestId("battle-chapter")).toContainText("第51章");
   await expect(page.getByTestId("battle-record")).toContainText("☆☆☆");
   await page.getByRole("button", { name: /バトル開始/ }).click();
   await expect(page.getByTestId("battle")).toBeVisible();
@@ -48,7 +49,7 @@ test("ステージ: 4択で敵10体とボスを倒すとクリア。ノーダメ
   await expect(page.getByTestId("battle-record")).toContainText("★★★");
   // ガチャのポイントとチケットに入っている（はじめてボーナス 1000pt・1枚と合わせて）
   await page.getByRole("button", { name: "ガチャ", exact: true }).first().click();
-  await expect(page.getByTestId("wallet-points")).toHaveText(new RegExp(`^${1000 + points}`));
+  await expect(page.getByTestId("wallet-points")).toHaveText((1000 + points).toLocaleString("en-US"));
   await expect(page.getByTestId("wallet-tickets")).toHaveText(/^9/);
 });
 
@@ -76,7 +77,7 @@ test("エンドレス: 入力で答えて倒し、間違えると正解が出る
   await page.reload();
   await openBattle(page);
   await page.getByRole("button", { name: "エンドレス", exact: true }).click();
-  await page.locator("#battle-scope").selectOption("word");
+  await expect(page.getByTestId("battle-scope")).toContainText("単語全部から");
   await page.getByRole("button", { name: "難易度順", exact: true }).click();
   await page.getByRole("button", { name: "入力", exact: true }).click();
   await page.getByRole("button", { name: /バトル開始/ }).click();
@@ -97,7 +98,7 @@ test("エンドレス: 入力で答えて倒し、間違えると正解が出る
   await page.locator("#battle-answer").press("Enter");
   await expect(page.getByTestId("battle-flash")).toContainText("正解は");
 
-  await page.getByRole("button", { name: "やめる" }).click();
+  await page.getByRole("button", { name: "バトルをやめる" }).click();
   await expect(page.getByTestId("battle-result-title")).toHaveText("RESULT");
   await expect(page.getByText("最高得点を更新！")).toBeVisible();
   await expect(page.getByTestId("battle-reward")).toContainText("レアチケット +1"); // 3体倒せば報酬あり
@@ -127,10 +128,115 @@ test("難易度順にすると、エンドレスの最初の敵はやさしい�
   await page.reload();
   await openBattle(page);
   await page.getByRole("button", { name: "エンドレス", exact: true }).click();
-  await page.locator("#battle-scope").selectOption("word");
+  await expect(page.getByTestId("battle-scope")).toContainText("単語全部から");
   await page.getByRole("button", { name: "難易度順", exact: true }).click();
   await page.getByRole("button", { name: /バトル開始/ }).click();
   await expect(page.getByTestId("enemy")).toHaveCount(2);
   const ids = await page.getByTestId("enemy").evaluateAll((els) => els.map((e) => e.dataset.phraseId));
   for (const id of ids) expect(Number(LIB.byId[id].chapterId.slice(2))).toBeLessThan(71);
+});
+
+test("難易度5段階: ★1 を選ぶと、やさしい章（基礎）の単語が出る。範囲はタップで開いて選べる", async ({ page }) => {
+  await page.addInitScript(() => {
+    window.__swipetalkBattleTime = 10;
+    window.__swipetalkBattleSpeed = 0;
+  });
+  await page.reload();
+  await openBattle(page);
+  await page.getByRole("button", { name: "エンドレス", exact: true }).click();
+  await page.getByTestId("battle-scope").click();
+  const panel = page.getByTestId("battle-scope-panel");
+  await panel.getByRole("button", { name: /単語の難易度（5段階）/ }).click();
+  await panel.getByRole("button", { name: /★1 やさしい/ }).click();
+  await expect(panel).toHaveCount(0);
+  await expect(page.getByTestId("battle-scope")).toContainText("★1 やさしい");
+  await page.getByRole("button", { name: /バトル開始/ }).click();
+  await expect(page.getByTestId("enemy")).toHaveCount(2);
+  const ids = await page.getByTestId("enemy").evaluateAll((els) => els.map((e) => e.dataset.phraseId));
+  for (const id of ids) expect(Number(LIB.byId[id].chapterId.slice(2))).toBeLessThan(71);
+});
+
+test("ステージの章は、部をタップして開いてから選ぶ", async ({ page }) => {
+  await openBattle(page);
+  await page.getByTestId("battle-chapter").click();
+  const panel = page.getByTestId("battle-chapter-panel");
+  await panel.getByRole("button", { name: /単語編・応用/ }).click();
+  await panel.getByRole("button", { name: /^第100章/ }).click();
+  await expect(page.getByTestId("battle-chapter")).toContainText("第100章");
+});
+
+test("撃破した単語を結果画面で復習でき、⭐ でお気に入りにできる", async ({ page }) => {
+  await page.addInitScript(() => {
+    window.__swipetalkBattleTime = 10;
+    window.__swipetalkBattleSpeed = 0;
+  });
+  await page.reload();
+  await openBattle(page);
+  await page.getByRole("button", { name: /バトル開始/ }).click();
+  for (let i = 0; i < 3; i++) {
+    const correct = page.locator('[data-testid="battle-choice"][data-correct="1"]');
+    await expect(correct).toHaveCount(1);
+    await correct.click();
+    await expect(page.getByTestId("battle-score")).toHaveText(String((i + 1) * 10));
+  }
+  await page.getByRole("button", { name: "バトルをやめる" }).click();
+  const review = page.getByTestId("defeated-review");
+  await expect(review.getByTestId("defeated-item")).toHaveCount(3);
+  const first = review.getByTestId("defeated-item").first();
+  await expect(first).toContainText("タップで答え");
+  await first.click();
+  await expect(first).not.toContainText("タップで答え");
+  await first.getByTestId("fav").click();
+  await expect(first.getByTestId("fav")).toHaveAttribute("aria-pressed", "true");
+});
+
+test("道具: 時止めで敵が止まり、必殺技でわからない敵を倒せる（苦手に入る）", async ({ page }) => {
+  await page.evaluate(() => {
+    const state = { version: 5, learned: {}, gacha: { starter: true, items: { freeze: 1, special: 1 } } };
+    localStorage.setItem("swipetalk:v2", JSON.stringify(state));
+  });
+  await page.addInitScript(() => {
+    window.__swipetalkBattleTime = 3;
+    window.__swipetalkBattleSpeed = 1;
+  });
+  await page.reload();
+  await openBattle(page);
+  await page.getByRole("button", { name: /バトル開始/ }).click();
+  await expect(page.getByTestId("enemy").first()).toBeVisible();
+  await page.getByRole("button", { name: /時止め ×1/ }).click();
+  await expect(page.getByTestId("battle-frozen")).toBeVisible();
+  await expect(page.getByRole("button", { name: /時止め ×0/ })).toBeDisabled();
+  const enemy = page.locator('[data-testid="enemy"][data-target="1"]');
+  const id = await enemy.getAttribute("data-phrase-id");
+  await page.getByRole("button", { name: /必殺技 ×1/ }).click();
+  await expect(page.getByTestId("battle-flash")).toContainText("必殺技");
+  await expect(page.locator(`[data-testid="enemy"][data-phrase-id="${id}"]`)).toHaveCount(0);
+  await page.getByRole("button", { name: "バトルをやめる" }).click();
+  await expect(page.getByText("間違えた・逃した単語（苦手に追加しました）")).toBeVisible();
+});
+
+test("長いフレーズでも、敵の札と問題文が見切れない（折り返して戦場の中に収まる）", async ({ page }) => {
+  await page.addInitScript(() => {
+    window.__swipetalkBattleTime = 10;
+    window.__swipetalkBattleSpeed = 0;
+  });
+  await page.reload();
+  await openBattle(page);
+  await page.getByTestId("battle-chapter").click();
+  const panel = page.getByTestId("battle-chapter-panel");
+  await panel.getByRole("button", { name: /もっと話せる編/ }).click();
+  await panel.getByRole("button", { name: /^第41章/ }).click();
+  await page.getByRole("button", { name: /バトル開始/ }).click();
+  await expect(page.getByTestId("enemy")).toHaveCount(3);
+  const field = await page.getByTestId("battle-field").boundingBox();
+  for (const label of await page.getByTestId("enemy-label").all()) {
+    const box = await label.boundingBox();
+    expect(box.x).toBeGreaterThanOrEqual(field.x - 1);
+    expect(box.x + box.width).toBeLessThanOrEqual(field.x + field.width + 1);
+    // 文字が札からはみ出していない（… で切れていない）
+    expect(await label.evaluate((el) => el.scrollWidth <= el.clientWidth + 1)).toBe(true);
+  }
+  const target = page.locator('[data-testid="enemy"][data-target="1"]');
+  const id = await target.getAttribute("data-phrase-id");
+  await expect(target.getByTestId("enemy-label")).toHaveText(LIB.byId[id].english);
 });

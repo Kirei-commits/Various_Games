@@ -101,8 +101,10 @@ const isQualityName = (v) => /premium|enhanced|natural|neural|google/i.test(v.na
  * 訛りの強い地域の声や、効果音のような声は出さない。
  * 絞った結果が空になる端末（Android の「English United States」だけ等）では、英語の声をそのまま使う。
  */
-export function usableVoices(all) {
+export function usableVoices(all, { wide = false } = {}) {
   const english = (all || []).filter((v) => langOf(v).startsWith("en") && !isExcludedVoice(v));
+  // いろいろな国の英語: 訛りのある地域の声や、名前の分からない声もすべて使う（効果音のような声は除く）
+  if (wide) return [...english].sort((a, b) => rank(a) - rank(b) || a.name.localeCompare(b.name));
   const clear = english.filter((v) => CLEAR_LANGS.includes(langOf(v)) && (voiceGender(v) || isQualityName(v)));
   const fallback = english.filter((v) => CLEAR_LANGS.includes(langOf(v)));
   const list = clear.length ? clear : fallback.length ? fallback : english;
@@ -154,4 +156,14 @@ export function pickVoicesFor(voices, seed, { twoVoices = true } = {}) {
   const others = voices.filter((v) => v !== a && voiceGender(v) && voiceGender(v) !== gA);
   if (!others.length) return { a, b: a, sameVoice: true };
   return { a, b: others[Math.floor(h / voices.length) % others.length], sameVoice: false };
+}
+
+/**
+ * 話す人の個性（声の高さと速さの倍率）。同じ声しかない端末でも、会話ごとに違う人が話しているように聞こえる。
+ * seed（会話）と役（A / B）から決まるので、同じ会話はいつも同じ人。
+ * @returns {{ pitch: number, rate: number }} pitch 0.86〜1.16、rate 0.94〜1.06
+ */
+export function personaFor(seed, role = "A") {
+  const h = seedOf(`${seed}:${role}`);
+  return { pitch: 0.86 + ((h % 1000) / 1000) * 0.3, rate: 0.94 + ((Math.floor(h / 1000) % 1000) / 1000) * 0.12 };
 }

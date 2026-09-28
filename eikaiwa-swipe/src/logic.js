@@ -5,6 +5,7 @@
  */
 import { initialGacha, restoreGacha, mergeGacha, grant, loginGachaReward, GOAL_POINTS } from "./gacha.js";
 import { initialBattle, restoreBattle, mergeBattle } from "./battle.js";
+import { restoreDiary, mergeDiary } from "./diary.js";
 
 // ---------------------------------------------------------------------------
 // データ
@@ -447,7 +448,7 @@ export function wordMatch(said, target) {
 // 学習状態
 // ---------------------------------------------------------------------------
 
-export const STATE_VERSION = 4;
+export const STATE_VERSION = 5;
 
 /** v1（22フレーズ版）の保存データの ID → 英語 */
 export const LEGACY_V1_IDS = {
@@ -480,8 +481,18 @@ export function freshState(firstChapterId = "ch01") {
     bonus: initialBonus(),
     gacha: initialGacha(),
     battle: initialBattle(),
+    favorites: {}, // 問題ID → true（⭐ を付けた単語・フレーズ）
+    diary: {}, // 日付 → { text, score, points, at, words }
     chapter: firstChapterId,
   };
+}
+
+/** お気に入り（⭐）を付ける・外す */
+export function toggleFavorite(state, id) {
+  const favorites = { ...(state.favorites || {}) };
+  if (favorites[id]) delete favorites[id];
+  else favorites[id] = true;
+  return { ...state, favorites };
 }
 
 // ---------------------------------------------------------------------------
@@ -560,6 +571,8 @@ const MIGRATIONS = {
   // v3 → v4: ガチャに5倍ブースト・コード入力・無限モードを追加（足りない値は restoreGacha が初期値で埋める）。
   // ログインボーナスのコインは廃止（値は消さずに残す）。着せかえは設定に移った
   3: (s) => ({ ...s, version: 4 }),
+  // v4 → v5: お気に入り（state.favorites）と日記（state.diary）を追加
+  4: (s) => ({ ...s, version: 5, favorites: s.favorites || {}, diary: s.diary || {} }),
 };
 
 export const stateVersionOf = (saved) => (saved && Number.isInteger(saved.version) ? saved.version : 1);
@@ -624,6 +637,12 @@ export function restoreState(saved, library) {
     bonus: { ...initialBonus(), ...(s.bonus || {}) },
     gacha: restoreGacha(s.gacha, (id) => currentId(id, renamed)),
     battle: restoreBattle(s.battle),
+    favorites: Object.fromEntries(
+      Object.entries(s.favorites || {})
+        .filter(([, on]) => on)
+        .map(([id]) => [currentId(id, renamed), true])
+    ),
+    diary: restoreDiary(s.diary),
     chapter,
   };
 }
@@ -813,6 +832,8 @@ export function mergeStates(a, b, library) {
       bonus,
       gacha: mergeGacha(a.gacha, b.gacha),
       battle: mergeBattle(a.battle, b.battle),
+      favorites: { ...(a.favorites || {}), ...(b.favorites || {}) },
+      diary: mergeDiary(a.diary, b.diary),
       chapter: b.chapter,
     },
     library
