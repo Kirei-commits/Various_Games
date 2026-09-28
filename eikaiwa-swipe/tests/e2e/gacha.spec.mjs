@@ -25,7 +25,9 @@ async function openGacha(page) {
 }
 
 test.beforeEach(async ({ page }) => {
+  // 以後の読み込み（reload）用と、すでに開いているページ用の両方に乱数の種を入れる
   await page.addInitScript(() => (window.__swipetalkGachaSeed = 1));
+  await page.evaluate(() => (window.__swipetalkGachaSeed = 1));
 });
 
 test("はじめてボーナスで10連を引ける。結果が出て、ポイントが減り、交換ポイントが貯まる", async ({ page }) => {
@@ -47,7 +49,10 @@ test("はじめてボーナスで10連を引ける。結果が出て、ポイン
   await expect(page.getByTestId("wallet-points")).toHaveText(/^0/);
   const ex = Number((await page.getByTestId("wallet-ex").innerText()).replace(/\D/g, ""));
   expect(ex).toBeGreaterThanOrEqual(10);
-  await expect(page.getByTestId("gacha-pity")).toContainText("あと 9");
+  // 天井までの残り: 10連で SSR が出たら、その後に引いた回数だけ減っている
+  const lastSsr = rarities.lastIndexOf("SSR");
+  const sinceSsr = lastSsr < 0 ? 10 : rarities.length - 1 - lastSsr;
+  await expect(page.getByTestId("gacha-pity")).toContainText(`あと ${100 - sinceSsr} 回`);
 
   // ポイントが足りないと引けない
   await page.getByRole("button", { name: /1回引く/ }).click();

@@ -32,6 +32,7 @@ import {
   Gift,
   BookOpen,
   Award,
+  Swords,
 } from "lucide-react";
 import rawChapters, { PARTS, RENAMED } from "./data/index.js";
 import { analyzeLinking, LINK_LABELS } from "./linking.js";
@@ -56,6 +57,19 @@ import {
   STARTER,
 } from "./gacha.js";
 import { POS_LABELS, TITLES } from "./data/gacha-data.js";
+import {
+  createBattle,
+  tick,
+  attack,
+  target,
+  quit,
+  resultsOf,
+  STAGE_ENEMIES,
+  KILL_POINTS,
+  CLEAR_POINTS,
+  BATTLE_DAILY_CAP,
+  applyBattle,
+} from "./battle.js";
 import {
   buildLibrary,
   parseDialogue,
@@ -235,11 +249,18 @@ const DEFAULT_SETTINGS = {
   sfx: true,
   sfxVolume: 0.6,
   test: { scope: "ch01", count: 10, direction: "en-ja", prompt: "text", answer: "type" },
+  play: "test", // テスト画面で「テスト」「バトル」のどちらを開くか
+  battle: { mode: "stage", chapter: "ch51", scope: "word", direction: "en-ja", answer: "choice" },
 };
 
 function loadSettings() {
   const s = storage.load(SETTINGS_KEY) || {};
-  return { ...DEFAULT_SETTINGS, ...s, test: { ...DEFAULT_SETTINGS.test, ...(s.test || {}) } };
+  return {
+    ...DEFAULT_SETTINGS,
+    ...s,
+    test: { ...DEFAULT_SETTINGS.test, ...(s.test || {}) },
+    battle: { ...DEFAULT_SETTINGS.battle, ...(s.battle || {}) },
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -1254,7 +1275,7 @@ function resultMessage(pct) {
   return "まずは学習カードで慣れていこう。";
 }
 
-function TestSetup({ config, setConfig, misses, tests, onStart, onSettings }) {
+function TestSetup({ config, setConfig, misses, tests, onStart, onSettings, switcher }) {
   const pool = scopeItems(config.scope, misses);
   const weakCount = Object.keys(misses).length;
   const record = tests[testKey(config.scope, config.direction)];
@@ -1263,6 +1284,7 @@ function TestSetup({ config, setConfig, misses, tests, onStart, onSettings }) {
   return (
     <div className="h-full overflow-y-auto px-5 pt-4 pb-6">
       <ScreenHeader title="テスト" sub="意味・英語を答えて定着度をチェック" onSettings={onSettings} />
+      {switcher}
 
       <div className="mt-4 space-y-4 rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
         <div>
@@ -1826,12 +1848,554 @@ function TestResult({ results, scope, direction, speech, onRetryWrong, onRetry, 
   );
 }
 
-function TestScreen({ active, state, settings, setSettings, speech, onFinishTest, onSettings }) {
+// ---------------------------------------------------------------------------
+// バトル（RPGモード）: 迫ってくる敵（単語）に答えて倒す
+// ---------------------------------------------------------------------------
+const MONSTERS = ["👾", "👻", "🦇", "🐺", "🧟", "🐍", "🦂", "👹", "🕷️", "🦖"];
+const BOSS_MONSTER = "🐉";
+
+function TestKindSwitch({ value, onChange }) {
+  return (
+    <div className="mt-3">
+      <Segmented
+        name="test-kind"
+        value={value}
+        onChange={onChange}
+        options={[
+          { value: "test", label: "テスト", icon: PenLine },
+          { value: "battle", label: "バトル", icon: Swords },
+        ]}
+      />
+    </div>
+  );
+}
+
+const battleKey = (config) => (config.mode === "stage" ? `${config.chapter}@${config.direction}` : `${config.scope}@${config.direction}`);
+
+function BattleSetup({ config, setConfig, record, misses, onStart, onSettings, switcher }) {
+  const set = (patch) => setConfig({ ...config, ...patch });
+  const stage = config.mode === "stage";
+  const items = stage ? CHAPTER_BY_ID[config.chapter]?.items || [] : scopeItems(config.scope, misses);
+  const key = battleKey(config);
+  const stars = record.stars[key] || 0;
+  const best = record.best[key] || 0;
+  const weakCount = Object.keys(misses).length;
+  return (
+    <div className="h-full overflow-y-auto px-5 pt-4 pb-6">
+      <ScreenHeader title="バトル" sub="迫ってくる単語を倒して覚える" onSettings={onSettings} />
+      {switcher}
+      <div className="mt-4 space-y-4 rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
+        <div>
+          <p className="text-xs font-bold text-slate-500">モード</p>
+          <div className="mt-1">
+            <Segmented
+              name="battle-mode"
+              value={config.mode}
+              onChange={(mode) => set({ mode })}
+              options={[
+                { value: "stage", label: "ステージ" },
+                { value: "endless", label: "エンドレス" },
+              ]}
+            />
+          </div>
+          <p className="mt-2 text-xs leading-relaxed text-slate-500">
+            {stage
+              ? `章がステージ。敵${STAGE_ENEMIES}体を倒すとボスが登場。ノーダメージでクリアすると★3（初回はレアチケット）。`
+              : "敵を倒すほど速く・多くなります。HP がなくなるまで何体倒せるか挑戦！"}
+          </p>
+        </div>
+
+        <div>
+          <label htmlFor={stage ? "battle-chapter" : "battle-scope"} className="text-xs font-bold text-slate-500">
+            {stage ? "ステージ（章）" : "出てくる単語"}
+          </label>
+          {stage ? (
+            <ChapterSelect id="battle-chapter" value={config.chapter} onChange={(chapter) => set({ chapter })} className="mt-1" />
+          ) : (
+            <ChapterSelect
+              id="battle-scope"
+              value={config.scope}
+              onChange={(scope) => set({ scope })}
+              extra={[
+                ["all", `全章から（${TOTAL}問）`],
+                ["phrase", `フレーズ全部から（${KIND_ITEMS.phrase.length}問）`],
+                ["word", `単語全部から（${KIND_ITEMS.word.length}問）`],
+                ["weak", `苦手な問題（${weakCount}問）`],
+              ]}
+              className="mt-1"
+            />
+          )}
+          <p className="mt-1 text-xs text-slate-500 tabular-nums" data-testid="battle-record">
+            {stage ? `このステージの記録 ${"★".repeat(stars)}${"☆".repeat(3 - stars)}` : `最高得点 ${best}`}
+          </p>
+        </div>
+
+        <div>
+          <p className="text-xs font-bold text-slate-500">出題の向き</p>
+          <div className="mt-1">
+            <Segmented
+              name="battle-direction"
+              value={config.direction}
+              onChange={(direction) => set({ direction })}
+              options={[
+                { value: "en-ja", label: "英語 → 意味" },
+                { value: "ja-en", label: "日本語 → 英語" },
+              ]}
+            />
+          </div>
+        </div>
+
+        <div>
+          <p className="text-xs font-bold text-slate-500">攻撃のしかた（答え方）</p>
+          <div className="mt-1">
+            <Segmented
+              name="battle-answer"
+              value={config.answer}
+              onChange={(answer) => set({ answer })}
+              options={[
+                { value: "choice", label: "4択", icon: ListChecks },
+                { value: "type", label: "入力", icon: Keyboard },
+                { value: "voice", label: "音声", icon: Mic },
+              ]}
+            />
+          </div>
+          <p className="mt-2 text-xs leading-relaxed text-slate-500">
+            {config.answer === "choice" && "4つから選んで即攻撃。テンポよく連打できます。"}
+            {config.answer === "type" && "答えを入力して Enter で攻撃。敵はゆっくり近づきます。"}
+            {config.answer === "voice" && "マイクを押して話すと攻撃。敵はゆっくり近づきます。"}
+          </p>
+        </div>
+      </div>
+
+      <div className="mt-3 rounded-2xl bg-slate-900 p-3 text-xs leading-relaxed text-slate-200">
+        <p>⚔️ 一番近い敵の単語に答えると攻撃。正解が続くとコンボで得点アップ。</p>
+        <p>💥 間違えると敵が一気に近づき、敵が届くと HP が減ります（ボスは2）。</p>
+        <p>🎁 1体 {KILL_POINTS}pt・クリア +{CLEAR_POINTS}pt のガチャポイント（1日 {BATTLE_DAILY_CAP}pt まで）。間違えた単語は「苦手」に入ります。</p>
+      </div>
+
+      <button
+        type="button"
+        disabled={items.length < 4}
+        onClick={() => onStart({ config, items, key })}
+        className="mt-5 flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-rose-500 to-orange-500 py-4 text-base font-extrabold text-white shadow-lg transition active:scale-95 disabled:opacity-40"
+      >
+        <Swords size={20} /> バトル開始！
+      </button>
+      {items.length < 4 && <p className="mt-2 text-center text-xs text-slate-500">苦手な問題が4問以上たまると挑戦できます。</p>}
+    </div>
+  );
+}
+
+function BattleRun({ session, speech, recognition, onFinish, active = true }) {
+  const sound = useSound();
+  const { config, items } = session;
+  const jaEn = config.direction === "ja-en";
+  const battle = useRef(null);
+  if (!battle.current) {
+    battle.current = createBattle({ mode: config.mode, items, answer: config.answer, direction: config.direction, key: session.key });
+  }
+  const [, setFrame] = useState(0);
+  const [flash, setFlash] = useState(null);
+  const [input, setInput] = useState("");
+  const inputRef = useRef(null);
+  const finished = useRef(false);
+  // ほかのタブを見ているあいだは一時停止（テスト画面は裏でも表示したままにしているため）
+  const activeRef = useRef(active);
+  activeRef.current = active;
+  const b = battle.current;
+  const t = target(b);
+  const pool = items.length >= 4 ? items : ALL_ITEMS;
+
+  const finish = useCallback(() => {
+    if (finished.current) return;
+    finished.current = true;
+    recognition.abort();
+    onFinish(battle.current);
+  }, [onFinish, recognition]);
+
+  // ゲームの時間を進める（画面が隠れているあいだは requestAnimationFrame が止まる）
+  useEffect(() => {
+    let raf;
+    let last = performance.now();
+    let bossSeen = false;
+    const loop = (now) => {
+      const bt = battle.current;
+      const dt = activeRef.current ? Math.min(100, Math.max(0, now - last)) : 0;
+      last = now;
+      const hp = bt.hp;
+      // E2E 用: __swipetalkBattleTime はゲーム内時間の速さ、__swipetalkBattleSpeed は敵の動きの速さ（0 で止まる）
+      const clock = typeof window.__swipetalkBattleTime === "number" ? window.__swipetalkBattleTime : 1;
+      const scale = typeof window.__swipetalkBattleSpeed === "number" ? window.__swipetalkBattleSpeed : 1;
+      tick(bt, dt * clock, Math.random, scale);
+      if (bt.hp < hp) {
+        sound.play("wrong");
+        setFlash({ type: "damage", text: "ダメージ！", at: now });
+      }
+      if (bt.bossSpawned && !bossSeen) {
+        bossSeen = true;
+        sound.play("complete");
+        setFlash({ type: "boss", text: "ボス出現！", at: now });
+      }
+      setFrame((n) => n + 1);
+      if (bt.over) {
+        finish();
+        return;
+      }
+      raf = requestAnimationFrame(loop);
+    };
+    raf = requestAnimationFrame(loop);
+    return () => cancelAnimationFrame(raf);
+  }, [finish, sound]);
+
+  const choices = useMemo(
+    () => (t && config.answer === "choice" ? makeChoices(t.item, pool, Math.random, 4, jaEn ? "english" : "japanese") : []),
+    // 狙う敵の単語が変わったときだけ選択肢を作り直す
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [t?.uid, t?.item.id, config.answer, jaEn]
+  );
+
+  /** 表示中の単語（itemId）に答える。狙う敵が入れ替わっていたら無視する */
+  const answer = (itemId, correct) => {
+    const bt = battle.current;
+    const cur = target(bt);
+    if (!cur || cur.item.id !== itemId || bt.over) return;
+    const item = attack(bt, correct);
+    const ev = bt.lastEvent;
+    if (correct) {
+      sound.play(ev.type === "kill" ? (ev.boss ? "bonus" : "learned") : "correct");
+      setFlash({ type: "kill", text: ev.type === "kill" ? (ev.boss ? "ボス撃破！" : "撃破！") : "ヒット！", at: performance.now() });
+      if (jaEn) speech.speak(item.english, null, item.id);
+    } else {
+      sound.play("wrong");
+      setFlash({ type: "wrong", text: `正解は「${jaEn ? item.english : item.japanese.split("／")[0]}」`, at: performance.now() });
+    }
+    setInput("");
+    setFrame((n) => n + 1);
+    if (bt.over) finish();
+    if (config.answer !== "choice") setTimeout(() => inputRef.current?.focus(), 0);
+  };
+
+  const grade = (text, item) => (jaEn ? gradeEnglish(text, item.english) : gradeAnswer(text, item.japanese));
+  const submitText = (e) => {
+    e.preventDefault();
+    if (!t || !input.trim()) return;
+    answer(t.item.id, isCorrect(grade(input, t.item).verdict));
+  };
+  const listen = () => {
+    if (!t) return;
+    const item = t.item;
+    recognition.start((alts) => {
+      const ok = alts.some((a) => isCorrect(grade(a, item).verdict));
+      answer(item.id, ok);
+    }, jaEn ? "en-US" : "ja-JP");
+  };
+
+  const showFlash = flash && performance.now() - flash.at < 1400;
+  const stageLabel =
+    b.mode === "stage" ? (b.bossSpawned ? "BOSS" : `敵 ${Math.min(b.kills, STAGE_ENEMIES)} / ${STAGE_ENEMIES}`) : `Lv.${b.level}`;
+
+  return (
+    <div className="flex h-full flex-col px-4 pt-3 pb-3" data-testid="battle">
+      <div className="flex items-center gap-2">
+        <button
+          type="button"
+          onClick={() => {
+            quit(battle.current);
+            finish();
+          }}
+          className="rounded-full bg-white px-3 py-1.5 text-xs font-bold text-slate-500 ring-1 ring-slate-200"
+        >
+          やめる
+        </button>
+        <p className="text-base tracking-tight" data-testid="battle-hp" aria-label={`HP ${b.hp}`}>
+          {"❤️".repeat(b.hp)}
+          <span className="opacity-30">{"🤍".repeat(b.maxHp - b.hp)}</span>
+        </p>
+        <p className="ml-auto text-right text-xs font-bold tabular-nums text-slate-500">
+          {stageLabel}
+          <span className="block text-base font-black text-slate-900" data-testid="battle-score">
+            {b.score}
+          </span>
+        </p>
+      </div>
+
+      {/* 戦場: 敵が上から迫ってくる */}
+      <div
+        className="relative mt-2 min-h-[200px] flex-1 overflow-hidden rounded-3xl bg-gradient-to-b from-indigo-950 via-violet-900 to-rose-900 shadow-inner"
+        data-testid="battle-field"
+      >
+        {b.enemies.map((e, i) => {
+          const isTarget = t && e.uid === t.uid;
+          return (
+            <div
+              key={e.uid}
+              data-testid="enemy"
+              data-target={isTarget ? "1" : "0"}
+              data-phrase-id={e.item.id}
+              data-boss={e.boss ? "1" : "0"}
+              className="absolute flex -translate-x-1/2 flex-col items-center"
+              style={{ left: `${e.x * 100}%`, top: `calc(10px + ${Math.min(e.y, 1)} * (100% - ${e.boss ? 120 : 90}px))` }}
+            >
+              <span className={`leading-none drop-shadow ${e.boss ? "text-6xl" : "text-4xl"} ${isTarget ? "animate-bounce" : ""}`}>
+                {e.boss ? BOSS_MONSTER : MONSTERS[e.uid % MONSTERS.length]}
+              </span>
+              {e.boss && (
+                <div className="mt-1 h-1.5 w-20 overflow-hidden rounded-full bg-white/20">
+                  <div className="h-full bg-rose-400" style={{ width: `${(e.hp / e.maxHp) * 100}%` }} />
+                </div>
+              )}
+              <span
+                className={`mt-1 max-w-[9rem] truncate rounded-full px-2 py-0.5 text-xs font-extrabold ${
+                  isTarget ? "bg-white text-slate-900 ring-2 ring-amber-400" : "bg-white/20 text-white"
+                }`}
+              >
+                {jaEn ? e.item.japanese.split("／")[0] : e.item.english}
+              </span>
+            </div>
+          );
+        })}
+        {showFlash && (
+          <p
+            key={flash.at}
+            data-testid="battle-flash"
+            className={`absolute inset-x-4 top-1/3 text-center text-2xl font-black drop-shadow ${
+              flash.type === "kill" ? "text-amber-300" : flash.type === "boss" ? "text-rose-300" : "text-white"
+            }`}
+          >
+            {flash.text}
+          </p>
+        )}
+        <div className="absolute inset-x-0 bottom-0 flex items-end justify-center pb-1">
+          <span className={`text-4xl ${flash?.type === "damage" && showFlash ? "animate-pulse" : ""}`}>🧙</span>
+        </div>
+        {b.combo >= 2 && (
+          <p className="absolute right-3 top-2 text-sm font-black text-amber-300" data-testid="battle-combo">
+            🔥 {b.combo} COMBO
+          </p>
+        )}
+      </div>
+
+      {/* 攻撃（答える） */}
+      <div className="mt-3">
+        <p className="text-center text-xs font-bold text-slate-500">
+          {t ? (
+            <>
+              <span className="text-slate-900" data-testid="battle-question">
+                {jaEn ? t.item.japanese : t.item.english}
+              </span>
+              {jaEn ? " を英語で！" : " の意味は？"}
+            </>
+          ) : (
+            "敵が来るのを待っています…"
+          )}
+        </p>
+        {config.answer === "choice" && (
+          <div className="mt-2 grid grid-cols-2 gap-2">
+            {choices.map((c) => (
+              <button
+                key={c.id}
+                type="button"
+                data-testid="battle-choice"
+                data-correct={c.id === t?.item.id ? "1" : "0"}
+                onClick={() => t && answer(t.item.id, c.id === t.item.id)}
+                className="min-h-[3.25rem] rounded-2xl bg-white px-2 py-2 text-sm font-bold text-slate-800 shadow-sm ring-1 ring-slate-200 transition active:scale-95"
+              >
+                {c.label}
+              </button>
+            ))}
+          </div>
+        )}
+        {(config.answer === "type" || (config.answer === "voice" && !recognition.supported)) && (
+          <form onSubmit={submitText} className="mt-2 flex gap-2">
+            <input
+              id="battle-answer"
+              ref={inputRef}
+              autoFocus
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder={config.answer === "voice" ? "キーボードのマイク（🎤）で話す" : jaEn ? "英語で入力" : "意味を入力"}
+              autoComplete="off"
+              autoCapitalize="off"
+              autoCorrect="off"
+              spellCheck={false}
+              lang={jaEn ? "en" : "ja"}
+              className="min-w-0 flex-1 rounded-2xl bg-white px-4 py-3 text-base shadow-sm ring-1 ring-slate-200 focus:outline-none focus:ring-2 focus:ring-rose-400"
+            />
+            <button type="submit" disabled={!t || !input.trim()} className="rounded-2xl bg-rose-500 px-4 text-sm font-extrabold text-white disabled:opacity-40">
+              攻撃
+            </button>
+          </form>
+        )}
+        {config.answer === "voice" && recognition.supported && (
+          <div className="mt-2 flex items-center justify-center gap-3">
+            <button
+              type="button"
+              aria-label="話して攻撃"
+              disabled={!t}
+              onClick={() => (recognition.listening ? recognition.stop() : listen())}
+              className={`flex h-16 w-16 items-center justify-center rounded-full text-white shadow-lg transition active:scale-90 disabled:opacity-40 ${
+                recognition.listening ? "animate-pulse bg-rose-500" : "bg-indigo-600"
+              }`}
+            >
+              {recognition.listening ? <Check size={28} strokeWidth={3} /> : <Mic size={28} />}
+            </button>
+            <p className="min-h-[1.5rem] max-w-[12rem] text-xs text-slate-600">
+              {recognition.listening ? recognition.interim || "聞き取り中…話し終わったら ✓" : "マイクを押して話すと攻撃"}
+            </p>
+          </div>
+        )}
+        {config.answer !== "choice" && (
+          <button
+            type="button"
+            disabled={!t}
+            onClick={() => t && answer(t.item.id, false)}
+            className="mx-auto mt-2 block rounded-full bg-white px-3 py-1.5 text-xs font-bold text-slate-500 ring-1 ring-slate-200 disabled:opacity-40"
+          >
+            わからない（答えを見る）
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function BattleResult({ battle, reward, speech, onRetry, onNext, onBack }) {
+  const sound = useSound();
+  useEffect(() => sound.play(battle.cleared ? "complete" : "again"), [sound, battle.cleared]);
+  const stage = battle.mode === "stage";
+  const wrong = resultsOf(battle)
+    .filter((r) => !r.correct)
+    .map((r) => LIBRARY.byId[r.id])
+    .filter(Boolean);
+  const title = stage ? (battle.cleared ? "STAGE CLEAR!" : "GAME OVER") : "RESULT";
+  return (
+    <div className="h-full overflow-y-auto px-5 pt-4 pb-6" data-testid="battle-result">
+      <div
+        className={`rounded-3xl p-6 text-center text-white shadow-lg ${
+          battle.cleared ? "bg-gradient-to-br from-amber-400 via-orange-500 to-rose-500" : "bg-gradient-to-br from-slate-700 to-indigo-900"
+        }`}
+      >
+        <p className="text-3xl font-black tracking-wide" data-testid="battle-result-title">
+          {title}
+        </p>
+        {stage && battle.cleared && (
+          <p className="mt-2 text-4xl tracking-widest text-yellow-200" data-testid="battle-stars">
+            {"★".repeat(reward.stars)}
+            <span className="opacity-40">{"★".repeat(3 - reward.stars)}</span>
+          </p>
+        )}
+        <p className="mt-3 text-5xl font-black tabular-nums">{battle.score}</p>
+        <p className="text-xs font-bold text-white/80 tabular-nums">
+          撃破 {battle.kills} ・ 最大コンボ {battle.maxCombo} ・ 残り HP {battle.hp}
+        </p>
+        {reward.newBest && <p className="mt-2 text-sm font-black text-yellow-200">最高得点を更新！</p>}
+      </div>
+
+      <div className="mt-3 rounded-2xl bg-indigo-50 px-4 py-3 text-center text-sm font-bold text-indigo-700" data-testid="battle-reward">
+        ガチャポイント +{reward.points}
+        {reward.tickets > 0 && "・レアチケット +1（初めての★3！）"}
+      </div>
+
+      {wrong.length > 0 && (
+        <div className="mt-4">
+          <p className="text-sm font-bold text-slate-800">間違えた・逃した単語（苦手に追加しました）</p>
+          <ul className="mt-2 space-y-2">
+            {wrong.map((p) => (
+              <li key={p.id} className="flex items-center gap-3 rounded-2xl bg-white p-3 shadow-sm ring-1 ring-slate-200">
+                <SpeakButton seed={p.id} text={p.english} speech={speech} size="sm" />
+                <div className="min-w-0 flex-1">
+                  <p className="font-bold text-slate-900">{p.english}</p>
+                  <p className="text-sm text-slate-500">{p.japanese}</p>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      <div className="mt-5 grid gap-2">
+        {onNext && (
+          <button type="button" onClick={onNext} className="rounded-2xl bg-gradient-to-r from-rose-500 to-orange-500 py-3.5 text-sm font-extrabold text-white">
+            次のステージへ
+          </button>
+        )}
+        <button type="button" onClick={onRetry} className="rounded-2xl bg-white py-3.5 text-sm font-bold text-slate-700 ring-1 ring-slate-200">
+          もう一度
+        </button>
+        <button type="button" onClick={onBack} className="rounded-2xl py-3 text-sm font-bold text-slate-500">
+          設定に戻る
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function TestScreen({ active, state, settings, setSettings, speech, onFinishTest, onFinishBattle, onSettings }) {
   const recognition = useRecognition();
   const [session, setSession] = useState(null); // { quiz, pool, runId }
   const [result, setResult] = useState(null);
+  const [battle, setBattle] = useState(null); // { config, items, key, runId }
+  const [battleResult, setBattleResult] = useState(null); // { battle, reward }
   const config = settings.test;
   const setConfig = (test) => setSettings((s) => ({ ...s, test }));
+  const battleConfig = settings.battle;
+  const setBattleConfig = (b) => setSettings((s) => ({ ...s, battle: b }));
+  const switcher = <TestKindSwitch value={settings.play} onChange={(play) => setSettings((s) => ({ ...s, play }))} />;
+  const startBattle = (b) => {
+    setBattleResult(null);
+    setBattle({ ...b, runId: Date.now() });
+  };
+  const onBattleOver = useCallback(
+    (b) => {
+      const reward = onFinishBattle(b);
+      setBattleResult({ battle: b, reward });
+    },
+    [onFinishBattle]
+  );
+
+  if (battleResult) {
+    const cfg = battle.config;
+    const nextChapter = cfg.mode === "stage" && battleResult.battle.cleared ? CHAPTERS[CHAPTER_NO[cfg.chapter]] : null;
+    return (
+      <BattleResult
+        battle={battleResult.battle}
+        reward={battleResult.reward}
+        speech={speech}
+        onRetry={() => startBattle(battle)}
+        onNext={
+          nextChapter
+            ? () => {
+                const next = { ...cfg, chapter: nextChapter.id };
+                setBattleConfig(next);
+                startBattle({ config: next, items: nextChapter.items, key: battleKey(next) });
+              }
+            : null
+        }
+        onBack={() => {
+          setBattleResult(null);
+          setBattle(null);
+        }}
+      />
+    );
+  }
+  if (battle) {
+    return (
+      <BattleRun key={battle.runId} active={active} session={battle} speech={speech} recognition={recognition} onFinish={onBattleOver} />
+    );
+  }
+  if (settings.play === "battle" && !session && !result) {
+    return (
+      <BattleSetup
+        config={battleConfig}
+        setConfig={setBattleConfig}
+        record={state.battle}
+        misses={state.misses}
+        onStart={startBattle}
+        onSettings={onSettings}
+        switcher={switcher}
+      />
+    );
+  }
 
   const start = (pool, items = null) => {
     const quiz = items || buildQuiz(pool, config.count, Math.random);
@@ -1881,6 +2445,7 @@ function TestScreen({ active, state, settings, setSettings, speech, onFinishTest
       tests={state.tests}
       onStart={(pool) => start(pool)}
       onSettings={onSettings}
+      switcher={switcher}
     />
   );
 }
@@ -3597,6 +4162,19 @@ export default function App() {
     update((s) => earnStudyPoints(applyTestResult(s, LIBRARY, scope, results, today, yesterday), today, correct));
   }, [update]);
 
+  // ---- バトル: 間違えた単語は苦手に入れ、ポイント・チケットを渡す
+  const onFinishBattle = useCallback(
+    (b) => {
+      const { today, yesterday } = todayAndYesterday();
+      const withMisses = applyTestResult(stateRef.current, LIBRARY, `battle@${b.direction}`, resultsOf(b), today, yesterday);
+      const res = applyBattle(withMisses, b, today);
+      stateRef.current = res.state;
+      update(() => res.state);
+      return res.reward;
+    },
+    [update]
+  );
+
   // ---- 単語ガチャ
   const onGachaPull = useCallback(
     (opts) => {
@@ -3806,6 +4384,7 @@ export default function App() {
               setSettings={setSettings}
               speech={speech}
               onFinishTest={onFinishTest}
+              onFinishBattle={onFinishBattle}
               onSettings={openSettings}
             />
           </div>

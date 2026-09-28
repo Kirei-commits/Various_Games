@@ -4,6 +4,7 @@
  * 「今日」や乱数は必ず引数で受け取る。
  */
 import { initialGacha, restoreGacha, mergeGacha, grant, loginGachaReward, GOAL_POINTS } from "./gacha.js";
+import { initialBattle, restoreBattle, mergeBattle } from "./battle.js";
 
 // ---------------------------------------------------------------------------
 // データ
@@ -478,6 +479,7 @@ export function freshState(firstChapterId = "ch01") {
     misses: {},
     bonus: initialBonus(),
     gacha: initialGacha(),
+    battle: initialBattle(),
     chapter: firstChapterId,
   };
 }
@@ -580,8 +582,8 @@ const MIGRATIONS = {
     }
     return { version: 2, learned, queues: {}, misses: {}, tests: {}, stats: s.stats || {} };
   },
-  // v2 → v3: 単語ガチャ（state.gacha）を追加
-  2: (s) => ({ ...s, version: 3, gacha: initialGacha() }),
+  // v2 → v3: 単語ガチャ（state.gacha）とバトルの記録（state.battle）を追加
+  2: (s) => ({ ...s, version: 3, gacha: initialGacha(), battle: initialBattle() }),
 };
 
 export const stateVersionOf = (saved) => (saved && Number.isInteger(saved.version) ? saved.version : 1);
@@ -645,6 +647,7 @@ export function restoreState(saved, library) {
     stats: { ...initialStats(), ...(s.stats || {}) },
     bonus: { ...initialBonus(), ...(s.bonus || {}) },
     gacha: restoreGacha(s.gacha, (id) => currentId(id, renamed)),
+    battle: restoreBattle(s.battle),
     chapter,
   };
 }
@@ -833,6 +836,7 @@ export function mergeStates(a, b, library) {
       stats,
       bonus,
       gacha: mergeGacha(a.gacha, b.gacha),
+      battle: mergeBattle(a.battle, b.battle),
       chapter: b.chapter,
     },
     library

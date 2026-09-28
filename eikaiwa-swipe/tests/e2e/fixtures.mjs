@@ -64,6 +64,7 @@ export { expect };
 /** カードを横に dx ドラッグする。slow のときは1歩ごとに待つ（払う速さにならない） */
 export async function swipe(page, dx, { slow = false } = {}) {
   const card = page.getByTestId("swipe-card");
+  await card.waitFor(); // 前のカードが消えて次のカードが出るまで待つ
   const box = await card.boundingBox();
   const x = box.x + box.width / 2;
   const y = box.y + box.height / 2;
