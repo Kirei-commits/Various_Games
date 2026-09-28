@@ -211,6 +211,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "001753151c0861": {
+   "key": "A|Oh no, I got a parking ticket.",
+   "text": "Oh no, I got a parking ticket.",
+   "role": "A",
+   "chapter": "ch32",
+   "id": "parking-ticket",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "eecd88088a6c",
+   "rev": 1,
+   "seconds": 2.76,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "0018b9e6664130": {
    "key": "P|Can you verify your identity?",
    "text": "Can you verify your identity?",
@@ -981,6 +995,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "006e7c835a5ac6": {
+   "key": "A|The car won't start.",
+   "text": "The car won't start.",
+   "role": "A",
+   "chapter": "ch32",
+   "id": "the-car-wont-start",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "1c57201b2ade",
+   "rev": 1,
+   "seconds": 1.52,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "006f037e693fca": {
    "key": "P|make up",
    "text": "make up",
@@ -1401,6 +1429,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "00981c89d083d2": {
+   "key": "P|full coverage",
+   "text": "full coverage",
+   "role": "P",
+   "chapter": "ch32",
+   "id": "full-coverage",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "7e67226e9aee",
+   "rev": 1,
+   "seconds": 1.24,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "00985435beb3df": {
    "key": "P|It's hard to say.",
    "text": "It's hard to say.",
@@ -1513,6 +1555,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "00a3b9cb44b7db": {
+   "key": "P|oil change",
+   "text": "oil change",
+   "role": "P",
+   "chapter": "ch32",
+   "id": "oil-change",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "d4fe408a94bf",
+   "rev": 1,
+   "seconds": 1.24,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "00a4e2fa3cf0ee": {
    "key": "P|subsequently",
    "text": "subsequently",
@@ -1538,6 +1594,20 @@
    "sig": "1cb7f8366bb6",
    "rev": 1,
    "seconds": 1.48,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "00a55400accdae": {
+   "key": "A|Can I drive with my Japanese license?",
+   "text": "Can I drive with my Japanese license?",
+   "role": "A",
+   "chapter": "ch32",
+   "id": "international-drivers-license",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "5e2a229686f8",
+   "rev": 1,
+   "seconds": 2.32,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -2283,6 +2353,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "00e68cf4f2d04a": {
+   "key": "P|I'll take the basic plan.",
+   "text": "I'll take the basic plan.",
+   "role": "P",
+   "chapter": "ch31",
+   "id": "ill-take-the-basic-plan",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "774ac432b1e3",
+   "rev": 1,
+   "seconds": 1.4,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "00e694761522d4": {
    "key": "P|We have a reservation under Sato.",
    "text": "We have a reservation under Sato.",
@@ -2605,6 +2689,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "01048da10290ad": {
+   "key": "P|Pay at the pump.",
+   "text": "Pay at the pump.",
+   "role": "P",
+   "chapter": "ch32",
+   "id": "pay-at-the-pump",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "9534b5134fa3",
+   "rev": 1,
+   "seconds": 1.12,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "0104ceda741276": {
    "key": "P|Me too.",
    "text": "Me too.",
@@ -2658,6 +2756,20 @@
    "sig": "aaf5c8f34687",
    "rev": 1,
    "seconds": 1.08,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "010b84df0700ce": {
+   "key": "P|regular or premium",
+   "text": "regular or premium",
+   "role": "P",
+   "chapter": "ch32",
+   "id": "regular-or-premium",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "664e3dbeea39",
+   "rev": 1,
+   "seconds": 1.52,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -3879,6 +3991,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "018a742a8e9a82": {
+   "key": "A|Help is on the way. Stay on the line.",
+   "text": "Help is on the way. Stay on the line.",
+   "role": "A",
+   "chapter": "ch33",
+   "id": "stay-on-the-line",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "f4336ecae773",
+   "rev": 1,
+   "seconds": 2.2,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "018c27600e687b": {
    "key": "B|I messed up the ending.",
    "text": "I messed up the ending.",
@@ -4817,6 +4943,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "01eb56b1f72d2b": {
+   "key": "P|gas station",
+   "text": "gas station",
+   "role": "P",
+   "chapter": "ch32",
+   "id": "gas-station",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "82dffdac040f",
+   "rev": 1,
+   "seconds": 1.4,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "01eb782452f519": {
    "key": "A|How's the hot soup?",
    "text": "How's the hot soup?",
@@ -4829,6 +4969,20 @@
    "rev": 1,
    "seconds": 1.22,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "01ebb77cd58dc8": {
+   "key": "A|Did you pay the parking meter?",
+   "text": "Did you pay the parking meter?",
+   "role": "A",
+   "chapter": "ch32",
+   "id": "parking-meter",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "8629cc21b50f",
+   "rev": 1,
+   "seconds": 1.64,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "01eda13bd64439": {
@@ -4870,6 +5024,20 @@
    "sig": "302748d90d92",
    "rev": 1,
    "seconds": 1.2,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "01f07d4b740e68": {
+   "key": "A|How are you getting to the airport?",
+   "text": "How are you getting to the airport?",
+   "role": "A",
+   "chapter": "ch32",
+   "id": "uber",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "f7c132b26e8d",
+   "rev": 1,
+   "seconds": 1.72,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -5699,6 +5867,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "02459f9568493b": {
+   "key": "P|car accident",
+   "text": "car accident",
+   "role": "P",
+   "chapter": "ch32",
+   "id": "car-accident",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "e74adbbd037b",
+   "rev": 1,
+   "seconds": 1.6,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "0245a2cc60fbf5": {
    "key": "A|Can I get an extra shot in that?",
    "text": "Can I get an extra shot in that?",
@@ -5753,6 +5935,34 @@
    "rev": 1,
    "seconds": 0.97,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "02495cecd85549": {
+   "key": "A|Can I take it for a test drive?",
+   "text": "Can I take it for a test drive?",
+   "role": "A",
+   "chapter": "ch32",
+   "id": "test-drive",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "b331776bf41d",
+   "rev": 1,
+   "seconds": 1.68,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "024a51d3e965d3": {
+   "key": "P|Can I park here?",
+   "text": "Can I park here?",
+   "role": "P",
+   "chapter": "ch32",
+   "id": "can-i-park-here",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "aa66df3d17b7",
+   "rev": 1,
+   "seconds": 1.36,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "024baac93c6723": {
@@ -6747,6 +6957,20 @@
    "rev": 1,
    "seconds": 1.35,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "02c7cc541f1c51": {
+   "key": "A|Buckle up. We're leaving.",
+   "text": "Buckle up. We're leaving.",
+   "role": "A",
+   "chapter": "ch32",
+   "id": "buckle-up",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "6f6d1323420c",
+   "rev": 1,
+   "seconds": 1.76,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "02c852332aff4c": {
@@ -8457,6 +8681,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "036d4bc17481d8": {
+   "key": "A|I'd like to rent a car for three days.",
+   "text": "I'd like to rent a car for three days.",
+   "role": "A",
+   "chapter": "ch32",
+   "id": "id-like-to-rent-a-car",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "0c02c7d159f3",
+   "rev": 1,
+   "seconds": 2.32,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "036dee884efd88": {
    "key": "P|appetizer",
    "text": "appetizer",
@@ -8751,6 +8989,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "03920cc0cad511": {
+   "key": "B|Are you okay? Did you call the police?",
+   "text": "Are you okay? Did you call the police?",
+   "role": "B",
+   "chapter": "ch33",
+   "id": "i-was-robbed",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "f841260358cc",
+   "rev": 1,
+   "seconds": 2.88,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "0392bedaa79daa": {
    "key": "P|turn on the light",
    "text": "turn on the light",
@@ -8805,6 +9057,20 @@
    "rev": 1,
    "seconds": 0.71,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "0395ff1c7145c8": {
+   "key": "P|jump-start",
+   "text": "jump-start",
+   "role": "P",
+   "chapter": "ch32",
+   "id": "jump-start",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "31245920f6ee",
+   "rev": 1,
+   "seconds": 1.12,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "03966db697f7c1": {
@@ -8975,6 +9241,34 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "03a5e231492ce1": {
+   "key": "P|parallel park",
+   "text": "parallel park",
+   "role": "P",
+   "chapter": "ch32",
+   "id": "parallel-park",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "b3a004c3d69e",
+   "rev": 1,
+   "seconds": 1.44,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "03a815d9973152": {
+   "key": "P|He's not breathing.",
+   "text": "He's not breathing.",
+   "role": "P",
+   "chapter": "ch33",
+   "id": "hes-not-breathing",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "be9a3c57056e",
+   "rev": 1,
+   "seconds": 1.28,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "03a98e974fa3be": {
    "key": "B|After ten years?",
    "text": "After ten years?",
@@ -9087,6 +9381,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "03c21d65f0fb54": {
+   "key": "A|Can you turn on the AC?",
+   "text": "Can you turn on the AC?",
+   "role": "A",
+   "chapter": "ch32",
+   "id": "can-you-turn-on-the-ac",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "bd22f09d2a6c",
+   "rev": 1,
+   "seconds": 1.76,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "03c21eda1801c6": {
    "key": "B|Vitamin D in the winter.",
    "text": "Vitamin D in the winter.",
@@ -9112,6 +9420,20 @@
    "sig": "f2cefaf3f851",
    "rev": 1,
    "seconds": 1.44,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "03c2937846fa87": {
+   "key": "P|My wallet was stolen.",
+   "text": "My wallet was stolen.",
+   "role": "P",
+   "chapter": "ch33",
+   "id": "my-wallet-was-stolen",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "4702970e2afa",
+   "rev": 1,
+   "seconds": 2.04,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -9731,6 +10053,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "03faeec5bfeb30": {
+   "key": "P|mechanic",
+   "text": "mechanic",
+   "role": "P",
+   "chapter": "ch32",
+   "id": "mechanic",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "ed712126c636",
+   "rev": 1,
+   "seconds": 1.2,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "03fb36ce57bc67": {
    "key": "P|get up",
    "text": "get up",
@@ -10009,6 +10345,20 @@
    "rev": 1,
    "seconds": 1.24,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "04176aa3223a4d": {
+   "key": "A|The car broke down on the highway.",
+   "text": "The car broke down on the highway.",
+   "role": "A",
+   "chapter": "ch32",
+   "id": "tow-truck",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "11f33c5c9230",
+   "rev": 1,
+   "seconds": 2.08,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "041897942914e5": {
@@ -10627,6 +10977,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "0455ef8dcf388e": {
+   "key": "A|I hate parallel parking.",
+   "text": "I hate parallel parking.",
+   "role": "A",
+   "chapter": "ch32",
+   "id": "parallel-park",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "d3307ae3f98a",
+   "rev": 1,
+   "seconds": 1.88,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "04560eb1e2e923": {
    "key": "P|pass out",
    "text": "pass out",
@@ -10667,6 +11031,20 @@
    "rev": 1,
    "seconds": 0.75,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "04613359f029bc": {
+   "key": "B|Just a compact car.",
+   "text": "Just a compact car.",
+   "role": "B",
+   "chapter": "ch32",
+   "id": "compact-car",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "c6390df2456c",
+   "rev": 1,
+   "seconds": 1.4,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "04656d401cbf01": {
@@ -10779,6 +11157,20 @@
    "rev": 1,
    "seconds": 1.03,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "04733960d7a5e2": {
+   "key": "P|area code",
+   "text": "area code",
+   "role": "P",
+   "chapter": "ch31",
+   "id": "area-code",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "a32526f11a5b",
+   "rev": 1,
+   "seconds": 1.32,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "0474d861a4885a": {
@@ -11521,6 +11913,20 @@
    "rev": 1,
    "seconds": 0.94,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "04c116bad1f722": {
+   "key": "B|In the parking lot behind the store.",
+   "text": "In the parking lot behind the store.",
+   "role": "B",
+   "chapter": "ch32",
+   "id": "parking-lot",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "6b5e88d0d5a9",
+   "rev": 1,
+   "seconds": 2.0,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "04c1a854e1c39b": {
@@ -12615,6 +13021,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "0534b393f43131": {
+   "key": "B|What's your address?",
+   "text": "What's your address?",
+   "role": "B",
+   "chapter": "ch33",
+   "id": "i-need-an-ambulance",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "5d162fbbee79",
+   "rev": 1,
+   "seconds": 1.12,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "05377524937fc9": {
    "key": "P|the last straw",
    "text": "the last straw",
@@ -12837,6 +13257,20 @@
    "rev": 1,
    "seconds": 1.32,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "05440411fa08c8": {
+   "key": "B|Exit twenty-three.",
+   "text": "Exit twenty-three.",
+   "role": "B",
+   "chapter": "ch32",
+   "id": "exit",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "8fc91ae1eee3",
+   "rev": 1,
+   "seconds": 1.6,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "0545693c4e16c3": {
@@ -14029,6 +14463,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "05b02fc5c3a174": {
+   "key": "A|Where did you park?",
+   "text": "Where did you park?",
+   "role": "A",
+   "chapter": "ch32",
+   "id": "parking-lot",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "95c46e71bac6",
+   "rev": 1,
+   "seconds": 1.4,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "05b08ac44f8d31": {
    "key": "B|Night! Sweet dreams.",
    "text": "Night! Sweet dreams.",
@@ -14082,6 +14530,20 @@
    "sig": "c98d6c1b1af5",
    "rev": 1,
    "seconds": 1.4,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "05b79a47c12b30": {
+   "key": "A|Stop, thief!",
+   "text": "Stop, thief!",
+   "role": "A",
+   "chapter": "ch33",
+   "id": "stop-thief",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "d7a31991c999",
+   "rev": 1,
+   "seconds": 1.68,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -14309,6 +14771,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "05ce4664bb804f": {
+   "key": "P|paperless billing",
+   "text": "paperless billing",
+   "role": "P",
+   "chapter": "ch31",
+   "id": "paperless-billing",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "72b9254d14e2",
+   "rev": 1,
+   "seconds": 1.36,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "05cf5c4df05cdc": {
    "key": "P|go ahead",
    "text": "go ahead",
@@ -14321,6 +14797,20 @@
    "rev": 1,
    "seconds": 0.56,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "05d0408cd54808": {
+   "key": "B|Do you have a reservation?",
+   "text": "Do you have a reservation?",
+   "role": "B",
+   "chapter": "ch32",
+   "id": "id-like-to-rent-a-car",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "81d4329cb2b2",
+   "rev": 1,
+   "seconds": 1.44,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "05d27d896459df": {
@@ -14432,6 +14922,20 @@
    "sig": "6fa0ed524da4",
    "rev": 1,
    "seconds": 1.52,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "05df26faf7aa2c": {
+   "key": "B|Are you hurt?",
+   "text": "Are you hurt?",
+   "role": "B",
+   "chapter": "ch32",
+   "id": "car-accident",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "05457f6cfe04",
+   "rev": 1,
+   "seconds": 1.04,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -15107,6 +15611,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "0624efcf7af718": {
+   "key": "B|Yes, if you're not used to driving here.",
+   "text": "Yes, if you're not used to driving here.",
+   "role": "B",
+   "chapter": "ch32",
+   "id": "full-coverage",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "0bbd5e0cb497",
+   "rev": 1,
+   "seconds": 2.24,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "0625738b6bd533": {
    "key": "B|Yes, it never breaks down.",
    "text": "Yes, it never breaks down.",
@@ -15133,6 +15651,20 @@
    "rev": 1,
    "seconds": 2.25,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "06299e660c4df0": {
+   "key": "B|Sure, pull your car over here.",
+   "text": "Sure, pull your car over here.",
+   "role": "B",
+   "chapter": "ch32",
+   "id": "jump-start",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "10a621249aa9",
+   "rev": 1,
+   "seconds": 2.0,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "062cf2d7a6aad3": {
@@ -15289,6 +15821,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "0633c78a89672a": {
+   "key": "A|Is this a toll road?",
+   "text": "Is this a toll road?",
+   "role": "A",
+   "chapter": "ch32",
+   "id": "toll-road",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "79e1855a2ffc",
+   "rev": 1,
+   "seconds": 1.56,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "0633f773c0f934": {
    "key": "P|technically",
    "text": "technically",
@@ -15356,6 +15902,20 @@
    "sig": "07a1b29cbd05",
    "rev": 1,
    "seconds": 1.84,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "06476b859f9712": {
+   "key": "B|Did they take anything?",
+   "text": "Did they take anything?",
+   "role": "B",
+   "chapter": "ch33",
+   "id": "someone-broke-into-my-car",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "4981d1cba6af",
+   "rev": 1,
+   "seconds": 1.44,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -15623,6 +16183,20 @@
    "rev": 1,
    "seconds": 1.35,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "06591b33bf4079": {
+   "key": "P|Are you here for Emma?",
+   "text": "Are you here for Emma?",
+   "role": "P",
+   "chapter": "ch32",
+   "id": "are-you-here-for-emma",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "8f2f39997879",
+   "rev": 1,
+   "seconds": 1.4,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "0659dfc8f9cfe3": {
@@ -15989,6 +16563,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "0685b81bde2a2d": {
+   "key": "B|Surge pricing. It's rush hour.",
+   "text": "Surge pricing. It's rush hour.",
+   "role": "B",
+   "chapter": "ch32",
+   "id": "surge-pricing",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "f4d2860444ff",
+   "rev": 1,
+   "seconds": 2.56,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "06878be6386dc0": {
    "key": "A|What's in this sandwich?",
    "text": "What's in this sandwich?",
@@ -16028,6 +16616,20 @@
    "sig": "a7e5f4f863b0",
    "rev": 1,
    "seconds": 1.0,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "068aacaaa88c3c": {
+   "key": "A|I was in a car accident.",
+   "text": "I was in a car accident.",
+   "role": "A",
+   "chapter": "ch32",
+   "id": "car-accident",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "8a5ba5c24bc3",
+   "rev": 1,
+   "seconds": 1.72,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -16479,6 +17081,20 @@
    "via": "sync",
    "at": "2026-09-28"
   },
+  "06c02bec77649a": {
+   "key": "A|Where do I go now?",
+   "text": "Where do I go now?",
+   "role": "A",
+   "chapter": "ch32",
+   "id": "take-a-left-at-the-light",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "b01ea0d6e7b4",
+   "rev": 1,
+   "seconds": 1.36,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "06c0c919c9ce47": {
    "key": "A|Excuse me, can I recline my seat?",
    "text": "Excuse me, can I recline my seat?",
@@ -16572,6 +17188,20 @@
    "model": "gemini-3.8-flash-tts",
    "voice": "Callirrhoe",
    "sig": "35c04548375f",
+   "rev": 1,
+   "seconds": 1.32,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "06c77d6f6814b4": {
+   "key": "P|fender bender",
+   "text": "fender bender",
+   "role": "P",
+   "chapter": "ch32",
+   "id": "fender-bender",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "68c7eca9324f",
    "rev": 1,
    "seconds": 1.32,
    "via": "batch",
@@ -17123,6 +17753,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "06fde121743e94": {
+   "key": "B|No, just a fender bender.",
+   "text": "No, just a fender bender.",
+   "role": "B",
+   "chapter": "ch32",
+   "id": "fender-bender",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "0c17a4775bf8",
+   "rev": 1,
+   "seconds": 2.08,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "06fdf56d60a175": {
    "key": "P|See you later.",
    "text": "See you later.",
@@ -17445,6 +18089,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "071824a0e93b71": {
+   "key": "B|I'll turn on my hotspot.",
+   "text": "I'll turn on my hotspot.",
+   "role": "B",
+   "chapter": "ch31",
+   "id": "hotspot",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "74f74e6081dd",
+   "rev": 1,
+   "seconds": 1.4,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "071a2ba49efec9": {
    "key": "A|It looks like rain.",
    "text": "It looks like rain.",
@@ -17485,6 +18143,20 @@
    "rev": 1,
    "seconds": 0.88,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "071eb04c39c7c5": {
+   "key": "B|Sure, we can save on gas.",
+   "text": "Sure, we can save on gas.",
+   "role": "B",
+   "chapter": "ch32",
+   "id": "carpool",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "9bdf299a71a6",
+   "rev": 1,
+   "seconds": 2.16,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "071f02c485e6d0": {
@@ -18453,6 +19125,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "077a58e5dd4b07": {
+   "key": "P|Take a left at the light.",
+   "text": "Take a left at the light.",
+   "role": "P",
+   "chapter": "ch32",
+   "id": "take-a-left-at-the-light",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "2bfc8bd85f46",
+   "rev": 1,
+   "seconds": 1.48,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "077b08929f82c7": {
    "key": "P|Are you carrying any food?",
    "text": "Are you carrying any food?",
@@ -18563,6 +19249,20 @@
    "rev": 1,
    "seconds": 1.29,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "07890d9fe757b0": {
+   "key": "B|Just a warning, luckily.",
+   "text": "Just a warning, luckily.",
+   "role": "B",
+   "chapter": "ch32",
+   "id": "speeding-ticket",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "6283c30009e1",
+   "rev": 1,
+   "seconds": 2.08,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "078919c5172ecb": {
@@ -18927,6 +19627,20 @@
    "rev": 1,
    "seconds": 1.24,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "07b4041a4600ec": {
+   "key": "P|DMV",
+   "text": "DMV",
+   "role": "P",
+   "chapter": "ch32",
+   "id": "dmv",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "45ff8938c4c9",
+   "rev": 1,
+   "seconds": 1.36,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "07b4ed6fe0664b": {
@@ -20399,6 +21113,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "0865e16faf7940": {
+   "key": "A|I'd like to file a police report.",
+   "text": "I'd like to file a police report.",
+   "role": "A",
+   "chapter": "ch33",
+   "id": "id-like-to-file-a-police-report",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "afbac2efa403",
+   "rev": 1,
+   "seconds": 2.2,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "08687840a22ae2": {
    "key": "P|at least",
    "text": "at least",
@@ -21141,6 +21869,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "08bdebb22e599a": {
+   "key": "A|He's not breathing!",
+   "text": "He's not breathing!",
+   "role": "A",
+   "chapter": "ch33",
+   "id": "hes-not-breathing",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "8a3ea8cee14c",
+   "rev": 1,
+   "seconds": 1.52,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "08bf151f565eca": {
    "key": "B|In a nutshell, we need to cut costs.",
    "text": "In a nutshell, we need to cut costs.",
@@ -21181,6 +21923,20 @@
    "rev": 1,
    "seconds": 1.02,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "08c14463ac3eab": {
+   "key": "A|Should we take the highway?",
+   "text": "Should we take the highway?",
+   "role": "A",
+   "chapter": "ch32",
+   "id": "highway",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "ec598c4a616f",
+   "rev": 1,
+   "seconds": 1.16,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "08c151b43c7529": {
@@ -21502,6 +22258,20 @@
    "sig": "7032bb2288b5",
    "rev": 1,
    "seconds": 2.0,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "08dac4718e0512": {
+   "key": "P|The car won't start.",
+   "text": "The car won't start.",
+   "role": "P",
+   "chapter": "ch32",
+   "id": "the-car-wont-start",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "a71e2e4f7912",
+   "rev": 1,
+   "seconds": 1.36,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -22863,6 +23633,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "097500dffbdd53": {
+   "key": "A|Why is the ride so expensive?",
+   "text": "Why is the ride so expensive?",
+   "role": "A",
+   "chapter": "ch32",
+   "id": "surge-pricing",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "49ed642c70e9",
+   "rev": 1,
+   "seconds": 2.12,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "09754d091c1e2b": {
    "key": "A|He's late, the car broke, and we have no money.",
    "text": "He's late, the car broke, and we have no money.",
@@ -23143,6 +23927,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "099a008b7f8efe": {
+   "key": "B|About six months ago.",
+   "text": "About six months ago.",
+   "role": "B",
+   "chapter": "ch32",
+   "id": "oil-change",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "4f42ade1c5b8",
+   "rev": 1,
+   "seconds": 2.12,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "099db41d90fe1e": {
    "key": "A|Do I need a root canal?",
    "text": "Do I need a root canal?",
@@ -23337,6 +24135,20 @@
    "rev": 1,
    "seconds": 1.49,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "09b8ba9ff57c9f": {
+   "key": "B|Let me do it.",
+   "text": "Let me do it.",
+   "role": "B",
+   "chapter": "ch32",
+   "id": "parallel-park",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "1b4287c672b8",
+   "rev": 1,
+   "seconds": 1.36,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "09bb25e5d752cd": {
@@ -23955,6 +24767,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "09f3d4326643f1": {
+   "key": "A|I think we missed it.",
+   "text": "I think we missed it.",
+   "role": "A",
+   "chapter": "ch32",
+   "id": "make-a-u-turn",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "f3b90c9654ca",
+   "rev": 1,
+   "seconds": 1.96,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "09f4601ff0e4e4": {
    "key": "P|awkward",
    "text": "awkward",
@@ -23967,6 +24793,20 @@
    "rev": 1,
    "seconds": 0.93,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "09f56b571dc88b": {
+   "key": "B|Yes, or we'll charge you for gas.",
+   "text": "Yes, or we'll charge you for gas.",
+   "role": "B",
+   "chapter": "ch32",
+   "id": "should-i-return-it-with-a-full-tank",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "8485a00c316c",
+   "rev": 1,
+   "seconds": 2.52,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "09f6699b787d02": {
@@ -24373,6 +25213,20 @@
    "rev": 1,
    "seconds": 0.65,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "0a303fcd0e5bf2": {
+   "key": "A|Can you drop me off here?",
+   "text": "Can you drop me off here?",
+   "role": "A",
+   "chapter": "ch32",
+   "id": "can-you-drop-me-off-here",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "f9c3d1602898",
+   "rev": 1,
+   "seconds": 1.6,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "0a31d5fb3e7455": {
@@ -24947,6 +25801,20 @@
    "rev": 1,
    "seconds": 1.68,
    "via": "sync",
+   "at": "2026-09-28"
+  },
+  "0a663731ddbc94": {
+   "key": "A|Did you register your car?",
+   "text": "Did you register your car?",
+   "role": "A",
+   "chapter": "ch32",
+   "id": "register-my-car",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "fa4f3abad7c4",
+   "rev": 1,
+   "seconds": 1.68,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "0a66ad02ef51ee": {
@@ -26307,6 +27175,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "0b05aab8328029": {
+   "key": "B|Okay, done.",
+   "text": "Okay, done.",
+   "role": "B",
+   "chapter": "ch32",
+   "id": "buckle-up",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "cbf7b04e8fd1",
+   "rev": 1,
+   "seconds": 1.16,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "0b065067d748c9": {
    "key": "A|We don't need a car in the city.",
    "text": "We don't need a car in the city.",
@@ -26318,6 +27200,20 @@
    "sig": "5984c792d911",
    "rev": 1,
    "seconds": 2.0,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "0b06e04757e66c": {
+   "key": "B|I'll take the basic plan.",
+   "text": "I'll take the basic plan.",
+   "role": "B",
+   "chapter": "ch31",
+   "id": "ill-take-the-basic-plan",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "133ef77159f8",
+   "rev": 1,
+   "seconds": 1.76,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -27189,6 +28085,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "0b5e8315fe2028": {
+   "key": "P|I'd like to rent a car.",
+   "text": "I'd like to rent a car.",
+   "role": "P",
+   "chapter": "ch32",
+   "id": "id-like-to-rent-a-car",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "1f3b4a1926cc",
+   "rev": 1,
+   "seconds": 1.64,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "0b5f8a6c0fb539": {
    "key": "A|Coffee on Saturday at ten?",
    "text": "Coffee on Saturday at ten?",
@@ -27284,6 +28194,20 @@
    "sig": "64db5c41d5e8",
    "rev": 1,
    "seconds": 2.2,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "0b6ad294204fb7": {
+   "key": "A|When's your driving test?",
+   "text": "When's your driving test?",
+   "role": "A",
+   "chapter": "ch32",
+   "id": "driving-test",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "71689b5b89ff",
+   "rev": 1,
+   "seconds": 1.64,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -27453,6 +28377,20 @@
    "rev": 1,
    "seconds": 1.01,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "0b8c470faba960": {
+   "key": "B|Sure. Too hot back there?",
+   "text": "Sure. Too hot back there?",
+   "role": "B",
+   "chapter": "ch32",
+   "id": "can-you-turn-on-the-ac",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "6009ae6b9540",
+   "rev": 1,
+   "seconds": 2.0,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "0b8cfaa01928ce": {
@@ -27791,6 +28729,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "0bae1a90d00f59": {
+   "key": "A|Can you send me the link to the sign-up form?",
+   "text": "Can you send me the link to the sign-up form?",
+   "role": "A",
+   "chapter": "ch31",
+   "id": "can-you-send-me-the-link",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "38e18677820e",
+   "rev": 1,
+   "seconds": 2.2,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "0bb0ef63b62344": {
    "key": "P|breezy",
    "text": "breezy",
@@ -28082,6 +29034,20 @@
    "sig": "ec0e03ba5d15",
    "rev": 1,
    "seconds": 1.48,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "0bc5d35bf0205e": {
+   "key": "B|Is anyone injured?",
+   "text": "Is anyone injured?",
+   "role": "B",
+   "chapter": "ch33",
+   "id": "theres-been-an-accident",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "b25cf7766f0a",
+   "rev": 1,
+   "seconds": 1.84,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -28377,6 +29343,20 @@
    "rev": 1,
    "seconds": 0.9,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "0be2db9ae810e5": {
+   "key": "B|Next Friday. I'm so nervous.",
+   "text": "Next Friday. I'm so nervous.",
+   "role": "B",
+   "chapter": "ch32",
+   "id": "driving-test",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "5f65199537d9",
+   "rev": 1,
+   "seconds": 2.6,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "0be30149736807": {
@@ -28967,6 +29947,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "0c23b1c6362f06": {
+   "key": "B|Stay calm. I'll tell you how to do CPR.",
+   "text": "Stay calm. I'll tell you how to do CPR.",
+   "role": "B",
+   "chapter": "ch33",
+   "id": "hes-not-breathing",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "ebed35789f7d",
+   "rev": 1,
+   "seconds": 2.56,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "0c2424f9e1cb0a": {
    "key": "B|Cool.",
    "text": "Cool.",
@@ -28993,6 +29987,20 @@
    "rev": 1,
    "seconds": 1.55,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "0c269ecf7ae223": {
+   "key": "B|Yes, full coverage, please.",
+   "text": "Yes, full coverage, please.",
+   "role": "B",
+   "chapter": "ch32",
+   "id": "do-you-want-insurance",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "1c8ba638cfab",
+   "rev": 1,
+   "seconds": 1.68,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "0c26e345c42ab9": {
@@ -29049,6 +30057,20 @@
    "rev": 1,
    "seconds": 1.32,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "0c29e931c5a127": {
+   "key": "A|Are you here for Emma?",
+   "text": "Are you here for Emma?",
+   "role": "A",
+   "chapter": "ch32",
+   "id": "are-you-here-for-emma",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "f59f124f1383",
+   "rev": 1,
+   "seconds": 1.36,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "0c2b13ffe67ea3": {
@@ -29242,6 +30264,20 @@
    "model": "gemini-3.8-flash-tts",
    "voice": "Achird",
    "sig": "794dfe9daf04",
+   "rev": 1,
+   "seconds": 1.76,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "0c3e43a8e0f5cb": {
+   "key": "A|The police are behind us!",
+   "text": "The police are behind us!",
+   "role": "A",
+   "chapter": "ch32",
+   "id": "keep-your-hands-on-the-wheel",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "f33007cffccc",
    "rev": 1,
    "seconds": 1.76,
    "via": "batch",
@@ -29469,6 +30505,20 @@
    "rev": 1,
    "seconds": 1.81,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "0c59120ed64e26": {
+   "key": "P|Can you send me the link?",
+   "text": "Can you send me the link?",
+   "role": "P",
+   "chapter": "ch31",
+   "id": "can-you-send-me-the-link",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "bdc979388c86",
+   "rev": 1,
+   "seconds": 1.28,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "0c591cff0b2288": {
@@ -31053,6 +32103,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "0cf4949a073941": {
+   "key": "B|Sure, I'll pull over.",
+   "text": "Sure, I'll pull over.",
+   "role": "B",
+   "chapter": "ch32",
+   "id": "can-you-drop-me-off-here",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "1f04433d348f",
+   "rev": 1,
+   "seconds": 1.48,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "0cf4cfd1f401df": {
    "key": "B|Not yet. I just moved here.",
    "text": "Not yet. I just moved here.",
@@ -31389,6 +32453,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "0d1f6ed9fe2f6c": {
+   "key": "B|Stay calm and keep your hands on the wheel.",
+   "text": "Stay calm and keep your hands on the wheel.",
+   "role": "B",
+   "chapter": "ch32",
+   "id": "keep-your-hands-on-the-wheel",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "4461568c4f10",
+   "rev": 1,
+   "seconds": 2.4,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "0d1fcb5c7a3a0d": {
    "key": "A|You look great. Did you lose weight?",
    "text": "You look great. Did you lose weight?",
@@ -31627,6 +32705,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "0d3f06958f04be": {
+   "key": "B|Do you have jumper cables?",
+   "text": "Do you have jumper cables?",
+   "role": "B",
+   "chapter": "ch32",
+   "id": "the-battery-is-dead",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "0f34da57c467",
+   "rev": 1,
+   "seconds": 1.76,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "0d419b68331170": {
    "key": "A|All done. It's working now.",
    "text": "All done. It's working now.",
@@ -31764,6 +32856,20 @@
    "sig": "0c222ede3ef0",
    "rev": 1,
    "seconds": 3.12,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "0d51e31f255856": {
+   "key": "B|No, just pay at the pump.",
+   "text": "No, just pay at the pump.",
+   "role": "B",
+   "chapter": "ch32",
+   "id": "pay-at-the-pump",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "94d0151cee2b",
+   "rev": 1,
+   "seconds": 1.72,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -32299,6 +33405,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "0d8ec9ed8c49d4": {
+   "key": "B|The driver is bleeding.",
+   "text": "The driver is bleeding.",
+   "role": "B",
+   "chapter": "ch33",
+   "id": "is-anyone-hurt",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "9194b287a928",
+   "rev": 1,
+   "seconds": 1.84,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "0d8f94fbe60082": {
    "key": "P|I'm on medication.",
    "text": "I'm on medication.",
@@ -32450,6 +33570,20 @@
    "sig": "26deecc90b28",
    "rev": 1,
    "seconds": 1.88,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "0da459d12abdab": {
+   "key": "B|I'll call the police.",
+   "text": "I'll call the police.",
+   "role": "B",
+   "chapter": "ch33",
+   "id": "stop-thief",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "75e1e864093c",
+   "rev": 1,
+   "seconds": 1.32,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -34637,6 +35771,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "0e8347df36476e": {
+   "key": "P|Someone broke into my car.",
+   "text": "Someone broke into my car.",
+   "role": "P",
+   "chapter": "ch33",
+   "id": "someone-broke-into-my-car",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "430783075cfa",
+   "rev": 1,
+   "seconds": 2.08,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "0e83ca2b166d22": {
    "key": "A|I'd like my steak well-done.",
    "text": "I'd like my steak well-done.",
@@ -34649,6 +35797,20 @@
    "rev": 1,
    "seconds": 1.34,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "0e8407bedf4319": {
+   "key": "P|merge",
+   "text": "merge",
+   "role": "P",
+   "chapter": "ch32",
+   "id": "merge",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "58bced9dc027",
+   "rev": 1,
+   "seconds": 1.04,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "0e8629a5ad7cd9": {
@@ -35701,6 +36863,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "0ef180f09e631d": {
+   "key": "A|Do you want to carpool to work?",
+   "text": "Do you want to carpool to work?",
+   "role": "A",
+   "chapter": "ch32",
+   "id": "carpool",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "f9c944431bfd",
+   "rev": 1,
+   "seconds": 2.04,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "0ef32d08898049": {
    "key": "A|Good job, kiddo!",
    "text": "Good job, kiddo!",
@@ -35953,6 +37129,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "0f187b589d62ce": {
+   "key": "B|The brakes need replacing.",
+   "text": "The brakes need replacing.",
+   "role": "B",
+   "chapter": "ch32",
+   "id": "mechanic",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "1c84bac9c9b3",
+   "rev": 1,
+   "seconds": 1.96,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "0f189545a58b89": {
    "key": "B|Usually June to July.",
    "text": "Usually June to July.",
@@ -35978,6 +37168,20 @@
    "sig": "42b2454ea58c",
    "rev": 1,
    "seconds": 3.04,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "0f1e576ee25f76": {
+   "key": "B|Sure, check your email.",
+   "text": "Sure, check your email.",
+   "role": "B",
+   "chapter": "ch31",
+   "id": "can-you-send-me-the-link",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "1703388ed7b0",
+   "rev": 1,
+   "seconds": 1.72,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -36217,6 +37421,20 @@
    "rev": 1,
    "seconds": 1.8,
    "via": "sync",
+   "at": "2026-09-28"
+  },
+  "0f36d9c4d24a55": {
+   "key": "B|Yes, it's faster.",
+   "text": "Yes, it's faster.",
+   "role": "B",
+   "chapter": "ch32",
+   "id": "highway",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "cbdf8127f945",
+   "rev": 1,
+   "seconds": 1.4,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "0f373bd0675b45": {
@@ -36681,6 +37899,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "0f645b677903db": {
+   "key": "P|driving test",
+   "text": "driving test",
+   "role": "P",
+   "chapter": "ch32",
+   "id": "driving-test",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "87b70f56a845",
+   "rev": 1,
+   "seconds": 1.36,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "0f657133525489": {
    "key": "P|border",
    "text": "border",
@@ -36805,6 +38037,20 @@
    "rev": 1,
    "seconds": 2.44,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "0f6db9221cf5f3": {
+   "key": "P|The battery is dead.",
+   "text": "The battery is dead.",
+   "role": "P",
+   "chapter": "ch32",
+   "id": "the-battery-is-dead",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "033da670197d",
+   "rev": 1,
+   "seconds": 1.8,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "0f6e030532c03b": {
@@ -38151,6 +39397,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "10000ce79b7143": {
+   "key": "A|Is anyone hurt?",
+   "text": "Is anyone hurt?",
+   "role": "A",
+   "chapter": "ch33",
+   "id": "is-anyone-hurt",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "17d6ca5a512d",
+   "rev": 1,
+   "seconds": 1.28,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "100062e81c408b": {
    "key": "B|Talk to your doctor about switching.",
    "text": "Talk to your doctor about switching.",
@@ -38347,6 +39607,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "10210569279134": {
+   "key": "A|Can I park here?",
+   "text": "Can I park here?",
+   "role": "A",
+   "chapter": "ch32",
+   "id": "can-i-park-here",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "ca8e00447aae",
+   "rev": 1,
+   "seconds": 1.28,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "1022593c3fd02b": {
    "key": "B|By the skin of my teeth.",
    "text": "By the skin of my teeth.",
@@ -38443,6 +39717,20 @@
    "rev": 1,
    "seconds": 1.71,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "103265ca8b9016": {
+   "key": "B|There's a gas station at the next exit.",
+   "text": "There's a gas station at the next exit.",
+   "role": "B",
+   "chapter": "ch32",
+   "id": "gas-station",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "3b699f3ea621",
+   "rev": 1,
+   "seconds": 2.28,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "103457f3305acf": {
@@ -38974,6 +40262,20 @@
    "sig": "b252d7da6faf",
    "rev": 1,
    "seconds": 1.0,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "1064350d44cc9c": {
+   "key": "B|I'll just take an Uber.",
+   "text": "I'll just take an Uber.",
+   "role": "B",
+   "chapter": "ch32",
+   "id": "uber",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "93037c4f5464",
+   "rev": 1,
+   "seconds": 1.48,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -39548,6 +40850,20 @@
    "sig": "9d189241cd26",
    "rev": 1,
    "seconds": 1.56,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "109ebf6aea54c9": {
+   "key": "P|I'd like to file a police report.",
+   "text": "I'd like to file a police report.",
+   "role": "P",
+   "chapter": "ch33",
+   "id": "id-like-to-file-a-police-report",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "db0678e57e2d",
+   "rev": 1,
+   "seconds": 2.08,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -40615,6 +41931,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "1110702240c06c": {
+   "key": "P|There's been an accident.",
+   "text": "There's been an accident.",
+   "role": "P",
+   "chapter": "ch33",
+   "id": "theres-been-an-accident",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "aae241f9585e",
+   "rev": 1,
+   "seconds": 1.72,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "1110ecb1de4ada": {
    "key": "A|Why did you go to three parties?",
    "text": "Why did you go to three parties?",
@@ -40864,6 +42194,48 @@
    "sig": "24420176de45",
    "rev": 1,
    "seconds": 1.76,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "112b655973e587": {
+   "key": "A|There's been an accident on Main Street.",
+   "text": "There's been an accident on Main Street.",
+   "role": "A",
+   "chapter": "ch33",
+   "id": "theres-been-an-accident",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "cc559ddf422c",
+   "rev": 1,
+   "seconds": 2.04,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "112e3ec6ff97a7": {
+   "key": "P|test drive",
+   "text": "test drive",
+   "role": "P",
+   "chapter": "ch32",
+   "id": "test-drive",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "d1f4e12f041f",
+   "rev": 1,
+   "seconds": 1.04,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "112e4dc834efeb": {
+   "key": "B|Make a U-turn when you can.",
+   "text": "Make a U-turn when you can.",
+   "role": "B",
+   "chapter": "ch32",
+   "id": "make-a-u-turn",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "8fe2b93adf79",
+   "rev": 1,
+   "seconds": 1.8,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -41259,6 +42631,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "1164469baa5f0a": {
+   "key": "A|Why did you pull over?",
+   "text": "Why did you pull over?",
+   "role": "A",
+   "chapter": "ch32",
+   "id": "flat-tire",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "0dee180954a8",
+   "rev": 1,
+   "seconds": 1.4,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "11664b594d5687": {
    "key": "P|Break a leg!",
    "text": "Break a leg!",
@@ -41623,6 +43009,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "11841101172bbe": {
+   "key": "P|The check engine light is on.",
+   "text": "The check engine light is on.",
+   "role": "P",
+   "chapter": "ch32",
+   "id": "the-check-engine-light-is-on",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "c13fb538a9d4",
+   "rev": 1,
+   "seconds": 1.76,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "11859db043ddf3": {
    "key": "B|Again?",
    "text": "Again?",
@@ -41777,6 +43177,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "1198181eef3ffc": {
+   "key": "P|exit",
+   "text": "exit",
+   "role": "P",
+   "chapter": "ch32",
+   "id": "exit",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "d7fffb9dbde2",
+   "rev": 1,
+   "seconds": 1.08,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "119aadfd3b622b": {
    "key": "A|Is Mr. Smith in today?",
    "text": "Is Mr. Smith in today?",
@@ -41872,6 +43286,20 @@
    "sig": "c352937aba17",
    "rev": 1,
    "seconds": 2.36,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "11a681d5564ed9": {
+   "key": "P|What's your emergency?",
+   "text": "What's your emergency?",
+   "role": "P",
+   "chapter": "ch33",
+   "id": "whats-your-emergency",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "4ded29a370e7",
+   "rev": 1,
+   "seconds": 1.44,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -43289,6 +44717,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "12316279bf76f1": {
+   "key": "A|Should I return it with a full tank?",
+   "text": "Should I return it with a full tank?",
+   "role": "A",
+   "chapter": "ch32",
+   "id": "should-i-return-it-with-a-full-tank",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "f57d1d174b31",
+   "rev": 1,
+   "seconds": 2.08,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "1232ea807b8401": {
    "key": "P|halve",
    "text": "halve",
@@ -43541,6 +44983,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "1246828884cb09": {
+   "key": "A|Does the rental include roadside assistance?",
+   "text": "Does the rental include roadside assistance?",
+   "role": "A",
+   "chapter": "ch32",
+   "id": "roadside-assistance",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "c6d00ff933e7",
+   "rev": 1,
+   "seconds": 2.76,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "1249d7e75aafc5": {
    "key": "A|My eyes are so dry.",
    "text": "My eyes are so dry.",
@@ -43622,6 +45078,20 @@
    "sig": "96fc63e8b593",
    "rev": 1,
    "seconds": 2.24,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "125151d11de6dd": {
+   "key": "P|parking lot",
+   "text": "parking lot",
+   "role": "P",
+   "chapter": "ch32",
+   "id": "parking-lot",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "0120ac75a1b2",
+   "rev": 1,
+   "seconds": 1.08,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -44171,6 +45641,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "1296132d4f3e06": {
+   "key": "B|What happened?",
+   "text": "What happened?",
+   "role": "B",
+   "chapter": "ch33",
+   "id": "id-like-to-file-a-police-report",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "07a9d0641e31",
+   "rev": 1,
+   "seconds": 1.24,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "129a11feeac3ac": {
    "key": "P|The elevator is out of order.",
    "text": "The elevator is out of order.",
@@ -44182,6 +45666,20 @@
    "sig": "f684b323dcea",
    "rev": 1,
    "seconds": 2.04,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "129a8ab084b411": {
+   "key": "B|Let's take it to a mechanic.",
+   "text": "Let's take it to a mechanic.",
+   "role": "B",
+   "chapter": "ch32",
+   "id": "the-check-engine-light-is-on",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "1094804e208f",
+   "rev": 1,
+   "seconds": 1.72,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -44395,6 +45893,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "12a8beb7fc5e3b": {
+   "key": "B|Take photos and exchange insurance information.",
+   "text": "Take photos and exchange insurance information.",
+   "role": "B",
+   "chapter": "ch32",
+   "id": "exchange-insurance-information",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "ca3c65a38914",
+   "rev": 1,
+   "seconds": 3.4,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "12aa6030dc20e0": {
    "key": "P|like",
    "text": "like",
@@ -44462,6 +45974,20 @@
    "sig": "21ae39973661",
    "rev": 1,
    "seconds": 1.52,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "12afae5cf3dd23": {
+   "key": "A|Someone broke into my car last night.",
+   "text": "Someone broke into my car last night.",
+   "role": "A",
+   "chapter": "ch33",
+   "id": "someone-broke-into-my-car",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "6e99c2f0db8c",
+   "rev": 1,
+   "seconds": 2.12,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -45429,6 +46955,34 @@
    "rev": 1,
    "seconds": 1.23,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "1317518705ed5f": {
+   "key": "P|compact car",
+   "text": "compact car",
+   "role": "P",
+   "chapter": "ch32",
+   "id": "compact-car",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "de2d374ae4cc",
+   "rev": 1,
+   "seconds": 1.56,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "13183bed569bd3": {
+   "key": "A|When did you last get an oil change?",
+   "text": "When did you last get an oil change?",
+   "role": "A",
+   "chapter": "ch32",
+   "id": "oil-change",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "178f3cf3b0bc",
+   "rev": 1,
+   "seconds": 1.84,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "13185263396307": {
@@ -46492,6 +48046,20 @@
    "sig": "e202823fa60d",
    "rev": 1,
    "seconds": 1.92,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "138fa3d111c484": {
+   "key": "B|You need an international driver's license too.",
+   "text": "You need an international driver's license too.",
+   "role": "B",
+   "chapter": "ch32",
+   "id": "international-drivers-license",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "14d90b3873b2",
+   "rev": 1,
+   "seconds": 2.96,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -47587,6 +49155,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "13eb9389a69d2d": {
+   "key": "A|911, what's your emergency?",
+   "text": "911, what's your emergency?",
+   "role": "A",
+   "chapter": "ch33",
+   "id": "whats-your-emergency",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "0009d2fa5ac1",
+   "rev": 1,
+   "seconds": 2.16,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "13ece0312304d7": {
    "key": "A|Could I get another pillow?",
    "text": "Could I get another pillow?",
@@ -47895,6 +49477,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "140ebef310ab13": {
+   "key": "P|toll road",
+   "text": "toll road",
+   "role": "P",
+   "chapter": "ch32",
+   "id": "toll-road",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "bf3a4f2f1480",
+   "rev": 1,
+   "seconds": 1.2,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "140f717e4321c2": {
    "key": "P|Have a nice weekend.",
    "text": "Have a nice weekend.",
@@ -48091,6 +49687,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "142945ba270b90": {
+   "key": "B|Call a tow truck.",
+   "text": "Call a tow truck.",
+   "role": "B",
+   "chapter": "ch32",
+   "id": "tow-truck",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "df4ef5e0b5c5",
+   "rev": 1,
+   "seconds": 1.44,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "142a9044ac163d": {
    "key": "A|I screwed up the interview.",
    "text": "I screwed up the interview.",
@@ -48285,6 +49895,20 @@
    "rev": 1,
    "seconds": 1.81,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "143e1773d3c9a9": {
+   "key": "P|carpool",
+   "text": "carpool",
+   "role": "P",
+   "chapter": "ch32",
+   "id": "carpool",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "140b95b4f1dd",
+   "rev": 1,
+   "seconds": 1.08,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "143ea5a7c6f74c": {
@@ -48749,6 +50373,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "1467bfb431c352": {
+   "key": "B|Cancel your cards right away.",
+   "text": "Cancel your cards right away.",
+   "role": "B",
+   "chapter": "ch33",
+   "id": "my-wallet-was-stolen",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "570d2686cbd2",
+   "rev": 1,
+   "seconds": 1.88,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "14680c6b25d142": {
    "key": "P|popsicle",
    "text": "popsicle",
@@ -48845,6 +50483,20 @@
    "rev": 1,
    "seconds": 1.6,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "146e3f3602f1ea": {
+   "key": "P|register my car",
+   "text": "register my car",
+   "role": "P",
+   "chapter": "ch32",
+   "id": "register-my-car",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "bfa9a44e0e80",
+   "rev": 1,
+   "seconds": 1.56,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "146e492e2b1d03": {
@@ -48970,6 +50622,20 @@
    "sig": "7e28df386738",
    "rev": 1,
    "seconds": 1.32,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "147e4b8fa8df97": {
+   "key": "P|Buckle up.",
+   "text": "Buckle up.",
+   "role": "P",
+   "chapter": "ch32",
+   "id": "buckle-up",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "f02331104f61",
+   "rev": 1,
+   "seconds": 1.04,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -49573,6 +51239,20 @@
    "rev": 1,
    "seconds": 0.99,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "14c378de592856": {
+   "key": "A|Is full coverage worth it?",
+   "text": "Is full coverage worth it?",
+   "role": "A",
+   "chapter": "ch32",
+   "id": "full-coverage",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "9d1a7af71426",
+   "rev": 1,
+   "seconds": 1.96,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "14c8a8c709fbb3": {
@@ -50401,6 +52081,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "1514e3640951c5": {
+   "key": "B|No, a used car. It's cheaper.",
+   "text": "No, a used car. It's cheaper.",
+   "role": "B",
+   "chapter": "ch32",
+   "id": "used-car",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "7e72ef9e35fb",
+   "rev": 1,
+   "seconds": 2.64,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "151846d6983859": {
    "key": "A|We sat at the counter.",
    "text": "We sat at the counter.",
@@ -51171,6 +52865,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "15694d4e0db9d5": {
+   "key": "B|Text me when you get there.",
+   "text": "Text me when you get there.",
+   "role": "B",
+   "chapter": "ch32",
+   "id": "my-driver-is-here",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "75ee0e4bb734",
+   "rev": 1,
+   "seconds": 1.52,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "156a2992d2927b": {
    "key": "P|zucchini",
    "text": "zucchini",
@@ -51423,6 +53131,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "158bdc63e41a1c": {
+   "key": "A|What size car do you need?",
+   "text": "What size car do you need?",
+   "role": "A",
+   "chapter": "ch32",
+   "id": "compact-car",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "a0dee5bfea50",
+   "rev": 1,
+   "seconds": 1.68,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "158f060f250d80": {
    "key": "P|The thing is...",
    "text": "The thing is...",
@@ -51504,6 +53226,20 @@
    "sig": "6677be74d652",
    "rev": 1,
    "seconds": 2.44,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "15975f48e11972": {
+   "key": "A|Which plan would you like?",
+   "text": "Which plan would you like?",
+   "role": "A",
+   "chapter": "ch31",
+   "id": "ill-take-the-basic-plan",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "fb51e536476e",
+   "rev": 1,
+   "seconds": 1.48,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -51871,6 +53607,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "15b9a139cd99b6": {
+   "key": "A|Do you want paperless billing?",
+   "text": "Do you want paperless billing?",
+   "role": "A",
+   "chapter": "ch31",
+   "id": "paperless-billing",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "d12debab9b4d",
+   "rev": 1,
+   "seconds": 1.6,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "15b9dbca320cd1": {
    "key": "A|How long is the lease?",
    "text": "How long is the lease?",
@@ -52176,6 +53926,20 @@
    "sig": "10643bdde1d5",
    "rev": 1,
    "seconds": 2.24,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "15d357dbd38866": {
+   "key": "P|tow truck",
+   "text": "tow truck",
+   "role": "P",
+   "chapter": "ch32",
+   "id": "tow-truck",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "2bd4824aef69",
+   "rev": 1,
+   "seconds": 1.2,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -52655,6 +54419,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "15fc4a2539e57a": {
+   "key": "B|Sure, I'll get the keys.",
+   "text": "Sure, I'll get the keys.",
+   "role": "B",
+   "chapter": "ch32",
+   "id": "test-drive",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "2724eb0f05b4",
+   "rev": 1,
+   "seconds": 1.88,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "15fd6a4b2540ab": {
    "key": "B|Let's play it safe and bring them.",
    "text": "Let's play it safe and bring them.",
@@ -52946,6 +54724,20 @@
    "sig": "ffaa425f29c5",
    "rev": 1,
    "seconds": 1.84,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "16199cc4240810": {
+   "key": "B|At the DMV. Expect a long wait.",
+   "text": "At the DMV. Expect a long wait.",
+   "role": "B",
+   "chapter": "ch32",
+   "id": "dmv",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "44a9cb792230",
+   "rev": 1,
+   "seconds": 3.2,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -53310,6 +55102,20 @@
    "sig": "03559c500342",
    "rev": 1,
    "seconds": 1.44,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "1642c351f99af8": {
+   "key": "P|parking ticket",
+   "text": "parking ticket",
+   "role": "P",
+   "chapter": "ch32",
+   "id": "parking-ticket",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "54c3660958ea",
+   "rev": 1,
+   "seconds": 1.76,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -54391,6 +56197,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "16baa64be5b52e": {
+   "key": "A|He collapsed!",
+   "text": "He collapsed!",
+   "role": "A",
+   "chapter": "ch33",
+   "id": "call-911",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "753d471abf0f",
+   "rev": 1,
+   "seconds": 1.52,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "16bfffd18a24d6": {
    "key": "P|Your call is important to us.",
    "text": "Your call is important to us.",
@@ -54458,6 +56278,20 @@
    "sig": "ddaff95b8581",
    "rev": 1,
    "seconds": 2.44,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "16c3369a5bf3df": {
+   "key": "A|Did you get a speeding ticket?",
+   "text": "Did you get a speeding ticket?",
+   "role": "A",
+   "chapter": "ch32",
+   "id": "speeding-ticket",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "97c5b24b0185",
+   "rev": 1,
+   "seconds": 2.16,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -55777,6 +57611,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "175a1e461231fc": {
+   "key": "B|Yes, email is fine.",
+   "text": "Yes, email is fine.",
+   "role": "B",
+   "chapter": "ch31",
+   "id": "paperless-billing",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "8ebe87a9d84e",
+   "rev": 1,
+   "seconds": 1.68,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "175bca7a5af778": {
    "key": "A|How do you know Dan?",
    "text": "How do you know Dan?",
@@ -56138,6 +57986,20 @@
    "sig": "1c45e1ba0b6c",
    "rev": 1,
    "seconds": 1.04,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "1786a0c9632da5": {
+   "key": "P|Do you want insurance?",
+   "text": "Do you want insurance?",
+   "role": "P",
+   "chapter": "ch32",
+   "id": "do-you-want-insurance",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "32208c050219",
+   "rev": 1,
+   "seconds": 1.76,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -56575,6 +58437,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "17bc6cd910f1a1": {
+   "key": "B|Take a left at the light.",
+   "text": "Take a left at the light.",
+   "role": "B",
+   "chapter": "ch32",
+   "id": "take-a-left-at-the-light",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "0566d4c357c1",
+   "rev": 1,
+   "seconds": 1.48,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "17bdb2953d4691": {
    "key": "P|loser",
    "text": "loser",
@@ -56643,6 +58519,34 @@
    "rev": 1,
    "seconds": 1.25,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "17c0fda33bcdaa": {
+   "key": "A|Where do I get a driver's license?",
+   "text": "Where do I get a driver's license?",
+   "role": "A",
+   "chapter": "ch32",
+   "id": "dmv",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "f5856729a090",
+   "rev": 1,
+   "seconds": 2.44,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "17c18b14345270": {
+   "key": "B|Yes, hop in.",
+   "text": "Yes, hop in.",
+   "role": "B",
+   "chapter": "ch32",
+   "id": "are-you-here-for-emma",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "94ffb1927492",
+   "rev": 1,
+   "seconds": 1.72,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "17c34386e7e17c": {
@@ -57191,6 +59095,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "17f5f2a0e63a94": {
+   "key": "P|parking meter",
+   "text": "parking meter",
+   "role": "P",
+   "chapter": "ch32",
+   "id": "parking-meter",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "906422d24037",
+   "rev": 1,
+   "seconds": 1.2,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "17f944ea14c555": {
    "key": "A|Are utilities included?",
    "text": "Are utilities included?",
@@ -57471,6 +59389,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "181636dcd906ea": {
+   "key": "P|I need an ambulance.",
+   "text": "I need an ambulance.",
+   "role": "P",
+   "chapter": "ch33",
+   "id": "i-need-an-ambulance",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "af1164aa6f8d",
+   "rev": 1,
+   "seconds": 1.6,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "18167656ecd433": {
    "key": "A|Excuse me, could you take a picture of us?",
    "text": "Excuse me, could you take a picture of us?",
@@ -57706,6 +59638,20 @@
    "sig": "f3359b0332ea",
    "rev": 1,
    "seconds": 1.88,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "183024f2426912": {
+   "key": "P|Help!",
+   "text": "Help!",
+   "role": "P",
+   "chapter": "ch33",
+   "id": "help",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "3de6bad65381",
+   "rev": 1,
+   "seconds": 1.08,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -58029,6 +59975,20 @@
    "rev": 1,
    "seconds": 2.72,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "1843d1313e2ab8": {
+   "key": "A|The check engine light is on.",
+   "text": "The check engine light is on.",
+   "role": "A",
+   "chapter": "ch32",
+   "id": "the-check-engine-light-is-on",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "0137448c3de1",
+   "rev": 1,
+   "seconds": 2.48,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "184406e7e93461": {
@@ -59501,6 +61461,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "18d1ac29a7ca32": {
+   "key": "P|international driver's license",
+   "text": "international driver's license",
+   "role": "P",
+   "chapter": "ch32",
+   "id": "international-drivers-license",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "5626577517f2",
+   "rev": 1,
+   "seconds": 2.2,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "18d1c6ebc8a436": {
    "key": "P|rush hour",
    "text": "rush hour",
@@ -60044,6 +62018,20 @@
    "sig": "46dec2e76b98",
    "rev": 1,
    "seconds": 1.2,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "190871d662ffe7": {
+   "key": "P|surge pricing",
+   "text": "surge pricing",
+   "role": "P",
+   "chapter": "ch32",
+   "id": "surge-pricing",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "8483b250274e",
+   "rev": 1,
+   "seconds": 1.76,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -60773,6 +62761,20 @@
    "rev": 1,
    "seconds": 1.24,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "196740fe5b5e17": {
+   "key": "B|There's a fire in my building!",
+   "text": "There's a fire in my building!",
+   "role": "B",
+   "chapter": "ch33",
+   "id": "whats-your-emergency",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "e52addc3f930",
+   "rev": 1,
+   "seconds": 1.8,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "19676a7a6fa311": {
@@ -61839,6 +63841,34 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "19bf0830745a98": {
+   "key": "B|I got pulled over for speeding.",
+   "text": "I got pulled over for speeding.",
+   "role": "B",
+   "chapter": "ch32",
+   "id": "i-got-pulled-over",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "713a621a5124",
+   "rev": 1,
+   "seconds": 2.36,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "19c3a38cb39a35": {
+   "key": "A|Was it a bad accident?",
+   "text": "Was it a bad accident?",
+   "role": "A",
+   "chapter": "ch32",
+   "id": "fender-bender",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "243cd91bd746",
+   "rev": 1,
+   "seconds": 1.76,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "19c4ca503d5717": {
    "key": "A|I miss you.",
    "text": "I miss you.",
@@ -62018,6 +64048,20 @@
    "sig": "b7eb0185c139",
    "rev": 1,
    "seconds": 1.08,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "19d86fa8dadb6d": {
+   "key": "P|Can you turn on the AC?",
+   "text": "Can you turn on the AC?",
+   "role": "P",
+   "chapter": "ch32",
+   "id": "can-you-turn-on-the-ac",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "f7a6bea64e26",
+   "rev": 1,
+   "seconds": 1.72,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -62469,6 +64513,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "19fa8027fb39d0": {
+   "key": "B|Not yet. I need proof of insurance.",
+   "text": "Not yet. I need proof of insurance.",
+   "role": "B",
+   "chapter": "ch32",
+   "id": "register-my-car",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "9fa412ece292",
+   "rev": 1,
+   "seconds": 2.52,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "19ff4ef05b1cf0": {
    "key": "B|Could we get some more time?",
    "text": "Could we get some more time?",
@@ -62749,6 +64807,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "1a26008a252094": {
+   "key": "P|Can you drop me off here?",
+   "text": "Can you drop me off here?",
+   "role": "P",
+   "chapter": "ch32",
+   "id": "can-you-drop-me-off-here",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "017da9fb1c82",
+   "rev": 1,
+   "seconds": 1.56,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "1a267214b798d7": {
    "key": "A|What sports do you like?",
    "text": "What sports do you like?",
@@ -62959,6 +65031,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "1a3bc6f196ea1c": {
+   "key": "B|Only for fifteen minutes.",
+   "text": "Only for fifteen minutes.",
+   "role": "B",
+   "chapter": "ch32",
+   "id": "can-i-park-here",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "103f7917850e",
+   "rev": 1,
+   "seconds": 1.84,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "1a3bfb676eeea0": {
    "key": "A|I'm going to catch some Z's before the drive.",
    "text": "I'm going to catch some Z's before the drive.",
@@ -63141,6 +65227,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "1a553f025730dc": {
+   "key": "P|speeding ticket",
+   "text": "speeding ticket",
+   "role": "P",
+   "chapter": "ch32",
+   "id": "speeding-ticket",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "707e26ed5665",
+   "rev": 1,
+   "seconds": 1.36,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "1a55a203788fe2": {
    "key": "A|New shoes again?",
    "text": "New shoes again?",
@@ -63267,6 +65367,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "1a5f3ee00efd4c": {
+   "key": "B|How much is it?",
+   "text": "How much is it?",
+   "role": "B",
+   "chapter": "ch32",
+   "id": "parking-ticket",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "6e3e24811e78",
+   "rev": 1,
+   "seconds": 1.36,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "1a6097f8035806": {
    "key": "P|scratch",
    "text": "scratch",
@@ -63391,6 +65505,20 @@
    "rev": 1,
    "seconds": 0.94,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "1a6bd60816ec9d": {
+   "key": "A|My wallet was stolen on the subway.",
+   "text": "My wallet was stolen on the subway.",
+   "role": "A",
+   "chapter": "ch33",
+   "id": "my-wallet-was-stolen",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "b6bb7585365e",
+   "rev": 1,
+   "seconds": 2.16,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "1a6dfede7bc30a": {
@@ -63617,6 +65745,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "1a85e4bf250454": {
+   "key": "A|There's no Wi-Fi here.",
+   "text": "There's no Wi-Fi here.",
+   "role": "A",
+   "chapter": "ch31",
+   "id": "hotspot",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "41027447932f",
+   "rev": 1,
+   "seconds": 1.68,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "1a87bda78f5651": {
    "key": "B|Friday at five.",
    "text": "Friday at five.",
@@ -63727,6 +65869,20 @@
    "rev": 1,
    "seconds": 1.02,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "1a8ef84f995e3b": {
+   "key": "P|speed limit",
+   "text": "speed limit",
+   "role": "P",
+   "chapter": "ch32",
+   "id": "speed-limit",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "bdd3600c8066",
+   "rev": 1,
+   "seconds": 1.24,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "1a90c46f40fbb2": {
@@ -64345,6 +66501,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "1ad0b07dfab8a6": {
+   "key": "A|Help! Someone took my bag!",
+   "text": "Help! Someone took my bag!",
+   "role": "A",
+   "chapter": "ch33",
+   "id": "help",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "22a6ab2733e7",
+   "rev": 1,
+   "seconds": 2.4,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "1ad0d4969c1a3b": {
    "key": "B|Yes, it's on my boarding pass.",
    "text": "Yes, it's on my boarding pass.",
@@ -64695,6 +66865,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "1b00517501d9e2": {
+   "key": "B|Which way did he go?",
+   "text": "Which way did he go?",
+   "role": "B",
+   "chapter": "ch33",
+   "id": "help",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "dec019f7b103",
+   "rev": 1,
+   "seconds": 1.36,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "1b014ed29e46a9": {
    "key": "A|It's a bit chilly this morning.",
    "text": "It's a bit chilly this morning.",
@@ -64973,6 +67157,20 @@
    "rev": 1,
    "seconds": 1.4,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "1b17e8c9d2076b": {
+   "key": "B|Yes, but the rental car has a transponder.",
+   "text": "Yes, but the rental car has a transponder.",
+   "role": "B",
+   "chapter": "ch32",
+   "id": "toll-road",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "d47bc0d9e84c",
+   "rev": 1,
+   "seconds": 2.88,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "1b195ba0968396": {
@@ -65871,6 +68069,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "1b7d05a07c1319": {
+   "key": "P|driver's license",
+   "text": "driver's license",
+   "role": "P",
+   "chapter": "ch32",
+   "id": "drivers-license",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "b0c0df383647",
+   "rev": 1,
+   "seconds": 1.4,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "1b7e5b8ad9287a": {
    "key": "P|a lot",
    "text": "a lot",
@@ -66401,6 +68613,20 @@
    "rev": 1,
    "seconds": 0.7,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "1bc88c06f1de04": {
+   "key": "P|Should I return it with a full tank?",
+   "text": "Should I return it with a full tank?",
+   "role": "P",
+   "chapter": "ch32",
+   "id": "should-i-return-it-with-a-full-tank",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "c2cf128c5511",
+   "rev": 1,
+   "seconds": 2.12,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "1bcf38f42f8af4": {
@@ -67579,6 +69805,34 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "1c31484e001a41": {
+   "key": "B|Just speed up and signal.",
+   "text": "Just speed up and signal.",
+   "role": "B",
+   "chapter": "ch32",
+   "id": "merge",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "01a2fbeccd0a",
+   "rev": 1,
+   "seconds": 2.0,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "1c31a9b2088679": {
+   "key": "P|highway",
+   "text": "highway",
+   "role": "P",
+   "chapter": "ch32",
+   "id": "highway",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "e42f3f000800",
+   "rev": 1,
+   "seconds": 1.08,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "1c355b78931c5f": {
    "key": "A|We're going to be late for our connection.",
    "text": "We're going to be late for our connection.",
@@ -67619,6 +69873,20 @@
    "rev": 1,
    "seconds": 0.94,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "1c39c2b9c1fc53": {
+   "key": "P|Make a U-turn.",
+   "text": "Make a U-turn.",
+   "role": "P",
+   "chapter": "ch32",
+   "id": "make-a-u-turn",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "677e17787952",
+   "rev": 1,
+   "seconds": 1.36,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "1c3acac9b8df76": {
@@ -67856,6 +70124,20 @@
    "sig": "892076151b7a",
    "rev": 1,
    "seconds": 2.04,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "1c52debc48c413": {
+   "key": "A|I'm nervous about merging onto the freeway.",
+   "text": "I'm nervous about merging onto the freeway.",
+   "role": "A",
+   "chapter": "ch32",
+   "id": "merge",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "89d4c76d7e83",
+   "rev": 1,
+   "seconds": 2.32,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -68136,6 +70418,20 @@
    "sig": "906a755c167f",
    "rev": 1,
    "seconds": 1.8,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "1c6eafd8e421ce": {
+   "key": "P|I was robbed.",
+   "text": "I was robbed.",
+   "role": "P",
+   "chapter": "ch33",
+   "id": "i-was-robbed",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "143bd01e4484",
+   "rev": 1,
+   "seconds": 1.68,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -68447,6 +70743,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "1c9778c29c8372": {
+   "key": "P|roadside assistance",
+   "text": "roadside assistance",
+   "role": "P",
+   "chapter": "ch32",
+   "id": "roadside-assistance",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "1a7947563065",
+   "rev": 1,
+   "seconds": 1.44,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "1c9ad1237e3ec5": {
    "key": "A|How was Italy?",
    "text": "How was Italy?",
@@ -68472,6 +70782,20 @@
    "sig": "10cd99cb477e",
    "rev": 1,
    "seconds": 1.08,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "1c9df7cf59f408": {
+   "key": "A|Which exit do we take?",
+   "text": "Which exit do we take?",
+   "role": "A",
+   "chapter": "ch32",
+   "id": "exit",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "b2d903f5a85a",
+   "rev": 1,
+   "seconds": 1.52,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -68543,6 +70867,20 @@
    "rev": 1,
    "seconds": 1.11,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "1ca7e8a124a183": {
+   "key": "A|We're almost out of gas.",
+   "text": "We're almost out of gas.",
+   "role": "A",
+   "chapter": "ch32",
+   "id": "gas-station",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "2d241a3feeb3",
+   "rev": 1,
+   "seconds": 1.88,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "1ca8cc57fcf549": {
@@ -68909,6 +71247,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "1cd66b264892c3": {
+   "key": "P|police report",
+   "text": "police report",
+   "role": "P",
+   "chapter": "ch33",
+   "id": "police-report",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "317aba5d20ce",
+   "rev": 1,
+   "seconds": 1.24,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "1cd750ca6ae4b4": {
    "key": "A|I'm exhausted. I'm going to hit the sack.",
    "text": "I'm exhausted. I'm going to hit the sack.",
@@ -69201,6 +71553,20 @@
    "rev": 1,
    "seconds": 0.87,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "1cef8a4aee85b3": {
+   "key": "P|Stay on the line.",
+   "text": "Stay on the line.",
+   "role": "P",
+   "chapter": "ch33",
+   "id": "stay-on-the-line",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "f609795c9f2c",
+   "rev": 1,
+   "seconds": 1.32,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "1ceff1ab3ffa58": {
@@ -69609,6 +71975,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "1d2816293ef412": {
+   "key": "B|I think we have a flat tire.",
+   "text": "I think we have a flat tire.",
+   "role": "B",
+   "chapter": "ch32",
+   "id": "flat-tire",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "4d8877d6917f",
+   "rev": 1,
+   "seconds": 2.04,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "1d2848f0d83dc7": {
    "key": "B|The bus stop is right outside.",
    "text": "The bus stop is right outside.",
@@ -69679,6 +72059,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "1d317a1e0e68fe": {
+   "key": "A|What should I do after an accident?",
+   "text": "What should I do after an accident?",
+   "role": "A",
+   "chapter": "ch32",
+   "id": "exchange-insurance-information",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "c483d2051f6a",
+   "rev": 1,
+   "seconds": 1.96,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "1d32e7a5d8c776": {
    "key": "B|Let me sleep on it.",
    "text": "Let me sleep on it.",
@@ -69718,6 +72112,20 @@
    "sig": "ee712b50ad41",
    "rev": 1,
    "seconds": 1.88,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "1d34509743fd4e": {
+   "key": "A|What's the speed limit here?",
+   "text": "What's the speed limit here?",
+   "role": "A",
+   "chapter": "ch32",
+   "id": "speed-limit",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "77ba904595e3",
+   "rev": 1,
+   "seconds": 1.64,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -70335,6 +72743,20 @@
    "rev": 1,
    "seconds": 1.25,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "1d68cdc178af2a": {
+   "key": "P|Uber",
+   "text": "Uber",
+   "role": "P",
+   "chapter": "ch32",
+   "id": "uber",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "6f080044adad",
+   "rev": 1,
+   "seconds": 0.84,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "1d68cfd62a822f": {
@@ -71415,6 +73837,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "1dd029e33ae9a2": {
+   "key": "P|Call 911!",
+   "text": "Call 911!",
+   "role": "P",
+   "chapter": "ch33",
+   "id": "call-911",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "fc0079fcb979",
+   "rev": 1,
+   "seconds": 1.52,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "1dd1b3aa93b650": {
    "key": "P|prayer",
    "text": "prayer",
@@ -71709,6 +74145,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "1def0370bb789e": {
+   "key": "P|Keep your hands on the wheel.",
+   "text": "Keep your hands on the wheel.",
+   "role": "P",
+   "chapter": "ch32",
+   "id": "keep-your-hands-on-the-wheel",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "fca9b695e2c0",
+   "rev": 1,
+   "seconds": 1.88,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "1defc82647611b": {
    "key": "A|She dressed up as a witch for Halloween.",
    "text": "She dressed up as a witch for Halloween.",
@@ -71776,6 +74226,20 @@
    "sig": "c333f4b55ec9",
    "rev": 1,
    "seconds": 1.36,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "1df981efc9b5a1": {
+   "key": "B|Yes, for two hours.",
+   "text": "Yes, for two hours.",
+   "role": "B",
+   "chapter": "ch32",
+   "id": "parking-meter",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "dcd2b847ec71",
+   "rev": 1,
+   "seconds": 1.68,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -72336,6 +74800,20 @@
    "sig": "5c7de0e0f741",
    "rev": 1,
    "seconds": 1.64,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "1e385b6d690dde": {
+   "key": "B|Call 911!",
+   "text": "Call 911!",
+   "role": "B",
+   "chapter": "ch33",
+   "id": "call-911",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "3b966b275059",
+   "rev": 1,
+   "seconds": 1.6,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -73277,6 +75755,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "1e9f3fd4d1f512": {
+   "key": "P|Is anyone hurt?",
+   "text": "Is anyone hurt?",
+   "role": "P",
+   "chapter": "ch33",
+   "id": "is-anyone-hurt",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "4e33a8784c88",
+   "rev": 1,
+   "seconds": 1.44,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "1ea0aa2f752d41": {
    "key": "P|Yikes!",
    "text": "Yikes!",
@@ -73316,6 +75808,20 @@
    "sig": "8ff8217d9757",
    "rev": 1,
    "seconds": 1.52,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "1ea33ba6aaf81f": {
+   "key": "A|I was robbed on my way home.",
+   "text": "I was robbed on my way home.",
+   "role": "A",
+   "chapter": "ch33",
+   "id": "i-was-robbed",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "bbb8691e06a5",
+   "rev": 1,
+   "seconds": 2.6,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -73487,6 +75993,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "1eb334a5ec064e": {
+   "key": "A|Do you want insurance?",
+   "text": "Do you want insurance?",
+   "role": "A",
+   "chapter": "ch32",
+   "id": "do-you-want-insurance",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "d8091d1a7c2d",
+   "rev": 1,
+   "seconds": 1.4,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "1eb4c18e9f721a": {
    "key": "A|Did you hear the thunderstorm last night?",
    "text": "Did you hear the thunderstorm last night?",
@@ -73541,6 +76061,20 @@
    "rev": 1,
    "seconds": 1.37,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "1ebba497beb311": {
+   "key": "A|What's the area code for New York City?",
+   "text": "What's the area code for New York City?",
+   "role": "A",
+   "chapter": "ch31",
+   "id": "area-code",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "ac022137418b",
+   "rev": 1,
+   "seconds": 2.2,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "1ebbccd91cd44c": {
@@ -74313,6 +76847,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "1ef582c16dba4a": {
+   "key": "A|Can you give me a jump-start?",
+   "text": "Can you give me a jump-start?",
+   "role": "A",
+   "chapter": "ch32",
+   "id": "jump-start",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "92306c6cbaa1",
+   "rev": 1,
+   "seconds": 1.8,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "1ef72c63da7795": {
    "key": "P|stand for",
    "text": "stand for",
@@ -74381,6 +76929,20 @@
    "rev": 1,
    "seconds": 1.34,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "1efdaa03bdb769": {
+   "key": "A|May I see your driver's license?",
+   "text": "May I see your driver's license?",
+   "role": "A",
+   "chapter": "ch32",
+   "id": "drivers-license",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "0a25e6bbd797",
+   "rev": 1,
+   "seconds": 1.96,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "1efe158478124d": {
@@ -74761,6 +77323,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "1f238072cab2fc": {
+   "key": "P|exchange insurance information",
+   "text": "exchange insurance information",
+   "role": "P",
+   "chapter": "ch32",
+   "id": "exchange-insurance-information",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "43b8c903dc97",
+   "rev": 1,
+   "seconds": 2.08,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "1f24879fc4beb2": {
    "key": "A|Do you have these shoes in a size eight?",
    "text": "Do you have these shoes in a size eight?",
@@ -74969,6 +77545,20 @@
    "rev": 1,
    "seconds": 0.71,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "1f37319ac591d4": {
+   "key": "A|What did the mechanic say?",
+   "text": "What did the mechanic say?",
+   "role": "A",
+   "chapter": "ch32",
+   "id": "mechanic",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "2e3aad116c8c",
+   "rev": 1,
+   "seconds": 1.4,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "1f38a9c425d13f": {
@@ -75825,6 +78415,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "1f9a92280e45ae": {
+   "key": "P|flat tire",
+   "text": "flat tire",
+   "role": "P",
+   "chapter": "ch32",
+   "id": "flat-tire",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "84eafecf3895",
+   "rev": 1,
+   "seconds": 1.48,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "1f9d0a3679aef0": {
    "key": "A|I'm lowkey jealous.",
    "text": "I'm lowkey jealous.",
@@ -75962,6 +78566,20 @@
    "sig": "75ed65f9fd72",
    "rev": 1,
    "seconds": 1.44,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "1fae8c6d83a46e": {
+   "key": "A|Do I go inside to pay?",
+   "text": "Do I go inside to pay?",
+   "role": "A",
+   "chapter": "ch32",
+   "id": "pay-at-the-pump",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "37889737123c",
+   "rev": 1,
+   "seconds": 1.56,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -76385,6 +79003,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "1fdb19bab38309": {
+   "key": "P|Stop, thief!",
+   "text": "Stop, thief!",
+   "role": "P",
+   "chapter": "ch33",
+   "id": "stop-thief",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "6ff9ec1cc383",
+   "rev": 1,
+   "seconds": 1.68,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "1fdb8320a79c09": {
    "key": "P|I'm on it.",
    "text": "I'm on it.",
@@ -76453,6 +79085,20 @@
    "rev": 1,
    "seconds": 1.45,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "1fe4c850830897": {
+   "key": "B|Yes, the number is on the key.",
+   "text": "Yes, the number is on the key.",
+   "role": "B",
+   "chapter": "ch32",
+   "id": "roadside-assistance",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "9fb3a5278169",
+   "rev": 1,
+   "seconds": 2.0,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "1fe6a988f6425c": {
@@ -76606,6 +79252,20 @@
    "sig": "93441b939fb3",
    "rev": 1,
    "seconds": 1.52,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "1ff7e4aeb33337": {
+   "key": "P|I got pulled over.",
+   "text": "I got pulled over.",
+   "role": "P",
+   "chapter": "ch32",
+   "id": "i-got-pulled-over",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "5ce6533a4185",
+   "rev": 1,
+   "seconds": 1.64,
    "via": "batch",
    "at": "2026-09-28"
   },
