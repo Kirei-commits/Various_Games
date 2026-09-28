@@ -59,8 +59,12 @@
     "chunk": 200,
     "verify": {
       "model": "gemini-3.1-flash-lite",
-      "maxAttempts": 2,
-      "_about": "取り込むときに1文ずつ文字起こしして、語数が違う（くり返し・言い落とし）ものは捨てて出し直す。maxAttempts 回目は残して manifest に check を付ける（2026-09-28: 試しの20文で2文にくり返しがあった）"
+      "maxAttempts": 5,
+      "_about": "取り込むときに1文ずつ文字起こしして確かめる。2回目までは同じ指示で出し直し、3回目からは失敗の種類（くり返し・言い落とし）に合わせて指示を足して出し直す（ユーザーの指示: 自己完結で直して送るサイクル）。maxAttempts 回で合わなければ残して manifest に check を付ける。失敗の記録は raw/tts/failures.jsonl",
+      "hints": {
+        "repeat": "Say every word only once. Do not repeat any word or phrase, and do not restart the sentence.",
+        "omit": "Pronounce every single word of the transcript clearly, including short words like you, to, a, the and it. Do not skip or swallow any word."
+      }
     }
   },
   "output": {

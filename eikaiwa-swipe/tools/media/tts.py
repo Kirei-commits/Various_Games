@@ -63,6 +63,11 @@ def style_for(cfg, clip):
     parts = [cfg["style"], cfg["roles"][clip["role"]]["persona"]]
     if clip.get("context"):
         parts.append(f'Replying to: "{clip["context"]}"')
+    # 3回目からは、前の失敗の種類に合わせた指示を足す（cmd_submit が clip["retry"] に入れる）
+    hints = cfg.get("batch", {}).get("verify", {}).get("hints", {})
+    for kind in clip.get("retry", []):
+        if kind in hints and hints[kind] not in parts:
+            parts.append(hints[kind])
     return " ".join(parts)
 
 
@@ -486,9 +491,36 @@ def transcribe(cfg, body):
     return res["candidates"][0]["content"]["parts"][0]["text"]
 
 
+NUMBERS = "zero one two three four five six seven eight nine ten eleven twelve thirteen fourteen fifteen sixteen seventeen eighteen nineteen".split()
+TENS = {20: "twenty", 30: "thirty", 40: "forty", 50: "fifty", 60: "sixty", 70: "seventy", 80: "eighty", 90: "ninety"}
+SAME = {"gonna": "going to", "wanna": "want to", "gotta": "got to", "ok": "okay", "kinda": "kind of", "gimme": "give me", "lemme": "let me",
+        "ya": "you", "'em": "them", "cause": "because", "'cause": "because", "y'all": "you all", "mr": "mister", "mrs": "missus", "dr": "doctor"}
+CONTRACTIONS = [("can't", "can not"), ("won't", "will not"), ("n't", " not"), ("'re", " are"), ("'ll", " will"), ("'ve", " have"), ("'d", " would"), ("'m", " am")]
+
+
+def number_words(n):
+    if n < 20:
+        return NUMBERS[n]
+    if n < 100:
+        return TENS[n // 10 * 10] + ("" if n % 10 == 0 else " " + NUMBERS[n % 10])
+    return str(n)
+
+
 def words_of(text):
+    """比べるための語の並び。書き方の違い（I'm と I am・5 と five・gonna と going to など）はそろえる"""
     import re
-    return re.sub(r"[^a-z0-9' ]", " ", text.lower().replace("’", "'")).split()
+    t = text.lower().replace("’", "'").replace("-", " ")
+    t = re.sub(r"\d+", lambda m: " " + number_words(int(m.group())) + " ", t)
+    out = []
+    for w in re.sub(r"[^a-z' ]", " ", t).split():
+        w = SAME.get(w, w)
+        for a, b in CONTRACTIONS:
+            if w.endswith(a) and w != a:
+                w = w[: -len(a)] + b
+                break
+        w = w.replace("'s", "")  # 's（is / has / 所有）は区別しない
+        out.extend(SAME.get(x, x) for x in w.replace("'", "").split())
+    return " ".join(out).split()
 
 
 def run_unit(cfg, unit, model, fmt, pacer):
@@ -727,6 +759,12 @@ def cmd_submit(args, cfg):
     need = [c for c in need if c["hash"] not in pending]  # 結果待ちのものは出し直さない
     if args.limit:
         need = need[: args.limit]
+    # 2回失敗した文からは、失敗の種類に合わせた指示を足して出す
+    attempts = load_json(ATTEMPTS, {})
+    for c in need:
+        a = attempts.get(c["hash"])
+        if isinstance(a, dict) and a["n"] >= 2:
+            c["retry"] = sorted({k for k in a["kinds"] if k in ("repeat", "omit")})
     if not need:
         print("作る必要のある文はありません")
         return
@@ -815,10 +853,17 @@ def check_clip(cfg, clip):
                                    {"text": "Transcribe this audio verbatim, word for word, including any repeated words or false starts. Output only the transcript."}]}]}
     res = api("POST", f"/v1beta/models/{cfg['batch']['verify']['model']}:generateContent", req, pacer=Pacer(0))
     heard = res["candidates"][0]["content"]["parts"][0]["text"].strip()
-    a, b = words_of(clip["text"]), words_of(heard)
-    # くり返し・言い落としは語数が変わる。語数が同じで1語（長い文は1割）までの違いは、聞き取りの揺れとみなす
-    ok = len(a) == len(b) and sum(x != y for x, y in zip(a, b)) <= max(1, len(a) // 10)
-    return ok, heard
+    ok, kind = compare_words(clip["text"], heard)
+    return ok, heard, kind
+
+
+def compare_words(text, heard):
+    """元の文と聞こえた文を比べる。戻り値: (合っているか, 失敗の種類 repeat / omit / other / None)"""
+    a, b = words_of(text), words_of(heard)
+    # 語数が同じで1語（長い文は1割）までの違いは、聞き取りの揺れとみなす
+    if len(a) == len(b):
+        return sum(x != y for x, y in zip(a, b)) <= max(1, len(a) // 10), (None if sum(x != y for x, y in zip(a, b)) <= max(1, len(a) // 10) else "other")
+    return False, "repeat" if len(b) > len(a) else "omit"
 
 
 def cmd_collect(args, cfg):
@@ -865,10 +910,16 @@ def cmd_collect(args, cfg):
                     checks[clip["hash"]] = r
         redo = 0
         for clip, seconds in saved:
-            ok, heard = checks.get(clip["hash"], (True, None))
+            ok, heard, kind = checks.get(clip["hash"], (True, None, None))
             if not ok:
-                attempts[clip["hash"]] = attempts.get(clip["hash"], 0) + 1
-                if attempts[clip["hash"]] < verify["maxAttempts"]:
+                a = attempts.get(clip["hash"], 0)
+                a = a if isinstance(a, dict) else {"n": a, "kinds": []}
+                a["n"] += 1
+                a["kinds"].append(kind)
+                attempts[clip["hash"]] = a
+                with open(RAW / "failures.jsonl", "a") as f:
+                    f.write(json.dumps({"key": clip["key"], "heard": heard, "kind": kind, "attempt": a["n"], "style": style_for(cfg, clip)}, ensure_ascii=False) + "\n")
+                if a["n"] < verify["maxAttempts"]:
                     (AUDIO / "clips" / f"{clip['hash']}.opus").unlink(missing_ok=True)
                     redo += 1
                     continue
