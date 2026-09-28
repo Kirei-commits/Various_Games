@@ -6,6 +6,11 @@ export const LIB = buildLibrary(rawChapters);
 const BY_ENGLISH = Object.fromEntries(Object.values(LIB.byId).map((p) => [p.english, p]));
 export const phraseOf = (english) => BY_ENGLISH[english];
 
+/** テスト中の問題（data-phrase-id から引く） */
+export async function currentQuestion(page) {
+  return LIB.byId[await page.getByTestId("test-question").getAttribute("data-phrase-id")];
+}
+
 /**
  * ブラウザの音声APIを差し替える。
  * - speechSynthesis.speak: 実際には鳴らさず、読み上げ単位（文・pitch・rate）を記録する
@@ -64,11 +69,15 @@ export async function swipe(page, dx) {
 }
 
 /** テストの設定画面で条件を選んで開始する */
-export async function startTest(page, { scope = "ch01", count = "10問", prompt = "英語を表示", answer = "入力" } = {}) {
+export async function startTest(
+  page,
+  { scope = "ch01", count = "10問", direction = "英語 → 意味", prompt = "英語を表示", answer = "入力" } = {}
+) {
   await page.getByRole("button", { name: "テスト", exact: true }).click();
   await page.locator("#test-scope").selectOption(scope);
+  await page.getByRole("button", { name: direction, exact: true }).click();
   await page.getByRole("button", { name: count, exact: true }).click();
-  await page.getByRole("button", { name: prompt, exact: true }).click();
+  if (direction === "英語 → 意味") await page.getByRole("button", { name: prompt, exact: true }).click();
   await page.getByRole("button", { name: answer, exact: true }).click();
   await page.getByRole("button", { name: /テストを始める/ }).click();
   await expect(page.getByTestId("test-progress")).toHaveText(/^1 \/ /);

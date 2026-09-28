@@ -188,16 +188,122 @@ export function gradeAnswer(input, japanese) {
   return best >= CLOSE_THRESHOLD ? { verdict: "close", score: best } : { verdict: "wrong", score: best };
 }
 
-export const isCorrect = (verdict) => verdict === "correct" || verdict === "close";
+export const isCorrect = (verdict) => verdict === "correct" || verdict === "close" || verdict === "override";
 
-/** 4択の選択肢を作る（正解1 + 同じ出題範囲からの誤答3） */
-export function makeChoices(item, pool, rng, n = 4) {
+// ---------------------------------------------------------------------------
+// 採点（日本語を見て英語で答える）
+// ---------------------------------------------------------------------------
+
+const CONTRACTIONS = [
+  [/\bcan't\b/g, "cannot"],
+  [/\bcan not\b/g, "cannot"],
+  [/\bwon't\b/g, "will not"],
+  [/\bain't\b/g, "is not"],
+  [/n't\b/g, " not"],
+  [/'re\b/g, " are"],
+  [/'ve\b/g, " have"],
+  [/'ll\b/g, " will"],
+  [/'d\b/g, " would"],
+  [/'m\b/g, " am"],
+  [/\blet's\b/g, "let us"],
+  [/\b(it|that|what|there|here|he|she|who|where|how|everything|nothing)'s\b/g, "$1 is"],
+  [/\bgonna\b/g, "going to"],
+  [/\bwanna\b/g, "want to"],
+  [/\bgotta\b/g, "got to"],
+  [/\bok\b/g, "okay"],
+];
+
+/** 英語の表記ゆれを吸収する: 大文字小文字・記号・短縮形（I'm = I am）・gonna など */
+export function normalizeEn(text) {
+  let s = (text || "")
+    .normalize("NFKC")
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .toLowerCase()
+    .replace(/[’‘`]/g, "'");
+  for (const [re, to] of CONTRACTIONS) s = s.replace(re, to);
+  s = s
+    .replace(/'/g, "")
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+  // アポストロフィを省いて入力・認識された短縮形（im / dont / its など）もそろえる
+  return s.replace(BARE_CONTRACTIONS_RE, (w) => BARE_CONTRACTIONS[w]);
+}
+
+const BARE_CONTRACTIONS = {
+  im: "i am", ive: "i have", dont: "do not", doesnt: "does not", didnt: "did not", isnt: "is not",
+  arent: "are not", wasnt: "was not", werent: "were not", cant: "cannot", wont: "will not",
+  couldnt: "could not", shouldnt: "should not", wouldnt: "would not", havent: "have not",
+  hasnt: "has not", youre: "you are", theyre: "they are", thats: "that is", whats: "what is",
+  its: "it is", theres: "there is", youll: "you will", youve: "you have",
+};
+const BARE_CONTRACTIONS_RE = new RegExp(`\\b(?:${Object.keys(BARE_CONTRACTIONS).join("|")})\\b`, "g");
+
+export function levenshtein(a, b) {
+  const prev = Array.from({ length: b.length + 1 }, (_, j) => j);
+  for (let i = 1; i <= a.length; i++) {
+    let diag = prev[0];
+    prev[0] = i;
+    for (let j = 1; j <= b.length; j++) {
+      const tmp = prev[j];
+      prev[j] = Math.min(prev[j] + 1, prev[j - 1] + 1, diag + (a[i - 1] === b[j - 1] ? 0 : 1));
+      diag = tmp;
+    }
+  }
+  return prev[b.length];
+}
+
+const POSSESSIVES = "(?:my|your|his|her|our|their|its)";
+
+/**
+ * 見出し語の「someone」「my」などを、実際の文で入る語に置き換えられるようにした正規表現。
+ * "give someone a ride" → "give me a ride" / "give my mom a ride" も正解にする。
+ */
+function flexiblePattern(target) {
+  const body = target
+    .split(" ")
+    .map((w) => {
+      if (w === "someone") return "\\w+(?: \\w+)?";
+      if (w === "someones") return "\\w+(?: \\w+)?";
+      if (/^(my|your|his|her|our|their)$/.test(w)) return POSSESSIVES;
+      return w;
+    })
+    .join(" ");
+  return new RegExp(`^${body}$`);
+}
+
+/**
+ * 英語の答えを採点する（戻り値は gradeAnswer と同じ形）。
+ * 少しのスペルミスや、音声認識の聞き違い程度の差は「ほぼ正解」。
+ */
+export function gradeEnglish(input, english) {
+  const a = normalizeEn(input);
+  if (!a) return { verdict: "empty", score: 0 };
+  const t = normalizeEn(english);
+  if (a === t || flexiblePattern(t).test(a)) return { verdict: "correct", score: 1 };
+  const dist = levenshtein(a, t);
+  const allowed = Math.max(1, Math.round(t.length * 0.2));
+  const score = 1 - dist / Math.max(a.length, t.length);
+  if (t.length >= 4 && dist <= allowed) return { verdict: "close", score };
+  return { verdict: "wrong", score };
+}
+
+/** "Make sense." → "M___ s____." （各単語の頭文字だけ見せるヒント） */
+export function englishHint(english) {
+  return english.replace(/[A-Za-z]+(?:'[A-Za-z]+)*/g, (w) => w[0] + w.slice(1).replace(/[A-Za-z]/g, "_"));
+}
+
+/** 4択の選択肢を作る（正解1 + 同じ出題範囲からの誤答3）。labelKey で表示する欄を選ぶ */
+export function makeChoices(item, pool, rng, n = 4, labelKey = "japanese") {
   const others = shuffle(
-    pool.filter((p) => p.id !== item.id && p.japanese !== item.japanese),
+    pool.filter((p) => p.id !== item.id && p[labelKey] !== item[labelKey]),
     rng
   ).slice(0, n - 1);
-  return shuffle([item, ...others], rng).map((p) => ({ id: p.id, label: p.japanese }));
+  return shuffle([item, ...others], rng).map((p) => ({ id: p.id, label: p[labelKey] }));
 }
+
+/** テスト記録のキー。英→日は従来どおり範囲名だけ、日→英は "@ja-en" を付ける */
+export const testKey = (scope, direction) => (direction === "ja-en" ? `${scope}@ja-en` : scope);
 
 export function buildQuiz(items, count, rng) {
   return shuffle(items, rng).slice(0, Math.min(count, items.length));

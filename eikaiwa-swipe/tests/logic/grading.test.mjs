@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { gradeAnswer, normalizeJa, answerCandidates, isCorrect, makeChoices, mulberry32, buildQuiz } from "../../src/logic.js";
+import { gradeAnswer, gradeEnglish, englishHint, testKey, normalizeJa, answerCandidates, isCorrect, makeChoices, mulberry32, buildQuiz } from "../../src/logic.js";
 
 const verdict = (input, ja) => gradeAnswer(input, ja).verdict;
 
@@ -48,10 +48,58 @@ test("4択は正解1つ＋同じ範囲の誤答3つで、重複しない", () =>
   assert.ok(choices.some((c) => c.id === "a"));
 });
 
+test("英語の答え: 大文字小文字・記号・短縮形の違いは正解", () => {
+  const v = (input, en) => gradeEnglish(input, en).verdict;
+  assert.equal(v("make sense", "make sense"), "correct");
+  assert.equal(v("I am down", "I'm down."), "correct");
+  assert.equal(v("its up to you", "It's up to you."), "correct");
+  assert.equal(v("I do not think so", "I don't think so."), "correct");
+  assert.equal(v("What are you going to do", "What are you gonna do?"), "correct");
+  assert.equal(v("YOU KNOW WHAT", "You know what?"), "correct");
+});
+
+test("英語の答え: someone や my は実際の語に置き換えても正解", () => {
+  const v = (input, en) => gradeEnglish(input, en).verdict;
+  assert.equal(v("give me a ride", "give someone a ride"), "correct");
+  assert.equal(v("give my mom a ride", "give someone a ride"), "correct");
+  assert.equal(v("brush your teeth", "brush my teeth"), "correct");
+  assert.equal(v("pull my leg", "pull someone's leg"), "correct");
+});
+
+test("英語の答え: 小さなスペルミスは「ほぼ正解」、違う表現は不正解", () => {
+  const v = (input, en) => gradeEnglish(input, en).verdict;
+  assert.equal(v("figure otu", "figure out"), "close");
+  assert.equal(v("awkard", "awkward"), "close");
+  assert.equal(v("give up", "figure out"), "wrong");
+  assert.equal(v("", "figure out"), "empty");
+  assert.equal(v("in", "on"), "wrong");
+});
+
+test("ヒントは各単語の頭文字だけを見せる", () => {
+  assert.equal(englishHint("Make sense."), "M___ s____.");
+  assert.equal(englishHint("I'm down."), "I'_ d___.");
+});
+
+test("記録のキーは向きで分ける（英→日は従来のまま）", () => {
+  assert.equal(testKey("ch01", "en-ja"), "ch01");
+  assert.equal(testKey("ch01", "ja-en"), "ch01@ja-en");
+});
+
 test("出題は指定数まで・重複なし・範囲より多くは出さない", () => {
   const items = Array.from({ length: 30 }, (_, i) => ({ id: `q${i}` }));
   const quiz = buildQuiz(items, 10, mulberry32(7));
   assert.equal(quiz.length, 10);
   assert.equal(new Set(quiz.map((q) => q.id)).size, 10);
   assert.equal(buildQuiz(items.slice(0, 3), 10, mulberry32(7)).length, 3);
+});
+
+test("全問、正解そのものを答えれば両方向とも正解になる", async () => {
+  const { default: raw } = await import("../../src/data/index.js");
+  const { buildLibrary } = await import("../../src/logic.js");
+  const bad = [];
+  for (const p of Object.values(buildLibrary(raw).byId)) {
+    if (gradeEnglish(p.english, p.english).verdict !== "correct") bad.push(`英: ${p.english}`);
+    if (gradeAnswer(p.japanese.split("／")[0], p.japanese).verdict !== "correct") bad.push(`日: ${p.japanese}`);
+  }
+  assert.deepEqual(bad, []);
 });

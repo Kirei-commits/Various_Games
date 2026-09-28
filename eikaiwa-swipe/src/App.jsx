@@ -37,6 +37,9 @@ import {
   currentStreak,
   todayAndYesterday,
   gradeAnswer,
+  gradeEnglish,
+  englishHint,
+  testKey,
   isCorrect,
   makeChoices,
   buildQuiz,
@@ -106,7 +109,7 @@ const DEFAULT_SETTINGS = {
   rate: 0.95,
   expressive: true,
   twoVoices: true,
-  test: { scope: "ch01", count: 10, prompt: "text", answer: "type" },
+  test: { scope: "ch01", count: 10, direction: "en-ja", prompt: "text", answer: "type" },
 };
 
 function loadSettings() {
@@ -233,13 +236,13 @@ function useRecognition() {
   const stop = useCallback(() => rec.current?.stop(), []);
 
   const start = useCallback(
-    (onFinal) => {
+    (onFinal, lang = "ja-JP") => {
       if (!Ctor) return;
       setError("");
       setInterim("");
       try {
         const r = new Ctor();
-        r.lang = "ja-JP";
+        r.lang = lang;
         r.interimResults = true;
         r.maxAlternatives = 3;
         r.onresult = (e) => {
@@ -822,11 +825,12 @@ function resultMessage(pct) {
 function TestSetup({ config, setConfig, misses, tests, onStart, onSettings }) {
   const pool = scopeItems(config.scope, misses);
   const weakCount = Object.keys(misses).length;
-  const record = tests[config.scope];
+  const record = tests[testKey(config.scope, config.direction)];
+  const jaEn = config.direction === "ja-en";
   const set = (patch) => setConfig({ ...config, ...patch });
   return (
     <div className="h-full overflow-y-auto px-5 pt-4 pb-6">
-      <ScreenHeader title="テスト" sub="意味を答えて定着度をチェック" onSettings={onSettings} />
+      <ScreenHeader title="テスト" sub="意味・英語を答えて定着度をチェック" onSettings={onSettings} />
 
       <div className="mt-4 space-y-4 rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
         <div>
@@ -851,6 +855,26 @@ function TestSetup({ config, setConfig, misses, tests, onStart, onSettings }) {
         </div>
 
         <div>
+          <p className="text-xs font-bold text-slate-500">出題の向き</p>
+          <div className="mt-1">
+            <Segmented
+              name="direction"
+              value={config.direction}
+              onChange={(direction) => set({ direction })}
+              options={[
+                { value: "en-ja", label: "英語 → 意味" },
+                { value: "ja-en", label: "日本語 → 英語" },
+              ]}
+            />
+          </div>
+          <p className="mt-2 text-xs text-slate-500 leading-relaxed">
+            {jaEn
+              ? "日本語を見て英語で答えます。言えるようになるための「話す」練習です。"
+              : "英語を見て（聞いて）日本語の意味を答えます。聞いてわかる力の確認です。"}
+          </p>
+        </div>
+
+        <div>
           <p className="text-xs font-bold text-slate-500">問題数</p>
           <div className="mt-1">
             <Segmented
@@ -862,6 +886,7 @@ function TestSetup({ config, setConfig, misses, tests, onStart, onSettings }) {
           </div>
         </div>
 
+        {!jaEn && (
         <div>
           <p className="text-xs font-bold text-slate-500">問題の出し方</p>
           <div className="mt-1">
@@ -876,6 +901,7 @@ function TestSetup({ config, setConfig, misses, tests, onStart, onSettings }) {
             />
           </div>
         </div>
+        )}
 
         <div>
           <p className="text-xs font-bold text-slate-500">答え方</p>
@@ -892,9 +918,15 @@ function TestSetup({ config, setConfig, misses, tests, onStart, onSettings }) {
             />
           </div>
           <p className="mt-2 text-xs text-slate-500 leading-relaxed">
-            {config.answer === "type" && "日本語の意味をキーボードで入力します。多少の言い回しの違いは「ほぼ正解」になります。"}
-            {config.answer === "voice" && "マイクを押して日本語で意味を話します。マイクが使えない環境では入力に切り替えられます。"}
-            {config.answer === "choice" && "4つの選択肢から正しい意味を選びます。"}
+            {config.answer === "type" &&
+              (jaEn
+                ? "英語をキーボードで入力します。I'm / I am などの短縮形や小さなスペルミスは許容します。"
+                : "日本語の意味をキーボードで入力します。多少の言い回しの違いは「ほぼ正解」になります。")}
+            {config.answer === "voice" &&
+              (jaEn
+                ? "マイクを押して英語で話します。発音が通じたかの確認にもなります。マイクが使えない環境では入力に切り替えられます。"
+                : "マイクを押して日本語で意味を話します。マイクが使えない環境では入力に切り替えられます。")}
+            {config.answer === "choice" && (jaEn ? "4つの英語から正しいものを選びます。" : "4つの選択肢から正しい意味を選びます。")}
           </p>
         </div>
       </div>
@@ -920,20 +952,28 @@ function TestRun({ quiz, config, pool, speech, recognition, onFinish, onQuit, ac
   const [phase, setPhase] = useState("answer");
   const [input, setInput] = useState("");
   const [answerMode, setAnswerMode] = useState(config.answer);
+  const [hint, setHint] = useState(false);
   const inputRef = useRef(null);
   const item = quiz[idx];
   const last = results[results.length - 1];
+  const jaEn = config.direction === "ja-en";
+  const audioPrompt = !jaEn && config.prompt === "audio";
+  const grade = (text) => (jaEn ? gradeEnglish(text, item.english) : gradeAnswer(text, item.japanese));
 
   const choices = useMemo(
-    () => (answerMode === "choice" ? makeChoices(item, pool.length >= 4 ? pool : ALL_ITEMS, Math.random) : []),
-    [item, answerMode, pool]
+    () =>
+      answerMode === "choice"
+        ? makeChoices(item, pool.length >= 4 ? pool : ALL_ITEMS, Math.random, 4, jaEn ? "english" : "japanese")
+        : [],
+    [item, answerMode, pool, jaEn]
   );
 
   useEffect(() => {
     setInput("");
+    setHint(false);
     recognition.setInterim("");
     // 音声だけで出題するときは、問題が出た時点で読み上げる
-    if (config.prompt === "audio") speech.speak(item.english);
+    if (audioPrompt) speech.speak(item.english);
     if (answerMode === "type") setTimeout(() => inputRef.current?.focus(), 50);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [idx]);
@@ -942,16 +982,18 @@ function TestRun({ quiz, config, pool, speech, recognition, onFinish, onQuit, ac
     setResults((r) => [...r, { id: item.id, input: answer, verdict, correct: isCorrect(verdict) }]);
     setPhase("feedback");
     recognition.stop();
+    // 日本語→英語では、答え合わせのときに正しい英語を聞かせて真似できるようにする
+    if (jaEn) speech.speak(item.english);
   };
 
-  const submitText = (text) => submit(text, gradeAnswer(text, item.japanese).verdict);
+  const submitText = (text) => submit(text, grade(text).verdict);
 
   const submitVoice = (alternatives) => {
     // 候補の中で一番よい判定を採用する
     const order = { correct: 3, close: 2, wrong: 1, empty: 0 };
     let best = { text: alternatives[0] || "", verdict: "empty" };
     for (const text of alternatives) {
-      const { verdict } = gradeAnswer(text, item.japanese);
+      const { verdict } = grade(text);
       if (order[verdict] > order[best.verdict]) best = { text, verdict };
     }
     submit(best.text, best.verdict);
@@ -1012,15 +1054,35 @@ function TestRun({ quiz, config, pool, speech, recognition, onFinish, onQuit, ac
 
       <div className="flex-1 overflow-y-auto">
         <div className="mt-4 rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-200 text-center">
-          <p className="text-xs font-bold tracking-wide text-slate-400">この英語の意味は？</p>
-          {config.prompt === "audio" && phase === "answer" ? (
+          <p className="text-xs font-bold tracking-wide text-slate-400">{jaEn ? "これを英語で言うと？" : "この英語の意味は？"}</p>
+          {jaEn ? (
+            <div className="mt-3">
+              <h2 className="text-2xl font-extrabold text-slate-900 break-words" data-testid="test-question" data-phrase-id={item.id}>
+                {item.japanese}
+              </h2>
+              {phase === "answer" &&
+                (hint ? (
+                  <p className="mt-3 font-mono text-lg tracking-wider text-indigo-600" data-testid="hint">
+                    {englishHint(item.english)}
+                  </p>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setHint(true)}
+                    className="mt-3 rounded-full bg-indigo-50 px-3 py-1.5 text-xs font-bold text-indigo-600"
+                  >
+                    ヒント（頭文字）を見る
+                  </button>
+                ))}
+            </div>
+          ) : audioPrompt && phase === "answer" ? (
             <div className="mt-4 flex flex-col items-center gap-2">
               <SpeakButton text={item.english} size="lg" speech={speech} label="問題を再生" />
               <p className="text-xs text-slate-500">音声を聞いて答えてください（何度でも再生できます）</p>
             </div>
           ) : (
             <div className="mt-3 flex items-center justify-center gap-3">
-              <h2 className="text-3xl font-extrabold text-slate-900 break-words" data-testid="test-question">
+              <h2 className="text-3xl font-extrabold text-slate-900 break-words" data-testid="test-question" data-phrase-id={item.id}>
                 {item.english}
               </h2>
               <SpeakButton text={item.english} speech={speech} label="問題を再生" />
@@ -1043,8 +1105,12 @@ function TestRun({ quiz, config, pool, speech, recognition, onFinish, onQuit, ac
                   ref={inputRef}
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
-                  placeholder="日本語で意味を入力"
+                  placeholder={jaEn ? "英語で入力" : "日本語で意味を入力"}
                   autoComplete="off"
+                  autoCapitalize="off"
+                  autoCorrect="off"
+                  spellCheck={false}
+                  lang={jaEn ? "en" : "ja"}
                   className="w-full rounded-2xl border-0 bg-white px-4 py-3.5 text-base text-slate-900 shadow-sm ring-1 ring-slate-200 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 />
                 <div className="grid grid-cols-3 gap-2">
@@ -1073,7 +1139,7 @@ function TestRun({ quiz, config, pool, speech, recognition, onFinish, onQuit, ac
                     <button
                       type="button"
                       aria-label={recognition.listening ? "聞き取りを止める" : "話して答える"}
-                      onClick={() => (recognition.listening ? recognition.stop() : recognition.start(submitVoice))}
+                      onClick={() => (recognition.listening ? recognition.stop() : recognition.start(submitVoice, jaEn ? "en-US" : "ja-JP"))}
                       className={`h-20 w-20 rounded-full flex items-center justify-center text-white shadow-lg transition active:scale-90 ${
                         recognition.listening ? "bg-rose-500 animate-pulse" : "bg-indigo-600"
                       }`}
@@ -1081,7 +1147,11 @@ function TestRun({ quiz, config, pool, speech, recognition, onFinish, onQuit, ac
                       <Mic size={34} />
                     </button>
                     <p className="text-sm text-slate-600 min-h-[1.5rem]">
-                      {recognition.listening ? recognition.interim || "聞き取り中…日本語で話してください" : "マイクを押して日本語で答える"}
+                      {recognition.listening
+                        ? recognition.interim || (jaEn ? "聞き取り中…英語で話してください" : "聞き取り中…日本語で話してください")
+                        : jaEn
+                          ? "マイクを押して英語で答える"
+                          : "マイクを押して日本語で答える"}
                     </p>
                   </>
                 )}
@@ -1123,14 +1193,23 @@ function TestRun({ quiz, config, pool, speech, recognition, onFinish, onQuit, ac
               </p>
             </div>
             <div className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200">
-              {config.prompt === "audio" && (
+              {audioPrompt && (
                 <div className="mb-2 flex items-center gap-2">
                   <p className="flex-1 text-lg font-bold text-slate-900">{item.english}</p>
                   <SpeakButton text={item.english} speech={speech} size="sm" />
                 </div>
               )}
               <p className="text-xs font-bold text-slate-400">正解</p>
-              <p className="text-xl font-bold text-indigo-600">{item.japanese}</p>
+              {jaEn ? (
+                <div className="flex items-center gap-2">
+                  <p className="flex-1 text-2xl font-bold text-indigo-600" data-testid="answer-english">
+                    {item.english}
+                  </p>
+                  <SpeakButton text={item.english} speech={speech} label="正解の英語を再生" />
+                </div>
+              ) : (
+                <p className="text-xl font-bold text-indigo-600">{item.japanese}</p>
+              )}
               {last.input && (
                 <>
                   <p className="mt-2 text-xs font-bold text-slate-400">あなたの答え</p>
@@ -1163,14 +1242,16 @@ function TestRun({ quiz, config, pool, speech, recognition, onFinish, onQuit, ac
   );
 }
 
-function TestResult({ results, scope, speech, onRetryWrong, onRetry, onBack }) {
+function TestResult({ results, scope, direction, speech, onRetryWrong, onRetry, onBack }) {
   const correct = results.filter((r) => r.correct).length;
   const pct = Math.round((correct / results.length) * 100);
   const wrong = results.filter((r) => !r.correct).map((r) => LIBRARY.byId[r.id]);
   return (
     <div className="h-full overflow-y-auto px-5 pt-4 pb-6">
       <h1 className="text-2xl font-extrabold text-slate-900">テスト結果</h1>
-      <p className="text-xs text-slate-500">{scopeLabel(scope)}</p>
+      <p className="text-xs text-slate-500">
+        {scopeLabel(scope)} ・ {direction === "ja-en" ? "日本語 → 英語" : "英語 → 意味"}
+      </p>
       <div className="mt-4 rounded-3xl bg-white p-6 text-center shadow-sm ring-1 ring-slate-200">
         <p className="text-6xl font-black text-slate-900 tabular-nums" data-testid="result-pct">
           {pct}
@@ -1237,6 +1318,7 @@ function TestScreen({ active, state, settings, setSettings, speech, onFinishTest
       <TestResult
         results={result}
         scope={config.scope}
+        direction={config.direction}
         speech={speech}
         onRetryWrong={(wrong) => start(session.pool, buildQuiz(wrong, wrong.length, Math.random))}
         onRetry={() => start(session.pool)}
@@ -1259,7 +1341,7 @@ function TestScreen({ active, state, settings, setSettings, speech, onFinishTest
         recognition={recognition}
         onQuit={() => setSession(null)}
         onFinish={(results) => {
-          onFinishTest(config.scope, results);
+          onFinishTest(testKey(config.scope, config.direction), results);
           setResult(results);
         }}
       />
@@ -1505,6 +1587,7 @@ function ProgressScreen({ state, onResetAll, onOpenChapter, storageOk }) {
           {CHAPTERS.map((c) => {
             const n = c.items.filter((p) => state.learned[p.id]).length;
             const best = state.tests[c.id]?.best;
+            const bestJaEn = state.tests[testKey(c.id, "ja-en")]?.best;
             return (
               <li key={c.id}>
                 <button type="button" onClick={() => onOpenChapter(c.id)} className="flex w-full items-center gap-3 py-2.5 text-left">
@@ -1517,7 +1600,8 @@ function ProgressScreen({ state, onResetAll, onOpenChapter, storageOk }) {
                   </span>
                   <span className="w-16 shrink-0 text-right text-xs tabular-nums text-slate-500">
                     {n}/{c.items.length}
-                    <span className="block text-indigo-500">{best != null ? `テスト${best}%` : ""}</span>
+                    {best != null && <span className="block text-indigo-500">意味 {best}%</span>}
+                    {bestJaEn != null && <span className="block text-pink-500">英語 {bestJaEn}%</span>}
                   </span>
                 </button>
               </li>
