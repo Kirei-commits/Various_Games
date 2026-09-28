@@ -805,10 +805,28 @@ def batch_results(res):
     return None
 
 
+ATTEMPTS = RAW / "attempts.json"  # 確認で捨てた回数（文ごと）
+
+
+def check_clip(cfg, clip):
+    """録音を文字起こしして、元の文と語数が合うか確かめる。戻り値: (合っているか, 聞こえた文)"""
+    body = base64.b64encode((AUDIO / "clips" / f"{clip['hash']}.opus").read_bytes()).decode()
+    req = {"contents": [{"parts": [{"inlineData": {"mimeType": "audio/ogg", "data": body}},
+                                   {"text": "Transcribe this audio verbatim, word for word, including any repeated words or false starts. Output only the transcript."}]}]}
+    res = api("POST", f"/v1beta/models/{cfg['batch']['verify']['model']}:generateContent", req, pacer=Pacer(0))
+    heard = res["candidates"][0]["content"]["parts"][0]["text"].strip()
+    a, b = words_of(clip["text"]), words_of(heard)
+    # くり返し・言い落としは語数が変わる。語数が同じで1語（長い文は1割）までの違いは、聞き取りの揺れとみなす
+    ok = len(a) == len(b) and sum(x != y for x, y in zip(a, b)) <= max(1, len(a) // 10)
+    return ok, heard
+
+
 def cmd_collect(args, cfg):
     jobs = load_json(JOBS, [])
     man = load_manifest()
     warnings = []
+    attempts = load_json(ATTEMPTS, {})
+    verify = cfg["batch"].get("verify")
     for j in jobs:
         if j.get("collected"):
             continue
@@ -825,6 +843,7 @@ def cmd_collect(args, cfg):
             sys.exit(f"{j['display']}: 結果の形が読めません。raw/tts/{j['display']}.response.json を確認してください")
         order = list(j["clips"])
         done = 0
+        saved = []
         for i, (key, response, error) in enumerate(results):
             clip = j["clips"].get(key) or (j["clips"][order[i]] if i < len(order) else None)
             if clip is None:
@@ -833,10 +852,34 @@ def cmd_collect(args, cfg):
             if error:
                 warnings.append(f"{clip['key']}: エラー {json.dumps(error)[:200]}")
                 continue
-            w = store(cfg, man, clip, response, "batch")
+            seconds, w = save_audio(cfg, clip, response)
             if w:
                 warnings.append(w)
+                continue
+            saved.append((clip, seconds))
+        # 文字起こしで確かめる（並列）。合わないものは捨てて、次の submit で出し直す
+        checks = {}
+        if verify and saved:
+            with ThreadPoolExecutor(max_workers=8) as pool:
+                for (clip, _), r in zip(saved, pool.map(lambda x: check_clip(cfg, x[0]), saved)):
+                    checks[clip["hash"]] = r
+        redo = 0
+        for clip, seconds in saved:
+            ok, heard = checks.get(clip["hash"], (True, None))
+            if not ok:
+                attempts[clip["hash"]] = attempts.get(clip["hash"], 0) + 1
+                if attempts[clip["hash"]] < verify["maxAttempts"]:
+                    (AUDIO / "clips" / f"{clip['hash']}.opus").unlink(missing_ok=True)
+                    redo += 1
+                    continue
+                warnings.append(f"{clip['key']}: {verify['maxAttempts']}回とも文字起こしが合わないので残した（聞こえた文: {heard}）")
+            record(cfg, man, clip, seconds, "batch")
+            if not ok:
+                man["clips"][clip["hash"]]["check"] = heard
             done += 1
+        ATTEMPTS.write_text(json.dumps(attempts, indent=1))
+        if redo:
+            print(f"  くり返し・言い落としで捨てた {redo} 文（次の submit で出し直す）")
         j["collected"] = datetime.now(timezone.utc).isoformat()
         save_manifest(man)
         JOBS.write_text(json.dumps(jobs, ensure_ascii=False, indent=1))

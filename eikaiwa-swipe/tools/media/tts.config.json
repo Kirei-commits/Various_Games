@@ -55,8 +55,13 @@
     "_dialogMode": "roles = 会話の行も役ごと（A だけ・B だけ）に1声でまとめて読む（間を確実に取れる。2026-09-28、2声でまとめると行の間が約0.5秒しか空かず切れなかったため）/ conversation = 会話ごと2声で読む"
   },
   "batch": {
-    "_about": "Batch API（料金が通常の半分・結果は最大24時間後）。chunk は1つのバッチに入れる文の数",
-    "chunk": 100
+    "_about": "Batch API（料金が通常の半分・結果は最大24時間後。通常の API の1日の上限とは別枠）。chunk は1つのバッチに入れる文の数（同時に出せるバッチは100件まで）",
+    "chunk": 200,
+    "verify": {
+      "model": "gemini-3.1-flash-lite",
+      "maxAttempts": 2,
+      "_about": "取り込むときに1文ずつ文字起こしして、語数が違う（くり返し・言い落とし）ものは捨てて出し直す。maxAttempts 回目は残して manifest に check を付ける（2026-09-28: 試しの20文で2文にくり返しがあった）"
+    }
   },
   "output": {
     "format": "opus",
@@ -69,7 +74,7 @@
     "tokensPerSecond": 25
   },
   "_style": "声の出し方の指示。テキストに混ぜると指示まで読んだり同じ文を繰り返したりするので、リクエストの speechMetadata.style として送る（読み上げられない）。style ＋ 役の persona ＋ 会話の文脈 をつないで使う",
-  "style": "A native speaker of General American English talking naturally in a casual conversation, recorded as model audio for English learners. Natural native speed and rhythm, real American connected speech (linking, flap T, weak forms and reductions), clear and natural intonation and sentence stress.",
+  "style": "A native speaker of General American English talking naturally in a casual conversation, recorded as model audio for English learners. Natural native speed and rhythm, real American connected speech (linking, flap T, weak forms and reductions), clear and natural intonation and sentence stress. Say the line exactly once, word for word: no repetitions, false starts, fillers or extra words.",
   "roles": {
     "P": {
       "voice": "Erinome",
