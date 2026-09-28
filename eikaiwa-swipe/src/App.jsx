@@ -65,6 +65,12 @@ import {
   codesLeft,
   endUnlimited,
   upgradeTickets,
+  makeMyTitle,
+  equipMyTitle,
+  deleteMyTitle,
+  equippedMyTitle,
+  myTitleText,
+  MY_TITLE_PARTS,
   buyItem,
   consumeItem,
   SHOP,
@@ -4044,7 +4050,7 @@ function WordSheet({ card, gacha, speech, onClose, onExchange }) {
     if (!r.error) {
       setUnlocks([
         ...r.newSecrets.map((id) => `🔓 シークレット単語「${CATALOG.cards[id].english}」が解放された！`),
-        ...r.newTitles.map((id) => `🏅 称号【${TITLE_BY_ID[id].name}】を獲得！`),
+        ...r.newTitles.map((id) => `🏅 実績【${TITLE_BY_ID[id].name}】を達成！`),
       ]);
     }
   };
@@ -4385,7 +4391,7 @@ function GachaResult({ result, onClose, onOpen }) {
                     <p className={`break-all font-extrabold text-slate-900 ${multi ? "mt-0.5 text-sm leading-tight" : "mt-1 text-base"}`}>{card.english}</p>
                     <p className="line-clamp-1 text-xs text-slate-500">{card.japanese.split("／")[0]}</p>
                     {r.byPity && (
-                      <p className={`font-bold text-amber-600 ${multi ? "text-[9px]" : "mt-1 text-[10px]"}`}>{r.byPity === "SSR" ? "天井で SSR 確定" : "10連の SR 以上確定枠"}</p>
+                      <p className={`font-bold text-amber-600 ${multi ? "text-[9px]" : "mt-1 text-[10px]"}`}>{r.byPity === "SSR" ? "天井で SSR 確定" : "確定"}</p>
                     )}
                   </button>
                   <div aria-hidden="true" className={`gc-back flex items-center justify-center rounded-2xl bg-gradient-to-br ring-2 ring-white/60 ${back[r.rarity]}`}>
@@ -4403,7 +4409,7 @@ function GachaResult({ result, onClose, onOpen }) {
               <p key={id}>🔓 シークレット単語「{CATALOG.cards[id].english}」が解放された！</p>
             ))}
             {result.newTitles.map((id) => (
-              <p key={id}>🏅 称号【{TITLE_BY_ID[id].name}】を獲得！</p>
+              <p key={id}>🏅 実績【{TITLE_BY_ID[id].name}】を達成！</p>
             ))}
           </div>
         )}
@@ -4503,7 +4509,6 @@ function GachaPanel({ g, onPull, onUpgrade }) {
             10連
             <span className="block text-[11px] font-bold text-amber-800">
               {costText(second)}
-              {(currency === "points" || currency === "ticket") && "・SR 以上1枚確定"}
             </span>
           </button>
         </div>
@@ -4581,6 +4586,187 @@ function GachaPanel({ g, onPull, onUpgrade }) {
           ・ダブるとメダル（N {DUP_MEDALS.N}・R {DUP_MEDALS.R}・SR {DUP_MEDALS.SR}・SSR {DUP_MEDALS.SSR}枚）。「ショップ」で道具と交換
         </p>
       </Fold>
+    </div>
+  );
+}
+
+/** 図鑑: 「単語」と「実績」を切り替える */
+function ZukanView({ g, onOpen }) {
+  const [mode, setMode] = useState("words");
+  return (
+    <div className="space-y-2">
+      <Segmented
+        name="zukan-mode"
+        value={mode}
+        onChange={setMode}
+        options={[
+          { value: "words", label: "単語図鑑" },
+          { value: "achievements", label: "実績" },
+        ]}
+      />
+      {mode === "words" ? <Zukan g={g} onOpen={onOpen} /> : <AchievementList g={g} />}
+    </div>
+  );
+}
+
+/** つけている称号のバッジ */
+function TitleBadge({ gacha, className = "" }) {
+  const t = equippedMyTitle(gacha);
+  if (!t) return null;
+  const text = myTitleText(CATALOG, t);
+  return (
+    <span
+      data-testid="title-badge"
+      className={`inline-flex w-fit max-w-full items-center gap-1 truncate rounded-full bg-gradient-to-r px-2.5 py-0.5 text-[11px] font-black text-white shadow ${TITLE_BG[text.rarity]} ${className}`}
+    >
+      <Award size={12} /> {text.en}
+    </span>
+  );
+}
+const TITLE_BG = {
+  N: "from-slate-500 to-slate-700",
+  R: "from-sky-500 to-blue-600",
+  SR: "from-violet-500 to-fuchsia-600",
+  SSR: "from-amber-400 via-pink-500 to-violet-600",
+  SECRET: "from-slate-900 to-amber-600",
+};
+
+/** マイ称号: 集めた単語を組み合わせて自分だけの称号を作り、付け替える */
+function MyTitlePanel({ g, onMake, onEquip, onDelete }) {
+  const [parts, setParts] = useState([]);
+  const [query, setQuery] = useState("");
+  const [pos, setPos] = useState("all");
+  const [message, setMessage] = useState(null);
+  const owned = useMemo(() => CATALOG.order.filter((id) => (g.cards[id] || 0) > 0), [g.cards]);
+  const q = query.trim().toLowerCase();
+  const list = owned
+    .filter((id) => {
+      const c = CATALOG.cards[id];
+      if (pos !== "all" && c.pos !== pos) return false;
+      return !q || c.english.toLowerCase().includes(q) || c.japanese.includes(q);
+    })
+    .slice(0, 90);
+  const preview = parts.length ? myTitleText(CATALOG, { parts }) : null;
+  const toggle = (id) => setParts((p) => (p.includes(id) ? p.filter((x) => x !== id) : p.length >= MY_TITLE_PARTS ? p : [...p, id]));
+  return (
+    <div className="space-y-3" data-testid="my-titles">
+      <div className="rounded-3xl bg-gradient-to-br from-slate-800 to-indigo-900 p-4 text-white shadow-lg">
+        <p className="text-[11px] font-bold tracking-widest text-white/70">MY TITLE</p>
+        <p className="text-lg font-black">集めた単語で、自分だけの称号を作ろう</p>
+        <p className="mt-1 text-[11px] text-white/80">単語を{MY_TITLE_PARTS}個までえらんで組み合わせます。作った称号はいつでも付け替えられます。</p>
+        <div className="mt-3 min-h-[3.5rem] rounded-2xl bg-white/10 p-3 text-center ring-1 ring-white/20" data-testid="title-preview">
+          {preview ? (
+            <>
+              <p className="text-xl font-black">{preview.en}</p>
+              <p className="text-xs text-white/80">{preview.ja}</p>
+            </>
+          ) : (
+            <p className="pt-2 text-xs text-white/60">下の単語をタップしてえらぶ（順番どおりに並びます）</p>
+          )}
+        </div>
+        <div className="mt-2 flex gap-2">
+          <button
+            type="button"
+            disabled={!parts.length}
+            onClick={() => {
+              const err = onMake(parts);
+              if (err) return setMessage({ ok: false, text: err });
+              setMessage({ ok: true, text: `称号「${preview.en}」を作ってつけました！` });
+              setParts([]);
+            }}
+            className="flex-1 rounded-2xl bg-amber-400 py-2.5 text-sm font-extrabold text-amber-950 shadow active:scale-95 disabled:opacity-40"
+          >
+            この称号を作る
+          </button>
+          <button type="button" disabled={!parts.length} onClick={() => setParts([])} className="rounded-2xl bg-white/15 px-4 text-xs font-bold disabled:opacity-40">
+            やり直す
+          </button>
+        </div>
+      </div>
+      {message && (
+        <p className={`rounded-xl px-3 py-2 text-center text-xs font-bold ${message.ok ? "bg-emerald-50 text-emerald-700" : "bg-rose-50 text-rose-600"}`}>{message.text}</p>
+      )}
+
+      {g.myTitles.length > 0 && (
+        <div>
+          <p className="text-sm font-bold text-slate-800">作った称号（{g.myTitles.length}）</p>
+          <ul className="mt-2 space-y-1.5">
+            {[...g.myTitles].reverse().map((t) => {
+              const text = myTitleText(CATALOG, t);
+              const on = g.equippedTitle === t.id;
+              return (
+                <li key={t.id} data-testid="my-title" className={`flex items-center gap-2 rounded-2xl bg-white p-2.5 ring-1 ${on ? "ring-2 ring-amber-400" : "ring-slate-200"}`}>
+                  <span className={`h-8 w-1.5 shrink-0 rounded-full bg-gradient-to-b ${TITLE_BG[text.rarity]}`} />
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-extrabold text-slate-900">{text.en}</p>
+                    <p className="truncate text-[11px] text-slate-500">{text.ja}</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => onEquip(on ? null : t.id)}
+                    className={`shrink-0 rounded-full px-3 py-1 text-xs font-extrabold ${on ? "bg-slate-100 text-slate-500" : "bg-indigo-600 text-white"}`}
+                  >
+                    {on ? "外す" : "つける"}
+                  </button>
+                  <button type="button" aria-label="称号を消す" onClick={() => onDelete(t.id)} className="shrink-0 rounded-full p-1.5 text-slate-300 hover:text-rose-500">
+                    <X size={16} />
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      )}
+
+      <div>
+        <p className="text-sm font-bold text-slate-800">使える単語（集めた {owned.length} 語）</p>
+        {owned.length === 0 ? (
+          <p className="mt-2 rounded-2xl bg-white p-4 text-center text-xs text-slate-500 ring-1 ring-slate-200">ガチャで単語を集めると、称号のパーツに使えます。</p>
+        ) : (
+          <>
+            <div className="mt-2 flex flex-wrap gap-1">
+              {GACHA_POS_OPTIONS.map((o) => (
+                <button
+                  key={o.value}
+                  type="button"
+                  aria-pressed={pos === o.value}
+                  onClick={() => setPos(o.value)}
+                  className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${pos === o.value ? "bg-slate-900 text-white" : "bg-white text-slate-500 ring-1 ring-slate-200"}`}
+                >
+                  {o.label}
+                </button>
+              ))}
+            </div>
+            <input
+              id="title-search"
+              type="search"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="英語・日本語で検索"
+              className="mt-2 w-full rounded-xl bg-white px-3 py-2 text-sm ring-1 ring-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+            />
+            <div className="mt-2 flex flex-wrap gap-1.5" data-testid="title-words">
+              {list.map((id) => {
+                const c = CATALOG.cards[id];
+                const i = parts.indexOf(id);
+                return (
+                  <button
+                    key={id}
+                    type="button"
+                    onClick={() => toggle(id)}
+                    title={c.japanese}
+                    className={`rounded-full px-2.5 py-1 text-xs font-bold ring-1 ${i >= 0 ? "bg-indigo-600 text-white ring-indigo-600" : "bg-white text-slate-700 ring-slate-200"}`}
+                  >
+                    {i >= 0 && <span className="mr-1 text-[10px]">{i + 1}</span>}
+                    {c.english}
+                    <span className="ml-1 text-[9px] opacity-60">{c.secret ? "S" : c.rarity}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </>
+        )}
+      </div>
     </div>
   );
 }
@@ -4673,9 +4859,11 @@ function Zukan({ g, onOpen }) {
   );
 }
 
-function TitleList({ g }) {
+/** 実績（以前の「称号」）: テーマの単語をそろえると達成。図鑑の中で見る */
+function AchievementList({ g }) {
   return (
-    <ul className="space-y-2">
+    <ul className="space-y-2" data-testid="achievements">
+      <li className="rounded-2xl bg-amber-50 px-3 py-2 text-xs text-amber-800">テーマの単語をそろえると達成です（{g.titles.length} / {TITLES.length}）。</li>
       {TITLES.map((t) => {
         const got = g.titles.includes(t.id);
         const { have, need } = titleProgress(g, CATALOG, t.rule);
@@ -4840,7 +5028,22 @@ function CodePanel({ g, onRedeem, onEndUnlimited }) {
   );
 }
 
-function GachaScreen({ state, speech, onPull, onExchange, onStarter, onSettings, onRedeem, onEndUnlimited, onUseBoost, onUpgrade, onBuy }) {
+function GachaScreen({
+  state,
+  speech,
+  onPull,
+  onExchange,
+  onStarter,
+  onSettings,
+  onRedeem,
+  onEndUnlimited,
+  onUseBoost,
+  onUpgrade,
+  onBuy,
+  onMakeTitle,
+  onEquipTitle,
+  onDeleteTitle,
+}) {
   const g = state.gacha;
   const [view, setView] = useState("gacha");
   const [result, setResult] = useState(null);
@@ -4861,6 +5064,7 @@ function GachaScreen({ state, speech, onPull, onExchange, onStarter, onSettings,
   return (
     <div className="flex h-full flex-col px-5 pt-4 pb-3">
       <ScreenHeader title="単語ガチャ" sub="集めて、語源を知ろう" onSettings={onSettings} />
+      <TitleBadge gacha={g} className="mt-2" />
       <Wallet g={g} onUseBoost={onUseBoost} />
       {starterShown && (
         <p className="mt-2 rounded-xl bg-indigo-50 px-3 py-2 text-center text-xs font-bold text-indigo-700" data-testid="gacha-starter">
@@ -4875,7 +5079,7 @@ function GachaScreen({ state, speech, onPull, onExchange, onStarter, onSettings,
           options={[
             { value: "gacha", label: "ガチャ" },
             { value: "zukan", label: "図鑑" },
-            { value: "titles", label: "称号" },
+            { value: "titles", label: "マイ称号" },
             { value: "code", label: "コード" },
             { value: "shop", label: "ショップ" },
           ]}
@@ -4884,8 +5088,8 @@ function GachaScreen({ state, speech, onPull, onExchange, onStarter, onSettings,
       <div className="mt-3 min-h-0 flex-1 overflow-y-auto pb-4">
         {view === "gacha" && <GachaPanel g={g} onPull={pull} onUpgrade={onUpgrade} />}
         {view === "shop" && <ShopPanel g={g} onBuy={onBuy} />}
-        {view === "zukan" && <Zukan g={g} onOpen={setOpenId} />}
-        {view === "titles" && <TitleList g={g} />}
+        {view === "zukan" && <ZukanView g={g} onOpen={setOpenId} />}
+        {view === "titles" && <MyTitlePanel g={g} onMake={onMakeTitle} onEquip={onEquipTitle} onDelete={onDeleteTitle} />}
         {view === "code" && <CodePanel g={g} onRedeem={onRedeem} onEndUnlimited={onEndUnlimited} />}
       </div>
       {result && <GachaResult result={result} onClose={() => setResult(null)} onOpen={setOpenId} />}
@@ -5338,6 +5542,7 @@ function ProgressScreen({ state, onOpenChapter, storageOk, account, bonusActions
         />
       )}
       <h1 className="text-2xl font-extrabold text-slate-900">学習の進捗</h1>
+      <TitleBadge gacha={state.gacha} className="mt-1" />
       {cloud.available && <AccountCard account={account} />}
       <BonusCard state={state} {...bonusActions} />
 
@@ -5757,6 +5962,9 @@ export default function App() {
   const onUpgradeTickets = useCallback((to) => act((s) => upgradeTickets(s, to)), [act]);
   const onBuyItem = useCallback((id) => act((s) => buyItem(s, id), "complete"), [act]);
   const onConsumeItem = useCallback((id) => act((s) => consumeItem(s, id), "tap"), [act]);
+  const onMakeTitle = useCallback((parts) => act((s) => makeMyTitle(s, CATALOG, parts, Date.now()), "complete"), [act]);
+  const onEquipTitle = useCallback((id) => update((s) => equipMyTitle(s, id)), [update]);
+  const onDeleteTitle = useCallback((id) => update((s) => deleteMyTitle(s, id)), [update]);
   const onUseBoost = useCallback(() => {
     const r = activateBoost(stateRef.current, Date.now());
     if (r.error) return r.error;
@@ -5988,6 +6196,9 @@ export default function App() {
               onUseBoost={onUseBoost}
               onUpgrade={onUpgradeTickets}
               onBuy={onBuyItem}
+              onMakeTitle={onMakeTitle}
+              onEquipTitle={onEquipTitle}
+              onDeleteTitle={onDeleteTitle}
             />
           )}
           {tab === "diary" && <DiaryScreen state={state} speech={speech} onSave={onSaveDiary} onSettings={openSettings} />}

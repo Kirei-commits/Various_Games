@@ -82,7 +82,7 @@ test("間違えると敵が近づき、コンボが切れる。その単語は�
   killNext(b, rng);
   killNext(b, rng);
   assert.equal(b.combo, 2);
-  tick(b, 3000, rng, 0);
+  tick(b, PACE.choice.interval, rng, 0);
   const t = target(b);
   const y = t.y;
   const item = attack(b, false, rng);
@@ -257,9 +257,14 @@ test("必殺技: 答えずに敵を倒せる。コンボはそのままで、そ
   const b = createBattle({ mode: "stage", items: chapter.items, rng });
   killNext(b, rng);
   killNext(b, rng);
-  tick(b, 3000, rng, 0);
+  tick(b, PACE.choice.interval, rng, 0);
   const item = special(b, rng);
   assert.equal(b.kills, 3);
   assert.equal(b.combo, 2);
   assert.equal(resultsOf(b).find((r) => r.id === item.id).correct, false);
+});
+
+test("敵はゆっくり近づく（4択で上から届くまで15秒、次の敵まで4.5秒）", () => {
+  assert.deepEqual(PACE.choice, { reach: 15000, interval: 4500 });
+  assert.ok(PACE.type.reach > PACE.choice.reach && PACE.voice.reach > PACE.choice.reach);
 });

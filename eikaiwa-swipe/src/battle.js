@@ -31,9 +31,9 @@ export const LEVEL_UP_KILLS = 10;
 
 /** 答え方ごとの、敵が上から下まで届く時間（ms）と、次の敵が出るまでの間隔 */
 export const PACE = {
-  choice: { reach: 9000, interval: 3000 },
-  type: { reach: 18000, interval: 5500 },
-  voice: { reach: 15000, interval: 5000 },
+  choice: { reach: 15000, interval: 4500 },
+  type: { reach: 26000, interval: 7500 },
+  voice: { reach: 22000, interval: 7000 },
 };
 
 const shuffle = (list, rng) => {

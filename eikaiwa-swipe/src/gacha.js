@@ -6,7 +6,7 @@
  *   MAX（Lv.4）の単語は出なくなり、その分の確率は同じレア度の残りに均等に回る。
  *   同じレア度がすべて MAX なら、その確率は1つ下のレア度へ（レアチケットは N を出さないので上へ）。
  * - ダブると Lv が上がる（見た目だけ。意味・例文・語源は1枚目から全部見られる）。
- * - 救済: 天井（通常100回・チケット20回で SSR 確定、10連は SR 以上1枚確定）、
+ * - 救済: 天井（通常500回・レアチケット20回・SR チケット10回で SSR 確定。10連などの確定枠はない）、
  *   交換ポイント（引くたびに貯まり、好きな単語と交換）、選択チケット（ログイン日数でもらえる）。
  * - 課金はない。ポイントはログインボーナス・今日の目標・学習・テスト・バトル・コード入力でもらう。
  * - 学習・テスト・バトルのポイントは「かかった時間」に比例させる（どれで遊んでも1分あたりほぼ同じ）。
@@ -31,7 +31,7 @@ export const BALANCE_KEY = { points: "points", ticket: "tickets", sr: "srTickets
 /** その通貨で出る最低のレア度 */
 const FLOOR_RANK = { points: 0, ticket: 1, sr: 2, ssr: 3 };
 export const PULL_COST = 100; // 通常ガチャ1回のポイント
-export const PITY_SSR = { points: 100, ticket: 20, sr: 10 }; // この回数目で SSR 確定
+export const PITY_SSR = { points: 500, ticket: 20, sr: 10 }; // この回数目で SSR 確定（通常ガチャは集めにくくするため 500 回）
 export const MAX_LEVEL = 4;
 /** 図鑑の交換所で1枚もらうのに必要な交換ポイント（やり込み向けに高め） */
 export const EXCHANGE_COST = { N: 200, R: 800, SR: 3000, SSR: 10000 };
@@ -86,6 +86,8 @@ export const initialGacha = () => ({
   ssrTickets: 0, // SSR ガチャチケット（SSR 確定）
   medals: 0, // ダブりメダル
   items: { freeze: 0, special: 0 }, // バトルの道具
+  myTitles: [], // 自分で作った称号 [{ id, parts: [単語ID], at }]
+  equippedTitle: null, // つけている称号の id
 });
 
 // ---------------------------------------------------------------------------
@@ -189,6 +191,7 @@ const normalize = (g) => ({
   secrets: [...(g?.secrets || [])],
   codesUsed: [...(g?.codesUsed || [])],
   items: { ...initialGacha().items, ...(g?.items || {}) },
+  myTitles: [...(g?.myTitles || [])],
 });
 
 const notMax = (g) => (id) => (g.cards[id] || 0) < MAX_LEVEL;
@@ -267,13 +270,10 @@ export function pull(state, catalog, { pos = "all", currency = "points", times =
   }
   const pool = catalog.pools[pos] || catalog.pools.all;
   const results = [];
-  let gotSrPlus = false;
   for (let i = 0; i < times; i++) {
-    // 10回ごとに SR 以上1枚確定（50連なら5回分）
-    if (i % 10 === 0) gotSrPlus = false;
+    // 10連などの「SR 以上確定」はない。天井（PITY_SSR）だけ
     let guarantee = null;
     if ((g.pity[currency] || 0) + 1 >= PITY_SSR[currency]) guarantee = "SSR";
-    else if (times >= 10 && i % 10 === 9 && !gotSrPlus) guarantee = "SR";
     let { weights, total } = effectiveWeights(g, catalog, pos, currency, guarantee);
     if (total === 0) {
       // 保証のレア度がすべて MAX → 保証なしで引く
@@ -292,7 +292,6 @@ export function pull(state, catalog, { pos = "all", currency = "points", times =
     g.exPoints += exGain;
     g.medals += medals;
     if (PITY_SSR[currency]) g.pity[currency] = rarity === "SSR" ? 0 : (g.pity[currency] || 0) + 1;
-    if (RANK[rarity] >= RANK.SR) gotSrPlus = true;
     results.push({
       id,
       rarity,
@@ -495,6 +494,59 @@ export function consumeItem(state, id) {
   return { state: withGacha(state, (g) => (g.items[id] -= 1)) };
 }
 
+// ---------------------------------------------------------------------------
+// マイ称号: ガチャで集めた単語を組み合わせて、自分だけの称号を作って付け替える
+// ---------------------------------------------------------------------------
+export const MY_TITLE_PARTS = 3; // 1つの称号に使える単語の数
+export const MY_TITLES_MAX = 30; // 作っておける称号の数
+
+/** 称号の表示（英語・日本語・一番いいレア度） */
+export function myTitleText(catalog, title) {
+  const cards = (title?.parts || []).map((id) => catalog.cards[id]).filter(Boolean);
+  const cap = (w) => w.replace(/(^|\s)([a-z])/g, (_, s, c) => s + c.toUpperCase());
+  const best = cards.reduce((b, c) => (RANK[c.rarity] > RANK[b] ? c.rarity : b), "N");
+  return {
+    en: cards.map((c) => cap(c.english)).join(" "),
+    ja: cards.map((c) => c.japanese.split(/[／/（(]/)[0].trim()).join("・"),
+    rarity: cards.some((c) => c.secret) ? "SECRET" : best,
+  };
+}
+
+/**
+ * 称号を作る（作ったらそのままつける）。
+ * @param parts 単語ID（1〜3個。持っている単語だけ。同じ単語は1回）
+ */
+export function makeMyTitle(state, catalog, parts, now) {
+  const g0 = normalize(state.gacha);
+  const ids = [...new Set(parts || [])];
+  if (!ids.length || ids.length > MY_TITLE_PARTS) return { state, error: `単語を1〜${MY_TITLE_PARTS}個えらんでください` };
+  if (ids.some((id) => !catalog.cards[id] || !(g0.cards[id] > 0))) return { state, error: "持っている単語だけ使えます" };
+  if (g0.myTitles.some((t) => t.parts.join(" ") === ids.join(" "))) return { state, error: "同じ称号がもうあります" };
+  if (g0.myTitles.length >= MY_TITLES_MAX) return { state, error: `称号は ${MY_TITLES_MAX} 個までです。いらない称号を消してください` };
+  const id = `t${now}`;
+  return {
+    state: withGacha(state, (g) => {
+      g.myTitles.push({ id, parts: ids, at: now });
+      g.equippedTitle = id;
+    }),
+    id,
+  };
+}
+
+/** 称号をつける（null で外す） */
+export const equipMyTitle = (state, id) =>
+  withGacha(state, (g) => (g.equippedTitle = id && g.myTitles.some((t) => t.id === id) ? id : null));
+
+/** 称号を消す（つけていたら外れる） */
+export const deleteMyTitle = (state, id) =>
+  withGacha(state, (g) => {
+    g.myTitles = g.myTitles.filter((t) => t.id !== id);
+    if (g.equippedTitle === id) g.equippedTitle = null;
+  });
+
+/** つけている称号（なければ null） */
+export const equippedMyTitle = (gacha) => (gacha?.myTitles || []).find((t) => t.id === gacha?.equippedTitle) || null;
+
 /** 5倍ブーストを1つ使う（使用中なら1時間延長） */
 export function activateBoost(state, now) {
   const g0 = normalize(state.gacha);
@@ -613,6 +665,12 @@ export function restoreGacha(saved, rename = (id) => id) {
     ssrTickets: nonNegInt(saved.ssrTickets),
     medals: nonNegInt(saved.medals),
     items: { freeze: nonNegInt(saved.items?.freeze), special: nonNegInt(saved.items?.special) },
+    myTitles: Array.isArray(saved.myTitles)
+      ? saved.myTitles
+          .filter((t) => t && typeof t.id === "string" && Array.isArray(t.parts))
+          .map((t) => ({ id: t.id, parts: t.parts.map(rename), at: nonNegInt(t.at) }))
+      : [],
+    equippedTitle: typeof saved.equippedTitle === "string" ? saved.equippedTitle : null,
   };
 }
 
@@ -634,5 +692,7 @@ export function mergeGacha(a, b) {
     pulls: Math.max(ga.pulls, gb.pulls),
     starter: ga.starter || gb.starter,
     codesUsed: [...new Set([...ga.codesUsed, ...gb.codesUsed])],
+    // 作った称号は両方の端末の分を残す
+    myTitles: [...new Map([...ga.myTitles, ...gb.myTitles].map((t) => [t.id, t])).values()],
   };
 }

@@ -41,9 +41,7 @@ test("はじめてボーナスで10連を引ける。結果が出て、ポイン
   const result = page.getByTestId("gacha-result");
   await expect(result).toBeVisible();
   await expect(result.getByTestId("gacha-result-card")).toHaveCount(10);
-  // 10連は SR 以上が1枚以上
   const rarities = await result.getByTestId("gacha-result-card").evaluateAll((els) => els.map((e) => e.dataset.rarity));
-  expect(rarities.some((r) => r === "SR" || r === "SSR")).toBe(true);
   await result.getByRole("button", { name: "閉じる" }).click();
 
   await expect(page.getByTestId("wallet-points")).toHaveText(/^0/);
@@ -52,7 +50,7 @@ test("はじめてボーナスで10連を引ける。結果が出て、ポイン
   // 天井までの残り: 10連で SSR が出たら、その後に引いた回数だけ減っている
   const lastSsr = rarities.lastIndexOf("SSR");
   const sinceSsr = lastSsr < 0 ? 10 : rarities.length - 1 - lastSsr;
-  await expect(page.getByTestId("gacha-pity")).toContainText(`あと ${100 - sinceSsr} 回`);
+  await expect(page.getByTestId("gacha-pity")).toContainText(`あと ${500 - sinceSsr} 回`);
 
   // ポイントが足りないと引けない
   await page.getByRole("button", { name: /1回引く/ }).click();
@@ -115,14 +113,39 @@ test("com の付く単語を3つ集めると、シークレット単語 companio
   await expect(page.getByTestId("word-trivia")).toContainText("パン");
 });
 
-test("称号: 集めた単語の数やテーマで獲得でき、進み具合が見える", async ({ page }) => {
+test("実績（以前の称号）は図鑑の中にあり、テーマの単語をそろえると達成", async ({ page }) => {
   await seedGacha(page, { cards: { sun: 1, moon: 1, star: 1, planet: 1, sky: 1 }, titles: [] });
   await openGacha(page);
-  await page.getByRole("button", { name: "称号" }).click();
+  await page.getByRole("button", { name: "図鑑" }).click();
+  await page.getByRole("button", { name: "実績", exact: true }).click();
   const stargazer = page.getByTestId("title-item").filter({ hasText: "天体観測者" });
   await expect(stargazer).toContainText("5 / 5");
   await expect(page.getByTestId("title-item").filter({ hasText: "単語コレクター" })).toContainText("5 / 50");
 });
+
+test("マイ称号: 集めた単語を組み合わせて称号を作り、付け替えられる", async ({ page }) => {
+  await seedGacha(page, { cards: { happy: 1, sun: 1, robot: 1 } });
+  await openGacha(page);
+  await page.getByRole("button", { name: "マイ称号", exact: true }).click();
+  const words = page.getByTestId("title-words");
+  await words.getByRole("button", { name: /happy/ }).click();
+  await words.getByRole("button", { name: /robot/ }).click();
+  await expect(page.getByTestId("title-preview")).toContainText("Happy Robot");
+  await page.getByRole("button", { name: "この称号を作る" }).click();
+  await expect(page.getByTestId("title-badge")).toContainText("Happy Robot");
+
+  await words.getByRole("button", { name: /sun/ }).click();
+  await page.getByRole("button", { name: "この称号を作る" }).click();
+  await expect(page.getByTestId("title-badge")).toContainText("Sun");
+  await expect(page.getByTestId("my-title")).toHaveCount(2);
+  // 前の称号に付け替える
+  await page.getByTestId("my-title").filter({ hasText: "Happy Robot" }).getByRole("button", { name: "つける" }).click();
+  await expect(page.getByTestId("title-badge")).toContainText("Happy Robot");
+  // 進捗の画面にも出る
+  await page.getByRole("button", { name: "進捗", exact: true }).click();
+  await expect(page.getByTestId("title-badge")).toContainText("Happy Robot");
+});
+
 
 test("学習すると、かかった時間に応じてガチャポイントがもらえる（「まだ」でも）", async ({ page }) => {
   await seedGacha(page, { points: 0 });
@@ -195,7 +218,6 @@ test("コード: 単語を入れるとポイント（1日5回・同じ単語は1
   let total = 0;
   for (const r of ["SSR", "SR", "R", "N"]) total += Number(await summary.getByTestId(`gacha-count-${r}`).innerText());
   expect(total).toBe(100);
-  expect(Number(await summary.getByTestId("gacha-count-SR").innerText()) + Number(await summary.getByTestId("gacha-count-SSR").innerText())).toBeGreaterThanOrEqual(10);
   await page.getByTestId("gacha-result").getByRole("button", { name: "閉じる" }).click();
   await expect(page.getByTestId("wallet-points")).toHaveText("∞");
 });
