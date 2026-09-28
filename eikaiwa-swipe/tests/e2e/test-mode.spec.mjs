@@ -79,3 +79,28 @@ test("テストの途中でタブを移動しても続きから再開できる",
   await page.getByRole("button", { name: "テスト", exact: true }).click();
   await expect(page.getByTestId("test-progress")).toHaveText("2 / 10");
 });
+
+test("答え方はテスト中にいつでも切り替えられ、声→文字→声と戻しても使える", async ({ page }) => {
+  await startTest(page, { answer: "音声" });
+  await page.getByRole("button", { name: "文字で", exact: true }).click();
+  await expect(page.locator("#test-answer")).toBeVisible();
+  await page.getByRole("button", { name: "声で", exact: true }).click();
+  const p = await currentPhrase(page);
+  await page.evaluate((text) => (window.__nextSpeech = text), p.japanese.split("／")[0]);
+  await page.getByRole("button", { name: "話して答える" }).click();
+  await expect(page.getByTestId("verdict")).toHaveText("正解！");
+});
+
+test("音声認識がないブラウザでは、声モードはキーボードの音声入力で答える", async ({ page }) => {
+  await page.addInitScript(() => {
+    delete window.SpeechRecognition;
+    delete window.webkitSpeechRecognition;
+  });
+  await page.reload();
+  await startTest(page, { answer: "音声" });
+  await expect(page.getByTestId("dictation-hint")).toContainText("キーボードのマイク");
+  const p = await currentPhrase(page);
+  await page.locator("#test-answer").fill(p.japanese.split("／")[0]);
+  await page.locator("#test-answer").press("Enter");
+  await expect(page.getByTestId("verdict")).toHaveText("正解！");
+});

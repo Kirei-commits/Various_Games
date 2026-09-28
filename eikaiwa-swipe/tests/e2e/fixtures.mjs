@@ -49,6 +49,8 @@ function installSpeechStubs() {
 export const test = base.extend({
   page: async ({ page }, use) => {
     await page.addInitScript(installSpeechStubs);
+    // 起動時のログイン画面は「ログインせずに使う」を選んだ状態から始める（ログイン画面は cloud.spec で検証）
+    await page.addInitScript(() => sessionStorage.setItem("swipetalk:skipLogin", "1"));
     await page.goto("/");
     await expect(page.getByTestId("remaining")).toBeVisible();
     await use(page);

@@ -54,8 +54,11 @@ export function parseChapter(chapter) {
   return { id: chapter.id, title: chapter.title, items, errors };
 }
 
-/** 全章を読み込み、検証エラー（重複IDなど）も返す */
-export function buildLibrary(rawChapters) {
+/**
+ * 全章を読み込み、検証エラー（重複IDなど）も返す。
+ * renamed は問題IDの変更履歴（古いID → 新しいID）。保存データを読むときに新しいIDへ付け替える。
+ */
+export function buildLibrary(rawChapters, { renamed = {} } = {}) {
   const chapters = [];
   const errors = [];
   const seen = new Map();
@@ -72,7 +75,7 @@ export function buildLibrary(rawChapters) {
     }
     chapters.push({ id: ch.id, title: ch.title, items: ch.items });
   }
-  return { chapters, byId: Object.fromEntries(seen), errors };
+  return { chapters, byId: Object.fromEntries(seen), renamed, errors };
 }
 
 /** "A: Hello\nB: Hi" → [{ speaker: "A", text: "Hello" }, ...] */
@@ -166,24 +169,67 @@ export function similarity(a, b) {
 
 export const CLOSE_THRESHOLD = 0.6;
 
+// 意味の比較に関係ない部分: 文末の丁寧語・終助詞と、文中の助詞
+const JA_ENDING = /(でございます|ございます|ございました|でしょうか|でしょう|ですか|ですね|ですよ|でした|です|ましょう|ました|ます|だよね|だよ|だね|だった|だ|よね|かな|かも|よ|ね|な|わ|さ|か|の)+$/;
+const JA_PARTICLES = /[はがをにへでとも]/g;
+
+/**
+ * 言葉遣いの違いを落とした「意味の芯」。
+ * 「調子はどう」「調子どう」→ どちらも「調子どう」、「楽しみにしてます」「楽しみにしている」→「楽しみしてる」
+ */
+export function coreJa(text) {
+  return normalizeJa(text)
+    .replace(/ている/g, "てる")
+    .replace(/でいる/g, "でる")
+    .replace(JA_ENDING, "")
+    .replace(JA_PARTICLES, "");
+}
+
+/** 最長共通部分列の長さ（順番は保ったまま、飛び飛びでも一致する文字数） */
+export function lcsLength(a, b) {
+  const prev = new Array(b.length + 1).fill(0);
+  for (let i = 1; i <= a.length; i++) {
+    let diag = 0;
+    for (let j = 1; j <= b.length; j++) {
+      const tmp = prev[j];
+      prev[j] = a[i - 1] === b[j - 1] ? diag + 1 : Math.max(prev[j], prev[j - 1]);
+      diag = tmp;
+    }
+  }
+  return prev[b.length];
+}
+
 /**
  * 答えを採点する。
  * @returns {{ verdict: "correct" | "close" | "wrong" | "empty", score: number }}
- *  close は「ほぼ正解」。正解として数える。
+ *  close は「ほぼ正解」（言い回しは違うが意味の芯が合っている）。正解として数える。
  */
 export function gradeAnswer(input, japanese) {
   const a = normalizeJa(input);
   if (!a) return { verdict: "empty", score: 0 };
+  const ca = coreJa(input) || a;
   let best = 0;
-  for (const c of answerCandidates(japanese)) {
-    if (a === c) return { verdict: "correct", score: 1 };
-    // 候補の主要部分を答えている（「意味が通じる」に対して「通じる」など）
-    if (c.includes(a) && a.length >= Math.max(2, Math.ceil(c.length * 0.6))) {
-      return { verdict: "correct", score: 1 };
+  for (const part of japanese.split(/[／/]/)) {
+    const variants = [part, part.replace(/[（(][^）)]*[）)]/g, "")];
+    for (const v of variants) {
+      const c = normalizeJa(v);
+      if (!c) continue;
+      if (a === c) return { verdict: "correct", score: 1 };
+      // 候補の主要部分を答えている（「意味が通じる」に対して「通じる」など）
+      if (c.includes(a) && a.length >= Math.max(2, Math.ceil(c.length * 0.6))) return { verdict: "correct", score: 1 };
+      // 候補を含んだうえで言い足している（「コツをつかむこと」など）
+      if (c.length >= 2 && a.includes(c)) return { verdict: "correct", score: 1 };
+      // 助詞・語尾の違いだけ（「調子はどう」と「調子どう」など）
+      const cc = coreJa(v) || c;
+      if (ca === cc) return { verdict: "correct", score: 1 };
+
+      // ここからは「ほぼ正解」の判定: 意味の芯の文字がどれだけ同じ順で入っているか
+      const common = lcsLength(ca, cc);
+      const coverage = common / cc.length; // 正解のうち答えに含まれる割合
+      const precision = common / ca.length; // 答えのうち正解と重なる割合（長すぎる答えを弾く）
+      if (cc.length >= 2 && coverage >= 0.7 && precision >= 0.5) best = Math.max(best, coverage);
+      else best = Math.max(best, Math.min(similarity(a, c), 0.59), similarity(ca, cc) >= CLOSE_THRESHOLD ? similarity(ca, cc) : 0);
     }
-    // 候補を含んだうえで言い足している（「コツをつかむこと」など）
-    if (c.length >= 2 && a.includes(c)) return { verdict: "correct", score: 1 };
-    best = Math.max(best, similarity(a, c));
   }
   return best >= CLOSE_THRESHOLD ? { verdict: "close", score: best } : { verdict: "wrong", score: best };
 }
@@ -433,39 +479,82 @@ export function freshState(firstChapterId = "ch01") {
   };
 }
 
-/** 保存データ（v1 / v2）を、現在の教材と突き合わせて整える */
+/**
+ * 保存データの形の移行。キーは「移行元のバージョン」で、1つ新しい形に変換する。
+ * 保存データの形を変えるときは STATE_VERSION を上げ、ここに移行を1つ足す（古い移行は消さない）。
+ * これにより、何世代前のデータでも順番に最新の形へたどり着ける。
+ */
+const MIGRATIONS = {
+  // v1（22フレーズ版）: { statuses: { p01: "learned" }, queue, stats }
+  1: (s) => {
+    const learned = {};
+    for (const [pid, status] of Object.entries(s.statuses || {})) {
+      const english = LEGACY_V1_IDS[pid];
+      if (status === "learned" && english) learned[slugify(english)] = true;
+    }
+    return { version: 2, learned, queues: {}, misses: {}, tests: {}, stats: s.stats || {} };
+  },
+};
+
+export const stateVersionOf = (saved) => (saved && Number.isInteger(saved.version) ? saved.version : 1);
+
+/** このアプリより新しい版で保存されたデータか（その場合は上書きしてはいけない） */
+export const isNewerVersion = (saved) => stateVersionOf(saved) > STATE_VERSION;
+
+/** 保存データを最新の形まで順番に移行する（新しい版のデータはそのまま返す） */
+export function migrateState(saved) {
+  let s = saved;
+  let v = stateVersionOf(s);
+  while (v < STATE_VERSION) {
+    const step = MIGRATIONS[v];
+    if (!step) throw new Error(`保存データ v${v} からの移行がありません`);
+    s = step(s);
+    v = stateVersionOf(s);
+  }
+  return s;
+}
+
+/** 変更履歴をたどって、今の問題IDを返す（循環していても止まる） */
+export function currentId(id, renamed = {}) {
+  let cur = id;
+  for (let i = 0; i < 50 && Object.prototype.hasOwnProperty.call(renamed, cur); i++) cur = renamed[cur];
+  return cur;
+}
+
+/**
+ * 保存データ（どの版でも）を、現在の教材と突き合わせて整える。
+ * - 英語を書き換えた問題の記録は、変更履歴（library.renamed）で新しいIDへ付け替える
+ * - 今の教材にない問題の「覚えた」「苦手」は捨てずに残す（数には入らない。問題が戻れば復活する）
+ */
 export function restoreState(saved, library) {
   const base = freshState(library.chapters[0]?.id);
   if (!saved || typeof saved !== "object") return base;
+  const s = migrateState(saved);
+  const renamed = library.renamed || {};
   const valid = (id) => Object.prototype.hasOwnProperty.call(library.byId, id);
 
   const learned = {};
-  if (saved.version === STATE_VERSION) {
-    for (const id of Object.keys(saved.learned || {})) if (valid(id) && saved.learned[id]) learned[id] = true;
-  } else if (saved.statuses) {
-    // v1: { statuses: { p01: "learned" } }
-    for (const [pid, status] of Object.entries(saved.statuses)) {
-      const english = LEGACY_V1_IDS[pid];
-      const id = english && slugify(english);
-      if (status === "learned" && id && valid(id)) learned[id] = true;
-    }
+  for (const [id, on] of Object.entries(s.learned || {})) if (on) learned[currentId(id, renamed)] = true;
+
+  const misses = {};
+  for (const [id, n] of Object.entries(s.misses || {})) {
+    const cur = currentId(id, renamed);
+    if (n > 0) misses[cur] = Math.max(misses[cur] || 0, n);
   }
 
   const queues = {};
-  for (const [ch, ids] of Object.entries(saved.version === STATE_VERSION ? saved.queues || {} : {})) {
-    if (Array.isArray(ids)) queues[ch] = ids.filter(valid);
+  for (const [ch, ids] of Object.entries(s.queues || {})) {
+    if (Array.isArray(ids)) queues[ch] = ids.map((id) => currentId(id, renamed)).filter(valid);
   }
-  const misses = {};
-  for (const [id, n] of Object.entries(saved.misses || {})) if (valid(id) && n > 0) misses[id] = n;
 
-  const chapter = library.chapters.some((c) => c.id === saved.chapter) ? saved.chapter : base.chapter;
+  const chapter = library.chapters.some((c) => c.id === s.chapter) ? s.chapter : base.chapter;
   return {
     ...base,
     learned,
     queues,
     misses,
-    tests: saved.tests && typeof saved.tests === "object" ? saved.tests : {},
-    stats: { ...initialStats(), ...(saved.stats || {}) },
+    tests: s.tests && typeof s.tests === "object" ? s.tests : {},
+    stats: { ...initialStats(), ...(s.stats || {}) },
     chapter,
   };
 }
@@ -646,9 +735,12 @@ export function mergeStates(a, b, library) {
  * - 端末の進捗が別のアカウントのもの → アカウントの進捗だけを使う（混ぜない）
  * @param local  { state, owner, updatedAt }
  * @param remote { state, updatedAt } | null
- * @returns { state, upload } upload はクラウドへ保存し直すべきか
+ * @returns { state, upload, newerRemote } upload はクラウドへ保存し直すべきか。
+ *   newerRemote はクラウドのデータがこのアプリより新しい版のもの（アプリの更新が必要）
  */
 export function resolveLogin(local, remote, uid, library) {
+  // 新しい版のアプリで保存されたデータは読み書きしない（古い版で上書きすると記録が欠ける）
+  if (remote && isNewerVersion(remote.state)) return { state: local.state, upload: false, newerRemote: true };
   const hasLocalProgress = Object.keys(local.state.learned).length > 0 || local.state.stats.totalSwipes > 0 ||
     (local.state.stats.totalAnswers || 0) > 0 || (local.state.stats.totalShadows || 0) > 0;
   if (!remote) {

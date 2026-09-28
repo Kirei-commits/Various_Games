@@ -2,7 +2,7 @@
  * src/ を1枚の index.html にまとめる（CSS と JS をすべてインライン化）。
  * 出来上がった index.html はサーバー不要で、ブラウザで直接開けば動く。
  *
- *   node tools/build.mjs                      → index.html を更新
+ *   node tools/build.mjs                      → index.html を更新（src/data/ids.lock.json に新しい問題IDも追記）
  *   node tools/build.mjs --artifact out.html  → Claude の Artifact 用（<html>/<head> なし）も出力
  */
 import { spawnSync } from "node:child_process";
@@ -13,6 +13,7 @@ import { createRequire } from "node:module";
 import { pathToFileURL } from "node:url";
 import * as esbuild from "esbuild";
 import { ROOT, sourceHash } from "./source-hash.mjs";
+import { updateLock } from "./id-lock.mjs";
 
 const require = createRequire(import.meta.url);
 
@@ -54,6 +55,11 @@ async function buildJs({ withCloud }) {
 }
 
 const { default: cloudConfig } = await import(pathToFileURL(path.join(ROOT, "src/cloud-config.js")).href);
+
+// 公開する問題IDを一覧に追記する（source-hash の計算より前に行う）
+const { default: rawChapters, RENAMED } = await import(pathToFileURL(path.join(ROOT, "src/data/index.js")).href);
+const { buildLibrary } = await import(pathToFileURL(path.join(ROOT, "src/logic.js")).href);
+if (updateLock(buildLibrary(rawChapters, { renamed: RENAMED }))) console.log("ids.lock.json に新しい問題IDを追記しました");
 const css = buildCss();
 const js = await buildJs({ withCloud: cloudConfig != null });
 const hash = sourceHash();

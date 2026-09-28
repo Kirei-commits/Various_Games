@@ -63,13 +63,43 @@ async function switchDevice(page) {
   await page.reload();
 }
 
+/** 進捗タブのアカウント欄からログインする */
 async function login(page) {
   await page.getByRole("button", { name: "進捗", exact: true }).click();
-  await page.getByRole("button", { name: /Google でログイン/ }).click();
+  await page.getByTestId("account-card").getByRole("button", { name: /Google でログイン/ }).click();
   await expect(page.getByTestId("sync-status")).toHaveText(/クラウドに保存済み/);
 }
 
+/** 起動時のログイン画面で「ログインせずに使う」 */
+async function skipWelcome(page) {
+  await page.getByRole("button", { name: "ログインせずに使う" }).click();
+  await expect(page.getByTestId("welcome")).toHaveCount(0);
+}
+
+test("起動するとログイン画面が出て、そこからログインできる", async ({ page }) => {
+  const welcome = page.getByTestId("welcome");
+  await expect(welcome).toBeVisible();
+  await welcome.getByRole("button", { name: /Google でログイン/ }).click();
+  await expect(welcome).toHaveCount(0);
+  await page.getByRole("button", { name: "進捗", exact: true }).click();
+  await expect(page.getByTestId("sync-status")).toHaveText(/クラウドに保存済み/);
+  // ログイン済みなら、次に開いたときはログイン画面を出さない
+  await page.reload();
+  await expect(page.getByTestId("remaining")).toBeVisible();
+  await page.getByRole("button", { name: "進捗", exact: true }).click();
+  await expect(page.getByTestId("sync-status")).toHaveText(/クラウドに保存済み/);
+  await expect(welcome).toHaveCount(0);
+});
+
+test("「ログインせずに使う」を選ぶと、その起動中はログイン画面を出さない", async ({ page }) => {
+  await skipWelcome(page);
+  await page.reload();
+  await expect(page.getByTestId("remaining")).toBeVisible();
+  await expect(page.getByTestId("welcome")).toHaveCount(0);
+});
+
 test("ログイン前の進捗はログインするとアカウントに引き継がれる", async ({ page }) => {
+  await skipWelcome(page);
   await swipe(page, 220);
   await expect(page.getByTestId("remaining")).toHaveText(/^49/);
   await swipe(page, 220);
@@ -80,6 +110,7 @@ test("ログイン前の進捗はログインするとアカウントに引き�
 });
 
 test("ログイン中の操作はまとめてクラウドに保存され、別の端末でも続きから始められる", async ({ page }) => {
+  await skipWelcome(page);
   await login(page);
   await page.getByRole("button", { name: "学習", exact: true }).click();
   await swipe(page, 220);
@@ -93,23 +124,28 @@ test("ログイン中の操作はまとめてクラウドに保存され、別�
 });
 
 test("ログアウトすると、この端末から進捗が消える（クラウドには残る）", async ({ page }) => {
+  await skipWelcome(page);
   await swipe(page, 220);
   await expect(page.getByTestId("remaining")).toHaveText(/^49/);
   await login(page);
   await page.getByRole("button", { name: "ログアウト" }).click();
   await page.getByRole("button", { name: /もう一度タップでログアウト/ }).click();
-  await expect(page.getByRole("button", { name: /Google でログイン/ })).toBeVisible();
+  await expect(page.getByTestId("account-card").getByRole("button", { name: /Google でログイン/ })).toBeVisible();
   await expect(page.getByText(/^0 \/ 2000 覚えた$/)).toBeVisible();
   expect(await cloudLearned(page)).toBe(1);
 
   // 同じアカウントで入り直すと戻ってくる
-  await page.getByRole("button", { name: /Google でログイン/ }).click();
+  await page.getByTestId("account-card").getByRole("button", { name: /Google でログイン/ }).click();
   await expect(page.getByText(/^1 \/ 2000 覚えた$/)).toBeVisible();
 });
 
-base("ログインしていなければ、端末にだけ保存中と表示してログインボタンを出す", async ({ page }) => {
+test("LINE などのアプリ内ブラウザでは、ブラウザで開き直す案内を出す", async ({ browser }) => {
+  const context = await browser.newContext({
+    userAgent: "Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 Chrome/124 Mobile Safari/537.36 Instagram 330.0",
+  });
+  const page = await context.newPage();
+  await page.addInitScript(installFakeCloud);
   await page.goto("/");
-  await page.getByRole("button", { name: "進捗", exact: true }).click();
-  await expect(page.getByTestId("account-card")).toContainText("この端末にだけ保存中");
-  await expect(page.getByRole("button", { name: /Google でログイン/ })).toBeEnabled();
+  await expect(page.getByTestId("welcome").getByTestId("in-app-notice")).toContainText("Instagram のアプリ内で開いています");
+  await context.close();
 });
