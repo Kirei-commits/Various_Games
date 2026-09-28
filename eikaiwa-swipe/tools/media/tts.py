@@ -269,7 +269,7 @@ def save_wav(cfg, clip, body):
     expected = estimate_seconds(clip["text"])
     if seconds > expected * 2 + 1.5 or seconds < expected * 0.25:
         return None, f"{clip['key']}: 長さが不自然なので取り込まなかった（{seconds:.1f}秒、目安 {expected:.1f}秒）。raw/tts/wav/{clip['hash']}.wav"
-    encode(cfg, wav_path, AUDIO / cfg.get("_outdir", "clips") / f"{clip['hash']}.opus")
+    encode(cfg, wav_path, cfg.get("_outpath", AUDIO / cfg.get("_outdir", "clips")) / f"{clip['hash']}.opus")
     return seconds, None
 
 
@@ -844,11 +844,12 @@ def batch_results(res):
 
 
 ATTEMPTS = RAW / "attempts.json"  # 確認で捨てた回数（文ごと）
+STAGING = RAW / "staging"  # Batch の結果を確かめ終わるまで置く場所（git の外）
 
 
 def check_clip(cfg, clip):
     """録音を文字起こしして、元の文と語数が合うか確かめる。戻り値: (合っているか, 聞こえた文)"""
-    body = base64.b64encode((AUDIO / "clips" / f"{clip['hash']}.opus").read_bytes()).decode()
+    body = base64.b64encode((STAGING / f"{clip['hash']}.opus").read_bytes()).decode()
     req = {"contents": [{"parts": [{"inlineData": {"mimeType": "audio/ogg", "data": body}},
                                    {"text": "Transcribe this audio verbatim, word for word, including any repeated words or false starts. Output only the transcript."}]}]}
     res = api("POST", f"/v1beta/models/{cfg['batch']['verify']['model']}:generateContent", req, pacer=Pacer(0))
@@ -897,7 +898,8 @@ def cmd_collect(args, cfg):
             if error:
                 warnings.append(f"{clip['key']}: エラー {json.dumps(error)[:200]}")
                 continue
-            seconds, w = save_audio(cfg, clip, response)
+            STAGING.mkdir(parents=True, exist_ok=True)
+            seconds, w = save_audio({**cfg, "_outpath": STAGING}, clip, response)
             if w:
                 warnings.append(w)
                 continue
@@ -920,10 +922,13 @@ def cmd_collect(args, cfg):
                 with open(RAW / "failures.jsonl", "a") as f:
                     f.write(json.dumps({"key": clip["key"], "heard": heard, "kind": kind, "attempt": a["n"], "style": style_for(cfg, clip)}, ensure_ascii=False) + "\n")
                 if a["n"] < verify["maxAttempts"]:
-                    (AUDIO / "clips" / f"{clip['hash']}.opus").unlink(missing_ok=True)
+                    (STAGING / f"{clip['hash']}.opus").unlink(missing_ok=True)
                     redo += 1
                     continue
                 warnings.append(f"{clip['key']}: {verify['maxAttempts']}回とも文字起こしが合わないので残した（聞こえた文: {heard}）")
+            # 確かめ終わったものだけ audio/clips/ に移す（確認中のファイルがリポジトリに出ないように）
+            (AUDIO / "clips").mkdir(parents=True, exist_ok=True)
+            (STAGING / f"{clip['hash']}.opus").replace(AUDIO / "clips" / f"{clip['hash']}.opus")
             record(cfg, man, clip, seconds, "batch")
             if not ok:
                 man["clips"][clip["hash"]]["check"] = heard
