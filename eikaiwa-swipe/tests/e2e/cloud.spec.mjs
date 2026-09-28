@@ -107,9 +107,9 @@ test("ログアウトすると、この端末から進捗が消える（クラ�
   await expect(page.getByText(/^1 \/ 2000 覚えた$/)).toBeVisible();
 });
 
-base("クラウド保存が未設定のときはログインを表示しない", async ({ page }) => {
+base("ログインしていなければ、端末にだけ保存中と表示してログインボタンを出す", async ({ page }) => {
   await page.goto("/");
   await page.getByRole("button", { name: "進捗", exact: true }).click();
-  await expect(page.getByTestId("progress-pct")).toBeVisible();
-  await expect(page.getByTestId("account-card")).toHaveCount(0);
+  await expect(page.getByTestId("account-card")).toContainText("この端末にだけ保存中");
+  await expect(page.getByRole("button", { name: /Google でログイン/ })).toBeEnabled();
 });

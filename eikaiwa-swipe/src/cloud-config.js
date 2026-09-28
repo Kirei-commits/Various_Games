@@ -11,4 +11,11 @@
  *   appId: "1:1234567890:web:abcdef",
  * };
  */
-export default null;
+export default {
+  apiKey: "AIzaSyC1IDwGAIC5OavoSsr0sO3YuFVJiT6stwU",
+  authDomain: "swipetalk-cd29b.firebaseapp.com",
+  projectId: "swipetalk-cd29b",
+  storageBucket: "swipetalk-cd29b.firebasestorage.app",
+  messagingSenderId: "812465625407",
+  appId: "1:812465625407:web:e6778a854713b409529b8a",
+};
