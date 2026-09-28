@@ -15,8 +15,11 @@ import {
   STAGE_ENEMIES,
   BOSS_HP,
   PACE,
-  KILL_POINTS,
-  CLEAR_POINTS,
+  battleReward,
+  byDifficulty,
+  difficultyOf,
+  BATTLE_POINTS,
+  BATTLE_TICKETS,
   LEVEL_UP_KILLS,
   speedOf,
   maxOnField,
@@ -100,7 +103,7 @@ test("エンドレス: 倒すほどレベルが上がって敵が速くなり、
   assert.equal(b.over, true);
 });
 
-test("報酬: 1体5pt・クリア+50pt、初めての星3でレアチケット（2回目はなし）、1日の上限はない", () => {
+test("報酬: ポイントは 1000〜3000（時間と成績）、レアチケットは 1〜8 枚。初めての★3はチケット多め。1日の上限はない", () => {
   const rng = mulberry32(6);
   const play = () => {
     const b = createBattle({ mode: "stage", items: chapter.items, key: "ch51@en-ja", rng });
@@ -109,18 +112,65 @@ test("報酬: 1体5pt・クリア+50pt、初めての星3でレアチケット�
   };
   let s = freshState();
   const first = applyBattle(s, play(), "2026-01-01");
-  const kills = STAGE_ENEMIES + 1;
-  assert.equal(first.reward.points, kills * KILL_POINTS + CLEAR_POINTS);
-  assert.equal(first.reward.tickets, 1);
-  assert.equal(first.state.gacha.tickets, 1);
+  assert.equal(first.reward.points, BATTLE_POINTS.min); // 短いバトルでも最低 1000
+  assert.equal(first.reward.tickets, BATTLE_TICKETS.max); // ★3（6枚）＋初回（2枚）
+  assert.equal(first.state.gacha.tickets, 8);
   assert.equal(first.state.battle.stars["ch51@en-ja"], 3);
+  assert.deepEqual(first.state.battle.ticketStages, ["ch51@en-ja"]);
   const second = applyBattle(first.state, play(), "2026-01-01");
-  assert.equal(second.reward.tickets, 0);
+  assert.equal(second.reward.tickets, 6);
 
   s = second.state;
   for (let i = 0; i < 20; i++) s = applyBattle(s, play(), "2026-01-01").state;
-  assert.equal(applyBattle(s, play(), "2026-01-01").reward.points, kills * KILL_POINTS + CLEAR_POINTS);
-  assert.equal(s.battle.earned, 22 * (kills * KILL_POINTS + CLEAR_POINTS));
+  assert.equal(applyBattle(s, play(), "2026-01-01").reward.points, BATTLE_POINTS.min);
+  assert.equal(s.battle.earned, 22 * BATTLE_POINTS.min);
+});
+
+test("報酬: 長く遊ぶほどポイントが増えるが 3000 まで。すぐやめたら時間ぶんだけでチケットなし", () => {
+  const rng = mulberry32(9);
+  const b = createBattle({ mode: "endless", items: chapter.items, rng });
+  for (let i = 0; i < 25; i++) killNext(b, rng);
+  b.elapsed = 4 * 60 * 1000; // 4分遊んだ
+  quit(b);
+  const r = battleReward(b);
+  assert.ok(r.points > BATTLE_POINTS.min && r.points <= BATTLE_POINTS.max, `${r.points}`);
+  assert.equal(r.tickets, 1 + Math.floor((b.level - 1) / 2));
+  b.elapsed = 60 * 60 * 1000;
+  assert.equal(battleReward(b).points, BATTLE_POINTS.max);
+
+  const early = createBattle({ mode: "stage", items: chapter.items, rng });
+  killNext(early, rng);
+  early.elapsed = 6000;
+  quit(early);
+  assert.deepEqual([battleReward(early).points, battleReward(early).tickets], [60, 0]);
+});
+
+test("5倍ブースト中はバトルのポイントも5倍（チケットはそのまま）", () => {
+  const rng = mulberry32(10);
+  const b = createBattle({ mode: "stage", items: chapter.items, key: "ch52@en-ja", rng });
+  while (!b.over) killNext(b, rng);
+  const s = { ...freshState(), gacha: { ...freshState().gacha, boostUntil: 5000 } };
+  const r = applyBattle(s, b, "2026-01-01", 1000);
+  assert.equal(r.reward.points, BATTLE_POINTS.min * 5);
+  assert.equal(r.reward.boosted, true);
+  assert.equal(r.reward.tickets, 8);
+  assert.equal(applyBattle(s, b, "2026-01-01", 6000).reward.points, BATTLE_POINTS.min); // 切れたら元どおり
+});
+
+test("難易度順: おおむね やさしい → むずかしい の順で、毎回少しずつ違う", () => {
+  const items = [...lib.chapters[50].items, ...lib.chapters[70].items, ...lib.chapters[100].items]; // 基礎・生活・応用
+  const a = byDifficulty(items, mulberry32(1));
+  const b = byDifficulty(items, mulberry32(2));
+  assert.notDeepEqual(a.map((x) => x.id), b.map((x) => x.id));
+  const avg = (list) => list.reduce((n, x) => n + difficultyOf(x), 0) / list.length;
+  assert.ok(avg(a.slice(0, 30)) < avg(a.slice(60, 90)));
+  assert.ok(avg(a.slice(60, 90)) < avg(a.slice(120)));
+  // 最初の20体はほぼ基礎の章から
+  assert.ok(a.slice(0, 20).every((x) => x.chapterId === "ch51" || x.chapterId === "ch71"));
+
+  const stage = createBattle({ mode: "stage", items: chapter.items, order: "level", rng: mulberry32(3) });
+  const lens = [...stage.queue, ...stage.bossWords].map((x) => x.english.length);
+  assert.ok(lens.slice(0, 4).reduce((n, x) => n + x, 0) <= lens.slice(-4).reduce((n, x) => n + x, 0));
 });
 
 test("エンドレスの最高得点を記録し、更新したらボーナス", () => {

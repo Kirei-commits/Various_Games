@@ -447,7 +447,7 @@ export function wordMatch(said, target) {
 // 学習状態
 // ---------------------------------------------------------------------------
 
-export const STATE_VERSION = 3;
+export const STATE_VERSION = 4;
 
 /** v1（22フレーズ版）の保存データの ID → 英語 */
 export const LEGACY_V1_IDS = {
@@ -490,36 +490,26 @@ export function freshState(firstChapterId = "ch01") {
 
 /** 1日に学習（スワイプ・テスト解答・シャドーイング）してほしい数 */
 export const DAILY_GOAL = 20;
-export const GOAL_REWARD = 20;
 
 export const initialBonus = () => ({
   lastClaim: null, // 最後にログインボーナスを受け取った日
   loginStreak: 0, // 連続ログイン日数
   totalDays: 0, // 受け取った日数の合計
-  coins: 0,
+  coins: 0, // 廃止したコイン（古いデータの値を消さないために残している）
   goalClaimed: null, // 今日の目標ボーナスを受け取った日
   unlocked: ["default"],
   theme: "default",
 });
 
-/** 着せかえ（カードと画面の色）。price はコイン */
+/** 着せかえ（カードと画面の色）。設定からいつでも無料で選べる */
 export const THEMES = [
-  { id: "default", name: "スタンダード", price: 0, colors: ["#6366f1", "#8b5cf6", "#ec4899"] },
-  { id: "sakura", name: "桜", price: 100, colors: ["#f9a8d4", "#f472b6", "#fb7185"] },
-  { id: "ocean", name: "海", price: 150, colors: ["#38bdf8", "#0ea5e9", "#6366f1"] },
-  { id: "forest", name: "森", price: 200, colors: ["#4ade80", "#10b981", "#0d9488"] },
-  { id: "sunset", name: "夕焼け", price: 300, colors: ["#fbbf24", "#f97316", "#e11d48"] },
-  { id: "night", name: "夜空", price: 500, colors: ["#1e3a8a", "#4c1d95", "#0f172a"] },
+  { id: "default", name: "スタンダード", colors: ["#6366f1", "#8b5cf6", "#ec4899"] },
+  { id: "sakura", name: "桜", colors: ["#f9a8d4", "#f472b6", "#fb7185"] },
+  { id: "ocean", name: "海", colors: ["#38bdf8", "#0ea5e9", "#6366f1"] },
+  { id: "forest", name: "森", colors: ["#4ade80", "#10b981", "#0d9488"] },
+  { id: "sunset", name: "夕焼け", colors: ["#fbbf24", "#f97316", "#e11d48"] },
+  { id: "night", name: "夜空", colors: ["#1e3a8a", "#4c1d95", "#0f172a"] },
 ];
-
-/**
- * 連続ログイン day 日目のボーナス。続けるほど少しずつ増え（10〜22）、7日ごとに +50。
- * @returns {{ coins: number, weekly: boolean }}
- */
-export function dailyReward(day) {
-  const weekly = day % 7 === 0;
-  return { coins: 10 + Math.min(day - 1, 6) * 2 + (weekly ? 50 : 0), weekly };
-}
 
 /** 今日のログインボーナスを受け取る（受け取り済みなら reward は null） */
 export function claimDailyBonus(state, today, yesterday) {
@@ -527,12 +517,9 @@ export function claimDailyBonus(state, today, yesterday) {
   if (b.lastClaim === today) return { state, reward: null };
   const day = b.lastClaim === yesterday ? b.loginStreak + 1 : 1;
   const gacha = loginGachaReward(day, b.totalDays + 1);
-  const reward = { ...dailyReward(day), day, gacha };
+  const reward = { day, weekly: day % 7 === 0, gacha };
   return {
-    state: grant(
-      { ...state, bonus: { ...b, lastClaim: today, loginStreak: day, totalDays: b.totalDays + 1, coins: b.coins + reward.coins } },
-      gacha
-    ),
+    state: grant({ ...state, bonus: { ...b, lastClaim: today, loginStreak: day, totalDays: b.totalDays + 1 } }, gacha),
     reward,
   };
 }
@@ -547,25 +534,11 @@ export const canClaimGoal = (state, today) =>
 export function claimGoalBonus(state, today) {
   if (!canClaimGoal(state, today)) return state;
   const b = { ...initialBonus(), ...state.bonus };
-  return grant({ ...state, bonus: { ...b, goalClaimed: today, coins: b.coins + GOAL_REWARD } }, { points: GOAL_POINTS });
+  return grant({ ...state, bonus: { ...b, goalClaimed: today } }, { points: GOAL_POINTS });
 }
 
-/** 着せかえを買う（買えないときは error を返す） */
-export function buyTheme(state, id) {
-  const theme = THEMES.find((t) => t.id === id);
-  const b = { ...initialBonus(), ...state.bonus };
-  if (!theme) return { state, error: "ない着せかえです" };
-  if (b.unlocked.includes(id)) return { state };
-  if (b.coins < theme.price) return { state, error: `コインが ${theme.price - b.coins} 枚足りません` };
-  return { state: { ...state, bonus: { ...b, coins: b.coins - theme.price, unlocked: [...b.unlocked, id], theme: id } } };
-}
-
-export function applyTheme(state, id) {
-  const b = { ...initialBonus(), ...state.bonus };
-  return b.unlocked.includes(id) ? { ...state, bonus: { ...b, theme: id } } : state;
-}
-
-export const themeOf = (state) => THEMES.find((t) => t.id === state.bonus?.theme) || THEMES[0];
+/** 着せかえ。id が無い・知らないものならスタンダード */
+export const themeById = (id) => THEMES.find((t) => t.id === id) || THEMES[0];
 
 /**
  * 保存データの形の移行。キーは「移行元のバージョン」で、1つ新しい形に変換する。
@@ -584,6 +557,9 @@ const MIGRATIONS = {
   },
   // v2 → v3: 単語ガチャ（state.gacha）とバトルの記録（state.battle）を追加
   2: (s) => ({ ...s, version: 3, gacha: initialGacha(), battle: initialBattle() }),
+  // v3 → v4: ガチャに5倍ブースト・コード入力・無限モードを追加（足りない値は restoreGacha が初期値で埋める）。
+  // ログインボーナスのコインは廃止（値は消さずに残す）。着せかえは設定に移った
+  3: (s) => ({ ...s, version: 4 }),
 };
 
 export const stateVersionOf = (saved) => (saved && Number.isInteger(saved.version) ? saved.version : 1);

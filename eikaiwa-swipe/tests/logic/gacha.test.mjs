@@ -19,15 +19,24 @@ import {
   effectiveWeights,
   currentRates,
   claimStarter,
-  earnStudyPoints,
+  earnTimePoints,
+  activateBoost,
+  boostActive,
+  redeemCode,
+  codeValue,
+  codesLeft,
+  endUnlimited,
+  pointsForTime,
   guessPos,
   grant,
   RATES,
   PITY_SSR,
   MAX_LEVEL,
   EXCHANGE_COST,
-  STUDY_DAILY_CAP,
   STARTER,
+  POINTS_PER_MINUTE,
+  BOOST_MS,
+  CODE_DAILY_LIMIT,
 } from "../../src/gacha.js";
 
 const lib = buildLibrary(raw);
@@ -202,8 +211,8 @@ test("ポイントのもらい方: はじめてボーナス・ログイン・今
   assert.equal(claimStarter(s).gacha.points, STARTER.points); // 2回目はもらえない
 
   const { state, reward } = claimDailyBonus(freshState(), "2026-01-07", "2026-01-06");
-  assert.equal(state.gacha.points, 100);
-  assert.equal(reward.gacha.points, 100);
+  assert.equal(state.gacha.points, 1000);
+  assert.equal(reward.gacha.points, 1000);
   // 7日連続でレアチケット
   let w = freshState();
   for (let d = 1; d <= 7; d++) {
@@ -215,17 +224,81 @@ test("ポイントのもらい方: はじめてボーナス・ログイン・今
 
   let g = { ...freshState(), stats: { ...freshState().stats, todayDate: "2026-01-01", todayCount: 20 } };
   g = claimGoalBonus(g, "2026-01-01");
-  assert.equal(g.gacha.points, 300);
-
-  let st = freshState();
-  for (let i = 0; i < 100; i++) st = earnStudyPoints(st, "2026-01-01", 1);
-  assert.equal(st.gacha.points, STUDY_DAILY_CAP);
-  st = earnStudyPoints(st, "2026-01-02", 1);
-  assert.equal(st.gacha.points, STUDY_DAILY_CAP + 10);
+  assert.equal(g.gacha.points, 3000);
 });
 
-test("保存データ: v2 から v3 へ移行し、ガチャのデータは端末をまたいでも失わない", () => {
-  assert.equal(STATE_VERSION, 3);
+test("学習・テストのポイントは時間に比例（1分 600pt）。上限はない", () => {
+  assert.equal(pointsForTime(60), POINTS_PER_MINUTE);
+  assert.equal(pointsForTime(0.5), 5);
+  assert.equal(pointsForTime(-3), 0);
+  let st = freshState();
+  for (let i = 0; i < 200; i++) st = earnTimePoints(st, 10, 0).state;
+  assert.equal(st.gacha.points, 200 * 100);
+});
+
+test("5倍ブースト: 使うと1時間ポイント5倍。使用中にもう1つ使うと延長。持っていなければ使えない", () => {
+  let s = freshState();
+  assert.match(activateBoost(s, 0).error, /持っていません/);
+  s = { ...s, gacha: { ...s.gacha, boosts: 2 } };
+  s = activateBoost(s, 1000).state;
+  assert.equal(s.gacha.boosts, 1);
+  assert.equal(boostActive(s.gacha, 1000 + BOOST_MS - 1), true);
+  assert.equal(boostActive(s.gacha, 1000 + BOOST_MS), false);
+  const r = earnTimePoints(s, 60, 2000);
+  assert.equal(r.points, POINTS_PER_MINUTE * 5);
+  assert.equal(earnTimePoints(s, 60, 1000 + BOOST_MS).points, POINTS_PER_MINUTE);
+  s = activateBoost(s, 1000 + BOOST_MS / 2).state;
+  assert.equal(s.gacha.boostUntil, 1000 + BOOST_MS * 2);
+});
+
+test("コード: 単語帳の単語を入れるとポイント。難しい単語ほど多く（1000〜10万）、1日5回・同じ単語は1回だけ", () => {
+  const day = "2026-01-01";
+  let s = freshState();
+  const easy = redeemCode(s, catalog, "go", day);
+  assert.ok(easy.points >= 1000 && easy.points <= 5000, `${easy.points}`);
+  const ssrId = Object.keys(catalog.cards).find((id) => catalog.cards[id].rarity === "SSR" && !catalog.cards[id].secret);
+  const hard = redeemCode(easy.state, catalog, `  ${catalog.cards[ssrId].english.toUpperCase()} `, day);
+  assert.ok(hard.points >= 50000, `${hard.points}`);
+  assert.equal(redeemCode(s, catalog, "companion", day).points, 100000); // シークレット単語は最高
+  const values = Object.values(catalog.cards).map(codeValue);
+  assert.ok(Math.min(...values) >= 1000 && Math.max(...values) <= 100000);
+
+  s = hard.state;
+  assert.match(redeemCode(s, catalog, "go", day).error, /もう使いました/);
+  assert.match(redeemCode(s, catalog, "qwertyzz", day).error, /単語帳にありません/);
+  assert.equal(codesLeft(s.gacha, day), CODE_DAILY_LIMIT - 2); // 間違いは数えない
+  for (const w of ["sun", "moon", "star"]) s = redeemCode(s, catalog, w, day).state;
+  assert.equal(codesLeft(s.gacha, day), 0);
+  assert.match(redeemCode(s, catalog, "sky", day).error, /また明日/);
+  assert.ok(redeemCode(s, catalog, "sky", "2026-01-02").points > 0); // 次の日はまた入れられる
+});
+
+test("開発者コード aaa: ポイント無限（引いても減らない）。やめることもできる", () => {
+  let s = { ...freshState(), gacha: { ...freshState().gacha, points: 0 } };
+  const r = redeemCode(s, catalog, "AAA", "2026-01-01");
+  assert.equal(r.unlimited, true);
+  s = r.state;
+  assert.equal(codesLeft(s.gacha, "2026-01-01"), CODE_DAILY_LIMIT); // 回数は使わない
+  const p = pull(s, catalog, { times: 1000 }, mulberry32(1));
+  assert.equal(p.results.length, 1000);
+  assert.equal(p.state.gacha.points, 0);
+  s = endUnlimited(p.state);
+  assert.match(pull(s, catalog, { times: 1 }, mulberry32(1)).error, /足りません/);
+});
+
+test("50連以上: 10回ごとに SR 以上が1枚確定", () => {
+  const s = { ...freshState(), gacha: { ...freshState().gacha, points: 100 * 500 } };
+  // SR 以上が出にくい乱数（いつも N の範囲）でも、10回ごとに SR 以上が入る
+  const p = pull(s, catalog, { times: 500 }, () => 0.01);
+  assert.equal(p.results.length, 500);
+  for (let i = 0; i < 500; i += 10) {
+    assert.ok(p.results.slice(i, i + 10).some((r) => r.rarity === "SR" || r.rarity === "SSR"), `block ${i}`);
+  }
+  assert.equal(p.state.gacha.points, 0);
+});
+
+test("保存データ: v2 から最新へ移行し、ガチャのデータは端末をまたいでも失わない", () => {
+  assert.equal(STATE_VERSION, 4);
   const old = { version: 2, learned: { "make-sense": true }, queues: {}, misses: {}, tests: {}, stats: {} };
   const s = restoreState(old, lib);
   assert.equal(s.gacha.points, 0);
