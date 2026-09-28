@@ -1667,6 +1667,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "00d226c80c536f": {
+   "key": "B|Let me see if I can move you.",
+   "text": "Let me see if I can move you.",
+   "role": "B",
+   "chapter": "ch25",
+   "id": "the-room-is-too-noisy",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "0ad18ea857da",
+   "rev": 1,
+   "seconds": 1.68,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "00d53885a5888c": {
    "key": "A|Can you fix it?",
    "text": "Can you fix it?",
@@ -1861,6 +1875,20 @@
    "rev": 1,
    "seconds": 1.28,
    "via": "sync",
+   "at": "2026-09-28"
+  },
+  "00e4f624fdcda6": {
+   "key": "A|Do you offer month-to-month?",
+   "text": "Do you offer month-to-month?",
+   "role": "A",
+   "chapter": "ch26",
+   "id": "month-to-month",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "20cec3ac036d",
+   "rev": 1,
+   "seconds": 1.4,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "00e58dd34b9bf2": {
@@ -2157,6 +2185,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "0100624ec80083": {
+   "key": "B|Is there a fee?",
+   "text": "Is there a fee?",
+   "role": "B",
+   "chapter": "ch26",
+   "id": "rental-application",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "4848b96cd216",
+   "rev": 1,
+   "seconds": 1.08,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "0100eca0299041": {
    "key": "P|delayed",
    "text": "delayed",
@@ -2449,6 +2491,20 @@
    "rev": 1,
    "seconds": 0.84,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "012dd14e8ada06": {
+   "key": "P|Can I get an invoice?",
+   "text": "Can I get an invoice?",
+   "role": "P",
+   "chapter": "ch25",
+   "id": "can-i-get-an-invoice",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "dc69213afdf5",
+   "rev": 1,
+   "seconds": 1.56,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "012f3849660812": {
@@ -3179,6 +3235,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "01835ec408852f": {
+   "key": "B|Did you use anything from the minibar?",
+   "text": "Did you use anything from the minibar?",
+   "role": "B",
+   "chapter": "ch25",
+   "id": "id-like-to-check-out",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "72aad0d95062",
+   "rev": 1,
+   "seconds": 2.4,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "01842b2c16dfea": {
    "key": "A|Let's grab a coffee.",
    "text": "Let's grab a coffee.",
@@ -3232,6 +3302,20 @@
    "sig": "abcc278e40b9",
    "rev": 1,
    "seconds": 2.04,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "0186c8c824dab6": {
+   "key": "P|There's a problem with my room.",
+   "text": "There's a problem with my room.",
+   "role": "P",
+   "chapter": "ch25",
+   "id": "theres-a-problem-with-my-room",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "880160f678a1",
+   "rev": 1,
+   "seconds": 2.2,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -3963,6 +4047,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "01df83d9fa6884": {
+   "key": "B|ID and proof of income.",
+   "text": "ID and proof of income.",
+   "role": "B",
+   "chapter": "ch26",
+   "id": "proof-of-income",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "6fdf33204d54",
+   "rev": 1,
+   "seconds": 2.24,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "01e00128c3db17": {
    "key": "P|gross",
    "text": "gross",
@@ -4229,6 +4327,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "02093845cbb49d": {
+   "key": "B|Yes, in the hallway closet.",
+   "text": "Yes, in the hallway closet.",
+   "role": "B",
+   "chapter": "ch26",
+   "id": "in-unit-washer-and-dryer",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "4451392dc008",
+   "rev": 1,
+   "seconds": 1.88,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "020b25b10d19c4": {
    "key": "P|swag",
    "text": "swag",
@@ -4297,6 +4409,20 @@
    "rev": 1,
    "seconds": 0.85,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "02109932462135": {
+   "key": "B|Yes, it's part of the application.",
+   "text": "Yes, it's part of the application.",
+   "role": "B",
+   "chapter": "ch26",
+   "id": "credit-check",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "1680545347f6",
+   "rev": 1,
+   "seconds": 2.6,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "0210b8519461cd": {
@@ -4381,6 +4507,20 @@
    "rev": 1,
    "seconds": 0.95,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "0217103d56a9cb": {
+   "key": "A|Do you have valet parking?",
+   "text": "Do you have valet parking?",
+   "role": "A",
+   "chapter": "ch25",
+   "id": "valet-parking",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "90f083ca8806",
+   "rev": 1,
+   "seconds": 1.52,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "0217e7bf238dea": {
@@ -5391,6 +5531,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "02985f675b45d6": {
+   "key": "B|Sure. It'll be here in ten minutes.",
+   "text": "Sure. It'll be here in ten minutes.",
+   "role": "B",
+   "chapter": "ch25",
+   "id": "can-you-call-a-taxi-for-me",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "a626bfb939cc",
+   "rev": 1,
+   "seconds": 2.12,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "0299a69dabfbe1": {
    "key": "P|We're going to be late.",
    "text": "We're going to be late.",
@@ -6105,6 +6259,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "02f8c34b1913ee": {
+   "key": "B|Can I see your ID?",
+   "text": "Can I see your ID?",
+   "role": "B",
+   "chapter": "ch25",
+   "id": "i-locked-myself-out",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "58f1f30b3788",
+   "rev": 1,
+   "seconds": 1.36,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "02fbf029eae01a": {
    "key": "A|Mondays feel so long.",
    "text": "Mondays feel so long.",
@@ -6340,6 +6508,20 @@
    "sig": "d48d22e74e5f",
    "rev": 1,
    "seconds": 1.96,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "030fe8f3cf655f": {
+   "key": "A|Are you staying at a hotel?",
+   "text": "Are you staying at a hotel?",
+   "role": "A",
+   "chapter": "ch25",
+   "id": "airbnb",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "fbe46ef96820",
+   "rev": 1,
+   "seconds": 1.6,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -6623,6 +6805,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "03384d827a19a3": {
+   "key": "P|valet parking",
+   "text": "valet parking",
+   "role": "P",
+   "chapter": "ch25",
+   "id": "valet-parking",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "834970040961",
+   "rev": 1,
+   "seconds": 1.4,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "033930879d5af4": {
    "key": "B|Yes, it woke me up.",
    "text": "Yes, it woke me up.",
@@ -6733,6 +6929,20 @@
    "rev": 1,
    "seconds": 1.06,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "0349852713cbad": {
+   "key": "P|lease",
+   "text": "lease",
+   "role": "P",
+   "chapter": "ch26",
+   "id": "lease",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "0e76c747c9c7",
+   "rev": 1,
+   "seconds": 1.0,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "034c63c4a4779c": {
@@ -7447,6 +7657,20 @@
    "rev": 1,
    "seconds": 1.81,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "03a129245f4128": {
+   "key": "B|It's a security deposit. You'll get it back.",
+   "text": "It's a security deposit. You'll get it back.",
+   "role": "B",
+   "chapter": "ch25",
+   "id": "security-deposit",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "d044710af0fd",
+   "rev": 1,
+   "seconds": 2.52,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "03a25a003cb8f3": {
@@ -8751,6 +8975,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "0441e37936a620": {
+   "key": "P|The TV remote doesn't work.",
+   "text": "The TV remote doesn't work.",
+   "role": "P",
+   "chapter": "ch25",
+   "id": "the-tv-remote-doesnt-work",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "4b1ba2545ea4",
+   "rev": 1,
+   "seconds": 2.12,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "0443b453f6e971": {
    "key": "P|exchange money",
    "text": "exchange money",
@@ -8805,6 +9043,20 @@
    "rev": 1,
    "seconds": 2.2,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "04485f6a4ecf4b": {
+   "key": "P|Is this apartment still available?",
+   "text": "Is this apartment still available?",
+   "role": "P",
+   "chapter": "ch26",
+   "id": "is-this-apartment-still-available",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "3232a5d360b2",
+   "rev": 1,
+   "seconds": 2.12,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "0448a817a9b55b": {
@@ -8888,6 +9140,20 @@
    "sig": "47862b1168b2",
    "rev": 1,
    "seconds": 1.96,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "0451f1f028849b": {
+   "key": "A|I'm looking for an apartment near campus.",
+   "text": "I'm looking for an apartment near campus.",
+   "role": "A",
+   "chapter": "ch26",
+   "id": "im-looking-for-an-apartment",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "6c0ad4d50be8",
+   "rev": 1,
+   "seconds": 2.16,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -9029,6 +9295,20 @@
    "rev": 1,
    "seconds": 2.29,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "046fc9af612098": {
+   "key": "P|room service",
+   "text": "room service",
+   "role": "P",
+   "chapter": "ch25",
+   "id": "room-service",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "4d2c675e8f9e",
+   "rev": 1,
+   "seconds": 1.24,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "0472c15a43e944": {
@@ -9729,6 +10009,34 @@
    "rev": 1,
    "seconds": 0.94,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "04c1a854e1c39b": {
+   "key": "B|There's a great Italian place two blocks away.",
+   "text": "There's a great Italian place two blocks away.",
+   "role": "B",
+   "chapter": "ch25",
+   "id": "can-you-recommend-a-good-restaurant-nearby",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "f9c58c069045",
+   "rev": 1,
+   "seconds": 2.48,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "04c2444a569bd8": {
+   "key": "P|Can you call a taxi for me?",
+   "text": "Can you call a taxi for me?",
+   "role": "P",
+   "chapter": "ch25",
+   "id": "can-you-call-a-taxi-for-me",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "c95a2c5a7575",
+   "rev": 1,
+   "seconds": 1.8,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "04c3429ddacef1": {
@@ -10865,6 +11173,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "05499240eccad0": {
+   "key": "B|There's a daily resort fee.",
+   "text": "There's a daily resort fee.",
+   "role": "B",
+   "chapter": "ch25",
+   "id": "resort-fee",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "e25236a491d9",
+   "rev": 1,
+   "seconds": 2.08,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "0549a07aaf7bfe": {
    "key": "P|Long time no see.",
    "text": "Long time no see.",
@@ -11453,6 +11775,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "057e8cc97a6c57": {
+   "key": "P|proof of income",
+   "text": "proof of income",
+   "role": "P",
+   "chapter": "ch26",
+   "id": "proof-of-income",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "46d870eb408a",
+   "rev": 1,
+   "seconds": 1.24,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "05802111ec2f49": {
    "key": "P|literally",
    "text": "literally",
@@ -11605,6 +11941,20 @@
    "rev": 1,
    "seconds": 1.97,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "058c330a3a4221": {
+   "key": "B|I'll send someone up right away.",
+   "text": "I'll send someone up right away.",
+   "role": "B",
+   "chapter": "ch25",
+   "id": "the-air-conditioner-isnt-working",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "29ec330bddab",
+   "rev": 1,
+   "seconds": 1.92,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "058effb438342f": {
@@ -11943,6 +12293,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "05c9a5c79ff240": {
+   "key": "B|Yes, just show your room key.",
+   "text": "Yes, just show your room key.",
+   "role": "B",
+   "chapter": "ch25",
+   "id": "can-i-leave-my-car-here-overnight",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "3e6ab61482f6",
+   "rev": 1,
+   "seconds": 2.12,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "05cb7a555b110d": {
    "key": "A|He forgot his wallet again.",
    "text": "He forgot his wallet again.",
@@ -12025,6 +12389,20 @@
    "rev": 1,
    "seconds": 1.18,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "05d31c9d2621ac": {
+   "key": "B|What's your budget?",
+   "text": "What's your budget?",
+   "role": "B",
+   "chapter": "ch26",
+   "id": "im-looking-for-an-apartment",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "51a2ddff82c8",
+   "rev": 1,
+   "seconds": 1.32,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "05d5bc5a93543e": {
@@ -12293,6 +12671,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "05f66172d4c7aa": {
+   "key": "B|Housekeeping will bring them up.",
+   "text": "Housekeeping will bring them up.",
+   "role": "B",
+   "chapter": "ch25",
+   "id": "could-i-get-some-extra-towels",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "0ed50afc4703",
+   "rev": 1,
+   "seconds": 1.84,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "05f8f2f8376309": {
    "key": "B|No, regular. I'll make you a decaf.",
    "text": "No, regular. I'll make you a decaf.",
@@ -12347,6 +12739,20 @@
    "rev": 1,
    "seconds": 0.72,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "0600ee6e057f60": {
+   "key": "B|Water and trash are. Electricity isn't.",
+   "text": "Water and trash are. Electricity isn't.",
+   "role": "B",
+   "chapter": "ch26",
+   "id": "are-utilities-included",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "598148523771",
+   "rev": 1,
+   "seconds": 2.72,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "0601c87ad41fd2": {
@@ -12643,6 +13049,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "0623f830a03d09": {
+   "key": "P|Are utilities included?",
+   "text": "Are utilities included?",
+   "role": "P",
+   "chapter": "ch26",
+   "id": "are-utilities-included",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "0991665dd3b0",
+   "rev": 1,
+   "seconds": 1.6,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "0625738b6bd533": {
    "key": "B|Yes, it never breaks down.",
    "text": "Yes, it never breaks down.",
@@ -12839,6 +13259,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "064a046f0cd76c": {
+   "key": "A|Where can I get a map?",
+   "text": "Where can I get a map?",
+   "role": "A",
+   "chapter": "ch25",
+   "id": "front-desk",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "8b4db7fb29d1",
+   "rev": 1,
+   "seconds": 1.48,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "064ba7fdf13d71": {
    "key": "A|Similarly, the second test was easy.",
    "text": "Similarly, the second test was easy.",
@@ -12923,6 +13357,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "0651063b6d40e9": {
+   "key": "P|Airbnb",
+   "text": "Airbnb",
+   "role": "P",
+   "chapter": "ch25",
+   "id": "airbnb",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "3dd95acf3dd8",
+   "rev": 1,
+   "seconds": 1.2,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "0652bec68b48e2": {
    "key": "A|How long is the wait for a table?",
    "text": "How long is the wait for a table?",
@@ -12934,6 +13382,20 @@
    "sig": "d5f422ed0956",
    "rev": 1,
    "seconds": 1.84,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "0653011b43c12d": {
+   "key": "B|No, I left the Do Not Disturb sign on.",
+   "text": "No, I left the Do Not Disturb sign on.",
+   "role": "B",
+   "chapter": "ch25",
+   "id": "do-not-disturb",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "748eaf3bfec2",
+   "rev": 1,
+   "seconds": 2.68,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -13175,6 +13637,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "0673896ba9f71f": {
+   "key": "P|furnished",
+   "text": "furnished",
+   "role": "P",
+   "chapter": "ch26",
+   "id": "furnished",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "aed9f181a3bf",
+   "rev": 1,
+   "seconds": 1.16,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "0674ba602ae095": {
    "key": "A|Can I use my card?",
    "text": "Can I use my card?",
@@ -13201,6 +13677,20 @@
    "rev": 1,
    "seconds": 0.71,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "067820fa1aba28": {
+   "key": "B|We have one facing the ocean.",
+   "text": "We have one facing the ocean.",
+   "role": "B",
+   "chapter": "ch25",
+   "id": "a-room-with-a-view",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "5eda70bee1dc",
+   "rev": 1,
+   "seconds": 2.04,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "067cd47db25b45": {
@@ -14141,6 +14631,20 @@
    "via": "sync",
    "at": "2026-09-28"
   },
+  "0701baebf798cc": {
+   "key": "B|As soon as your application is approved.",
+   "text": "As soon as your application is approved.",
+   "role": "B",
+   "chapter": "ch26",
+   "id": "sign-the-lease",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "bbc389c375ec",
+   "rev": 1,
+   "seconds": 2.44,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "07021aaef52dae": {
    "key": "P|casual",
    "text": "casual",
@@ -14152,6 +14656,20 @@
    "sig": "d806dfaf66f5",
    "rev": 1,
    "seconds": 0.92,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "0706b56fecb6bc": {
+   "key": "A|I'd like to check out.",
+   "text": "I'd like to check out.",
+   "role": "A",
+   "chapter": "ch25",
+   "id": "id-like-to-check-out",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "4562bffb7c19",
+   "rev": 1,
+   "seconds": 1.44,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -14922,6 +15440,20 @@
    "sig": "774f6a2edc4d",
    "rev": 1,
    "seconds": 1.76,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "075e761ff0aa68": {
+   "key": "A|Is there a pet deposit?",
+   "text": "Is there a pet deposit?",
+   "role": "A",
+   "chapter": "ch26",
+   "id": "pet-deposit",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "501979f67dd0",
+   "rev": 1,
+   "seconds": 1.84,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -15737,6 +16269,34 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "07c1a39a04ebd8": {
+   "key": "A|Would you like a king bed or two queens?",
+   "text": "Would you like a king bed or two queens?",
+   "role": "A",
+   "chapter": "ch25",
+   "id": "king-bed",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "9698421eac5e",
+   "rev": 1,
+   "seconds": 2.4,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "07c1e610292f01": {
+   "key": "A|Is parking included in the rent?",
+   "text": "Is parking included in the rent?",
+   "role": "A",
+   "chapter": "ch26",
+   "id": "is-parking-included-in-the-rent",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "b6eedb73cf40",
+   "rev": 1,
+   "seconds": 2.24,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "07c4015b1471bc": {
    "key": "A|When will my bag be delivered?",
    "text": "When will my bag be delivered?",
@@ -15875,6 +16435,20 @@
    "rev": 1,
    "seconds": 0.72,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "07e15b1be88142": {
+   "key": "B|Just one room left.",
+   "text": "Just one room left.",
+   "role": "B",
+   "chapter": "ch25",
+   "id": "vacancy",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "6d9cf2cc679e",
+   "rev": 1,
+   "seconds": 1.92,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "07e47344f92772": {
@@ -16619,6 +17193,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "084bcbb1677074": {
+   "key": "P|The toilet won't flush.",
+   "text": "The toilet won't flush.",
+   "role": "P",
+   "chapter": "ch25",
+   "id": "the-toilet-wont-flush",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "dac6d2556e88",
+   "rev": 1,
+   "seconds": 1.88,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "084cce4072fa41": {
    "key": "B|Like a baby.",
    "text": "Like a baby.",
@@ -17179,6 +17767,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "08906a447d3303": {
+   "key": "P|month-to-month",
+   "text": "month-to-month",
+   "role": "P",
+   "chapter": "ch26",
+   "id": "month-to-month",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "ec380caa030d",
+   "rev": 1,
+   "seconds": 1.24,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "08925d3ee6c162": {
    "key": "P|Let's meet halfway.",
    "text": "Let's meet halfway.",
@@ -17317,6 +17919,20 @@
    "rev": 1,
    "seconds": 0.61,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "08a3e8229ed10e": {
+   "key": "B|Yes, they sent them this morning.",
+   "text": "Yes, they sent them this morning.",
+   "role": "B",
+   "chapter": "ch25",
+   "id": "check-in-instructions",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "f11861135ef8",
+   "rev": 1,
+   "seconds": 2.2,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "08a4478e4aae48": {
@@ -17583,6 +18199,20 @@
    "rev": 1,
    "seconds": 0.69,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "08cca1cc155672": {
+   "key": "A|How much do you pay for utilities?",
+   "text": "How much do you pay for utilities?",
+   "role": "A",
+   "chapter": "ch26",
+   "id": "utilities",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "9028abd49f15",
+   "rev": 1,
+   "seconds": 2.04,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "08ccf264aac258": {
@@ -17977,6 +18607,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "08ffb7a2034991": {
+   "key": "A|Do you run a credit check?",
+   "text": "Do you run a credit check?",
+   "role": "A",
+   "chapter": "ch26",
+   "id": "credit-check",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "9ef81e6529e0",
+   "rev": 1,
+   "seconds": 1.44,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "09005aca5da8e8": {
    "key": "P|go the extra mile",
    "text": "go the extra mile",
@@ -18353,6 +18997,20 @@
    "rev": 1,
    "seconds": 1.13,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "092ec2c29819d8": {
+   "key": "P|There's no hot water.",
+   "text": "There's no hot water.",
+   "role": "P",
+   "chapter": "ch25",
+   "id": "theres-no-hot-water",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "9a222e761d3f",
+   "rev": 1,
+   "seconds": 1.68,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "092fff10890ad2": {
@@ -18831,6 +19489,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "0970f33f4b56e6": {
+   "key": "A|The air conditioner isn't working.",
+   "text": "The air conditioner isn't working.",
+   "role": "A",
+   "chapter": "ch25",
+   "id": "the-air-conditioner-isnt-working",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "a53a289989fd",
+   "rev": 1,
+   "seconds": 2.08,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "0971d943068d41": {
    "key": "B|It's hard to stick to it.",
    "text": "It's hard to stick to it.",
@@ -18899,6 +19571,20 @@
    "rev": 1,
    "seconds": 0.68,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "097d1492f161aa": {
+   "key": "A|What documents do you need?",
+   "text": "What documents do you need?",
+   "role": "A",
+   "chapter": "ch26",
+   "id": "proof-of-income",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "63d58e1e7ade",
+   "rev": 1,
+   "seconds": 1.52,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "098204ae4d3101": {
@@ -19741,6 +20427,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "09eae3137db50d": {
+   "key": "P|How much is the rent?",
+   "text": "How much is the rent?",
+   "role": "P",
+   "chapter": "ch26",
+   "id": "how-much-is-the-rent",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "19d99db996fd",
+   "rev": 1,
+   "seconds": 1.24,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "09ef6bfc8064e9": {
    "key": "A|Did you invite Ben to the party?",
    "text": "Did you invite Ben to the party?",
@@ -20074,6 +20774,20 @@
    "sig": "54000d1e1411",
    "rev": 1,
    "seconds": 1.68,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "0a20764a141a23": {
+   "key": "B|Ask at the front desk.",
+   "text": "Ask at the front desk.",
+   "role": "B",
+   "chapter": "ch25",
+   "id": "front-desk",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "e0eb123e1b5e",
+   "rev": 1,
+   "seconds": 1.52,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -21015,6 +21729,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "0a9cc07bd7b0ff": {
+   "key": "P|I'd like to extend my stay.",
+   "text": "I'd like to extend my stay.",
+   "role": "P",
+   "chapter": "ch25",
+   "id": "id-like-to-extend-my-stay",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "e9722afe4374",
+   "rev": 1,
+   "seconds": 2.12,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "0a9ceb6788c9e7": {
    "key": "P|geek",
    "text": "geek",
@@ -21150,6 +21878,20 @@
    "model": "gemini-3.8-flash-tts",
    "voice": "Callirrhoe",
    "sig": "22a2b63174d5",
+   "rev": 1,
+   "seconds": 1.68,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "0aa704f0bf4507": {
+   "key": "B|A king bed, please.",
+   "text": "A king bed, please.",
+   "role": "B",
+   "chapter": "ch25",
+   "id": "king-bed",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "7b254531b8e5",
    "rev": 1,
    "seconds": 1.68,
    "via": "batch",
@@ -21645,6 +22387,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "0aead45cb01d3b": {
+   "key": "P|in-unit washer and dryer",
+   "text": "in-unit washer and dryer",
+   "role": "P",
+   "chapter": "ch26",
+   "id": "in-unit-washer-and-dryer",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "225209987a1a",
+   "rev": 1,
+   "seconds": 1.88,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "0aead7003ff549": {
    "key": "P|even number",
    "text": "even number",
@@ -21827,6 +22583,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "0b059ab86b7147": {
+   "key": "P|Is there a gym?",
+   "text": "Is there a gym?",
+   "role": "P",
+   "chapter": "ch25",
+   "id": "is-there-a-gym",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "a9dfb580da21",
+   "rev": 1,
+   "seconds": 1.16,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "0b065067d748c9": {
    "key": "A|We don't need a car in the city.",
    "text": "We don't need a car in the city.",
@@ -21965,6 +22735,20 @@
    "rev": 1,
    "seconds": 1.7,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "0b1ee8d6fce848": {
+   "key": "A|Is parking included?",
+   "text": "Is parking included?",
+   "role": "A",
+   "chapter": "ch25",
+   "id": "is-parking-included",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "4f2f71bd7cf5",
+   "rev": 1,
+   "seconds": 1.48,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "0b1fb67c2535a9": {
@@ -22793,6 +23577,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "0b87bdf80fb813": {
+   "key": "P|one-bedroom",
+   "text": "one-bedroom",
+   "role": "P",
+   "chapter": "ch26",
+   "id": "one-bedroom",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "89398d8f8373",
+   "rev": 1,
+   "seconds": 1.16,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "0b89415dae52af": {
    "key": "A|Did Mike show up?",
    "text": "Did Mike show up?",
@@ -23169,6 +23967,20 @@
    "rev": 1,
    "seconds": 2.65,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "0bb5f6ec3bad18": {
+   "key": "P|How far is it to downtown?",
+   "text": "How far is it to downtown?",
+   "role": "P",
+   "chapter": "ch25",
+   "id": "how-far-is-it-to-downtown",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "ea1a99e99a1b",
+   "rev": 1,
+   "seconds": 2.08,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "0bb63123f5c0c5": {
@@ -24081,6 +24893,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "0c1c5197ccfe00": {
+   "key": "A|Do you have any vacancies tonight?",
+   "text": "Do you have any vacancies tonight?",
+   "role": "A",
+   "chapter": "ch25",
+   "id": "vacancy",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "ac42d26e3b49",
+   "rev": 1,
+   "seconds": 1.88,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "0c1c95a7c967ac": {
    "key": "B|Apparently, he's sick today.",
    "text": "Apparently, he's sick today.",
@@ -24865,6 +25691,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "0c6ba196081b6e": {
+   "key": "B|One month's rent.",
+   "text": "One month's rent.",
+   "role": "B",
+   "chapter": "ch26",
+   "id": "how-much-is-the-security-deposit",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "c6e929cfba66",
+   "rev": 1,
+   "seconds": 1.24,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "0c6c785ef4c016": {
    "key": "P|look down on",
    "text": "look down on",
@@ -25579,6 +26419,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "0cc8b5e3d978cc": {
+   "key": "P|credit check",
+   "text": "credit check",
+   "role": "P",
+   "chapter": "ch26",
+   "id": "credit-check",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "5166b0b68c17",
+   "rev": 1,
+   "seconds": 1.16,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "0ccae168c153c2": {
    "key": "B|Warm all year round.",
    "text": "Warm all year round.",
@@ -25605,6 +26459,20 @@
    "rev": 1,
    "seconds": 1.05,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "0cceecea72a55f": {
+   "key": "B|Sure. What name should I put?",
+   "text": "Sure. What name should I put?",
+   "role": "B",
+   "chapter": "ch25",
+   "id": "can-i-get-an-invoice",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "ecc4cfecec93",
+   "rev": 1,
+   "seconds": 1.8,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "0ccf595a885b36": {
@@ -25689,6 +26557,20 @@
    "rev": 1,
    "seconds": 1.68,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "0cd6d56bdd4bf6": {
+   "key": "A|I locked myself out of my room.",
+   "text": "I locked myself out of my room.",
+   "role": "A",
+   "chapter": "ch25",
+   "id": "i-locked-myself-out",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "7b39bda8f0a1",
+   "rev": 1,
+   "seconds": 2.0,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "0cd8d894b29fa8": {
@@ -26699,6 +27581,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "0d65c0372bd010": {
+   "key": "A|Can I schedule a viewing for Saturday?",
+   "text": "Can I schedule a viewing for Saturday?",
+   "role": "A",
+   "chapter": "ch26",
+   "id": "can-i-schedule-a-viewing",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "4a198a0ca3d7",
+   "rev": 1,
+   "seconds": 2.52,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "0d68fca88ef55c": {
    "key": "B|Sorry, I'm running a little late.",
    "text": "Sorry, I'm running a little late.",
@@ -26797,6 +27693,34 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "0d768ba0c33415": {
+   "key": "B|Cats are okay, but no dogs.",
+   "text": "Cats are okay, but no dogs.",
+   "role": "B",
+   "chapter": "ch26",
+   "id": "are-pets-allowed",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "3ac3c7397ee7",
+   "rev": 1,
+   "seconds": 2.64,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "0d78e86b782666": {
+   "key": "A|Let's just order room service.",
+   "text": "Let's just order room service.",
+   "role": "A",
+   "chapter": "ch25",
+   "id": "room-service",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "86074a19756e",
+   "rev": 1,
+   "seconds": 1.92,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "0d793e7f05b6aa": {
    "key": "P|itchy",
    "text": "itchy",
@@ -26865,6 +27789,20 @@
    "rev": 1,
    "seconds": 0.62,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "0d802d6a898dc5": {
+   "key": "P|non-smoking room",
+   "text": "non-smoking room",
+   "role": "P",
+   "chapter": "ch25",
+   "id": "non-smoking-room",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "47e1a1108497",
+   "rev": 1,
+   "seconds": 1.48,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "0d83706e3904fa": {
@@ -27847,6 +28785,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "0df463bafa3e37": {
+   "key": "B|First and last month's rent plus the deposit.",
+   "text": "First and last month's rent plus the deposit.",
+   "role": "B",
+   "chapter": "ch26",
+   "id": "first-and-last-months-rent",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "adc78fd45247",
+   "rev": 1,
+   "seconds": 2.6,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "0df5192faf1c47": {
    "key": "A|Why is my hair so frizzy?",
    "text": "Why is my hair so frizzy?",
@@ -28208,6 +29160,20 @@
    "sig": "62a910268f8b",
    "rev": 1,
    "seconds": 2.12,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "0e1f597b2eb3a3": {
+   "key": "B|I didn't use the minibar.",
+   "text": "I didn't use the minibar.",
+   "role": "B",
+   "chapter": "ch25",
+   "id": "i-didnt-use-the-minibar",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "030533d33f6a",
+   "rev": 1,
+   "seconds": 1.76,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -28757,6 +29723,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "0e6651aef981bd": {
+   "key": "P|I didn't use the minibar.",
+   "text": "I didn't use the minibar.",
+   "role": "P",
+   "chapter": "ch25",
+   "id": "i-didnt-use-the-minibar",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "8147ae9c8ce5",
+   "rev": 1,
+   "seconds": 1.72,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "0e695a7416d3ff": {
    "key": "P|side",
    "text": "side",
@@ -29231,6 +30211,34 @@
    "rev": 1,
    "seconds": 0.99,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "0eaf4f9d7e0dd5": {
+   "key": "B|Let me find you another one.",
+   "text": "Let me find you another one.",
+   "role": "B",
+   "chapter": "ch25",
+   "id": "can-i-change-rooms",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "cced7a49273e",
+   "rev": 1,
+   "seconds": 1.48,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "0eb0d11163b6ff": {
+   "key": "A|Is this a non-smoking room?",
+   "text": "Is this a non-smoking room?",
+   "role": "A",
+   "chapter": "ch25",
+   "id": "non-smoking-room",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "e2207a8b8ed2",
+   "rev": 1,
+   "seconds": 1.84,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "0eb1a8f89236d4": {
@@ -30003,6 +31011,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "0eff0211e83da7": {
+   "key": "B|The host left it in a lockbox.",
+   "text": "The host left it in a lockbox.",
+   "role": "B",
+   "chapter": "ch25",
+   "id": "host",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "3eca756b1b52",
+   "rev": 1,
+   "seconds": 2.08,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "0f08def4cfc28f": {
    "key": "A|The hotel has a breakfast buffet.",
    "text": "The hotel has a breakfast buffet.",
@@ -30661,6 +31683,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "0f55ab6f16dc3a": {
+   "key": "B|What seems to be the issue?",
+   "text": "What seems to be the issue?",
+   "role": "B",
+   "chapter": "ch25",
+   "id": "theres-a-problem-with-my-room",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "7f750a1de97f",
+   "rev": 1,
+   "seconds": 1.76,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "0f560aab5c606b": {
    "key": "P|turn around",
    "text": "turn around",
@@ -31039,6 +32075,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "0f7f8e39f3a36e": {
+   "key": "P|resort fee",
+   "text": "resort fee",
+   "role": "P",
+   "chapter": "ch25",
+   "id": "resort-fee",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "3e4ce2f3a268",
+   "rev": 1,
+   "seconds": 1.6,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "0f801edda238e6": {
    "key": "P|guys",
    "text": "guys",
@@ -31191,6 +32241,20 @@
    "rev": 1,
    "seconds": 2.0,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "0f8c57ab1d92cf": {
+   "key": "B|Yes, would you like to see it?",
+   "text": "Yes, would you like to see it?",
+   "role": "B",
+   "chapter": "ch26",
+   "id": "is-this-apartment-still-available",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "7006fa32fb92",
+   "rev": 1,
+   "seconds": 2.2,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "0f8d922dc80040": {
@@ -31807,6 +32871,20 @@
    "rev": 1,
    "seconds": 0.76,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "0fee174b1e64cc": {
+   "key": "P|Can I change rooms?",
+   "text": "Can I change rooms?",
+   "role": "P",
+   "chapter": "ch25",
+   "id": "can-i-change-rooms",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "c90b02221051",
+   "rev": 1,
+   "seconds": 1.88,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "0fef13739336f8": {
@@ -32453,6 +33531,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "10578a2dda345c": {
+   "key": "P|Can I leave my car here overnight?",
+   "text": "Can I leave my car here overnight?",
+   "role": "P",
+   "chapter": "ch25",
+   "id": "can-i-leave-my-car-here-overnight",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "c4ab9a48f666",
+   "rev": 1,
+   "seconds": 2.04,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "105938f18df351": {
    "key": "P|collapse",
    "text": "collapse",
@@ -32565,6 +33657,20 @@
    "via": "sync",
    "at": "2026-09-28"
   },
+  "10661409439ac2": {
+   "key": "A|Please fill out the rental application.",
+   "text": "Please fill out the rental application.",
+   "role": "A",
+   "chapter": "ch26",
+   "id": "rental-application",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "6fc43a3081a9",
+   "rev": 1,
+   "seconds": 2.0,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "106678996c920e": {
    "key": "A|Don't mumble. Speak up.",
    "text": "Don't mumble. Speak up.",
@@ -32605,6 +33711,20 @@
    "rev": 1,
    "seconds": 0.9,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "106fbf91a52628": {
+   "key": "B|How much?",
+   "text": "How much?",
+   "role": "B",
+   "chapter": "ch25",
+   "id": "incidentals",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "4d3058424867",
+   "rev": 1,
+   "seconds": 1.16,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "1070ba9ad7d0c5": {
@@ -34175,6 +35295,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "112a8aa04f06e3": {
+   "key": "A|Are you living in a one-bedroom?",
+   "text": "Are you living in a one-bedroom?",
+   "role": "A",
+   "chapter": "ch26",
+   "id": "studio",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "24420176de45",
+   "rev": 1,
+   "seconds": 1.76,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "11313393a0b75a": {
    "key": "A|Let's try to be rational about this.",
    "text": "Let's try to be rational about this.",
@@ -34453,6 +35587,20 @@
    "rev": 1,
    "seconds": 2.27,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "1160f8bb34643e": {
+   "key": "B|Let me check availability.",
+   "text": "Let me check availability.",
+   "role": "B",
+   "chapter": "ch25",
+   "id": "id-like-to-extend-my-stay",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "02d9602d74cd",
+   "rev": 1,
+   "seconds": 2.4,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "11664b594d5687": {
@@ -35505,6 +36653,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "11e76d572cc0e3": {
+   "key": "P|studio",
+   "text": "studio",
+   "role": "P",
+   "chapter": "ch26",
+   "id": "studio",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "a19746ac7008",
+   "rev": 1,
+   "seconds": 1.16,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "11e79c07de6bdb": {
    "key": "A|Do I need an umbrella?",
    "text": "Do I need an umbrella?",
@@ -35741,6 +36903,20 @@
    "rev": 1,
    "seconds": 0.84,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "1206e41731992c": {
+   "key": "P|The room is too noisy.",
+   "text": "The room is too noisy.",
+   "role": "P",
+   "chapter": "ch25",
+   "id": "the-room-is-too-noisy",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "bc79d98e62f4",
+   "rev": 1,
+   "seconds": 1.84,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "12092274ebad14": {
@@ -36301,6 +37477,20 @@
    "rev": 1,
    "seconds": 0.65,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "123b250e490322": {
+   "key": "A|Is this apartment still available?",
+   "text": "Is this apartment still available?",
+   "role": "A",
+   "chapter": "ch26",
+   "id": "is-this-apartment-still-available",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "ec41a9e345d8",
+   "rev": 1,
+   "seconds": 2.12,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "123ce80386c427": {
@@ -36975,6 +38165,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "129a11feeac3ac": {
+   "key": "P|The elevator is out of order.",
+   "text": "The elevator is out of order.",
+   "role": "P",
+   "chapter": "ch25",
+   "id": "the-elevator-is-out-of-order",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "f684b323dcea",
+   "rev": 1,
+   "seconds": 2.04,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "129aa11c14ffb5": {
    "key": "A|I like to travel off the beaten path.",
    "text": "I like to travel off the beaten path.",
@@ -37493,6 +38697,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "12db6009349058": {
+   "key": "P|Do not disturb",
+   "text": "Do not disturb",
+   "role": "P",
+   "chapter": "ch25",
+   "id": "do-not-disturb",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "cce43111784a",
+   "rev": 1,
+   "seconds": 1.32,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "12dc31fea668f8": {
    "key": "P|Please put your laptop in a separate bin.",
    "text": "Please put your laptop in a separate bin.",
@@ -37549,6 +38767,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "12e5639a62342b": {
+   "key": "P|ice machine",
+   "text": "ice machine",
+   "role": "P",
+   "chapter": "ch25",
+   "id": "ice-machine",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "bce7cb214883",
+   "rev": 1,
+   "seconds": 1.4,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "12e81a9991b183": {
    "key": "A|We're going to the park. Want to come along?",
    "text": "We're going to the park. Want to come along?",
@@ -37561,6 +38793,20 @@
    "rev": 1,
    "seconds": 1.95,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "12e8c98a7de120": {
+   "key": "B|It's in the message from the host.",
+   "text": "It's in the message from the host.",
+   "role": "B",
+   "chapter": "ch25",
+   "id": "lockbox",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "2a862a4ad1e4",
+   "rev": 1,
+   "seconds": 2.12,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "12e8ee736a8e99": {
@@ -37675,6 +38921,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "12f62ecabde9c2": {
+   "key": "A|There's a problem with my room.",
+   "text": "There's a problem with my room.",
+   "role": "A",
+   "chapter": "ch25",
+   "id": "theres-a-problem-with-my-room",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "b111237ad00e",
+   "rev": 1,
+   "seconds": 2.04,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "12f67a7d771133": {
    "key": "B|Exactly.",
    "text": "Exactly.",
@@ -37689,6 +38949,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "12f9b3f43c9671": {
+   "key": "P|a room with a view",
+   "text": "a room with a view",
+   "role": "P",
+   "chapter": "ch25",
+   "id": "a-room-with-a-view",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "8968d61c61c2",
+   "rev": 1,
+   "seconds": 1.8,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "12fbc4852d2a79": {
    "key": "P|My bad, dude.",
    "text": "My bad, dude.",
@@ -37698,6 +38972,20 @@
    "model": "gemini-3.8-flash-tts",
    "voice": "Erinome",
    "sig": "3e9837d0df2d",
+   "rev": 1,
+   "seconds": 1.48,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "12fdae99a860da": {
+   "key": "P|utilities",
+   "text": "utilities",
+   "role": "P",
+   "chapter": "ch26",
+   "id": "utilities",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "9e2005e6cbbd",
    "rev": 1,
    "seconds": 1.48,
    "via": "batch",
@@ -37897,6 +39185,20 @@
    "rev": 1,
    "seconds": 2.59,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "1314c22d4e9cb4": {
+   "key": "B|Oh, sorry about that.",
+   "text": "Oh, sorry about that.",
+   "role": "B",
+   "chapter": "ch25",
+   "id": "could-you-keep-it-down",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "1b7cd21eceda",
+   "rev": 1,
+   "seconds": 1.72,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "13161ae1076b46": {
@@ -38107,6 +39409,20 @@
    "rev": 1,
    "seconds": 0.73,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "132d0815829b3d": {
+   "key": "P|security deposit",
+   "text": "security deposit",
+   "role": "P",
+   "chapter": "ch25",
+   "id": "security-deposit",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "e5edac71a8ef",
+   "rev": 1,
+   "seconds": 1.68,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "132e61ccafcc9b": {
@@ -38907,6 +40223,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "1393f61e9f5724": {
+   "key": "A|Are pets allowed?",
+   "text": "Are pets allowed?",
+   "role": "A",
+   "chapter": "ch26",
+   "id": "are-pets-allowed",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "5b3f7e4af03f",
+   "rev": 1,
+   "seconds": 1.88,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "1394646f7a537b": {
    "key": "B|Donate them!",
    "text": "Donate them!",
@@ -39157,6 +40487,20 @@
    "rev": 1,
    "seconds": 0.73,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "13aef3ae368c79": {
+   "key": "P|incidentals",
+   "text": "incidentals",
+   "role": "P",
+   "chapter": "ch25",
+   "id": "incidentals",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "0708f022711a",
+   "rev": 1,
+   "seconds": 1.36,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "13af8442945879": {
@@ -39551,6 +40895,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "13dccf3fb6233b": {
+   "key": "A|Could you keep it down? It's midnight.",
+   "text": "Could you keep it down? It's midnight.",
+   "role": "A",
+   "chapter": "ch25",
+   "id": "could-you-keep-it-down",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "89784bf08382",
+   "rev": 1,
+   "seconds": 2.68,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "13de8d8a2a5517": {
    "key": "P|hit the nail on the head",
    "text": "hit the nail on the head",
@@ -39703,6 +41061,20 @@
    "rev": 1,
    "seconds": 0.83,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "13ece0312304d7": {
+   "key": "A|Could I get another pillow?",
+   "text": "Could I get another pillow?",
+   "role": "A",
+   "chapter": "ch25",
+   "id": "could-i-get-another-pillow",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "12b2fe391166",
+   "rev": 1,
+   "seconds": 1.68,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "13ef7f0168a521": {
@@ -40053,6 +41425,20 @@
    "rev": 1,
    "seconds": 0.94,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "142008dd6c2551": {
+   "key": "A|Did you get the check-in instructions?",
+   "text": "Did you get the check-in instructions?",
+   "role": "A",
+   "chapter": "ch25",
+   "id": "check-in-instructions",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "acf6ff203634",
+   "rev": 1,
+   "seconds": 2.04,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "1420a993e6caca": {
@@ -40447,6 +41833,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "144d033dbaf80f": {
+   "key": "P|front desk",
+   "text": "front desk",
+   "role": "P",
+   "chapter": "ch25",
+   "id": "front-desk",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "0930817bee55",
+   "rev": 1,
+   "seconds": 1.12,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "144d19e65f69d6": {
    "key": "B|I think it's here to stay.",
    "text": "I think it's here to stay.",
@@ -40529,6 +41929,20 @@
    "rev": 1,
    "seconds": 0.84,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "1458980945072f": {
+   "key": "P|lockbox",
+   "text": "lockbox",
+   "role": "P",
+   "chapter": "ch25",
+   "id": "lockbox",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "de810dd28693",
+   "rev": 1,
+   "seconds": 1.24,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "145ef6c7b72ae0": {
@@ -40851,6 +42265,34 @@
    "rev": 1,
    "seconds": 1.08,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "14811b3ad8c67d": {
+   "key": "B|Good idea. I'm too tired to go out.",
+   "text": "Good idea. I'm too tired to go out.",
+   "role": "B",
+   "chapter": "ch25",
+   "id": "room-service",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "bfb58533eafd",
+   "rev": 1,
+   "seconds": 3.0,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "14866762ddd9b9": {
+   "key": "A|When can I move in?",
+   "text": "When can I move in?",
+   "role": "A",
+   "chapter": "ch26",
+   "id": "when-can-i-move-in",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "1b5b85d1f3db",
+   "rev": 1,
+   "seconds": 1.8,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "1487e22a48e6ea": {
@@ -41522,6 +42964,20 @@
    "sig": "2f2ea74b9c22",
    "rev": 1,
    "seconds": 1.24,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "14dc6f56fd7930": {
+   "key": "A|How much is the security deposit?",
+   "text": "How much is the security deposit?",
+   "role": "A",
+   "chapter": "ch26",
+   "id": "how-much-is-the-security-deposit",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "18a5592156f6",
+   "rev": 1,
+   "seconds": 2.12,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -42687,6 +44143,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "1565fac69cf615": {
+   "key": "B|Yes, but the rent is higher.",
+   "text": "Yes, but the rent is higher.",
+   "role": "B",
+   "chapter": "ch26",
+   "id": "month-to-month",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "23f91a8bbbca",
+   "rev": 1,
+   "seconds": 2.08,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "156a2992d2927b": {
    "key": "P|zucchini",
    "text": "zucchini",
@@ -42780,6 +44250,20 @@
    "model": "gemini-3.8-flash-tts",
    "voice": "Erinome",
    "sig": "391ff7a33db5",
+   "rev": 1,
+   "seconds": 1.16,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "15796d5a436753": {
+   "key": "B|Twelve months.",
+   "text": "Twelve months.",
+   "role": "B",
+   "chapter": "ch26",
+   "id": "lease",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "0d8cc06c6709",
    "rev": 1,
    "seconds": 1.16,
    "via": "batch",
@@ -42953,6 +44437,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "159b023efd247d": {
+   "key": "A|The TV remote doesn't work.",
+   "text": "The TV remote doesn't work.",
+   "role": "A",
+   "chapter": "ch25",
+   "id": "the-tv-remote-doesnt-work",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "fbb2efdbd345",
+   "rev": 1,
+   "seconds": 2.12,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "159bab4f63d059": {
    "key": "P|Empty your pockets.",
    "text": "Empty your pockets.",
@@ -43107,6 +44605,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "15ab70002603f0": {
+   "key": "P|Is there laundry in the building?",
+   "text": "Is there laundry in the building?",
+   "role": "P",
+   "chapter": "ch26",
+   "id": "is-there-laundry-in-the-building",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "b9f985b18b2f",
+   "rev": 1,
+   "seconds": 1.92,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "15ade01156fa32": {
    "key": "A|Can you wiggle your ears?",
    "text": "Can you wiggle your ears?",
@@ -43233,6 +44745,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "15b9dbca320cd1": {
+   "key": "A|How long is the lease?",
+   "text": "How long is the lease?",
+   "role": "A",
+   "chapter": "ch26",
+   "id": "lease",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "025946d524eb",
+   "rev": 1,
+   "seconds": 1.48,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "15bca7b7411c67": {
    "key": "P|rent",
    "text": "rent",
@@ -43331,6 +44857,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "15c4ab057726c6": {
+   "key": "P|wake-up call",
+   "text": "wake-up call",
+   "role": "P",
+   "chapter": "ch25",
+   "id": "wake-up-call",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "bb7551e92a04",
+   "rev": 1,
+   "seconds": 1.36,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "15c5d14069949b": {
    "key": "P|window shopping",
    "text": "window shopping",
@@ -43399,6 +44939,20 @@
    "rev": 1,
    "seconds": 1.49,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "15c8ec243078b2": {
+   "key": "P|Is parking included in the rent?",
+   "text": "Is parking included in the rent?",
+   "role": "P",
+   "chapter": "ch26",
+   "id": "is-parking-included-in-the-rent",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "2e2c7e765f05",
+   "rev": 1,
+   "seconds": 2.4,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "15c8fd8bcedd82": {
@@ -43695,6 +45249,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "15edf9ccb20ffa": {
+   "key": "P|king bed",
+   "text": "king bed",
+   "role": "P",
+   "chapter": "ch25",
+   "id": "king-bed",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "c5ecd96e1626",
+   "rev": 1,
+   "seconds": 1.08,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "15efa69034b76c": {
    "key": "B|I don't think so.",
    "text": "I don't think so.",
@@ -43832,6 +45400,20 @@
    "sig": "e1f0294f1914",
    "rev": 1,
    "seconds": 1.48,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "15fad027679e3b": {
+   "key": "A|Can I leave my car here overnight?",
+   "text": "Can I leave my car here overnight?",
+   "role": "A",
+   "chapter": "ch25",
+   "id": "can-i-leave-my-car-here-overnight",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "229e64f5ee27",
+   "rev": 1,
+   "seconds": 2.0,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -44269,6 +45851,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "162f83f0975360": {
+   "key": "P|sign the lease",
+   "text": "sign the lease",
+   "role": "P",
+   "chapter": "ch26",
+   "id": "sign-the-lease",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "aee6b3e5c037",
+   "rev": 1,
+   "seconds": 1.28,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "163118b48046c1": {
    "key": "P|Could I get a box?",
    "text": "Could I get a box?",
@@ -44420,6 +46016,20 @@
    "sig": "e92643401742",
    "rev": 1,
    "seconds": 1.12,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "16425c688e4171": {
+   "key": "A|How much is the rent?",
+   "text": "How much is the rent?",
+   "role": "A",
+   "chapter": "ch26",
+   "id": "how-much-is-the-rent",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "03559c500342",
+   "rev": 1,
+   "seconds": 1.44,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -44689,6 +46299,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "166b2e36e9f371": {
+   "key": "A|There's no hot water in my room.",
+   "text": "There's no hot water in my room.",
+   "role": "A",
+   "chapter": "ch25",
+   "id": "theres-no-hot-water",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "6dcab4aa100a",
+   "rev": 1,
+   "seconds": 2.04,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "166ddcab96d6b8": {
    "key": "A|She sounds like a native speaker.",
    "text": "She sounds like a native speaker.",
@@ -44913,6 +46537,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "1693fb73ee31cd": {
+   "key": "B|Yes, just leave the keys with the attendant.",
+   "text": "Yes, just leave the keys with the attendant.",
+   "role": "B",
+   "chapter": "ch25",
+   "id": "valet-parking",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "1aa648a0870d",
+   "rev": 1,
+   "seconds": 2.52,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "1695181cadf44f": {
    "key": "A|What time is check-out?",
    "text": "What time is check-out?",
@@ -45008,6 +46646,20 @@
    "sig": "9d434c559e5c",
    "rev": 1,
    "seconds": 2.4,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "169bb21243eead": {
+   "key": "P|I'm looking for an apartment.",
+   "text": "I'm looking for an apartment.",
+   "role": "P",
+   "chapter": "ch26",
+   "id": "im-looking-for-an-apartment",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "5260ef8435d9",
+   "rev": 1,
+   "seconds": 1.64,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -45163,6 +46815,20 @@
    "rev": 1,
    "seconds": 0.62,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "16ae7530ef3173": {
+   "key": "B|I'm so sorry. We'll check it now.",
+   "text": "I'm so sorry. We'll check it now.",
+   "role": "B",
+   "chapter": "ch25",
+   "id": "theres-no-hot-water",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "c3ff90b151a2",
+   "rev": 1,
+   "seconds": 2.32,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "16aeda0d637dad": {
@@ -45428,6 +47094,20 @@
    "sig": "c70ca7862061",
    "rev": 1,
    "seconds": 1.08,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "16ce1bd3f306dd": {
+   "key": "P|check-in instructions",
+   "text": "check-in instructions",
+   "role": "P",
+   "chapter": "ch25",
+   "id": "check-in-instructions",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "3868a24d425f",
+   "rev": 1,
+   "seconds": 1.6,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -45893,6 +47573,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "170e59c23c89d2": {
+   "key": "A|Does it have an in-unit washer and dryer?",
+   "text": "Does it have an in-unit washer and dryer?",
+   "role": "A",
+   "chapter": "ch26",
+   "id": "in-unit-washer-and-dryer",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "a70f1906c18f",
+   "rev": 1,
+   "seconds": 2.2,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "171209f685b3c6": {
    "key": "P|emergency",
    "text": "emergency",
@@ -46229,6 +47923,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "173cc4687a0659": {
+   "key": "P|Can I schedule a viewing?",
+   "text": "Can I schedule a viewing?",
+   "role": "P",
+   "chapter": "ch26",
+   "id": "can-i-schedule-a-viewing",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "85661a385168",
+   "rev": 1,
+   "seconds": 1.76,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "1742a4e5952707": {
    "key": "A|What a feast!",
    "text": "What a feast!",
@@ -46282,6 +47990,20 @@
    "sig": "bba49e136df3",
    "rev": 1,
    "seconds": 1.6,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "17513489943ec5": {
+   "key": "B|Yes, all our rooms are non-smoking.",
+   "text": "Yes, all our rooms are non-smoking.",
+   "role": "B",
+   "chapter": "ch25",
+   "id": "non-smoking-room",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "984c5c3a8fab",
+   "rev": 1,
+   "seconds": 2.12,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -46465,6 +48187,20 @@
    "rev": 1,
    "seconds": 1.11,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "1762d93b83c321": {
+   "key": "B|You can pay a larger deposit instead.",
+   "text": "You can pay a larger deposit instead.",
+   "role": "B",
+   "chapter": "ch26",
+   "id": "i-dont-have-a-credit-history-in-the-u-s",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "e1afd7a52125",
+   "rev": 1,
+   "seconds": 2.68,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "1762e837a15305": {
@@ -46717,6 +48453,20 @@
    "rev": 1,
    "seconds": 1.44,
    "via": "sync",
+   "at": "2026-09-28"
+  },
+  "17914e88293fa8": {
+   "key": "P|The air conditioner isn't working.",
+   "text": "The air conditioner isn't working.",
+   "role": "P",
+   "chapter": "ch25",
+   "id": "the-air-conditioner-isnt-working",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "c798b21775ec",
+   "rev": 1,
+   "seconds": 2.16,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "179864d336d9b3": {
@@ -47109,6 +48859,20 @@
    "rev": 1,
    "seconds": 0.79,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "17c4a28a25e7c9": {
+   "key": "A|What time does housekeeping come?",
+   "text": "What time does housekeeping come?",
+   "role": "A",
+   "chapter": "ch25",
+   "id": "housekeeping",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "b6bdec50644a",
+   "rev": 1,
+   "seconds": 1.76,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "17c6369e2b7757": {
@@ -47531,6 +49295,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "17f944ea14c555": {
+   "key": "A|Are utilities included?",
+   "text": "Are utilities included?",
+   "role": "A",
+   "chapter": "ch26",
+   "id": "are-utilities-included",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "f6b372c00a88",
+   "rev": 1,
+   "seconds": 1.92,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "17f97af503c656": {
    "key": "P|Talk to you later.",
    "text": "Talk to you later.",
@@ -47937,6 +49715,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "182de3115da916": {
+   "key": "B|No, we booked an Airbnb.",
+   "text": "No, we booked an Airbnb.",
+   "role": "B",
+   "chapter": "ch25",
+   "id": "airbnb",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "f3359b0332ea",
+   "rev": 1,
+   "seconds": 1.88,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "183079f295d844": {
    "key": "P|local",
    "text": "local",
@@ -47965,6 +49757,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "18361065e33a3c": {
+   "key": "P|pet deposit",
+   "text": "pet deposit",
+   "role": "P",
+   "chapter": "ch26",
+   "id": "pet-deposit",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "470d7498f91a",
+   "rev": 1,
+   "seconds": 1.32,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "18363cd900feb0": {
    "key": "B|That's a bit over the top.",
    "text": "That's a bit over the top.",
@@ -47976,6 +49782,20 @@
    "sig": "cd87b1899db4",
    "rev": 1,
    "seconds": 2.56,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "1837883af063da": {
+   "key": "A|When can I sign the lease?",
+   "text": "When can I sign the lease?",
+   "role": "A",
+   "chapter": "ch26",
+   "id": "sign-the-lease",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "ab152a9f42d2",
+   "rev": 1,
+   "seconds": 1.36,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -48973,6 +50793,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "18a91d1016d3c7": {
+   "key": "B|No, a small studio.",
+   "text": "No, a small studio.",
+   "role": "B",
+   "chapter": "ch26",
+   "id": "studio",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "f682f56e2e60",
+   "rev": 1,
+   "seconds": 1.84,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "18a960f65e38d7": {
    "key": "A|Dude, where's my car?",
    "text": "Dude, where's my car?",
@@ -49491,6 +51325,34 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "18db7137a7c6d3": {
+   "key": "P|host",
+   "text": "host",
+   "role": "P",
+   "chapter": "ch25",
+   "id": "host",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "e6eaa492f005",
+   "rev": 1,
+   "seconds": 1.04,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "18ddc33ab58424": {
+   "key": "P|first and last month's rent",
+   "text": "first and last month's rent",
+   "role": "P",
+   "chapter": "ch26",
+   "id": "first-and-last-months-rent",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "e51730131ad6",
+   "rev": 1,
+   "seconds": 1.8,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "18e0512bb3add7": {
    "key": "A|Do you agree with the plan?",
    "text": "Do you agree with the plan?",
@@ -49643,6 +51505,20 @@
    "rev": 1,
    "seconds": 2.47,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "18f3daf8bd6fd3": {
+   "key": "B|It might need new batteries.",
+   "text": "It might need new batteries.",
+   "role": "B",
+   "chapter": "ch25",
+   "id": "the-tv-remote-doesnt-work",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "67855f5d3535",
+   "rev": 1,
+   "seconds": 2.0,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "18f48c380af66a": {
@@ -49911,6 +51787,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "191caf5ce235c3": {
+   "key": "B|Yes, next to the stairs.",
+   "text": "Yes, next to the stairs.",
+   "role": "B",
+   "chapter": "ch25",
+   "id": "ice-machine",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "3d8180588c2b",
+   "rev": 1,
+   "seconds": 1.8,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "19218a4fc93feb": {
    "key": "A|We're going to Florida for spring break.",
    "text": "We're going to Florida for spring break.",
@@ -49950,6 +51840,20 @@
    "sig": "3188444a1d35",
    "rev": 1,
    "seconds": 1.76,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "192b3341edfba6": {
+   "key": "A|Do you have a room with a view?",
+   "text": "Do you have a room with a view?",
+   "role": "A",
+   "chapter": "ch25",
+   "id": "a-room-with-a-view",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "2954f14438e1",
+   "rev": 1,
+   "seconds": 1.84,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -50049,6 +51953,20 @@
    "rev": 1,
    "seconds": 2.7,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "1935bf29bc0c4d": {
+   "key": "P|Is parking included?",
+   "text": "Is parking included?",
+   "role": "P",
+   "chapter": "ch25",
+   "id": "is-parking-included",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "1422dfeeff02",
+   "rev": 1,
+   "seconds": 1.64,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "1937aa295383f3": {
@@ -50219,6 +52137,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "1955f829713b01": {
+   "key": "A|Here's your receipt. Thank you for your stay.",
+   "text": "Here's your receipt. Thank you for your stay.",
+   "role": "A",
+   "chapter": "ch25",
+   "id": "thank-you-for-your-stay",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "a6d2233c6015",
+   "rev": 1,
+   "seconds": 2.36,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "195c8f4c47ee70": {
    "key": "A|How's the fish?",
    "text": "How's the fish?",
@@ -50357,6 +52289,20 @@
    "rev": 1,
    "seconds": 1.11,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "1969796becf8cf": {
+   "key": "P|Thank you for your stay.",
+   "text": "Thank you for your stay.",
+   "role": "P",
+   "chapter": "ch25",
+   "id": "thank-you-for-your-stay",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "1b8ee576a5e2",
+   "rev": 1,
+   "seconds": 1.44,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "196a9f72b0ec57": {
@@ -51213,6 +53159,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "19bc2a89cf7262": {
+   "key": "B|The first of next month.",
+   "text": "The first of next month.",
+   "role": "B",
+   "chapter": "ch26",
+   "id": "when-can-i-move-in",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "34a5ec6a6f55",
+   "rev": 1,
+   "seconds": 1.56,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "19be130ae9bbbc": {
    "key": "P|take a nap",
    "text": "take a nap",
@@ -51448,6 +53408,20 @@
    "sig": "80ad3e0137bf",
    "rev": 1,
    "seconds": 1.44,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "19e0d600d1e19d": {
+   "key": "B|Sure, how about eleven?",
+   "text": "Sure, how about eleven?",
+   "role": "B",
+   "chapter": "ch26",
+   "id": "can-i-schedule-a-viewing",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "2f7a9a86328a",
+   "rev": 1,
+   "seconds": 2.24,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -51885,6 +53859,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "1a1d7509665cc6": {
+   "key": "P|Are pets allowed?",
+   "text": "Are pets allowed?",
+   "role": "P",
+   "chapter": "ch26",
+   "id": "are-pets-allowed",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "6cc8f442ca6f",
+   "rev": 1,
+   "seconds": 1.44,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "1a1eafbd59f113": {
    "key": "P|day after tomorrow",
    "text": "day after tomorrow",
@@ -51995,6 +53983,20 @@
    "rev": 1,
    "seconds": 0.71,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "1a2f467b266aa2": {
+   "key": "A|What's your move-in date?",
+   "text": "What's your move-in date?",
+   "role": "A",
+   "chapter": "ch26",
+   "id": "move-in-date",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "2ebb0083d73d",
+   "rev": 1,
+   "seconds": 1.4,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "1a2f5c3768e381": {
@@ -53313,6 +55315,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "1acecd177e3aa1": {
+   "key": "A|The toilet won't flush.",
+   "text": "The toilet won't flush.",
+   "role": "A",
+   "chapter": "ch25",
+   "id": "the-toilet-wont-flush",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "9ef54bf00d1e",
+   "rev": 1,
+   "seconds": 1.56,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "1acf886fe93a6b": {
    "key": "A|Do you want a pop?",
    "text": "Do you want a pop?",
@@ -53733,6 +55749,34 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "1b0ba1e600c6eb": {
+   "key": "A|Can you recommend a good restaurant nearby?",
+   "text": "Can you recommend a good restaurant nearby?",
+   "role": "A",
+   "chapter": "ch25",
+   "id": "can-you-recommend-a-good-restaurant-nearby",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "6048d6255a1f",
+   "rev": 1,
+   "seconds": 2.2,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "1b0bbb5f72343e": {
+   "key": "A|Is there laundry in the building?",
+   "text": "Is there laundry in the building?",
+   "role": "A",
+   "chapter": "ch26",
+   "id": "is-there-laundry-in-the-building",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "661db16f77a6",
+   "rev": 1,
+   "seconds": 1.8,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "1b0c8515ac6ddb": {
    "key": "B|No, it was a piece of cake.",
    "text": "No, it was a piece of cake.",
@@ -54097,6 +56141,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "1b43043bfe9790": {
+   "key": "B|No, it's unfurnished.",
+   "text": "No, it's unfurnished.",
+   "role": "B",
+   "chapter": "ch26",
+   "id": "furnished",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "6a1631b68d4e",
+   "rev": 1,
+   "seconds": 1.72,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "1b4574a0db7329": {
    "key": "P|carry out",
    "text": "carry out",
@@ -54123,6 +56181,20 @@
    "rev": 1,
    "seconds": 2.46,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "1b48924e164e00": {
+   "key": "A|Did housekeeping clean your room?",
+   "text": "Did housekeeping clean your room?",
+   "role": "A",
+   "chapter": "ch25",
+   "id": "do-not-disturb",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "de77dc1324bc",
+   "rev": 1,
+   "seconds": 1.92,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "1b48c1b5ecbdb8": {
@@ -54503,6 +56575,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "1b74dd64ae5604": {
+   "key": "A|Is there an ice machine on this floor?",
+   "text": "Is there an ice machine on this floor?",
+   "role": "A",
+   "chapter": "ch25",
+   "id": "ice-machine",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "9432691e1166",
+   "rev": 1,
+   "seconds": 2.08,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "1b7534a53e1039": {
    "key": "P|I'm sorry to hear that.",
    "text": "I'm sorry to hear that.",
@@ -54783,6 +56869,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "1bac9dfe9df3f2": {
+   "key": "B|One spot is included.",
+   "text": "One spot is included.",
+   "role": "B",
+   "chapter": "ch26",
+   "id": "is-parking-included-in-the-rent",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "789506f8be1f",
+   "rev": 1,
+   "seconds": 2.0,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "1bacf427d260d2": {
    "key": "A|Our kids are bilingual.",
    "text": "Our kids are bilingual.",
@@ -54822,6 +56922,20 @@
    "sig": "c3ea20ac1a93",
    "rev": 1,
    "seconds": 2.52,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "1bb059ec92a095": {
+   "key": "B|Thanks, we had a great time.",
+   "text": "Thanks, we had a great time.",
+   "role": "B",
+   "chapter": "ch25",
+   "id": "thank-you-for-your-stay",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "8683a9e04895",
+   "rev": 1,
+   "seconds": 1.68,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -55004,6 +57118,20 @@
    "sig": "4fdf5005c999",
    "rev": 1,
    "seconds": 1.44,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "1bd0fd4a681e97": {
+   "key": "B|Yes, on the third floor. It's open twenty-four hours.",
+   "text": "Yes, on the third floor. It's open twenty-four hours.",
+   "role": "B",
+   "chapter": "ch25",
+   "id": "is-there-a-gym",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "900753da6f5c",
+   "rev": 1,
+   "seconds": 3.64,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -55399,6 +57527,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "1bf69ec658cb6f": {
+   "key": "B|Yes, in the basement.",
+   "text": "Yes, in the basement.",
+   "role": "B",
+   "chapter": "ch26",
+   "id": "is-there-laundry-in-the-building",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "38f0788579f9",
+   "rev": 1,
+   "seconds": 1.96,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "1bf6b3f1246b87": {
    "key": "B|Aren't you jumping the gun? They're not engaged yet.",
    "text": "Aren't you jumping the gun? They're not engaged yet.",
@@ -55789,6 +57931,20 @@
    "rev": 1,
    "seconds": 1.34,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "1c205435b91b7e": {
+   "key": "A|Could I get some extra towels?",
+   "text": "Could I get some extra towels?",
+   "role": "A",
+   "chapter": "ch25",
+   "id": "could-i-get-some-extra-towels",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "cc1ba48a5c2f",
+   "rev": 1,
+   "seconds": 1.76,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "1c21b0d41fa7f6": {
@@ -56309,6 +58465,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "1c5ff0c12f0c44": {
+   "key": "P|Can you recommend a good restaurant nearby?",
+   "text": "Can you recommend a good restaurant nearby?",
+   "role": "P",
+   "chapter": "ch25",
+   "id": "can-you-recommend-a-good-restaurant-nearby",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "d51cd9e494a7",
+   "rev": 1,
+   "seconds": 2.52,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "1c6337c4b5e713": {
    "key": "B|Literally three hours.",
    "text": "Literally three hours.",
@@ -56349,6 +58519,20 @@
    "rev": 1,
    "seconds": 1.05,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "1c6698cc046f8e": {
+   "key": "A|Is the apartment furnished?",
+   "text": "Is the apartment furnished?",
+   "role": "A",
+   "chapter": "ch26",
+   "id": "furnished",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "c6bf9a3237a5",
+   "rev": 1,
+   "seconds": 1.76,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "1c6716a88ed5ad": {
@@ -56603,6 +58787,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "1c866bea21788f": {
+   "key": "P|vacancy",
+   "text": "vacancy",
+   "role": "P",
+   "chapter": "ch25",
+   "id": "vacancy",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "5404edd1b490",
+   "rev": 1,
+   "seconds": 1.16,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "1c87674e651560": {
    "key": "A|What are you doing on New Year's Eve?",
    "text": "What are you doing on New Year's Eve?",
@@ -56741,6 +58939,20 @@
    "rev": 1,
    "seconds": 0.66,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "1ca38dc84ba567": {
+   "key": "P|Could I get another pillow?",
+   "text": "Could I get another pillow?",
+   "role": "P",
+   "chapter": "ch25",
+   "id": "could-i-get-another-pillow",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "2bfcd23e42d6",
+   "rev": 1,
+   "seconds": 1.76,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "1ca670aefa6674": {
@@ -57429,6 +59641,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "1cfea1eea301f3": {
+   "key": "A|Can I change rooms? The room smells like smoke.",
+   "text": "Can I change rooms? The room smells like smoke.",
+   "role": "A",
+   "chapter": "ch25",
+   "id": "can-i-change-rooms",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "422445cc827e",
+   "rev": 1,
+   "seconds": 2.92,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "1cfef0d9d461f0": {
    "key": "A|Whose side are you on?",
    "text": "Whose side are you on?",
@@ -57973,6 +60199,20 @@
    "rev": 1,
    "seconds": 0.95,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "1d485a75b765a9": {
+   "key": "P|housekeeping",
+   "text": "housekeeping",
+   "role": "P",
+   "chapter": "ch25",
+   "id": "housekeeping",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "9273eab76a1c",
+   "rev": 1,
+   "seconds": 1.24,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "1d49d394e98c7f": {
@@ -59025,6 +61265,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "1dbb9aed952da7": {
+   "key": "A|How do we get the key?",
+   "text": "How do we get the key?",
+   "role": "A",
+   "chapter": "ch25",
+   "id": "host",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "7922be6ad371",
+   "rev": 1,
+   "seconds": 1.52,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "1dbbaab000af12": {
    "key": "P|Makes sense.",
    "text": "Makes sense.",
@@ -59571,6 +61825,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "1df9bfdb81d419": {
+   "key": "P|The shower is leaking.",
+   "text": "The shower is leaking.",
+   "role": "P",
+   "chapter": "ch25",
+   "id": "the-shower-is-leaking",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "abd421c422b2",
+   "rev": 1,
+   "seconds": 2.2,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "1dfad9503d4520": {
    "key": "P|extend",
    "text": "extend",
@@ -59681,6 +61949,20 @@
    "rev": 1,
    "seconds": 1.61,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "1e10900b7c2ef9": {
+   "key": "P|Could I get some extra towels?",
+   "text": "Could I get some extra towels?",
+   "role": "P",
+   "chapter": "ch25",
+   "id": "could-i-get-some-extra-towels",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "e7366e2c2c97",
+   "rev": 1,
+   "seconds": 1.72,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "1e12a7d253fdde": {
@@ -59835,6 +62117,20 @@
    "rev": 1,
    "seconds": 0.74,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "1e1dd6d7b68511": {
+   "key": "A|Can you call a taxi for me?",
+   "text": "Can you call a taxi for me?",
+   "role": "A",
+   "chapter": "ch25",
+   "id": "can-you-call-a-taxi-for-me",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "a14b2c91f85b",
+   "rev": 1,
+   "seconds": 1.72,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "1e213cfff8e796": {
@@ -60607,6 +62903,34 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "1e87e6196f6d20": {
+   "key": "A|I'd like to extend my stay by one night.",
+   "text": "I'd like to extend my stay by one night.",
+   "role": "A",
+   "chapter": "ch25",
+   "id": "id-like-to-extend-my-stay",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "782ca1a9e468",
+   "rev": 1,
+   "seconds": 2.92,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "1e897d1954d844": {
+   "key": "P|How much is the security deposit?",
+   "text": "How much is the security deposit?",
+   "role": "P",
+   "chapter": "ch26",
+   "id": "how-much-is-the-security-deposit",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "d39c4213d20e",
+   "rev": 1,
+   "seconds": 2.24,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "1e8d017ebf035c": {
    "key": "B|Thanks for reminding me.",
    "text": "Thanks for reminding me.",
@@ -60618,6 +62942,20 @@
    "sig": "98720cd387bd",
    "rev": 1,
    "seconds": 1.6,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "1e8d52875d1565": {
+   "key": "A|We'll put a hold on your card for incidentals.",
+   "text": "We'll put a hold on your card for incidentals.",
+   "role": "A",
+   "chapter": "ch25",
+   "id": "incidentals",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "0648d6d30a08",
+   "rev": 1,
+   "seconds": 2.2,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -60773,6 +63111,20 @@
    "rev": 1,
    "seconds": 0.94,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "1ea0c5d220444a": {
+   "key": "A|How far is it to downtown?",
+   "text": "How far is it to downtown?",
+   "role": "A",
+   "chapter": "ch25",
+   "id": "how-far-is-it-to-downtown",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "ad7d1c0ab0ee",
+   "rev": 1,
+   "seconds": 1.92,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "1ea21961ff3d31": {
@@ -61165,6 +63517,20 @@
    "rev": 1,
    "seconds": 2.02,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "1ecc4a2555fa5e": {
+   "key": "P|Could you keep it down?",
+   "text": "Could you keep it down?",
+   "role": "P",
+   "chapter": "ch25",
+   "id": "could-you-keep-it-down",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "84c3a34416ab",
+   "rev": 1,
+   "seconds": 1.88,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "1ed036f42060da": {
@@ -62035,6 +64401,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "1f279c03f83e35": {
+   "key": "P|rental application",
+   "text": "rental application",
+   "role": "P",
+   "chapter": "ch26",
+   "id": "rental-application",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "9575ea296d26",
+   "rev": 1,
+   "seconds": 1.64,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "1f2b64262f80b8": {
    "key": "B|Text me when you get home.",
    "text": "Text me when you get home.",
@@ -62147,6 +64527,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "1f3510363b7d5b": {
+   "key": "A|Why is the bill higher?",
+   "text": "Why is the bill higher?",
+   "role": "A",
+   "chapter": "ch25",
+   "id": "resort-fee",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "399c400b2a76",
+   "rev": 1,
+   "seconds": 1.48,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "1f359c5084af07": {
    "key": "P|merely",
    "text": "merely",
@@ -62172,6 +64566,20 @@
    "sig": "94ac540f9419",
    "rev": 1,
    "seconds": 1.28,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "1f3d0d0afa7f84": {
+   "key": "B|About fifteen minutes by car.",
+   "text": "About fifteen minutes by car.",
+   "role": "B",
+   "chapter": "ch25",
+   "id": "how-far-is-it-to-downtown",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "593bb19ad951",
+   "rev": 1,
+   "seconds": 2.4,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -62483,6 +64891,20 @@
    "via": "sync",
    "at": "2026-09-28"
   },
+  "1f6574621c8eea": {
+   "key": "A|The shower is leaking all over the floor.",
+   "text": "The shower is leaking all over the floor.",
+   "role": "A",
+   "chapter": "ch25",
+   "id": "the-shower-is-leaking",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "c06ad2fe1029",
+   "rev": 1,
+   "seconds": 2.52,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "1f65d01b5a3a9f": {
    "key": "A|How was your audition?",
    "text": "How was your audition?",
@@ -62747,6 +65169,20 @@
    "rev": 1,
    "seconds": 2.03,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "1f935e2bf45eb5": {
+   "key": "P|When can I move in?",
+   "text": "When can I move in?",
+   "role": "P",
+   "chapter": "ch26",
+   "id": "when-can-i-move-in",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "831b21441be4",
+   "rev": 1,
+   "seconds": 1.32,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "1f93df694ed19f": {
@@ -63085,6 +65521,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "1fb9d1b9eb24fd": {
+   "key": "P|I'd like to check out.",
+   "text": "I'd like to check out.",
+   "role": "P",
+   "chapter": "ch25",
+   "id": "id-like-to-check-out",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "362437593a19",
+   "rev": 1,
+   "seconds": 1.52,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "1fba265c135e6b": {
    "key": "B|Not since last month.",
    "text": "Not since last month.",
@@ -63404,6 +65854,20 @@
    "sig": "7b788c14e398",
    "rev": 1,
    "seconds": 1.44,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "1feab364e2c21f": {
+   "key": "A|Is there a gym in the hotel?",
+   "text": "Is there a gym in the hotel?",
+   "role": "A",
+   "chapter": "ch25",
+   "id": "is-there-a-gym",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "ea83b011170b",
+   "rev": 1,
+   "seconds": 1.88,
    "via": "batch",
    "at": "2026-09-28"
   },
