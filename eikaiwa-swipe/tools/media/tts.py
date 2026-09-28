@@ -29,7 +29,7 @@ import time
 import urllib.error
 import urllib.request
 import wave
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -108,16 +108,39 @@ def api(method, path, body=None, base=API):
         sys.exit("GEMINI_API_KEY がありません")
     data = json.dumps(body).encode() if body is not None else None
     req = urllib.request.Request(f"{base}{path}", data=data, method=method, headers={"x-goog-api-key": key, "Content-Type": "application/json"})
-    for attempt in range(5):
+    for attempt in range(6):
         try:
             with urllib.request.urlopen(req, timeout=300) as res:
                 raw = res.read()
                 return raw if base != API else json.loads(raw)
         except urllib.error.HTTPError as e:
-            if e.code in (429, 500, 502, 503, 504) and attempt < 4:
-                time.sleep(2 ** (attempt + 2))
+            detail = e.read().decode()
+            if e.code in (429, 500, 502, 503, 504) and attempt < 5:
+                time.sleep(retry_delay(e, detail, attempt))
                 continue
-            sys.exit(f"API エラー {e.code} ({method} {path}): {e.read().decode()[:800]}")
+            raise ApiError(f"API エラー {e.code} ({method} {path}): {detail[:800]}") from None
+        except (urllib.error.URLError, TimeoutError) as e:
+            if attempt < 5:
+                time.sleep(2 ** (attempt + 1))
+                continue
+            raise ApiError(f"通信エラー ({method} {path}): {e}") from None
+
+
+class ApiError(Exception):
+    pass
+
+
+def retry_delay(err, detail, attempt):
+    """待つ秒数。429 のときは API が示す待ち時間（Retry-After か retryDelay）に従う"""
+    after = err.headers.get("Retry-After") if err.headers else None
+    if after and after.isdigit():
+        return int(after) + 1
+    if '"retryDelay"' in detail:
+        try:
+            return float(detail.split('"retryDelay"')[1].split('"')[1].rstrip("s")) + 1
+        except (IndexError, ValueError):
+            pass
+    return 2 ** (attempt + 1)
 
 
 # ---------------------------------------------------------------------------
@@ -162,11 +185,12 @@ def encode(cfg, wav_path, out_path):
     subprocess.run(cmd + [str(out_path)], check=True)
 
 
-def store(cfg, man, clip, response, via):
-    """1文ぶんの結果を保存して manifest を更新する。問題があれば警告の文字列を返す"""
+def save_audio(cfg, clip, response):
+    """1文ぶんの音声を WAV と opus に保存する（ファイルは文ごとに別なので、並列に呼んでよい）。
+    戻り値: (長さの秒数, None) か、取り込めないとき (None, 警告の文字列)"""
     body = audio_bytes(response) if response else None
     if body is None:
-        return f"{clip['key']}: 音声が返ってこなかった ({json.dumps(response)[:200]})"
+        return None, f"{clip['key']}: 音声が返ってこなかった ({json.dumps(response)[:200]})"
     wav_path = RAW / "wav" / f"{clip['hash']}.wav"
     wav_path.parent.mkdir(parents=True, exist_ok=True)
     wav_path.write_bytes(body)
@@ -175,8 +199,13 @@ def store(cfg, man, clip, response, via):
     # 文を繰り返した・指示まで読んだなど、長さが明らかにおかしいものは取り込まない（plan で作り直しの対象に残る）
     expected = estimate_seconds(clip["text"])
     if seconds > expected * 2 + 1.5 or seconds < expected * 0.25:
-        return f"{clip['key']}: 長さが不自然なので取り込まなかった（{seconds:.1f}秒、目安 {expected:.1f}秒）。raw/tts/wav/{clip['hash']}.wav"
+        return None, f"{clip['key']}: 長さが不自然なので取り込まなかった（{seconds:.1f}秒、目安 {expected:.1f}秒）。raw/tts/wav/{clip['hash']}.wav"
     encode(cfg, wav_path, AUDIO / "clips" / f"{clip['hash']}.opus")
+    return seconds, None
+
+
+def record(cfg, man, clip, seconds, via):
+    """manifest に1文ぶんを書き込む（メインのスレッドからだけ呼ぶ）"""
     old = man["clips"].get(clip["hash"], {})
     man["clips"][clip["hash"]] = {
         "key": clip["key"],
@@ -192,6 +221,14 @@ def store(cfg, man, clip, response, via):
         "via": via,
         "at": datetime.now(timezone.utc).strftime("%Y-%m-%d"),
     }
+
+
+def store(cfg, man, clip, response, via):
+    """保存して manifest を更新する。問題があれば警告の文字列を返す"""
+    seconds, warning = save_audio(cfg, clip, response)
+    if warning:
+        return warning
+    record(cfg, man, clip, seconds, via)
     return None
 
 
@@ -223,9 +260,17 @@ def cmd_sample(args, cfg):
     out = RAW / "samples"
     out.mkdir(parents=True, exist_ok=True)
     clip = {"role": args.role, "text": args.text, "context": args.context or "", "key": "sample", "hash": "sample"}
-    for v in voices:
+
+    def one(v):
         c = {**cfg, "roles": {**cfg["roles"], args.role: {**cfg["roles"][args.role], "voice": v}}}
-        res = api("POST", f"/v1beta/models/{cfg['model']}:generateContent", request_for(c, clip))
+        t = time.time()
+        return v, api("POST", f"/v1beta/models/{cfg['model']}:generateContent", request_for(c, clip)), time.time() - t
+
+    started = time.time()
+    with ThreadPoolExecutor(max_workers=cfg["concurrency"]) as pool:
+        results = sorted(pool.map(one, voices), key=lambda r: voices.index(r[0]))
+    waited = sum(r[2] for r in results)
+    for v, res, _ in results:
         body = audio_bytes(res)
         if not body:
             print(f"{v}: 音声なし {json.dumps(res)[:200]}")
@@ -237,26 +282,39 @@ def cmd_sample(args, cfg):
             seconds = w.getnframes() / w.getframerate()
         flag = "  ← 長さが不自然" if seconds > estimate_seconds(args.text) * 2 + 1.5 else ""
         print(f"{out / (v + '.opus')}  {seconds:.1f}秒{flag}")
+    print(f"かかった時間 {time.time() - started:.1f}秒（1本ずつ送っていたら 約{waited:.0f}秒）")
 
 
 def cmd_generate(args, cfg):
     clips = lines_for(args.chapters)
     man = load_manifest()
     need = todo(cfg, clips, man, args.force)
-    print(f"{len(need)} 文を通常の API で作ります（{cfg['model']}）")
+    workers = args.workers or cfg["concurrency"]
+    print(f"{len(need)} 文を通常の API で作ります（{cfg['model']}、同時に {workers} 件）")
 
     def one(clip):
-        return clip, api("POST", f"/v1beta/models/{cfg['model']}:generateContent", request_for(cfg, clip))
+        # API を呼んで、保存・opus への変換まで並列に行う（manifest の更新だけはメインのスレッドで）
+        try:
+            res = api("POST", f"/v1beta/models/{cfg['model']}:generateContent", request_for(cfg, clip))
+        except ApiError as e:
+            return clip, None, f"{clip['key']}: {e}"
+        return (clip, *save_audio(cfg, clip, res))
 
     warnings = []
-    with ThreadPoolExecutor(max_workers=args.workers) as pool:
-        for i, (clip, res) in enumerate(pool.map(one, need), 1):
-            w = store(cfg, man, clip, res, "sync")
-            if w:
-                warnings.append(w)
+    started = time.time()
+    # 終わった順に保存する（遅い1件に全体が待たされないように）。途中で止めても、保存済みの分は plan で作り直しの対象から外れる
+    with ThreadPoolExecutor(max_workers=workers) as pool:
+        futures = [pool.submit(one, c) for c in need]
+        for i, fut in enumerate(as_completed(futures), 1):
+            clip, seconds, warning = fut.result()
+            if warning:
+                warnings.append(warning)
+            else:
+                record(cfg, man, clip, seconds, "sync")
             if i % 20 == 0 or i == len(need):
                 save_manifest(man)
-                print(f"  {i}/{len(need)}")
+                elapsed = time.time() - started
+                print(f"  {i}/{len(need)}  {elapsed:.0f}秒（残り 約{elapsed / i * (len(need) - i):.0f}秒）")
     report(warnings)
 
 
@@ -399,7 +457,7 @@ def main():
         s.add_argument("--force", action="store_true", help="設定が同じでも作り直す")
         s.set_defaults(func=func)
         if name == "generate":
-            s.add_argument("--workers", type=int, default=4)
+            s.add_argument("--workers", type=int, help="同時に送る数（省略すると設定の concurrency）")
         if name == "submit":
             s.add_argument("--dry-run", action="store_true", help="送らずにリクエストを raw/tts/ に保存する")
     s = sub.add_parser("sample", help="声の候補を聞き比べる")
@@ -411,7 +469,10 @@ def main():
     sub.add_parser("status", help="出したバッチの状態").set_defaults(func=cmd_status)
     sub.add_parser("collect", help="終わったバッチの結果を取り込む").set_defaults(func=cmd_collect)
     args = p.parse_args()
-    args.func(args, load_config())
+    try:
+        args.func(args, load_config())
+    except ApiError as e:
+        sys.exit(str(e))
 
 
 if __name__ == "__main__":

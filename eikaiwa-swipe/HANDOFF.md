@@ -155,7 +155,18 @@ python3 tools/media/tts.py collect              # 終わったバッチを取り
 - E2E テストはふだん録音を使わない（`window.__swipetalkNoRecorded`）。録音の動きは `tests/e2e/recorded.spec.mjs` で確かめる
 - GitHub Pages は `audio/` も配る（`.github/workflows/pages.yml`）
 
-**次にやること**: 声を決める（`sample`）→ ch01 を `submit` → `collect` → 聞いて確認 → 全章
+**決まったこと（2026-09-28）**
+- 声: 見出し = Erinome（女性）、A = Achird（男性）、B = Callirrhoe（女性）。10声を聞き比べてユーザーが選んだ
+- **Batch API は当面使わない**（ユーザーの判断）。`generate`（通常の API）で作る
+
+**速さ（2026-09-28 に計測）**
+- 1文あたり: API 約2〜3.5秒、opus への変換 約0.2秒（コンテナが起動した直後の最初の1回だけ ffmpeg の読み込みで 約4秒）
+- `generate` と `sample` は `concurrency`（今は 8）件を同時に送り、保存・変換も並列に行う。終わった順に保存するので、途中で止めても続きから作れる
+  - 10声の聞き比べ: 1本ずつなら約34秒 → 8.9秒
+  - ch01（150文）の目安: 約1分。全章（13,278文）: 8並列で約1.5時間（429 が出なければ concurrency を上げるとさらに短くなる）
+- 429（送りすぎ）は API が示す待ち時間に従って自動で再試行する。失敗した文は最後にまとめて表示し、次の `generate` で作り直す
+
+**次にやること**: ch01 を `generate` → 聞いて確認 → 全章
 
 ### 4-2. 画像
 

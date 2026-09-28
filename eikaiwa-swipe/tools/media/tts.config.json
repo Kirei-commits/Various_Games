@@ -1,6 +1,8 @@
 {
   "_about": "録音（Gemini TTS）の設定。ここを変えて `python3 tools/media/tts.py plan ch01` を実行すると、作り直しになる文の数と費用の目安が出る。",
   "model": "gemini-3.8-flash-tts",
+  "_concurrency": "同時に送るリクエストの数（generate / sample）。1回 約2秒かかるので、並べるほど速い。429（送りすぎ）が出たら下げる",
+  "concurrency": 8,
   "batch": {
     "_about": "Batch API（料金が通常の半分・結果は最大24時間後）。chunk は1つのバッチに入れる文の数",
     "chunk": 100
