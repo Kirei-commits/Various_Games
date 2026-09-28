@@ -603,6 +603,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "0029e76162f446": {
+   "key": "P|I'm taking a rest day.",
+   "text": "I'm taking a rest day.",
+   "role": "P",
+   "chapter": "ch47",
+   "id": "im-taking-a-rest-day",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "ac4a8504f074",
+   "rev": 1,
+   "seconds": 1.48,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "0029f2c60bfd79": {
    "key": "A|I ran a full marathon last week.",
    "text": "I ran a full marathon last week.",
@@ -1048,6 +1062,20 @@
    "sig": "b062e281d15b",
    "rev": 1,
    "seconds": 1.6,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "00547f67e6b1f9": {
+   "key": "A|Green juice? Since when?",
+   "text": "Green juice? Since when?",
+   "role": "A",
+   "chapter": "ch47",
+   "id": "im-on-a-health-kick",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "af16fb72fb24",
+   "rev": 1,
+   "seconds": 2.64,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -1569,6 +1597,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "007dbdd552e82b": {
+   "key": "A|Let's keep going!",
+   "text": "Let's keep going!",
+   "role": "A",
+   "chapter": "ch47",
+   "id": "im-out-of-breath",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "226b2ddbd60a",
+   "rev": 1,
+   "seconds": 1.28,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "007e64f743f7b3": {
    "key": "P|No pressure.",
    "text": "No pressure.",
@@ -1849,6 +1891,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "0090f8eace7d60": {
+   "key": "A|How do you know you slept six hours?",
+   "text": "How do you know you slept six hours?",
+   "role": "A",
+   "chapter": "ch47",
+   "id": "my-smartwatch-tracks-my-sleep",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "ecd82d1bd12a",
+   "rev": 1,
+   "seconds": 1.96,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "009126260b4efa": {
    "key": "A|Don't put bones in the garbage disposal.",
    "text": "Don't put bones in the garbage disposal.",
@@ -2099,6 +2155,20 @@
    "rev": 1,
    "seconds": 1.6,
    "via": "sync",
+   "at": "2026-09-28"
+  },
+  "00a1974ef738a6": {
+   "key": "P|I'm getting back into running.",
+   "text": "I'm getting back into running.",
+   "role": "P",
+   "chapter": "ch47",
+   "id": "im-getting-back-into-running",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "c33ef5a38262",
+   "rev": 1,
+   "seconds": 1.8,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "00a1a45aefcece": {
@@ -2423,6 +2493,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "00b50ceba25345": {
+   "key": "P|Did you brush your teeth?",
+   "text": "Did you brush your teeth?",
+   "role": "P",
+   "chapter": "ch48",
+   "id": "did-you-brush-your-teeth",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "b6d3355f7b3d",
+   "rev": 1,
+   "seconds": 1.52,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "00b7875294c23a": {
    "key": "P|arrivals",
    "text": "arrivals",
@@ -2574,6 +2658,20 @@
    "sig": "e95d6430dc6a",
    "rev": 1,
    "seconds": 2.2,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "00c018c6761679": {
+   "key": "B|I hit the gym every morning.",
+   "text": "I hit the gym every morning.",
+   "role": "B",
+   "chapter": "ch47",
+   "id": "i-hit-the-gym-every-morning",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "6a6402746592",
+   "rev": 1,
+   "seconds": 1.96,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -2868,6 +2966,20 @@
    "sig": "4fe9d1ad0fa8",
    "rev": 1,
    "seconds": 1.16,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "00d6e3b408388e": {
+   "key": "B|Yeah, I'm a morning person.",
+   "text": "Yeah, I'm a morning person.",
+   "role": "B",
+   "chapter": "ch47",
+   "id": "im-a-morning-person",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "a568732c4c70",
+   "rev": 1,
+   "seconds": 1.84,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -4691,6 +4803,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "01540447785b3b": {
+   "key": "A|Why are you taking the stairs?",
+   "text": "Why are you taking the stairs?",
+   "role": "A",
+   "chapter": "ch47",
+   "id": "i-try-to-walk-10-000-steps-a-day",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "174a0633e450",
+   "rev": 1,
+   "seconds": 2.08,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "0154dad02bbb34": {
    "key": "B|That's sweet.",
    "text": "That's sweet.",
@@ -4856,6 +4982,20 @@
    "sig": "a5eab968e14d",
    "rev": 1,
    "seconds": 1.48,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "01640907485f7c": {
+   "key": "P|I haven't been to the gym in months.",
+   "text": "I haven't been to the gym in months.",
+   "role": "P",
+   "chapter": "ch47",
+   "id": "i-havent-been-to-the-gym-in-months",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "d19e9b103dd7",
+   "rev": 1,
+   "seconds": 2.56,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -5629,6 +5769,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "019b755a929584": {
+   "key": "A|How do you stay so fit?",
+   "text": "How do you stay so fit?",
+   "role": "A",
+   "chapter": "ch47",
+   "id": "i-hit-the-gym-every-morning",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "56c378998992",
+   "rev": 1,
+   "seconds": 1.84,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "019bee02d854c7": {
    "key": "P|deep clean",
    "text": "deep clean",
@@ -6357,6 +6511,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "01cb60cac2764d": {
+   "key": "P|I'm counting calories.",
+   "text": "I'm counting calories.",
+   "role": "P",
+   "chapter": "ch47",
+   "id": "im-counting-calories",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "41cda11b6639",
+   "rev": 1,
+   "seconds": 1.8,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "01cc6f9cf3e3c6": {
    "key": "P|entree",
    "text": "entree",
@@ -7015,6 +7183,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "01f9538f4b9a45": {
+   "key": "P|Everything in moderation.",
+   "text": "Everything in moderation.",
+   "role": "P",
+   "chapter": "ch47",
+   "id": "everything-in-moderation",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "5a512640beb1",
+   "rev": 1,
+   "seconds": 1.8,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "01fdb014c28329": {
    "key": "A|So what you're saying is we need more time?",
    "text": "So what you're saying is we need more time?",
@@ -7152,6 +7334,20 @@
    "sig": "4451392dc008",
    "rev": 1,
    "seconds": 1.88,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "0209ffac02106e": {
+   "key": "P|I feel so much better after exercising.",
+   "text": "I feel so much better after exercising.",
+   "role": "P",
+   "chapter": "ch47",
+   "id": "i-feel-so-much-better-after-exercising",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "4c839f10b1a3",
+   "rev": 1,
+   "seconds": 2.72,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -8258,6 +8454,34 @@
    "sig": "0366d2589141",
    "rev": 1,
    "seconds": 1.76,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "025c86251b5318": {
+   "key": "B|I'm cutting carbs.",
+   "text": "I'm cutting carbs.",
+   "role": "B",
+   "chapter": "ch47",
+   "id": "im-cutting-carbs",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "ce441bdb1e83",
+   "rev": 1,
+   "seconds": 1.36,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "025de3fec16297": {
+   "key": "A|I signed up for a gym membership.",
+   "text": "I signed up for a gym membership.",
+   "role": "A",
+   "chapter": "ch47",
+   "id": "i-signed-up-for-a-gym-membership",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "90b78fa7e271",
+   "rev": 1,
+   "seconds": 2.44,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -9479,6 +9703,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "02c2ef488e27e7": {
+   "key": "A|Why are you walking like that?",
+   "text": "Why are you walking like that?",
+   "role": "A",
+   "chapter": "ch47",
+   "id": "im-sore-from-yesterdays-workout",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "b2812d7df930",
+   "rev": 1,
+   "seconds": 1.88,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "02c3b9e49acd7c": {
    "key": "A|It's my birthday today.",
    "text": "It's my birthday today.",
@@ -9687,6 +9925,20 @@
    "rev": 1,
    "seconds": 1.89,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "02cf43959d913d": {
+   "key": "B|I need to warm up first.",
+   "text": "I need to warm up first.",
+   "role": "B",
+   "chapter": "ch47",
+   "id": "i-need-to-warm-up-first",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "359dfd237de1",
+   "rev": 1,
+   "seconds": 1.8,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "02d0c350ed7536": {
@@ -10036,6 +10288,20 @@
    "sig": "1dd4fc120180",
    "rev": 1,
    "seconds": 0.96,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "02e1e2fcfa0362": {
+   "key": "A|Why are you writing down everything you eat?",
+   "text": "Why are you writing down everything you eat?",
+   "role": "A",
+   "chapter": "ch47",
+   "id": "im-counting-calories",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "84d6eada95c6",
+   "rev": 1,
+   "seconds": 2.28,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -10515,6 +10781,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "0309d445ed417e": {
+   "key": "B|Five more minutes…",
+   "text": "Five more minutes…",
+   "role": "B",
+   "chapter": "ch48",
+   "id": "time-to-get-up",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "ffd32e9b955e",
+   "rev": 1,
+   "seconds": 2.0,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "030a0f34cb5112": {
    "key": "B|Sure, help yourself.",
    "text": "Sure, help yourself.",
@@ -10569,6 +10849,20 @@
    "rev": 1,
    "seconds": 1.84,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "030be2ab910c18": {
+   "key": "B|I try to walk 10,000 steps a day.",
+   "text": "I try to walk 10,000 steps a day.",
+   "role": "B",
+   "chapter": "ch47",
+   "id": "i-try-to-walk-10-000-steps-a-day",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "0de57c2d4999",
+   "rev": 1,
+   "seconds": 2.2,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "030cb315524018": {
@@ -11131,6 +11425,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "0337da14a8ee9c": {
+   "key": "P|Let's cool down.",
+   "text": "Let's cool down.",
+   "role": "P",
+   "chapter": "ch47",
+   "id": "lets-cool-down",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "64908174aea9",
+   "rev": 1,
+   "seconds": 1.32,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "03384d827a19a3": {
    "key": "P|valet parking",
    "text": "valet parking",
@@ -11185,6 +11493,20 @@
    "rev": 1,
    "seconds": 0.65,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "033e11906361e9": {
+   "key": "B|Me! Me!",
+   "text": "Me! Me!",
+   "role": "B",
+   "chapter": "ch48",
+   "id": "who-wants-a-snack",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "be07e4013998",
+   "rev": 1,
+   "seconds": 1.28,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "033f594dfd4b84": {
@@ -11282,6 +11604,20 @@
    "sig": "2b8cc762d1ee",
    "rev": 1,
    "seconds": 1.84,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "03482594baddc2": {
+   "key": "P|Can you spot me?",
+   "text": "Can you spot me?",
+   "role": "P",
+   "chapter": "ch47",
+   "id": "can-you-spot-me",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "581a8cd181e0",
+   "rev": 1,
+   "seconds": 1.12,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -11467,6 +11803,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "0356e24c645e50": {
+   "key": "P|How many sets do you do?",
+   "text": "How many sets do you do?",
+   "role": "P",
+   "chapter": "ch47",
+   "id": "how-many-sets-do-you-do",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "0b0dc988ed0c",
+   "rev": 1,
+   "seconds": 1.56,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "0356fae9bd3924": {
    "key": "A|Thanks for coming to see me off.",
    "text": "Thanks for coming to see me off.",
@@ -11506,6 +11856,20 @@
    "sig": "97bcde2f4e34",
    "rev": 1,
    "seconds": 2.0,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "035c8f9560f124": {
+   "key": "A|How's the gym going?",
+   "text": "How's the gym going?",
+   "role": "A",
+   "chapter": "ch47",
+   "id": "i-havent-been-to-the-gym-in-months",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "d6d0b30ab0ad",
+   "rev": 1,
+   "seconds": 1.12,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -12080,6 +12444,20 @@
    "sig": "87d73704d376",
    "rev": 1,
    "seconds": 2.0,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "0385ea44b746b1": {
+   "key": "A|Thanks for organizing this.",
+   "text": "Thanks for organizing this.",
+   "role": "A",
+   "chapter": "ch46",
+   "id": "thanks-for-organizing-this",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "4f4906100aaa",
+   "rev": 1,
+   "seconds": 1.6,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -12965,6 +13343,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "03d74f163c43c6": {
+   "key": "P|Time to get up!",
+   "text": "Time to get up!",
+   "role": "P",
+   "chapter": "ch48",
+   "id": "time-to-get-up",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "7dda684e51c8",
+   "rev": 1,
+   "seconds": 1.6,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "03d7ff424f81f1": {
    "key": "P|entirely",
    "text": "entirely",
@@ -13229,6 +13621,20 @@
    "rev": 1,
    "seconds": 1.85,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "03ec0fcd023805": {
+   "key": "B|I'm not very athletic.",
+   "text": "I'm not very athletic.",
+   "role": "B",
+   "chapter": "ch47",
+   "id": "im-not-very-athletic",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "acb54453e286",
+   "rev": 1,
+   "seconds": 2.2,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "03ecac4e09966a": {
@@ -13847,6 +14253,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "0418ee140fd11a": {
+   "key": "B|Don't worry, I'll help you clean up.",
+   "text": "Don't worry, I'll help you clean up.",
+   "role": "B",
+   "chapter": "ch46",
+   "id": "ill-help-you-clean-up",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "43079ab104c4",
+   "rev": 1,
+   "seconds": 1.88,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "0418fd617da549": {
    "key": "A|I'll get the check.",
    "text": "I'll get the check.",
@@ -14181,6 +14601,20 @@
    "rev": 1,
    "seconds": 1.01,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "0430bf157a1681": {
+   "key": "B|Honestly, I haven't been in months.",
+   "text": "Honestly, I haven't been in months.",
+   "role": "B",
+   "chapter": "ch47",
+   "id": "i-havent-been-to-the-gym-in-months",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "8ed5e1e09875",
+   "rev": 1,
+   "seconds": 2.24,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "04324ca85c8a11": {
@@ -14533,6 +14967,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "044c712fdfe789": {
+   "key": "P|I'm a morning person.",
+   "text": "I'm a morning person.",
+   "role": "P",
+   "chapter": "ch47",
+   "id": "im-a-morning-person",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "43756def57ec",
+   "rev": 1,
+   "seconds": 1.6,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "044e00bc2bc4a9": {
    "key": "B|Loud and clear.",
    "text": "Loud and clear.",
@@ -14671,6 +15119,20 @@
    "rev": 1,
    "seconds": 1.25,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "045b4cf35e063c": {
+   "key": "B|Yes, Mom!",
+   "text": "Yes, Mom!",
+   "role": "B",
+   "chapter": "ch48",
+   "id": "did-you-brush-your-teeth",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "4b6dba07053a",
+   "rev": 1,
+   "seconds": 1.68,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "045f6dbbb69dd1": {
@@ -14827,6 +15289,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "046cd13b49910b": {
+   "key": "B|I'm taking a rest day.",
+   "text": "I'm taking a rest day.",
+   "role": "B",
+   "chapter": "ch47",
+   "id": "im-taking-a-rest-day",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "3196ff87b5f9",
+   "rev": 1,
+   "seconds": 1.6,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "046fc9af612098": {
    "key": "P|room service",
    "text": "room service",
@@ -14964,6 +15440,20 @@
    "sig": "325a356b475a",
    "rev": 1,
    "seconds": 2.2,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "047aa55f27f759": {
+   "key": "P|I'm trying to eat healthy.",
+   "text": "I'm trying to eat healthy.",
+   "role": "P",
+   "chapter": "ch47",
+   "id": "im-trying-to-eat-healthy",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "50914aadefb4",
+   "rev": 1,
+   "seconds": 2.0,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -15384,6 +15874,20 @@
    "sig": "233f25c48385",
    "rev": 1,
    "seconds": 0.92,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "04a07bac2707c9": {
+   "key": "P|I meditate every night.",
+   "text": "I meditate every night.",
+   "role": "P",
+   "chapter": "ch47",
+   "id": "i-meditate-every-night",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "0a177127e79a",
+   "rev": 1,
+   "seconds": 1.52,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -16252,6 +16756,20 @@
    "sig": "be5141287404",
    "rev": 1,
    "seconds": 3.28,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "04dcecf7fd347c": {
+   "key": "A|What a mess!",
+   "text": "What a mess!",
+   "role": "A",
+   "chapter": "ch46",
+   "id": "ill-help-you-clean-up",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "137431e7cc5e",
+   "rev": 1,
+   "seconds": 1.48,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -17683,6 +18201,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "054b3f468c22a7": {
+   "key": "P|I can feel the burn.",
+   "text": "I can feel the burn.",
+   "role": "P",
+   "chapter": "ch47",
+   "id": "i-can-feel-the-burn",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "5f757913475e",
+   "rev": 1,
+   "seconds": 1.56,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "054b815d799589": {
    "key": "P|decent",
    "text": "decent",
@@ -18495,6 +19027,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "0580166ed09ede": {
+   "key": "A|Let's start running!",
+   "text": "Let's start running!",
+   "role": "A",
+   "chapter": "ch47",
+   "id": "i-need-to-warm-up-first",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "7d910f15f5f7",
+   "rev": 1,
+   "seconds": 1.24,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "05802111ec2f49": {
    "key": "P|literally",
    "text": "literally",
@@ -19248,6 +19794,20 @@
    "sig": "d7a31991c999",
    "rev": 1,
    "seconds": 1.68,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "05b7e2d8bbcd78": {
+   "key": "A|It's so hot.",
+   "text": "It's so hot.",
+   "role": "A",
+   "chapter": "ch47",
+   "id": "lets-take-a-water-break",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "77b93a56eb51",
+   "rev": 1,
+   "seconds": 1.8,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -20623,6 +21183,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "06208db315b75d": {
+   "key": "B|Seriously?",
+   "text": "Seriously?",
+   "role": "B",
+   "chapter": "ch48",
+   "id": "youre-grounded",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "c4eb423caa3c",
+   "rev": 1,
+   "seconds": 1.72,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "0620fcaab1c54d": {
    "key": "A|Was the exam hard?",
    "text": "Was the exam hard?",
@@ -20676,6 +21250,20 @@
    "sig": "0722dfa600c9",
    "rev": 1,
    "seconds": 2.0,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "0623eebbbd7c63": {
+   "key": "B|Planks. I'm working on my core.",
+   "text": "Planks. I'm working on my core.",
+   "role": "B",
+   "chapter": "ch47",
+   "id": "im-working-on-my-core",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "3b863c78c570",
+   "rev": 1,
+   "seconds": 2.52,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -21771,6 +22359,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "0676f1260e49ce": {
+   "key": "B|Wait, I'm out of breath.",
+   "text": "Wait, I'm out of breath.",
+   "role": "B",
+   "chapter": "ch47",
+   "id": "im-out-of-breath",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "2888c15d4e8f",
+   "rev": 1,
+   "seconds": 2.56,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "067820fa1aba28": {
    "key": "B|We have one facing the ocean.",
    "text": "We have one facing the ocean.",
@@ -21839,6 +22441,20 @@
    "rev": 1,
    "seconds": 0.52,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "067fbc4acb8286": {
+   "key": "P|I signed up for a gym membership.",
+   "text": "I signed up for a gym membership.",
+   "role": "P",
+   "chapter": "ch47",
+   "id": "i-signed-up-for-a-gym-membership",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "f8afe93eeb89",
+   "rev": 1,
+   "seconds": 2.08,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "068009be47b653": {
@@ -22387,6 +23003,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "06a3382fcab3c7": {
+   "key": "A|Why are you eating so much chicken?",
+   "text": "Why are you eating so much chicken?",
+   "role": "A",
+   "chapter": "ch47",
+   "id": "i-want-to-build-muscle",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "ff2bc3ae9d78",
+   "rev": 1,
+   "seconds": 2.08,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "06a383d986a7bb": {
    "key": "P|surface",
    "text": "surface",
@@ -22709,6 +23339,20 @@
    "via": "sync",
    "at": "2026-09-28"
   },
+  "06bf1d1ae97fb1": {
+   "key": "B|I'm too tired to work out today.",
+   "text": "I'm too tired to work out today.",
+   "role": "B",
+   "chapter": "ch47",
+   "id": "im-too-tired-to-work-out-today",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "ac9d27ef30a7",
+   "rev": 1,
+   "seconds": 2.6,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "06c02bec77649a": {
    "key": "A|Where do I go now?",
    "text": "Where do I go now?",
@@ -23014,6 +23658,20 @@
    "sig": "3dec5967ec22",
    "rev": 1,
    "seconds": 1.08,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "06d18c7a3f0ad8": {
+   "key": "A|Clean up your toys before dinner.",
+   "text": "Clean up your toys before dinner.",
+   "role": "A",
+   "chapter": "ch48",
+   "id": "clean-up-your-toys",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "ab267cb3f3eb",
+   "rev": 1,
+   "seconds": 2.04,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -23381,6 +24039,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "06eea1cf2faf6d": {
+   "key": "P|Put on your shoes. We're leaving.",
+   "text": "Put on your shoes. We're leaving.",
+   "role": "P",
+   "chapter": "ch48",
+   "id": "put-on-your-shoes-were-leaving",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "8e394ca0c44e",
+   "rev": 1,
+   "seconds": 1.68,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "06eea2ba1433d2": {
    "key": "B|For sure.",
    "text": "For sure.",
@@ -23673,6 +24345,20 @@
    "rev": 1,
    "seconds": 1.98,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "07097f0cbe3c7d": {
+   "key": "B|No thanks, I quit smoking.",
+   "text": "No thanks, I quit smoking.",
+   "role": "B",
+   "chapter": "ch47",
+   "id": "i-quit-smoking",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "696dd9b5f5e5",
+   "rev": 1,
+   "seconds": 2.08,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "0709c9358d5c0d": {
@@ -24389,6 +25075,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "073ebfe208f259": {
+   "key": "P|Let's go for a bike ride.",
+   "text": "Let's go for a bike ride.",
+   "role": "P",
+   "chapter": "ch47",
+   "id": "lets-go-for-a-bike-ride",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "d7cd0ab28ef1",
+   "rev": 1,
+   "seconds": 1.56,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "0741018edc8308": {
    "key": "A|I think I'm being charged too much.",
    "text": "I think I'm being charged too much.",
@@ -25019,6 +25719,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "0770fdcbc73efd": {
+   "key": "P|I'm out of breath.",
+   "text": "I'm out of breath.",
+   "role": "P",
+   "chapter": "ch47",
+   "id": "im-out-of-breath",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "6878a9dedf92",
+   "rev": 1,
+   "seconds": 1.6,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "07724970d83fec": {
    "key": "B|Let me weigh it.",
    "text": "Let me weigh it.",
@@ -25352,6 +26066,20 @@
    "sig": "d3ab933847ad",
    "rev": 1,
    "seconds": 2.36,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "0782c79243b21f": {
+   "key": "P|Listen to your body.",
+   "text": "Listen to your body.",
+   "role": "P",
+   "chapter": "ch47",
+   "id": "listen-to-your-body",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "fe37ab0709f1",
+   "rev": 1,
+   "seconds": 1.68,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -25912,6 +26640,20 @@
    "sig": "b094b464437a",
    "rev": 1,
    "seconds": 1.28,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "07b8e8b9af6811": {
+   "key": "P|I'm not very athletic.",
+   "text": "I'm not very athletic.",
+   "role": "P",
+   "chapter": "ch47",
+   "id": "im-not-very-athletic",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "d728d49456d4",
+   "rev": 1,
+   "seconds": 1.96,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -26517,6 +27259,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "07ef4fc3bcdaf4": {
+   "key": "P|I get my steps in by walking the dog.",
+   "text": "I get my steps in by walking the dog.",
+   "role": "P",
+   "chapter": "ch47",
+   "id": "i-get-my-steps-in-by-walking-the-dog",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "f1c891abde00",
+   "rev": 1,
+   "seconds": 2.48,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "07f07614a1a329": {
    "key": "B|About a thousand dollars.",
    "text": "About a thousand dollars.",
@@ -26948,6 +27704,20 @@
    "sig": "825a75da2901",
    "rev": 1,
    "seconds": 1.8,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "080d91c0d4f7e8": {
+   "key": "A|Should I stop eating sweets?",
+   "text": "Should I stop eating sweets?",
+   "role": "A",
+   "chapter": "ch47",
+   "id": "everything-in-moderation",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "8a78b974f455",
+   "rev": 1,
+   "seconds": 2.28,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -27693,6 +28463,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "08527b3a873a35": {
+   "key": "A|Do you really enjoy the gym?",
+   "text": "Do you really enjoy the gym?",
+   "role": "A",
+   "chapter": "ch47",
+   "id": "i-feel-so-much-better-after-exercising",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "ccb7a964752a",
+   "rev": 1,
+   "seconds": 1.88,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "085487a6864333": {
    "key": "B|Speak of the devil, here he comes.",
    "text": "Speak of the devil, here he comes.",
@@ -28055,6 +28839,20 @@
    "rev": 1,
    "seconds": 1.63,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "087113c373af47": {
+   "key": "A|No rice?",
+   "text": "No rice?",
+   "role": "A",
+   "chapter": "ch47",
+   "id": "im-cutting-carbs",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "cde7a47c4029",
+   "rev": 1,
+   "seconds": 1.16,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "0871392faa2e2e": {
@@ -29737,6 +30535,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "08ee0c9500601e": {
+   "key": "A|How do you walk so much?",
+   "text": "How do you walk so much?",
+   "role": "A",
+   "chapter": "ch47",
+   "id": "i-get-my-steps-in-by-walking-the-dog",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "9786bb271871",
+   "rev": 1,
+   "seconds": 1.92,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "08ee17c963717c": {
    "key": "P|look into",
    "text": "look into",
@@ -30140,6 +30952,20 @@
    "sig": "f4d685b4d36b",
    "rev": 1,
    "seconds": 2.16,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "0907862442505e": {
+   "key": "P|I want to build muscle.",
+   "text": "I want to build muscle.",
+   "role": "P",
+   "chapter": "ch47",
+   "id": "i-want-to-build-muscle",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "05b9b37e149b",
+   "rev": 1,
+   "seconds": 1.4,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -30801,6 +31627,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "093d470f336d76": {
+   "key": "A|She took my toy!",
+   "text": "She took my toy!",
+   "role": "A",
+   "chapter": "ch48",
+   "id": "be-nice-to-your-sister",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "da33123844c7",
+   "rev": 1,
+   "seconds": 1.72,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "093f1a17d7a7ff": {
    "key": "P|Let's get back on track.",
    "text": "Let's get back on track.",
@@ -31163,6 +32003,20 @@
    "rev": 1,
    "seconds": 0.94,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "0957aef57614ef": {
+   "key": "P|Inside voice, please.",
+   "text": "Inside voice, please.",
+   "role": "P",
+   "chapter": "ch48",
+   "id": "inside-voice-please",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "333d11e45420",
+   "rev": 1,
+   "seconds": 1.76,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "09588dd3a249b4": {
@@ -31949,6 +32803,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "099d3f1db4134c": {
+   "key": "P|Who wants a snack?",
+   "text": "Who wants a snack?",
+   "role": "P",
+   "chapter": "ch48",
+   "id": "who-wants-a-snack",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "dbe21dd31ab0",
+   "rev": 1,
+   "seconds": 1.28,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "099db41d90fe1e": {
    "key": "A|Do I need a root canal?",
    "text": "Do I need a root canal?",
@@ -32478,6 +33346,20 @@
    "sig": "5af19a7536ec",
    "rev": 1,
    "seconds": 2.2,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "09cba75c7e1417": {
+   "key": "B|My pleasure! Glad you came.",
+   "text": "My pleasure! Glad you came.",
+   "role": "B",
+   "chapter": "ch46",
+   "id": "thanks-for-organizing-this",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "bc479638a822",
+   "rev": 1,
+   "seconds": 1.92,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -33475,6 +34357,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "0a171e38e22ad9": {
+   "key": "P|I'm on a strict diet.",
+   "text": "I'm on a strict diet.",
+   "role": "P",
+   "chapter": "ch47",
+   "id": "im-on-a-strict-diet",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "995c0b1487a9",
+   "rev": 1,
+   "seconds": 1.72,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "0a178fde745a2e": {
    "key": "A|Where's your business trip?",
    "text": "Where's your business trip?",
@@ -33487,6 +34383,20 @@
    "rev": 1,
    "seconds": 1.12,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "0a17c5d458f9ce": {
+   "key": "B|Use your words. What's wrong?",
+   "text": "Use your words. What's wrong?",
+   "role": "B",
+   "chapter": "ch48",
+   "id": "use-your-words",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "d2cce4ac6ff9",
+   "rev": 1,
+   "seconds": 2.2,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "0a1d88d20953ea": {
@@ -34525,6 +35435,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "0a6ecb95018c71": {
+   "key": "A|You always seem so calm.",
+   "text": "You always seem so calm.",
+   "role": "A",
+   "chapter": "ch47",
+   "id": "i-meditate-every-night",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "7f7b92d7f73e",
+   "rev": 1,
+   "seconds": 2.08,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "0a70772f604564": {
    "key": "P|handyman",
    "text": "handyman",
@@ -34861,6 +35785,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "0a853d89425e8b": {
+   "key": "B|I know. I need to cut back on sugar.",
+   "text": "I know. I need to cut back on sugar.",
+   "role": "B",
+   "chapter": "ch47",
+   "id": "i-need-to-cut-back-on-sugar",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "b1c0b55d0047",
+   "rev": 1,
+   "seconds": 2.92,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "0a85c819ccdf78": {
    "key": "P|turn in",
    "text": "turn in",
@@ -34929,6 +35867,20 @@
    "rev": 1,
    "seconds": 0.8,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "0a8e80964e7f10": {
+   "key": "A|Why are you going to bed so early?",
+   "text": "Why are you going to bed so early?",
+   "role": "A",
+   "chapter": "ch47",
+   "id": "i-need-at-least-eight-hours-of-sleep",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "36c9336d0da4",
+   "rev": 1,
+   "seconds": 2.24,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "0a8f9e4542898e": {
@@ -35152,6 +36104,20 @@
    "sig": "a954d3e43343",
    "rev": 1,
    "seconds": 1.84,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "0aa08e1fcecc07": {
+   "key": "P|I'm trying to get in shape.",
+   "text": "I'm trying to get in shape.",
+   "role": "P",
+   "chapter": "ch47",
+   "id": "im-trying-to-get-in-shape",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "81e17c85818f",
+   "rev": 1,
+   "seconds": 1.92,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -35433,6 +36399,20 @@
    "rev": 1,
    "seconds": 1.17,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "0ab4cdb3bbe4c6": {
+   "key": "A|Buckle your seatbelt before we go.",
+   "text": "Buckle your seatbelt before we go.",
+   "role": "A",
+   "chapter": "ch48",
+   "id": "buckle-your-seatbelt",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "24e5200cd0cd",
+   "rev": 1,
+   "seconds": 1.64,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "0ab672c7f2d3b6": {
@@ -36329,6 +37309,20 @@
    "rev": 1,
    "seconds": 2.51,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "0b0217336c1510": {
+   "key": "A|Lights out!",
+   "text": "Lights out!",
+   "role": "A",
+   "chapter": "ch48",
+   "id": "lights-out",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "47e7748221d9",
+   "rev": 1,
+   "seconds": 1.16,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "0b02bf0955a468": {
@@ -40223,6 +41217,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "0c2553b7370294": {
+   "key": "B|Listen to your body. Take a rest day.",
+   "text": "Listen to your body. Take a rest day.",
+   "role": "B",
+   "chapter": "ch47",
+   "id": "listen-to-your-body",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "e25e4a2dd18c",
+   "rev": 1,
+   "seconds": 2.48,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "0c269ecf7ae223": {
    "key": "B|Yes, full coverage, please.",
    "text": "Yes, full coverage, please.",
@@ -41105,6 +42113,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "0c5cc17560b42e": {
+   "key": "A|You've been going to the gym a lot.",
+   "text": "You've been going to the gym a lot.",
+   "role": "A",
+   "chapter": "ch47",
+   "id": "im-trying-to-get-in-shape",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "29f79e44a796",
+   "rev": 1,
+   "seconds": 1.6,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "0c5e586a326b91": {
    "key": "B|Let's take some photos.",
    "text": "Let's take some photos.",
@@ -41399,6 +42421,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "0c73493af6fe08": {
+   "key": "P|I've been sleeping badly.",
+   "text": "I've been sleeping badly.",
+   "role": "P",
+   "chapter": "ch47",
+   "id": "ive-been-sleeping-badly",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "cda8066d290a",
+   "rev": 1,
+   "seconds": 2.08,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "0c759fe94bd1ec": {
    "key": "P|afford",
    "text": "afford",
@@ -41424,6 +42460,20 @@
    "sig": "cec01344c459",
    "rev": 1,
    "seconds": 1.0,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "0c771afde8a069": {
+   "key": "P|I'm working on my core.",
+   "text": "I'm working on my core.",
+   "role": "P",
+   "chapter": "ch47",
+   "id": "im-working-on-my-core",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "50758195e109",
+   "rev": 1,
+   "seconds": 1.68,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -41637,6 +42687,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "0c87179091ee08": {
+   "key": "P|Clean up your toys.",
+   "text": "Clean up your toys.",
+   "role": "P",
+   "chapter": "ch48",
+   "id": "clean-up-your-toys",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "095abe0320a8",
+   "rev": 1,
+   "seconds": 1.44,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "0c872419ca91b8": {
    "key": "A|Is this watch rare?",
    "text": "Is this watch rare?",
@@ -41704,6 +42768,20 @@
    "sig": "3bb7c58e7019",
    "rev": 1,
    "seconds": 2.0,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "0c90ecdaba33cf": {
+   "key": "P|Have you tried intermittent fasting?",
+   "text": "Have you tried intermittent fasting?",
+   "role": "P",
+   "chapter": "ch47",
+   "id": "have-you-tried-intermittent-fasting",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "35668773e2c6",
+   "rev": 1,
+   "seconds": 2.12,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -42533,6 +43611,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "0cd1d0f7d6a369": {
+   "key": "B|Eat your vegetables. They're good for you.",
+   "text": "Eat your vegetables. They're good for you.",
+   "role": "B",
+   "chapter": "ch48",
+   "id": "eat-your-vegetables",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "d88274175f19",
+   "rev": 1,
+   "seconds": 2.56,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "0cd24c9faac627": {
    "key": "B|Yes, next Friday.",
    "text": "Yes, next Friday.",
@@ -42785,6 +43877,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "0ce0048091e998": {
+   "key": "B|I've been sleeping badly.",
+   "text": "I've been sleeping badly.",
+   "role": "B",
+   "chapter": "ch47",
+   "id": "ive-been-sleeping-badly",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "b671963b7d31",
+   "rev": 1,
+   "seconds": 1.84,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "0ce02f8d4c138a": {
    "key": "P|refill",
    "text": "refill",
@@ -42909,6 +44015,20 @@
    "rev": 1,
    "seconds": 1.87,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "0cea1762eb0fa0": {
+   "key": "P|I'll help you clean up.",
+   "text": "I'll help you clean up.",
+   "role": "P",
+   "chapter": "ch46",
+   "id": "ill-help-you-clean-up",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "9ea1b8910c3e",
+   "rev": 1,
+   "seconds": 1.48,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "0cebdef3abbb19": {
@@ -44532,6 +45652,20 @@
    "sig": "4f591e831131",
    "rev": 1,
    "seconds": 1.56,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "0d73159de85612": {
+   "key": "P|I'm cutting down on caffeine.",
+   "text": "I'm cutting down on caffeine.",
+   "role": "P",
+   "chapter": "ch47",
+   "id": "im-cutting-down-on-caffeine",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "e3428de3dd4f",
+   "rev": 1,
+   "seconds": 1.84,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -46971,6 +48105,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "0e19f50a758100": {
+   "key": "P|I'm too tired to work out today.",
+   "text": "I'm too tired to work out today.",
+   "role": "P",
+   "chapter": "ch47",
+   "id": "im-too-tired-to-work-out-today",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "54cc9c407f71",
+   "rev": 1,
+   "seconds": 2.4,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "0e1a9f09547fbf": {
    "key": "A|Do you have a plan for the trip?",
    "text": "Do you have a plan for the trip?",
@@ -47123,6 +48271,20 @@
    "rev": 1,
    "seconds": 0.68,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "0e2d4ffca9d834": {
+   "key": "P|I hit the gym every morning.",
+   "text": "I hit the gym every morning.",
+   "role": "P",
+   "chapter": "ch47",
+   "id": "i-hit-the-gym-every-morning",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "482ba7adbea8",
+   "rev": 1,
+   "seconds": 1.84,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "0e2dc460d8ed0e": {
@@ -48315,6 +49477,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "0e8d9847e4f0d8": {
+   "key": "B|Don't talk back to me.",
+   "text": "Don't talk back to me.",
+   "role": "B",
+   "chapter": "ch48",
+   "id": "dont-talk-back-to-me",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "5e9871bde769",
+   "rev": 1,
+   "seconds": 1.6,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "0e923195a16946": {
    "key": "A|Surprisingly, the food was great.",
    "text": "Surprisingly, the food was great.",
@@ -48327,6 +49503,20 @@
    "rev": 1,
    "seconds": 2.16,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "0e9274f7e4c871": {
+   "key": "B|Sure, I've got you.",
+   "text": "Sure, I've got you.",
+   "role": "B",
+   "chapter": "ch47",
+   "id": "can-you-spot-me",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "c14623902815",
+   "rev": 1,
+   "seconds": 1.24,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "0e930071f13529": {
@@ -48411,6 +49601,20 @@
    "rev": 1,
    "seconds": 1.19,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "0e96bbc9389ca6": {
+   "key": "B|I'm training for a marathon.",
+   "text": "I'm training for a marathon.",
+   "role": "B",
+   "chapter": "ch47",
+   "id": "im-training-for-a-marathon",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "4468fbb6365b",
+   "rev": 1,
+   "seconds": 2.0,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "0e980caa5ea8ff": {
@@ -48565,6 +49769,20 @@
    "rev": 1,
    "seconds": 2.24,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "0ea48ba30c156b": {
+   "key": "A|Should I run with a sore knee?",
+   "text": "Should I run with a sore knee?",
+   "role": "A",
+   "chapter": "ch47",
+   "id": "listen-to-your-body",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "0ed4e75c9b39",
+   "rev": 1,
+   "seconds": 1.96,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "0ea5d3c874a0ef": {
@@ -49953,6 +51171,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "0f010a29c22656": {
+   "key": "B|Finish your homework first.",
+   "text": "Finish your homework first.",
+   "role": "B",
+   "chapter": "ch48",
+   "id": "finish-your-homework-first",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "9531c38731f3",
+   "rev": 1,
+   "seconds": 2.0,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "0f0503b06472ce": {
    "key": "A|You're invited to our barbecue.",
    "text": "You're invited to our barbecue.",
@@ -50359,6 +51591,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "0f27437998f43d": {
+   "key": "B|Stay hydrated!",
+   "text": "Stay hydrated!",
+   "role": "B",
+   "chapter": "ch47",
+   "id": "stay-hydrated",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "98778e808a82",
+   "rev": 1,
+   "seconds": 1.32,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "0f28caecdd7a46": {
    "key": "B|So boring. I almost fell asleep.",
    "text": "So boring. I almost fell asleep.",
@@ -50692,6 +51938,20 @@
    "sig": "77d7dff61796",
    "rev": 1,
    "seconds": 1.24,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "0f413e8217ccc5": {
+   "key": "B|Just decaf. I'm cutting down on caffeine.",
+   "text": "Just decaf. I'm cutting down on caffeine.",
+   "role": "B",
+   "chapter": "ch47",
+   "id": "im-cutting-down-on-caffeine",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "72ab0a6be455",
+   "rev": 1,
+   "seconds": 2.64,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -51183,6 +52443,20 @@
    "rev": 1,
    "seconds": 0.76,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "0f606b9e5ef2b2": {
+   "key": "A|Have you tried intermittent fasting?",
+   "text": "Have you tried intermittent fasting?",
+   "role": "A",
+   "chapter": "ch47",
+   "id": "have-you-tried-intermittent-fasting",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "9e6143dced25",
+   "rev": 1,
+   "seconds": 1.88,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "0f61c470343bbc": {
@@ -51855,6 +53129,20 @@
    "rev": 1,
    "seconds": 1.3,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "0f923a878058d1": {
+   "key": "A|Put on your shoes. We're leaving.",
+   "text": "Put on your shoes. We're leaving.",
+   "role": "A",
+   "chapter": "ch48",
+   "id": "put-on-your-shoes-were-leaving",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "f70f91fbd9b6",
+   "rev": 1,
+   "seconds": 1.76,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "0f939ce0bc7fab": {
@@ -52725,6 +54013,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "0fe1cac42048c3": {
+   "key": "P|I need to warm up first.",
+   "text": "I need to warm up first.",
+   "role": "P",
+   "chapter": "ch47",
+   "id": "i-need-to-warm-up-first",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "2d63856a5e57",
+   "rev": 1,
+   "seconds": 2.0,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "0fe31e7f0f3816": {
    "key": "B|Submit a maintenance request online.",
    "text": "Submit a maintenance request online.",
@@ -52820,6 +54122,20 @@
    "sig": "5011f1eb0910",
    "rev": 1,
    "seconds": 1.48,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "0fea5f4421b893": {
+   "key": "P|I need to cut back on sugar.",
+   "text": "I need to cut back on sugar.",
+   "role": "P",
+   "chapter": "ch47",
+   "id": "i-need-to-cut-back-on-sugar",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "d8ac8f08f097",
+   "rev": 1,
+   "seconds": 1.96,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -53243,6 +54559,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "10121aa19c1122": {
+   "key": "A|Do you want to join our soccer team?",
+   "text": "Do you want to join our soccer team?",
+   "role": "A",
+   "chapter": "ch47",
+   "id": "im-not-very-athletic",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "029b2a042e7b",
+   "rev": 1,
+   "seconds": 1.64,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "1012485afec4c9": {
    "key": "B|Pretty reasonable.",
    "text": "Pretty reasonable.",
@@ -53506,6 +54836,20 @@
    "sig": "5076ee3c8829",
    "rev": 1,
    "seconds": 1.68,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "1028c46ee6a23d": {
+   "key": "A|How many sets do you do?",
+   "text": "How many sets do you do?",
+   "role": "A",
+   "chapter": "ch47",
+   "id": "how-many-sets-do-you-do",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "cd404525eab3",
+   "rev": 1,
+   "seconds": 1.6,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -53842,6 +55186,20 @@
    "sig": "978b69137005",
    "rev": 1,
    "seconds": 2.76,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "103f6ad353dac6": {
+   "key": "P|You're grounded.",
+   "text": "You're grounded.",
+   "role": "P",
+   "chapter": "ch48",
+   "id": "youre-grounded",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "2c4995e02b9f",
+   "rev": 1,
+   "seconds": 1.24,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -54251,6 +55609,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "105cca69e5711c": {
+   "key": "B|I do yoga to relax.",
+   "text": "I do yoga to relax.",
+   "role": "B",
+   "chapter": "ch47",
+   "id": "i-do-yoga-to-relax",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "462b1ac98dd1",
+   "rev": 1,
+   "seconds": 2.04,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "105e93b0decfa1": {
    "key": "P|out of shape",
    "text": "out of shape",
@@ -54377,6 +55749,20 @@
    "via": "sync",
    "at": "2026-09-28"
   },
+  "1065366d569b8f": {
+   "key": "A|How's that exercise?",
+   "text": "How's that exercise?",
+   "role": "A",
+   "chapter": "ch47",
+   "id": "i-can-feel-the-burn",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "3d2cb7fbe75e",
+   "rev": 1,
+   "seconds": 1.48,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "10661409439ac2": {
    "key": "A|Please fill out the rental application.",
    "text": "Please fill out the rental application.",
@@ -54473,6 +55859,20 @@
    "rev": 1,
    "seconds": 1.71,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "106c2723d8d42b": {
+   "key": "A|Gym tonight?",
+   "text": "Gym tonight?",
+   "role": "A",
+   "chapter": "ch47",
+   "id": "im-too-tired-to-work-out-today",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "d6809cc3a910",
+   "rev": 1,
+   "seconds": 1.12,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "106c4755eeb998": {
@@ -55441,6 +56841,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "10a82b1f40ada7": {
+   "key": "P|I need at least eight hours of sleep.",
+   "text": "I need at least eight hours of sleep.",
+   "role": "P",
+   "chapter": "ch47",
+   "id": "i-need-at-least-eight-hours-of-sleep",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "60058657811c",
+   "rev": 1,
+   "seconds": 2.6,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "10a9e56aa2570d": {
    "key": "P|object",
    "text": "object",
@@ -55480,6 +56894,20 @@
    "sig": "afea608a5fd1",
    "rev": 1,
    "seconds": 1.68,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "10b0a03382257e": {
+   "key": "B|Okay!",
+   "text": "Okay!",
+   "role": "B",
+   "chapter": "ch48",
+   "id": "clean-up-your-toys",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "adcfafe3c845",
+   "rev": 1,
+   "seconds": 0.96,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -55704,6 +57132,20 @@
    "sig": "acfbd972fae8",
    "rev": 1,
    "seconds": 2.6,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "10baead6177621": {
+   "key": "P|Use your words.",
+   "text": "Use your words.",
+   "role": "P",
+   "chapter": "ch48",
+   "id": "use-your-words",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "b430cf6fd2f7",
+   "rev": 1,
+   "seconds": 1.48,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -56183,6 +57625,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "10e63dc0da90d0": {
+   "key": "A|No gym today?",
+   "text": "No gym today?",
+   "role": "A",
+   "chapter": "ch47",
+   "id": "im-taking-a-rest-day",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "0219a8e1c55d",
+   "rev": 1,
+   "seconds": 1.24,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "10e6ed7207791f": {
    "key": "A|It's virtually impossible.",
    "text": "It's virtually impossible.",
@@ -56516,6 +57972,20 @@
    "sig": "421867184e24",
    "rev": 1,
    "seconds": 1.68,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "1109fea1ed2aa8": {
+   "key": "P|Finish your homework first.",
+   "text": "Finish your homework first.",
+   "role": "P",
+   "chapter": "ch48",
+   "id": "finish-your-homework-first",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "494eedae7eb3",
+   "rev": 1,
+   "seconds": 1.96,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -57009,6 +58479,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "112ea6bff57ee8": {
+   "key": "B|I feel sluggish today.",
+   "text": "I feel sluggish today.",
+   "role": "B",
+   "chapter": "ch47",
+   "id": "i-feel-sluggish-today",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "d22605e49156",
+   "rev": 1,
+   "seconds": 1.96,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "112eaa4bd191c0": {
    "key": "P|What are you playing these days?",
    "text": "What are you playing these days?",
@@ -57161,6 +58645,20 @@
    "rev": 1,
    "seconds": 0.59,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "113ed5dc97a0f6": {
+   "key": "P|Say thank you.",
+   "text": "Say thank you.",
+   "role": "P",
+   "chapter": "ch48",
+   "id": "say-thank-you",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "6298a9df0c7d",
+   "rev": 1,
+   "seconds": 1.52,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "114220cfec92af": {
@@ -58941,6 +60439,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "11c42696962b20": {
+   "key": "B|Let's do this again soon!",
+   "text": "Let's do this again soon!",
+   "role": "B",
+   "chapter": "ch46",
+   "id": "lets-do-this-again-soon",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "71d364bbd899",
+   "rev": 1,
+   "seconds": 1.72,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "11c4aa19580b29": {
    "key": "A|It's really cold in Canada in winter.",
    "text": "It's really cold in Canada in winter.",
@@ -59526,6 +61038,20 @@
    "sig": "823488a2104c",
    "rev": 1,
    "seconds": 1.56,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "11f575feebf756": {
+   "key": "B|It's the holidays. Everyone does.",
+   "text": "It's the holidays. Everyone does.",
+   "role": "B",
+   "chapter": "ch47",
+   "id": "i-put-on-some-weight",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "e330528c8bb5",
+   "rev": 1,
+   "seconds": 2.64,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -61937,6 +63463,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "12a7f9adc4c0e3": {
+   "key": "B|Take the stairs instead of the elevator.",
+   "text": "Take the stairs instead of the elevator.",
+   "role": "B",
+   "chapter": "ch47",
+   "id": "take-the-stairs-instead-of-the-elevator",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "768473697f84",
+   "rev": 1,
+   "seconds": 2.48,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "12a8beb7fc5e3b": {
    "key": "B|Take photos and exchange insurance information.",
    "text": "Take photos and exchange insurance information.",
@@ -62144,6 +63684,20 @@
    "sig": "358f81c7f257",
    "rev": 1,
    "seconds": 2.2,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "12b849438a5b2d": {
+   "key": "B|Where are we going?",
+   "text": "Where are we going?",
+   "role": "B",
+   "chapter": "ch48",
+   "id": "put-on-your-shoes-were-leaving",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "645378076095",
+   "rev": 1,
+   "seconds": 1.56,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -62508,6 +64062,20 @@
    "sig": "b87682e44c07",
    "rev": 1,
    "seconds": 1.36,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "12da0e37fe5f07": {
+   "key": "B|Yes, but I got too hungry.",
+   "text": "Yes, but I got too hungry.",
+   "role": "B",
+   "chapter": "ch47",
+   "id": "have-you-tried-intermittent-fasting",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "6f9115c72809",
+   "rev": 1,
+   "seconds": 2.52,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -64009,6 +65577,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "134a575b412c9e": {
+   "key": "A|I'm going for a run.",
+   "text": "I'm going for a run.",
+   "role": "A",
+   "chapter": "ch47",
+   "id": "dont-forget-to-stretch",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "3c7e59bab368",
+   "rev": 1,
+   "seconds": 1.6,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "134a6f8cb17bdf": {
    "key": "P|scenery",
    "text": "scenery",
@@ -64597,6 +66179,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "137d91e02b7629": {
+   "key": "B|I'm getting back into it.",
+   "text": "I'm getting back into it.",
+   "role": "B",
+   "chapter": "ch47",
+   "id": "im-getting-back-into-running",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "51000ab5d8d9",
+   "rev": 1,
+   "seconds": 1.76,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "137d9c535d32d2": {
    "key": "A|Can we skip this step?",
    "text": "Can we skip this step?",
@@ -64833,6 +66429,20 @@
    "rev": 1,
    "seconds": 1.18,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "138b3f229a6338": {
+   "key": "B|Don't forget to stretch.",
+   "text": "Don't forget to stretch.",
+   "role": "B",
+   "chapter": "ch47",
+   "id": "dont-forget-to-stretch",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "ceb4e896ffcd",
+   "rev": 1,
+   "seconds": 1.6,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "138dfbfb609aa5": {
@@ -65574,6 +67184,20 @@
    "sig": "3991e6e6b5d6",
    "rev": 1,
    "seconds": 2.16,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "13bc6fdf2dd6ed": {
+   "key": "B|I meditate every night.",
+   "text": "I meditate every night.",
+   "role": "B",
+   "chapter": "ch47",
+   "id": "i-meditate-every-night",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "c103daba4dda",
+   "rev": 1,
+   "seconds": 1.96,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -66599,6 +68223,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "14039a7c5dfcb9": {
+   "key": "B|I go for a run every morning.",
+   "text": "I go for a run every morning.",
+   "role": "B",
+   "chapter": "ch47",
+   "id": "i-go-for-a-run-every-morning",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "07b72e7d7890",
+   "rev": 1,
+   "seconds": 2.2,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "140434445b5b3e": {
    "key": "B|A vampire!",
    "text": "A vampire!",
@@ -66820,6 +68458,20 @@
    "sig": "be82277e29a3",
    "rev": 1,
    "seconds": 1.36,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "1411e0b6d60f4a": {
+   "key": "B|Yes. I feel so much better after exercising.",
+   "text": "Yes. I feel so much better after exercising.",
+   "role": "B",
+   "chapter": "ch47",
+   "id": "i-feel-so-much-better-after-exercising",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "d14b25c70aa3",
+   "rev": 1,
+   "seconds": 3.8,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -67257,6 +68909,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "14350f4735bd71": {
+   "key": "P|Do you want to work out together?",
+   "text": "Do you want to work out together?",
+   "role": "P",
+   "chapter": "ch47",
+   "id": "do-you-want-to-work-out-together",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "94dee07363f1",
+   "rev": 1,
+   "seconds": 1.64,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "14350f840f7a5a": {
    "key": "B|I'm not sure. Let's ask the driver.",
    "text": "I'm not sure. Let's ask the driver.",
@@ -67411,6 +69077,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "143f1b4e5e0084": {
+   "key": "B|Let's go for a bike ride.",
+   "text": "Let's go for a bike ride.",
+   "role": "B",
+   "chapter": "ch47",
+   "id": "lets-go-for-a-bike-ride",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "3325d3fd4f2a",
+   "rev": 1,
+   "seconds": 1.56,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "144031ab240fc8": {
    "key": "B|Just barely.",
    "text": "Just barely.",
@@ -67492,6 +69172,20 @@
    "sig": "6a45c56e916f",
    "rev": 1,
    "seconds": 1.88,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "1442cccf2e508c": {
+   "key": "A|Excuse me, are you using this machine?",
+   "text": "Excuse me, are you using this machine?",
+   "role": "A",
+   "chapter": "ch47",
+   "id": "are-you-using-this-machine",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "bc841f392684",
+   "rev": 1,
+   "seconds": 2.12,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -68083,6 +69777,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "146df9d6840dbb": {
+   "key": "P|Be nice to your sister.",
+   "text": "Be nice to your sister.",
+   "role": "P",
+   "chapter": "ch48",
+   "id": "be-nice-to-your-sister",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "d781b593f787",
+   "rev": 1,
+   "seconds": 1.96,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "146e3f3602f1ea": {
    "key": "P|register my car",
    "text": "register my car",
@@ -68123,6 +69831,20 @@
    "rev": 1,
    "seconds": 1.86,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "1471b2a45b7607": {
+   "key": "B|I'm trying to eat healthy.",
+   "text": "I'm trying to eat healthy.",
+   "role": "B",
+   "chapter": "ch47",
+   "id": "im-trying-to-eat-healthy",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "0989d51610e9",
+   "rev": 1,
+   "seconds": 2.04,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "147262e64b19aa": {
@@ -68262,6 +69984,20 @@
    "sig": "7e28df386738",
    "rev": 1,
    "seconds": 1.32,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "147c826ac8099a": {
+   "key": "A|Are you still running?",
+   "text": "Are you still running?",
+   "role": "A",
+   "chapter": "ch47",
+   "id": "im-getting-back-into-running",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "b2291312a3ae",
+   "rev": 1,
+   "seconds": 1.48,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -68489,6 +70225,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "148da632c653ec": {
+   "key": "B|I'm sore from yesterday's workout.",
+   "text": "I'm sore from yesterday's workout.",
+   "role": "B",
+   "chapter": "ch47",
+   "id": "im-sore-from-yesterdays-workout",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "cc24ddebcf75",
+   "rev": 1,
+   "seconds": 2.32,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "148dace90560a3": {
    "key": "A|I've been thinking about you all day.",
    "text": "I've been thinking about you all day.",
@@ -68584,6 +70334,20 @@
    "sig": "012e098b66cc",
    "rev": 1,
    "seconds": 1.24,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "1493ad69e9a95c": {
+   "key": "A|What do you do to stay healthy?",
+   "text": "What do you do to stay healthy?",
+   "role": "A",
+   "chapter": "ch47",
+   "id": "i-go-for-a-run-every-morning",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "3e5ab51a7130",
+   "rev": 1,
+   "seconds": 1.6,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -69063,6 +70827,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "14c175a7e8e32c": {
+   "key": "B|I need at least eight hours of sleep.",
+   "text": "I need at least eight hours of sleep.",
+   "role": "B",
+   "chapter": "ch47",
+   "id": "i-need-at-least-eight-hours-of-sleep",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "f9daa6bebf61",
+   "rev": 1,
+   "seconds": 2.6,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "14c1a655f5b822": {
    "key": "B|Is there anything you can do? It's an emergency.",
    "text": "Is there anything you can do? It's an emergency.",
@@ -69495,6 +71273,20 @@
    "rev": 1,
    "seconds": 1.13,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "14df2cedc4a9d2": {
+   "key": "B|I want to build muscle.",
+   "text": "I want to build muscle.",
+   "role": "B",
+   "chapter": "ch47",
+   "id": "i-want-to-build-muscle",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "7999d9425178",
+   "rev": 1,
+   "seconds": 1.8,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "14e02eb9237503": {
@@ -69999,6 +71791,20 @@
    "rev": 1,
    "seconds": 0.97,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "15021b40d18685": {
+   "key": "P|I'm sore from yesterday's workout.",
+   "text": "I'm sore from yesterday's workout.",
+   "role": "P",
+   "chapter": "ch47",
+   "id": "im-sore-from-yesterdays-workout",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "3b6c74b24e60",
+   "rev": 1,
+   "seconds": 2.56,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "150350928c088b": {
@@ -70561,6 +72367,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "1532bbd451697d": {
+   "key": "A|My jeans are tight. I put on some weight.",
+   "text": "My jeans are tight. I put on some weight.",
+   "role": "A",
+   "chapter": "ch47",
+   "id": "i-put-on-some-weight",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "e3fabc4893a3",
+   "rev": 1,
+   "seconds": 2.56,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "1533fe852c0a33": {
    "key": "P|negotiate",
    "text": "negotiate",
@@ -71037,6 +72857,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "155c406ad1abdc": {
+   "key": "A|Coffee?",
+   "text": "Coffee?",
+   "role": "A",
+   "chapter": "ch47",
+   "id": "im-cutting-down-on-caffeine",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "b6b97337dc0d",
+   "rev": 1,
+   "seconds": 1.08,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "155c956090d734": {
    "key": "A|You should rest for a few days.",
    "text": "You should rest for a few days.",
@@ -71286,6 +73120,20 @@
    "sig": "800f0c24491b",
    "rev": 1,
    "seconds": 2.36,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "156bc36b68c955": {
+   "key": "P|Are you using this machine?",
+   "text": "Are you using this machine?",
+   "role": "P",
+   "chapter": "ch47",
+   "id": "are-you-using-this-machine",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "7eea0b7356c9",
+   "rev": 1,
+   "seconds": 1.68,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -71891,6 +73739,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "15a86792cb0f7b": {
+   "key": "A|Do you want to work out together?",
+   "text": "Do you want to work out together?",
+   "role": "A",
+   "chapter": "ch47",
+   "id": "do-you-want-to-work-out-together",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "3de77ecfaed3",
+   "rev": 1,
+   "seconds": 1.48,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "15a884538aca58": {
    "key": "P|I'm lonely.",
    "text": "I'm lonely.",
@@ -72112,6 +73974,20 @@
    "sig": "d3eb73f5c23f",
    "rev": 1,
    "seconds": 1.8,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "15b713a3138827": {
+   "key": "B|Yeah, I'm trying to get in shape.",
+   "text": "Yeah, I'm trying to get in shape.",
+   "role": "B",
+   "chapter": "ch47",
+   "id": "im-trying-to-get-in-shape",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "d1c53a8c8ee4",
+   "rev": 1,
+   "seconds": 2.2,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -72941,6 +74817,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "15ed66dc102ee3": {
+   "key": "P|Don't forget to stretch.",
+   "text": "Don't forget to stretch.",
+   "role": "P",
+   "chapter": "ch47",
+   "id": "dont-forget-to-stretch",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "6f33979cf196",
+   "rev": 1,
+   "seconds": 1.48,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "15edcaf5ef7988": {
    "key": "P|medical history",
    "text": "medical history",
@@ -73613,6 +75503,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "1614f36ad0b368": {
+   "key": "B|I'm counting calories.",
+   "text": "I'm counting calories.",
+   "role": "B",
+   "chapter": "ch47",
+   "id": "im-counting-calories",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "bd00c3b1ac98",
+   "rev": 1,
+   "seconds": 1.76,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "1617ef74edeacc": {
    "key": "B|I'll let it go this time.",
    "text": "I'll let it go this time.",
@@ -74103,6 +76007,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "163eb41f8144fc": {
+   "key": "A|But that's not fair!",
+   "text": "But that's not fair!",
+   "role": "A",
+   "chapter": "ch48",
+   "id": "dont-talk-back-to-me",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "d7a1c64a9d99",
+   "rev": 1,
+   "seconds": 1.96,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "1640a76c8d8713": {
    "key": "A|It's so windy today.",
    "text": "It's so windy today.",
@@ -74383,6 +76301,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "1659384818e6d3": {
+   "key": "A|That's your third soda today.",
+   "text": "That's your third soda today.",
+   "role": "A",
+   "chapter": "ch47",
+   "id": "i-need-to-cut-back-on-sugar",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "f2e1f388e48f",
+   "rev": 1,
+   "seconds": 2.2,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "165ba78cfe0f66": {
    "key": "A|What are your business hours?",
    "text": "What are your business hours?",
@@ -74590,6 +76522,20 @@
    "sig": "6dcab4aa100a",
    "rev": 1,
    "seconds": 2.04,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "166b3413553ca0": {
+   "key": "B|Be nice to your sister. Share with her.",
+   "text": "Be nice to your sister. Share with her.",
+   "role": "B",
+   "chapter": "ch48",
+   "id": "be-nice-to-your-sister",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "b4daf6353a92",
+   "rev": 1,
+   "seconds": 2.64,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -75153,6 +77099,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "16a0f0d6a8b5e7": {
+   "key": "A|Do you want a cigarette?",
+   "text": "Do you want a cigarette?",
+   "role": "A",
+   "chapter": "ch47",
+   "id": "i-quit-smoking",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "36cc02b055df",
+   "rev": 1,
+   "seconds": 1.44,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "16a15bdd97f5f6": {
    "key": "P|I'm going to be late today.",
    "text": "I'm going to be late today.",
@@ -75375,6 +77335,20 @@
    "rev": 1,
    "seconds": 1.96,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "16b1c8e5d6ae24": {
+   "key": "P|I'm training for a marathon.",
+   "text": "I'm training for a marathon.",
+   "role": "P",
+   "chapter": "ch47",
+   "id": "im-training-for-a-marathon",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "0024c85485f3",
+   "rev": 1,
+   "seconds": 1.8,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "16b271ed44f4af": {
@@ -75741,6 +77715,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "16ce207e93c04e": {
+   "key": "A|Waaah!",
+   "text": "Waaah!",
+   "role": "A",
+   "chapter": "ch48",
+   "id": "use-your-words",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "bea0d43a8e02",
+   "rev": 1,
+   "seconds": 1.28,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "16d1a82904bfc1": {
    "key": "A|You're safe now.",
    "text": "You're safe now.",
@@ -76019,6 +78007,20 @@
    "rev": 1,
    "seconds": 0.88,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "16e7ab6108880a": {
+   "key": "A|You run a lot these days.",
+   "text": "You run a lot these days.",
+   "role": "A",
+   "chapter": "ch47",
+   "id": "im-training-for-a-marathon",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "20de8cc039bc",
+   "rev": 1,
+   "seconds": 1.68,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "16e945501dd266": {
@@ -77071,6 +79073,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "17395323bc18f9": {
+   "key": "B|Sure! Let's go after work.",
+   "text": "Sure! Let's go after work.",
+   "role": "B",
+   "chapter": "ch47",
+   "id": "do-you-want-to-work-out-together",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "9468044a20d6",
+   "rev": 1,
+   "seconds": 2.08,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "173cc4687a0659": {
    "key": "P|Can I schedule a viewing?",
    "text": "Can I schedule a viewing?",
@@ -78037,6 +80053,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "179f26f9a7dc35": {
+   "key": "P|I'm on a health kick.",
+   "text": "I'm on a health kick.",
+   "role": "P",
+   "chapter": "ch47",
+   "id": "im-on-a-health-kick",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "f37457e13e2a",
+   "rev": 1,
+   "seconds": 1.56,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "17a1d79a28923c": {
    "key": "B|We'll rebook you on the next one.",
    "text": "We'll rebook you on the next one.",
@@ -78706,6 +80736,34 @@
    "sig": "477c4f66fc21",
    "rev": 2,
    "seconds": 1.32,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "17c7d7be78209b": {
+   "key": "P|I quit smoking.",
+   "text": "I quit smoking.",
+   "role": "P",
+   "chapter": "ch47",
+   "id": "i-quit-smoking",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "3bd2a568085c",
+   "rev": 1,
+   "seconds": 1.48,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "17c84b3159ff11": {
+   "key": "P|I put on some weight.",
+   "text": "I put on some weight.",
+   "role": "P",
+   "chapter": "ch47",
+   "id": "i-put-on-some-weight",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "3f49560dd342",
+   "rev": 1,
+   "seconds": 1.48,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -79535,6 +81593,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "18104a3146dbf2": {
+   "key": "B|Let's cool down and stretch.",
+   "text": "Let's cool down and stretch.",
+   "role": "B",
+   "chapter": "ch47",
+   "id": "lets-cool-down",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "6814df2c3832",
+   "rev": 1,
+   "seconds": 1.8,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "18123e3330b593": {
    "key": "A|It's a long story.",
    "text": "It's a long story.",
@@ -79966,6 +82038,20 @@
    "sig": "01d01a9a35b8",
    "rev": 1,
    "seconds": 1.88,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "1831efc51ab073": {
+   "key": "A|Good night, sweetie. Sweet dreams.",
+   "text": "Good night, sweetie. Sweet dreams.",
+   "role": "A",
+   "chapter": "ch48",
+   "id": "sweet-dreams",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "79b7851469b9",
+   "rev": 1,
+   "seconds": 2.24,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -80554,6 +82640,34 @@
    "sig": "055c8ef95589",
    "rev": 1,
    "seconds": 1.96,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "184c0df5fd7c7b": {
+   "key": "A|How can I get more exercise?",
+   "text": "How can I get more exercise?",
+   "role": "A",
+   "chapter": "ch47",
+   "id": "take-the-stairs-instead-of-the-elevator",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "efcc1ea5fcbe",
+   "rev": 1,
+   "seconds": 2.08,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "184d38f6cfbb9b": {
+   "key": "B|I have one more set.",
+   "text": "I have one more set.",
+   "role": "B",
+   "chapter": "ch47",
+   "id": "are-you-using-this-machine",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "641b9c8b2063",
+   "rev": 1,
+   "seconds": 1.48,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -81243,6 +83357,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "1882aade78b9a9": {
+   "key": "P|Let's take a water break.",
+   "text": "Let's take a water break.",
+   "role": "P",
+   "chapter": "ch47",
+   "id": "lets-take-a-water-break",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "0a81ef044443",
+   "rev": 1,
+   "seconds": 1.52,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "1882b2053b6055": {
    "key": "P|mountain",
    "text": "mountain",
@@ -81660,6 +83788,20 @@
    "sig": "0741f55edbc3",
    "rev": 1,
    "seconds": 1.48,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "18a217c9bb4b55": {
+   "key": "P|Thanks for organizing this.",
+   "text": "Thanks for organizing this.",
+   "role": "P",
+   "chapter": "ch46",
+   "id": "thanks-for-organizing-this",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "7c98ae317bec",
+   "rev": 1,
+   "seconds": 1.6,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -83931,6 +86073,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "194b31bd2ee488": {
+   "key": "P|Don't talk back to me.",
+   "text": "Don't talk back to me.",
+   "role": "P",
+   "chapter": "ch48",
+   "id": "dont-talk-back-to-me",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "e2c433310820",
+   "rev": 1,
+   "seconds": 1.6,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "194b4b5cbb5d09": {
    "key": "B|I'm torn. They're both great.",
    "text": "I'm torn. They're both great.",
@@ -83942,6 +86098,20 @@
    "sig": "42a629e1ed95",
    "rev": 1,
    "seconds": 2.96,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "194b72226218b5": {
+   "key": "A|That was a great run.",
+   "text": "That was a great run.",
+   "role": "A",
+   "chapter": "ch47",
+   "id": "lets-cool-down",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "2674528b3ea3",
+   "rev": 1,
+   "seconds": 1.68,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -84026,6 +86196,20 @@
    "sig": "4fdeccd2b7c2",
    "rev": 1,
    "seconds": 1.52,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "19516e1428db18": {
+   "key": "P|Eat your vegetables.",
+   "text": "Eat your vegetables.",
+   "role": "P",
+   "chapter": "ch48",
+   "id": "eat-your-vegetables",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "ab2069b1fbb9",
+   "rev": 1,
+   "seconds": 1.6,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -84925,6 +87109,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "198a512e033c8a": {
+   "key": "B|Can I read one more book?",
+   "text": "Can I read one more book?",
+   "role": "B",
+   "chapter": "ch48",
+   "id": "lights-out",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "52694f980303",
+   "rev": 1,
+   "seconds": 1.68,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "198a617328ed35": {
    "key": "A|What year are you?",
    "text": "What year are you?",
@@ -84992,6 +87190,20 @@
    "sig": "96941ed661e4",
    "rev": 1,
    "seconds": 1.68,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "198d3ef5123eab": {
+   "key": "B|No thanks, I'm on a strict diet.",
+   "text": "No thanks, I'm on a strict diet.",
+   "role": "B",
+   "chapter": "ch47",
+   "id": "im-on-a-strict-diet",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "ca2bbefccd5c",
+   "rev": 1,
+   "seconds": 2.44,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -85076,6 +87288,20 @@
    "sig": "7f0c63309820",
    "rev": 1,
    "seconds": 2.64,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "198ff10d4ac042": {
+   "key": "B|Nice! Which one?",
+   "text": "Nice! Which one?",
+   "role": "B",
+   "chapter": "ch47",
+   "id": "i-signed-up-for-a-gym-membership",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "7d10b15d0a8f",
+   "rev": 1,
+   "seconds": 1.92,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -85567,6 +87793,20 @@
    "rev": 1,
    "seconds": 1.7,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "19b68666a412bf": {
+   "key": "P|I've lost five pounds.",
+   "text": "I've lost five pounds.",
+   "role": "P",
+   "chapter": "ch47",
+   "id": "ive-lost-five-pounds",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "4a6bfee0acc0",
+   "rev": 1,
+   "seconds": 1.72,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "19b6dd59b2c574": {
@@ -86997,6 +89237,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "1a259062f5554e": {
+   "key": "P|Sweet dreams.",
+   "text": "Sweet dreams.",
+   "role": "P",
+   "chapter": "ch48",
+   "id": "sweet-dreams",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "b0cee9d0c2bb",
+   "rev": 1,
+   "seconds": 1.48,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "1a26008a252094": {
    "key": "P|Can you drop me off here?",
    "text": "Can you drop me off here?",
@@ -87622,6 +89876,20 @@
    "model": "gemini-3.8-flash-tts",
    "voice": "Achird",
    "sig": "9e941e3fbced",
+   "rev": 1,
+   "seconds": 1.52,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "1a593ec6d66591": {
+   "key": "A|I'm going hiking today.",
+   "text": "I'm going hiking today.",
+   "role": "A",
+   "chapter": "ch47",
+   "id": "stay-hydrated",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "0182b1a8186a",
    "rev": 1,
    "seconds": 1.52,
    "via": "batch",
@@ -88411,6 +90679,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "1a98d950847c32": {
+   "key": "A|Can I play video games?",
+   "text": "Can I play video games?",
+   "role": "A",
+   "chapter": "ch48",
+   "id": "finish-your-homework-first",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "4e1d33e3c3b5",
+   "rev": 1,
+   "seconds": 1.76,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "1a999f001d3ce3": {
    "key": "A|Did he reply to your email?",
    "text": "Did he reply to your email?",
@@ -88523,6 +90805,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "1aa5ccddf911de": {
+   "key": "P|I do yoga to relax.",
+   "text": "I do yoga to relax.",
+   "role": "P",
+   "chapter": "ch47",
+   "id": "i-do-yoga-to-relax",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "c675671e4ede",
+   "rev": 1,
+   "seconds": 1.92,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "1aa71697959668": {
    "key": "A|Can we get a booth?",
    "text": "Can we get a booth?",
@@ -88577,6 +90873,34 @@
    "rev": 1,
    "seconds": 1.61,
    "via": "pack",
+   "at": "2026-09-28"
+  },
+  "1aacff3702278e": {
+   "key": "P|I feel sluggish today.",
+   "text": "I feel sluggish today.",
+   "role": "P",
+   "chapter": "ch47",
+   "id": "i-feel-sluggish-today",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "2301fc3324f1",
+   "rev": 1,
+   "seconds": 1.84,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "1aaf0edeb9f2df": {
+   "key": "P|Lights out!",
+   "text": "Lights out!",
+   "role": "P",
+   "chapter": "ch48",
+   "id": "lights-out",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "cbd7a1ad9b0e",
+   "rev": 1,
+   "seconds": 1.44,
+   "via": "batch",
    "at": "2026-09-28"
   },
   "1aaff0529a6858": {
@@ -89223,6 +91547,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "1ad6a71c1243f6": {
+   "key": "B|Thanks! I've lost five pounds.",
+   "text": "Thanks! I've lost five pounds.",
+   "role": "B",
+   "chapter": "ch47",
+   "id": "ive-lost-five-pounds",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "23db68b8c195",
+   "rev": 1,
+   "seconds": 2.2,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "1adb3284961c03": {
    "key": "B|Sorry, I didn't catch that.",
    "text": "Sorry, I didn't catch that.",
@@ -89248,6 +91586,20 @@
    "sig": "81b3cdca6a89",
    "rev": 1,
    "seconds": 1.36,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "1adf09d6f847ee": {
+   "key": "A|Who wants a snack?",
+   "text": "Who wants a snack?",
+   "role": "A",
+   "chapter": "ch48",
+   "id": "who-wants-a-snack",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "342ba9b9fa24",
+   "rev": 1,
+   "seconds": 1.44,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -90231,6 +92583,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "1b273d05305ecc": {
+   "key": "P|Take the stairs instead of the elevator.",
+   "text": "Take the stairs instead of the elevator.",
+   "role": "P",
+   "chapter": "ch47",
+   "id": "take-the-stairs-instead-of-the-elevator",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "fbeacdf39606",
+   "rev": 1,
+   "seconds": 2.36,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "1b2840dbc9e45e": {
    "key": "A|Thank you for your patience. Your table is ready.",
    "text": "Thank you for your patience. Your table is ready.",
@@ -90550,6 +92916,20 @@
    "sig": "69924cb73d6b",
    "rev": 1,
    "seconds": 1.2,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "1b417c03f1234d": {
+   "key": "P|My smartwatch tracks my sleep.",
+   "text": "My smartwatch tracks my sleep.",
+   "role": "P",
+   "chapter": "ch47",
+   "id": "my-smartwatch-tracks-my-sleep",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "35051c12bd87",
+   "rev": 1,
+   "seconds": 2.04,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -92807,6 +95187,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "1c02482b908020": {
+   "key": "P|Stay hydrated.",
+   "text": "Stay hydrated.",
+   "role": "P",
+   "chapter": "ch47",
+   "id": "stay-hydrated",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "df055d9d4ae3",
+   "rev": 1,
+   "seconds": 1.52,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "1c025f5e50ef34": {
    "key": "P|I'm speechless.",
    "text": "I'm speechless.",
@@ -94305,6 +96699,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "1c7ba92ec8540b": {
+   "key": "B|Usually three sets of ten.",
+   "text": "Usually three sets of ten.",
+   "role": "B",
+   "chapter": "ch47",
+   "id": "how-many-sets-do-you-do",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "31e79fcc987f",
+   "rev": 1,
+   "seconds": 1.8,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "1c7c4801bad8a8": {
    "key": "A|Could you grab our mail while we're away?",
    "text": "Could you grab our mail while we're away?",
@@ -94680,6 +97088,20 @@
    "sig": "10cd99cb477e",
    "rev": 1,
    "seconds": 1.08,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "1c9b616b286ce4": {
+   "key": "B|My smartwatch tracks my sleep.",
+   "text": "My smartwatch tracks my sleep.",
+   "role": "B",
+   "chapter": "ch47",
+   "id": "my-smartwatch-tracks-my-sleep",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "d3fac9e413ce",
+   "rev": 1,
+   "seconds": 2.12,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -96447,6 +98869,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "1d32ad1352f6c0": {
+   "key": "A|MOM! LOOK AT THIS!",
+   "text": "MOM! LOOK AT THIS!",
+   "role": "A",
+   "chapter": "ch48",
+   "id": "inside-voice-please",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "26544dd1459c",
+   "rev": 1,
+   "seconds": 1.6,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "1d32baa25418e5": {
    "key": "B|Let me see if I can get a babysitter.",
    "text": "Let me see if I can get a babysitter.",
@@ -96783,6 +99219,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "1d4a5fb086d9c6": {
+   "key": "A|I don't like broccoli.",
+   "text": "I don't like broccoli.",
+   "role": "A",
+   "chapter": "ch48",
+   "id": "eat-your-vegetables",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "9953d705e970",
+   "rev": 1,
+   "seconds": 1.8,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "1d4b694054d8a6": {
    "key": "A|It's so hot today.",
    "text": "It's so hot today.",
@@ -96892,6 +99342,20 @@
    "sig": "e3e9df0ae5fa",
    "rev": 1,
    "seconds": 1.72,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "1d51a190d4cd30": {
+   "key": "B|Inside voice, please.",
+   "text": "Inside voice, please.",
+   "role": "B",
+   "chapter": "ch48",
+   "id": "inside-voice-please",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "090e34684d36",
+   "rev": 1,
+   "seconds": 1.96,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -98239,6 +100703,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "1dac729f242804": {
+   "key": "A|Why do you look guilty?",
+   "text": "Why do you look guilty?",
+   "role": "A",
+   "chapter": "ch47",
+   "id": "i-skipped-leg-day",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "8a8599e082db",
+   "rev": 1,
+   "seconds": 2.28,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "1dadb66f867a8f": {
    "key": "B|It's a guilty pleasure.",
    "text": "It's a guilty pleasure.",
@@ -98306,6 +100784,20 @@
    "sig": "7b9e3d62c61f",
    "rev": 1,
    "seconds": 1.12,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "1db12374e53e46": {
+   "key": "P|I'm cutting carbs.",
+   "text": "I'm cutting carbs.",
+   "role": "P",
+   "chapter": "ch47",
+   "id": "im-cutting-carbs",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "3e762774b2d7",
+   "rev": 1,
+   "seconds": 1.68,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -99919,6 +102411,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "1e1ecddb7d0d0c": {
+   "key": "A|Say thank you.",
+   "text": "Say thank you.",
+   "role": "A",
+   "chapter": "ch48",
+   "id": "say-thank-you",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "2d8a8aae9419",
+   "rev": 1,
+   "seconds": 1.16,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "1e213cfff8e796": {
    "key": "P|world",
    "text": "world",
@@ -100143,6 +102649,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "1e37a52da4819b": {
+   "key": "A|Salad again?",
+   "text": "Salad again?",
+   "role": "A",
+   "chapter": "ch47",
+   "id": "im-trying-to-eat-healthy",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "60554f92c5b8",
+   "rev": 1,
+   "seconds": 1.56,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "1e385b6d690dde": {
    "key": "B|Call 911!",
    "text": "Call 911!",
@@ -100196,6 +102716,20 @@
    "sig": "35e5b622b038",
    "rev": 1,
    "seconds": 2.16,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "1e3c5e6d2b0a8f": {
+   "key": "B|I get my steps in by walking the dog.",
+   "text": "I get my steps in by walking the dog.",
+   "role": "B",
+   "chapter": "ch47",
+   "id": "i-get-my-steps-in-by-walking-the-dog",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "604e7b529aab",
+   "rev": 1,
+   "seconds": 2.32,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -101179,6 +103713,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "1e8adfc92a32be": {
+   "key": "B|Everything in moderation.",
+   "text": "Everything in moderation.",
+   "role": "B",
+   "chapter": "ch47",
+   "id": "everything-in-moderation",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "021d1549b23b",
+   "rev": 1,
+   "seconds": 2.0,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "1e8d017ebf035c": {
    "key": "B|Thanks for reminding me.",
    "text": "Thanks for reminding me.",
@@ -102047,6 +104595,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "1ec9fab1c90653": {
+   "key": "A|Can you spot me on this bench press?",
+   "text": "Can you spot me on this bench press?",
+   "role": "A",
+   "chapter": "ch47",
+   "id": "can-you-spot-me",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "e5efa754c46f",
+   "rev": 1,
+   "seconds": 1.88,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "1eca27b5fc34fb": {
    "key": "B|Thanks! I'll Venmo you.",
    "text": "Thanks! I'll Venmo you.",
@@ -102296,6 +104858,20 @@
    "sig": "4a5afe3711f8",
    "rev": 1,
    "seconds": 1.28,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "1ed79b78fc488e": {
+   "key": "A|Here's a cookie for you.",
+   "text": "Here's a cookie for you.",
+   "role": "A",
+   "chapter": "ch48",
+   "id": "say-thank-you",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "e864089c6f8b",
+   "rev": 1,
+   "seconds": 1.6,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -102579,6 +105155,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "1ee90e04d03c1d": {
+   "key": "A|Time to get up! You'll be late for school.",
+   "text": "Time to get up! You'll be late for school.",
+   "role": "A",
+   "chapter": "ch48",
+   "id": "time-to-get-up",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "f0e06cbda7ac",
+   "rev": 1,
+   "seconds": 2.56,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "1ee9385d38de2e": {
    "key": "A|The kids had an Easter egg hunt.",
    "text": "The kids had an Easter egg hunt.",
@@ -102828,6 +105418,20 @@
    "sig": "bd574bd323cd",
    "rev": 1,
    "seconds": 1.16,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "1ef740f0e338b7": {
+   "key": "P|I go for a run every morning.",
+   "text": "I go for a run every morning.",
+   "role": "P",
+   "chapter": "ch47",
+   "id": "i-go-for-a-run-every-morning",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "700cc2ee1a50",
+   "rev": 1,
+   "seconds": 1.72,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -103825,6 +106429,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "1f410260fe5edf": {
+   "key": "B|I skipped leg day.",
+   "text": "I skipped leg day.",
+   "role": "B",
+   "chapter": "ch47",
+   "id": "i-skipped-leg-day",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "c12707a39cdd",
+   "rev": 1,
+   "seconds": 1.68,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "1f43a87b156b77": {
    "key": "P|Excuse me.",
    "text": "Excuse me.",
@@ -104217,6 +106835,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "1f60aada061d64": {
+   "key": "B|Wash your hands before you eat.",
+   "text": "Wash your hands before you eat.",
+   "role": "B",
+   "chapter": "ch48",
+   "id": "wash-your-hands-before-you-eat",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "4fbcf455299c",
+   "rev": 1,
+   "seconds": 1.64,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "1f60d16a2719ff": {
    "key": "B|Sure, take your time.",
    "text": "Sure, take your time.",
@@ -104385,6 +107017,20 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "1f6fa5a01ebdb7": {
+   "key": "A|It's a beautiful day.",
+   "text": "It's a beautiful day.",
+   "role": "A",
+   "chapter": "ch47",
+   "id": "lets-go-for-a-bike-ride",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "1ff355099c61",
+   "rev": 1,
+   "seconds": 1.76,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "1f72b49bc2253d": {
    "key": "A|The carpet is stained.",
    "text": "The carpet is stained.",
@@ -104497,6 +107143,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "1f76fa1bd16707": {
+   "key": "B|Let's take a water break.",
+   "text": "Let's take a water break.",
+   "role": "B",
+   "chapter": "ch47",
+   "id": "lets-take-a-water-break",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "6c8e974d8cd8",
+   "rev": 1,
+   "seconds": 1.88,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "1f7809ada14da7": {
    "key": "A|Do you have any vegetarian options?",
    "text": "Do you have any vegetarian options?",
@@ -104564,6 +107224,20 @@
    "sig": "e6be80ecf7c3",
    "rev": 1,
    "seconds": 2.2,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "1f7de84b7874d8": {
+   "key": "P|I try to walk 10,000 steps a day.",
+   "text": "I try to walk 10,000 steps a day.",
+   "role": "P",
+   "chapter": "ch47",
+   "id": "i-try-to-walk-10-000-steps-a-day",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "351ad366d0cf",
+   "rev": 1,
+   "seconds": 2.12,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -104875,6 +107549,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "1f963330c83a2e": {
+   "key": "P|Wash your hands before you eat.",
+   "text": "Wash your hands before you eat.",
+   "role": "P",
+   "chapter": "ch48",
+   "id": "wash-your-hands-before-you-eat",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "b26c5f019a0f",
+   "rev": 1,
+   "seconds": 1.6,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "1f96db2088cdfa": {
    "key": "P|shine",
    "text": "shine",
@@ -105166,6 +107854,20 @@
    "sig": "14f50bd291ab",
    "rev": 1,
    "seconds": 2.0,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "1faccab9c9983b": {
+   "key": "B|I can feel the burn!",
+   "text": "I can feel the burn!",
+   "role": "B",
+   "chapter": "ch47",
+   "id": "i-can-feel-the-burn",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "a74e5399c1e0",
+   "rev": 1,
+   "seconds": 2.12,
    "via": "batch",
    "at": "2026-09-28"
   },
@@ -105715,6 +108417,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "1fd2e97472ca1e": {
+   "key": "P|I skipped leg day.",
+   "text": "I skipped leg day.",
+   "role": "P",
+   "chapter": "ch47",
+   "id": "i-skipped-leg-day",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "44b9e9b0d7ec",
+   "rev": 1,
+   "seconds": 1.64,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
   "1fd3edfd83d738": {
    "key": "P|budget",
    "text": "budget",
@@ -106048,6 +108764,20 @@
    "sig": "4324f6ac3567",
    "rev": 1,
    "seconds": 1.36,
+   "via": "batch",
+   "at": "2026-09-28"
+  },
+  "1ff0fd530455f2": {
+   "key": "P|Buckle your seatbelt.",
+   "text": "Buckle your seatbelt.",
+   "role": "P",
+   "chapter": "ch48",
+   "id": "buckle-your-seatbelt",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "d073a8b96b35",
+   "rev": 1,
+   "seconds": 1.4,
    "via": "batch",
    "at": "2026-09-28"
   },
