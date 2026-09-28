@@ -1,0 +1,4 @@
+# 音声・画像の変換に使う Python パッケージ（アプリ本体のビルドやテストには不要）
+# imageio-ffmpeg は ffmpeg の実行ファイルを同梱している（apt で ffmpeg を入れなくてよい）
+imageio-ffmpeg==0.6.0
+pillow==12.3.0
