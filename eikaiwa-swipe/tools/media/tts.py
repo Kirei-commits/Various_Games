@@ -873,9 +873,12 @@ def cmd_collect(args, cfg):
     warnings = []
     attempts = load_json(ATTEMPTS, {})
     verify = cfg["batch"].get("verify")
+    taken = 0
     for j in jobs:
         if j.get("collected"):
             continue
+        if args.max_jobs and taken >= args.max_jobs:
+            break
         res = api("GET", f"/v1beta/{j['name']}")
         state = job_state(res)
         if state not in ("SUCCEEDED", "DONE"):
@@ -937,6 +940,7 @@ def cmd_collect(args, cfg):
         if redo:
             print(f"  くり返し・言い落としで捨てた {redo} 文（次の submit で出し直す）")
         j["collected"] = datetime.now(timezone.utc).isoformat()
+        taken += 1
         save_manifest(man)
         JOBS.write_text(json.dumps(jobs, ensure_ascii=False, indent=1))
         print(f"{j['display']}: {done}/{len(j['clips'])} 文を取り込みました")
@@ -973,7 +977,9 @@ def main():
     s.set_defaults(func=cmd_sample)
     sub.add_parser("status", help="出したバッチの状態").set_defaults(func=cmd_status)
     sub.add_parser("cheers", help="合いの手の声を作る（tools/media/cheers.json）").set_defaults(func=cmd_cheers)
-    sub.add_parser("collect", help="終わったバッチの結果を取り込む").set_defaults(func=cmd_collect)
+    s = sub.add_parser("collect", help="終わったバッチの結果を取り込む")
+    s.add_argument("--max-jobs", type=int, help="1回に取り込むバッチの数の上限（取り込むたびにコミットするため）")
+    s.set_defaults(func=cmd_collect)
     args = p.parse_args()
     try:
         args.func(args, load_config())
