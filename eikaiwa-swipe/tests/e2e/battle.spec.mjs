@@ -17,7 +17,13 @@ async function winByChoice(page, timeoutMs = 40000) {
   }
 }
 
-test("ステージ: 4択で敵10体とボスを倒すとクリア。ノーダメージで★3、初回はレアチケット", async ({ page }) => {
+/** 報酬の表示からポイントを読む（例: 「ガチャポイント +1,000」） */
+async function rewardPoints(page) {
+  const text = await page.getByTestId("battle-reward").innerText();
+  return Number(text.match(/ガチャポイント \+([\d,]+)/)[1].replace(/,/g, ""));
+}
+
+test("ステージ: 4択で敵10体とボスを倒すとクリア。ノーダメージで★3、初回はレアチケット8枚", async ({ page }) => {
   await page.addInitScript(() => {
     window.__swipetalkBattleTime = 10; // 敵がすぐ出てくる
     window.__swipetalkBattleSpeed = 0; // 敵は近づかない
@@ -33,15 +39,17 @@ test("ステージ: 4択で敵10体とボスを倒すとクリア。ノーダメ
   await winByChoice(page);
   await expect(page.getByTestId("battle-result-title")).toHaveText("STAGE CLEAR!");
   await expect(page.getByTestId("battle-stars")).toHaveText("★★★");
-  await expect(page.getByTestId("battle-reward")).toContainText("+105");
-  await expect(page.getByTestId("battle-reward")).toContainText("レアチケット +1");
+  await expect(page.getByTestId("battle-reward")).toContainText("レアチケット +8");
+  const points = await rewardPoints(page);
+  expect(points).toBeGreaterThanOrEqual(1000);
+  expect(points).toBeLessThanOrEqual(3000);
 
   await page.getByRole("button", { name: "設定に戻る" }).click();
   await expect(page.getByTestId("battle-record")).toContainText("★★★");
   // ガチャのポイントとチケットに入っている（はじめてボーナス 1000pt・1枚と合わせて）
   await page.getByRole("button", { name: "ガチャ", exact: true }).first().click();
-  await expect(page.getByTestId("wallet-points")).toHaveText(/^1105/);
-  await expect(page.getByTestId("wallet-tickets")).toHaveText(/^2/);
+  await expect(page.getByTestId("wallet-points")).toHaveText(new RegExp(`^${1000 + points}`));
+  await expect(page.getByTestId("wallet-tickets")).toHaveText(/^9/);
 });
 
 test("敵が届くと HP が減り、HP がなくなるとゲームオーバー。逃した単語は苦手に入る", async ({ page }) => {
@@ -69,6 +77,7 @@ test("エンドレス: 入力で答えて倒し、間違えると正解が出る
   await openBattle(page);
   await page.getByRole("button", { name: "エンドレス", exact: true }).click();
   await page.locator("#battle-scope").selectOption("word");
+  await page.getByRole("button", { name: "難易度順", exact: true }).click();
   await page.getByRole("button", { name: "入力", exact: true }).click();
   await page.getByRole("button", { name: /バトル開始/ }).click();
 
@@ -91,7 +100,8 @@ test("エンドレス: 入力で答えて倒し、間違えると正解が出る
   await page.getByRole("button", { name: "やめる" }).click();
   await expect(page.getByTestId("battle-result-title")).toHaveText("RESULT");
   await expect(page.getByText("最高得点を更新！")).toBeVisible();
-  await expect(page.getByTestId("battle-reward")).toContainText("+115"); // 3体×5 ＋ 最高得点ボーナス100
+  await expect(page.getByTestId("battle-reward")).toContainText("レアチケット +1"); // 3体倒せば報酬あり
+  expect(await rewardPoints(page)).toBeGreaterThanOrEqual(1000);
 });
 
 test("ほかのタブを見ているあいだはバトルが止まる", async ({ page }) => {
@@ -107,4 +117,20 @@ test("ほかのタブを見ているあいだはバトルが止まる", async ({
   await page.waitForTimeout(3000); // 動いていれば、この間にゲームオーバーになる
   await page.getByRole("button", { name: "テスト", exact: true }).first().click();
   await expect(page.getByTestId("battle")).toBeVisible();
+});
+
+test("難易度順にすると、エンドレスの最初の敵はやさしい章（基礎）の単語", async ({ page }) => {
+  await page.addInitScript(() => {
+    window.__swipetalkBattleTime = 10;
+    window.__swipetalkBattleSpeed = 0;
+  });
+  await page.reload();
+  await openBattle(page);
+  await page.getByRole("button", { name: "エンドレス", exact: true }).click();
+  await page.locator("#battle-scope").selectOption("word");
+  await page.getByRole("button", { name: "難易度順", exact: true }).click();
+  await page.getByRole("button", { name: /バトル開始/ }).click();
+  await expect(page.getByTestId("enemy")).toHaveCount(2);
+  const ids = await page.getByTestId("enemy").evaluateAll((els) => els.map((e) => e.dataset.phraseId));
+  for (const id of ids) expect(Number(LIB.byId[id].chapterId.slice(2))).toBeLessThan(71);
 });

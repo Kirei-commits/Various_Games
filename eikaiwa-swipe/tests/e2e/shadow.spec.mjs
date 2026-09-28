@@ -56,8 +56,10 @@ test("発音チェック: 違った語は、何と聞こえたかと直し方を
   await expect(issue).toContainText("「going」→「doing」と聞こえた");
   await expect(page.getByTestId("shadow-status")).toContainText("もう一度");
   await page.getByRole("button", { name: "次へ", exact: true }).click();
-  await expect(page.getByTestId("shadow-status")).not.toContainText("赤い語");
-  await page.getByRole("button", { name: "一時停止" }).click();
-  await page.getByRole("button", { name: /振り返り/ }).click();
+  // 次の行（Hey, how's it going?）に進んで採点される（途中の表示は一瞬なので、進んだ結果で確かめる）
+  await expect(page.getByTestId("pron-issue").filter({ hasText: "「hey」が聞き取られなかった" })).toBeVisible();
+  // 2行目も違ったので、また止まって待っている。振り返りには2行分が残る
+  await expect(page.getByTestId("shadow-status")).toContainText("もう一度");
+  await page.getByRole("button", { name: "振り返り 2" }).click();
   await expect(page.getByRole("dialog", { name: "発音の振り返り" })).toContainText("よくあるつまずき");
 });

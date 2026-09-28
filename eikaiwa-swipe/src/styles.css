@@ -45,3 +45,92 @@
   background-size: 200% 100%;
   animation: gacha-kira 2.4s linear infinite;
 }
+
+/* ---------------------------------------------------------------------------
+ * バトルの演出（絵の動き・攻撃・爆発・ダメージ）
+ * ------------------------------------------------------------------------- */
+@keyframes bt-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+@keyframes bt-squish { 0%, 100% { transform: scale(1, 1); } 50% { transform: scale(1.05, 0.94); } }
+@keyframes bt-flap { 0%, 100% { transform: scaleY(1); } 50% { transform: scaleY(0.55); } }
+@keyframes bt-flicker { 0%, 100% { transform: scale(1, 1) skewX(0); } 33% { transform: scale(0.96, 1.05) skewX(2deg); } 66% { transform: scale(1.04, 0.97) skewX(-2deg); } }
+@keyframes bt-glow { 0%, 100% { opacity: 1; } 50% { opacity: 0.55; } }
+@keyframes bt-twinkle { 0%, 100% { opacity: 0.9; } 50% { opacity: 0.2; } }
+.bt-float { animation: bt-float 1.6s ease-in-out infinite; }
+.bt-float-slow { animation: bt-float 2.4s ease-in-out infinite; }
+.bt-squish { animation: bt-squish 1.1s ease-in-out infinite; transform-box: fill-box; transform-origin: 50% 100%; }
+.bt-flicker { animation: bt-flicker 0.5s ease-in-out infinite; transform-box: fill-box; transform-origin: 50% 100%; }
+.bt-flap-l, .bt-flap-r { animation: bt-flap 0.35s ease-in-out infinite; transform-box: fill-box; transform-origin: 50% 70%; }
+.bt-glow { animation: bt-glow 1.2s ease-in-out infinite; }
+.bt-twinkle { animation: bt-twinkle 3s ease-in-out infinite; }
+
+/* 狙っている敵の足元の輪 */
+@keyframes bt-ring { 0% { transform: translateX(-50%) scale(0.85); opacity: 1; } 100% { transform: translateX(-50%) scale(1.15); opacity: 0.5; } }
+.bt-ring { animation: bt-ring 0.8s ease-in-out infinite alternate; }
+
+
+/* 倒した敵: 白く光って膨らみながら消える */
+@keyframes bt-die { 0% { transform: translate(-50%, 0) scale(1); filter: brightness(1); opacity: 1; } 25% { filter: brightness(5) saturate(0); } 100% { transform: translate(-50%, -6px) scale(1.5) rotate(8deg); filter: brightness(5) saturate(0); opacity: 0; } }
+.bt-die { animation: bt-die 0.5s ease-out 0.15s both; }
+
+/* 魔法の弾: 主人公から敵へ飛ぶ（--fx, --fy は敵から見た主人公の位置） */
+@keyframes bt-bolt { 0% { transform: translate(var(--fx), var(--fy)) scale(0.6); opacity: 1; } 90% { opacity: 1; } 100% { transform: translate(0, 0) scale(1.2); opacity: 0; } }
+.bt-bolt { animation: bt-bolt 0.18s ease-in both; }
+
+/* 当たった瞬間の光と斬撃 */
+@keyframes bt-burst { 0% { transform: translate(-50%, -50%) scale(0.2); opacity: 1; } 100% { transform: translate(-50%, -50%) scale(2.2); opacity: 0; } }
+.bt-burst { animation: bt-burst 0.45s ease-out 0.15s both; }
+@keyframes bt-slash { 0% { transform: translate(-50%, -50%) rotate(var(--rot)) scaleX(0); opacity: 1; } 50% { transform: translate(-50%, -50%) rotate(var(--rot)) scaleX(1); opacity: 1; } 100% { transform: translate(-50%, -50%) rotate(var(--rot)) scaleX(1.1); opacity: 0; } }
+.bt-slash { animation: bt-slash 0.3s ease-out 0.14s both; }
+
+/* 飛び散る粒（--dx, --dy へ飛ぶ） */
+@keyframes bt-particle { 0% { transform: translate(-50%, -50%) scale(1); opacity: 1; } 100% { transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(0.2); opacity: 0; } }
+.bt-particle { animation: bt-particle 0.6s cubic-bezier(0.2, 0.7, 0.4, 1) 0.15s both; }
+
+/* 得点が浮かび上がる */
+@keyframes bt-score { 0% { transform: translate(-50%, 0) scale(0.6); opacity: 0; } 20% { transform: translate(-50%, -8px) scale(1.2); opacity: 1; } 100% { transform: translate(-50%, -46px) scale(1); opacity: 0; } }
+.bt-score { animation: bt-score 0.9s ease-out 0.15s both; }
+
+/* 間違い: 弾がそれて消える */
+@keyframes bt-fizzle { 0% { transform: translate(-50%, -50%) scale(1); opacity: 1; } 100% { transform: translate(-50%, -50%) scale(2.5); opacity: 0; } }
+.bt-fizzle { animation: bt-fizzle 0.4s ease-out both; }
+
+@keyframes bt-vignette { 0% { opacity: 0.9; } 100% { opacity: 0; } }
+.bt-vignette { animation: bt-vignette 0.6s ease-out both; box-shadow: inset 0 0 60px 20px rgba(239, 68, 68, 0.85); }
+
+/* 大きな文字（撃破！・ボス出現！・LEVEL UP!） */
+@keyframes bt-pop { 0% { transform: scale(2.2); opacity: 0; } 15% { transform: scale(0.9); opacity: 1; } 25% { transform: scale(1.05); } 80% { transform: scale(1); opacity: 1; } 100% { transform: scale(1); opacity: 0; } }
+.bt-pop { animation: bt-pop 1.3s ease-out both; }
+@keyframes bt-combo { 0% { transform: scale(1.5); } 100% { transform: scale(1); } }
+.bt-combo { animation: bt-combo 0.25s ease-out; }
+/* ボス登場: 画面が暗くなり赤く点滅 */
+@keyframes bt-warning { 0%, 100% { opacity: 0; } 20%, 60% { opacity: 0.55; } 40%, 80% { opacity: 0.2; } }
+.bt-warning { animation: bt-warning 1.4s ease-in-out both; background: radial-gradient(circle, transparent 30%, rgba(190, 18, 60, 0.9)); }
+
+/* ---------------------------------------------------------------------------
+ * ガチャの演出（光の玉がたまってはじけ、カードが1枚ずつめくれる）
+ * ------------------------------------------------------------------------- */
+@keyframes gc-orb { 0% { transform: scale(0.3); } 70% { transform: scale(1); } 85% { transform: scale(0.9); } 100% { transform: scale(1.1); } }
+.gc-orb { animation: gc-orb var(--dur) cubic-bezier(0.3, 0.1, 0.3, 1) both; }
+@keyframes gc-pulse { 0%, 100% { transform: scale(1); opacity: 0.8; } 50% { transform: scale(1.25); opacity: 0.4; } }
+.gc-pulse { animation: gc-pulse 0.5s ease-in-out infinite; }
+@keyframes gc-spin { from { transform: rotate(0); } to { transform: rotate(360deg); } }
+.gc-rays { animation: gc-spin 6s linear infinite; }
+@keyframes gc-spark { 0% { transform: rotate(var(--a)) translateY(-140px) scale(1); opacity: 0; } 30% { opacity: 1; } 100% { transform: rotate(var(--a)) translateY(0) scale(0.3); opacity: 0; } }
+.gc-spark { animation: gc-spark 0.9s ease-in infinite; }
+@keyframes gc-flash { 0% { opacity: 1; } 100% { opacity: 0; } }
+.gc-flash { animation: gc-flash 0.6s ease-out both; }
+@keyframes gc-shake { 0%, 100% { transform: translate(0, 0); } 25% { transform: translate(-3px, 2px); } 50% { transform: translate(3px, -2px); } 75% { transform: translate(-2px, -2px); } }
+.gc-shake { animation: gc-shake 0.12s linear infinite; }
+
+/* カード: 裏から表へめくれる */
+.gc-card { perspective: 700px; }
+.gc-inner { position: relative; transition: transform 0.45s cubic-bezier(0.3, 1.4, 0.5, 1); transform-style: preserve-3d; }
+.gc-inner.gc-back-up { transform: rotateY(180deg); }
+.gc-face { backface-visibility: hidden; -webkit-backface-visibility: hidden; }
+.gc-back { position: absolute; inset: 0; transform: rotateY(180deg); backface-visibility: hidden; -webkit-backface-visibility: hidden; }
+@keyframes gc-glow-ssr { 0%, 100% { box-shadow: 0 0 10px 2px rgba(251, 191, 36, 0.7); } 50% { box-shadow: 0 0 22px 6px rgba(236, 72, 153, 0.8); } }
+.gc-glow-ssr { animation: gc-glow-ssr 1.2s ease-in-out infinite; }
+@keyframes gc-glow-sr { 0%, 100% { box-shadow: 0 0 6px 1px rgba(139, 92, 246, 0.5); } 50% { box-shadow: 0 0 14px 3px rgba(139, 92, 246, 0.8); } }
+.gc-glow-sr { animation: gc-glow-sr 1.4s ease-in-out infinite; }
+@keyframes gc-land { 0% { transform: scale(1.25); } 100% { transform: scale(1); } }
+.gc-land { animation: gc-land 0.35s ease-out; }

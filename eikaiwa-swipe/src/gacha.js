@@ -8,7 +8,9 @@
  * - ダブると Lv が上がる（見た目だけ。意味・例文・語源は1枚目から全部見られる）。
  * - 救済: 天井（通常100回・チケット20回で SSR 確定、10連は SR 以上1枚確定）、
  *   交換ポイント（引くたびに貯まり、好きな単語と交換）、選択チケット（ログイン日数でもらえる）。
- * - 課金はない。ポイントはログインボーナス・今日の目標・学習でもらう。
+ * - 課金はない。ポイントはログインボーナス・今日の目標・学習・テスト・バトル・コード入力でもらう。
+ * - 学習・テスト・バトルのポイントは「かかった時間」に比例させる（どれで遊んでも1分あたりほぼ同じ）。
+ * - 5倍ブースト（ログインボーナスでもらえる）を使うと、1時間は学習・テスト・バトルのポイントが5倍。
  */
 import { CHAPTER_POS, POS_OVERRIDES, TRIVIA, SECRETS, TITLES } from "./data/gacha-data.js";
 
@@ -27,11 +29,16 @@ export const DUP_BONUS = { N: 1, R: 2, SR: 5, SSR: 10 }; // ダブったとき�
 export const POS_KEYS = ["all", "noun", "verb", "adj", "other"];
 
 // ポイントのもらい方
-export const LOGIN_POINTS = 100; // 毎日のログインボーナス（1回分）
-export const GOAL_POINTS = 300; // 今日の目標達成
-export const STUDY_POINTS = 10; // 「覚えた」1枚・テスト1問正解ごと
-export const STUDY_DAILY_CAP = 500; // 学習でもらえるのは1日この分まで
+export const LOGIN_POINTS = 1000; // 毎日のログインボーナス（1回分）
+export const GOAL_POINTS = 3000; // 今日の目標達成
+export const POINTS_PER_MINUTE = 600; // 学習・テスト・バトルで、1分あたりにもらえるポイント
+export const BOOST_RATE = 5; // 5倍ブースト
+export const BOOST_MS = 60 * 60 * 1000; // ブーストが続く時間（1時間）
 export const STARTER = { points: 1000, tickets: 1 }; // はじめてボーナス
+export const MULTI_PULLS = [1, 10, 50, 100, 500, 1000]; // 選べる連数
+export const MAX_PULLS = 5000; // 「全部引く」で一度に引く上限
+export const CODE_DAILY_LIMIT = 5; // コード入力は1日5回まで
+export const DEV_CODE = "aaa"; // 開発者コード: ポイント無限
 
 export const levelOf = (copies) => Math.min(copies || 0, MAX_LEVEL);
 
@@ -50,6 +57,12 @@ export const initialGacha = () => ({
   studyDay: null,
   studyEarned: 0,
   starter: false,
+  boosts: 0, // 5倍ブーストの所持数
+  boostUntil: 0, // ブーストが切れる時刻（ms）
+  codeDay: null, // コードを最後に入れた日
+  codeCount: 0, // その日に入れた回数
+  codesUsed: [], // 入れたことのある単語ID（同じ単語は1回だけ）
+  unlimited: false, // 開発者コードでポイント無限
 });
 
 // ---------------------------------------------------------------------------
@@ -151,6 +164,7 @@ const normalize = (g) => ({
   pity: { ...initialGacha().pity, ...(g?.pity || {}) },
   titles: [...(g?.titles || [])],
   secrets: [...(g?.secrets || [])],
+  codesUsed: [...(g?.codesUsed || [])],
 });
 
 const notMax = (g) => (id) => (g.cards[id] || 0) < MAX_LEVEL;
@@ -215,7 +229,8 @@ function pickRarity(weights, total, rng) {
  */
 export function pull(state, catalog, { pos = "all", currency = "points", times = 1 } = {}, rng = Math.random) {
   const g = normalize(state.gacha);
-  const cost = currency === "points" ? PULL_COST * times : times;
+  const free = currency === "points" && g.unlimited;
+  const cost = free ? 0 : currency === "points" ? PULL_COST * times : times;
   const balance = currency === "points" ? g.points : g.tickets;
   if (balance < cost) {
     return { state, error: currency === "points" ? `ポイントが ${cost - balance} 足りません` : "レアチケットが足りません" };
@@ -227,9 +242,11 @@ export function pull(state, catalog, { pos = "all", currency = "points", times =
   const results = [];
   let gotSrPlus = false;
   for (let i = 0; i < times; i++) {
+    // 10回ごとに SR 以上1枚確定（50連なら5回分）
+    if (i % 10 === 0) gotSrPlus = false;
     let guarantee = null;
     if (g.pity[currency] + 1 >= PITY_SSR[currency]) guarantee = "SSR";
-    else if (times >= 10 && i === times - 1 && !gotSrPlus) guarantee = "SR";
+    else if (times >= 10 && i % 10 === 9 && !gotSrPlus) guarantee = "SR";
     let { weights, total } = effectiveWeights(g, catalog, pos, currency, guarantee);
     if (total === 0) {
       // 保証のレア度がすべて MAX → 保証なしで引く
@@ -256,7 +273,7 @@ export function pull(state, catalog, { pos = "all", currency = "points", times =
       exGain,
     });
   }
-  const used = currency === "points" ? PULL_COST * results.length : results.length;
+  const used = free ? 0 : currency === "points" ? PULL_COST * results.length : results.length;
   if (currency === "points") g.points -= used;
   else g.tickets -= used;
   g.pulls += results.length;
@@ -361,21 +378,23 @@ export function claimStarter(state) {
 }
 
 /**
- * ログインボーナスのガチャ分: 毎日 100pt、7日ごとにレアチケット、
+ * ログインボーナスのガチャ分: 毎日 1000pt と5倍ブースト1つ、7日ごとにレアチケット、
  * 連続30日ごとに SR 選択チケット、累計100日ごとに SSR 選択チケット。
  */
 export function loginGachaReward(day, totalDays) {
   return {
     points: LOGIN_POINTS,
+    boosts: 1,
     tickets: day % 7 === 0 ? 1 : 0,
     selSR: day % 30 === 0 ? 1 : 0,
     selSSR: totalDays % 100 === 0 ? 1 : 0,
   };
 }
 
-export function grant(state, { points = 0, tickets = 0, selSR = 0, selSSR = 0 }) {
-  if (!points && !tickets && !selSR && !selSSR) return state;
+export function grant(state, { points = 0, tickets = 0, selSR = 0, selSSR = 0, boosts = 0 }) {
+  if (!points && !tickets && !selSR && !selSSR && !boosts) return state;
   return withGacha(state, (g) => {
+    g.boosts += boosts;
     g.points += points;
     g.tickets += tickets;
     g.selSR += selSR;
@@ -383,19 +402,101 @@ export function grant(state, { points = 0, tickets = 0, selSR = 0, selSSR = 0 })
   });
 }
 
-/** 学習でポイントをもらう（1日 STUDY_DAILY_CAP まで）。count は「覚えた」枚数や正解数 */
-export function earnStudyPoints(state, today, count = 1) {
-  if (count <= 0) return state;
-  const g0 = normalize(state.gacha);
-  const earned = g0.studyDay === today ? g0.studyEarned : 0;
-  const add = Math.min(count * STUDY_POINTS, STUDY_DAILY_CAP - earned);
-  if (add <= 0) return state;
-  return withGacha(state, (g) => {
-    g.studyDay = today;
-    g.studyEarned = earned + add;
-    g.points += add;
-  });
+/** 5倍ブーストが効いているか */
+export const boostActive = (gacha, now) => (gacha?.boostUntil || 0) > now;
+
+/** ブーストの倍率（効いていれば BOOST_RATE、なければ 1） */
+export const boostRate = (gacha, now) => (boostActive(gacha, now) ? BOOST_RATE : 1);
+
+/** かかった時間（秒）に応じたポイント（ブーストの倍率はかけない） */
+export const pointsForTime = (seconds) => Math.max(0, Math.round((Math.max(0, seconds) * POINTS_PER_MINUTE) / 60));
+
+/**
+ * 学習・テストでポイントをもらう。seconds は実際に取り組んだ時間（放置した時間は呼ぶ側で除く）。
+ * ブーストが効いていれば5倍。@returns {{ state, points }}
+ */
+export function earnTimePoints(state, seconds, now) {
+  const points = pointsForTime(seconds) * boostRate(state.gacha, now);
+  if (points <= 0) return { state, points: 0 };
+  return { state: withGacha(state, (g) => (g.points += points)), points };
 }
+
+/** 5倍ブーストを1つ使う（使用中なら1時間延長） */
+export function activateBoost(state, now) {
+  const g0 = normalize(state.gacha);
+  if (g0.boosts < 1) return { state, error: "5倍ブーストを持っていません" };
+  return {
+    state: withGacha(state, (g) => {
+      g.boosts -= 1;
+      g.boostUntil = Math.max(now, g.boostUntil) + BOOST_MS;
+    }),
+  };
+}
+
+// ---------------------------------------------------------------------------
+// コード入力: 英単語を入れるとポイント（難しい単語ほど多い）。1日5回まで・同じ単語は1回だけ
+// ---------------------------------------------------------------------------
+
+/** レア度ごとのポイントの幅（短い単語ほど下、長い単語ほど上） */
+export const CODE_POINTS = {
+  N: [1000, 5000],
+  R: [5000, 20000],
+  SR: [20000, 50000],
+  SSR: [50000, 90000],
+  secret: [100000, 100000],
+};
+
+/** 単語のコードの価値（ポイント） */
+export function codeValue(card) {
+  const [lo, hi] = CODE_POINTS[card.secret ? "secret" : card.rarity];
+  const letters = card.english.replace(/[^a-z]/gi, "").length;
+  const t = Math.min(1, Math.max(0, (letters - 3) / 9));
+  return Math.round((lo + (hi - lo) * t) / 10) * 10;
+}
+
+const codeIndex = new WeakMap();
+/** 英語（小文字）→ カード。カタログごとに1回だけ作る */
+function findCard(catalog, text) {
+  let index = codeIndex.get(catalog);
+  if (!index) {
+    index = new Map(Object.values(catalog.cards).map((c) => [c.english.toLowerCase(), c]));
+    codeIndex.set(catalog, index);
+  }
+  return index.get(text) || null;
+}
+
+export const codesLeft = (gacha, today) => (gacha?.codeDay === today ? Math.max(0, CODE_DAILY_LIMIT - gacha.codeCount) : CODE_DAILY_LIMIT);
+
+/**
+ * コードを入れる。
+ * @returns {{ state, points?, card?, unlimited?, error? }}
+ */
+export function redeemCode(state, catalog, code, today) {
+  const text = String(code || "").trim().toLowerCase().replace(/\s+/g, " ");
+  if (!text) return { state, error: "コードを入れてください" };
+  if (text === DEV_CODE) {
+    return { state: withGacha(state, (g) => (g.unlimited = true)), unlimited: true };
+  }
+  const g0 = normalize(state.gacha);
+  if (codesLeft(g0, today) <= 0) return { state, error: `今日はもう ${CODE_DAILY_LIMIT} 回入れました。また明日！` };
+  const card = findCard(catalog, text);
+  if (!card) return { state, error: "その単語は単語帳にありません（スペルを確かめてください）" };
+  if (g0.codesUsed.includes(card.id)) return { state, error: `「${card.english}」はもう使いました。別の単語を入れてください` };
+  const points = codeValue(card);
+  return {
+    state: withGacha(state, (g) => {
+      g.codeCount = g.codeDay === today ? g.codeCount + 1 : 1;
+      g.codeDay = today;
+      g.codesUsed.push(card.id);
+      g.points += points;
+    }),
+    points,
+    card,
+  };
+}
+
+/** 開発者モード（ポイント無限）をやめる */
+export const endUnlimited = (state) => withGacha(state, (g) => (g.unlimited = false));
 
 // ---------------------------------------------------------------------------
 // 保存データ
@@ -428,6 +529,12 @@ export function restoreGacha(saved, rename = (id) => id) {
     studyDay: typeof saved.studyDay === "string" ? saved.studyDay : null,
     studyEarned: nonNegInt(saved.studyEarned),
     starter: !!saved.starter,
+    boosts: nonNegInt(saved.boosts),
+    boostUntil: nonNegInt(saved.boostUntil),
+    codeDay: typeof saved.codeDay === "string" ? saved.codeDay : null,
+    codeCount: nonNegInt(saved.codeCount),
+    codesUsed: Array.isArray(saved.codesUsed) ? [...new Set(saved.codesUsed.map(rename))] : [],
+    unlimited: !!saved.unlimited,
   };
 }
 
@@ -448,5 +555,6 @@ export function mergeGacha(a, b) {
     secrets: [...new Set([...ga.secrets, ...gb.secrets])],
     pulls: Math.max(ga.pulls, gb.pulls),
     starter: ga.starter || gb.starter,
+    codesUsed: [...new Set([...ga.codesUsed, ...gb.codesUsed])],
   };
 }

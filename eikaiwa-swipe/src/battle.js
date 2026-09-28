@@ -5,20 +5,22 @@
  * - 正解で攻撃（コンボで得点アップ）。間違えると、その敵が一気に近づく。
  * - 敵が自分まで届くと HP が減る（ボスは2）。HP が 0 になったら終わり。
  * - ステージ: 章の単語から敵10体 → 最後にボス（HP3。攻撃のたびに別の単語を出してくる）。倒せばクリア。
- * - エンドレス: 8体倒すごとにレベルが上がり、敵が速く・多くなる。HP が尽きるまで続く。
+ * - エンドレス: 10体倒すごとにレベルが上がり、敵が少しずつ速く・多くなる（速さは最大2倍）。HP が尽きるまで続く。
  *
  * 進行の関数（tick / attack）は、毎フレーム呼ぶため battle オブジェクトを直接書き換える。
  */
-import { grant } from "./gacha.js";
+import { grant, boostRate, pointsForTime } from "./gacha.js";
 
 export const PLAYER_HP = 5;
 export const STAGE_ENEMIES = 10;
 export const BOSS_HP = 3;
-export const KILL_POINTS = 5;
-export const CLEAR_POINTS = 50;
-export const BEST_POINTS = 100;
-export const BATTLE_DAILY_CAP = 1000;
-const LEVEL_UP_KILLS = 8;
+/** 1回のバトルでもらえるポイントの幅（遊んだ時間と成績で決まる。ブースト前） */
+export const BATTLE_POINTS = { min: 1000, max: 3000 };
+/** 1回のバトルでもらえるレアチケットの幅 */
+export const BATTLE_TICKETS = { min: 1, max: 8 };
+/** 報酬をもらうのに必要な撃破数（すぐやめて報酬だけもらうのを防ぐ） */
+export const REWARD_MIN_KILLS = 3;
+export const LEVEL_UP_KILLS = 10;
 
 /** 答え方ごとの、敵が上から下まで届く時間（ms）と、次の敵が出るまでの間隔 */
 export const PACE = {
@@ -37,21 +39,43 @@ const shuffle = (list, rng) => {
 };
 
 /**
+ * 単語の難しさ（大きいほど難しい）。章が後ろほど難しく（単語編は 基礎→生活→応用）、同じ章なら長い単語ほど難しい。
+ */
+export const difficultyOf = (item) => Number(String(item.chapterId || "").replace(/\D/g, "") || 0) * 100 + item.english.length;
+
+/**
+ * 難易度順のランダム: おおむね やさしい → むずかしい の順に並べ、近い難しさの中ではランダムにする。
+ */
+export function byDifficulty(list, rng) {
+  const sorted = [...list].sort((a, b) => difficultyOf(a) - difficultyOf(b));
+  const n = sorted.length || 1;
+  return sorted
+    .map((item, i) => ({ item, key: i / n + rng() * 0.15 }))
+    .sort((a, b) => a.key - b.key)
+    .map((x) => x.item);
+}
+
+/**
  * バトルを始める。
  * @param opts { mode: "stage"|"endless", items, answer: "choice"|"type"|"voice", direction, key, rng }
  *   items はステージなら章の問題、エンドレスなら出題範囲の問題
  */
-export function createBattle({ mode = "stage", items, answer = "choice", direction = "en-ja", key = "", rng = Math.random }) {
+export function createBattle({ mode = "stage", items, answer = "choice", direction = "en-ja", key = "", order = "random", rng = Math.random }) {
   const shuffled = shuffle(items, rng);
   const stage = mode === "stage";
+  const level = order === "level";
+  // ステージ: ランダムに選んだ単語を、難易度順ならやさしい順に並べる（ボスは一番むずかしい単語）
+  const picked = stage ? shuffled.slice(0, STAGE_ENEMIES + BOSS_HP) : shuffled;
+  const ordered = level ? byDifficulty(picked, rng) : picked;
   return {
     mode,
     answer,
     direction,
     key,
+    order,
     pool: items,
-    queue: stage ? shuffled.slice(0, STAGE_ENEMIES) : shuffled,
-    bossWords: stage ? shuffled.slice(STAGE_ENEMIES, STAGE_ENEMIES + BOSS_HP) : [],
+    queue: stage ? ordered.slice(0, STAGE_ENEMIES) : ordered,
+    bossWords: stage ? ordered.slice(STAGE_ENEMIES, STAGE_ENEMIES + BOSS_HP) : [],
     bossSpawned: false,
     enemies: [],
     hp: PLAYER_HP,
@@ -71,8 +95,10 @@ export function createBattle({ mode = "stage", items, answer = "choice", directi
   };
 }
 
-const speedOf = (b) => 1 + (b.mode === "endless" ? (b.level - 1) * 0.15 : 0);
-const maxOnField = (b) => (b.mode === "endless" ? Math.min(2 + Math.floor(b.level / 2), 5) : 3);
+/** エンドレスの敵の速さ（レベルごとに +7%、最大2倍） */
+export const speedOf = (b) => (b.mode === "endless" ? Math.min(1 + (b.level - 1) * 0.07, 2) : 1);
+/** 同時に出る敵の数（エンドレスは3レベルごとに1体増えて最大4体） */
+export const maxOnField = (b) => (b.mode === "endless" ? Math.min(2 + Math.floor((b.level - 1) / 3), 4) : 3);
 
 /** 敵が出る位置（3列）。上のほうにいる敵と重ならない列を選ぶ */
 const LANES = [0.2, 0.5, 0.8];
@@ -99,7 +125,7 @@ export function tick(b, dt, rng = Math.random, moveScale = 1) {
   // 敵を出す
   if (b.elapsed >= b.nextSpawn && b.enemies.length < maxOnField(b)) {
     if (b.mode === "endless") {
-      if (!b.queue.length) b.queue = shuffle(b.pool, rng);
+      if (!b.queue.length) b.queue = b.order === "level" ? byDifficulty(b.pool, rng) : shuffle(b.pool, rng);
       spawn(b, b.queue.shift(), rng);
       b.nextSpawn = b.elapsed + pace.interval / speed;
     } else if (b.queue.length) {
@@ -196,35 +222,59 @@ export const initialBattle = () => ({
   clears: 0,
   ticketStages: [], // 星3のレアチケットを受け取ったステージ
   day: null,
-  earned: 0, // その日にバトルでもらったポイント
+  earned: 0, // その日にバトルでもらったポイント（記録のみ。上限はない）
 });
 
+/** 正解率（0〜1。答えていなければ 0） */
+const accuracyOf = (b) => {
+  const r = resultsOf(b);
+  return r.length ? r.filter((x) => x.correct).length / r.length : 0;
+};
+
 /**
- * バトルの結果を記録し、ガチャのポイント・チケットを渡す。
- * - 1体 5pt、ステージクリア +50pt、エンドレスの最高得点更新 +100pt（1日 1000pt まで）
- * - ステージを初めて星3でクリアしたら、レアチケット1枚
- * @returns {{ state, reward: { points, tickets, stars, newBest } }}
+ * バトルの報酬（ブースト前）。
+ * - ポイント: 遊んだ時間ぶん（学習・テストと同じ1分あたりの量）に、正解率・クリア・最高得点更新で上乗せし、1000〜3000 に収める
+ * - レアチケット: ステージは ★1=2・★2=4・★3=6 枚（初めての★3はさらに +2）、クリアできなければ1枚。
+ *   エンドレスは 1 + (レベル-1)/2 枚。どちらも 1〜8 枚
+ * - 撃破が REWARD_MIN_KILLS 体未満なら、時間ぶんのポイントだけ（チケットなし）
  */
-export function applyBattle(state, b, today) {
-  const rec = { ...initialBattle(), ...state.battle };
-  const stars = starsOf(b);
+export function battleReward(b, rec = initialBattle()) {
   const stage = b.mode === "stage";
-  const newBest = !stage && b.score > (rec.best[b.key] || 0);
-  let points = b.kills * KILL_POINTS + (b.cleared ? CLEAR_POINTS : 0) + (newBest && b.score > 0 ? BEST_POINTS : 0);
+  const stars = starsOf(b);
+  const newBest = !stage && b.score > 0 && b.score > (rec.best?.[b.key] || 0);
+  const timePoints = pointsForTime(b.elapsed / 1000);
+  if (b.kills < REWARD_MIN_KILLS) return { points: Math.min(timePoints, BATTLE_POINTS.max), tickets: 0, stars, newBest };
+  const bonus = 1 + 0.5 * accuracyOf(b) + (b.cleared ? 0.5 : 0) + (newBest ? 0.3 : 0);
+  const points = Math.round(Math.min(BATTLE_POINTS.max, Math.max(BATTLE_POINTS.min, timePoints * bonus)) / 10) * 10;
+  const firstStar3 = stage && stars === 3 && !(rec.ticketStages || []).includes(b.key);
+  const raw = stage ? (b.cleared ? stars * 2 + (firstStar3 ? 2 : 0) : 1) : 1 + Math.floor((b.level - 1) / 2);
+  const tickets = Math.min(BATTLE_TICKETS.max, Math.max(BATTLE_TICKETS.min, raw));
+  return { points, tickets, stars, newBest, firstStar3 };
+}
+
+/**
+ * バトルの結果を記録し、ガチャのポイント・チケットを渡す（報酬は battleReward。ブースト中はポイント5倍）。
+ * @param now 今の時刻（ms。ブーストの判定に使う）
+ * @returns {{ state, reward: { points, tickets, stars, newBest, boosted } }}
+ */
+export function applyBattle(state, b, today, now = 0) {
+  const rec = { ...initialBattle(), ...state.battle };
+  const stage = b.mode === "stage";
+  const { points: base, tickets, stars, newBest, firstStar3 } = battleReward(b, rec);
+  const rate = boostRate(state.gacha, now);
+  const points = base * rate;
   const earned = rec.day === today ? rec.earned : 0;
-  points = Math.max(0, Math.min(points, BATTLE_DAILY_CAP - earned));
-  const tickets = stage && stars === 3 && !rec.ticketStages.includes(b.key) ? 1 : 0;
   const next = {
     ...rec,
     stars: stage ? { ...rec.stars, [b.key]: Math.max(rec.stars[b.key] || 0, stars) } : rec.stars,
     best: newBest ? { ...rec.best, [b.key]: b.score } : rec.best,
     kills: rec.kills + b.kills,
     clears: rec.clears + (b.cleared ? 1 : 0),
-    ticketStages: tickets ? [...rec.ticketStages, b.key] : rec.ticketStages,
+    ticketStages: firstStar3 ? [...rec.ticketStages, b.key] : rec.ticketStages,
     day: today,
     earned: earned + points,
   };
-  return { state: grant({ ...state, battle: next }, { points, tickets }), reward: { points, tickets, stars, newBest } };
+  return { state: grant({ ...state, battle: next }, { points, tickets }), reward: { points, tickets, stars, newBest, firstStar3: !!firstStar3, boosted: rate > 1 } };
 }
 
 const nonNeg = (v) => (Number.isFinite(v) && v > 0 ? Math.floor(v) : 0);
