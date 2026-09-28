@@ -86,6 +86,21 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "0004d87ecc57f9": {
+   "key": "A|Which route is faster?",
+   "text": "Which route is faster?",
+   "role": "A",
+   "chapter": "ch68",
+   "id": "route",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "f1aa17dd9f3e",
+   "rev": 1,
+   "seconds": 1.44,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
+  },
   "0004e5c512a4e6": {
    "key": "B|Take one tablet twice a day.",
    "text": "Take one tablet twice a day.",
@@ -799,6 +814,21 @@
    "seconds": 1.6,
    "via": "batch",
    "at": "2026-09-28"
+  },
+  "00271651b24916": {
+   "key": "P|platform",
+   "text": "platform",
+   "role": "P",
+   "chapter": "ch68",
+   "id": "platform",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "04e470680ca4",
+   "rev": 1,
+   "seconds": 1.08,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
   },
   "00282f8937d25e": {
    "key": "A|There's a cafe on the corner.",
@@ -1734,6 +1764,21 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "005c8740e2af6c": {
+   "key": "P|parking",
+   "text": "parking",
+   "role": "P",
+   "chapter": "ch68",
+   "id": "parking",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "c6e81b7ef6cc",
+   "rev": 1,
+   "seconds": 1.28,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
+  },
   "005f5a1e7337fa": {
    "key": "P|wide",
    "text": "wide",
@@ -2571,6 +2616,21 @@
    "seconds": 0.89,
    "via": "pack",
    "at": "2026-09-28"
+  },
+  "008c2e671dfbcc": {
+   "key": "A|Use the crosswalk to cross the street.",
+   "text": "Use the crosswalk to cross the street.",
+   "role": "A",
+   "chapter": "ch67",
+   "id": "crosswalk",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "bdc246dd96fd",
+   "rev": 1,
+   "seconds": 2.4,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
   },
   "008c52d7faa662": {
    "key": "P|Could you spell that for me?",
@@ -4913,6 +4973,21 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "01077939bfb082": {
+   "key": "P|church",
+   "text": "church",
+   "role": "P",
+   "chapter": "ch67",
+   "id": "church",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "5fc70b66de07",
+   "rev": 1,
+   "seconds": 1.08,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
+  },
   "0107d19bc3792d": {
    "key": "P|peanut",
    "text": "peanut",
@@ -5110,6 +5185,21 @@
    "seconds": 1.88,
    "via": "batch",
    "at": "2026-09-28"
+  },
+  "010f5411aa3878": {
+   "key": "P|bar",
+   "text": "bar",
+   "role": "P",
+   "chapter": "ch67",
+   "id": "bar",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "f4a07281ba5e",
+   "rev": 1,
+   "seconds": 0.92,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
   },
   "01104969018aff": {
    "key": "P|face",
@@ -5551,6 +5641,21 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "012c3092cacfdb": {
+   "key": "P|ocean",
+   "text": "ocean",
+   "role": "P",
+   "chapter": "ch69",
+   "id": "ocean",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "6049225293d0",
+   "rev": 1,
+   "seconds": 1.2,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
+  },
   "012c47f07bb188": {
    "key": "P|I wouldn't miss it for the world.",
    "text": "I wouldn't miss it for the world.",
@@ -5838,6 +5943,21 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "0135341ec331aa": {
+   "key": "P|plaza",
+   "text": "plaza",
+   "role": "P",
+   "chapter": "ch67",
+   "id": "plaza",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "2f71efc9f452",
+   "rev": 1,
+   "seconds": 1.04,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
+  },
   "0135453bd3cf24": {
    "key": "A|My daughter wants to be a princess.",
    "text": "My daughter wants to be a princess.",
@@ -5992,6 +6112,21 @@
    "seconds": 0.62,
    "via": "pack",
    "at": "2026-09-28"
+  },
+  "013fbbb8028b2f": {
+   "key": "A|There's a fire station down the street.",
+   "text": "There's a fire station down the street.",
+   "role": "A",
+   "chapter": "ch67",
+   "id": "fire-station",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "53f2edb77fdb",
+   "rev": 1,
+   "seconds": 1.96,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
   },
   "01407338c126ac": {
    "key": "P|vast",
@@ -6673,6 +6808,21 @@
    "seconds": 1.92,
    "via": "batch",
    "at": "2026-09-28"
+  },
+  "01672d80e7d5db": {
+   "key": "A|Look, it's a full moon tonight.",
+   "text": "Look, it's a full moon tonight.",
+   "role": "A",
+   "chapter": "ch69",
+   "id": "moon",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "c4c6e7634cc7",
+   "rev": 1,
+   "seconds": 2.0,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
   },
   "01673d6ae34555": {
    "key": "B|I ride my bike.",
@@ -7436,6 +7586,21 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "01979a8409076e": {
+   "key": "A|A big truck blocked the road.",
+   "text": "A big truck blocked the road.",
+   "role": "A",
+   "chapter": "ch68",
+   "id": "truck",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "18d82654b8e6",
+   "rev": 1,
+   "seconds": 2.24,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
+  },
   "01988b423a8999": {
    "key": "B|Okay, let's look at the numbers.",
    "text": "Okay, let's look at the numbers.",
@@ -7831,6 +7996,21 @@
    "sig": "3ff1f700d485",
    "rev": 1,
    "seconds": 1.88,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
+  },
+  "01aa8416351e15": {
+   "key": "A|It's going to rain this afternoon.",
+   "text": "It's going to rain this afternoon.",
+   "role": "A",
+   "chapter": "ch69",
+   "id": "rain",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "15e78cc820f5",
+   "rev": 1,
+   "seconds": 1.64,
    "via": "batch",
    "at": "2026-09-28",
    "unverified": true
@@ -8277,6 +8457,21 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "01bafc8c0ef246": {
+   "key": "P|accelerate",
+   "text": "accelerate",
+   "role": "P",
+   "chapter": "ch68",
+   "id": "accelerate",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "26649593eded",
+   "rev": 1,
+   "seconds": 1.32,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
+  },
   "01bbd13c04173a": {
    "key": "B|Oops, sorry.",
    "text": "Oops, sorry.",
@@ -8503,6 +8698,21 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "01cd0648a35431": {
+   "key": "P|neighborhood",
+   "text": "neighborhood",
+   "role": "P",
+   "chapter": "ch67",
+   "id": "neighborhood",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "b76a08dfa2e4",
+   "rev": 1,
+   "seconds": 1.08,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
+  },
   "01ce9dfc5689f3": {
    "key": "P|Pardon?",
    "text": "Pardon?",
@@ -8587,6 +8797,21 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "01d79bea98e565": {
+   "key": "P|bank",
+   "text": "bank",
+   "role": "P",
+   "chapter": "ch67",
+   "id": "bank",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "e0a9b35186a1",
+   "rev": 1,
+   "seconds": 0.92,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
+  },
   "01d8a9d557b61e": {
    "key": "A|Take the freeway. It's faster.",
    "text": "Take the freeway. It's faster.",
@@ -8628,6 +8853,21 @@
    "seconds": 1.96,
    "via": "batch",
    "at": "2026-09-28"
+  },
+  "01d9d8651606a5": {
+   "key": "A|All passengers must wear seat belts.",
+   "text": "All passengers must wear seat belts.",
+   "role": "A",
+   "chapter": "ch68",
+   "id": "passenger",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "7902d87741a1",
+   "rev": 1,
+   "seconds": 2.16,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
   },
   "01d9eb635add87": {
    "key": "A|Why do you have two jobs?",
@@ -9421,6 +9661,21 @@
    "at": "2026-09-28",
    "unverified": true
   },
+  "020ae25a40a7e7": {
+   "key": "A|I bought a used bicycle.",
+   "text": "I bought a used bicycle.",
+   "role": "A",
+   "chapter": "ch68",
+   "id": "bicycle",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "fad28c109661",
+   "rev": 1,
+   "seconds": 1.84,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
+  },
   "020b25b10d19c4": {
    "key": "P|swag",
    "text": "swag",
@@ -10183,6 +10438,21 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "023a3fa0bdd343": {
+   "key": "A|The phone cut out in the tunnel.",
+   "text": "The phone cut out in the tunnel.",
+   "role": "A",
+   "chapter": "ch68",
+   "id": "tunnel",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "e1e2f4e1b27e",
+   "rev": 1,
+   "seconds": 1.76,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
+  },
   "023b79fe1ea5ad": {
    "key": "P|because",
    "text": "because",
@@ -10324,6 +10594,21 @@
    "seconds": 1.64,
    "via": "batch",
    "at": "2026-09-28"
+  },
+  "0243c563f65c01": {
+   "key": "P|commuter",
+   "text": "commuter",
+   "role": "P",
+   "chapter": "ch68",
+   "id": "commuter",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "38df28632cde",
+   "rev": 1,
+   "seconds": 1.08,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
   },
   "02455db57beb02": {
    "key": "A|I was going to suggest pizza!",
@@ -10709,6 +10994,21 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "025ab5833fd646": {
+   "key": "A|The subway is the fastest way to get there.",
+   "text": "The subway is the fastest way to get there.",
+   "role": "A",
+   "chapter": "ch68",
+   "id": "subway",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "514f731465bb",
+   "rev": 1,
+   "seconds": 2.64,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
+  },
   "025be518a2598e": {
    "key": "P|Take a deep breath in.",
    "text": "Take a deep breath in.",
@@ -11090,6 +11390,21 @@
    "seconds": 1.32,
    "via": "batch",
    "at": "2026-09-28"
+  },
+  "0272df3a4c6a35": {
+   "key": "A|The aquarium has a huge shark tank.",
+   "text": "The aquarium has a huge shark tank.",
+   "role": "A",
+   "chapter": "ch67",
+   "id": "aquarium",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "74603757bec7",
+   "rev": 1,
+   "seconds": 2.68,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
   },
   "0273e71d20d40d": {
    "key": "A|The park is so green in spring.",
@@ -11528,6 +11843,21 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "0292286c837103": {
+   "key": "A|Let's meet at the cafe.",
+   "text": "Let's meet at the cafe.",
+   "role": "A",
+   "chapter": "ch67",
+   "id": "cafe",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "843da4c5e6df",
+   "rev": 1,
+   "seconds": 1.48,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
+  },
   "029302f74dce35": {
    "key": "B|Okay, I should practice what I preach.",
    "text": "Okay, I should practice what I preach.",
@@ -11809,6 +12139,21 @@
    "seconds": 1.64,
    "via": "batch",
    "at": "2026-09-28"
+  },
+  "02a93159cc2ff3": {
+   "key": "A|You can rent electric scooters here.",
+   "text": "You can rent electric scooters here.",
+   "role": "A",
+   "chapter": "ch68",
+   "id": "scooter",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "c0e8050fa959",
+   "rev": 1,
+   "seconds": 2.0,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
   },
   "02ab08fe0588e1": {
    "key": "B|Sure, I'll loop you in.",
@@ -12705,6 +13050,21 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "02d800aafbf970": {
+   "key": "P|helicopter",
+   "text": "helicopter",
+   "role": "P",
+   "chapter": "ch68",
+   "id": "helicopter",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "47d0c579f3ec",
+   "rev": 1,
+   "seconds": 1.24,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
+  },
   "02d84133b50bcb": {
    "key": "A|Is this decaf?",
    "text": "Is this decaf?",
@@ -13213,6 +13573,21 @@
    "sig": "b343f5d7951d",
    "rev": 1,
    "seconds": 2.12,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
+  },
+  "02f12d8d4dd080": {
+   "key": "A|Turn right at the next intersection.",
+   "text": "Turn right at the next intersection.",
+   "role": "A",
+   "chapter": "ch67",
+   "id": "intersection",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "9cdea5c2390a",
+   "rev": 1,
+   "seconds": 2.16,
    "via": "batch",
    "at": "2026-09-28",
    "unverified": true
@@ -13740,6 +14115,21 @@
    "at": "2026-09-28",
    "unverified": true
   },
+  "0312d2f063be9b": {
+   "key": "P|van",
+   "text": "van",
+   "role": "P",
+   "chapter": "ch68",
+   "id": "van",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "eace82cfb055",
+   "rev": 1,
+   "seconds": 0.92,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
+  },
   "03139e086cdae0": {
    "key": "P|the best of both worlds",
    "text": "the best of both worlds",
@@ -13824,6 +14214,21 @@
    "seconds": 1.88,
    "via": "batch",
    "at": "2026-09-28"
+  },
+  "031bc75fa386d6": {
+   "key": "A|The sky is so clear today.",
+   "text": "The sky is so clear today.",
+   "role": "A",
+   "chapter": "ch69",
+   "id": "sky",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "20a742322f8f",
+   "rev": 1,
+   "seconds": 2.08,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
   },
   "031cf5266c3153": {
    "key": "B|Sure, send it to me.",
@@ -14929,6 +15334,21 @@
    "sig": "1f6249978815",
    "rev": 1,
    "seconds": 1.88,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
+  },
+  "035ec5e57a874b": {
+   "key": "P|direction",
+   "text": "direction",
+   "role": "P",
+   "chapter": "ch68",
+   "id": "direction",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "8545da0c08fb",
+   "rev": 1,
+   "seconds": 1.08,
    "via": "batch",
    "at": "2026-09-28",
    "unverified": true
@@ -17012,6 +17432,21 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "03da528dd82746": {
+   "key": "A|The railroad runs along the river.",
+   "text": "The railroad runs along the river.",
+   "role": "A",
+   "chapter": "ch68",
+   "id": "railroad",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "3dff46c76031",
+   "rev": 1,
+   "seconds": 1.84,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
+  },
   "03dad5af3067bb": {
    "key": "A|We'll eat first, then watch the movie.",
    "text": "We'll eat first, then watch the movie.",
@@ -17854,6 +18289,21 @@
    "seconds": 1.8,
    "via": "batch",
    "at": "2026-09-28"
+  },
+  "040d6ae2897901": {
+   "key": "A|I need to go to the bank.",
+   "text": "I need to go to the bank.",
+   "role": "A",
+   "chapter": "ch67",
+   "id": "bank",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "9964befdb443",
+   "rev": 1,
+   "seconds": 1.52,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
   },
   "040e551ba84189": {
    "key": "A|My desk is always messy.",
@@ -19928,6 +20378,21 @@
    "at": "2026-09-28",
    "unverified": true
   },
+  "048af9af59e09e": {
+   "key": "P|ferry",
+   "text": "ferry",
+   "role": "P",
+   "chapter": "ch68",
+   "id": "ferry",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "4626e91b4307",
+   "rev": 1,
+   "seconds": 0.96,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
+  },
   "048b453e06e456": {
    "key": "P|What do you do?",
    "text": "What do you do?",
@@ -20108,6 +20573,21 @@
    "sig": "6bd7f77acf81",
    "rev": 1,
    "seconds": 1.44,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
+  },
+  "0494ec171d1f14": {
+   "key": "A|We rented a van for the trip.",
+   "text": "We rented a van for the trip.",
+   "role": "A",
+   "chapter": "ch68",
+   "id": "van",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "81bbb374fa0a",
+   "rev": 1,
+   "seconds": 1.72,
    "via": "batch",
    "at": "2026-09-28",
    "unverified": true
@@ -21135,6 +21615,21 @@
    "at": "2026-09-28",
    "unverified": true
   },
+  "04d61f9d0ac87a": {
+   "key": "P|forecast",
+   "text": "forecast",
+   "role": "P",
+   "chapter": "ch69",
+   "id": "forecast",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "f09fca6454ee",
+   "rev": 1,
+   "seconds": 1.2,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
+  },
   "04d62782e1a110": {
    "key": "A|How was the hike?",
    "text": "How was the hike?",
@@ -21501,6 +21996,21 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "04ebf771d445c5": {
+   "key": "A|How long does it take to get to the airport?",
+   "text": "How long does it take to get to the airport?",
+   "role": "A",
+   "chapter": "ch67",
+   "id": "airport",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "92e084954372",
+   "rev": 1,
+   "seconds": 2.24,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
+  },
   "04ecd94a2863f4": {
    "key": "A|Do you want red or white?",
    "text": "Do you want red or white?",
@@ -21542,6 +22052,21 @@
    "seconds": 1.8,
    "via": "batch",
    "at": "2026-09-28"
+  },
+  "04ef1832f01500": {
+   "key": "A|The train leaves from platform 3.",
+   "text": "The train leaves from platform 3.",
+   "role": "A",
+   "chapter": "ch68",
+   "id": "platform",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "e259d01c663f",
+   "rev": 1,
+   "seconds": 1.92,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
   },
   "04f09c67af3add": {
    "key": "A|Do we have enough chairs?",
@@ -22210,6 +22735,21 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "0518c23c7c2e27": {
+   "key": "A|A big storm is coming.",
+   "text": "A big storm is coming.",
+   "role": "A",
+   "chapter": "ch69",
+   "id": "storm",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "9e7efa2a6662",
+   "rev": 1,
+   "seconds": 1.48,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
+  },
   "051a5b4cfba4a3": {
    "key": "B|I'll see how I feel.",
    "text": "I'll see how I feel.",
@@ -22306,6 +22846,21 @@
    "sig": "c92eee084d55",
    "rev": 1,
    "seconds": 1.04,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
+  },
+  "052054726c1451": {
+   "key": "A|You can see the whole city from the tower.",
+   "text": "You can see the whole city from the tower.",
+   "role": "A",
+   "chapter": "ch67",
+   "id": "tower",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "ea79291bcd74",
+   "rev": 1,
+   "seconds": 2.36,
    "via": "batch",
    "at": "2026-09-28",
    "unverified": true
@@ -22976,6 +23531,21 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "0547058019ec23": {
+   "key": "A|Let's take a walk in the park.",
+   "text": "Let's take a walk in the park.",
+   "role": "A",
+   "chapter": "ch67",
+   "id": "park",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "d16241c46668",
+   "rev": 1,
+   "seconds": 1.44,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
+  },
   "05499240eccad0": {
    "key": "B|There's a daily resort fee.",
    "text": "There's a daily resort fee.",
@@ -23215,6 +23785,21 @@
    "seconds": 1.45,
    "via": "pack",
    "at": "2026-09-28"
+  },
+  "054fa432d9ecd6": {
+   "key": "A|We took the ferry to the island.",
+   "text": "We took the ferry to the island.",
+   "role": "A",
+   "chapter": "ch68",
+   "id": "ferry",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "7342083d1827",
+   "rev": 1,
+   "seconds": 1.64,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
   },
   "0550073cff8ca9": {
    "key": "B|It's just around the corner.",
@@ -24567,6 +25152,21 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "0596555eb39d0b": {
+   "key": "P|bike",
+   "text": "bike",
+   "role": "P",
+   "chapter": "ch68",
+   "id": "bike",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "b95c59dce9f5",
+   "rev": 1,
+   "seconds": 0.84,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
+  },
   "0597367120b180": {
    "key": "P|stomach",
    "text": "stomach",
@@ -24578,6 +25178,21 @@
    "sig": "e9f28e18092c",
    "rev": 1,
    "seconds": 1.24,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
+  },
+  "0597a65d86a83a": {
+   "key": "P|honk",
+   "text": "honk",
+   "role": "P",
+   "chapter": "ch68",
+   "id": "honk",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "6f9184702f41",
+   "rev": 1,
+   "seconds": 0.68,
    "via": "batch",
    "at": "2026-09-28",
    "unverified": true
@@ -24762,6 +25377,21 @@
    "sig": "9c2ec78dc622",
    "rev": 1,
    "seconds": 2.04,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
+  },
+  "05a08ad8fd7ce9": {
+   "key": "P|storm",
+   "text": "storm",
+   "role": "P",
+   "chapter": "ch69",
+   "id": "storm",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "adb6645d73c2",
+   "rev": 1,
+   "seconds": 1.0,
    "via": "batch",
    "at": "2026-09-28",
    "unverified": true
@@ -26545,6 +27175,21 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "06084a38a5b17b": {
+   "key": "A|I can track my package online.",
+   "text": "I can track my package online.",
+   "role": "A",
+   "chapter": "ch68",
+   "id": "track",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "ec8f7ef1183c",
+   "rev": 1,
+   "seconds": 1.84,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
+  },
   "060890cf8fbd5b": {
    "key": "P|Thursday",
    "text": "Thursday",
@@ -27225,6 +27870,21 @@
    "seconds": 1.64,
    "via": "batch",
    "at": "2026-09-28"
+  },
+  "062f0890c769e0": {
+   "key": "P|delay",
+   "text": "delay",
+   "role": "P",
+   "chapter": "ch68",
+   "id": "delay",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "fb6991c6a0b6",
+   "rev": 1,
+   "seconds": 1.2,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
   },
   "062f435e98a2d0": {
    "key": "A|Can I get on standby for the next flight?",
@@ -28831,6 +29491,21 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "068c6b82897eb8": {
+   "key": "P|post office",
+   "text": "post office",
+   "role": "P",
+   "chapter": "ch67",
+   "id": "post-office",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "bc125044ab13",
+   "rev": 1,
+   "seconds": 1.08,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
+  },
   "068c73c77ed3d8": {
    "key": "P|That's the spirit!",
    "text": "That's the spirit!",
@@ -29770,6 +30445,21 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "06c1e90544f819": {
+   "key": "A|The courthouse is next to city hall.",
+   "text": "The courthouse is next to city hall.",
+   "role": "A",
+   "chapter": "ch67",
+   "id": "courthouse",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "c570dce3a94f",
+   "rev": 1,
+   "seconds": 2.24,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
+  },
   "06c376f04d0f54": {
    "key": "P|pharmacy counter",
    "text": "pharmacy counter",
@@ -30535,6 +31225,21 @@
    "seconds": 1.56,
    "via": "batch",
    "at": "2026-09-28"
+  },
+  "06eaa50d5ae735": {
+   "key": "A|Is there free parking here?",
+   "text": "Is there free parking here?",
+   "role": "A",
+   "chapter": "ch68",
+   "id": "parking",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "0e254a57d864",
+   "rev": 1,
+   "seconds": 1.52,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
   },
   "06ebb41fcc932f": {
    "key": "P|territory",
@@ -31343,6 +32048,21 @@
    "seconds": 1.4,
    "via": "batch",
    "at": "2026-09-28"
+  },
+  "0719daff435c18": {
+   "key": "A|Turn left at the second traffic light.",
+   "text": "Turn left at the second traffic light.",
+   "role": "A",
+   "chapter": "ch68",
+   "id": "traffic-light",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "e1d06ddf936f",
+   "rev": 1,
+   "seconds": 2.2,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
   },
   "071a2ba49efec9": {
    "key": "A|It looks like rain.",
@@ -32511,6 +33231,21 @@
    "seconds": 1.88,
    "via": "batch",
    "at": "2026-09-28"
+  },
+  "075f612b0c55d7": {
+   "key": "P|bridge",
+   "text": "bridge",
+   "role": "P",
+   "chapter": "ch67",
+   "id": "bridge",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "20199f1974e9",
+   "rev": 1,
+   "seconds": 1.0,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
   },
   "0760b69cb2807d": {
    "key": "P|The baby's napping.",
@@ -33803,6 +34538,21 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "07ae0c2cd1a0eb": {
+   "key": "A|What's the forecast for tomorrow?",
+   "text": "What's the forecast for tomorrow?",
+   "role": "A",
+   "chapter": "ch69",
+   "id": "forecast",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "f9b21f4a6ed3",
+   "rev": 1,
+   "seconds": 2.12,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
+  },
   "07ae71c98bf5ed": {
    "key": "P|Have you seen any good movies lately?",
    "text": "Have you seen any good movies lately?",
@@ -34273,6 +35023,21 @@
    "seconds": 1.56,
    "via": "batch",
    "at": "2026-09-28"
+  },
+  "07d1d249b2cd1e": {
+   "key": "P|skyscraper",
+   "text": "skyscraper",
+   "role": "P",
+   "chapter": "ch67",
+   "id": "skyscraper",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "ebf1de7d8980",
+   "rev": 1,
+   "seconds": 1.4,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
   },
   "07d2326d2b164c": {
    "key": "P|Have a happy Thanksgiving!",
@@ -35095,6 +35860,21 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "0807751d0e0518": {
+   "key": "A|Meet me at the main entrance.",
+   "text": "Meet me at the main entrance.",
+   "role": "A",
+   "chapter": "ch67",
+   "id": "entrance",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "52ca2b4b7ed7",
+   "rev": 1,
+   "seconds": 1.88,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
+  },
   "080a070ddb7907": {
    "key": "A|Sorry to ask, but could you lend me your notes?",
    "text": "Sorry to ask, but could you lend me your notes?",
@@ -35521,6 +36301,21 @@
    "at": "2026-09-28",
    "unverified": true
   },
+  "081f02acae3ebd": {
+   "key": "P|station",
+   "text": "station",
+   "role": "P",
+   "chapter": "ch67",
+   "id": "station",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "c36ec67110f3",
+   "rev": 1,
+   "seconds": 1.08,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
+  },
   "081f2a6340c875": {
    "key": "P|hair",
    "text": "hair",
@@ -35734,6 +36529,21 @@
    "seconds": 2.0,
    "via": "pack",
    "at": "2026-09-28"
+  },
+  "082d7d985fea16": {
+   "key": "P|museum",
+   "text": "museum",
+   "role": "P",
+   "chapter": "ch67",
+   "id": "museum",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "a0a321c0dd16",
+   "rev": 1,
+   "seconds": 1.2,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
   },
   "082dafdac998a9": {
    "key": "A|That's strange. The door was open.",
@@ -36409,6 +37219,21 @@
    "seconds": 1.4,
    "via": "batch",
    "at": "2026-09-28"
+  },
+  "08563fb528f152": {
+   "key": "P|temple",
+   "text": "temple",
+   "role": "P",
+   "chapter": "ch67",
+   "id": "temple",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "d0a7030e1432",
+   "rev": 1,
+   "seconds": 0.8,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
   },
   "0857f3ef89f96d": {
    "key": "B|Can you order it for me?",
@@ -37306,6 +38131,36 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "088f96176cefda": {
+   "key": "P|fare",
+   "text": "fare",
+   "role": "P",
+   "chapter": "ch68",
+   "id": "fare",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "5466a0c2f200",
+   "rev": 1,
+   "seconds": 0.76,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
+  },
+  "0890365dc83614": {
+   "key": "P|pedestrian",
+   "text": "pedestrian",
+   "role": "P",
+   "chapter": "ch68",
+   "id": "pedestrian",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "78a116e78237",
+   "rev": 1,
+   "seconds": 1.4,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
+  },
   "08906a447d3303": {
    "key": "P|month-to-month",
    "text": "month-to-month",
@@ -37943,6 +38798,21 @@
    "seconds": 1.68,
    "via": "batch",
    "at": "2026-09-28"
+  },
+  "08b6c212256422": {
+   "key": "A|I can't sleep on an airplane.",
+   "text": "I can't sleep on an airplane.",
+   "role": "A",
+   "chapter": "ch68",
+   "id": "airplane",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "9378c98c4421",
+   "rev": 1,
+   "seconds": 1.76,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
   },
   "08b6e141a0c77b": {
    "key": "A|My nephew is turning five.",
@@ -38848,6 +39718,21 @@
    "sig": "f1bf4efc07be",
    "rev": 1,
    "seconds": 1.12,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
+  },
+  "08e53249d6b116": {
+   "key": "P|map",
+   "text": "map",
+   "role": "P",
+   "chapter": "ch68",
+   "id": "map",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "2a8f7856a49a",
+   "rev": 1,
+   "seconds": 0.96,
    "via": "batch",
    "at": "2026-09-28",
    "unverified": true
@@ -40357,6 +41242,21 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "093cf52c7e9f76": {
+   "key": "P|weather",
+   "text": "weather",
+   "role": "P",
+   "chapter": "ch69",
+   "id": "weather",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "7b5350beb032",
+   "rev": 1,
+   "seconds": 1.08,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
+  },
   "093d470f336d76": {
    "key": "A|She took my toy!",
    "text": "She took my toy!",
@@ -40469,6 +41369,21 @@
    "seconds": 2.4,
    "via": "batch",
    "at": "2026-09-28"
+  },
+  "09442336cf0552": {
+   "key": "P|ticket",
+   "text": "ticket",
+   "role": "P",
+   "chapter": "ch68",
+   "id": "ticket",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "4f1975125e01",
+   "rev": 1,
+   "seconds": 1.16,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
   },
   "0944caa3d5700d": {
    "key": "A|Why is he sitting in the corner?",
@@ -40822,6 +41737,21 @@
    "seconds": 1.6,
    "via": "batch",
    "at": "2026-09-28"
+  },
+  "095bd23c244c17": {
+   "key": "P|speed",
+   "text": "speed",
+   "role": "P",
+   "chapter": "ch68",
+   "id": "speed",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "287a2f3dd527",
+   "rev": 1,
+   "seconds": 0.92,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
   },
   "095d01513f52f1": {
    "key": "P|leg",
@@ -41978,6 +42908,21 @@
    "seconds": 1.78,
    "via": "pack",
    "at": "2026-09-28"
+  },
+  "09a47ce1abf02e": {
+   "key": "A|We'll ship it tomorrow.",
+   "text": "We'll ship it tomorrow.",
+   "role": "A",
+   "chapter": "ch68",
+   "id": "ship",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "c40410a884f4",
+   "rev": 1,
+   "seconds": 1.48,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
   },
   "09a6bf6d8566ff": {
    "key": "A|Why do you all wear ugly sweaters?",
@@ -43199,6 +44144,21 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "09e96c74aad3d2": {
+   "key": "A|I study at the library.",
+   "text": "I study at the library.",
+   "role": "A",
+   "chapter": "ch67",
+   "id": "library",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "9f2396fff917",
+   "rev": 1,
+   "seconds": 1.4,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
+  },
   "09ead5833a11fb": {
    "key": "P|travel insurance",
    "text": "travel insurance",
@@ -43369,6 +44329,21 @@
    "seconds": 0.93,
    "via": "pack",
    "at": "2026-09-28"
+  },
+  "09f4bb1c41174c": {
+   "key": "P|heatwave",
+   "text": "heatwave",
+   "role": "P",
+   "chapter": "ch69",
+   "id": "heatwave",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "43de6aaf4bc8",
+   "rev": 1,
+   "seconds": 1.0,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
   },
   "09f56b571dc88b": {
    "key": "B|Yes, or we'll charge you for gas.",
@@ -43828,6 +44803,21 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "0a0d7842c598f2": {
+   "key": "A|Let's go for a bike ride.",
+   "text": "Let's go for a bike ride.",
+   "role": "A",
+   "chapter": "ch68",
+   "id": "bike",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "325c86f48219",
+   "rev": 1,
+   "seconds": 1.48,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
+  },
   "0a0d7cff73eee3": {
    "key": "B|Family comes first.",
    "text": "Family comes first.",
@@ -43900,6 +44890,21 @@
    "seconds": 1.32,
    "via": "batch",
    "at": "2026-09-28"
+  },
+  "0a10ef8d5d8f8d": {
+   "key": "P|bakery",
+   "text": "bakery",
+   "role": "P",
+   "chapter": "ch67",
+   "id": "bakery",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "474d14837652",
+   "rev": 1,
+   "seconds": 1.12,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
   },
   "0a12f47ab616e3": {
    "key": "P|thick",
@@ -47605,6 +48610,21 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "0af7b5c2c0e8d6": {
+   "key": "P|entrance",
+   "text": "entrance",
+   "role": "P",
+   "chapter": "ch67",
+   "id": "entrance",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "76ebdd285d0c",
+   "rev": 1,
+   "seconds": 1.28,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
+  },
   "0afb369079e0e6": {
    "key": "B|It's going to be okay. We'll get you on the next one.",
    "text": "It's going to be okay. We'll get you on the next one.",
@@ -49029,6 +50049,21 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "0b483a6f394e32": {
+   "key": "P|signal",
+   "text": "signal",
+   "role": "P",
+   "chapter": "ch68",
+   "id": "signal",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "dfe52c00fdb2",
+   "rev": 1,
+   "seconds": 1.04,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
+  },
   "0b490b46f88511": {
    "key": "A|I got a new job last month.",
    "text": "I got a new job last month.",
@@ -49613,6 +50648,21 @@
    "at": "2026-09-28",
    "unverified": true
   },
+  "0b691d3f3bd1fc": {
+   "key": "A|Stay on the sidewalk.",
+   "text": "Stay on the sidewalk.",
+   "role": "A",
+   "chapter": "ch67",
+   "id": "sidewalk",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "ecc2ecb518b6",
+   "rev": 1,
+   "seconds": 1.36,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
+  },
   "0b6a2c1c05eb6b": {
    "key": "A|What does \"ASAP\" stand for?",
    "text": "What does \"ASAP\" stand for?",
@@ -50027,6 +51077,21 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "0b8d8f56ffd9a2": {
+   "key": "A|It's hard to steer this old car.",
+   "text": "It's hard to steer this old car.",
+   "role": "A",
+   "chapter": "ch68",
+   "id": "steer",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "f2dfac93e9e5",
+   "rev": 1,
+   "seconds": 2.28,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
+  },
   "0b8db3bebf96a4": {
    "key": "A|Sorry, my room is really messy.",
    "text": "Sorry, my room is really messy.",
@@ -50040,6 +51105,21 @@
    "seconds": 2.11,
    "via": "pack",
    "at": "2026-09-28"
+  },
+  "0b8f51d3db34e4": {
+   "key": "A|Let's rent a boat on the lake.",
+   "text": "Let's rent a boat on the lake.",
+   "role": "A",
+   "chapter": "ch68",
+   "id": "boat",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "0683893a35db",
+   "rev": 1,
+   "seconds": 1.56,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
   },
   "0b8ffde6a48933": {
    "key": "A|Should I tell her the truth?",
@@ -50139,6 +51219,21 @@
    "seconds": 1.44,
    "via": "batch",
    "at": "2026-09-28"
+  },
+  "0b940ca5f7b6bd": {
+   "key": "P|car",
+   "text": "car",
+   "role": "P",
+   "chapter": "ch68",
+   "id": "car",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "4fcaea56a4ad",
+   "rev": 1,
+   "seconds": 0.96,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
   },
   "0b957ef27c52e7": {
    "key": "A|Does the bedroom have a walk-in closet?",
@@ -52988,6 +54083,21 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "0c285cf7f3b4de": {
+   "key": "A|Watch your speed on this road.",
+   "text": "Watch your speed on this road.",
+   "role": "A",
+   "chapter": "ch68",
+   "id": "speed",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "ab9acad74ad4",
+   "rev": 1,
+   "seconds": 1.72,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
+  },
   "0c28c9f1b9ce79": {
    "key": "P|I'd like to close my account.",
    "text": "I'd like to close my account.",
@@ -53271,6 +54381,21 @@
    "seconds": 2.36,
    "via": "batch",
    "at": "2026-09-28"
+  },
+  "0c34beb5d25c8e": {
+   "key": "A|We've arrived at our destination.",
+   "text": "We've arrived at our destination.",
+   "role": "A",
+   "chapter": "ch68",
+   "id": "destination",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "f18e02301e67",
+   "rev": 1,
+   "seconds": 2.12,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
   },
   "0c36c4587e73c0": {
    "key": "B|I'll send the proposal by Friday.",
@@ -53610,6 +54735,21 @@
    "sig": "bbb8b3f4494f",
    "rev": 1,
    "seconds": 0.96,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
+  },
+  "0c476f30242511": {
+   "key": "P|motorcycle",
+   "text": "motorcycle",
+   "role": "P",
+   "chapter": "ch68",
+   "id": "motorcycle",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "f2439e56cda5",
+   "rev": 1,
+   "seconds": 1.28,
    "via": "batch",
    "at": "2026-09-28",
    "unverified": true
@@ -54068,6 +55208,21 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "0c5c54eaa7cf0e": {
+   "key": "A|This is a quiet neighborhood.",
+   "text": "This is a quiet neighborhood.",
+   "role": "A",
+   "chapter": "ch67",
+   "id": "neighborhood",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "f5f0239bc394",
+   "rev": 1,
+   "seconds": 1.76,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
+  },
   "0c5cc17560b42e": {
    "key": "A|You've been going to the gym a lot.",
    "text": "You've been going to the gym a lot.",
@@ -54417,6 +55572,36 @@
    "sig": "c1c0b8203a1e",
    "rev": 1,
    "seconds": 1.96,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
+  },
+  "0c71e9ebd7b02e": {
+   "key": "P|stadium",
+   "text": "stadium",
+   "role": "P",
+   "chapter": "ch67",
+   "id": "stadium",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "a16f2cd9e881",
+   "rev": 1,
+   "seconds": 1.08,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
+  },
+  "0c71fb126d62d1": {
+   "key": "P|pilot",
+   "text": "pilot",
+   "role": "P",
+   "chapter": "ch68",
+   "id": "pilot",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "68dbc6339bc7",
+   "rev": 1,
+   "seconds": 0.96,
    "via": "batch",
    "at": "2026-09-28",
    "unverified": true
@@ -54920,6 +56105,21 @@
    "seconds": 2.0,
    "via": "batch",
    "at": "2026-09-28"
+  },
+  "0c9042fb7211aa": {
+   "key": "P|park",
+   "text": "park",
+   "role": "P",
+   "chapter": "ch67",
+   "id": "park",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "d835a67bfefa",
+   "rev": 1,
+   "seconds": 0.84,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
   },
   "0c90ecdaba33cf": {
    "key": "P|Have you tried intermittent fasting?",
@@ -55444,6 +56644,21 @@
    "at": "2026-09-28",
    "unverified": true
   },
+  "0cb3550133e963": {
+   "key": "A|The stadium holds 50,000 people.",
+   "text": "The stadium holds 50,000 people.",
+   "role": "A",
+   "chapter": "ch67",
+   "id": "stadium",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "12b61c50f194",
+   "rev": 1,
+   "seconds": 2.92,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
+  },
   "0cb37b3d8314c3": {
    "key": "A|Could you double-check the address?",
    "text": "Could you double-check the address?",
@@ -55858,6 +57073,21 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "0cc9d0cae3fb5c": {
+   "key": "P|airplane",
+   "text": "airplane",
+   "role": "P",
+   "chapter": "ch68",
+   "id": "airplane",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "9c00fbac8556",
+   "rev": 1,
+   "seconds": 1.32,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
+  },
   "0ccacd62213a58": {
    "key": "P|double",
    "text": "double",
@@ -56028,6 +57258,21 @@
    "seconds": 1.72,
    "via": "batch",
    "at": "2026-09-28"
+  },
+  "0cd32c8cbff201": {
+   "key": "P|driver",
+   "text": "driver",
+   "role": "P",
+   "chapter": "ch68",
+   "id": "driver",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "33868737e0a9",
+   "rev": 1,
+   "seconds": 1.04,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
   },
   "0cd3a3d3ca321d": {
    "key": "P|pop",
@@ -59092,6 +60337,21 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "0d877894eacfec": {
+   "key": "A|It's within walking distance.",
+   "text": "It's within walking distance.",
+   "role": "A",
+   "chapter": "ch68",
+   "id": "distance",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "4d07053e80af",
+   "rev": 1,
+   "seconds": 1.76,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
+  },
   "0d8851695b34ee": {
    "key": "B|I binged the whole season last weekend.",
    "text": "I binged the whole season last weekend.",
@@ -59504,6 +60764,21 @@
    "seconds": 1.77,
    "via": "pack",
    "at": "2026-09-28"
+  },
+  "0da0969e4045f8": {
+   "key": "A|There's a tornado warning tonight.",
+   "text": "There's a tornado warning tonight.",
+   "role": "A",
+   "chapter": "ch69",
+   "id": "tornado",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "29de4adc1240",
+   "rev": 1,
+   "seconds": 2.08,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
   },
   "0da3d54dc558b8": {
    "key": "P|I'll have the chicken, please.",
@@ -61243,6 +62518,21 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "0e027e7feec3ec": {
+   "key": "P|aquarium",
+   "text": "aquarium",
+   "role": "P",
+   "chapter": "ch67",
+   "id": "aquarium",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "87bae6fe1146",
+   "rev": 1,
+   "seconds": 1.2,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
+  },
   "0e0311f175340a": {
    "key": "B|No, just window shopping.",
    "text": "No, just window shopping.",
@@ -61851,6 +63141,21 @@
    "sig": "f33d723a6f97",
    "rev": 1,
    "seconds": 1.68,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
+  },
+  "0e21e0691e95cd": {
+   "key": "A|Let me check the map on my phone.",
+   "text": "Let me check the map on my phone.",
+   "role": "A",
+   "chapter": "ch68",
+   "id": "map",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "3b58a08a18f5",
+   "rev": 1,
+   "seconds": 2.0,
    "via": "batch",
    "at": "2026-09-28",
    "unverified": true
@@ -62561,6 +63866,21 @@
    "seconds": 2.12,
    "via": "batch",
    "at": "2026-09-28"
+  },
+  "0e5102419d84fb": {
+   "key": "A|I love swimming in the sea.",
+   "text": "I love swimming in the sea.",
+   "role": "A",
+   "chapter": "ch69",
+   "id": "sea",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "497fdc8be65d",
+   "rev": 1,
+   "seconds": 2.04,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
   },
   "0e517f4157f1ba": {
    "key": "B|Oh, my bad.",
@@ -63942,6 +65262,21 @@
    "at": "2026-09-28",
    "unverified": true
   },
+  "0ea95737a9cf53": {
+   "key": "A|This bakery has amazing croissants.",
+   "text": "This bakery has amazing croissants.",
+   "role": "A",
+   "chapter": "ch67",
+   "id": "bakery",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "be6a9be40b71",
+   "rev": 1,
+   "seconds": 2.64,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
+  },
   "0eaae63da06026": {
    "key": "A|The address is 1542 Northwest Boulevard.",
    "text": "The address is 1542 Northwest Boulevard.",
@@ -64138,6 +65473,21 @@
    "seconds": 1.96,
    "via": "batch",
    "at": "2026-09-28"
+  },
+  "0eb4f44a84b742": {
+   "key": "P|airport",
+   "text": "airport",
+   "role": "P",
+   "chapter": "ch67",
+   "id": "airport",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "ca23610dd443",
+   "rev": 1,
+   "seconds": 0.96,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
   },
   "0eb60036e82399": {
    "key": "P|wish",
@@ -64807,6 +66157,21 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "0ed4797a69917e": {
+   "key": "A|Can you recommend a good restaurant?",
+   "text": "Can you recommend a good restaurant?",
+   "role": "A",
+   "chapter": "ch67",
+   "id": "restaurant",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "0519c89c03af",
+   "rev": 1,
+   "seconds": 1.88,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
+  },
   "0ed542ee88b1f0": {
    "key": "B|Yes, it'll hit tonight.",
    "text": "Yes, it'll hit tonight.",
@@ -65234,6 +66599,21 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "0ee640abbd7074": {
+   "key": "P|hotel",
+   "text": "hotel",
+   "role": "P",
+   "chapter": "ch67",
+   "id": "hotel",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "b4cc6d048e74",
+   "rev": 1,
+   "seconds": 1.16,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
+  },
   "0ee65f0deb7448": {
    "key": "P|senior",
    "text": "senior",
@@ -65431,6 +66811,21 @@
    "seconds": 0.82,
    "via": "pack",
    "at": "2026-09-28"
+  },
+  "0ef456bd01c9f1": {
+   "key": "P|police station",
+   "text": "police station",
+   "role": "P",
+   "chapter": "ch67",
+   "id": "police-station",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "6fb72985fc02",
+   "rev": 1,
+   "seconds": 1.44,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
   },
   "0ef46c56460b6d": {
    "key": "A|What's up, man?",
@@ -65700,6 +67095,21 @@
    "seconds": 1.41,
    "via": "pack",
    "at": "2026-09-28"
+  },
+  "0f0a05d448f1ee": {
+   "key": "A|The sun is really strong today.",
+   "text": "The sun is really strong today.",
+   "role": "A",
+   "chapter": "ch69",
+   "id": "sun",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "e712c671ea77",
+   "rev": 1,
+   "seconds": 2.56,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
   },
   "0f0a88155657b8": {
    "key": "A|I need to clean my room this weekend.",
@@ -66376,6 +67786,21 @@
    "seconds": 1.8,
    "via": "batch",
    "at": "2026-09-28"
+  },
+  "0f381db8157b9a": {
+   "key": "A|Look, there's a rainbow!",
+   "text": "Look, there's a rainbow!",
+   "role": "A",
+   "chapter": "ch69",
+   "id": "rainbow",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "5ffcec241a87",
+   "rev": 1,
+   "seconds": 2.08,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
   },
   "0f387bb1d771ac": {
    "key": "B|You should be proud of yourself!",
@@ -67981,6 +69406,21 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "0f91ccb1530134": {
+   "key": "P|road",
+   "text": "road",
+   "role": "P",
+   "chapter": "ch68",
+   "id": "road",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "6d04a1cc39d5",
+   "rev": 1,
+   "seconds": 0.92,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
+  },
   "0f923a878058d1": {
    "key": "A|Put on your shoes. We're leaving.",
    "text": "Put on your shoes. We're leaving.",
@@ -67994,6 +69434,21 @@
    "seconds": 1.76,
    "via": "batch",
    "at": "2026-09-28"
+  },
+  "0f934ef0a4af7f": {
+   "key": "P|vehicle",
+   "text": "vehicle",
+   "role": "P",
+   "chapter": "ch68",
+   "id": "vehicle",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "cc86dfdc4120",
+   "rev": 1,
+   "seconds": 1.12,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
   },
   "0f939879a89e11": {
    "key": "A|It was minus ten degrees this morning.",
@@ -69306,6 +70761,21 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "0fe9ac70ecf548": {
+   "key": "P|intersection",
+   "text": "intersection",
+   "role": "P",
+   "chapter": "ch67",
+   "id": "intersection",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "aa4fae13de40",
+   "rev": 1,
+   "seconds": 1.2,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
+  },
   "0fe9baf67b2d58": {
    "key": "P|Let me mull it over.",
    "text": "Let me mull it over.",
@@ -69561,6 +71031,21 @@
    "seconds": 1.27,
    "via": "pack",
    "at": "2026-09-28"
+  },
+  "0ff6be2b20b83e": {
+   "key": "P|gym",
+   "text": "gym",
+   "role": "P",
+   "chapter": "ch67",
+   "id": "gym",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "65db051d5adc",
+   "rev": 1,
+   "seconds": 1.12,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
   },
   "0ff70aa5029edb": {
    "key": "A|Please sign the form.",
@@ -70233,6 +71718,21 @@
    "seconds": 1.28,
    "via": "batch",
    "at": "2026-09-28"
+  },
+  "10219b0bdd1ace": {
+   "key": "A|The kids are at the playground.",
+   "text": "The kids are at the playground.",
+   "role": "A",
+   "chapter": "ch67",
+   "id": "playground",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "f6b87643d360",
+   "rev": 1,
+   "seconds": 1.6,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
   },
   "1022593c3fd02b": {
    "key": "B|By the skin of my teeth.",
@@ -71070,6 +72570,21 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "104f355ba39186": {
+   "key": "A|We got a lot of snow last night.",
+   "text": "We got a lot of snow last night.",
+   "role": "A",
+   "chapter": "ch69",
+   "id": "snow",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "c55066937a97",
+   "rev": 1,
+   "seconds": 2.24,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
+  },
   "1050454f72e166": {
    "key": "P|on the same page",
    "text": "on the same page",
@@ -71279,6 +72794,21 @@
    "sig": "d062a54c9e16",
    "rev": 1,
    "seconds": 2.44,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
+  },
+  "105d45f2d42c47": {
+   "key": "A|Always stop for pedestrians.",
+   "text": "Always stop for pedestrians.",
+   "role": "A",
+   "chapter": "ch68",
+   "id": "pedestrian",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "283cd134359f",
+   "rev": 1,
+   "seconds": 1.92,
    "via": "batch",
    "at": "2026-09-28",
    "unverified": true
@@ -71580,6 +73110,21 @@
    "seconds": 1.71,
    "via": "pack",
    "at": "2026-09-28"
+  },
+  "106c003d7fbfa4": {
+   "key": "A|The theater was packed.",
+   "text": "The theater was packed.",
+   "role": "A",
+   "chapter": "ch67",
+   "id": "theater",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "9d33378aefce",
+   "rev": 1,
+   "seconds": 1.72,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
   },
   "106c2723d8d42b": {
    "key": "A|Gym tonight?",
@@ -72045,6 +73590,21 @@
    "seconds": 1.29,
    "via": "pack",
    "at": "2026-09-28"
+  },
+  "108a3fe819c1f9": {
+   "key": "A|She's still in the hospital.",
+   "text": "She's still in the hospital.",
+   "role": "A",
+   "chapter": "ch67",
+   "id": "hospital",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "dbc79de1b2fa",
+   "rev": 1,
+   "seconds": 1.68,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
   },
   "108aa9c475c81c": {
    "key": "A|What's the bottom line?",
@@ -72513,6 +74073,21 @@
    "seconds": 2.08,
    "via": "batch",
    "at": "2026-09-28"
+  },
+  "109ed8b4059119": {
+   "key": "P|passenger",
+   "text": "passenger",
+   "role": "P",
+   "chapter": "ch68",
+   "id": "passenger",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "c36bc0ee0abc",
+   "rev": 1,
+   "seconds": 1.16,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
   },
   "109fe49fb262ff": {
    "key": "A|Let's sit in a circle.",
@@ -73223,6 +74798,21 @@
    "seconds": 0.83,
    "via": "pack",
    "at": "2026-09-28"
+  },
+  "10c70acd154813": {
+   "key": "P|sidewalk",
+   "text": "sidewalk",
+   "role": "P",
+   "chapter": "ch67",
+   "id": "sidewalk",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "5725d82c77b0",
+   "rev": 1,
+   "seconds": 1.24,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
   },
   "10c7839ecdaa8a": {
    "key": "P|fit",
@@ -76662,6 +78252,21 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "119a973010f3b8": {
+   "key": "A|There's a market in the plaza on Saturdays.",
+   "text": "There's a market in the plaza on Saturdays.",
+   "role": "A",
+   "chapter": "ch67",
+   "id": "plaza",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "d844e0038020",
+   "rev": 1,
+   "seconds": 2.16,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
+  },
   "119aadfd3b622b": {
    "key": "A|Is Mr. Smith in today?",
    "text": "Is Mr. Smith in today?",
@@ -76729,6 +78334,21 @@
    "sig": "f283e6fda710",
    "rev": 1,
    "seconds": 3.28,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
+  },
+  "119e35827495e6": {
+   "key": "P|sky",
+   "text": "sky",
+   "role": "P",
+   "chapter": "ch69",
+   "id": "sky",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "41f3f5300d1f",
+   "rev": 1,
+   "seconds": 1.12,
    "via": "batch",
    "at": "2026-09-28",
    "unverified": true
@@ -76819,6 +78439,21 @@
    "at": "2026-09-28",
    "unverified": true
   },
+  "11a274d78ce32c": {
+   "key": "A|I go to the gym three times a week.",
+   "text": "I go to the gym three times a week.",
+   "role": "A",
+   "chapter": "ch67",
+   "id": "gym",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "c98998ffac7e",
+   "rev": 1,
+   "seconds": 2.04,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
+  },
   "11a2959d46b33e": {
    "key": "P|Sort of, but not really.",
    "text": "Sort of, but not really.",
@@ -76832,6 +78467,21 @@
    "seconds": 2.04,
    "via": "batch",
    "at": "2026-09-28"
+  },
+  "11a44532ce02b0": {
+   "key": "A|Can you give me directions to the museum?",
+   "text": "Can you give me directions to the museum?",
+   "role": "A",
+   "chapter": "ch68",
+   "id": "direction",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "a025fde6846b",
+   "rev": 1,
+   "seconds": 2.04,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
   },
   "11a4cdbc4568de": {
    "key": "P|Kids grow up so fast.",
@@ -77318,6 +78968,21 @@
    "at": "2026-09-28",
    "unverified": true
   },
+  "11c20439028f04": {
+   "key": "P|cloud",
+   "text": "cloud",
+   "role": "P",
+   "chapter": "ch69",
+   "id": "cloud",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "9bc0ff7b23f9",
+   "rev": 1,
+   "seconds": 1.0,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
+  },
   "11c247206726f4": {
    "key": "P|Can I get a to-go cup?",
    "text": "Can I get a to-go cup?",
@@ -77603,6 +79268,36 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "11cd78cbf20ba6": {
+   "key": "P|distance",
+   "text": "distance",
+   "role": "P",
+   "chapter": "ch68",
+   "id": "distance",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "6c30888388f6",
+   "rev": 1,
+   "seconds": 1.32,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
+  },
+  "11d3ce33402dfa": {
+   "key": "A|I take the bus to school.",
+   "text": "I take the bus to school.",
+   "role": "A",
+   "chapter": "ch68",
+   "id": "bus",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "48185a20e8dd",
+   "rev": 1,
+   "seconds": 1.68,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
+  },
   "11d40ee41d2e31": {
    "key": "A|Let's avoid rush hour.",
    "text": "Let's avoid rush hour.",
@@ -77701,6 +79396,21 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "11d700b0adb634": {
+   "key": "P|theater",
+   "text": "theater",
+   "role": "P",
+   "chapter": "ch67",
+   "id": "theater",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "9de9aab7c4ae",
+   "rev": 1,
+   "seconds": 1.04,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
+  },
   "11d750c675d344": {
    "key": "A|This towel absorbs water well.",
    "text": "This towel absorbs water well.",
@@ -77754,6 +79464,21 @@
    "sig": "c06bbf587f6e",
    "rev": 1,
    "seconds": 2.08,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
+  },
+  "11ddebb52900d0": {
+   "key": "A|I reported it at the police station.",
+   "text": "I reported it at the police station.",
+   "role": "A",
+   "chapter": "ch67",
+   "id": "police-station",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "ef5dd9e2685a",
+   "rev": 1,
+   "seconds": 2.24,
    "via": "batch",
    "at": "2026-09-28",
    "unverified": true
@@ -78028,6 +79753,21 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "11e939d2c27212": {
+   "key": "P|destination",
+   "text": "destination",
+   "role": "P",
+   "chapter": "ch68",
+   "id": "destination",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "a681b2b42f97",
+   "rev": 1,
+   "seconds": 1.32,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
+  },
   "11ea0c04412040": {
    "key": "B|Let me finish, please.",
    "text": "Let me finish, please.",
@@ -78142,6 +79882,21 @@
    "seconds": 1.08,
    "via": "pack",
    "at": "2026-09-28"
+  },
+  "11f0f6b4146170": {
+   "key": "P|taxi",
+   "text": "taxi",
+   "role": "P",
+   "chapter": "ch68",
+   "id": "taxi",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "fd2c14425dfc",
+   "rev": 1,
+   "seconds": 0.96,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
   },
   "11f1a1f627dd3c": {
    "key": "P|I agree with you.",
@@ -78414,6 +80169,21 @@
    "seconds": 1.4,
    "via": "pack",
    "at": "2026-09-28"
+  },
+  "1204328d8ec206": {
+   "key": "A|Do you want to take the wheel for a while?",
+   "text": "Do you want to take the wheel for a while?",
+   "role": "A",
+   "chapter": "ch68",
+   "id": "wheel",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "3904e31141a3",
+   "rev": 1,
+   "seconds": 1.64,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
   },
   "1205c8f129640f": {
    "key": "A|The road is curved here.",
@@ -81707,6 +83477,21 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "12c27e716d57f8": {
+   "key": "A|The train is full of commuters.",
+   "text": "The train is full of commuters.",
+   "role": "A",
+   "chapter": "ch68",
+   "id": "commuter",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "a0b040b97cfc",
+   "rev": 1,
+   "seconds": 2.0,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
+  },
   "12c32b8d320c71": {
    "key": "A|Are you coming to karaoke?",
    "text": "Are you coming to karaoke?",
@@ -82374,6 +84159,21 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "12eb159c47cd22": {
+   "key": "A|I got a parking ticket.",
+   "text": "I got a parking ticket.",
+   "role": "A",
+   "chapter": "ch68",
+   "id": "ticket",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "7629b10f0821",
+   "rev": 1,
+   "seconds": 1.92,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
+  },
   "12eb1b9857a662": {
    "key": "B|In Washington, D.C. There are consulates too.",
    "text": "In Washington, D.C. There are consulates too.",
@@ -82401,6 +84201,21 @@
    "seconds": 1.88,
    "via": "batch",
    "at": "2026-09-28"
+  },
+  "12ed52b8d2f445": {
+   "key": "A|They got married in a church.",
+   "text": "They got married in a church.",
+   "role": "A",
+   "chapter": "ch67",
+   "id": "church",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "0d3af9e3fb45",
+   "rev": 1,
+   "seconds": 1.68,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
   },
   "12f043a5b3d773": {
    "key": "A|Can you introduce me to your friend?",
@@ -83754,6 +85569,21 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "133bea8f333d77": {
+   "key": "P|tunnel",
+   "text": "tunnel",
+   "role": "P",
+   "chapter": "ch68",
+   "id": "tunnel",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "f8307ac948e2",
+   "rev": 1,
+   "seconds": 0.88,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
+  },
   "133f15283bcd60": {
    "key": "A|Would you like me to help with your bags?",
    "text": "Would you like me to help with your bags?",
@@ -83821,6 +85651,21 @@
    "sig": "496b63c56fe6",
    "rev": 1,
    "seconds": 1.08,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
+  },
+  "13417abff81bfb": {
+   "key": "A|We went to a bar after work.",
+   "text": "We went to a bar after work.",
+   "role": "A",
+   "chapter": "ch67",
+   "id": "bar",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "73b543b2a6c4",
+   "rev": 1,
+   "seconds": 2.16,
    "via": "batch",
    "at": "2026-09-28",
    "unverified": true
@@ -84034,6 +85879,21 @@
    "sig": "b93ae0efd97a",
    "rev": 1,
    "seconds": 0.96,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
+  },
+  "134f252f17c52f": {
+   "key": "A|I had to brake suddenly.",
+   "text": "I had to brake suddenly.",
+   "role": "A",
+   "chapter": "ch68",
+   "id": "brake",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "c7e611c71b21",
+   "rev": 1,
+   "seconds": 1.92,
    "via": "batch",
    "at": "2026-09-28",
    "unverified": true
@@ -84449,6 +86309,21 @@
    "seconds": 2.24,
    "via": "batch",
    "at": "2026-09-28"
+  },
+  "136ec0d054d481": {
+   "key": "A|The pilot said we'd land early.",
+   "text": "The pilot said we'd land early.",
+   "role": "A",
+   "chapter": "ch68",
+   "id": "pilot",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "8511d5a3de8e",
+   "rev": 1,
+   "seconds": 1.88,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
   },
   "136f931423ddc5": {
    "key": "P|Could you waive the fee?",
@@ -86125,6 +88000,21 @@
    "at": "2026-09-28",
    "unverified": true
   },
+  "13c1ce67b6b6a1": {
+   "key": "P|traffic",
+   "text": "traffic",
+   "role": "P",
+   "chapter": "ch68",
+   "id": "traffic",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "ddb62a58cecc",
+   "rev": 1,
+   "seconds": 1.36,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
+  },
   "13c1dc94700f03": {
    "key": "A|Have you seen this video?",
    "text": "Have you seen this video?",
@@ -86973,6 +88863,21 @@
    "seconds": 1.68,
    "via": "batch",
    "at": "2026-09-28"
+  },
+  "13ee434fa097e2": {
+   "key": "P|route",
+   "text": "route",
+   "role": "P",
+   "chapter": "ch68",
+   "id": "route",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "ea4cf2a819e3",
+   "rev": 1,
+   "seconds": 1.0,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
   },
   "13ef7f0168a521": {
    "key": "A|I didn't do it intentionally.",
@@ -89340,6 +91245,21 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "1479f0e95ad6ff": {
+   "key": "A|How much is the bus fare?",
+   "text": "How much is the bus fare?",
+   "role": "A",
+   "chapter": "ch68",
+   "id": "fare",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "d2e844fa4bf4",
+   "rev": 1,
+   "seconds": 1.44,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
+  },
   "147a84af1dffc7": {
    "key": "P|bottom line",
    "text": "bottom line",
@@ -89992,6 +91912,21 @@
    "at": "2026-09-28",
    "unverified": true
   },
+  "149cbd36dd37ce": {
+   "key": "A|The museum is free on Sundays.",
+   "text": "The museum is free on Sundays.",
+   "role": "A",
+   "chapter": "ch67",
+   "id": "museum",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "b86ffbfc59e5",
+   "rev": 1,
+   "seconds": 1.96,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
+  },
   "149cc836f815dd": {
    "key": "A|This is the best pizza in the world.",
    "text": "This is the best pizza in the world.",
@@ -90190,6 +92125,21 @@
    "seconds": 2.03,
    "via": "pack",
    "at": "2026-09-28"
+  },
+  "14af8a1ee8dd8e": {
+   "key": "A|Traffic was terrible this morning.",
+   "text": "Traffic was terrible this morning.",
+   "role": "A",
+   "chapter": "ch68",
+   "id": "traffic",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "3a89995f33c6",
+   "rev": 1,
+   "seconds": 2.76,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
   },
   "14b2b4cba6d271": {
    "key": "A|How was the restaurant?",
@@ -90416,6 +92366,21 @@
    "sig": "3a8294c96560",
    "rev": 1,
    "seconds": 1.52,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
+  },
+  "14bdb15951c52e": {
+   "key": "P|boat",
+   "text": "boat",
+   "role": "P",
+   "chapter": "ch68",
+   "id": "boat",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "f1b9f0cf14ec",
+   "rev": 1,
+   "seconds": 1.0,
    "via": "batch",
    "at": "2026-09-28",
    "unverified": true
@@ -91926,6 +93891,21 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "151081f84a0f12": {
+   "key": "A|He rides a motorcycle to work.",
+   "text": "He rides a motorcycle to work.",
+   "role": "A",
+   "chapter": "ch68",
+   "id": "motorcycle",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "69a9afc34b65",
+   "rev": 1,
+   "seconds": 2.04,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
+  },
   "151140bca5f77a": {
    "key": "P|Nice work.",
    "text": "Nice work.",
@@ -93363,6 +95343,21 @@
    "at": "2026-09-28",
    "unverified": true
   },
+  "15691237aaa158": {
+   "key": "P|restaurant",
+   "text": "restaurant",
+   "role": "P",
+   "chapter": "ch67",
+   "id": "restaurant",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "1b8fe254d3ab",
+   "rev": 1,
+   "seconds": 1.08,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
+  },
   "1569453a686a0c": {
    "key": "A|Should I get internet and TV together?",
    "text": "Should I get internet and TV together?",
@@ -93390,6 +95385,21 @@
    "seconds": 1.52,
    "via": "batch",
    "at": "2026-09-28"
+  },
+  "1569c15174cb43": {
+   "key": "A|The driver behind me honked.",
+   "text": "The driver behind me honked.",
+   "role": "A",
+   "chapter": "ch68",
+   "id": "honk",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "050352b93117",
+   "rev": 1,
+   "seconds": 1.64,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
   },
   "156a2992d2927b": {
    "key": "P|zucchini",
@@ -94299,6 +96309,21 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "15abaa879c1d0f": {
+   "key": "P|sign",
+   "text": "sign",
+   "role": "P",
+   "chapter": "ch68",
+   "id": "sign",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "da29b05d2e1a",
+   "rev": 1,
+   "seconds": 1.28,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
+  },
   "15abc2500498b9": {
    "key": "P|There's no such thing as a free lunch.",
    "text": "There's no such thing as a free lunch.",
@@ -94654,6 +96679,21 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "15bcabd3e3f87f": {
+   "key": "A|Where's the nearest post office?",
+   "text": "Where's the nearest post office?",
+   "role": "A",
+   "chapter": "ch67",
+   "id": "post-office",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "7fb2428f5f1a",
+   "rev": 1,
+   "seconds": 1.76,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
+  },
   "15be026e4e3bd6": {
    "key": "A|Someone tapped me on the shoulder.",
    "text": "Someone tapped me on the shoulder.",
@@ -94880,6 +96920,21 @@
    "seconds": 1.71,
    "via": "pack",
    "at": "2026-09-28"
+  },
+  "15c76d4512e927": {
+   "key": "P|rain",
+   "text": "rain",
+   "role": "P",
+   "chapter": "ch69",
+   "id": "rain",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "7272d6013e51",
+   "rev": 1,
+   "seconds": 1.08,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
   },
   "15c83d365d9062": {
    "key": "P|symmetry",
@@ -95362,6 +97417,21 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "15e21610e767e0": {
+   "key": "A|The bus driver was really nice.",
+   "text": "The bus driver was really nice.",
+   "role": "A",
+   "chapter": "ch68",
+   "id": "driver",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "b52f859e120c",
+   "rev": 1,
+   "seconds": 2.0,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
+  },
   "15e25fa41b0f8c": {
    "key": "P|Just breathe.",
    "text": "Just breathe.",
@@ -95375,6 +97445,21 @@
    "seconds": 1.24,
    "via": "batch",
    "at": "2026-09-28"
+  },
+  "15e6051180f920": {
+   "key": "P|rainbow",
+   "text": "rainbow",
+   "role": "P",
+   "chapter": "ch69",
+   "id": "rainbow",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "919e85535b6d",
+   "rev": 1,
+   "seconds": 1.28,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
   },
   "15e669810f114c": {
    "key": "P|thunderstorm",
@@ -95811,6 +97896,21 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "15fb9842035992": {
+   "key": "A|Let's just take a taxi.",
+   "text": "Let's just take a taxi.",
+   "role": "A",
+   "chapter": "ch68",
+   "id": "taxi",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "b2759b4b659b",
+   "rev": 1,
+   "seconds": 1.6,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
+  },
   "15fbac29bbd05a": {
    "key": "B|Yes, they're really nice.",
    "text": "Yes, they're really nice.",
@@ -95838,6 +97938,21 @@
    "seconds": 1.88,
    "via": "batch",
    "at": "2026-09-28"
+  },
+  "15fc5f7df5d429": {
+   "key": "P|bus",
+   "text": "bus",
+   "role": "P",
+   "chapter": "ch68",
+   "id": "bus",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "5ba50e25d8f5",
+   "rev": 1,
+   "seconds": 1.12,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
   },
   "15fd6a4b2540ab": {
    "key": "B|Let's play it safe and bring them.",
@@ -96634,6 +98749,21 @@
    "at": "2026-09-28",
    "unverified": true
   },
+  "162dbe5e057243": {
+   "key": "P|snow",
+   "text": "snow",
+   "role": "P",
+   "chapter": "ch69",
+   "id": "snow",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "46c3493e6026",
+   "rev": 1,
+   "seconds": 1.08,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
+  },
   "162e2b865dfa39": {
    "key": "P|gluten-free",
    "text": "gluten-free",
@@ -97300,6 +99430,21 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "165a0e682d3155": {
+   "key": "A|There's not a cloud in the sky.",
+   "text": "There's not a cloud in the sky.",
+   "role": "A",
+   "chapter": "ch69",
+   "id": "cloud",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "6541bb382af5",
+   "rev": 1,
+   "seconds": 1.92,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
+  },
   "165ba78cfe0f66": {
    "key": "A|What are your business hours?",
    "text": "What are your business hours?",
@@ -97485,6 +99630,21 @@
    "seconds": 1.96,
    "via": "batch",
    "at": "2026-09-28"
+  },
+  "16666c767ee03f": {
+   "key": "P|sea",
+   "text": "sea",
+   "role": "P",
+   "chapter": "ch69",
+   "id": "sea",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "c9e1f720daca",
+   "rev": 1,
+   "seconds": 0.96,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
   },
   "1667d3d4cb0f44": {
    "key": "P|I love your shoes.",
@@ -100667,6 +102827,21 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "173120163d1b7f": {
+   "key": "P|track",
+   "text": "track",
+   "role": "P",
+   "chapter": "ch68",
+   "id": "track",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "890fdffaeef7",
+   "rev": 1,
+   "seconds": 0.92,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
+  },
   "1731ef0d87a278": {
    "key": "B|Cheers to that!",
    "text": "Cheers to that!",
@@ -101267,6 +103442,21 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "175ae0eb60b001": {
+   "key": "A|Let's take the kids to the zoo.",
+   "text": "Let's take the kids to the zoo.",
+   "role": "A",
+   "chapter": "ch67",
+   "id": "zoo",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "cd13e784e55e",
+   "rev": 1,
+   "seconds": 1.68,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
+  },
   "175b0fc99c7645": {
    "key": "P|lamp",
    "text": "lamp",
@@ -101407,6 +103597,21 @@
    "seconds": 1.77,
    "via": "pack",
    "at": "2026-09-28"
+  },
+  "176030e92632ba": {
+   "key": "P|hospital",
+   "text": "hospital",
+   "role": "P",
+   "chapter": "ch67",
+   "id": "hospital",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "cbfe0ce38d9e",
+   "rev": 1,
+   "seconds": 1.12,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
   },
   "176041aa330fab": {
    "key": "A|Today is our tenth wedding anniversary.",
@@ -103231,6 +105436,21 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "17cef317ef2065": {
+   "key": "A|Is there a pharmacy open late?",
+   "text": "Is there a pharmacy open late?",
+   "role": "A",
+   "chapter": "ch67",
+   "id": "pharmacy",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "d5238e412b80",
+   "rev": 1,
+   "seconds": 1.8,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
+  },
   "17cf1938db73d8": {
    "key": "P|prepare",
    "text": "prepare",
@@ -103389,6 +105609,21 @@
    "at": "2026-09-28",
    "unverified": true
   },
+  "17d64ebd7bbbc6": {
+   "key": "P|ship",
+   "text": "ship",
+   "role": "P",
+   "chapter": "ch68",
+   "id": "ship",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "fd5a0ff0e6bd",
+   "rev": 1,
+   "seconds": 0.84,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
+  },
   "17d78ad99e5a4b": {
    "key": "P|Rome wasn't built in a day.",
    "text": "Rome wasn't built in a day.",
@@ -103415,6 +105650,21 @@
    "sig": "0281b640aaf1",
    "rev": 1,
    "seconds": 0.92,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
+  },
+  "17da28a644263e": {
+   "key": "P|zoo",
+   "text": "zoo",
+   "role": "P",
+   "chapter": "ch67",
+   "id": "zoo",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "92d8170b1c4a",
+   "rev": 1,
+   "seconds": 1.12,
    "via": "batch",
    "at": "2026-09-28",
    "unverified": true
@@ -103733,6 +105983,21 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "17eb841c066654": {
+   "key": "A|My dad works at a car factory.",
+   "text": "My dad works at a car factory.",
+   "role": "A",
+   "chapter": "ch67",
+   "id": "factory",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "e5ad478be1c9",
+   "rev": 1,
+   "seconds": 1.8,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
+  },
   "17f01d4ee851aa": {
    "key": "A|The Roman Empire lasted for centuries.",
    "text": "The Roman Empire lasted for centuries.",
@@ -103802,6 +106067,21 @@
    "sig": "6f4e87ad5d95",
    "rev": 1,
    "seconds": 1.12,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
+  },
+  "17f2a24ba86d6a": {
+   "key": "P|steer",
+   "text": "steer",
+   "role": "P",
+   "chapter": "ch68",
+   "id": "steer",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "00d613ede9b9",
+   "rev": 1,
+   "seconds": 1.08,
    "via": "batch",
    "at": "2026-09-28",
    "unverified": true
@@ -105180,6 +107460,21 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "1842b1fdac88f5": {
+   "key": "A|We walked across the Golden Gate Bridge.",
+   "text": "We walked across the Golden Gate Bridge.",
+   "role": "A",
+   "chapter": "ch67",
+   "id": "bridge",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "7b3afa3c8cf2",
+   "rev": 1,
+   "seconds": 2.52,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
+  },
   "1842f4850e552f": {
    "key": "A|Are you coming to the party?",
    "text": "Are you coming to the party?",
@@ -105846,6 +108141,21 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "1860f517a48c5e": {
+   "key": "P|bicycle",
+   "text": "bicycle",
+   "role": "P",
+   "chapter": "ch68",
+   "id": "bicycle",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "6cd933747eee",
+   "rev": 1,
+   "seconds": 1.08,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
+  },
   "186270352d9d0d": {
    "key": "A|When is the first paper due?",
    "text": "When is the first paper due?",
@@ -106494,6 +108804,21 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "1889f1a5594cd0": {
+   "key": "A|How's the weather over there?",
+   "text": "How's the weather over there?",
+   "role": "A",
+   "chapter": "ch69",
+   "id": "weather",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "4ff05dd69922",
+   "rev": 1,
+   "seconds": 1.56,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
+  },
   "188a6ea275c708": {
    "key": "P|Let's do this again soon.",
    "text": "Let's do this again soon.",
@@ -106905,6 +109230,21 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "18a2df18b1bfc0": {
+   "key": "P|tram",
+   "text": "tram",
+   "role": "P",
+   "chapter": "ch68",
+   "id": "tram",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "982f82a1f7b1",
+   "rev": 1,
+   "seconds": 0.96,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
+  },
   "18a5b79b5e5887": {
    "key": "A|That's a huge amount of food.",
    "text": "That's a huge amount of food.",
@@ -107132,6 +109472,21 @@
    "seconds": 1.6,
    "via": "batch",
    "at": "2026-09-28"
+  },
+  "18b1193c9e3bd2": {
+   "key": "A|I'll pick you up at the station.",
+   "text": "I'll pick you up at the station.",
+   "role": "A",
+   "chapter": "ch67",
+   "id": "station",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "9867059d6d39",
+   "rev": 1,
+   "seconds": 1.44,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
   },
   "18b127fb872038": {
    "key": "A|When do you need the slides?",
@@ -108458,6 +110813,21 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "18f3d840de61cf": {
+   "key": "P|cafe",
+   "text": "cafe",
+   "role": "P",
+   "chapter": "ch67",
+   "id": "cafe",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "d893a72a87a8",
+   "rev": 1,
+   "seconds": 0.96,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
+  },
   "18f3daf8bd6fd3": {
    "key": "B|It might need new batteries.",
    "text": "It might need new batteries.",
@@ -108485,6 +110855,21 @@
    "seconds": 1.88,
    "via": "batch",
    "at": "2026-09-28"
+  },
+  "18f4b9ef78dcdd": {
+   "key": "A|The tram stops right in front of the hotel.",
+   "text": "The tram stops right in front of the hotel.",
+   "role": "A",
+   "chapter": "ch68",
+   "id": "tram",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "f9556ad0cdf4",
+   "rev": 1,
+   "seconds": 2.16,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
   },
   "18f62503892bee": {
    "key": "A|I work from home two days a week.",
@@ -109035,6 +111420,21 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "1914e3aca26456": {
+   "key": "P|courthouse",
+   "text": "courthouse",
+   "role": "P",
+   "chapter": "ch67",
+   "id": "courthouse",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "c25b1fd2776a",
+   "rev": 1,
+   "seconds": 1.08,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
+  },
   "1914f5f08062d2": {
    "key": "B|I'll try, but don't hold me to it.",
    "text": "I'll try, but don't hold me to it.",
@@ -109208,6 +111608,21 @@
    "at": "2026-09-28",
    "unverified": true
   },
+  "1920f86ea877db": {
+   "key": "A|We took a helicopter tour of the Grand Canyon.",
+   "text": "We took a helicopter tour of the Grand Canyon.",
+   "role": "A",
+   "chapter": "ch68",
+   "id": "helicopter",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "128e779ca1da",
+   "rev": 1,
+   "seconds": 2.28,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
+  },
   "19210bb69d215e": {
    "key": "A|I'm heading to my interview.",
    "text": "I'm heading to my interview.",
@@ -109306,6 +111721,21 @@
    "seconds": 1.72,
    "via": "batch",
    "at": "2026-09-28"
+  },
+  "1928fb9ef0e627": {
+   "key": "A|Did you see the stop sign?",
+   "text": "Did you see the stop sign?",
+   "role": "A",
+   "chapter": "ch68",
+   "id": "sign",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "c91e281e936a",
+   "rev": 1,
+   "seconds": 1.48,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
   },
   "192a8c5f81ebf6": {
    "key": "P|plagiarism",
@@ -109749,6 +112179,21 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "1947ee38efab30": {
+   "key": "A|We visited a temple in Kyoto.",
+   "text": "We visited a temple in Kyoto.",
+   "role": "A",
+   "chapter": "ch67",
+   "id": "temple",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "09b365708e74",
+   "rev": 1,
+   "seconds": 1.96,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
+  },
   "1948e999ea0662": {
    "key": "A|I cut my finger while cooking.",
    "text": "I cut my finger while cooking.",
@@ -109874,6 +112319,21 @@
    "seconds": 1.68,
    "via": "batch",
    "at": "2026-09-28"
+  },
+  "194bfcfda3e0fc": {
+   "key": "P|lane",
+   "text": "lane",
+   "role": "P",
+   "chapter": "ch68",
+   "id": "lane",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "eed8527da687",
+   "rev": 1,
+   "seconds": 0.96,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
   },
   "194c586238e208": {
    "key": "A|Do you have your claim ticket?",
@@ -111677,6 +114137,21 @@
    "seconds": 1.7,
    "via": "pack",
    "at": "2026-09-28"
+  },
+  "19a4f08637b89f": {
+   "key": "A|The road is closed for construction.",
+   "text": "The road is closed for construction.",
+   "role": "A",
+   "chapter": "ch68",
+   "id": "road",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "8d10588ffab7",
+   "rev": 1,
+   "seconds": 2.0,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
   },
   "19a586316042b5": {
    "key": "A|I'll be a few minutes late. Sorry!",
@@ -113706,6 +116181,21 @@
    "seconds": 1.92,
    "via": "batch",
    "at": "2026-09-28"
+  },
+  "1a208cda623f60": {
+   "key": "P|train",
+   "text": "train",
+   "role": "P",
+   "chapter": "ch68",
+   "id": "train",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "187c1afcbcdf",
+   "rev": 1,
+   "seconds": 1.16,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
   },
   "1a20cc101440e3": {
    "key": "P|Can I get a latte?",
@@ -116344,6 +118834,21 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "1ac9dd15f357b0": {
+   "key": "P|railroad",
+   "text": "railroad",
+   "role": "P",
+   "chapter": "ch68",
+   "id": "railroad",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "565edf757605",
+   "rev": 1,
+   "seconds": 1.12,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
+  },
   "1acb818d4d9aa6": {
    "key": "A|Don't forget to defrost the meat.",
    "text": "Don't forget to defrost the meat.",
@@ -116640,6 +119145,21 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "1adc247f01b1b0": {
+   "key": "A|Don't accelerate on the curve.",
+   "text": "Don't accelerate on the curve.",
+   "role": "A",
+   "chapter": "ch68",
+   "id": "accelerate",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "7885c6a8ae0d",
+   "rev": 1,
+   "seconds": 1.72,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
+  },
   "1adc35fd3f6a96": {
    "key": "P|winter",
    "text": "winter",
@@ -116696,6 +119216,21 @@
    "seconds": 1.94,
    "via": "pack",
    "at": "2026-09-28"
+  },
+  "1ae09dfcc38455": {
+   "key": "P|subway",
+   "text": "subway",
+   "role": "P",
+   "chapter": "ch68",
+   "id": "subway",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "e1408f8952ba",
+   "rev": 1,
+   "seconds": 1.2,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
   },
   "1ae0d628785baf": {
    "key": "A|What's my balance?",
@@ -116795,6 +119330,21 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "1ae75073e3c72b": {
+   "key": "A|Sorry for the delay.",
+   "text": "Sorry for the delay.",
+   "role": "A",
+   "chapter": "ch68",
+   "id": "delay",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "f840519af91e",
+   "rev": 1,
+   "seconds": 1.4,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
+  },
   "1ae7e0499e2a5a": {
    "key": "A|The client needs this ASAP.",
    "text": "The client needs this ASAP.",
@@ -116808,6 +119358,21 @@
    "seconds": 2.12,
    "via": "batch",
    "at": "2026-09-28"
+  },
+  "1ae90a50ecd2eb": {
+   "key": "A|The train was really crowded.",
+   "text": "The train was really crowded.",
+   "role": "A",
+   "chapter": "ch68",
+   "id": "train",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "69ad2531b64e",
+   "rev": 1,
+   "seconds": 1.96,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
   },
   "1ae9106039a21f": {
    "key": "B|That's too bad.",
@@ -117876,6 +120441,21 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "1b2067ab025b62": {
+   "key": "A|The wind is really strong today.",
+   "text": "The wind is really strong today.",
+   "role": "A",
+   "chapter": "ch69",
+   "id": "wind",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "f230c857a0a3",
+   "rev": 1,
+   "seconds": 2.28,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
+  },
   "1b2140945e9bd0": {
    "key": "P|minute",
    "text": "minute",
@@ -117933,6 +120513,21 @@
    "seconds": 0.73,
    "via": "pack",
    "at": "2026-09-28"
+  },
+  "1b25bd44c35f4e": {
+   "key": "A|Please remain in your vehicle.",
+   "text": "Please remain in your vehicle.",
+   "role": "A",
+   "chapter": "ch68",
+   "id": "vehicle",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "5818009a4160",
+   "rev": 1,
+   "seconds": 1.8,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
   },
   "1b273675b5574e": {
    "key": "B|We can fix that today.",
@@ -118275,6 +120870,21 @@
    "seconds": 2.0,
    "via": "batch",
    "at": "2026-09-28"
+  },
+  "1b3a36a10ae2db": {
+   "key": "P|hail",
+   "text": "hail",
+   "role": "P",
+   "chapter": "ch69",
+   "id": "hail",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "cf1d5832831e",
+   "rev": 1,
+   "seconds": 0.92,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
   },
   "1b3c3b1cebf7d5": {
    "key": "B|I'll see what I can do.",
@@ -118697,6 +121307,21 @@
    "sig": "6fdd4ea6e81c",
    "rev": 1,
    "seconds": 1.6,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
+  },
+  "1b523e7a5f9ba7": {
+   "key": "P|scooter",
+   "text": "scooter",
+   "role": "P",
+   "chapter": "ch68",
+   "id": "scooter",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "dc80f2af0216",
+   "rev": 1,
+   "seconds": 1.04,
    "via": "batch",
    "at": "2026-09-28",
    "unverified": true
@@ -119582,6 +122207,21 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "1b92d55b0fe832": {
+   "key": "P|seat",
+   "text": "seat",
+   "role": "P",
+   "chapter": "ch68",
+   "id": "seat",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "4c0371463637",
+   "rev": 1,
+   "seconds": 1.08,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
+  },
   "1b9707b6bbc31b": {
    "key": "B|It's tough, but I'm getting the hang of it.",
    "text": "It's tough, but I'm getting the hang of it.",
@@ -119782,6 +122422,21 @@
    "seconds": 1.24,
    "via": "pack",
    "at": "2026-09-28"
+  },
+  "1ba96d6ef2b3d2": {
+   "key": "A|It was hailing this morning.",
+   "text": "It was hailing this morning.",
+   "role": "A",
+   "chapter": "ch69",
+   "id": "hail",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "4c221f38b66e",
+   "rev": 1,
+   "seconds": 1.92,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
   },
   "1ba9c2d8a45c08": {
    "key": "A|Sparkling or still?",
@@ -120211,6 +122866,21 @@
    "at": "2026-09-28",
    "unverified": true
   },
+  "1bc5858f0fcca1": {
+   "key": "P|pharmacy",
+   "text": "pharmacy",
+   "role": "P",
+   "chapter": "ch67",
+   "id": "pharmacy",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "ab42023d7480",
+   "rev": 1,
+   "seconds": 1.0,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
+  },
   "1bc73d74d6f74b": {
    "key": "A|There's a mark on the wall.",
    "text": "There's a mark on the wall.",
@@ -120366,6 +123036,21 @@
    "seconds": 1.56,
    "via": "batch",
    "at": "2026-09-28"
+  },
+  "1bd27d11fd16d5": {
+   "key": "P|license",
+   "text": "license",
+   "role": "P",
+   "chapter": "ch68",
+   "id": "license",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "351549bb9737",
+   "rev": 1,
+   "seconds": 1.4,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
   },
   "1bd46e5a4cceac": {
    "key": "B|Sorry, that was me.",
@@ -120765,6 +123450,21 @@
    "seconds": 0.98,
    "via": "pack",
    "at": "2026-09-28"
+  },
+  "1be76e214f1833": {
+   "key": "P|wind",
+   "text": "wind",
+   "role": "P",
+   "chapter": "ch69",
+   "id": "wind",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "8308028862e7",
+   "rev": 1,
+   "seconds": 1.04,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
   },
   "1be8b041e76308": {
    "key": "A|Should I dress up for the party?",
@@ -121388,6 +124088,21 @@
    "seconds": 1.73,
    "via": "pack",
    "at": "2026-09-28"
+  },
+  "1c0478fa0ac114": {
+   "key": "A|I don't have a signal here.",
+   "text": "I don't have a signal here.",
+   "role": "A",
+   "chapter": "ch68",
+   "id": "signal",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "75cf17178a5b",
+   "rev": 1,
+   "seconds": 1.84,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
   },
   "1c052be389f651": {
    "key": "B|Use certified mail so you have proof.",
@@ -122600,6 +125315,21 @@
    "at": "2026-09-28",
    "unverified": true
   },
+  "1c478979bc1e88": {
+   "key": "P|wheel",
+   "text": "wheel",
+   "role": "P",
+   "chapter": "ch68",
+   "id": "wheel",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "e117b936de79",
+   "rev": 1,
+   "seconds": 1.2,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
+  },
   "1c480db56a9759": {
    "key": "A|What's the address?",
    "text": "What's the address?",
@@ -122741,6 +125471,21 @@
    "seconds": 1.44,
    "via": "pack",
    "at": "2026-09-28"
+  },
+  "1c5442633d34c7": {
+   "key": "P|crosswalk",
+   "text": "crosswalk",
+   "role": "P",
+   "chapter": "ch67",
+   "id": "crosswalk",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "9be8bb7541d9",
+   "rev": 1,
+   "seconds": 1.08,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
   },
   "1c5456d1ce1bc5": {
    "key": "P|Fingers crossed!",
@@ -123794,6 +126539,21 @@
    "at": "2026-09-28",
    "unverified": true
   },
+  "1c965ca6975b67": {
+   "key": "P|fire station",
+   "text": "fire station",
+   "role": "P",
+   "chapter": "ch67",
+   "id": "fire-station",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "3db90f836402",
+   "rev": 1,
+   "seconds": 1.36,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
+  },
   "1c9778c29c8372": {
    "key": "P|roadside assistance",
    "text": "roadside assistance",
@@ -124086,6 +126846,21 @@
    "model": "gemini-3.8-flash-tts",
    "voice": "Erinome",
    "sig": "e50970e4f721",
+   "rev": 1,
+   "seconds": 0.96,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
+  },
+  "1cada241028c95": {
+   "key": "P|brake",
+   "text": "brake",
+   "role": "P",
+   "chapter": "ch68",
+   "id": "brake",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "b695f3fc93c8",
    "rev": 1,
    "seconds": 0.96,
    "via": "batch",
@@ -125984,6 +128759,21 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "1d233bb5b259cb": {
+   "key": "P|traffic light",
+   "text": "traffic light",
+   "role": "P",
+   "chapter": "ch68",
+   "id": "traffic-light",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "9c3831c7c347",
+   "rev": 1,
+   "seconds": 1.16,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
+  },
   "1d251d518a1710": {
    "key": "A|I love the pattern on this dress.",
    "text": "I love the pattern on this dress.",
@@ -126140,6 +128930,21 @@
    "seconds": 1.12,
    "via": "batch",
    "at": "2026-09-28"
+  },
+  "1d2f531b103817": {
+   "key": "P|truck",
+   "text": "truck",
+   "role": "P",
+   "chapter": "ch68",
+   "id": "truck",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "cd161b2a934d",
+   "rev": 1,
+   "seconds": 0.96,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
   },
   "1d2f5e33d2d9cb": {
    "key": "P|I look forward to working with you.",
@@ -126594,6 +129399,21 @@
    "seconds": 1.4,
    "via": "batch",
    "at": "2026-09-28"
+  },
+  "1d4916914985cd": {
+   "key": "A|Get in the left lane.",
+   "text": "Get in the left lane.",
+   "role": "A",
+   "chapter": "ch68",
+   "id": "lane",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "448c32db0cb5",
+   "rev": 1,
+   "seconds": 1.44,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
   },
   "1d49d394e98c7f": {
    "key": "B|Amazing! The food was incredible.",
@@ -128582,6 +131402,21 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "1daff0baaee037": {
+   "key": "A|Where did you park your car?",
+   "text": "Where did you park your car?",
+   "role": "A",
+   "chapter": "ch68",
+   "id": "car",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "aad8b3684d86",
+   "rev": 1,
+   "seconds": 1.28,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
+  },
   "1db12374e53e46": {
    "key": "P|I'm cutting carbs.",
    "text": "I'm cutting carbs.",
@@ -129815,6 +132650,21 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "1df489971279dd": {
+   "key": "P|library",
+   "text": "library",
+   "role": "P",
+   "chapter": "ch67",
+   "id": "library",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "5f91eaf75695",
+   "rev": 1,
+   "seconds": 1.28,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
+  },
   "1df5b3425eb685": {
    "key": "P|America",
    "text": "America",
@@ -130652,6 +133502,21 @@
    "at": "2026-09-28",
    "unverified": true
   },
+  "1e24a7bcb0a8da": {
+   "key": "P|tornado",
+   "text": "tornado",
+   "role": "P",
+   "chapter": "ch69",
+   "id": "tornado",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "a5d19e5d2e32",
+   "rev": 1,
+   "seconds": 1.24,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
+  },
   "1e24cdcce18f30": {
    "key": "P|dive",
    "text": "dive",
@@ -131062,6 +133927,21 @@
    "seconds": 1.72,
    "via": "batch",
    "at": "2026-09-28"
+  },
+  "1e4238a7a481be": {
+   "key": "P|tower",
+   "text": "tower",
+   "role": "P",
+   "chapter": "ch67",
+   "id": "tower",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "58e07cba6fff",
+   "rev": 1,
+   "seconds": 1.08,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
   },
   "1e423b388f60c7": {
    "key": "A|How much is the overweight fee?",
@@ -131846,6 +134726,21 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "1e7712db26444a": {
+   "key": "A|Chicago is famous for its skyscrapers.",
+   "text": "Chicago is famous for its skyscrapers.",
+   "role": "A",
+   "chapter": "ch67",
+   "id": "skyscraper",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "07d7a5f2c1c8",
+   "rev": 1,
+   "seconds": 2.92,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
+  },
   "1e7713e17dd4ec": {
    "key": "B|No big deal.",
    "text": "No big deal.",
@@ -131888,6 +134783,21 @@
    "seconds": 1.38,
    "via": "pack",
    "at": "2026-09-28"
+  },
+  "1e7987e9e5c537": {
+   "key": "A|Can I see your license, please?",
+   "text": "Can I see your license, please?",
+   "role": "A",
+   "chapter": "ch68",
+   "id": "license",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "61c0917bdd51",
+   "rev": 1,
+   "seconds": 1.48,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
   },
   "1e79eaff651db5": {
    "key": "P|pick up the phone",
@@ -135171,6 +138081,21 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "1f20eb26862aab": {
+   "key": "P|playground",
+   "text": "playground",
+   "role": "P",
+   "chapter": "ch67",
+   "id": "playground",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "7f2323643205",
+   "rev": 1,
+   "seconds": 1.12,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
+  },
   "1f238072cab2fc": {
    "key": "P|exchange insurance information",
    "text": "exchange insurance information",
@@ -135227,6 +138152,21 @@
    "seconds": 1.4,
    "via": "batch",
    "at": "2026-09-28"
+  },
+  "1f27370b82b121": {
+   "key": "P|sun",
+   "text": "sun",
+   "role": "P",
+   "chapter": "ch69",
+   "id": "sun",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "966ed9262cd9",
+   "rev": 1,
+   "seconds": 1.04,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
   },
   "1f2771b06d6f7e": {
    "key": "A|I emailed the office, but they're out of office until Monday.",
@@ -135860,6 +138800,21 @@
    "sig": "d662252ef515",
    "rev": 1,
    "seconds": 1.04,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
+  },
+  "1f4949026c7aae": {
+   "key": "A|Our hotel is near the beach.",
+   "text": "Our hotel is near the beach.",
+   "role": "A",
+   "chapter": "ch67",
+   "id": "hotel",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "1c4b03279253",
+   "rev": 1,
+   "seconds": 1.56,
    "via": "batch",
    "at": "2026-09-28",
    "unverified": true
@@ -136934,6 +139889,21 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "1f8712b5cc81de": {
+   "key": "P|factory",
+   "text": "factory",
+   "role": "P",
+   "chapter": "ch67",
+   "id": "factory",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "41e637b812cd",
+   "rev": 1,
+   "seconds": 1.04,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
+  },
   "1f89092bedab36": {
    "key": "A|Help yourself to some food.",
    "text": "Help yourself to some food.",
@@ -137059,6 +140029,21 @@
    "seconds": 2.32,
    "via": "batch",
    "at": "2026-09-28"
+  },
+  "1f92125411ffa5": {
+   "key": "A|We're in the middle of a heatwave.",
+   "text": "We're in the middle of a heatwave.",
+   "role": "A",
+   "chapter": "ch69",
+   "id": "heatwave",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "1f3b8d89d2bb",
+   "rev": 1,
+   "seconds": 2.04,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
   },
   "1f935317558369": {
    "key": "B|No, I'm on a tight schedule today.",
@@ -138793,6 +141778,21 @@
    "seconds": 0.97,
    "via": "sync",
    "at": "2026-09-28"
+  },
+  "1ff275b587e59a": {
+   "key": "P|moon",
+   "text": "moon",
+   "role": "P",
+   "chapter": "ch69",
+   "id": "moon",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "03cb7a7616d4",
+   "rev": 1,
+   "seconds": 1.0,
+   "via": "batch",
+   "at": "2026-09-28",
+   "unverified": true
   },
   "1ff341b0d5ab7c": {
    "key": "A|She bought a diamond collar for her dog.",
