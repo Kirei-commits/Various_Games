@@ -3,6 +3,7 @@
  * そのため Node のテストランナーだけで検証できる（tests/logic/*.test.mjs）。
  * 「今日」や乱数は必ず引数で受け取る。
  */
+import { initialGacha, restoreGacha, mergeGacha, grant, loginGachaReward, GOAL_POINTS } from "./gacha.js";
 
 // ---------------------------------------------------------------------------
 // データ
@@ -445,7 +446,7 @@ export function wordMatch(said, target) {
 // 学習状態
 // ---------------------------------------------------------------------------
 
-export const STATE_VERSION = 2;
+export const STATE_VERSION = 3;
 
 /** v1（22フレーズ版）の保存データの ID → 英語 */
 export const LEGACY_V1_IDS = {
@@ -476,6 +477,7 @@ export function freshState(firstChapterId = "ch01") {
     tests: {},
     misses: {},
     bonus: initialBonus(),
+    gacha: initialGacha(),
     chapter: firstChapterId,
   };
 }
@@ -522,12 +524,13 @@ export function claimDailyBonus(state, today, yesterday) {
   const b = { ...initialBonus(), ...state.bonus };
   if (b.lastClaim === today) return { state, reward: null };
   const day = b.lastClaim === yesterday ? b.loginStreak + 1 : 1;
-  const reward = { ...dailyReward(day), day };
+  const gacha = loginGachaReward(day, b.totalDays + 1);
+  const reward = { ...dailyReward(day), day, gacha };
   return {
-    state: {
-      ...state,
-      bonus: { ...b, lastClaim: today, loginStreak: day, totalDays: b.totalDays + 1, coins: b.coins + reward.coins },
-    },
+    state: grant(
+      { ...state, bonus: { ...b, lastClaim: today, loginStreak: day, totalDays: b.totalDays + 1, coins: b.coins + reward.coins } },
+      gacha
+    ),
     reward,
   };
 }
@@ -542,7 +545,7 @@ export const canClaimGoal = (state, today) =>
 export function claimGoalBonus(state, today) {
   if (!canClaimGoal(state, today)) return state;
   const b = { ...initialBonus(), ...state.bonus };
-  return { ...state, bonus: { ...b, goalClaimed: today, coins: b.coins + GOAL_REWARD } };
+  return grant({ ...state, bonus: { ...b, goalClaimed: today, coins: b.coins + GOAL_REWARD } }, { points: GOAL_POINTS });
 }
 
 /** 着せかえを買う（買えないときは error を返す） */
@@ -577,6 +580,8 @@ const MIGRATIONS = {
     }
     return { version: 2, learned, queues: {}, misses: {}, tests: {}, stats: s.stats || {} };
   },
+  // v2 → v3: 単語ガチャ（state.gacha）を追加
+  2: (s) => ({ ...s, version: 3, gacha: initialGacha() }),
 };
 
 export const stateVersionOf = (saved) => (saved && Number.isInteger(saved.version) ? saved.version : 1);
@@ -639,6 +644,7 @@ export function restoreState(saved, library) {
     tests: s.tests && typeof s.tests === "object" ? s.tests : {},
     stats: { ...initialStats(), ...(s.stats || {}) },
     bonus: { ...initialBonus(), ...(s.bonus || {}) },
+    gacha: restoreGacha(s.gacha, (id) => currentId(id, renamed)),
     chapter,
   };
 }
@@ -818,7 +824,17 @@ export function mergeStates(a, b, library) {
     theme: bb.theme,
   };
   return restoreState(
-    { version: STATE_VERSION, learned, queues: { ...a.queues, ...b.queues }, misses, tests, stats, bonus, chapter: b.chapter },
+    {
+      version: STATE_VERSION,
+      learned,
+      queues: { ...a.queues, ...b.queues },
+      misses,
+      tests,
+      stats,
+      bonus,
+      gacha: mergeGacha(a.gacha, b.gacha),
+      chapter: b.chapter,
+    },
     library
   );
 }
