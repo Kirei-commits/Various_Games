@@ -31,6 +31,7 @@ import {
   LogOut,
 } from "lucide-react";
 import rawChapters, { PARTS, RENAMED } from "./data/index.js";
+import { analyzeLinking, LINK_LABELS } from "./linking.js";
 import {
   buildLibrary,
   parseDialogue,
@@ -102,6 +103,8 @@ const useSound = () => useContext(SoundContext);
 /** 着せかえの色（カードの帯とアイコン） */
 const ThemeContext = createContext(THEMES[0]);
 const useThemeColors = () => useContext(ThemeContext);
+/** リンキング（音のつながり）を表示するか（設定） */
+const LinkingContext = createContext(true);
 const gradient = (theme, dir = "90deg") => ({ background: `linear-gradient(${dir}, ${theme.colors.join(", ")})` });
 
 /*
@@ -109,7 +112,8 @@ const gradient = (theme, dir = "90deg") => ({ background: `linear-gradient(${dir
  *
  * - 学習: 右スワイプ=覚えた（キューから外す）/ 左スワイプ=覚えてない（最後尾へ）
  * - テスト: 英語（文字 or 音声のみ）を見て、日本語の意味を「入力・音声・4択」で答える
- * - 全40章 × 50問 = 2000問（src/data/）。基本編（1〜20章）とアメリカ生活編（21〜40章）
+ * - 全110章 × 50問 = 5500問（src/data/）。フレーズ50章（基本編・アメリカ生活編・もっと話せる編）と単語60章
+ * - リンキング: 単語どうしの音のつながりを ‿ と説明で表示（linking.js）
  * - 音声: Web Speech API。文ごとに pitch/rate を変えて抑揚をつける（logic.js の prosodyPlan）
  * - 保存: LocalStorage。使えない環境ではメモリ上だけで動く
  */
@@ -133,7 +137,15 @@ const EXIT_MS = 280;
 
 const chapterLabel = (c) => `第${CHAPTER_NO[c.id]}章 ${c.title}`;
 /** 部ごとの章（章選択のグループ分けと進捗画面の見出しに使う） */
-const PART_GROUPS = PARTS.map((p) => ({ ...p, chapters: CHAPTERS.slice(p.from - 1, p.to) }));
+const PART_GROUPS = PARTS.map((p) => {
+  const chapters = CHAPTERS.slice(p.from - 1, p.to);
+  return { ...p, chapters, count: chapters.reduce((n, c) => n + c.items.length, 0) };
+});
+/** 種類ごとの問題（フレーズ全部・単語全部） */
+const KIND_ITEMS = {
+  phrase: PART_GROUPS.filter((p) => p.kind === "phrase").flatMap((p) => p.chapters.flatMap((c) => c.items)),
+  word: PART_GROUPS.filter((p) => p.kind === "word").flatMap((p) => p.chapters.flatMap((c) => c.items)),
+};
 
 // ---------------------------------------------------------------------------
 // 永続化
@@ -186,6 +198,7 @@ const DEFAULT_SETTINGS = {
   expressive: true,
   twoVoices: true,
   voiceVariety: true,
+  linking: true,
   sfx: true,
   sfxVolume: 0.6,
   test: { scope: "ch01", count: 10, direction: "en-ja", prompt: "text", answer: "type" },
@@ -427,6 +440,51 @@ function SpeakButton({ text, role = null, seed, speech, size = "md", className =
   );
 }
 
+/**
+ * 英文を表示し、つながって発音される単語の間に ‿ を重ねる（文字列そのものは変えない）。
+ * 語の中で t の音が変わる語（water, twenty など）には点線の下線を引く。
+ */
+function LinkedText({ text }) {
+  const on = useContext(LinkingContext);
+  const tokens = useMemo(() => (on ? analyzeLinking(text).tokens : null), [text, on]);
+  if (!tokens) return text;
+  return tokens.map((t, i) => (
+    <React.Fragment key={i}>
+      <span className={t.inner.length ? "underline decoration-dotted decoration-amber-400 underline-offset-4" : undefined}>{t.text}</span>
+      {i < tokens.length - 1 &&
+        (t.link ? (
+          <span className="lk" data-k={t.link} title={LINK_LABELS[t.link]}>
+            {" "}
+          </span>
+        ) : (
+          " "
+        ))}
+    </React.Fragment>
+  ));
+}
+
+/** 英文の「音のつながり」の説明（どこが・どう聞こえるか・なぜか） */
+function LinkingNotes({ text, className = "" }) {
+  const on = useContext(LinkingContext);
+  const notes = useMemo(() => (on ? analyzeLinking(text).notes : []), [text, on]);
+  if (!notes.length) return null;
+  return (
+    <div className={`rounded-2xl bg-indigo-50/60 p-3 ${className}`} data-testid="linking-notes">
+      <p className="text-[11px] font-bold tracking-wide text-indigo-500">音のつながり（リンキング）</p>
+      <ul className="mt-1.5 space-y-1.5">
+        {notes.map((n, i) => (
+          <li key={i} className="text-xs leading-relaxed text-slate-700">
+            <span className="mr-1.5 rounded bg-white px-1.5 py-0.5 text-[10px] font-bold text-indigo-600 ring-1 ring-indigo-100">{n.label}</span>
+            <span className="font-bold text-slate-900">{n.words}</span>
+            {n.sound && <span className="ml-1 inline-block whitespace-nowrap font-bold text-rose-500">→ {n.sound}</span>}
+            <span className="block text-[11px] text-slate-500">{n.tip}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
 function Dialogue({ context, translation, speech, seed = context }) {
   const lines = parseDialogue(context);
   const ja = parseDialogue(translation);
@@ -450,7 +508,7 @@ function Dialogue({ context, translation, speech, seed = context }) {
           speech.speaking === key ? "bg-indigo-600 text-white" : "bg-slate-100 text-slate-600"
         }`}
       >
-        <Play size={12} /> 会話を通して再生
+        <Play size={12} /> {lines.length > 1 ? "会話を通して再生" : "例文を再生"}
       </button>
       {lines.map((line, i) => {
         const isB = line.speaker === "B";
@@ -465,7 +523,9 @@ function Dialogue({ context, translation, speech, seed = context }) {
             </span>
             <div className={`min-w-0 flex-1 rounded-2xl px-3 py-2 ${isB ? "bg-pink-50 rounded-tr-sm" : "bg-sky-50 rounded-tl-sm"}`}>
               <div className="flex items-start gap-2">
-                <p className="flex-1 text-sm text-slate-800 leading-snug">{line.text}</p>
+                <p className="flex-1 text-sm text-slate-800 leading-snug">
+                  <LinkedText text={line.text} />
+                </p>
                 <SpeakButton text={line.text} role={line.speaker} seed={seed} speech={speech} size="sm" />
               </div>
               {ja[i] && <p className="mt-1 text-xs text-slate-500 leading-snug">{ja[i].text}</p>}
@@ -492,10 +552,10 @@ function ChapterSelect({ value, onChange, extra = [], id, className = "" }) {
           </option>
         ))}
         {PART_GROUPS.map((part) => (
-          <optgroup key={part.title} label={part.title}>
+          <optgroup key={part.title} label={`${part.title}（${part.count}問）`}>
             {part.chapters.map((c) => (
               <option key={c.id} value={c.id}>
-                {chapterLabel(c)}
+                {chapterLabel(c)}（{c.items.length}問）
               </option>
             ))}
           </optgroup>
@@ -583,7 +643,7 @@ function SettingsSheet({ open, onClose, settings, setSettings, speech, onResetAl
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-extrabold text-slate-900">音声と効果音の設定</h2>
+          <h2 className="text-lg font-extrabold text-slate-900">音声・表示・効果音の設定</h2>
           <button type="button" onClick={onClose} aria-label="閉じる" className="rounded-full p-2 text-slate-400 hover:bg-slate-100">
             <X size={20} />
           </button>
@@ -705,6 +765,23 @@ function SettingsSheet({ open, onClose, settings, setSettings, speech, onResetAl
             </label>
           ))}
         </div>
+
+        <p className="mt-5 text-xs font-bold text-slate-500">表示</p>
+        <label className="mt-2 flex items-center gap-3 rounded-xl bg-slate-50 px-3 py-2.5">
+          <span className="flex-1">
+            <span className="block text-sm font-bold text-slate-800">リンキング（音のつながり）を表示</span>
+            <span className="block text-xs text-slate-500">
+              つながって発音される単語の間に ‿ を付け、wanna・gonna などの崩れ方や、やわらかい t の説明を出します
+            </span>
+          </span>
+          <input
+            id="toggle-linking"
+            type="checkbox"
+            checked={settings.linking}
+            onChange={(e) => update({ linking: e.target.checked })}
+            className="h-5 w-5 accent-indigo-600"
+          />
+        </label>
 
         <p className="mt-5 text-xs font-bold text-slate-500">効果音</p>
         <label className="mt-2 flex items-center gap-3 rounded-xl bg-slate-50 px-3 py-2.5">
@@ -854,11 +931,16 @@ function SwipeCard({ phrase, exit, onRelease, flipped, onFlip, speech }) {
             <div className="h-2" style={gradient(theme, "270deg")} />
             <div className="flex-1 overflow-y-auto px-5 py-5">
               <div className="flex items-center gap-2">
-                <h3 className="flex-1 text-xl font-bold text-slate-900">{phrase.english}</h3>
+                <h3 className="flex-1 text-xl font-bold text-slate-900">
+                  <LinkedText text={phrase.english} />
+                </h3>
                 <SpeakButton text={phrase.english} seed={phrase.id} label="英語を再生" speech={speech} />
               </div>
               <p className="mt-2 text-2xl font-bold text-indigo-600">{phrase.japanese}</p>
-              <div className="mt-5 mb-2 text-xs font-semibold tracking-wide text-slate-400">CONVERSATION</div>
+              <LinkingNotes text={phrase.english} className="mt-3" />
+              <div className="mt-5 mb-2 text-xs font-semibold tracking-wide text-slate-400">
+                {parseDialogue(phrase.exampleContext).length > 1 ? "CONVERSATION" : "EXAMPLE"}
+              </div>
               <Dialogue context={phrase.exampleContext} translation={phrase.exampleJapanese} seed={phrase.id} speech={speech} />
             </div>
             <p className="pb-4 pt-1 text-center text-xs text-slate-400">タップで表に戻る</p>
@@ -978,7 +1060,7 @@ function StudyScreen({ active, state, onChapter, onSwipe, onResetChapter, speech
     <div className="flex h-full flex-col px-5 pt-4">
       <ScreenHeader
         title="SwipeTalk"
-        sub={`全${CHAPTERS.length}章・${TOTAL}フレーズ`}
+        sub={`全${CHAPTERS.length}章・${TOTAL}問`}
         onSettings={onSettings}
         right={
           <div className="text-right">
@@ -1092,12 +1174,15 @@ const COUNT_OPTIONS = [10, 20, 50];
 
 function scopeItems(scope, misses) {
   if (scope === "all") return ALL_ITEMS;
+  if (scope === "phrase" || scope === "word") return KIND_ITEMS[scope];
   if (scope === "weak") return ALL_ITEMS.filter((p) => misses[p.id]);
   return CHAPTER_BY_ID[scope]?.items || [];
 }
 
 function scopeLabel(scope) {
   if (scope === "all") return "全章から";
+  if (scope === "phrase") return "フレーズ全部から";
+  if (scope === "word") return "単語全部から";
   if (scope === "weak") return "苦手な問題";
   return chapterLabel(CHAPTER_BY_ID[scope]);
 }
@@ -1131,6 +1216,8 @@ function TestSetup({ config, setConfig, misses, tests, onStart, onSettings }) {
             onChange={(scope) => set({ scope })}
             extra={[
               ["all", `全章から（${TOTAL}問）`],
+              ["phrase", `フレーズ全部から（${KIND_ITEMS.phrase.length}問）`],
+              ["word", `単語全部から（${KIND_ITEMS.word.length}問）`],
               ["weak", `苦手な問題（${weakCount}問）`],
             ]}
             className="mt-1"
@@ -2108,10 +2195,11 @@ function ShadowScreen({ state, settings, speech, onShadowDone, onSettings }) {
                           </span>
                         ))
                       ) : (
-                        step.text
+                        <LinkedText text={step.text} />
                       )}
                     </p>
                     {opts.showJa && step.ja && <p className="mt-0.5 text-xs text-slate-500">{step.ja}</p>}
+                    {i === 0 && !hidden && !check && <LinkingNotes text={step.text} className="mt-2" />}
                     {check && <PronunciationDetail check={check} />}
                   </div>
                 </div>
@@ -2198,7 +2286,7 @@ function ListScreen({ state, onToggle, speech }) {
   const [openId, setOpenId] = useState(null);
   const [limit, setLimit] = useState(PAGE);
 
-  const base = scope === "all" ? ALL_ITEMS : CHAPTER_BY_ID[scope].items;
+  const base = scope === "all" ? ALL_ITEMS : KIND_ITEMS[scope] || CHAPTER_BY_ID[scope].items;
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     return base.filter((p) => {
@@ -2212,15 +2300,21 @@ function ListScreen({ state, onToggle, speech }) {
 
   useEffect(() => setLimit(PAGE), [query, scope, filter]);
 
-  // 「もしかして」: 綴りや言い回しが少し違っても近いものを、検索結果のあとに出す
+  // 「もしかして」: 綴りや言い回しが少し違っても近いものを、検索結果のあとに出す。
+  // 全件と1件ずつ比べるので少し重い。入力が止まってから計算して、文字入力を引っかからせない
+  const [settledQuery, setSettledQuery] = useState(query);
+  useEffect(() => {
+    const t = setTimeout(() => setSettledQuery(query), 250);
+    return () => clearTimeout(t);
+  }, [query]);
   const suggestions = useMemo(() => {
-    if (query.trim().length < 2) return [];
+    if (settledQuery !== query || query.trim().length < 2) return [];
     const inScope = base.filter((p) => {
       const learned = !!state.learned[p.id];
       return filter === "all" || (filter === "learned" ? learned : !learned);
     });
     return fuzzySearch(inScope, query, { exclude: new Set(filtered.map((p) => p.id)), limit: 10 });
-  }, [base, query, filter, filtered, state.learned]);
+  }, [base, query, settledQuery, filter, filtered, state.learned]);
 
   const renderRow = (kind) => (p) => {
     const open = openId === p.id;
@@ -2247,6 +2341,7 @@ function ListScreen({ state, onToggle, speech }) {
         {open && (
           <div className="border-t border-slate-100 bg-slate-50 px-3 py-3">
             <p className="mb-2 text-xs text-slate-400">{chapterLabel(CHAPTER_BY_ID[p.chapterId])}</p>
+            <LinkingNotes text={p.english} className="mb-3" />
             <Dialogue context={p.exampleContext} translation={p.exampleJapanese} seed={p.id} speech={speech} />
           </div>
         )}
@@ -2282,7 +2377,11 @@ function ListScreen({ state, onToggle, speech }) {
             </button>
           )}
         </div>
-        <ChapterSelect id="list-chapter" value={scope} onChange={setScope} extra={[["all", `すべての章（${TOTAL}）`]]} className="mt-2" />
+        <ChapterSelect id="list-chapter" value={scope} onChange={setScope} extra={[
+            ["all", `すべての章（${TOTAL}問）`],
+            ["phrase", `フレーズ全部（${KIND_ITEMS.phrase.length}問）`],
+            ["word", `単語全部（${KIND_ITEMS.word.length}問）`],
+          ]} className="mt-2" />
         <div className="mt-2 flex gap-2">
           {[
             ["all", "すべて"],
@@ -2370,7 +2469,7 @@ function motivation(learned) {
   if (ratio < 0.25) return "順調です！毎日少しずつ積み上げよう。";
   if (ratio < 0.5) return "もうすぐ半分！ネイティブ表現が身についてきた。";
   if (ratio < 1) return "後半戦！ここまで来たら全制覇も見えてくる。";
-  return `${TOTAL}フレーズ コンプリート！素晴らしい！`;
+  return `${TOTAL}問 コンプリート！素晴らしい！`;
 }
 
 // ---------------------------------------------------------------------------
@@ -2791,7 +2890,7 @@ function WelcomeScreen({ account, onSkip }) {
 
         <ul className="mt-8 w-full max-w-xs space-y-3 text-left text-sm">
           {[
-            [Layers, `${CHAPTERS.length}章・${TOTAL}フレーズ（アメリカ生活編つき）`],
+            [Layers, `${CHAPTERS.length}章・${TOTAL}問（フレーズ${KIND_ITEMS.phrase.length}・単語${KIND_ITEMS.word.length}）`],
             [PenLine, "日本語→英語テストとシャドーイングで口から出す"],
             [Cloud, "ログインすると、どの端末でも続きから"],
           ].map(([Icon, text]) => (
@@ -3050,6 +3149,7 @@ export default function App() {
   return (
     <SoundContext.Provider value={sound}>
     <ThemeContext.Provider value={theme}>
+    <LinkingContext.Provider value={settings.linking}>
     <div className="w-full bg-slate-100" style={{ height: "100dvh" }}>
       <div className="relative mx-auto flex h-full w-full max-w-md flex-col bg-slate-50 shadow-xl">
         <main className="min-h-0 flex-1 overflow-hidden">
@@ -3142,6 +3242,7 @@ export default function App() {
         />
       </div>
     </div>
+    </LinkingContext.Provider>
     </ThemeContext.Provider>
     </SoundContext.Provider>
   );

@@ -11,3 +11,20 @@
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
 }
+
+/* リンキング（音のつながり）: 単語の間のスペースに ‿ を重ねて表示する（文字としては入れない） */
+.lk { position: relative; }
+.lk::after {
+  content: "‿";
+  position: absolute;
+  left: 50%;
+  bottom: -0.3em;
+  transform: translateX(-50%);
+  font-weight: 800;
+  color: #818cf8;
+  pointer-events: none;
+}
+.lk[data-k="reduction"]::after,
+.lk[data-k="blend"]::after { color: #f43f5e; }
+.lk[data-k="flap"]::after,
+.lk[data-k="hdrop"]::after { color: #f59e0b; }

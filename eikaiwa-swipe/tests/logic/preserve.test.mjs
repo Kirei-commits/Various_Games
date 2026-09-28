@@ -65,6 +65,6 @@ test("lint: 公開済みIDが黙って消えたら止める。変更履歴か削
   assert.deepEqual(checkLock(lib, lock, { retired: ["old-phrase"] }), []);
   assert.deepEqual(checkLock(lib, lock, { renamed: { "old-phrase": "make-sense" } }), []);
   // 行き先が存在しない変更履歴や、使用中のIDを付け替える履歴は止める
-  assert.equal(checkLock(lib, lock, { renamed: { "old-phrase": "nope" } }).length, 1);
+  assert.equal(checkLock(lib, lock, { renamed: { "old-phrase": "no-such-phrase" } }).length, 1);
   assert.equal(checkLock(lib, Object.keys(lib.byId), { renamed: { "make-sense": "awkward" } }).length, 1);
 });

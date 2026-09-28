@@ -49,9 +49,9 @@ function assert(cond) {
   expect(cond).toBe(true);
 }
 
-test("一覧: 2000件から検索でき、章で絞り込める", async ({ page }) => {
+test("一覧: 5500件から検索でき、章で絞り込める", async ({ page }) => {
   await page.getByRole("button", { name: "一覧", exact: true }).click();
-  await expect(page.getByRole("button", { name: /すべて 2000/ })).toBeVisible();
+  await expect(page.getByRole("button", { name: /すべて 5500/ })).toBeVisible();
   await page.locator("#list-search").fill("cats and dogs");
   const items = page.getByTestId("phrase-list").locator('> li[data-row="result"]');
   await expect(items).toHaveCount(1);
@@ -68,7 +68,7 @@ test("進捗: 章ごとの進み具合が見え、章を選ぶと学習画面に
   await page.getByRole("button", { name: "覚えた", exact: true }).click();
   await page.getByRole("button", { name: "進捗", exact: true }).click();
   await expect(page.getByTestId("progress-pct")).toHaveText(/0%/);
-  await expect(page.getByText(/^1 \/ 2000 覚えた$/)).toBeVisible();
+  await expect(page.getByText(/^1 \/ 5500 覚えた$/)).toBeVisible();
   await page.getByRole("button", { name: /電話・メール・SNS/ }).click();
   await expect(page.getByTestId("swipe-card")).toContainText("第18章");
 });
@@ -101,4 +101,38 @@ test("進捗のリセットは設定の中にあり、3回タップして初め�
   await expect(page.getByTestId("remaining")).toHaveText(/^49/); // まだ消えていない
   await reset.click();
   await expect(page.getByTestId("remaining")).toHaveText(/^50/);
+});
+
+test("カードの裏にリンキング（音のつながり）が出て、設定でオフにできる", async ({ page }) => {
+  await page.getByTestId("swipe-card").click({ position: { x: 40, y: 40 } });
+  const notes = page.getByTestId("linking-notes").first();
+  await expect(notes).toContainText("音のつながり");
+  await expect(notes).toContainText("How's it");
+  // ‿ は表示だけで、文字としては入らない（読み上げやコピーに影響しない）
+  await expect(page.getByTestId("swipe-card").locator("h3")).toHaveText("How's it going?");
+  await expect(page.getByTestId("swipe-card").locator('h3 .lk[data-k="link"]')).toHaveCount(1);
+
+  await page.getByRole("button", { name: "音声の設定" }).click();
+  await page.locator("#toggle-linking").uncheck();
+  await page.getByRole("button", { name: "閉じる" }).click();
+  await expect(page.getByTestId("linking-notes")).toHaveCount(0);
+  await expect(page.getByTestId("swipe-card").locator("h3 .lk")).toHaveCount(0);
+});
+
+test("章の一覧に各章の問題数が出て、単語だけ・フレーズだけでも絞り込める", async ({ page }) => {
+  await expect(page.locator("#study-chapter option", { hasText: "第1章 あいさつ・基本の返事（50問）" })).toHaveCount(1);
+  await expect(page.locator("#study-chapter optgroup[label='単語編・基礎（1000問）']")).toHaveCount(1);
+  await page.getByRole("button", { name: "一覧", exact: true }).click();
+  await page.locator("#list-chapter").selectOption("word");
+  await expect(page.getByRole("button", { name: /すべて 3000/ })).toBeVisible();
+  await page.locator("#list-chapter").selectOption("phrase");
+  await expect(page.getByRole("button", { name: /すべて 2500/ })).toBeVisible();
+});
+
+test("単語の章は、例文つきのカードで学べる", async ({ page }) => {
+  await page.locator("#study-chapter").selectOption("ch51");
+  await expect(page.getByTestId("swipe-card").locator("h2")).toHaveText("go");
+  await page.getByTestId("swipe-card").click({ position: { x: 40, y: 40 } });
+  await expect(page.getByText("EXAMPLE")).toBeVisible();
+  await expect(page.getByRole("button", { name: "例文を再生" })).toBeVisible();
 });
