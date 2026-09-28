@@ -1,0 +1,24 @@
+rules_version = '2';
+
+// SwipeTalk のクラウド保存用ルール。
+// Firebase コンソール → Firestore Database → ルール に、このファイルの内容を貼り付けて「公開」する。
+//
+// - users/{uid} は、ログインしている本人（uid が一致する人）だけが読み書きできる
+// - 他の場所はすべて読み書き禁止
+// - 1ドキュメントの大きさを制限して、いたずらで巨大なデータを書き込まれないようにする
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /users/{uid} {
+      allow read: if request.auth != null && request.auth.uid == uid;
+      allow write: if request.auth != null
+        && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['state', 'updatedAt', 'version'])
+        && request.resource.data.state is string
+        && request.resource.data.state.size() < 500000
+        && request.resource.data.updatedAt is number;
+    }
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

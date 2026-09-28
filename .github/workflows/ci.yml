@@ -1,3 +1,4 @@
+# ゲームを追加したら、下の checks と e2e の matrix にディレクトリ名を足すこと。
 name: CI
 
 on:
@@ -24,7 +25,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        game: [god-arena, gomoku-narabe]
+        game: [god-arena, gomoku-narabe, tsuri-quest, eikaiwa-swipe]
     defaults:
       run:
         working-directory: ${{ matrix.game }}
@@ -54,7 +55,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        game: [god-arena, gomoku-narabe]
+        game: [god-arena, gomoku-narabe, tsuri-quest, eikaiwa-swipe]
     defaults:
       run:
         working-directory: ${{ matrix.game }}
