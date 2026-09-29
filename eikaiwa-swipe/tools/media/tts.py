@@ -64,6 +64,9 @@ def style_for(cfg, clip):
     parts = [cfg["style"], cfg["roles"][clip["role"]]["persona"]]
     if clip.get("context"):
         parts.append(f'Replying to: "{clip["context"]}"')
+    # 単語の見出し（1〜2語）は、モデルが "No sweat." のように言葉を足すことがあった（2026-09-29）
+    if clip.get("role") == "P" and len(clip.get("text", "").split()) <= 2:
+        parts.append(f'This is a single vocabulary item on a flashcard. Say only these exact words: "{clip["text"]}". Add nothing before or after them.')
     # 3回目からは、前の失敗の種類に合わせた指示を足す（cmd_submit が clip["retry"] に入れる）
     hints = cfg.get("batch", {}).get("verify", {}).get("hints", {})
     for kind in clip.get("retry", []):
@@ -928,8 +931,62 @@ def check_clip(cfg, clip, path=None):
     return ok, heard, kind
 
 
+ORD = {"one": "first", "two": "second", "three": "third", "five": "fifth", "eight": "eighth", "nine": "ninth", "twelve": "twelfth"}
+
+
+def spell_number(n):
+    """0〜9999 を英語の語に（それより大きい数は1桁ずつ読む: 電話番号・郵便番号など）"""
+    if n >= 10000:
+        return " ".join(NUMBERS[int(d)] for d in str(n))
+    out = []
+    if n >= 1000:
+        out.append(NUMBERS[n // 1000] + " thousand")
+        n %= 1000
+    if n >= 100:
+        out.append(NUMBERS[n // 100] + " hundred")
+        n %= 100
+    if n or not out:
+        out.append(number_words(n))
+    return " ".join(out)
+
+
+def ordinal(words):
+    last = words.split()[-1]
+    last = ORD.get(last, last[:-1] + "ieth" if last.endswith("y") else last + "th")
+    return " ".join(words.split()[:-1] + [last])
+
+
+def spoken_form(text):
+    """数字・お金・時刻・％・序数を読み方の語にし、空白や記号を取った文字列（書き方の違いを吸収して比べるため）"""
+    import re
+    t = text.lower().replace("’", "'").replace(",", "")
+    t = re.sub(r"\$(\d+)\.(\d{2})", lambda m: f"{spell_number(int(m.group(1)))} dollars and {spell_number(int(m.group(2)))} cents", t)
+    t = re.sub(r"\$(\d+)", lambda m: f"{spell_number(int(m.group(1)))} dollars", t)
+    t = re.sub(r"(\d+)%", lambda m: f"{spell_number(int(m.group(1)))} percent", t)
+    t = re.sub(r"(\d+):00", lambda m: spell_number(int(m.group(1))), t)
+    t = re.sub(r"(\d+):(\d\d)", lambda m: f"{spell_number(int(m.group(1)))} {spell_number(int(m.group(2)))}", t)
+    t = re.sub(r"(\d+)(st|nd|rd|th)\b", lambda m: ordinal(spell_number(int(m.group(1)))), t)
+    t = re.sub(r"\d+", lambda m: " " + spell_number(int(m.group())) + " ", t)
+    t = t.replace("+", " plus ").replace("=", " equals ").replace("&", " and ")
+    t = re.sub(r"\boh\b", "zero", t)
+    return re.sub(r"[^a-z]", "", t)
+
+
 def compare_words(text, heard):
     """元の文と聞こえた文を比べる。戻り値: (合っているか, 失敗の種類 repeat / omit / other / None)"""
+    ok, kind = compare_word_lists(text, heard)
+    if ok:
+        return ok, kind
+    # 語で合わなくても、読み方にそろえて（数字・お金・時刻・つづりの違いを吸収して）ほぼ同じなら合格にする。
+    # くり返し・言い落としを見逃さないよう、長さが近いときだけ
+    import difflib
+    x, y = spoken_form(text), spoken_form(heard)
+    if x and y and 0.85 <= len(y) / len(x) <= 1.15 and difflib.SequenceMatcher(None, x, y).ratio() >= 0.9:
+        return True, None
+    return ok, kind
+
+
+def compare_word_lists(text, heard):
     a, b = words_of(text), words_of(heard)
     # 語数が同じで1語（長い文は1割）までの違いは、聞き取りの揺れとみなす
     if len(a) == len(b):
