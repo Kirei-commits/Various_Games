@@ -1,0 +1,18 @@
+{
+  "name": "monster-strike",
+  "version": "0.1.0",
+  "private": true,
+  "description": "ひっぱりストライク — ビルド不要のひっぱりアクション（フェーズ1: 物理とひっぱり操作）",
+  "type": "module",
+  "scripts": {
+    "start": "node tests/serve.mjs",
+    "lint": "node tests/lint.mjs",
+    "test:logic": "node --test tests/logic/*.test.mjs",
+    "test:e2e": "playwright test",
+    "test": "npm run lint && npm run test:logic && npm run test:e2e"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.56.1"
+  },
+  "engines": { "node": ">=20" }
+}

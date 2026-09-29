@@ -1,0 +1,80 @@
+/**
+ * バランス測定用の自動プレイ。
+ *  greedy : 候補の撃ち方をすべて先読みして、いちばん良い一発を選ぶ（上手なプレイヤー）
+ *  casual : でたらめな撃ち方を4つ思い浮かべて、その中でいちばん良いもの（ふつうのプレイヤー）
+ *  random : 向きも強さもでたらめ（下手なプレイヤー）
+ */
+import { newGame, shoot } from './helpers.mjs';
+
+const ANGLES = 36;
+const POWERS = [0.45, 1];
+
+function candidates(P, cfg) {
+  const out = [];
+  for (let a = 0; a < ANGLES; a++) {
+    const ang = (a + 0.5) / ANGLES * Math.PI * 2;
+    for (const p of POWERS) {
+      const sp = cfg.speed.min + (cfg.speed.max - cfg.speed.min) * p;
+      out.push([Math.cos(ang) * sp, Math.sin(ang) * sp]);
+    }
+  }
+  return out;
+}
+
+function randomShot(cfg, random) {
+  const ang = random() * Math.PI * 2;
+  const sp = cfg.speed.min + (cfg.speed.max - cfg.speed.min) * random();
+  return [Math.cos(ang) * sp, Math.sin(ang) * sp];
+}
+
+/** 先読みの評価: 与ダメージ + 撃破ボーナス − ダメージウォールで失ったHP。攻撃が近い敵を優先して倒す */
+function score(battle, records, hpBefore) {
+  let s = 0;
+  for (const r of records) {
+    s += r.damage;
+    if (r.killed) {
+      const e = battle.enemy(r.enemy);
+      s += 4000 + 3000 / Math.max(1, e.counter);
+    }
+  }
+  s -= (hpBefore - battle.teamHp) * 2;
+  if (battle.state === 'lost') s -= 1e7;
+  return s;
+}
+
+/**
+ * ss: SS を使うか。使うのはボスのいるウェーブだけ（雑魚に使うとボス戦で溜まっていない）。
+ *     greedy は SS あり・なしの両方を先読みして良いほう、casual は溜まっていれば使う。
+ */
+export function play(mods, { policy = 'greedy', random = Math.random, maxTurns = 80, stage = 0, ss = true } = {}) {
+  const { P, D } = mods;
+  const { world, battle } = newGame(mods, stage);
+  const order = D.units.map((u) => u.id);
+  const cands = candidates(P, world.cfg);
+  let active = 0;
+  while (battle.state === 'playing' && battle.turn <= maxTurns) {
+    const id = order[active];
+    const bossWave = battle.enemies.some((e) => e.def.boss && e.alive);
+    const canSS = ss && bossWave && battle.ssReady(id);
+    let v, useSS = false;
+    if (policy === 'greedy' || policy === 'casual') {
+      let best = -Infinity;   // ダメージウォールで減点されると負の値になる
+      const pool = policy === 'greedy' ? cands : Array.from({ length: 4 }, () => randomShot(world.cfg, random));
+      const modes = policy === 'greedy' && canSS ? [false, true] : [canSS];
+      for (const m of modes) {
+        for (const c of pool) {
+          const w = world.clone();
+          const b = battle.clone();
+          const s = score(b, shoot(w, b, id, c[0], c[1], m), battle.teamHp);
+          if (s > best) { best = s; v = c; useSS = m; }
+        }
+      }
+    } else {
+      v = randomShot(world.cfg, random);
+    }
+    shoot(world, battle, id, v[0], v[1], useSS);
+    battle.endTurn(world);
+    active = (active + 1) % order.length;
+  }
+  return { state: battle.state, turns: battle.turn - 1, hp: battle.teamHp, wave: battle.wave, stats: battle.stats };
+}

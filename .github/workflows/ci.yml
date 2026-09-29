@@ -25,7 +25,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        game: [god-arena, gomoku-narabe, tsuri-quest, eikaiwa-swipe]
+        game: [god-arena, gomoku-narabe, tsuri-quest, eikaiwa-swipe, monster-strike]
     defaults:
       run:
         working-directory: ${{ matrix.game }}
@@ -55,7 +55,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        game: [god-arena, gomoku-narabe, tsuri-quest, eikaiwa-swipe]
+        game: [god-arena, gomoku-narabe, tsuri-quest, eikaiwa-swipe, monster-strike]
     defaults:
       run:
         working-directory: ${{ matrix.game }}

@@ -1,0 +1,50 @@
+# Claude が読みに行かないドメインの一覧（禁止リスト）。
+# 1行に1ドメイン。サブドメインもまとめて止まる（example.com → www.example.com も対象）。
+# 「#」から後ろはコメント。足したいときは下に1行書き足すだけでよい。
+#
+# 最初に入れてあるのは「ページの中身が危ない」ではなく、
+# 外部へデータを持ち出す経路や、行き先を隠す仕組みとしてよく悪用されるもの。
+
+# --- 受け取った内容を記録する窓口（データの持ち出しに使われる） ---
+webhook.site
+requestbin.com
+requestbin.net
+pipedream.net
+beeceptor.com
+hookbin.com
+interact.sh
+oast.fun
+oast.pro
+oast.live
+oast.site
+oast.online
+oast.me
+burpcollaborator.net
+canarytokens.com
+
+# --- 一時的なトンネル（手元のサーバーを外に晒す） ---
+ngrok.io
+ngrok-free.app
+ngrok.app
+trycloudflare.com
+loca.lt
+localtunnel.me
+serveo.net
+
+# --- 貼り付けサイト（指示やスクリプトを仕込む置き場に使われる） ---
+pastebin.com
+paste.ee
+hastebin.com
+ghostbin.com
+rentry.co
+dpaste.org
+
+# --- 短縮URL（本当の行き先が見えない） ---
+bit.ly
+tinyurl.com
+t.co
+is.gd
+goo.gl
+ow.ly
+cutt.ly
+rebrand.ly
