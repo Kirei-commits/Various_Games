@@ -820,6 +820,16 @@
      "seconds": 1.48
     },
     {
+     "key": "Laomedeia|Nice, you know this one!",
+     "text": "Nice, you know this one!",
+     "voice": "Laomedeia",
+     "file": "cheers/87c6ce6a670813.opus?v=1",
+     "rev": 1,
+     "sig": "aee10fabc75a",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 2.48
+    },
+    {
      "key": "Puck|Nice, you know this one!",
      "text": "Nice, you know this one!",
      "voice": "Puck",
@@ -923,6 +933,16 @@
      "sig": "f284e0e2d84e",
      "model": "gemini-3.8-flash-tts",
      "seconds": 1.68
+    },
+    {
+     "key": "Achird|So close!",
+     "text": "So close!",
+     "voice": "Achird",
+     "file": "cheers/601a6f6ef03ef3.opus?v=1",
+     "rev": 1,
+     "sig": "7de748d3cb41",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.72
     },
     {
      "key": "Sulafat|Don't worry, you'll get it!",
@@ -1153,6 +1173,26 @@
      "sig": "a2f193726abc",
      "model": "gemini-3.8-flash-tts",
      "seconds": 1.48
+    },
+    {
+     "key": "Fenrir|Got 'em!",
+     "text": "Got 'em!",
+     "voice": "Fenrir",
+     "file": "cheers/2799ea5c87a127.opus?v=1",
+     "rev": 1,
+     "sig": "74018104fb70",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.04
+    },
+    {
+     "key": "Leda|Got 'em!",
+     "text": "Got 'em!",
+     "voice": "Leda",
+     "file": "cheers/cdf3f1555674ad.opus?v=1",
+     "rev": 1,
+     "sig": "4651c63864d1",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 0.96
     },
     {
      "key": "Fenrir|Knocked out!",
