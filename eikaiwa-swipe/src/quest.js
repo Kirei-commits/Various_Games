@@ -583,7 +583,7 @@ const pickWeighted = (weights, rng) => {
  */
 export function rollChest(floor, words, rng = Math.random) {
   const tier = Math.max(1, Math.floor(floor / BOSS_EVERY));
-  const items = [{ kind: "points", amount: 300 * tier }];
+  const items = [{ kind: "points", amount: 30 * tier }]; // ポイントは控えめ（2026-09-29 に 1/10 に）
   const kind = pickWeighted({ word: 45, tickets: 25, medals: 20, srTickets: 10 }, rng);
   if (kind === "word" && words.length) {
     const odds = chestRarity(floor);
@@ -621,7 +621,7 @@ const accuracyOf = (run) => {
 
 /**
  * 冒険の報酬（ブースト前）。バトルのエンドレスと同じ水準にそろえる:
- * - ポイント: 遊んだ時間ぶん × (1 + 0.5 × 正解率 + ボスを倒した 0.5 + 最高記録 0.3) を 1000〜3000 に収め、
+ * - ポイント: 遊んだ時間ぶん × (1 + 0.5 × 正解率 + ボスを倒した 0.5 + 最高記録 0.3) を 100〜300 に収め、
  *   さらに到達レベルのボーナス（endlessLevelBonus。3階倒すごとに1レベル。バトルは10体ごと＝1階あたり約3問のため）
  * - レアチケット: 1 + (レベル-1)/2 枚（1〜8）
  * - 倒した階が REWARD_MIN_KILLS 未満なら、時間ぶんのポイントだけ

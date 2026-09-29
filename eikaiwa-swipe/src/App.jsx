@@ -3071,7 +3071,7 @@ function BattleResult({ battle, reward, speech, onRetry, onNext, onBack, favorit
             （Lv.{battle.level} 到達ボーナス +{reward.levelBonus.toLocaleString()}pt を含む）
           </span>
         )}
-        {reward.tickets === 0 && <span className="block text-xs font-normal text-indigo-500">3体以上倒すと、レアチケットと 1000pt 以上がもらえます</span>}
+        {reward.tickets === 0 && <span className="block text-xs font-normal text-indigo-500">3体以上倒すと、レアチケットと {BATTLE_POINTS.min}pt 以上がもらえます</span>}
       </div>
 
       {wrong.length > 0 && (
@@ -5026,7 +5026,11 @@ function CodePanel({ g, onRedeem, onEndUnlimited }) {
     setMessage(
       r.unlimited
         ? { ok: true, text: "開発者コード！ ポイントが無限になりました（ガチャを引いても減りません）" }
-        : { ok: true, text: `「${r.card.english}」（${r.card.secret ? "SECRET" : r.card.rarity}）で ${r.points.toLocaleString()}pt ゲット！`, big: r.points >= 20000 }
+        : {
+            ok: true,
+            text: `「${r.card.english}」（${r.card.secret ? "SECRET" : r.card.rarity}）で ${r.points.toLocaleString()}pt ゲット！${r.got ? "　単語も手に入れた！" : ""}`,
+            big: r.points >= 3000,
+          }
     );
   };
   const recent = g.codesUsed.slice(-5).reverse().map((id) => CATALOG.cards[id]).filter(Boolean);

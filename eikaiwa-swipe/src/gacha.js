@@ -6,7 +6,7 @@
  *   MAX（Lv.4）の単語は出なくなり、その分の確率は同じレア度の残りに均等に回る。
  *   同じレア度がすべて MAX なら、その確率は1つ下のレア度へ（レアチケットは N を出さないので上へ）。
  * - ダブると Lv が上がる（見た目だけ。意味・例文・語源は1枚目から全部見られる）。
- * - 救済: 天井（通常500回・レアチケット20回・SR チケット10回で SSR 確定。10連などの確定枠はない）、
+ * - 救済: 天井（通常ガチャ1000回で SSR 確定。チケットは対象のランクだけが出る。10連などの確定枠はない）、
  *   交換ポイント（引くたびに貯まり、好きな単語と交換）、選択チケット（ログイン日数でもらえる）。
  * - 課金はない。ポイントはログインボーナス・今日の目標・学習・テスト・バトル・コード入力でもらう。
  * - 学習・テスト・バトルのポイントは「かかった時間」に比例させる（どれで遊んでも1分あたりほぼ同じ）。
@@ -17,22 +17,21 @@ import { CHAPTER_POS, POS_OVERRIDES, TRIVIA, SECRETS, TITLES, QUEST_WORDS } from
 export const RARITIES = ["N", "R", "SR", "SSR"];
 const RANK = { N: 0, R: 1, SR: 2, SSR: 3 };
 /**
- * 排出の重み（1万分率）。points=通常ガチャ、ticket=レアチケット（R 以上）、
- * sr=SR ガチャチケット（SR 以上）、ssr=SSR ガチャチケット（SSR 確定）
+ * 排出の重み（10万分率）。points=通常ガチャ、ticket=レアチケット（R だけ）、sr=SR ガチャチケット（SR だけ）、ssr=SSR ガチャチケット（SSR だけ）。
+ * 2026-09-29 ユーザーの指示: 通常は R 5%・SR 0.5%・SSR 0.005%（すぐにコンプリートしないように）。チケットは対象のランクの単語だけ
  */
 export const RATES = {
-  // N 94.5%・R 5%・SR 0.45%・SSR 0.05%（2026-09-29 ユーザーの依頼で SR・SSR を下げた。以前は SR 1%・SSR 0.1%）
-  points: { N: 9450, R: 500, SR: 45, SSR: 5 },
-  ticket: { N: 0, R: 7800, SR: 2000, SSR: 200 }, // 以前は R 70%・SR 25%・SSR 5%
-  sr: { N: 0, R: 0, SR: 9200, SSR: 800 }, // 以前は SR 85%・SSR 15%
-  ssr: { N: 0, R: 0, SR: 0, SSR: 10000 },
+  points: { N: 94495, R: 5000, SR: 500, SSR: 5 },
+  ticket: { N: 0, R: 100000, SR: 0, SSR: 0 },
+  sr: { N: 0, R: 0, SR: 100000, SSR: 0 },
+  ssr: { N: 0, R: 0, SR: 0, SSR: 100000 },
 };
 /** 通貨ごとの、ガチャの記録の中の残高の名前 */
 export const BALANCE_KEY = { points: "points", ticket: "tickets", sr: "srTickets", ssr: "ssrTickets" };
 /** その通貨で出る最低のレア度 */
 const FLOOR_RANK = { points: 0, ticket: 1, sr: 2, ssr: 3 };
 export const PULL_COST = 100; // 通常ガチャ1回のポイント
-export const PITY_SSR = { points: 500, ticket: 20, sr: 10 }; // この回数目で SSR 確定（通常ガチャは集めにくくするため 500 回）
+export const PITY_SSR = { points: 1000 }; // 通常ガチャはこの回数目で SSR 確定（チケットは対象のランクだけが出るので天井はない）
 export const MAX_LEVEL = 4;
 /** 図鑑の交換所で1枚もらうのに必要な交換ポイント（やり込み向けに高め） */
 export const EXCHANGE_COST = { N: 200, R: 800, SR: 3000, SSR: 10000 };
@@ -49,12 +48,13 @@ export const SHOP = [
 export const POS_KEYS = ["all", "noun", "verb", "adj", "other"];
 
 // ポイントのもらい方
-export const LOGIN_POINTS = 1000; // 毎日のログインボーナス（1回分）
-export const GOAL_POINTS = 3000; // 今日の目標達成
-export const POINTS_PER_MINUTE = 600; // 学習・テスト・バトルで、1分あたりにもらえるポイント
+// 2026-09-29 ユーザーの指示: ポイントが貯まりすぎるので、もらえるポイントを以前の 1/10 に（ふつうに遊んで 100連くらいまで）
+export const LOGIN_POINTS = 100; // 毎日のログインボーナス（1回分。以前は 1000）
+export const GOAL_POINTS = 300; // 今日の目標達成（以前は 3000）
+export const POINTS_PER_MINUTE = 60; // 学習・テスト・バトル・冒険で、1分あたりにもらえるポイント（以前は 600）
 export const BOOST_RATE = 5; // 5倍ブースト
 export const BOOST_MS = 60 * 60 * 1000; // ブーストが続く時間（1時間）
-export const STARTER = { points: 1000, tickets: 1 }; // はじめてボーナス
+export const STARTER = { points: 100, tickets: 1 }; // はじめてボーナス（以前は 1000pt）
 export const MULTI_PULLS = [1, 10, 50, 100, 500, 1000]; // 選べる連数
 export const MAX_PULLS = 5000; // 「全部引く」で一度に引く上限
 export const CODE_DAILY_LIMIT = 5; // コード入力は1日5回まで
@@ -200,6 +200,7 @@ const notMax = (g) => (id) => (g.cards[id] || 0) < MAX_LEVEL;
 
 /** 空になったレア度の確率の行き先: 1つ下（保証・チケットの下限より下には行かない）→ なければ上 */
 function redistributeTarget(r, avail, currency, guarantee) {
+  if (currency !== "points") return null; // チケットは対象のランクだけ（ほかのランクには回さない）
   const floor = Math.max(guarantee ? RANK[guarantee] : 0, FLOOR_RANK[currency] || 0);
   for (let k = RANK[r] - 1; k >= floor; k--) if (avail[RARITIES[k]] > 0) return RARITIES[k];
   for (let k = RANK[r] + 1; k <= RANK.SSR; k++) if (avail[RARITIES[k]] > 0) return RARITIES[k];
@@ -567,13 +568,15 @@ export function activateBoost(state, now) {
 // ---------------------------------------------------------------------------
 
 /** レア度ごとのポイントの幅（短い単語ほど下、長い単語ほど上） */
+/** コードでもらえるポイントの幅（レア度ごと。最大 5000pt。2026-09-29 に以前の約 1/20 に） */
 export const CODE_POINTS = {
-  N: [1000, 5000],
-  R: [5000, 20000],
-  SR: [20000, 50000],
-  SSR: [50000, 90000],
-  secret: [100000, 100000],
+  N: [100, 500],
+  R: [500, 1500],
+  SR: [1500, 3000],
+  SSR: [3000, 5000],
+  secret: [5000, 5000],
 };
+export const CODE_POINTS_MAX = 5000;
 
 /** 単語のコードの価値（ポイント） */
 export function codeValue(card) {
@@ -611,17 +614,19 @@ export function redeemCode(state, catalog, code, today) {
   const card = findCard(catalog, text);
   if (!card) return { state, error: "その単語は単語帳にありません（スペルを確かめてください）" };
   if (g0.codesUsed.includes(card.id)) return { state, error: `「${card.english}」はもう使いました。別の単語を入れてください` };
-  const points = codeValue(card);
-  return {
-    state: withGacha(state, (g) => {
-      g.codeCount = g.codeDay === today ? g.codeCount + 1 : 1;
-      g.codeDay = today;
-      g.codesUsed.push(card.id);
-      g.points += points;
-    }),
-    points,
-    card,
-  };
+  const points = Math.min(CODE_POINTS_MAX, codeValue(card));
+  // 入れた単語も手に入る（MAX の単語・シークレット・冒険限定の単語はポイントだけ）
+  const gets = !card.secret && !card.questOnly && (g0.cards[card.id] || 0) < MAX_LEVEL;
+  const next = withGacha(state, (g) => {
+    g.codeCount = g.codeDay === today ? g.codeCount + 1 : 1;
+    g.codeDay = today;
+    g.codesUsed.push(card.id);
+    g.points += points;
+    if (gets) g.cards[card.id] = (g.cards[card.id] || 0) + 1;
+  });
+  if (!gets) return { state: next, points, card, got: false };
+  const { gacha, newTitles, newSecrets } = evaluateRewards(normalize(next.gacha), catalog);
+  return { state: { ...next, gacha }, points, card, got: true, newTitles, newSecrets };
 }
 
 /** 開発者モード（ポイント無限）をやめる */

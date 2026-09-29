@@ -172,16 +172,16 @@ test("装備: 持っていない単語は付けられない。同じ単語はほ
   assert.equal(Object.keys(auto.quest.equip).length, 7);
 });
 
-test("冒険の報酬はバトル（エンドレス）と同じ水準: 1000〜3000pt ＋ 3階ごとのレベルボーナス、レアチケット", () => {
+test("冒険の報酬はバトル（エンドレス）と同じ水準: 100〜300pt ＋ 3階ごとのレベルボーナス、レアチケット", () => {
   const s = freshState();
   const run = { ...createRun(statsOf(s.quest, cards, {}), 1, fixed(0.5)), expGained: 100, bestFloor: 6, cleared: 6, over: true };
-  // 2分 = 1200pt × (1 + 最高記録 0.3) = 1560、レベル3（6階）のボーナス 1500、チケット2枚
-  assert.deepEqual(questReward(run, 120, s.quest), { points: 3060, tickets: 2, levelBonus: 1500, newBest: true });
+  // 2分 = 120pt × (1 + 最高記録 0.3) = 156 → 160、レベル3（6階）のボーナス 150、チケット2枚
+  assert.deepEqual(questReward(run, 120, s.quest), { points: 310, tickets: 2, levelBonus: 150, newBest: true });
   const { state, reward } = applyQuest(s, run, 120, 0);
   assert.equal(state.quest.best, 6);
   assert.ok(state.quest.level > 1);
-  assert.equal(reward.points, 3060);
-  assert.equal(state.gacha.points, s.gacha.points + 3060);
+  assert.equal(reward.points, 310);
+  assert.equal(state.gacha.points, s.gacha.points + 310);
   assert.equal(state.gacha.tickets, s.gacha.tickets + 2);
   // 2階しか倒さなければ時間ぶんだけ
   assert.deepEqual(questReward({ ...run, cleared: 2 }, 30, s.quest).tickets, 0);
@@ -206,13 +206,13 @@ test("宝箱: ボスの階ごとに中身が決まり、序盤は強い単語が
   assert.ok(deep.has("SSR") && !deep.has("N"), [...deep].join(","));
   // 乱数 0 → 単語（45% の枠）・N
   const items = rollChest(5, words, () => 0);
-  assert.deepEqual(items, [{ kind: "points", amount: 300 }, { kind: "word", id: "w-n", rarity: "N" }]);
+  assert.deepEqual(items, [{ kind: "points", amount: 30 }, { kind: "word", id: "w-n", rarity: "N" }]);
   // 持ち帰り
   const s = freshState();
   const run = openChest({ ...createRun(statsOf(s.quest, cards, {}), 5, fixed(0.5)), bestFloor: 5, cleared: 1 }, words, () => 0);
   const { state, reward } = applyQuest(s, run, 10, 0);
   assert.equal(state.gacha.cards["w-n"], 1);
-  assert.equal(reward.loot.points, 300);
+  assert.equal(reward.loot.points, 30);
   assert.deepEqual(reward.words.map((w) => w.id), ["w-n"]);
 });
 

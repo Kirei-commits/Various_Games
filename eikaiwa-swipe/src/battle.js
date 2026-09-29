@@ -14,14 +14,14 @@ import { grant, boostRate, pointsForTime } from "./gacha.js";
 export const PLAYER_HP = 5;
 export const STAGE_ENEMIES = 10;
 export const BOSS_HP = 3;
-/** 1回のバトルでもらえるポイントの幅（遊んだ時間と成績で決まる。ブースト前） */
-export const BATTLE_POINTS = { min: 1000, max: 3000 };
+/** 1回のバトルでもらえるポイントの幅（遊んだ時間と成績で決まる。ブースト前。2026-09-29 に 1/10 に） */
+export const BATTLE_POINTS = { min: 100, max: 300 };
 /** 1回のバトルでもらえるレアチケットの幅 */
 export const BATTLE_TICKETS = { min: 1, max: 8 };
 /** 報酬をもらうのに必要な撃破数（すぐやめて報酬だけもらうのを防ぐ） */
 export const REWARD_MIN_KILLS = 3;
-/** エンドレスのレベルボーナス: レベル L まで到達すると 500 × (1 + 2 + … + (L-1)) pt（長く続けるほど大きく増える） */
-export const ENDLESS_LEVEL_BONUS = 500;
+/** エンドレスのレベルボーナス: レベル L まで到達すると 50 × (1 + 2 + … + (L-1)) pt（長く続けるほど大きく増える。以前は 500 ×） */
+export const ENDLESS_LEVEL_BONUS = 50;
 export const endlessLevelBonus = (level) => (ENDLESS_LEVEL_BONUS * (level - 1) * level) / 2;
 /** 時止めの砂時計で敵が止まる時間 */
 export const FREEZE_MS = 5000;
