@@ -865,7 +865,15 @@ const RESET_STEPS = [
   "覚えた・テストの記録・苦手がすべて消えます（あと1回）",
 ];
 
-function ResetButton({ onReset }) {
+/** アカウントのデータを消す（3回タップ） */
+const DELETE_STEPS = [
+  "アカウントのデータを消して最初から",
+  "本当に消しますか？（あと2回タップ）",
+  "ガチャ・冒険・日記もすべて消えます。元に戻せません（あと1回）",
+];
+
+function ResetButton({ onReset, steps = RESET_STEPS, testId = "reset-button" }) {
+  const RESET_STEPS_ = steps;
   const [step, setStep] = useState(0);
   useEffect(() => {
     if (step === 0) return undefined;
@@ -875,9 +883,9 @@ function ResetButton({ onReset }) {
   return (
     <button
       type="button"
-      data-testid="reset-button"
+      data-testid={testId}
       onClick={() => {
-        if (step + 1 < RESET_STEPS.length) return setStep(step + 1);
+        if (step + 1 < RESET_STEPS_.length) return setStep(step + 1);
         setStep(0);
         onReset();
       }}
@@ -885,7 +893,7 @@ function ResetButton({ onReset }) {
         step === 0 ? "bg-slate-50 text-slate-400 ring-1 ring-slate-200" : step === 1 ? "bg-rose-100 text-rose-700" : "bg-rose-500 text-white"
       }`}
     >
-      {RESET_STEPS[step]}
+      {RESET_STEPS_[step]}
     </button>
   );
 }
@@ -894,7 +902,7 @@ function ResetButton({ onReset }) {
 // ---------------------------------------------------------------------------
 // 音声設定
 // ---------------------------------------------------------------------------
-function SettingsSheet({ open, onClose, settings, setSettings, speech, onResetAll, themeId }) {
+function SettingsSheet({ open, onClose, settings, setSettings, speech, onResetAll, onDeleteAccount, signedIn = false, themeId }) {
   const sound = useSound();
   if (!open) return null;
   const update = (patch) => setSettings((s) => ({ ...s, ...patch }));
@@ -1133,6 +1141,14 @@ function SettingsSheet({ open, onClose, settings, setSettings, speech, onResetAl
                 onClose();
               }}
             />
+          </div>
+          <p className="mt-5 text-xs font-bold text-slate-400">アカウントのデータを消す</p>
+          <p className="mt-1 text-[11px] leading-relaxed text-slate-400">
+            進捗・ガチャ・バトル・冒険・日記・設定をすべて消して、はじめて開いたときの状態に戻します。
+            {signedIn ? "ログイン中なので、クラウドのデータも空にしてログアウトします。" : "この端末のデータを消します。"}
+          </p>
+          <div className="mt-2">
+            <ResetButton steps={DELETE_STEPS} testId="delete-account-button" onReset={onDeleteAccount} />
           </div>
         </div>
       </div>
@@ -6244,6 +6260,34 @@ export default function App() {
     };
   }, [flush]);
 
+  /** アカウントのデータを消して最初から（クラウドは空の状態で上書きしてログアウト。この端末の保存も消す） */
+  const onDeleteAccount = useCallback(async () => {
+    const fresh = freshState(CHAPTERS[0].id);
+    ready.current = false; // 自動保存を止める
+    if (user) {
+      try {
+        await cloud.save(user.uid, fresh, Date.now());
+      } catch {
+        /* 通信できなくても、この端末のデータは消す */
+      }
+    }
+    try {
+      for (const k of Object.keys(localStorage)) if (k.startsWith("swipetalk:")) localStorage.removeItem(k);
+      sessionStorage.removeItem(SKIP_LOGIN_KEY);
+    } catch {
+      /* 保存が使えない環境 */
+    }
+    if (user) {
+      try {
+        await cloud.signOut();
+      } catch {
+        /* もうログアウトしている */
+      }
+    }
+    if (typeof window !== "undefined" && window.__swipetalkNoReload) return; // E2E 用
+    window.location.reload();
+  }, [user]);
+
   const account = {
     user,
     sync,
@@ -6466,6 +6510,8 @@ export default function App() {
           setSettings={setSettings}
           speech={speech}
           onResetAll={onResetAll}
+          onDeleteAccount={onDeleteAccount}
+          signedIn={!!user}
           themeId={theme.id}
         />
       </div>
