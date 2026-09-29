@@ -47,9 +47,9 @@ import {
 } from "lucide-react";
 import { BattleBackdrop, Monster, Dragon, Hero, monsterKindOf } from "./battle-art.jsx";
 import QuestScreen from "./QuestScreen.jsx";
-import { equip as questEquip, autoEquip as questAutoEquip, applyQuest, runResults } from "./quest.js";
+import { equip as questEquip, autoEquip as questAutoEquip, applyQuest, runResults, savePreset as questSavePreset, loadPreset as questLoadPreset } from "./quest.js";
 import { loadRecordedIndex, playRecorded, recordedCount, recordedUrls, stopRecorded } from "./recorded.js";
-import { cheersAvailable, loadCheers } from "./cheers.js";
+import { cheersAvailable, loadCheers, noteSpeech } from "./cheers.js";
 import { Art, CARD_BACK_ART, CHEST_ART, MACHINE_ART, SHOP_ART, WALLET_ICON } from "./gacha-art.jsx";
 import { saveDiary } from "./diary.js";
 import rawChapters, { PARTS, RENAMED } from "./data/index.js";
@@ -357,6 +357,10 @@ const PART_GROUPS = PARTS.map((p) => {
 const CATALOG = buildCatalog(LIBRARY, PARTS);
 /** 冒険で出す単語（ガチャの対象の単語。シークレットは除く） */
 const QUEST_POOL = Object.values(CATALOG.cards).filter((c) => !c.secret);
+/** 冒険の宝箱から出る、冒険限定の単語 */
+const CHEST_WORDS = Object.values(CATALOG.cards)
+  .filter((c) => c.questOnly)
+  .map((c) => ({ id: c.id, rarity: c.rarity }));
 const KIND_ITEMS = {
   phrase: PART_GROUPS.filter((p) => p.kind === "phrase").flatMap((p) => p.chapters.flatMap((c) => c.items)),
   word: PART_GROUPS.filter((p) => p.kind === "word").flatMap((p) => p.chapters.flatMap((c) => c.items)),
@@ -528,6 +532,7 @@ function useSpeech(settings) {
   const speakLines = useCallback(
     (lines, key, onDone, seed = key) => {
       if (!lines.length) return false;
+      noteSpeech(); // 読み上げが優先（合いの手を止めて、重ねない）
       // 録音がすべての行にあれば録音を再生する（再生できなければ読み上げに戻す）
       const urls = recordedUrls(lines); // 録音があれば必ず録音で読む
       if (urls) {
@@ -3182,6 +3187,7 @@ function TestScreen({ active, state, settings, setSettings, speech, onFinishTest
         state={state}
         cards={CATALOG.cards}
         pool={QUEST_POOL}
+        chestWords={CHEST_WORDS}
         speech={speech}
         sound={sound}
         dopamine={dopamine}
@@ -3193,6 +3199,8 @@ function TestScreen({ active, state, settings, setSettings, speech, onFinishTest
         }
         onEquip={quest.onEquip}
         onAutoEquip={quest.onAutoEquip}
+        onSavePreset={quest.onSavePreset}
+        onLoadPreset={quest.onLoadPreset}
         onFinish={quest.onFinish}
       />
     );
@@ -4177,11 +4185,13 @@ function WordSheet({ card, gacha, speech, onClose, onExchange }) {
                 </div>
               )}
               {card.secret && <p className="mt-3 rounded-2xl bg-slate-900 p-3 text-sm font-bold text-amber-300">解放の条件: {card.hint}</p>}
+              {card.questOnly && <p className="mt-3 rounded-2xl bg-emerald-900 p-3 text-sm font-bold text-emerald-200">冒険限定: 冒険でボスを倒した宝箱から手に入ります</p>}
             </>
           )}
         </div>
 
-        {!card.secret && level < MAX_LEVEL && (
+        {card.questOnly && owned && <p className="mt-3 text-center text-[11px] font-bold text-emerald-700">冒険限定の単語（宝箱でまた手に入ると Lv が上がります）</p>}
+        {!card.secret && !card.questOnly && level < MAX_LEVEL && (
           <div className="mt-4 space-y-2">
             <p className="text-xs font-bold text-slate-500">交換所{owned ? `（Lv.${level + 1} に上げる）` : "（この単語を手に入れる）"}</p>
             <button
@@ -6040,7 +6050,19 @@ export default function App() {
         const next = questAutoEquip(stateRef.current, CATALOG.cards);
         stateRef.current = next;
         update(() => next);
-        sound.play("correct");
+        sound.play("correct", 0, { cheer: false });
+      },
+      onSavePreset(i) {
+        const next = questSavePreset(stateRef.current, i);
+        stateRef.current = next;
+        update(() => next);
+        sound.play("tap");
+      },
+      onLoadPreset(i) {
+        const next = questLoadPreset(stateRef.current, i);
+        stateRef.current = next;
+        update(() => next);
+        sound.play("correct", 0, { cheer: false });
       },
       onFinish(run, seconds) {
         const { today, yesterday } = todayAndYesterday();

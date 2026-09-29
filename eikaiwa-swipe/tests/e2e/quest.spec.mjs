@@ -69,3 +69,39 @@ test("冒険: 単語を持っていなくても遊べる（装備なしの案内
   await page.getByRole("button", { name: "1階から" }).click();
   await expect(page.getByTestId("quest-commands")).toBeVisible();
 });
+
+test("冒険: ふつうのじゅもんはなく、相性が表示される。5階のボスを倒すと宝箱から冒険限定の単語などが出る", async ({ page }) => {
+  // Lv を高くして一撃で倒せるようにする
+  await page.evaluate(() => {
+    localStorage.setItem("swipetalk:v2", JSON.stringify({ version: 7, learned: {}, quest: { level: 60 }, gacha: { starter: true, cards: {} } }));
+  });
+  await page.reload();
+  await page.getByRole("button", { name: "テスト", exact: true }).click();
+  await page.getByRole("button", { name: "冒険" }).click();
+  await expect(page.getByTestId("affinity-chart")).toBeVisible();
+  await page.getByRole("button", { name: "1階から" }).click();
+  await expect(page.getByRole("button", { name: /じゅもん/ })).toHaveCount(0);
+  await expect(page.getByTestId("quest-matchup")).toContainText("こうげき");
+  for (let f = 1; f <= 5; f++) {
+    expect(await winFloor(page)).toBe(true);
+    if (f < 5) await page.getByRole("button", { name: "つぎの階へ" }).click();
+  }
+  await expect(page.getByTestId("quest-chest")).toContainText("5階の たからばこを あけた！");
+  await expect(page.getByTestId("quest-chest")).toContainText("ガチャのポイント +300");
+  await page.getByTestId("quest-chest").click();
+  await page.getByRole("button", { name: "街に帰る" }).click();
+  await expect(page.getByTestId("quest-loot")).toContainText("たからばこ（1こ）");
+  await expect(page.getByTestId("quest-result")).toContainText("レアチケット: +");
+});
+
+test("冒険: 装備をプリセットに保存して、あとで付け替えられる", async ({ page }) => {
+  await openQuest(page, { breakfast: 1, park: 1 });
+  await page.getByRole("button", { name: "おまかせ装備" }).click();
+  await page.getByRole("button", { name: "今の装備をセット1に保存" }).click();
+  await expect(page.getByTestId("quest-presets")).toContainText("2か所");
+  await page.getByRole("button", { name: "武器を変える" }).click();
+  await page.getByTestId("gear-picker").getByRole("button", { name: "はずす" }).click();
+  await expect(page.getByTestId("quest-equip")).not.toContainText("breakfast");
+  await page.getByRole("button", { name: "セット1を装備する" }).click();
+  await expect(page.getByTestId("quest-equip")).toContainText("breakfast");
+});

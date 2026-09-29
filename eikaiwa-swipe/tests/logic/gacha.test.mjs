@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import raw, { PARTS } from "../../src/data/index.js";
-import { SECRETS, TITLES, TRIVIA } from "../../src/data/gacha-data.js";
+import { SECRETS, TITLES, TRIVIA, QUEST_WORDS } from "../../src/data/gacha-data.js";
 import {
   buildLibrary,
   mulberry32,
@@ -59,7 +59,14 @@ test("カタログ: 単語3000語＋シークレット。基礎=N・生活=R・�
   assert.equal(catalog.cards.go.rarity, "N");
   assert.equal(catalog.cards.school.rarity, "SSR");
   assert.equal(catalog.cards.revenue.rarity, "SR");
-  assert.equal(catalog.pools.all.SSR.length, Object.keys(TRIVIA).length);
+  // 冒険限定の単語はガチャに出ない
+  const questOnly = Object.values(catalog.cards).filter((c) => c.questOnly);
+  assert.equal(questOnly.length, QUEST_WORDS.length);
+  assert.equal(catalog.pools.all.SSR.length, Object.keys(TRIVIA).filter((id) => !QUEST_WORDS.includes(id)).length);
+  assert.ok(!Object.values(catalog.pools.all).flat().some((id) => catalog.cards[id].questOnly));
+  // 冒険限定の単語は、称号・シークレットの条件に使わない（ガチャで集められなくなるため）
+  for (const t of TITLES) for (const id of t.rule.ids || []) assert.ok(!QUEST_WORDS.includes(id), `TITLE ${t.id}: ${id}`);
+  for (const s of SECRETS) for (const id of s.rule.ids) assert.ok(!QUEST_WORDS.includes(id), `SECRET ${s.id}: ${id}`);
   // 語源データと称号・シークレットの条件が、実在する単語を指している
   for (const id of Object.keys(TRIVIA)) assert.ok(catalog.cards[id], `TRIVIA: ${id}`);
   for (const s of SECRETS) for (const id of s.rule.ids) assert.ok(catalog.cards[id], `SECRET ${s.id}: ${id}`);
@@ -79,11 +86,16 @@ test("品詞の推定: 〜る は動詞、〜い・〜な は形容詞、それ�
   assert.equal(catalog.cards.go.pos, "verb");
 });
 
-test("排出確率は通常 93.9/5/1/0.1、レアチケット 0/70/25/5", () => {
+test("排出確率は通常 94.5/5/0.45/0.05、レアチケット 0/78/20/2", () => {
   const r = currentRates(freshState().gacha, catalog, "all", "points");
-  assert.deepEqual([r.N, r.R, r.SR, r.SSR].map((x) => Math.round(x * 10) / 10), [93.9, 5, 1, 0.1]);
+  assert.deepEqual([r.N, r.R, r.SR, r.SSR].map((x) => Math.round(x * 100) / 100), [94.5, 5, 0.45, 0.05]);
   const t = currentRates(freshState().gacha, catalog, "all", "ticket");
-  assert.deepEqual([t.N, t.R, t.SR, t.SSR], [0, 70, 25, 5]);
+  assert.deepEqual([t.N, t.R, t.SR, t.SSR], [0, 78, 20, 2]);
+});
+
+test("冒険限定の単語は交換所でも交換できない", () => {
+  const s = { ...freshState(), gacha: { ...freshState().gacha, exPoints: 100000 } };
+  assert.match(exchange(s, catalog, "legend").error, /冒険の宝箱/);
 });
 
 test("たくさん引くと、出たレア度の割合が表示確率に近い", () => {
@@ -97,8 +109,8 @@ test("たくさん引くと、出たレア度の割合が表示確率に近い",
     for (const x of r.results) count[x.rarity]++;
   }
   const n = 6000;
-  assert.ok(Math.abs(count.N / n - 0.939) < 0.02, JSON.stringify(count));
-  // SSR は 0.1% ＋500回天井で、平均すると約0.25%
+  assert.ok(Math.abs(count.N / n - 0.945) < 0.02, JSON.stringify(count));
+  // SSR は 0.05% ＋500回天井で、平均すると約0.2%
   assert.ok(count.SSR / n > 0.0012 && count.SSR / n < 0.0045, JSON.stringify(count));
 });
 
@@ -311,7 +323,7 @@ test("通常ガチャの天井は500回: 499回 SSR が出なくても、500回�
 });
 
 test("保存データ: v2 から最新へ移行し、ガチャのデータは端末をまたいでも失わない", () => {
-  assert.equal(STATE_VERSION, 6);
+  assert.equal(STATE_VERSION, 7);
   const old = { version: 2, learned: { "make-sense": true }, queues: {}, misses: {}, tests: {}, stats: {} };
   const s = restoreState(old, lib);
   assert.equal(s.gacha.points, 0);

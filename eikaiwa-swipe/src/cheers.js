@@ -28,6 +28,24 @@ let loading = null;
 let player = null;
 let last = null;
 let busyUntil = 0;
+let voiceUntil = 0; // 英語の読み上げ（単語・会話）を始めた直後は合いの手を流さない
+let current = null; // 鳴っている合いの手（止めるため）
+
+/**
+ * 英語の読み上げを始めるときに呼ぶ。鳴っている合いの手を止め、しばらく新しい合いの手を流さない
+ * （読み上げが優先。声が2つ重ならないように）
+ */
+export function noteSpeech(ms = 1500) {
+  voiceUntil = performance.now() + ms;
+  try {
+    current?.stop?.();
+    current?.pause?.();
+  } catch {
+    /* もう止まっている */
+  }
+  current = null;
+  busyUntil = 0;
+}
 const raw = new Map(); // file → ArrayBuffer（先に読み込んだ声）
 const urls = new Map(); // file → blob の URL（<audio> 用）
 const buffers = new Map(); // file → AudioBuffer（Web Audio 用）
@@ -113,7 +131,7 @@ export function cheer(name, n = 0, volume = 0.8, ctx = null) {
   if (!events) return;
   decodeAll(ctx);
   const speaking = isRecordedPlaying() || (typeof window !== "undefined" && window.speechSynthesis?.speaking);
-  if (speaking || performance.now() < busyUntil) return;
+  if (speaking || performance.now() < busyUntil || performance.now() < voiceUntil) return;
   const pick = pickCheer(events, name, { n, last });
   if (!pick) return;
   last = pick.text;
@@ -128,6 +146,7 @@ export function cheer(name, n = 0, volume = 0.8, ctx = null) {
     src.connect(gain);
     gain.connect(ctx.destination);
     src.start();
+    current = src;
     busyUntil = performance.now() + buf.duration * 1000;
     return;
   }
@@ -137,5 +156,6 @@ export function cheer(name, n = 0, volume = 0.8, ctx = null) {
   player.src = urls.get(pick.file) || `${AUDIO_DIR}${pick.file}`;
   player.volume = vol;
   player.onended = () => (busyUntil = 0);
+  current = player;
   player.play().catch(() => (busyUntil = 0));
 }

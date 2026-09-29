@@ -20,7 +20,7 @@ test("日記の保存: 同じ日は上書きされる。採点はしない", () 
 });
 
 test("保存データ v5: お気に入りと日記は復元され、端末をまたいでも失わない", () => {
-  assert.equal(STATE_VERSION, 6);
+  assert.equal(STATE_VERSION, 7);
   let a = toggleFavorite(freshState(), "hows-it-going");
   a = saveDiary(a, "2026-10-01", "A day.", [], 5);
   assert.deepEqual(toggleFavorite(a, "hows-it-going").favorites, {});
