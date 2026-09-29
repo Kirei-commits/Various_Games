@@ -193,13 +193,13 @@ python3 tools/media/tts.py collect              # 終わったバッチを取り
 - アプリ: `src/cheers.js`。効果音（`SoundEngine.play` の名前）に合わせて、場面の声からランダムに流す（場面ごとの確率つき・連続正解は5回ごと・読み上げ中や直前と同じ文は流さない）。設定「合いの手（英語の声で応援）」でオフにできる（声があるときだけ表示）
 - テスト: `tests/logic/cheers.test.mjs`、`tests/e2e/cheers.spec.mjs`
 
-**進み具合（2026-09-29 朝）**: Batch API（3.8 Flash TTS・1文ずつ・半額）に切り替えて、ほぼ全部できた
-- アプリに入っている録音: 13,278文のうち **13,193文**。うち **5,411文は「未確認」**（manifest の `unverified`。確認で約95%は通る見込み）
-- 残り 85文は確認で捨てた文（次の `submit all --replace-models` で出し直し）
-- ほかのモデル（2.5 Flash・3.1 Flash・3.8 Flash Lite）で作った **2,918文の置き換え** は、新しい録音が `tools/media/raw/tts/hold/`（git の外）にあり、確認に通るまでアプリは古い録音のまま
-  - **コンテナが作り直されると hold は消える**。その場合は `submit all --replace-models` で出し直す（約¥60）
-- **Gemini API のプリペイド残高が切れた**（402）。確認の文字起こしが止まったので、`collect --defer-verify` で結果だけ取り込んだ（取り込みは無料）
-- 残高を足したら: `python3 tools/media/tts.py verify`（未確認と置き換え待ちを確かめる）→ `submit all --replace-models` → collect をくり返す → `tts.py cheers`
+**進み具合（2026-09-29 昼・完了）**: **13,278文すべて**が 3.8 Flash TTS（Batch・1文ずつ）の録音になった
+- ほかのモデルで作った分の置き換えも完了。合いの手の声（181本・12場面）も作った（`audio/cheers/`、`audio/cheers.json`）
+- 文字起こしの確認: 1回目で約96%が通り、通らないものは出し直した
+- 確認の比べ方を直した: 数字・お金・時刻・％・序数・つづり（makeup / make up など）の書き方の違いを吸収する2段目の比べ方を追加。これで 156本の「5回とも不合格」のうち 141本はこちらの判定の誤りだったと分かった
+- 単語の見出し（1〜2語）で、モデルが "No sweat." のように言葉を足すことがあった → 「この語だけを言う」指示を style に足した。読みまちがえた語（aisle seat・considerate）は `tts.config.json` の `pronunciations` に意味と読み方のヒントを足して作り直した
+- manifest の `check` が付いたまま残っているのは 9本。どれも聞き取り側の書き方の違い（212・2500・750・3.5・résumé）か、文が「…」だけの行（"mhm" などと読む）で、録音は問題ないと判断して残した
+- 軽い文字起こし（3.1 Flash Lite）は1語だけの録音に弱い（assign → "a sign"、hashtag → "#"）。怪しいときは 3.5 Flash で「単語カードの1語」と伝えて聞き直すと正しく判定できた
 
 **Batch API で分かったこと**
 - 1件（200文）が数分で終わる。通常の API の1日100回の上限とは別枠で、残り約1万文を一度に出せた
