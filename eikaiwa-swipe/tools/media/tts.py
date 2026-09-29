@@ -706,6 +706,10 @@ def cmd_cheers(args, cfg):
                     todo_by_voice.setdefault((voice, group["style"]), []).append(clip)
     need = sum(len(v) for v in todo_by_voice.values())
     print(f"合いの手 {sum(len(v) for v in plan.values())} 本（作るもの {need} 本）")
+    if getattr(args, "batch", False):
+        cheers_batch(cfg, todo_by_voice, made)
+        write_cheers(src, plan, made, out_path)
+        return
     quota = load_quota()
     known = load_json(MODELS_FILE, {})
     # 合いの手は気持ちの込め方が大事なので、話し方を指定できる（metadata の）モデルを先に使う
@@ -744,6 +748,54 @@ def cmd_cheers(args, cfg):
         if units:
             print("  使えるモデルがなくなったので、残りは次に回します")
             break
+    write_cheers(src, plan, made, out_path)
+
+
+CHEERS_JOB = RAW / "cheers-job.json"
+
+
+def cheers_batch(cfg, todo_by_voice, made):
+    """合いの手を Batch API で作る（今のモデル・1文ずつ・話し方の指示つき）。1回目は出すだけ、2回目以降で取り込む"""
+    job = load_json(CHEERS_JOB, None)
+    if job is None:
+        clips = [c for v in todo_by_voice.values() for c in v]
+        if not clips:
+            return
+        reqs = [{"request": {"contents": [{"parts": [{"text": c["text"], "speechMetadata": {"style": c["style"]}}]}],
+                             "generationConfig": {"responseModalities": ["AUDIO"], "speechConfig": {"voiceConfig": {"prebuiltVoiceConfig": {"voiceName": c["voice"]}}}}},
+                 "metadata": {"key": c["hash"]}} for c in clips]
+        res = api("POST", f"/v1beta/models/{cfg['model']}:batchGenerateContent", {"batch": {"displayName": "swipetalk-cheers", "inputConfig": {"requests": {"requests": reqs}}}})
+        RAW.mkdir(parents=True, exist_ok=True)
+        CHEERS_JOB.write_text(json.dumps({"name": res["name"], "clips": {c["hash"]: c for c in clips}}, ensure_ascii=False))
+        print(f"出しました: {res['name']}（{len(clips)} 本）。終わったら、もう一度 cheers --batch で取り込む")
+        return
+    res = api("GET", f"/v1beta/{job['name']}")
+    state = job_state(res)
+    if state not in ("SUCCEEDED", "DONE"):
+        print(f"{job['name']}: {state}")
+        if state in ("FAILED", "CANCELLED", "EXPIRED"):
+            CHEERS_JOB.unlink()
+        return
+    ok = bad = 0
+    for key, response, error in batch_results(res) or []:
+        c = job["clips"].get(key)
+        if c is None or error:
+            bad += 1
+            continue
+        seconds, warning = save_audio({**cfg, "_outdir": "cheers"}, c, response)
+        if warning:
+            print("  " + warning)
+            bad += 1
+            continue
+        old = made.get(c["key"], {})
+        made[c["key"]] = {"key": c["key"], "text": c["text"], "voice": c["voice"], "file": f"cheers/{c['hash']}.opus?v={old.get('rev', 0) + 1}",
+                          "rev": old.get("rev", 0) + 1, "sig": c["sig"], "model": cfg["model"], "seconds": round(seconds, 2)}
+        ok += 1
+    CHEERS_JOB.unlink()
+    print(f"取り込みました: {ok} 本（取り込めなかったもの {bad} 本。もう一度 cheers --batch で出し直せる）")
+
+
+def write_cheers(src, plan, made, out_path):
     events = {}
     for name, ev in src["events"].items():
         clips = [made[c["key"]] for c in plan[name] if c["key"] in made]
@@ -1070,7 +1122,9 @@ def main():
     s.add_argument("--voices", help="カンマ区切り（省略すると sampleVoices を全部）")
     s.set_defaults(func=cmd_sample)
     sub.add_parser("status", help="出したバッチの状態").set_defaults(func=cmd_status)
-    sub.add_parser("cheers", help="合いの手の声を作る（tools/media/cheers.json）").set_defaults(func=cmd_cheers)
+    s = sub.add_parser("cheers", help="合いの手の声を作る（tools/media/cheers.json）")
+    s.add_argument("--batch", action="store_true", help="Batch API で作る（半額・今のモデル・1文ずつ）。1回目で出し、2回目で取り込む")
+    s.set_defaults(func=cmd_cheers)
     s = sub.add_parser("collect", help="終わったバッチの結果を取り込む")
     s.add_argument("--max-jobs", type=int, help="1回に取り込むバッチの数の上限（取り込むたびにコミットするため）")
     s.add_argument("--defer-verify", action="store_true", help="文字起こしの確認を後回しにする（残高切れのときなど。あとで verify）")
