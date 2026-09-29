@@ -58804,6 +58804,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "0a1db3bcd7683f": {
+   "key": "P|aisle seat",
+   "text": "aisle seat",
+   "role": "P",
+   "chapter": "ch07",
+   "id": "aisle-seat",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "26c3fb7df299",
+   "rev": 1,
+   "seconds": 1.36,
+   "via": "batch",
+   "at": "2026-09-29"
+  },
   "0a1defc3366ad6": {
    "key": "P|pull someone's leg",
    "text": "pull someone's leg",
@@ -127154,6 +127168,20 @@
    "sig": "e9047d5cd503",
    "rev": 2,
    "seconds": 2.32,
+   "via": "batch",
+   "at": "2026-09-29"
+  },
+  "15d5f772fe136a": {
+   "key": "P|considerate",
+   "text": "considerate",
+   "role": "P",
+   "chapter": "ch75",
+   "id": "considerate",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "d97fbf681cb2",
+   "rev": 1,
+   "seconds": 1.2,
    "via": "batch",
    "at": "2026-09-29"
   },
