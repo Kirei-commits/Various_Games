@@ -9339,6 +9339,21 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "018b5c774dd616": {
+   "key": "P|sweat",
+   "text": "sweat",
+   "role": "P",
+   "chapter": "ch60",
+   "id": "sweat",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "7e8320a5bfd2",
+   "rev": 1,
+   "seconds": 0.96,
+   "via": "batch",
+   "at": "2026-09-29",
+   "check": "Knows what?"
+  },
   "018c27600e687b": {
    "key": "B|I messed up the ending.",
    "text": "I messed up the ending.",
@@ -58793,13 +58808,14 @@
    "role": "P",
    "chapter": "ch07",
    "id": "aisle-seat",
-   "model": "gemini-2.5-flash-preview-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Erinome",
-   "sig": "308d2f49e911",
-   "rev": 1,
-   "seconds": 0.87,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "c9850a7856e4",
+   "rev": 2,
+   "seconds": 0.96,
+   "via": "batch",
+   "at": "2026-09-29",
+   "check": "I'll see."
   },
   "0a1defc3366ad6": {
    "key": "P|pull someone's leg",
@@ -90321,13 +90337,14 @@
    "role": "P",
    "chapter": "ch109",
    "id": "course",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Erinome",
-   "sig": "3279f45c8a5a",
-   "rev": 1,
-   "seconds": 0.82,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "1e70ca24fa91",
+   "rev": 2,
+   "seconds": 1.0,
+   "via": "batch",
+   "at": "2026-09-29",
+   "check": "Of course."
   },
   "0f86477ad89626": {
    "key": "A|I'm going to quit my job tomorrow!",
@@ -113919,6 +113936,20 @@
    "via": "batch",
    "at": "2026-09-29"
   },
+  "1397eb4a048c34": {
+   "key": "P|text",
+   "text": "text",
+   "role": "P",
+   "chapter": "ch52",
+   "id": "text",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "772d3e9ffaf3",
+   "rev": 1,
+   "seconds": 0.96,
+   "via": "batch",
+   "at": "2026-09-29"
+  },
   "139811dfe4fa51": {
    "key": "B|I have a migraine. The light is killing me.",
    "text": "I have a migraine. The light is killing me.",
@@ -122165,6 +122196,21 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "14fdb3b44a92b0": {
+   "key": "P|have a lot on my plate",
+   "text": "have a lot on my plate",
+   "role": "P",
+   "chapter": "ch16",
+   "id": "have-a-lot-on-my-plate",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "75930b2d14e4",
+   "rev": 1,
+   "seconds": 1.84,
+   "via": "batch",
+   "at": "2026-09-29",
+   "check": "I have a lot on my plate."
+  },
   "14fe153aad1865": {
    "key": "B|Break a leg!",
    "text": "Break a leg!",
@@ -125987,6 +126033,21 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "15aaebd95d03c7": {
+   "key": "A|I called to congratulate her.",
+   "text": "I called to congratulate her.",
+   "role": "A",
+   "chapter": "ch88",
+   "id": "congratulate",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "9374dc42f846",
+   "rev": 1,
+   "seconds": 1.68,
+   "via": "batch",
+   "at": "2026-09-29",
+   "check": "I called the congratulator."
+  },
   "15ab197f550446": {
    "key": "P|I'd like to deposit this check.",
    "text": "I'd like to deposit this check.",
@@ -127106,6 +127167,21 @@
    "seconds": 2.6,
    "via": "batch",
    "at": "2026-09-29"
+  },
+  "15d5f772fe136a": {
+   "key": "P|considerate",
+   "text": "considerate",
+   "role": "P",
+   "chapter": "ch75",
+   "id": "considerate",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "940d6715eead",
+   "rev": 1,
+   "seconds": 1.32,
+   "via": "batch",
+   "at": "2026-09-29",
+   "check": "Consider it."
   },
   "15d6caab473371": {
    "key": "A|I really appreciate your help.",
@@ -144263,13 +144339,14 @@
    "role": "A",
    "chapter": "ch103",
    "id": "strait",
-   "model": "gemini-3.1-flash-tts-preview",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Achird",
-   "sig": "51f4fb7d6488",
-   "rev": 1,
-   "seconds": 2.44,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "571c276b986c",
+   "rev": 2,
+   "seconds": 2.32,
+   "via": "batch",
+   "at": "2026-09-29",
+   "check": "A fairy crosses the street every hour."
   },
   "18d6e3b18f1e08": {
    "key": "A|I'm exhausted after that hike.",
@@ -160839,13 +160916,14 @@
    "role": "B",
    "chapter": "ch07",
    "id": "aisle-seat",
-   "model": "gemini-2.5-flash-preview-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Callirrhoe",
-   "sig": "93db63c5f691",
-   "rev": 1,
-   "seconds": 0.98,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "f8a35f9d6b47",
+   "rev": 2,
+   "seconds": 1.48,
+   "via": "batch",
+   "at": "2026-09-29",
+   "check": "ILC, please."
   },
   "1bbf804432d677": {
    "key": "P|architecture",
@@ -179809,13 +179887,13 @@
    "role": "A",
    "chapter": "ch05",
    "id": "for-here-or-to-go",
-   "model": "gemini-2.5-flash-preview-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Achird",
-   "sig": "c84bfae0ee07",
-   "rev": 1,
-   "seconds": 1.34,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "67082fb6a411",
+   "rev": 2,
+   "seconds": 1.4,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "1efd5ea3118bb8": {
    "key": "P|desk",
