@@ -16,6 +16,18 @@
           }
         ]
       }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "WebFetch|Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/block-domains.sh",
+            "timeout": 10
+          }
+        ]
+      }
     ]
   }
 }
