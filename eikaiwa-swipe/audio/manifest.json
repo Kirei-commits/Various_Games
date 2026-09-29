@@ -4884,6 +4884,36 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "00db7688fcb1ef": {
+   "key": "P|energy",
+   "text": "energy",
+   "role": "P",
+   "chapter": "ch92",
+   "id": "energy",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "4ac8750666cb",
+   "rev": 1,
+   "seconds": 1.24,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
+  },
+  "00dbb127f1eaaa": {
+   "key": "A|Let's watch a comedy tonight.",
+   "text": "Let's watch a comedy tonight.",
+   "role": "A",
+   "chapter": "ch93",
+   "id": "comedy",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "a2764b3df4b6",
+   "rev": 1,
+   "seconds": 1.56,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
+  },
   "00dbba87c35022": {
    "key": "P|village",
    "text": "village",
@@ -6132,6 +6162,21 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "010ea0326cd10d": {
+   "key": "P|fuel",
+   "text": "fuel",
+   "role": "P",
+   "chapter": "ch92",
+   "id": "fuel",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "aa45cc46f9e9",
+   "rev": 1,
+   "seconds": 1.08,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
+  },
   "010f2a83371cc0": {
    "key": "P|I have no signal.",
    "text": "I have no signal.",
@@ -6475,6 +6520,21 @@
    "seconds": 2.0,
    "via": "batch",
    "at": "2026-09-28"
+  },
+  "0120f996354abe": {
+   "key": "P|documentary",
+   "text": "documentary",
+   "role": "P",
+   "chapter": "ch93",
+   "id": "documentary",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "2919268f5ccf",
+   "rev": 1,
+   "seconds": 1.32,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
   },
   "0121634824c5f9": {
    "key": "A|I finally passed my driving test.",
@@ -7464,6 +7524,21 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "014b4f271fcdb4": {
+   "key": "A|Deforestation is a serious problem.",
+   "text": "Deforestation is a serious problem.",
+   "role": "A",
+   "chapter": "ch92",
+   "id": "deforestation",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "b9f39118972b",
+   "rev": 1,
+   "seconds": 2.76,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
+  },
   "014cfea6832c6e": {
    "key": "P|How was school today?",
    "text": "How was school today?",
@@ -7795,6 +7870,21 @@
    "at": "2026-09-28",
    "unverified": true
   },
+  "015ce400753fd8": {
+   "key": "A|This cheese is imported from France.",
+   "text": "This cheese is imported from France.",
+   "role": "A",
+   "chapter": "ch91",
+   "id": "import",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "d15136884da9",
+   "rev": 1,
+   "seconds": 2.64,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
+  },
   "015e4663eb223f": {
    "key": "P|Watch out for that car!",
    "text": "Watch out for that car!",
@@ -7836,6 +7926,21 @@
    "seconds": 1.84,
    "via": "batch",
    "at": "2026-09-28",
+   "unverified": true
+  },
+  "015ffc658a14b8": {
+   "key": "P|nonfiction",
+   "text": "nonfiction",
+   "role": "P",
+   "chapter": "ch93",
+   "id": "nonfiction",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "735b7b02044c",
+   "rev": 1,
+   "seconds": 1.12,
+   "via": "batch",
+   "at": "2026-09-29",
    "unverified": true
   },
   "016047eec3eb5c": {
@@ -8484,6 +8589,21 @@
    "seconds": 1.11,
    "via": "pack",
    "at": "2026-09-28"
+  },
+  "017c9a22f018bb": {
+   "key": "P|cell",
+   "text": "cell",
+   "role": "P",
+   "chapter": "ch92",
+   "id": "cell",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "6957f2f98e6f",
+   "rev": 1,
+   "seconds": 0.88,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
   },
   "017d0e6cbf1156": {
    "key": "A|Please sanitize your hands.",
@@ -10278,6 +10398,21 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "01c60f6565e934": {
+   "key": "A|The plot was hard to follow.",
+   "text": "The plot was hard to follow.",
+   "role": "A",
+   "chapter": "ch93",
+   "id": "plot",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "6ac91a3c960e",
+   "rev": 1,
+   "seconds": 2.4,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
+  },
   "01c71fbc1a4763": {
    "key": "P|rarely",
    "text": "rarely",
@@ -10492,6 +10627,21 @@
    "seconds": 1.44,
    "via": "batch",
    "at": "2026-09-28"
+  },
+  "01d67d2014186e": {
+   "key": "P|layoff",
+   "text": "layoff",
+   "role": "P",
+   "chapter": "ch91",
+   "id": "layoff",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "7fc90871b0d8",
+   "rev": 1,
+   "seconds": 1.16,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
   },
   "01d6d8604e7545": {
    "key": "P|How do you feel about it?",
@@ -11294,6 +11444,21 @@
    "at": "2026-09-28",
    "unverified": true
   },
+  "01f60ae2a19bec": {
+   "key": "A|I have a theory about that.",
+   "text": "I have a theory about that.",
+   "role": "A",
+   "chapter": "ch92",
+   "id": "theory",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "3f056214d4e3",
+   "rev": 1,
+   "seconds": 1.96,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
+  },
   "01f75dadc4d67d": {
    "key": "A|Don't jump in the puddles!",
    "text": "Don't jump in the puddles!",
@@ -11969,6 +12134,21 @@
    "seconds": 1.71,
    "via": "pack",
    "at": "2026-09-28"
+  },
+  "0217f3fdb568ff": {
+   "key": "P|stakeholder",
+   "text": "stakeholder",
+   "role": "P",
+   "chapter": "ch91",
+   "id": "stakeholder",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "a152dfcd97b1",
+   "rev": 1,
+   "seconds": 1.4,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
   },
   "021803fbc4f886": {
    "key": "B|Sorry, I have a bad connection.",
@@ -14587,6 +14767,21 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "02a414fe0bc127": {
+   "key": "A|We should protect the environment.",
+   "text": "We should protect the environment.",
+   "role": "A",
+   "chapter": "ch92",
+   "id": "environment",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "3c9ff3011912",
+   "rev": 1,
+   "seconds": 2.12,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
+  },
   "02a5fa4081b061": {
    "key": "P|bilingual",
    "text": "bilingual",
@@ -15608,6 +15803,21 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "02d352c1908da3": {
+   "key": "P|liquid",
+   "text": "liquid",
+   "role": "P",
+   "chapter": "ch92",
+   "id": "liquid",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "b6851262b421",
+   "rev": 1,
+   "seconds": 1.04,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
+  },
   "02d44ee9008fa1": {
    "key": "B|That's not true! I cooked yesterday.",
    "text": "That's not true! I cooked yesterday.",
@@ -16093,6 +16303,21 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "02e6f993a3a266": {
+   "key": "P|fiction",
+   "text": "fiction",
+   "role": "P",
+   "chapter": "ch93",
+   "id": "fiction",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "4d0527b151ee",
+   "rev": 1,
+   "seconds": 1.08,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
+  },
   "02e784ea2e9db3": {
    "key": "P|Can I think about it?",
    "text": "Can I think about it?",
@@ -16467,6 +16692,21 @@
    "seconds": 1.24,
    "via": "batch",
    "at": "2026-09-28"
+  },
+  "02fb9682209cbe": {
+   "key": "A|This painting is worth millions.",
+   "text": "This painting is worth millions.",
+   "role": "A",
+   "chapter": "ch93",
+   "id": "painting",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "bc147efc2a3a",
+   "rev": 1,
+   "seconds": 2.68,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
   },
   "02fbf029eae01a": {
    "key": "A|Mondays feel so long.",
@@ -17038,6 +17278,21 @@
    "seconds": 1.64,
    "via": "batch",
    "at": "2026-09-28",
+   "unverified": true
+  },
+  "0310e51a7bd453": {
+   "key": "A|Who's your favorite character?",
+   "text": "Who's your favorite character?",
+   "role": "A",
+   "chapter": "ch93",
+   "id": "character",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "a356b0e8da8b",
+   "rev": 1,
+   "seconds": 1.4,
+   "via": "batch",
+   "at": "2026-09-29",
    "unverified": true
   },
   "0312d2f063be9b": {
@@ -18578,6 +18833,21 @@
    "at": "2026-09-28",
    "unverified": true
   },
+  "035f1b55a0e54e": {
+   "key": "P|pollution",
+   "text": "pollution",
+   "role": "P",
+   "chapter": "ch92",
+   "id": "pollution",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "a4ab897c9854",
+   "rev": 1,
+   "seconds": 1.24,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
+  },
   "035f3e2122c9c1": {
    "key": "P|cook dinner",
    "text": "cook dinner",
@@ -18905,6 +19175,21 @@
    "seconds": 0.98,
    "via": "pack",
    "at": "2026-09-28"
+  },
+  "036a8aaee7a4a7": {
+   "key": "A|The last scene made me cry.",
+   "text": "The last scene made me cry.",
+   "role": "A",
+   "chapter": "ch93",
+   "id": "scene",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "63edcf10f1e5",
+   "rev": 1,
+   "seconds": 2.6,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
   },
   "036affe0935ea2": {
    "key": "P|Mexico",
@@ -21026,6 +21311,21 @@
    "at": "2026-09-28",
    "unverified": true
   },
+  "03d57fae6c72f2": {
+   "key": "A|Let's figure out the logistics.",
+   "text": "Let's figure out the logistics.",
+   "role": "A",
+   "chapter": "ch91",
+   "id": "logistics",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "a23a6ecaf81f",
+   "rev": 1,
+   "seconds": 1.88,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
+  },
   "03d612208b89b6": {
    "key": "B|Yes, it's in my bag.",
    "text": "Yes, it's in my bag.",
@@ -21513,6 +21813,21 @@
    "seconds": 1.45,
    "via": "pack",
    "at": "2026-09-28"
+  },
+  "03e89d6c6fe457": {
+   "key": "P|carbon",
+   "text": "carbon",
+   "role": "P",
+   "chapter": "ch92",
+   "id": "carbon",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "6e46aa3b41ae",
+   "rev": 1,
+   "seconds": 1.04,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
   },
   "03e9d63d776a88": {
    "key": "A|See you Monday. Have a nice weekend!",
@@ -22280,6 +22595,21 @@
    "at": "2026-09-28",
    "unverified": true
   },
+  "040d912ea2add7": {
+   "key": "A|A water molecule has three atoms.",
+   "text": "A water molecule has three atoms.",
+   "role": "A",
+   "chapter": "ch92",
+   "id": "molecule",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "be246e05c425",
+   "rev": 1,
+   "seconds": 2.4,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
+  },
   "040e551ba84189": {
    "key": "A|My desk is always messy.",
    "text": "My desk is always messy.",
@@ -22534,6 +22864,21 @@
    "seconds": 2.08,
    "via": "batch",
    "at": "2026-09-28"
+  },
+  "0417d36087d3b1": {
+   "key": "P|global warming",
+   "text": "global warming",
+   "role": "P",
+   "chapter": "ch92",
+   "id": "global-warming",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "4b36025922d6",
+   "rev": 1,
+   "seconds": 1.24,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
   },
   "041897942914e5": {
    "key": "P|duty-free",
@@ -23528,6 +23873,21 @@
    "seconds": 2.12,
    "via": "batch",
    "at": "2026-09-28"
+  },
+  "0441e466657c88": {
+   "key": "A|My friend has a show at a gallery.",
+   "text": "My friend has a show at a gallery.",
+   "role": "A",
+   "chapter": "ch93",
+   "id": "gallery",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "df61b0e36bab",
+   "rev": 1,
+   "seconds": 1.84,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
   },
   "04431dae53795e": {
    "key": "A|I have so much to do.",
@@ -27994,6 +28354,21 @@
    "at": "2026-09-28",
    "unverified": true
   },
+  "0525b0c9b66c6f": {
+   "key": "A|The company uses sustainable materials.",
+   "text": "The company uses sustainable materials.",
+   "role": "A",
+   "chapter": "ch92",
+   "id": "sustainable",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "35630599b808",
+   "rev": 1,
+   "seconds": 2.6,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
+  },
   "0525c2872ceb8c": {
    "key": "P|How do you say this in English?",
    "text": "How do you say this in English?",
@@ -29152,6 +29527,21 @@
    "seconds": 1.44,
    "via": "batch",
    "at": "2026-09-28"
+  },
+  "05528a0c34cf73": {
+   "key": "P|molecule",
+   "text": "molecule",
+   "role": "P",
+   "chapter": "ch92",
+   "id": "molecule",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "8e6ddf1c70f2",
+   "rev": 1,
+   "seconds": 1.24,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
   },
   "0552b751c54aa3": {
    "key": "A|The code is B-7-4.",
@@ -30458,6 +30848,21 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "058936543c4bd8": {
+   "key": "A|There's a huge sculpture in the park.",
+   "text": "There's a huge sculpture in the park.",
+   "role": "A",
+   "chapter": "ch93",
+   "id": "sculpture",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "4fccc427f109",
+   "rev": 1,
+   "seconds": 2.44,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
+  },
   "0589bf8e33eb92": {
    "key": "P|mostly",
    "text": "mostly",
@@ -31711,6 +32116,21 @@
    "at": "2026-09-28",
    "unverified": true
   },
+  "05c2b66ffbd7bb": {
+   "key": "P|technology",
+   "text": "technology",
+   "role": "P",
+   "chapter": "ch92",
+   "id": "technology",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "bfb7e7fc214a",
+   "rev": 1,
+   "seconds": 1.64,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
+  },
   "05c2f6cfbd2de6": {
    "key": "P|bread",
    "text": "bread",
@@ -31767,6 +32187,36 @@
    "seconds": 2.08,
    "via": "batch",
    "at": "2026-09-28"
+  },
+  "05c46cb3672aa1": {
+   "key": "P|plot",
+   "text": "plot",
+   "role": "P",
+   "chapter": "ch93",
+   "id": "plot",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "3e65a3d9a7e9",
+   "rev": 1,
+   "seconds": 1.04,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
+  },
+  "05c498dd4c1af6": {
+   "key": "P|oxygen",
+   "text": "oxygen",
+   "role": "P",
+   "chapter": "ch92",
+   "id": "oxygen",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "42e0a759e592",
+   "rev": 1,
+   "seconds": 1.2,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
   },
   "05c4be2dc464cd": {
    "key": "P|You can go ahead of me.",
@@ -32373,6 +32823,21 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "05deb73c33c398": {
+   "key": "A|You can't bring liquids through security.",
+   "text": "You can't bring liquids through security.",
+   "role": "A",
+   "chapter": "ch92",
+   "id": "liquid",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "a086fa729ce9",
+   "rev": 1,
+   "seconds": 2.32,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
+  },
   "05dec9831a53e3": {
    "key": "A|Do you take Apple Pay?",
    "text": "Do you take Apple Pay?",
@@ -32430,6 +32895,21 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "05df9d35c224ea": {
+   "key": "A|The company is known for innovation.",
+   "text": "The company is known for innovation.",
+   "role": "A",
+   "chapter": "ch92",
+   "id": "innovation",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "d99b1de93515",
+   "rev": 1,
+   "seconds": 2.36,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
+  },
   "05e0ddfb998cc8": {
    "key": "A|I gotta go. Bye!",
    "text": "I gotta go. Bye!",
@@ -32471,6 +32951,36 @@
    "seconds": 0.52,
    "via": "pack",
    "at": "2026-09-28"
+  },
+  "05e3f39292e112": {
+   "key": "P|tradition",
+   "text": "tradition",
+   "role": "P",
+   "chapter": "ch93",
+   "id": "tradition",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "be852a9e1562",
+   "rev": 1,
+   "seconds": 1.24,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
+  },
+  "05e55bbaa5bc01": {
+   "key": "P|renewable",
+   "text": "renewable",
+   "role": "P",
+   "chapter": "ch92",
+   "id": "renewable",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "aaa5fe10ad4e",
+   "rev": 1,
+   "seconds": 1.28,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
   },
   "05e66a4b42ffb0": {
    "key": "P|officially",
@@ -32915,6 +33425,21 @@
    "seconds": 1.2,
    "via": "batch",
    "at": "2026-09-28",
+   "unverified": true
+  },
+  "05fc62f5678551": {
+   "key": "A|Do you prefer fiction or nonfiction?",
+   "text": "Do you prefer fiction or nonfiction?",
+   "role": "A",
+   "chapter": "ch93",
+   "id": "fiction",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "d472ea5b9393",
+   "rev": 1,
+   "seconds": 2.44,
+   "via": "batch",
+   "at": "2026-09-29",
    "unverified": true
   },
   "060011088afa9a": {
@@ -35736,6 +36261,21 @@
    "at": "2026-09-28",
    "unverified": true
   },
+  "0679a3f028d519": {
+   "key": "A|We outsource our customer service.",
+   "text": "We outsource our customer service.",
+   "role": "A",
+   "chapter": "ch91",
+   "id": "outsource",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "6b0871e92eac",
+   "rev": 1,
+   "seconds": 2.04,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
+  },
   "067a68be1301b5": {
    "key": "A|We had a traditional Japanese breakfast.",
    "text": "We had a traditional Japanese breakfast.",
@@ -38331,6 +38871,21 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "06f1376df94b7e": {
+   "key": "P|efficiency",
+   "text": "efficiency",
+   "role": "P",
+   "chapter": "ch91",
+   "id": "efficiency",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "5b08a30b6b8e",
+   "rev": 1,
+   "seconds": 1.08,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
+  },
   "06f2841bc0c22c": {
    "key": "P|dust",
    "text": "dust",
@@ -38605,6 +39160,21 @@
    "at": "2026-09-28",
    "unverified": true
   },
+  "06febc3e5991c3": {
+   "key": "P|evolution",
+   "text": "evolution",
+   "role": "P",
+   "chapter": "ch92",
+   "id": "evolution",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "fb86d0e410b2",
+   "rev": 1,
+   "seconds": 1.12,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
+  },
   "0701baebf798cc": {
    "key": "B|As soon as your application is approved.",
    "text": "As soon as your application is approved.",
@@ -38775,6 +39345,21 @@
    "seconds": 0.96,
    "via": "batch",
    "at": "2026-09-28",
+   "unverified": true
+  },
+  "07093d605127db": {
+   "key": "A|That's a solid plan.",
+   "text": "That's a solid plan.",
+   "role": "A",
+   "chapter": "ch92",
+   "id": "solid",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "c0c970b51f68",
+   "rev": 1,
+   "seconds": 1.68,
+   "via": "batch",
+   "at": "2026-09-29",
    "unverified": true
   },
   "07097f0cbe3c7d": {
@@ -39595,6 +40180,21 @@
    "at": "2026-09-28",
    "unverified": true
   },
+  "072abecd8353b8": {
+   "key": "P|gene",
+   "text": "gene",
+   "role": "P",
+   "chapter": "ch92",
+   "id": "gene",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "d9d29c3ad561",
+   "rev": 1,
+   "seconds": 0.76,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
+  },
   "072ae3e7bf297a": {
    "key": "A|Do you still miss your ex?",
    "text": "Do you still miss your ex?",
@@ -39622,6 +40222,21 @@
    "seconds": 1.05,
    "via": "pack",
    "at": "2026-09-28"
+  },
+  "072d3c9ed17e06": {
+   "key": "P|regulation",
+   "text": "regulation",
+   "role": "P",
+   "chapter": "ch91",
+   "id": "regulation",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "a6cb8848d721",
+   "rev": 1,
+   "seconds": 1.24,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
   },
   "072d5d33cf427c": {
    "key": "A|Yummy! Can I have more?",
@@ -41565,6 +42180,21 @@
    "at": "2026-09-28",
    "unverified": true
   },
+  "0782583e6776e3": {
+   "key": "P|theory",
+   "text": "theory",
+   "role": "P",
+   "chapter": "ch92",
+   "id": "theory",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "29304b66799a",
+   "rev": 1,
+   "seconds": 1.08,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
+  },
   "0782c13e8c585e": {
    "key": "B|I'm so sorry for your loss.",
    "text": "I'm so sorry for your loss.",
@@ -41636,6 +42266,21 @@
    "seconds": 2.0,
    "via": "batch",
    "at": "2026-09-28",
+   "unverified": true
+  },
+  "07858b6b3e7b37": {
+   "key": "A|Please turn off all electronic devices.",
+   "text": "Please turn off all electronic devices.",
+   "role": "A",
+   "chapter": "ch92",
+   "id": "device",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "e7fca542fdf0",
+   "rev": 1,
+   "seconds": 2.44,
+   "via": "batch",
+   "at": "2026-09-29",
    "unverified": true
   },
   "0786895286a985": {
@@ -42257,6 +42902,21 @@
    "at": "2026-09-28",
    "unverified": true
   },
+  "07a3cb03b0963e": {
+   "key": "A|The temple is a World Heritage Site.",
+   "text": "The temple is a World Heritage Site.",
+   "role": "A",
+   "chapter": "ch93",
+   "id": "heritage",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "bf0082ee76b9",
+   "rev": 1,
+   "seconds": 2.44,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
+  },
   "07a66d479c5b08": {
    "key": "A|Is it okay if we eat later?",
    "text": "Is it okay if we eat later?",
@@ -42660,6 +43320,21 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "07ba584c9c5763": {
+   "key": "A|The shipment arrives tomorrow.",
+   "text": "The shipment arrives tomorrow.",
+   "role": "A",
+   "chapter": "ch91",
+   "id": "shipment",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "37ebba736023",
+   "rev": 1,
+   "seconds": 1.76,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
+  },
   "07bbd5daa988b2": {
    "key": "P|Take your time.",
    "text": "Take your time.",
@@ -42945,6 +43620,21 @@
    "seconds": 1.36,
    "via": "sync",
    "at": "2026-09-28"
+  },
+  "07c8fc638b70aa": {
+   "key": "A|We changed suppliers last month.",
+   "text": "We changed suppliers last month.",
+   "role": "A",
+   "chapter": "ch91",
+   "id": "supplier",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "8bdbcb0b2484",
+   "rev": 1,
+   "seconds": 1.92,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
   },
   "07c9090bd4159f": {
    "key": "P|allowance",
@@ -44566,6 +45256,21 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "081d0216e662de": {
+   "key": "A|They offer incentives for new customers.",
+   "text": "They offer incentives for new customers.",
+   "role": "A",
+   "chapter": "ch91",
+   "id": "incentive",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "39e04323cd0d",
+   "rev": 1,
+   "seconds": 1.92,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
+  },
   "081ea641898580": {
    "key": "P|coat",
    "text": "coat",
@@ -44579,6 +45284,21 @@
    "seconds": 0.96,
    "via": "batch",
    "at": "2026-09-28",
+   "unverified": true
+  },
+  "081ebd5f3e2f90": {
+   "key": "P|franchise",
+   "text": "franchise",
+   "role": "P",
+   "chapter": "ch91",
+   "id": "franchise",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "8567d9189f4e",
+   "rev": 1,
+   "seconds": 1.12,
+   "via": "batch",
+   "at": "2026-09-29",
    "unverified": true
   },
   "081f02acae3ebd": {
@@ -44900,6 +45620,21 @@
    "at": "2026-09-28",
    "unverified": true
   },
+  "082e0feb199936": {
+   "key": "P|heritage",
+   "text": "heritage",
+   "role": "P",
+   "chapter": "ch93",
+   "id": "heritage",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "38e9d9f34147",
+   "rev": 1,
+   "seconds": 1.16,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
+  },
   "082f61931f8d2d": {
    "key": "P|pizza",
    "text": "pizza",
@@ -45127,6 +45862,21 @@
    "sig": "90bfb7210961",
    "rev": 1,
    "seconds": 1.16,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
+  },
+  "08366c09c6c14b": {
+   "key": "A|He wrote her a poem.",
+   "text": "He wrote her a poem.",
+   "role": "A",
+   "chapter": "ch93",
+   "id": "poem",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "d5f7108e2e1d",
+   "rev": 1,
+   "seconds": 1.88,
    "via": "batch",
    "at": "2026-09-29",
    "unverified": true
@@ -45434,6 +46184,21 @@
    "seconds": 1.96,
    "via": "batch",
    "at": "2026-09-28",
+   "unverified": true
+  },
+  "08466b4dd4b378": {
+   "key": "A|The electricity bill was high this month.",
+   "text": "The electricity bill was high this month.",
+   "role": "A",
+   "chapter": "ch92",
+   "id": "electricity",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "8b9d8ac80397",
+   "rev": 1,
+   "seconds": 2.28,
+   "via": "batch",
+   "at": "2026-09-29",
    "unverified": true
   },
   "08469d65132547": {
@@ -46690,6 +47455,21 @@
    "seconds": 1.76,
    "via": "batch",
    "at": "2026-09-28"
+  },
+  "0881adfd5b5ca5": {
+   "key": "A|I'm reading a great novel.",
+   "text": "I'm reading a great novel.",
+   "role": "A",
+   "chapter": "ch93",
+   "id": "novel",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "89c526a07140",
+   "rev": 1,
+   "seconds": 1.92,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
   },
   "0881b1f388441b": {
    "key": "P|Is that everything?",
@@ -48900,6 +49680,21 @@
    "at": "2026-09-29",
    "unverified": true
   },
+  "08eac6f12bdd31": {
+   "key": "P|poetry",
+   "text": "poetry",
+   "role": "P",
+   "chapter": "ch93",
+   "id": "poetry",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "2132bad58774",
+   "rev": 1,
+   "seconds": 1.28,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
+  },
   "08eae96a714dae": {
    "key": "A|So we have to start over?",
    "text": "So we have to start over?",
@@ -50517,6 +51312,21 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "093992708da2ee": {
+   "key": "P|film",
+   "text": "film",
+   "role": "P",
+   "chapter": "ch93",
+   "id": "film",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "cd47277dddf7",
+   "rev": 1,
+   "seconds": 1.08,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
+  },
   "093a8adb83b482": {
    "key": "P|useless",
    "text": "useless",
@@ -50687,6 +51497,21 @@
    "seconds": 1.52,
    "via": "batch",
    "at": "2026-09-28"
+  },
+  "0940edf06ce357": {
+   "key": "P|ecosystem",
+   "text": "ecosystem",
+   "role": "P",
+   "chapter": "ch92",
+   "id": "ecosystem",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "b91207d4fb76",
+   "rev": 1,
+   "seconds": 1.4,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
   },
   "0941b829fd76bb": {
    "key": "A|She became a doctor last year.",
@@ -51636,6 +52461,21 @@
    "seconds": 1.44,
    "via": "batch",
    "at": "2026-09-28"
+  },
+  "096c14850cc26a": {
+   "key": "P|recruit",
+   "text": "recruit",
+   "role": "P",
+   "chapter": "ch91",
+   "id": "recruit",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "90321d0fb2e6",
+   "rev": 1,
+   "seconds": 1.0,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
   },
   "096c8ba4ee5dd5": {
    "key": "P|medical bill",
@@ -52645,6 +53485,21 @@
    "at": "2026-09-28",
    "unverified": true
   },
+  "09a2ffe0767240": {
+   "key": "A|I mostly read nonfiction.",
+   "text": "I mostly read nonfiction.",
+   "role": "A",
+   "chapter": "ch93",
+   "id": "nonfiction",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "ef3c25980997",
+   "rev": 1,
+   "seconds": 2.16,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
+  },
   "09a35c1c9a4344": {
    "key": "A|Enter the latitude and longitude.",
    "text": "Enter the latitude and longitude.",
@@ -53392,6 +54247,21 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "09c873a8e6cca7": {
+   "key": "A|The audience loved the show.",
+   "text": "The audience loved the show.",
+   "role": "A",
+   "chapter": "ch93",
+   "id": "audience",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "6c78621f6f11",
+   "rev": 1,
+   "seconds": 2.0,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
+  },
   "09c948de8c0265": {
    "key": "A|I hate going to the dentist.",
    "text": "I hate going to the dentist.",
@@ -53419,6 +54289,21 @@
    "seconds": 1.32,
    "via": "batch",
    "at": "2026-09-28"
+  },
+  "09cab10606b844": {
+   "key": "A|Robots clean our floors now.",
+   "text": "Robots clean our floors now.",
+   "role": "A",
+   "chapter": "ch92",
+   "id": "robot",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "b86ebe46603e",
+   "rev": 1,
+   "seconds": 2.44,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
   },
   "09cad6eda820bd": {
    "key": "P|throat",
@@ -53564,6 +54449,21 @@
    "seconds": 2.24,
    "via": "batch",
    "at": "2026-09-28"
+  },
+  "09cfa879018eae": {
+   "key": "P|sustainable",
+   "text": "sustainable",
+   "role": "P",
+   "chapter": "ch92",
+   "id": "sustainable",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "96327f2b9e3b",
+   "rev": 1,
+   "seconds": 1.24,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
   },
   "09cfddcefa237c": {
    "key": "B|I know what you mean.",
@@ -54788,6 +55688,21 @@
    "at": "2026-09-28",
    "unverified": true
   },
+  "0a04acb12dfddd": {
+   "key": "P|atom",
+   "text": "atom",
+   "role": "P",
+   "chapter": "ch92",
+   "id": "atom",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "1a3c495b7fd0",
+   "rev": 1,
+   "seconds": 1.24,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
+  },
   "0a04e1f0c6822c": {
    "key": "A|Let's play online together tonight.",
    "text": "Let's play online together tonight.",
@@ -54886,6 +55801,21 @@
    "seconds": 1.6,
    "via": "batch",
    "at": "2026-09-28",
+   "unverified": true
+  },
+  "0a08548ce550b6": {
+   "key": "A|The data supports our hypothesis.",
+   "text": "The data supports our hypothesis.",
+   "role": "A",
+   "chapter": "ch92",
+   "id": "hypothesis",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "f97d65bddcd5",
+   "rev": 1,
+   "seconds": 2.04,
+   "via": "batch",
+   "at": "2026-09-29",
    "unverified": true
   },
   "0a090dbc4ea2cb": {
@@ -55001,6 +55931,21 @@
    "seconds": 1.6,
    "via": "batch",
    "at": "2026-09-28",
+   "unverified": true
+  },
+  "0a0deccf06c76e": {
+   "key": "A|Who's the director of this movie?",
+   "text": "Who's the director of this movie?",
+   "role": "A",
+   "chapter": "ch93",
+   "id": "director",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "b95453158e34",
+   "rev": 1,
+   "seconds": 1.96,
+   "via": "batch",
+   "at": "2026-09-29",
    "unverified": true
   },
   "0a0f33b69a0431": {
@@ -56454,6 +57399,21 @@
    "seconds": 0.52,
    "via": "pack",
    "at": "2026-09-28"
+  },
+  "0a590747066211": {
+   "key": "P|director",
+   "text": "director",
+   "role": "P",
+   "chapter": "ch93",
+   "id": "director",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "24cfefe0f948",
+   "rev": 1,
+   "seconds": 1.16,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
   },
   "0a5933c9c57ca0": {
    "key": "P|scarf",
@@ -58065,6 +59025,21 @@
    "seconds": 2.12,
    "via": "batch",
    "at": "2026-09-28",
+   "unverified": true
+  },
+  "0aac05c2656ed1": {
+   "key": "A|Cars produce greenhouse gases.",
+   "text": "Cars produce greenhouse gases.",
+   "role": "A",
+   "chapter": "ch92",
+   "id": "greenhouse-gas",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "1f18ebd65e45",
+   "rev": 1,
+   "seconds": 2.24,
+   "via": "batch",
+   "at": "2026-09-29",
    "unverified": true
   },
   "0aac6f29627279": {
@@ -60675,6 +61650,21 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "0b314bc17d8be4": {
+   "key": "A|The storm was seen by satellite.",
+   "text": "The storm was seen by satellite.",
+   "role": "A",
+   "chapter": "ch92",
+   "id": "satellite",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "41c9ccd42089",
+   "rev": 1,
+   "seconds": 1.8,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
+  },
   "0b318e8dcb76f3": {
    "key": "P|mop",
    "text": "mop",
@@ -61077,6 +62067,21 @@
    "seconds": 1.58,
    "via": "pack",
    "at": "2026-09-28"
+  },
+  "0b446da9e67c55": {
+   "key": "A|It's a Japanese custom to bow.",
+   "text": "It's a Japanese custom to bow.",
+   "role": "A",
+   "chapter": "ch93",
+   "id": "custom",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "e412f893b84c",
+   "rev": 1,
+   "seconds": 2.16,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
   },
   "0b46359f70771e": {
    "key": "A|Let's have dinner together.",
@@ -62822,6 +63827,21 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "0b9b27b6705ede": {
+   "key": "P|painting",
+   "text": "painting",
+   "role": "P",
+   "chapter": "ch93",
+   "id": "painting",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "80a2bfb32b5d",
+   "rev": 1,
+   "seconds": 1.04,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
+  },
   "0b9cb2b79228d7": {
    "key": "A|What perfume are you wearing?",
    "text": "What perfume are you wearing?",
@@ -63386,6 +64406,21 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "0baff439514760": {
+   "key": "P|commission",
+   "text": "commission",
+   "role": "P",
+   "chapter": "ch91",
+   "id": "commission",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "3119bf2db129",
+   "rev": 1,
+   "seconds": 1.08,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
+  },
   "0bb0ef63b62344": {
    "key": "P|breezy",
    "text": "breezy",
@@ -63542,6 +64577,21 @@
    "seconds": 1.2,
    "via": "batch",
    "at": "2026-09-28",
+   "unverified": true
+  },
+  "0bb60de6f48305": {
+   "key": "A|There were big layoffs this year.",
+   "text": "There were big layoffs this year.",
+   "role": "A",
+   "chapter": "ch91",
+   "id": "layoff",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "6cd2e606fb71",
+   "rev": 1,
+   "seconds": 2.24,
+   "via": "batch",
+   "at": "2026-09-29",
    "unverified": true
   },
   "0bb63123f5c0c5": {
@@ -63844,6 +64894,21 @@
    "seconds": 0.87,
    "via": "pack",
    "at": "2026-09-28"
+  },
+  "0bc1f559885f85": {
+   "key": "P|incentive",
+   "text": "incentive",
+   "role": "P",
+   "chapter": "ch91",
+   "id": "incentive",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "2fc524079556",
+   "rev": 1,
+   "seconds": 1.28,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
   },
   "0bc33802d76dee": {
    "key": "A|Certainly, sir.",
@@ -66472,6 +67537,21 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "0c33af96a9111c": {
+   "key": "A|We did an experiment in class.",
+   "text": "We did an experiment in class.",
+   "role": "A",
+   "chapter": "ch92",
+   "id": "experiment",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "f990cd06d02d",
+   "rev": 1,
+   "seconds": 1.92,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
+  },
   "0c34beb5d25c8e": {
    "key": "A|We've arrived at our destination.",
    "text": "We've arrived at our destination.",
@@ -68884,6 +69964,21 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "0ca5ae9bab31ed": {
+   "key": "A|Alcohol is a controlled substance.",
+   "text": "Alcohol is a controlled substance.",
+   "role": "A",
+   "chapter": "ch92",
+   "id": "substance",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "e89140530681",
+   "rev": 1,
+   "seconds": 2.36,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
+  },
   "0ca6b9c603ec94": {
    "key": "P|The tickets sold out in minutes.",
    "text": "The tickets sold out in minutes.",
@@ -70337,6 +71432,21 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "0cdf9f54eb3703": {
+   "key": "A|We learned about evolution in biology.",
+   "text": "We learned about evolution in biology.",
+   "role": "A",
+   "chapter": "ch92",
+   "id": "evolution",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "e57c667a10da",
+   "rev": 1,
+   "seconds": 2.28,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
+  },
   "0ce0048091e998": {
    "key": "B|I've been sleeping badly.",
    "text": "I've been sleeping badly.",
@@ -70850,6 +71960,21 @@
    "seconds": 2.32,
    "via": "batch",
    "at": "2026-09-28"
+  },
+  "0cf621576fff19": {
+   "key": "A|The country has nuclear power plants.",
+   "text": "The country has nuclear power plants.",
+   "role": "A",
+   "chapter": "ch92",
+   "id": "nuclear",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "7fa476bb3035",
+   "rev": 1,
+   "seconds": 2.04,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
   },
   "0cf70c77eec51f": {
    "key": "A|The senator gave a speech.",
@@ -71502,6 +72627,21 @@
    "seconds": 1.16,
    "via": "batch",
    "at": "2026-09-28"
+  },
+  "0d1c00aec950c4": {
+   "key": "P|greenhouse gas",
+   "text": "greenhouse gas",
+   "role": "P",
+   "chapter": "ch92",
+   "id": "greenhouse-gas",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "d9acae0f3dd3",
+   "rev": 1,
+   "seconds": 1.44,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
   },
   "0d1c06e3b4d472": {
    "key": "A|I'd rather not drive in the snow.",
@@ -72382,6 +73522,21 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "0d47fe26da00ff": {
+   "key": "P|vapor",
+   "text": "vapor",
+   "role": "P",
+   "chapter": "ch92",
+   "id": "vapor",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "b9081b62b325",
+   "rev": 1,
+   "seconds": 1.16,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
+  },
   "0d494217300888": {
    "key": "P|throw away",
    "text": "throw away",
@@ -73186,6 +74341,21 @@
    "seconds": 0.84,
    "via": "batch",
    "at": "2026-09-28",
+   "unverified": true
+  },
+  "0d6ce68362e44d": {
+   "key": "A|Plants produce oxygen.",
+   "text": "Plants produce oxygen.",
+   "role": "A",
+   "chapter": "ch92",
+   "id": "oxygen",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "beb23b99299a",
+   "rev": 1,
+   "seconds": 1.56,
+   "via": "batch",
+   "at": "2026-09-29",
    "unverified": true
   },
   "0d6d05ae23e101": {
@@ -75073,6 +76243,21 @@
    "seconds": 1.01,
    "via": "pack",
    "at": "2026-09-28"
+  },
+  "0db98b81c575a0": {
+   "key": "A|Air pollution is a big problem in big cities.",
+   "text": "Air pollution is a big problem in big cities.",
+   "role": "A",
+   "chapter": "ch92",
+   "id": "pollution",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "4fa97de472d7",
+   "rev": 1,
+   "seconds": 2.88,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
   },
   "0dbaef2a4385f9": {
    "key": "B|Sure, what time?",
@@ -77015,6 +78200,21 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "0e161d70ee0cf6": {
+   "key": "P|novel",
+   "text": "novel",
+   "role": "P",
+   "chapter": "ch93",
+   "id": "novel",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "c302af8c9fdf",
+   "rev": 1,
+   "seconds": 1.0,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
+  },
   "0e16ad634cbe2f": {
    "key": "P|previously",
    "text": "previously",
@@ -77275,6 +78475,21 @@
    "seconds": 1.12,
    "via": "pack",
    "at": "2026-09-28"
+  },
+  "0e2077265d025e": {
+   "key": "P|substance",
+   "text": "substance",
+   "role": "P",
+   "chapter": "ch92",
+   "id": "substance",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "fac0e72c17a8",
+   "rev": 1,
+   "seconds": 1.28,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
   },
   "0e2099ccb581a9": {
    "key": "P|Chinese",
@@ -77866,6 +79081,21 @@
    "seconds": 1.41,
    "via": "pack",
    "at": "2026-09-28"
+  },
+  "0e3d10abd03b3f": {
+   "key": "A|The new car has low emissions.",
+   "text": "The new car has low emissions.",
+   "role": "A",
+   "chapter": "ch92",
+   "id": "emission",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "2b6b54b09661",
+   "rev": 1,
+   "seconds": 1.88,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
   },
   "0e3e3198913d48": {
    "key": "A|The music is too loud.",
@@ -79704,6 +80934,21 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "0e9ac01091075e": {
+   "key": "A|We hired a contractor to fix the roof.",
+   "text": "We hired a contractor to fix the roof.",
+   "role": "A",
+   "chapter": "ch91",
+   "id": "contractor",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "9774712c8d74",
+   "rev": 1,
+   "seconds": 2.28,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
+  },
   "0e9db481000826": {
    "key": "P|bitter",
    "text": "bitter",
@@ -79746,6 +80991,21 @@
    "seconds": 1.68,
    "via": "batch",
    "at": "2026-09-28",
+   "unverified": true
+  },
+  "0e9f297996900f": {
+   "key": "A|I watched a documentary about sharks.",
+   "text": "I watched a documentary about sharks.",
+   "role": "A",
+   "chapter": "ch93",
+   "id": "documentary",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "18d86dda73c5",
+   "rev": 1,
+   "seconds": 2.96,
+   "via": "batch",
+   "at": "2026-09-29",
    "unverified": true
   },
   "0e9f6cae4b9767": {
@@ -80842,6 +82102,21 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "0ec76383a47ce0": {
+   "key": "A|Can I see your portfolio?",
+   "text": "Can I see your portfolio?",
+   "role": "A",
+   "chapter": "ch91",
+   "id": "portfolio",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "77fb3307a528",
+   "rev": 1,
+   "seconds": 1.68,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
+  },
   "0ec8a94d67903d": {
    "key": "A|It's winter in the Southern Hemisphere.",
    "text": "It's winter in the Southern Hemisphere.",
@@ -81904,6 +83179,21 @@
    "at": "2026-09-28",
    "unverified": true
   },
+  "0ef04f9875ee38": {
+   "key": "P|audience",
+   "text": "audience",
+   "role": "P",
+   "chapter": "ch93",
+   "id": "audience",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "7c8f3dcafd06",
+   "rev": 1,
+   "seconds": 1.36,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
+  },
   "0ef180f09e631d": {
    "key": "A|Do you want to carpool to work?",
    "text": "Do you want to carpool to work?",
@@ -82089,6 +83379,21 @@
    "seconds": 1.32,
    "via": "batch",
    "at": "2026-09-28",
+   "unverified": true
+  },
+  "0efad5d9f2e056": {
+   "key": "A|Water vapor rose from the pot.",
+   "text": "Water vapor rose from the pot.",
+   "role": "A",
+   "chapter": "ch92",
+   "id": "vapor",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "f6d20f04747f",
+   "rev": 1,
+   "seconds": 2.16,
+   "via": "batch",
+   "at": "2026-09-29",
    "unverified": true
   },
   "0efaedc51cd8d7": {
@@ -82422,6 +83727,21 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "0f0e69c62017ae": {
+   "key": "P|nuclear",
+   "text": "nuclear",
+   "role": "P",
+   "chapter": "ch92",
+   "id": "nuclear",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "273cd999d434",
+   "rev": 1,
+   "seconds": 1.12,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
+  },
   "0f0f399f8a8575": {
    "key": "A|Our friendship means a lot to me.",
    "text": "Our friendship means a lot to me.",
@@ -82477,6 +83797,21 @@
    "sig": "c267cdda3c39",
    "rev": 1,
    "seconds": 1.16,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
+  },
+  "0f10fb220f8ba8": {
+   "key": "P|conservation",
+   "text": "conservation",
+   "role": "P",
+   "chapter": "ch92",
+   "id": "conservation",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "3496bbc28ff7",
+   "rev": 1,
+   "seconds": 1.48,
    "via": "batch",
    "at": "2026-09-29",
    "unverified": true
@@ -82849,6 +84184,21 @@
    "seconds": 1.32,
    "via": "batch",
    "at": "2026-09-28"
+  },
+  "0f276e1404d8d6": {
+   "key": "A|California had a long drought.",
+   "text": "California had a long drought.",
+   "role": "A",
+   "chapter": "ch92",
+   "id": "drought",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "9b4114049ec2",
+   "rev": 1,
+   "seconds": 2.16,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
   },
   "0f27927f94ec1c": {
    "key": "P|history",
@@ -84541,6 +85891,36 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "0f72004d2308ed": {
+   "key": "A|Technology changes so fast.",
+   "text": "Technology changes so fast.",
+   "role": "A",
+   "chapter": "ch92",
+   "id": "technology",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "34e6c5a82566",
+   "rev": 1,
+   "seconds": 2.72,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
+  },
+  "0f7251ce392594": {
+   "key": "P|stage",
+   "text": "stage",
+   "role": "P",
+   "chapter": "ch93",
+   "id": "stage",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "c0f9f4af367a",
+   "rev": 1,
+   "seconds": 1.16,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
+  },
   "0f73c182970d4f": {
    "key": "A|I'm going to refer you to a specialist.",
    "text": "I'm going to refer you to a specialist.",
@@ -84984,6 +86364,21 @@
    "seconds": 0.9,
    "via": "pack",
    "at": "2026-09-28"
+  },
+  "0f857c5a3b3df5": {
+   "key": "A|The coffee machine is broken.",
+   "text": "The coffee machine is broken.",
+   "role": "A",
+   "chapter": "ch92",
+   "id": "machine",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "1a6a3edf2df0",
+   "rev": 1,
+   "seconds": 2.36,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
   },
   "0f85dec40017ba": {
    "key": "P|policy",
@@ -87236,6 +88631,21 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "0ff2c36d930653": {
+   "key": "A|Salespeople work on commission.",
+   "text": "Salespeople work on commission.",
+   "role": "A",
+   "chapter": "ch91",
+   "id": "commission",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "2201ef37dd3c",
+   "rev": 1,
+   "seconds": 1.88,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
+  },
   "0ff2e6bb567b65": {
    "key": "A|What time do you leave for work?",
    "text": "What time do you leave for work?",
@@ -88420,6 +89830,21 @@
    "seconds": 0.58,
    "via": "pack",
    "at": "2026-09-28"
+  },
+  "102a3a1652e833": {
+   "key": "A|It's a family tradition.",
+   "text": "It's a family tradition.",
+   "role": "A",
+   "chapter": "ch93",
+   "id": "tradition",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "ccc62663d078",
+   "rev": 1,
+   "seconds": 1.64,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
   },
   "102a76e484fd32": {
    "key": "P|Every cloud has a silver lining.",
@@ -90175,6 +91600,21 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "10702a61d025df": {
+   "key": "A|I don't really understand poetry.",
+   "text": "I don't really understand poetry.",
+   "role": "A",
+   "chapter": "ch93",
+   "id": "poetry",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "1ddf17b22679",
+   "rev": 1,
+   "seconds": 2.72,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
+  },
   "1070ba9ad7d0c5": {
    "key": "P|in time",
    "text": "in time",
@@ -90746,6 +92186,21 @@
    "seconds": 1.44,
    "via": "batch",
    "at": "2026-09-28"
+  },
+  "108be0198b28c1": {
+   "key": "A|She works in a research laboratory.",
+   "text": "She works in a research laboratory.",
+   "role": "A",
+   "chapter": "ch92",
+   "id": "laboratory",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "078c7218aefb",
+   "rev": 1,
+   "seconds": 1.76,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
   },
   "108c4ab335f040": {
    "key": "B|Because of porch pirates?",
@@ -93502,6 +94957,21 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "11119ef3df0ece": {
+   "key": "P|audit",
+   "text": "audit",
+   "role": "P",
+   "chapter": "ch91",
+   "id": "audit",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "d7a839ac7fc1",
+   "rev": 1,
+   "seconds": 1.04,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
+  },
   "11122a44bb6c0c": {
    "key": "B|You forgot to check this box.",
    "text": "You forgot to check this box.",
@@ -93746,6 +95216,21 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "111cc01fc4b38f": {
+   "key": "A|X-rays use a small amount of radiation.",
+   "text": "X-rays use a small amount of radiation.",
+   "role": "A",
+   "chapter": "ch92",
+   "id": "radiation",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "c84d3d65b319",
+   "rev": 1,
+   "seconds": 2.44,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
+  },
   "111d54beabcd50": {
    "key": "A|What do you think of Paul?",
    "text": "What do you think of Paul?",
@@ -93957,6 +95442,21 @@
    "sig": "ce0e6f9532d6",
    "rev": 1,
    "seconds": 1.44,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
+  },
+  "112720cf16503d": {
+   "key": "P|innovation",
+   "text": "innovation",
+   "role": "P",
+   "chapter": "ch92",
+   "id": "innovation",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "9a46d1d90e22",
+   "rev": 1,
+   "seconds": 1.24,
    "via": "batch",
    "at": "2026-09-29",
    "unverified": true
@@ -94553,6 +96053,21 @@
    "seconds": 2.04,
    "via": "batch",
    "at": "2026-09-28"
+  },
+  "1144a5132adee0": {
+   "key": "P|tariff",
+   "text": "tariff",
+   "role": "P",
+   "chapter": "ch91",
+   "id": "tariff",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "76f9f2f01e74",
+   "rev": 1,
+   "seconds": 1.12,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
   },
   "1146371a80ffb0": {
    "key": "A|When can someone come fix it?",
@@ -95800,6 +97315,21 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "117ac2aeacedbe": {
+   "key": "A|We should reduce carbon emissions.",
+   "text": "We should reduce carbon emissions.",
+   "role": "A",
+   "chapter": "ch92",
+   "id": "carbon",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "eaa7034d5a8b",
+   "rev": 1,
+   "seconds": 2.08,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
+  },
   "117ad292df639c": {
    "key": "A|A raccoon got into our trash.",
    "text": "A raccoon got into our trash.",
@@ -96174,6 +97704,21 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "1188bbb7ada5f6": {
+   "key": "A|Look at it under the microscope.",
+   "text": "Look at it under the microscope.",
+   "role": "A",
+   "chapter": "ch92",
+   "id": "microscope",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "69130a6fb12d",
+   "rev": 1,
+   "seconds": 2.04,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
+  },
   "118ab6ed9d467a": {
    "key": "A|I need to buy some new clothes.",
    "text": "I need to buy some new clothes.",
@@ -96260,6 +97805,21 @@
    "seconds": 1.52,
    "via": "batch",
    "at": "2026-09-28"
+  },
+  "1191737b11fbc3": {
+   "key": "P|laboratory",
+   "text": "laboratory",
+   "role": "P",
+   "chapter": "ch92",
+   "id": "laboratory",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "c28aa85aa229",
+   "rev": 1,
+   "seconds": 1.48,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
   },
   "11921e94d7b63e": {
    "key": "A|Sorry for the late reply.",
@@ -97257,6 +98817,21 @@
    "seconds": 1.52,
    "via": "batch",
    "at": "2026-09-28",
+   "unverified": true
+  },
+  "11bace7a7c00b5": {
+   "key": "A|We need to update the stakeholders.",
+   "text": "We need to update the stakeholders.",
+   "role": "A",
+   "chapter": "ch91",
+   "id": "stakeholder",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "d7fb4afc4173",
+   "rev": 1,
+   "seconds": 2.2,
+   "via": "batch",
+   "at": "2026-09-29",
    "unverified": true
   },
   "11bb3ada2340a1": {
@@ -100275,6 +101850,21 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "1242d1371f80fc": {
+   "key": "A|We do inventory every Friday.",
+   "text": "We do inventory every Friday.",
+   "role": "A",
+   "chapter": "ch91",
+   "id": "inventory",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "9921854b7663",
+   "rev": 1,
+   "seconds": 2.0,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
+  },
   "1242d9a4321805": {
    "key": "A|The store is open every day except Monday.",
    "text": "The store is open every day except Monday.",
@@ -100503,6 +102093,21 @@
    "seconds": 1.08,
    "via": "batch",
    "at": "2026-09-28",
+   "unverified": true
+  },
+  "124cdd259e665f": {
+   "key": "A|She works in compliance.",
+   "text": "She works in compliance.",
+   "role": "A",
+   "chapter": "ch91",
+   "id": "compliance",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "d27b60e98370",
+   "rev": 1,
+   "seconds": 1.84,
+   "via": "batch",
+   "at": "2026-09-29",
    "unverified": true
   },
   "124f7a99b236d7": {
@@ -101388,6 +102993,21 @@
    "at": "2026-09-29",
    "unverified": true
   },
+  "1279b5d38b15c2": {
+   "key": "P|comedy",
+   "text": "comedy",
+   "role": "P",
+   "chapter": "ch93",
+   "id": "comedy",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "c7cd7a170969",
+   "rev": 1,
+   "seconds": 1.0,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
+  },
   "1279d300d7aa94": {
    "key": "B|I know! Snow in April!",
    "text": "I know! Snow in April!",
@@ -101471,6 +103091,21 @@
    "seconds": 1.64,
    "via": "batch",
    "at": "2026-09-28",
+   "unverified": true
+  },
+  "127bd57d39f208": {
+   "key": "P|radiation",
+   "text": "radiation",
+   "role": "P",
+   "chapter": "ch92",
+   "id": "radiation",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "365c205065f2",
+   "rev": 1,
+   "seconds": 1.4,
+   "via": "batch",
+   "at": "2026-09-29",
    "unverified": true
   },
   "127d291aa2c80e": {
@@ -102366,6 +104001,21 @@
    "at": "2026-09-28",
    "unverified": true
   },
+  "12acff111d48c9": {
+   "key": "P|export",
+   "text": "export",
+   "role": "P",
+   "chapter": "ch91",
+   "id": "export",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "4456c305852a",
+   "rev": 1,
+   "seconds": 1.52,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
+  },
   "12adaebaae7930": {
    "key": "A|Is the store open on Sundays?",
    "text": "Is the store open on Sundays?",
@@ -102910,6 +104560,21 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "12cee88f2fa162": {
+   "key": "A|We're recruiting new graduates.",
+   "text": "We're recruiting new graduates.",
+   "role": "A",
+   "chapter": "ch91",
+   "id": "recruit",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "d3ace4b4ee9b",
+   "rev": 1,
+   "seconds": 1.72,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
+  },
   "12cf5d9326264c": {
    "key": "A|Wear a jacket, or you'll catch a cold.",
    "text": "Wear a jacket, or you'll catch a cold.",
@@ -103167,6 +104832,21 @@
    "seconds": 0.84,
    "via": "pack",
    "at": "2026-09-28"
+  },
+  "12db55fba79273": {
+   "key": "P|chemical",
+   "text": "chemical",
+   "role": "P",
+   "chapter": "ch92",
+   "id": "chemical",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "e2da979a0411",
+   "rev": 1,
+   "seconds": 1.2,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
   },
   "12db6009349058": {
    "key": "P|Do not disturb",
@@ -103597,6 +105277,21 @@
    "seconds": 3.36,
    "via": "batch",
    "at": "2026-09-28"
+  },
+  "12eb73b73d1aa0": {
+   "key": "A|Many species are in danger.",
+   "text": "Many species are in danger.",
+   "role": "A",
+   "chapter": "ch92",
+   "id": "species",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "57d90f1f78c5",
+   "rev": 1,
+   "seconds": 1.92,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
   },
   "12ebeafbcc64b2": {
    "key": "A|The doctor gave me a diagnosis.",
@@ -106175,6 +107870,21 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "13674fff5de82f": {
+   "key": "P|exhibition",
+   "text": "exhibition",
+   "role": "P",
+   "chapter": "ch93",
+   "id": "exhibition",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "31760805aaa7",
+   "rev": 1,
+   "seconds": 1.24,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
+  },
   "1367bcd6acdeb5": {
    "key": "B|It might be the fan.",
    "text": "It might be the fan.",
@@ -108331,6 +110041,21 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "13bde5745a6dba": {
+   "key": "P|supplier",
+   "text": "supplier",
+   "role": "P",
+   "chapter": "ch91",
+   "id": "supplier",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "a0021cd95d68",
+   "rev": 1,
+   "seconds": 1.08,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
+  },
   "13be58838d67e9": {
    "key": "A|The dishwasher is broken. It won't drain.",
    "text": "The dishwasher is broken. It won't drain.",
@@ -108801,6 +110526,21 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "13d0928a2528c1": {
+   "key": "P|performance",
+   "text": "performance",
+   "role": "P",
+   "chapter": "ch93",
+   "id": "performance",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "4d74a8db732c",
+   "rev": 1,
+   "seconds": 1.12,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
+  },
   "13d1769100012b": {
    "key": "A|I feel dizzy.",
    "text": "I feel dizzy.",
@@ -109061,6 +110801,21 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "13dafdd8d5da09": {
+   "key": "P|habitat",
+   "text": "habitat",
+   "role": "P",
+   "chapter": "ch92",
+   "id": "habitat",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "7ab9284549f7",
+   "rev": 1,
+   "seconds": 1.08,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
+  },
   "13dc5c10df4c3c": {
    "key": "B|Let's check your iron levels.",
    "text": "Let's check your iron levels.",
@@ -109316,6 +111071,21 @@
    "seconds": 0.75,
    "via": "pack",
    "at": "2026-09-28"
+  },
+  "13e60baec52f44": {
+   "key": "P|logistics",
+   "text": "logistics",
+   "role": "P",
+   "chapter": "ch91",
+   "id": "logistics",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "bcf4011cda8e",
+   "rev": 1,
+   "seconds": 1.24,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
   },
   "13e697e6faae3c": {
    "key": "A|Turn on the lamp, it's dark.",
@@ -109995,6 +111765,21 @@
    "seconds": 1.68,
    "via": "batch",
    "at": "2026-09-28"
+  },
+  "14051d048f6485": {
+   "key": "P|sculpture",
+   "text": "sculpture",
+   "role": "P",
+   "chapter": "ch93",
+   "id": "sculpture",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "c28610da67b7",
+   "rev": 1,
+   "seconds": 1.24,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
   },
   "1406823313ae53": {
    "key": "A|So we launch in May. Are we on the same page?",
@@ -111198,6 +112983,21 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "143eaab2bff7d5": {
+   "key": "A|Global warming is melting the ice.",
+   "text": "Global warming is melting the ice.",
+   "role": "A",
+   "chapter": "ch92",
+   "id": "global-warming",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "9d6f1bb442c6",
+   "rev": 1,
+   "seconds": 2.36,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
+  },
   "143efb83628b27": {
    "key": "B|Can I get a latte, please?",
    "text": "Can I get a latte, please?",
@@ -111553,6 +113353,21 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "144fafad354132": {
+   "key": "A|There are strict safety regulations.",
+   "text": "There are strict safety regulations.",
+   "role": "A",
+   "chapter": "ch91",
+   "id": "regulation",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "5c0ac44cdf88",
+   "rev": 1,
+   "seconds": 2.56,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
+  },
   "145087557a2f6e": {
    "key": "A|Your daughter is really smart.",
    "text": "Your daughter is really smart.",
@@ -111609,6 +113424,21 @@
    "seconds": 1.36,
    "via": "batch",
    "at": "2026-09-28"
+  },
+  "1454401a68d5ae": {
+   "key": "P|hypothesis",
+   "text": "hypothesis",
+   "role": "P",
+   "chapter": "ch92",
+   "id": "hypothesis",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "0d34f68d623b",
+   "rev": 1,
+   "seconds": 1.36,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
   },
   "1455077836a984": {
    "key": "P|ignore",
@@ -112309,6 +114139,36 @@
    "seconds": 2.2,
    "via": "batch",
    "at": "2026-09-28"
+  },
+  "1472e265139f68": {
+   "key": "P|electricity",
+   "text": "electricity",
+   "role": "P",
+   "chapter": "ch92",
+   "id": "electricity",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "dfcbc1432623",
+   "rev": 1,
+   "seconds": 1.24,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
+  },
+  "1473597fe994ea": {
+   "key": "P|device",
+   "text": "device",
+   "role": "P",
+   "chapter": "ch92",
+   "id": "device",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "2940bf77029f",
+   "rev": 1,
+   "seconds": 1.24,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
   },
   "1473f8034f888a": {
    "key": "P|woman",
@@ -114307,6 +116167,21 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "14d52d6130f063": {
+   "key": "P|compliance",
+   "text": "compliance",
+   "role": "P",
+   "chapter": "ch91",
+   "id": "compliance",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "6d4e19eb8ac7",
+   "rev": 1,
+   "seconds": 1.44,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
+  },
   "14d7406edc7860": {
    "key": "A|Is it true that you're moving?",
    "text": "Is it true that you're moving?",
@@ -114320,6 +116195,21 @@
    "seconds": 1.84,
    "via": "batch",
    "at": "2026-09-28",
+   "unverified": true
+  },
+  "14d82122aea18c": {
+   "key": "A|We have an audit next month.",
+   "text": "We have an audit next month.",
+   "role": "A",
+   "chapter": "ch91",
+   "id": "audit",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "d31ecb2fed08",
+   "rev": 1,
+   "seconds": 2.28,
+   "via": "batch",
+   "at": "2026-09-29",
    "unverified": true
   },
   "14d8c209d54f6b": {
@@ -116132,6 +118022,21 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "15278d80f9f70c": {
+   "key": "A|Don't mix those chemicals.",
+   "text": "Don't mix those chemicals.",
+   "role": "A",
+   "chapter": "ch92",
+   "id": "chemical",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "c29c557509d8",
+   "rev": 1,
+   "seconds": 1.68,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
+  },
   "1528a7c9ee92f4": {
    "key": "A|How close is it to public transportation?",
    "text": "How close is it to public transportation?",
@@ -116259,6 +118164,21 @@
    "seconds": 1.08,
    "via": "batch",
    "at": "2026-09-28"
+  },
+  "152e5601aae4c9": {
+   "key": "A|The engine won't start.",
+   "text": "The engine won't start.",
+   "role": "A",
+   "chapter": "ch92",
+   "id": "engine",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "0bc4cabd061a",
+   "rev": 1,
+   "seconds": 1.44,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
   },
   "152f9e475cf577": {
    "key": "P|Can you give me a discount?",
@@ -117409,6 +119329,21 @@
    "at": "2026-09-28",
    "unverified": true
   },
+  "1563f2e722e301": {
+   "key": "P|custom",
+   "text": "custom",
+   "role": "P",
+   "chapter": "ch93",
+   "id": "custom",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "e9ca1a729274",
+   "rev": 1,
+   "seconds": 1.2,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
+  },
   "1565fac69cf615": {
    "key": "B|Yes, but the rent is higher.",
    "text": "Yes, but the rent is higher.",
@@ -118191,6 +120126,36 @@
    "at": "2026-09-28",
    "unverified": true
   },
+  "1591128226c5c9": {
+   "key": "P|inventory",
+   "text": "inventory",
+   "role": "P",
+   "chapter": "ch91",
+   "id": "inventory",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "b75522a52414",
+   "rev": 1,
+   "seconds": 1.48,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
+  },
+  "1591a9beff04bd": {
+   "key": "P|drought",
+   "text": "drought",
+   "role": "P",
+   "chapter": "ch92",
+   "id": "drought",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "4279e0fa5032",
+   "rev": 1,
+   "seconds": 1.44,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
+  },
   "1591fc26712b6c": {
    "key": "A|I have a cough that won't go away.",
    "text": "I have a cough that won't go away.",
@@ -118693,6 +120658,21 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "15a870d9ababbd": {
+   "key": "A|I can't watch horror movies alone.",
+   "text": "I can't watch horror movies alone.",
+   "role": "A",
+   "chapter": "ch93",
+   "id": "horror",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "c0763d94ff65",
+   "rev": 1,
+   "seconds": 2.44,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
+  },
   "15a884538aca58": {
    "key": "P|I'm lonely.",
    "text": "I'm lonely.",
@@ -118909,6 +120889,21 @@
    "seconds": 0.73,
    "via": "pack",
    "at": "2026-09-28"
+  },
+  "15b006459f3e18": {
+   "key": "P|contractor",
+   "text": "contractor",
+   "role": "P",
+   "chapter": "ch91",
+   "id": "contractor",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "ffbd1c50a128",
+   "rev": 1,
+   "seconds": 1.24,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
   },
   "15b06e234b7226": {
    "key": "B|Yes, a deer and some rabbits!",
@@ -121140,6 +123135,21 @@
    "at": "2026-09-28",
    "unverified": true
   },
+  "160eb24c0d275c": {
+   "key": "P|animation",
+   "text": "animation",
+   "role": "P",
+   "chapter": "ch93",
+   "id": "animation",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "12f4d662804b",
+   "rev": 1,
+   "seconds": 1.36,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
+  },
   "160f01fcca73c2": {
    "key": "B|Not again.",
    "text": "Not again.",
@@ -121337,6 +123347,21 @@
    "sig": "07143e82f002",
    "rev": 1,
    "seconds": 1.2,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
+  },
+  "161964c78ab1aa": {
+   "key": "A|What's your cell number?",
+   "text": "What's your cell number?",
+   "role": "A",
+   "chapter": "ch92",
+   "id": "cell",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "e857d0a242f5",
+   "rev": 1,
+   "seconds": 1.12,
    "via": "batch",
    "at": "2026-09-29",
    "unverified": true
@@ -121714,6 +123739,21 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "162d3e7eb16029": {
+   "key": "P|gravity",
+   "text": "gravity",
+   "role": "P",
+   "chapter": "ch92",
+   "id": "gravity",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "d67ad47d5ed3",
+   "rev": 1,
+   "seconds": 1.0,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
+  },
   "162d8109375f9c": {
    "key": "A|Stop! The light is red.",
    "text": "Stop! The light is red.",
@@ -121757,6 +123797,21 @@
    "seconds": 0.71,
    "via": "pack",
    "at": "2026-09-28"
+  },
+  "162e5af48cd245": {
+   "key": "P|gallery",
+   "text": "gallery",
+   "role": "P",
+   "chapter": "ch93",
+   "id": "gallery",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "6cb01193923d",
+   "rev": 1,
+   "seconds": 1.08,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
   },
   "162e7d5b796588": {
    "key": "B|For here.",
@@ -122428,6 +124483,21 @@
    "seconds": 0.92,
    "via": "batch",
    "at": "2026-09-28",
+   "unverified": true
+  },
+  "165403c1e7c3eb": {
+   "key": "P|environment",
+   "text": "environment",
+   "role": "P",
+   "chapter": "ch92",
+   "id": "environment",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "e98f8e66a241",
+   "rev": 1,
+   "seconds": 1.16,
+   "via": "batch",
+   "at": "2026-09-29",
    "unverified": true
   },
   "1654f7272c4b4c": {
@@ -123457,6 +125527,21 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "168a1d651960f1": {
+   "key": "A|He's scared of being on stage.",
+   "text": "He's scared of being on stage.",
+   "role": "A",
+   "chapter": "ch93",
+   "id": "stage",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "bd03877242a0",
+   "rev": 1,
+   "seconds": 2.12,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
+  },
   "168b497c4964b4": {
    "key": "B|I just hung out with some friends.",
    "text": "I just hung out with some friends.",
@@ -124485,6 +126570,21 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "16bb1b40be887d": {
+   "key": "A|We need to improve efficiency.",
+   "text": "We need to improve efficiency.",
+   "role": "A",
+   "chapter": "ch91",
+   "id": "efficiency",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "01647a12572d",
+   "rev": 1,
+   "seconds": 2.12,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
+  },
   "16bc0491427918": {
    "key": "A|I ate the whole pizza by myself.",
    "text": "I ate the whole pizza by myself.",
@@ -124627,6 +126727,21 @@
    "seconds": 2.16,
    "via": "batch",
    "at": "2026-09-28"
+  },
+  "16c50c32a8cc35": {
+   "key": "P|experiment",
+   "text": "experiment",
+   "role": "P",
+   "chapter": "ch92",
+   "id": "experiment",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "6a349ee2b8d7",
+   "rev": 1,
+   "seconds": 1.4,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
   },
   "16c6ac139586a6": {
    "key": "A|Someone says I won a free cruise.",
@@ -125082,6 +127197,36 @@
    "at": "2026-09-29",
    "unverified": true
   },
+  "16de9c99f8eebc": {
+   "key": "A|Working from home increased my productivity.",
+   "text": "Working from home increased my productivity.",
+   "role": "A",
+   "chapter": "ch91",
+   "id": "productivity",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "5d8c5b36b77b",
+   "rev": 1,
+   "seconds": 2.64,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
+  },
+  "16defc9eeaf51f": {
+   "key": "A|Water conservation is important here.",
+   "text": "Water conservation is important here.",
+   "role": "A",
+   "chapter": "ch92",
+   "id": "conservation",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "213615125a47",
+   "rev": 1,
+   "seconds": 2.4,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
+  },
   "16e03cf2bf254c": {
    "key": "A|Do I have to go to the bank?",
    "text": "Do I have to go to the bank?",
@@ -125354,6 +127499,21 @@
    "at": "2026-09-28",
    "unverified": true
   },
+  "16f16e1ddb264c": {
+   "key": "A|The actors are reading the script.",
+   "text": "The actors are reading the script.",
+   "role": "A",
+   "chapter": "ch93",
+   "id": "script",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "01baecfe5ff3",
+   "rev": 1,
+   "seconds": 1.84,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
+  },
   "16f17e4d9252bd": {
    "key": "A|I dozed off during the movie.",
    "text": "I dozed off during the movie.",
@@ -125453,6 +127613,21 @@
    "seconds": 1.72,
    "via": "batch",
    "at": "2026-09-28"
+  },
+  "16f793d347daeb": {
+   "key": "P|species",
+   "text": "species",
+   "role": "P",
+   "chapter": "ch92",
+   "id": "species",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "d3653d3b0418",
+   "rev": 1,
+   "seconds": 1.12,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
   },
   "16f7c7ffc23d34": {
    "key": "B|Sure, she'll be right with you.",
@@ -125922,6 +128097,21 @@
    "seconds": 1.16,
    "via": "pack",
    "at": "2026-09-28"
+  },
+  "170d71b4e4666a": {
+   "key": "A|This is the industry benchmark.",
+   "text": "This is the industry benchmark.",
+   "role": "A",
+   "chapter": "ch91",
+   "id": "benchmark",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "633d9a832fb8",
+   "rev": 1,
+   "seconds": 1.84,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
   },
   "170d7eaab21ef0": {
    "key": "P|threaten",
@@ -126604,6 +128794,21 @@
    "at": "2026-09-28",
    "unverified": true
   },
+  "172e4245c2d7ed": {
+   "key": "P|poem",
+   "text": "poem",
+   "role": "P",
+   "chapter": "ch93",
+   "id": "poem",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "4327c08f1098",
+   "rev": 1,
+   "seconds": 1.0,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
+  },
   "172f0cc15a6f48": {
    "key": "P|Save me a seat.",
    "text": "Save me a seat.",
@@ -127153,6 +129358,21 @@
    "seconds": 2.2,
    "via": "batch",
    "at": "2026-09-28",
+   "unverified": true
+  },
+  "174c6f830d4756": {
+   "key": "A|Everything is made of atoms.",
+   "text": "Everything is made of atoms.",
+   "role": "A",
+   "chapter": "ch92",
+   "id": "atom",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "545ca8c39d73",
+   "rev": 1,
+   "seconds": 2.12,
+   "via": "batch",
+   "at": "2026-09-29",
    "unverified": true
   },
   "174e516e0f8d1c": {
@@ -128466,6 +130686,21 @@
    "seconds": 2.0,
    "via": "batch",
    "at": "2026-09-28",
+   "unverified": true
+  },
+  "178dc740a9bbb0": {
+   "key": "A|What goes up must come down because of gravity.",
+   "text": "What goes up must come down because of gravity.",
+   "role": "A",
+   "chapter": "ch92",
+   "id": "gravity",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "02f91f06f4dd",
+   "rev": 1,
+   "seconds": 3.64,
+   "via": "batch",
+   "at": "2026-09-29",
    "unverified": true
   },
   "178e70527fe998": {
@@ -130034,6 +132269,21 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "17d123f7089168": {
+   "key": "P|scene",
+   "text": "scene",
+   "role": "P",
+   "chapter": "ch93",
+   "id": "scene",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "e7faf51e82bb",
+   "rev": 1,
+   "seconds": 1.12,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
+  },
   "17d298fb993cf2": {
    "key": "B|Coffee, a quick run, then a shower.",
    "text": "Coffee, a quick run, then a shower.",
@@ -130776,6 +133026,21 @@
    "at": "2026-09-28",
    "unverified": true
   },
+  "17f2828a4ad42b": {
+   "key": "P|benchmark",
+   "text": "benchmark",
+   "role": "P",
+   "chapter": "ch91",
+   "id": "benchmark",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "6ed27261e8ca",
+   "rev": 1,
+   "seconds": 1.16,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
+  },
   "17f2a24ba86d6a": {
    "key": "P|steer",
    "text": "steer",
@@ -131406,6 +133671,21 @@
    "seconds": 1.08,
    "via": "batch",
    "at": "2026-09-28",
+   "unverified": true
+  },
+  "181039dfd747b6": {
+   "key": "P|engine",
+   "text": "engine",
+   "role": "P",
+   "chapter": "ch92",
+   "id": "engine",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "7b971fcfd132",
+   "rev": 1,
+   "seconds": 1.24,
+   "via": "batch",
+   "at": "2026-09-29",
    "unverified": true
   },
   "18104a3146dbf2": {
@@ -132465,6 +134745,21 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "184240a2fcc324": {
+   "key": "P|discovery",
+   "text": "discovery",
+   "role": "P",
+   "chapter": "ch92",
+   "id": "discovery",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "82d4ade2b697",
+   "rev": 1,
+   "seconds": 1.2,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
+  },
   "1842b1fdac88f5": {
    "key": "A|We walked across the Golden Gate Bridge.",
    "text": "We walked across the Golden Gate Bridge.",
@@ -133176,6 +135471,21 @@
    "seconds": 1.79,
    "via": "pack",
    "at": "2026-09-28"
+  },
+  "1859f888b30286": {
+   "key": "P|shipment",
+   "text": "shipment",
+   "role": "P",
+   "chapter": "ch91",
+   "id": "shipment",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "6069226788c0",
+   "rev": 1,
+   "seconds": 1.12,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
   },
   "185a5485d9a4dd": {
    "key": "B|He takes after his father.",
@@ -134421,6 +136731,21 @@
    "seconds": 1.08,
    "via": "sync",
    "at": "2026-09-28"
+  },
+  "189c993e83108e": {
+   "key": "P|import",
+   "text": "import",
+   "role": "P",
+   "chapter": "ch91",
+   "id": "import",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "265529be3457",
+   "rev": 1,
+   "seconds": 0.88,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
   },
   "189ca4b108cfc7": {
    "key": "B|He's growing so fast.",
@@ -136638,6 +138963,21 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "18f803822e4712": {
+   "key": "P|portfolio",
+   "text": "portfolio",
+   "role": "P",
+   "chapter": "ch91",
+   "id": "portfolio",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "e1e28873259f",
+   "rev": 1,
+   "seconds": 1.36,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
+  },
   "18f85b4f354be5": {
    "key": "A|That's beyond my understanding.",
    "text": "That's beyond my understanding.",
@@ -136694,6 +139034,36 @@
    "seconds": 0.69,
    "via": "pack",
    "at": "2026-09-28"
+  },
+  "18f952ed836ffa": {
+   "key": "P|productivity",
+   "text": "productivity",
+   "role": "P",
+   "chapter": "ch91",
+   "id": "productivity",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "fc2d6cb9e8e1",
+   "rev": 1,
+   "seconds": 1.28,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
+  },
+  "18f9f9e8c29c7a": {
+   "key": "A|It's in your genes.",
+   "text": "It's in your genes.",
+   "role": "A",
+   "chapter": "ch92",
+   "id": "gene",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "5c70620fcda1",
+   "rev": 1,
+   "seconds": 1.48,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
   },
   "18fac0ad8dba4a": {
    "key": "A|My grandmother passed away last week.",
@@ -137368,6 +139738,21 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "19176a0990afeb": {
+   "key": "P|emission",
+   "text": "emission",
+   "role": "P",
+   "chapter": "ch92",
+   "id": "emission",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "8bf5267d3cb3",
+   "rev": 1,
+   "seconds": 1.12,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
+  },
   "19177672326dc5": {
    "key": "A|Will he ever clean his room?",
    "text": "Will he ever clean his room?",
@@ -137875,6 +140260,21 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "192efd0d738b8b": {
+   "key": "A|New tariffs raised prices.",
+   "text": "New tariffs raised prices.",
+   "role": "A",
+   "chapter": "ch91",
+   "id": "tariff",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "d7a9b63a84d1",
+   "rev": 1,
+   "seconds": 1.88,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
+  },
   "192fc103e581ec": {
    "key": "A|Can you come to my party on Friday?",
    "text": "Can you come to my party on Friday?",
@@ -137946,6 +140346,21 @@
    "seconds": 0.77,
    "via": "pack",
    "at": "2026-09-28"
+  },
+  "193454ca97afdf": {
+   "key": "A|Dinosaurs are extinct.",
+   "text": "Dinosaurs are extinct.",
+   "role": "A",
+   "chapter": "ch92",
+   "id": "extinct",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "99383be6bea0",
+   "rev": 1,
+   "seconds": 1.8,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
   },
   "19346ed30eef9a": {
    "key": "A|Do you have anything to declare?",
@@ -138176,6 +140591,21 @@
    "seconds": 0.68,
    "via": "pack",
    "at": "2026-09-28"
+  },
+  "194179a5d5b0c5": {
+   "key": "A|Pandas are losing their habitat.",
+   "text": "Pandas are losing their habitat.",
+   "role": "A",
+   "chapter": "ch92",
+   "id": "habitat",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "c0788d54fadf",
+   "rev": 1,
+   "seconds": 2.44,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
   },
   "19420c66664cfa": {
    "key": "A|Something smells really good!",
@@ -139681,6 +142111,21 @@
    "seconds": 1.52,
    "via": "batch",
    "at": "2026-09-28"
+  },
+  "197a916b29944e": {
+   "key": "P|invention",
+   "text": "invention",
+   "role": "P",
+   "chapter": "ch92",
+   "id": "invention",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "367f5a88d25c",
+   "rev": 1,
+   "seconds": 1.24,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
   },
   "197aa1bc12f76b": {
    "key": "B|I wear earplugs.",
@@ -142859,6 +145304,21 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "19ff825657ff28": {
+   "key": "P|solid",
+   "text": "solid",
+   "role": "P",
+   "chapter": "ch92",
+   "id": "solid",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "d88dc8749b00",
+   "rev": 1,
+   "seconds": 1.04,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
+  },
   "1a009bf70cc827": {
    "key": "A|That guy has been following us.",
    "text": "That guy has been following us.",
@@ -143203,6 +145663,21 @@
    "at": "2026-09-28",
    "unverified": true
   },
+  "1a19450e0c283d": {
+   "key": "P|script",
+   "text": "script",
+   "role": "P",
+   "chapter": "ch93",
+   "id": "script",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "90d95590f453",
+   "rev": 1,
+   "seconds": 1.0,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
+  },
   "1a1b277bfedd20": {
    "key": "A|My battery is almost dead.",
    "text": "My battery is almost dead.",
@@ -143518,6 +145993,21 @@
    "seconds": 1.6,
    "via": "batch",
    "at": "2026-09-28"
+  },
+  "1a26cd64290ee4": {
+   "key": "A|Let's go see the photo exhibition.",
+   "text": "Let's go see the photo exhibition.",
+   "role": "A",
+   "chapter": "ch93",
+   "id": "exhibition",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "a48bbba9dcdb",
+   "rev": 1,
+   "seconds": 1.88,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
   },
   "1a274c433d1e39": {
    "key": "P|On that note…",
@@ -145663,6 +148153,21 @@
    "at": "2026-09-28",
    "unverified": true
   },
+  "1aa186971a248a": {
+   "key": "P|DNA",
+   "text": "DNA",
+   "role": "P",
+   "chapter": "ch92",
+   "id": "dna",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "c14078f76fe3",
+   "rev": 1,
+   "seconds": 1.36,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
+  },
   "1aa268a5b06dcd": {
    "key": "P|Go for it.",
    "text": "Go for it.",
@@ -147659,6 +150164,21 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "1affc18dcd1b02": {
+   "key": "A|I read a biography of Steve Jobs.",
+   "text": "I read a biography of Steve Jobs.",
+   "role": "A",
+   "chapter": "ch93",
+   "id": "biography",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "6bd0acd31140",
+   "rev": 1,
+   "seconds": 2.2,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
+  },
   "1affc5b02a3809": {
    "key": "A|I'm shivering. It's so cold.",
    "text": "I'm shivering. It's so cold.",
@@ -147971,6 +150491,21 @@
    "seconds": 1.8,
    "via": "batch",
    "at": "2026-09-28"
+  },
+  "1b0c7d3fb0fc14": {
+   "key": "A|I have no energy today.",
+   "text": "I have no energy today.",
+   "role": "A",
+   "chapter": "ch92",
+   "id": "energy",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "60c8c99b5bde",
+   "rev": 1,
+   "seconds": 2.08,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
   },
   "1b0c8515ac6ddb": {
    "key": "B|No, it was a piece of cake.",
@@ -148551,6 +151086,21 @@
    "at": "2026-09-28",
    "unverified": true
   },
+  "1b2345a82bf682": {
+   "key": "A|The street vendors sell great tacos.",
+   "text": "The street vendors sell great tacos.",
+   "role": "A",
+   "chapter": "ch91",
+   "id": "vendor",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "4161e8105949",
+   "rev": 1,
+   "seconds": 2.76,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
+  },
   "1b2447bde2ffe1": {
    "key": "A|Can you hear me okay?",
    "text": "Can you hear me okay?",
@@ -148822,6 +151372,21 @@
    "seconds": 1.36,
    "via": "batch",
    "at": "2026-09-28"
+  },
+  "1b3149d5139ab1": {
+   "key": "A|We need more renewable energy.",
+   "text": "We need more renewable energy.",
+   "role": "A",
+   "chapter": "ch92",
+   "id": "renewable",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "e9229bf123c2",
+   "rev": 1,
+   "seconds": 1.88,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
   },
   "1b314ef4a30ba5": {
    "key": "A|It snows a lot in January.",
@@ -149816,6 +152381,21 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "1b60ffa5720eee": {
+   "key": "P|telescope",
+   "text": "telescope",
+   "role": "P",
+   "chapter": "ch92",
+   "id": "telescope",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "50fc04286c62",
+   "rev": 1,
+   "seconds": 1.2,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
+  },
   "1b61a3e093f78b": {
    "key": "P|bay",
    "text": "bay",
@@ -149913,6 +152493,21 @@
    "sig": "b3513872279e",
    "rev": 1,
    "seconds": 1.48,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
+  },
+  "1b64d464dff039": {
+   "key": "P|artificial intelligence",
+   "text": "artificial intelligence",
+   "role": "P",
+   "chapter": "ch92",
+   "id": "artificial-intelligence",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "d5051c83c7e4",
+   "rev": 1,
+   "seconds": 1.8,
    "via": "batch",
    "at": "2026-09-29",
    "unverified": true
@@ -150941,6 +153536,21 @@
    "seconds": 1.6,
    "via": "batch",
    "at": "2026-09-28",
+   "unverified": true
+  },
+  "1ba07875848fcd": {
+   "key": "A|We're running low on fuel.",
+   "text": "We're running low on fuel.",
+   "role": "A",
+   "chapter": "ch92",
+   "id": "fuel",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "2282cbbc2bdd",
+   "rev": 1,
+   "seconds": 1.8,
+   "via": "batch",
+   "at": "2026-09-29",
    "unverified": true
   },
   "1ba2538fd7e49d": {
@@ -152948,6 +155558,21 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "1bf96fe7b61faf": {
+   "key": "A|Her performance was amazing.",
+   "text": "Her performance was amazing.",
+   "role": "A",
+   "chapter": "ch93",
+   "id": "performance",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "3afe4e1f02b2",
+   "rev": 1,
+   "seconds": 2.08,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
+  },
   "1bfa7133c8073f": {
    "key": "B|Checking or savings?",
    "text": "Checking or savings?",
@@ -153332,6 +155957,21 @@
    "seconds": 0.9,
    "via": "pack",
    "at": "2026-09-28"
+  },
+  "1c0d46de97276d": {
+   "key": "P|microscope",
+   "text": "microscope",
+   "role": "P",
+   "chapter": "ch92",
+   "id": "microscope",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "7ab101c5a44c",
+   "rev": 1,
+   "seconds": 1.48,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
   },
   "1c0e19621cd9f0": {
    "key": "A|Put away your toys, please.",
@@ -154727,6 +157367,21 @@
    "at": "2026-09-28",
    "unverified": true
   },
+  "1c4c7372c2e7cc": {
+   "key": "A|Japanese animation is popular worldwide.",
+   "text": "Japanese animation is popular worldwide.",
+   "role": "A",
+   "chapter": "ch93",
+   "id": "animation",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "3514453b5a91",
+   "rev": 1,
+   "seconds": 2.92,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
+  },
   "1c4cda5cd10b34": {
    "key": "P|flight attendant",
    "text": "flight attendant",
@@ -154740,6 +157395,21 @@
    "seconds": 1.32,
    "via": "batch",
    "at": "2026-09-28",
+   "unverified": true
+  },
+  "1c50921004869d": {
+   "key": "P|outsource",
+   "text": "outsource",
+   "role": "P",
+   "chapter": "ch91",
+   "id": "outsource",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "9ef8da7920c5",
+   "rev": 1,
+   "seconds": 1.28,
+   "via": "batch",
+   "at": "2026-09-29",
    "unverified": true
   },
   "1c512c8267607b": {
@@ -156201,6 +158871,21 @@
    "via": "pack",
    "at": "2026-09-28"
   },
+  "1ca361d1c21128": {
+   "key": "P|machine",
+   "text": "machine",
+   "role": "P",
+   "chapter": "ch92",
+   "id": "machine",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "90965bb085d9",
+   "rev": 1,
+   "seconds": 1.0,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
+  },
   "1ca38dc84ba567": {
    "key": "P|Could I get another pillow?",
    "text": "Could I get another pillow?",
@@ -156519,6 +159204,21 @@
    "seconds": 1.56,
    "via": "batch",
    "at": "2026-09-28"
+  },
+  "1cb0f0243734a5": {
+   "key": "A|We looked at the moon through a telescope.",
+   "text": "We looked at the moon through a telescope.",
+   "role": "A",
+   "chapter": "ch92",
+   "id": "telescope",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "0b20974b33f7",
+   "rev": 1,
+   "seconds": 1.96,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
   },
   "1cb11e4eddd260": {
    "key": "P|I'd like to renew my passport.",
@@ -157483,6 +160183,21 @@
    "seconds": 2.6,
    "via": "batch",
    "at": "2026-09-28"
+  },
+  "1cdd1adbb04eea": {
+   "key": "A|Artificial intelligence is changing the world.",
+   "text": "Artificial intelligence is changing the world.",
+   "role": "A",
+   "chapter": "ch92",
+   "id": "artificial-intelligence",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "a4593a786ee2",
+   "rev": 1,
+   "seconds": 3.0,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
   },
   "1cdd54822064bf": {
    "key": "P|password",
@@ -159055,6 +161770,21 @@
    "seconds": 1.96,
    "via": "batch",
    "at": "2026-09-28"
+  },
+  "1d29b14ea5a8f8": {
+   "key": "P|satellite",
+   "text": "satellite",
+   "role": "P",
+   "chapter": "ch92",
+   "id": "satellite",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "cf2bb3aa2134",
+   "rev": 1,
+   "seconds": 1.28,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
   },
   "1d2a20e8a0a6cd": {
    "key": "A|I got a camera for the door.",
@@ -161385,6 +164115,21 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "1d948f28102de9": {
+   "key": "P|vendor",
+   "text": "vendor",
+   "role": "P",
+   "chapter": "ch91",
+   "id": "vendor",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "302b14a72575",
+   "rev": 1,
+   "seconds": 1.08,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
+  },
   "1d94bb3d8f0438": {
    "key": "B|It was buy one, get one free.",
    "text": "It was buy one, get one free.",
@@ -161729,6 +164474,21 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "1da57941e073c0": {
+   "key": "P|extinct",
+   "text": "extinct",
+   "role": "P",
+   "chapter": "ch92",
+   "id": "extinct",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "574dce04c74a",
+   "rev": 1,
+   "seconds": 1.28,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
+  },
   "1da64b8139699a": {
    "key": "A|My grandfather was a soldier.",
    "text": "My grandfather was a soldier.",
@@ -161860,6 +164620,21 @@
    "seconds": 2.3,
    "via": "pack",
    "at": "2026-09-28"
+  },
+  "1da9ecc7e8848f": {
+   "key": "P|robot",
+   "text": "robot",
+   "role": "P",
+   "chapter": "ch92",
+   "id": "robot",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "8e06c299d6d4",
+   "rev": 1,
+   "seconds": 1.28,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
   },
   "1daa25abfcc9df": {
    "key": "P|fall asleep",
@@ -163963,6 +166738,21 @@
    "at": "2026-09-28",
    "unverified": true
   },
+  "1e0e17f35786d1": {
+   "key": "P|horror",
+   "text": "horror",
+   "role": "P",
+   "chapter": "ch93",
+   "id": "horror",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "c86faa32b739",
+   "rev": 1,
+   "seconds": 0.92,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
+  },
   "1e0e33e62f6876": {
    "key": "A|When will the bus come?",
    "text": "When will the bus come?",
@@ -164881,6 +167671,21 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "1e39828ebf8f45": {
+   "key": "A|Plastic is harming the ocean ecosystem.",
+   "text": "Plastic is harming the ocean ecosystem.",
+   "role": "A",
+   "chapter": "ch92",
+   "id": "ecosystem",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "dd8dc8b6f95b",
+   "rev": 1,
+   "seconds": 2.84,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
+  },
   "1e39f07c034549": {
    "key": "P|bend",
    "text": "bend",
@@ -165082,6 +167887,21 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "1e42f7528419e7": {
+   "key": "P|deforestation",
+   "text": "deforestation",
+   "role": "P",
+   "chapter": "ch92",
+   "id": "deforestation",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "f806a1a5e991",
+   "rev": 1,
+   "seconds": 1.6,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
+  },
   "1e430b491ba560": {
    "key": "P|patient",
    "text": "patient",
@@ -165225,6 +168045,21 @@
    "seconds": 2.56,
    "via": "batch",
    "at": "2026-09-28"
+  },
+  "1e473f6aff996b": {
+   "key": "A|He owns a pizza franchise.",
+   "text": "He owns a pizza franchise.",
+   "role": "A",
+   "chapter": "ch91",
+   "id": "franchise",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "29e312980fd1",
+   "rev": 1,
+   "seconds": 1.8,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
   },
   "1e4a737f6c4376": {
    "key": "A|How do you pronounce this word?",
@@ -165717,6 +168552,21 @@
    "seconds": 2.27,
    "via": "pack",
    "at": "2026-09-28"
+  },
+  "1e616efd7d404e": {
+   "key": "P|character",
+   "text": "character",
+   "role": "P",
+   "chapter": "ch93",
+   "id": "character",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "e5ae37c66525",
+   "rev": 1,
+   "seconds": 1.0,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
   },
   "1e626427c3d990": {
    "key": "P|cheat",
@@ -166561,6 +169411,21 @@
    "seconds": 2.0,
    "via": "batch",
    "at": "2026-09-28"
+  },
+  "1e8bccd87d748a": {
+   "key": "A|We installed solar panels on the roof.",
+   "text": "We installed solar panels on the roof.",
+   "role": "A",
+   "chapter": "ch92",
+   "id": "solar",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "6d51c98b01a2",
+   "rev": 1,
+   "seconds": 2.12,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
   },
   "1e8bf2dfccd0ca": {
    "key": "P|Can you give me a quick update?",
@@ -169501,6 +172366,51 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "1f087869d2b115": {
+   "key": "A|The police found his DNA at the scene.",
+   "text": "The police found his DNA at the scene.",
+   "role": "A",
+   "chapter": "ch92",
+   "id": "dna",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "b73940c436a6",
+   "rev": 1,
+   "seconds": 2.28,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
+  },
+  "1f0ad0516a14b9": {
+   "key": "A|It's one of my favorite films.",
+   "text": "It's one of my favorite films.",
+   "role": "A",
+   "chapter": "ch93",
+   "id": "film",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "2b8b7fec7a31",
+   "rev": 1,
+   "seconds": 1.72,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
+  },
+  "1f0adf5e874701": {
+   "key": "A|It was an amazing discovery.",
+   "text": "It was an amazing discovery.",
+   "role": "A",
+   "chapter": "ch92",
+   "id": "discovery",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "8ee96170288b",
+   "rev": 1,
+   "seconds": 2.2,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
+  },
   "1f0c621dd3bbfb": {
    "key": "A|How's your new job going?",
    "text": "How's your new job going?",
@@ -171009,6 +173919,21 @@
    "at": "2026-09-28",
    "unverified": true
   },
+  "1f4c66d18bec8f": {
+   "key": "A|I don't want any drama.",
+   "text": "I don't want any drama.",
+   "role": "A",
+   "chapter": "ch93",
+   "id": "drama",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "6e1df795575f",
+   "rev": 1,
+   "seconds": 1.8,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
+  },
   "1f4dd385183e9f": {
    "key": "A|Can we get a dog? Please?",
    "text": "Can we get a dog? Please?",
@@ -171140,6 +174065,21 @@
    "seconds": 1.96,
    "via": "batch",
    "at": "2026-09-28"
+  },
+  "1f51724bd78e62": {
+   "key": "P|solar",
+   "text": "solar",
+   "role": "P",
+   "chapter": "ch92",
+   "id": "solar",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "0c621f403514",
+   "rev": 1,
+   "seconds": 0.96,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
   },
   "1f51a876dea1d6": {
    "key": "B|Sorry, I have a meeting in five minutes.",
@@ -172334,6 +175274,21 @@
    "at": "2026-09-28",
    "unverified": true
   },
+  "1f87d611ba7acc": {
+   "key": "P|drama",
+   "text": "drama",
+   "role": "P",
+   "chapter": "ch93",
+   "id": "drama",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "95b3b918c358",
+   "rev": 1,
+   "seconds": 1.4,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
+  },
   "1f89092bedab36": {
    "key": "A|Help yourself to some food.",
    "text": "Help yourself to some food.",
@@ -172834,6 +175789,21 @@
    "at": "2026-09-28",
    "unverified": true
   },
+  "1f9e99eedca317": {
+   "key": "A|The phone was a great invention.",
+   "text": "The phone was a great invention.",
+   "role": "A",
+   "chapter": "ch92",
+   "id": "invention",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "70b26ab8c89b",
+   "rev": 1,
+   "seconds": 2.44,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
+  },
   "1f9f1b3cea0b9d": {
    "key": "P|security check",
    "text": "security check",
@@ -173062,6 +176032,21 @@
    "seconds": 1.76,
    "via": "batch",
    "at": "2026-09-28",
+   "unverified": true
+  },
+  "1fa93544074911": {
+   "key": "P|biography",
+   "text": "biography",
+   "role": "P",
+   "chapter": "ch93",
+   "id": "biography",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "f1ebec39c1f7",
+   "rev": 1,
+   "seconds": 1.48,
+   "via": "batch",
+   "at": "2026-09-29",
    "unverified": true
   },
   "1faa8469286102": {
@@ -174203,6 +177188,21 @@
    "seconds": 1.6,
    "via": "batch",
    "at": "2026-09-28"
+  },
+  "1fda0f2cc20c66": {
+   "key": "A|Japan exports a lot of cars.",
+   "text": "Japan exports a lot of cars.",
+   "role": "A",
+   "chapter": "ch91",
+   "id": "export",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "8132af151182",
+   "rev": 1,
+   "seconds": 2.2,
+   "via": "batch",
+   "at": "2026-09-29",
+   "unverified": true
   },
   "1fdaf246644ca3": {
    "key": "A|We'll lower the rent this month.",
