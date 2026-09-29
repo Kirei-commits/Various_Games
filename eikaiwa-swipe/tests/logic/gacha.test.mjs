@@ -311,7 +311,7 @@ test("通常ガチャの天井は500回: 499回 SSR が出なくても、500回�
 });
 
 test("保存データ: v2 から最新へ移行し、ガチャのデータは端末をまたいでも失わない", () => {
-  assert.equal(STATE_VERSION, 5);
+  assert.equal(STATE_VERSION, 6);
   const old = { version: 2, learned: { "make-sense": true }, queues: {}, misses: {}, tests: {}, stats: {} };
   const s = restoreState(old, lib);
   assert.equal(s.gacha.points, 0);

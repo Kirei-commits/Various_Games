@@ -29,12 +29,18 @@ export const FREEZE_MS = 5000;
 export const TIERS = 5;
 export const LEVEL_UP_KILLS = 10;
 
-/** 答え方ごとの、敵が上から下まで届く時間（ms）と、次の敵が出るまでの間隔 */
+/**
+ * 答え方ごとの、敵が上から下まで届く時間（ms）と、次の敵が出るまでの間隔。
+ * 近づく速さはゆっくりのまま、出てくる間隔を短くしてテンポよくする（2026-09-29 ユーザーの依頼）
+ */
 export const PACE = {
-  choice: { reach: 15000, interval: 4500 },
-  type: { reach: 26000, interval: 7500 },
-  voice: { reach: 22000, interval: 7000 },
+  choice: { reach: 15000, interval: 2400 },
+  type: { reach: 26000, interval: 4200 },
+  voice: { reach: 22000, interval: 4000 },
 };
+/** 倒したあと、次の敵が出るまでの最大の待ち（ms）。場に敵がいなくなったら RESPAWN_EMPTY ですぐ出す */
+export const RESPAWN_AFTER_KILL = 900;
+export const RESPAWN_EMPTY = 250;
 
 const shuffle = (list, rng) => {
   const a = [...list];
@@ -212,6 +218,8 @@ export function attack(b, correct, rng = Math.random) {
   }
   b.enemies = b.enemies.filter((e) => e !== t);
   b.kills += 1;
+  // 倒したらすぐ次の敵を出す（待ちが残っていても短くする）
+  b.nextSpawn = Math.min(b.nextSpawn, b.elapsed + (b.enemies.length ? RESPAWN_AFTER_KILL : RESPAWN_EMPTY));
   b.lastEvent = { type: "kill", at: b.elapsed, uid: t.uid, item, boss: t.boss };
   if (b.mode === "endless") b.level = 1 + Math.floor(b.kills / LEVEL_UP_KILLS);
   if (t.boss) {

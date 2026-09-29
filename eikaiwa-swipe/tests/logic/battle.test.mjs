@@ -15,6 +15,8 @@ import {
   STAGE_ENEMIES,
   BOSS_HP,
   PACE,
+  RESPAWN_AFTER_KILL,
+  RESPAWN_EMPTY,
   battleReward,
   byDifficulty,
   difficultyOf,
@@ -264,7 +266,23 @@ test("必殺技: 答えずに敵を倒せる。コンボはそのままで、そ
   assert.equal(resultsOf(b).find((r) => r.id === item.id).correct, false);
 });
 
-test("敵はゆっくり近づく（4択で上から届くまで15秒、次の敵まで4.5秒）", () => {
-  assert.deepEqual(PACE.choice, { reach: 15000, interval: 4500 });
+test("敵はゆっくり近づき、テンポよく出てくる（4択で上から届くまで15秒、次の敵まで2.4秒）", () => {
+  assert.deepEqual(PACE.choice, { reach: 15000, interval: 2400 });
   assert.ok(PACE.type.reach > PACE.choice.reach && PACE.voice.reach > PACE.choice.reach);
+});
+
+test("倒すとすぐ次の敵が出る（場が空なら0.25秒、ほかの敵がいても0.9秒以内）", () => {
+  const rng = mulberry32(5);
+  const b = createBattle({ mode: "endless", items: chapter.items, answer: "type", rng });
+  tick(b, 16, rng, 0); // 1体目が出る（次は4.2秒後の予定）
+  assert.equal(b.enemies.length, 1);
+  attack(b, true, rng);
+  assert.equal(b.enemies.length, 0);
+  tick(b, RESPAWN_EMPTY, rng, 0);
+  assert.equal(b.enemies.length, 1, "場が空になったら0.25秒で次が出る");
+  tick(b, PACE.type.interval, rng, 0); // 2体いる状態にする
+  assert.equal(b.enemies.length, 2);
+  attack(b, true, rng);
+  tick(b, RESPAWN_AFTER_KILL, rng, 0);
+  assert.equal(b.enemies.length, 2, "ほかの敵がいても0.9秒で補充される");
 });
