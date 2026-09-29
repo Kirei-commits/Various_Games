@@ -23,6 +23,8 @@ import {
   initialQuest,
   SPELL_MP,
   START_HERBS,
+  SKILLS,
+  guardRate,
   RARITY_POWER,
   EFFECTS,
 } from "../../src/quest.js";
@@ -74,16 +76,19 @@ test("属性: 単語の意味から決まる（fire → 炎、snowman → 氷）
   assert.equal(elementMultiplier("none", "dark"), 1);
 });
 
-test("能力値: Lv の土台に装備が足される。持っていない単語は効かない。属性がそろうとボーナス", () => {
-  const q = { ...initialQuest(), equip: { weapon: "fire", armor: "flame", charm: "blaze" } };
-  const owned = { fire: 1, flame: 1, blaze: 1 };
-  const s = statsOf(q, cards, owned);
+test("能力値: Lv の土台に装備が足される。持っていない単語は効かない。4か所の属性がそろうとボーナス", () => {
+  const cards2 = { ...cards, burn: card("burn", "burn", "N", "verb") };
+  const q = { ...initialQuest(), equip: { ...initialQuest().equip, weapon: "fire", body: "flame", accessory: "blaze", shield: "burn" } };
+  const owned = { fire: 1, flame: 1, blaze: 1, burn: 1 };
+  const s = statsOf(q, cards2, owned);
   assert.ok(s.atk > baseStats(1).atk);
   assert.ok(s.def > baseStats(1).def);
   assert.ok(s.hp > baseStats(1).hp);
   assert.equal(s.element, "fire");
-  assert.equal(s.setBonus, true);
-  const none = statsOf(q, cards, {});
+  assert.equal(s.guard, "fire");
+  assert.equal(s.setBonus, 15);
+  assert.equal(statsOf({ ...q, equip: { ...q.equip, shield: null } }, cards2, owned).setBonus, 0, "3か所ではそろわない");
+  const none = statsOf(q, cards2, {});
   assert.deepEqual([none.atk, none.def], [baseStats(1).atk, baseStats(1).def]);
 });
 
@@ -151,11 +156,15 @@ test("装備: 持っていない単語は付けられない。同じ単語はほ
   let s = { ...freshState(), gacha: { ...freshState().gacha, cards: { fire: 1, blaze: 2, sword: 1 } } };
   assert.equal(equip(s, "weapon", "flame"), s);
   s = equip(s, "weapon", "fire");
-  s = equip(s, "armor", "fire");
-  assert.deepEqual(s.quest.equip, { weapon: null, armor: "fire", charm: null });
+  s = equip(s, "shield", "fire");
+  assert.equal(s.quest.equip.weapon, null, "同じ単語はほかの場所から外れる");
+  assert.equal(equip(s, "armor", "fire"), s, "知らない場所には付けない");
+  assert.equal(s.quest.equip.shield, "fire");
   const auto = autoEquip(s, cards);
   assert.equal(auto.quest.equip.weapon, "blaze");
-  assert.equal(auto.quest.equip.charm, "sword");
+  assert.equal(auto.quest.equip.body, "fire");
+  assert.equal(auto.quest.equip.shield, "sword");
+  assert.equal(Object.keys(auto.quest.equip).length, 7);
 });
 
 test("冒険の結果: 経験値・最高の階・時間ぶんのポイントが記録される", () => {
@@ -175,10 +184,62 @@ test("保存データ: v5 から移行すると冒険の記録が加わる。統
   const s = restoreState({ version: 5, learned: {} }, library);
   assert.deepEqual(s.quest, initialQuest());
   assert.equal(restoreQuest({ level: 0, equip: { weapon: 5 } }).level, 1);
-  const a = { ...initialQuest(), level: 5, totalExp: 300, best: 3, equip: { weapon: "fire", armor: null, charm: null } };
+  // 以前の3か所（防具・お守り）は、体・アクセへ引っ越す
+  const old = restoreQuest({ level: 2, equip: { weapon: "a", armor: "b", charm: "c" } });
+  assert.deepEqual([old.equip.weapon, old.equip.body, old.equip.accessory, old.equip.shield], ["a", "b", "c", null]);
+  const a = { ...initialQuest(), level: 5, totalExp: 300, best: 3, equip: { ...initialQuest().equip, weapon: "fire" } };
   const b = { ...initialQuest(), level: 2, totalExp: 40, best: 9 };
   const m = mergeQuest(a, b);
   assert.equal(m.level, 5);
   assert.equal(m.equip.weapon, "fire");
   assert.equal(m.best, 9);
+});
+
+test("敵がちからをためると、次のターンは大こうげき。ぼうぎょで大きく減らし、はんげきする", () => {
+  const stats = { ...statsOf(initialQuest(), cards, {}), evade: 0 };
+  // 2階・乱数 0.1 → ためる（22% 未満）
+  let run = createRun(stats, 2, fixed(0.5));
+  run = act(run, stats, "attack", { id: "a", correct: false }, fixed(0.1));
+  assert.equal(run.enemy.charging, true);
+  assert.equal(run.events.at(-1).type, "charge");
+  const hp = run.hp;
+  const hit = act(run, stats, "attack", { id: "b", correct: false }, fixed(0.5));
+  const guarded = act(run, stats, "defend", null, fixed(0.5));
+  const bigDmg = hp - hit.hp;
+  const smallDmg = hp - guarded.hp;
+  assert.ok(hit.events.some((e) => e.type === "hurt" && e.smash));
+  assert.ok(smallDmg * 3 < bigDmg, `${smallDmg} vs ${bigDmg}`);
+  assert.ok(guarded.events.some((e) => e.type === "counter"), "ぼうぎょで受けるとはんげき");
+  assert.ok(guarded.enemy.hp < run.enemy.hp);
+  assert.ok(guardRate(true, 60) < guardRate(true, 0), "盾が強いほど大こうげきを減らす");
+});
+
+test("ボスは3ターンごとにちからをためる", () => {
+  const stats = { ...statsOf(initialQuest(), cards, {}), evade: 0, hp: 9999 };
+  let run = { ...createRun(stats, 5, fixed(0.5)), hp: 9999 };
+  const types = [];
+  for (let i = 0; i < 3; i++) {
+    run = act(run, stats, "defend", null, fixed(0.5));
+    types.push(run.events.map((e) => e.type).join(","));
+  }
+  assert.ok(types[1].includes("charge"), types.join(" | "));
+  assert.ok(types[2].includes("counter"), types.join(" | "));
+});
+
+test("SSR の装備には属性ごとの特製の呪文が付く（ブリザードは敵を1ターン止める）", () => {
+  const q = { ...initialQuest(), equip: { ...initialQuest().equip, weapon: "blaze", body: "flame" } };
+  const ice = card("ice", "snowstorm", "SSR", "noun");
+  const cards2 = { ...cards, ice };
+  const s = statsOf({ ...q, equip: { ...q.equip, shield: "ice" } }, cards2, { blaze: 1, flame: 1, ice: 1 });
+  assert.deepEqual(s.skills.map((x) => x.id).sort(), ["fire", "ice"]);
+  assert.equal(statsOf(q, cards2, { blaze: 1, flame: 1 }).skills.length, 1, "SR には呪文がない");
+  const stats = { ...s, evade: 0 };
+  let run = createRun(stats, 1, fixed(0.5));
+  run = { ...run, enemy: { ...run.enemy, hp: 9999, maxHp: 9999 } };
+  const frozen = act(run, stats, "skill", { id: "w", correct: true }, fixed(0.5), "ice");
+  assert.equal(frozen.mp, stats.mp - SKILLS.ice.mp);
+  assert.ok(frozen.events.some((e) => e.type === "freeze"));
+  assert.ok(frozen.events.some((e) => e.type === "frozen"), "凍った敵はそのターン動けない");
+  assert.equal(frozen.hp, run.hp, "ダメージを受けない");
+  assert.equal(act(run, stats, "skill", { id: "w", correct: true }, fixed(0.5), "dark").error, "その呪文は使えない！");
 });

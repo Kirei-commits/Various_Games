@@ -50,6 +50,8 @@ test("日本語→英語の成績は英語→意味とは別に記録される",
   }
   await expect(page.getByTestId("result-pct")).toHaveText("0%");
   await page.getByRole("button", { name: "進捗", exact: true }).click();
-  await expect(page.getByRole("button", { name: /あいさつ・基本の返事/ })).toContainText("英語 0%");
-  await expect(page.getByRole("button", { name: /あいさつ・基本の返事/ })).not.toContainText("意味");
+  // 章の成績は、進捗で章の番号を押すと出る
+  await page.getByRole("button", { name: /第1章 あいさつ・基本の返事/ }).click();
+  await expect(page.getByTestId("chooser-progress")).toContainText("テスト（英語）0%");
+  await expect(page.getByTestId("chooser-progress")).not.toContainText("意味");
 });

@@ -32,10 +32,14 @@ test("冒険: 集めた単語をおまかせで装備すると能力値が上が
   await page.getByRole("button", { name: "おまかせ装備" }).click();
   await expect(page.getByTestId("quest-equip")).toContainText("breakfast");
   await expect(stats).not.toHaveText(before);
+  // 装備は7か所。SSR（breakfast）を付けると特製の呪文が使える
+  await expect(page.getByTestId("quest-equip").getByRole("button")).toHaveCount(7);
+  await expect(page.getByTestId("quest-skills")).toBeVisible();
 
   await page.getByRole("button", { name: "1階から" }).click();
   await expect(page.getByTestId("quest-run")).toBeVisible();
   await expect(page.getByTestId("quest-floor")).toHaveText("1階");
+  await expect(page.getByTestId("quest-skill")).toHaveCount(1);
   expect(await winFloor(page)).toBe(true);
   await expect(page.getByTestId("quest-log")).toContainText("たおした");
   await page.getByRole("button", { name: "つぎの階へ" }).click();

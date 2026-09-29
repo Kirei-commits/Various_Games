@@ -78,6 +78,9 @@
 - テーマは設定から選ぶ（コインは廃止）
 
 **2026-09-29 に足したもの**
+- 話す速さのバー（`SpeedBar`・`RateContext`）を学習・シャドーイング・一覧・テストに置いた
+- 進捗の画面をコンパクトに: 要約1行・小さな数字・続きから・コースは開くと章の番号のマス（章の成績は章を押したときの ChapterChooser に）
+- 冒険: 装備7か所（`SLOTS`。古い保存の armor/charm は body/accessory へ）、SSR の特製の呪文（`SKILLS`）、敵のため→大こうげき（ぼうぎょで受けとめてはんげき）、演出と効果音（styles.css の qs-*、audio.js の warn/smash/block/heal/spell/appear）
 - BGM が iPhone で聞こえない: 消音スイッチ（マナーモード）で Web Audio が鳴らないため。`src/audio.js` の unlock で `navigator.audioSession.type = "playback"`（古い iOS は無音の <audio> をループ）。マイクを使うあいだは `setMicActive` で play-and-record に切り替える
 - バトル: 敵が出たとき（ボスの単語が変わったときも）に英単語を読み上げる（英語→意味のときだけ）
 - バトル: 敵が出てくる間隔を短く（4択 4.5秒→2.4秒）、倒したらすぐ次が出る（`RESPAWN_EMPTY` 0.25秒・`RESPAWN_AFTER_KILL` 0.9秒）。近づく速さは変えていない

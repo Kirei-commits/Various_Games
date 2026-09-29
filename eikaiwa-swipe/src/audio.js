@@ -454,6 +454,41 @@ export class SoundEngine {
       case "rare": // ガチャ: SR 以上のカードがめくれた
         [84, 88, 91].forEach((n, i) => this.mallet(n, { at: i * 0.05, gain: 0.2, decay: 0.7 }));
         break;
+      case "warn": { // 冒険: 敵がちからをためている（不気味に上がるうなり）
+        const t = this.ctx.currentTime;
+        this.tone(t, { type: "sawtooth", from: 70, to: 140, dur: 0.9, gain: 0.12, attack: 0.4, filter: 700 });
+        this.tone(t + 0.1, { type: "square", from: 55, to: 110, dur: 0.8, gain: 0.06, attack: 0.4, filter: 500 });
+        this.hiss(t, { type: "lowpass", freq: 300, to: 900, dur: 0.9, gain: 0.12 });
+        break;
+      }
+      case "smash": { // 冒険: 大こうげき（重い一撃）
+        const t = this.ctx.currentTime;
+        this.tone(t, { from: 120, to: 30, dur: 0.5, gain: 0.45 });
+        this.hiss(t, { type: "lowpass", freq: 1800, to: 80, dur: 0.55, gain: 0.5 });
+        this.tone(t, { type: "square", from: 200, to: 50, dur: 0.35, gain: 0.12, filter: 900 });
+        break;
+      }
+      case "block": { // 冒険: ぼうぎょで受けとめた（金属の音）
+        const t = this.ctx.currentTime;
+        [1, 2.76, 5.4].forEach((r, i) => this.tone(t, { type: "sine", from: 520 * r, to: 500 * r, dur: 0.5 - i * 0.12, gain: 0.12 / (i + 1) }));
+        this.hiss(t, { type: "highpass", freq: 3000, dur: 0.08, gain: 0.2 });
+        break;
+      }
+      case "heal": // 冒険: 回復（キラキラ上がる）
+        [76, 81, 84, 88, 93].forEach((n, i) => this.mallet(n, { at: i * 0.05, gain: 0.14, decay: 0.5 }));
+        break;
+      case "spell": { // 冒険: じゅもん（うなりながら飛んでいく）
+        const t = this.ctx.currentTime;
+        this.tone(t, { type: "triangle", from: 300, to: 1600, dur: 0.35, gain: 0.14 });
+        this.whoosh({ from: 600, to: 5000, dur: 0.3, gain: 0.3 });
+        this.mallet(91, { at: 0.28, gain: 0.16, decay: 0.4 });
+        break;
+      }
+      case "appear": // 冒険: 敵があらわれた
+        this.whoosh({ from: 300, to: 1500, dur: 0.25, gain: 0.25 });
+        this.mallet(60, { at: 0.05, gain: 0.2, decay: 0.4 });
+        this.mallet(63, { at: 0.15, gain: 0.18, decay: 0.5 });
+        break;
       case "ssr": // ガチャ: SSR！
         [72, 76, 79, 84, 88, 91, 96].forEach((n, i) => this.mallet(n, { at: i * 0.07, gain: 0.22, decay: 1 }));
         this.mallet(100, { at: 0.55, gain: 0.2, decay: 1.6 });

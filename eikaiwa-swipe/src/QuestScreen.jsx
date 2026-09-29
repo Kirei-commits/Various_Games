@@ -1,7 +1,9 @@
 /*
  * 冒険（ドラクエ風モード）の画面。進行と数値は src/quest.js（純粋関数）、絵はバトルと同じ src/battle-art.jsx。
- * - 準備: 主人公の Lv・能力値・装備（ガチャで集めた単語）を見て、枠ごとに付け替える
- * - 冒険: たたかう／じゅもん（単語の4択に正解すると攻撃）・ぼうぎょ・やくそう。倒したら次の階か、街に帰る
+ * - 準備: 主人公の Lv・能力値・装備（ガチャで集めた単語。7か所）を見て、場所ごとに付け替える
+ * - 冒険: たたかう／じゅもん／SSR の特製の呪文（単語の4択に正解すると攻撃）・ぼうぎょ・やくそう。倒したら次の階か、街に帰る
+ *   敵がちからをためたら、次のターンはぼうぎょ（大こうげきを受けとめて、はんげき）
+ * - 演出: 攻撃の斬撃・爆発・粒・ダメージの数字、呪文の弾と属性の光、敵の突進と画面のゆれ、ためのオーラ、盾・回復の光（styles.css の qs-* と bt-*）
  * - 結果: 経験値・Lv・ガチャのポイント
  */
 import React, { useEffect, useMemo, useRef, useState } from "react";
@@ -12,6 +14,7 @@ import {
   SLOTS,
   ELEMENTS,
   SPELL_MP,
+  SKILLS,
   gearOf,
   slotBonus,
   statsOf,
@@ -157,7 +160,7 @@ function QuestHome({ state, cards, stats, header, onEquip, onAutoEquip, onStart 
         <div className="mt-2">
           <Bar value={q.exp} max={expToNext(q.level)} color="bg-amber-400" label="けいけんち" />
         </div>
-        <div className="mt-3 grid grid-cols-3 gap-2 text-center text-xs" data-testid="quest-stats">
+        <div className="mt-3 grid grid-cols-4 gap-1.5 text-center text-xs" data-testid="quest-stats">
           {[
             ["HP", stats.hp],
             ["MP", stats.mp],
@@ -165,6 +168,8 @@ function QuestHome({ state, cards, stats, header, onEquip, onAutoEquip, onStart 
             ["守備", stats.def],
             ["会心", `${stats.crit}%`],
             ["回避", `${stats.evade}%`],
+            ["盾", stats.block],
+            ["属性", `${el(stats.element).icon || "－"}`],
           ].map(([k, v]) => (
             <div key={k} className="rounded-xl bg-white/10 py-1.5">
               <p className="text-[10px] text-white/60">{k}</p>
@@ -174,15 +179,25 @@ function QuestHome({ state, cards, stats, header, onEquip, onAutoEquip, onStart 
         </div>
         <p className="mt-2 text-[11px] text-white/80">
           攻撃の属性 {el(stats.element).icon}
-          {el(stats.element).name}・守りの属性 {el(stats.guard).icon}
+          {el(stats.element).name}・盾の属性 {el(stats.guard).icon}
           {el(stats.guard).name}
-          {stats.setBonus && <span className="ml-1 font-black text-amber-300">属性そろい！攻撃+15%</span>}
+          {stats.setBonus > 0 && <span className="ml-1 font-black text-amber-300">属性そろい！攻撃+{stats.setBonus}%</span>}
         </p>
         {effects.length > 0 && <p className="mt-1 text-[11px] text-emerald-300">{effects.map(effectText).join("・")}</p>}
+        {stats.skills.length > 0 && (
+          <div className="mt-2 rounded-xl bg-gradient-to-r from-amber-400/20 to-pink-500/20 p-2" data-testid="quest-skills">
+            <p className="text-[10px] font-black text-amber-300">SSR の特製の呪文</p>
+            {stats.skills.map((sk) => (
+              <p key={sk.id} className="text-[11px]">
+                {sk.icon} <b>{sk.name}</b>（MP{sk.mp}）{sk.text} <span className="text-white/50">← {sk.from}</span>
+              </p>
+            ))}
+          </div>
+        )}
       </div>
 
       <div className="mt-4 flex items-center justify-between">
-        <p className="text-sm font-bold text-slate-800">そうび（集めた単語）</p>
+        <p className="text-sm font-bold text-slate-800">そうび（集めた単語・7か所）</p>
         <button
           type="button"
           onClick={onAutoEquip}
@@ -192,7 +207,7 @@ function QuestHome({ state, cards, stats, header, onEquip, onAutoEquip, onStart 
           おまかせ装備
         </button>
       </div>
-      <ul className="mt-2 space-y-2" data-testid="quest-equip">
+      <ul className="mt-2 grid grid-cols-1 gap-1.5" data-testid="quest-equip">
         {SLOTS.map((s) => {
           const g = stats.gear[s.id];
           return (
@@ -201,9 +216,9 @@ function QuestHome({ state, cards, stats, header, onEquip, onAutoEquip, onStart 
                 type="button"
                 onClick={() => setPicking(s.id)}
                 aria-label={`${s.name}を変える`}
-                className="flex w-full items-center gap-3 rounded-2xl bg-white p-3 text-left shadow-sm ring-1 ring-slate-200 active:scale-[0.99]"
+                className="flex w-full items-center gap-2.5 rounded-2xl bg-white px-3 py-2 text-left shadow-sm ring-1 ring-slate-200 active:scale-[0.99]"
               >
-                <span className="text-2xl">{s.icon}</span>
+                <span className="w-7 text-center text-xl">{s.icon}</span>
                 <span className="min-w-0 flex-1">
                   <span className="block text-[10px] font-bold text-slate-400">
                     {s.name}（{s.stat}）
@@ -212,16 +227,17 @@ function QuestHome({ state, cards, stats, header, onEquip, onAutoEquip, onStart 
                     <>
                       <span className="flex items-center gap-1.5">
                         <RarityBadge rarity={g.rarity} />
-                        <span className="truncate font-bold text-slate-900">{g.english}</span>
+                        <span className="truncate text-sm font-bold text-slate-900">{g.english}</span>
                         <span className="text-[10px] font-bold text-slate-400">Lv{g.level}</span>
                         <span className="text-xs">{el(g.element).icon}</span>
+                        {g.rarity === "SSR" && <span className="text-[10px] font-black text-amber-500">{SKILLS[g.element].icon}呪文</span>}
                       </span>
                       <span className="block truncate text-[11px] text-slate-500">
                         {bonusText(slotBonus(s.id, g.power))}／{g.effects.map(effectText).join("・")}
                       </span>
                     </>
                   ) : (
-                    <span className="block text-sm font-bold text-slate-400">なし（タップで装備）</span>
+                    <span className="block text-sm font-bold text-slate-300">なし（タップで装備）</span>
                   )}
                 </span>
               </button>
@@ -235,7 +251,8 @@ function QuestHome({ state, cards, stats, header, onEquip, onAutoEquip, onStart 
         </p>
       )}
       <p className="mt-2 text-[11px] leading-relaxed text-slate-500">
-        名詞は守り・動詞は攻め・形容詞はからめ手の効果が付きます。SSR は効果が2つ。炎→氷→雷→炎、光⇔闇 の相性で1.5倍。3つの属性をそろえると攻撃+15%。
+        名詞は守り・動詞は攻め・形容詞はからめ手の効果。SSR は効果が2つと特製の呪文付き。炎→氷→雷→炎、光⇔闇 の相性で1.5倍。4か所の属性をそろえると攻撃+15%。
+        敵が「ちからをためた」ら、次は大こうげき。ぼうぎょで受けとめると、はんげきします（盾が強いほど減らせる）。
       </p>
 
       <p className="mt-5 text-sm font-bold text-slate-800">
@@ -278,7 +295,7 @@ function messagesOf(events, enemyName, answerText) {
     switch (e.type) {
       case "hit":
         return [
-          e.spell ? "じゅもんを となえた！" : "こうげき！",
+          e.skill ? `${e.skill}！` : e.magic ? "じゅもんを となえた！" : "こうげき！",
           e.crit ? "かいしんの いちげき！" : "",
           e.weak ? "こうかは ばつぐんだ！" : e.resist ? "あまり きいていない…" : "",
           `${enemyName}に ${e.dmg}の ダメージ！`,
@@ -286,19 +303,31 @@ function messagesOf(events, enemyName, answerText) {
           .filter(Boolean)
           .join(" ");
       case "miss":
-        return `ミス！ こうげきは はずれた…（正解は「${answerText}」）`;
+        return `ミス！ ${e.skill || (e.magic ? "じゅもん" : "こうげき")}は はずれた…（正解は「${answerText}」）`;
       case "drain":
         return `HPを ${e.heal} すいとった！`;
+      case "heal":
+        return `ひかりに つつまれ HPが ${e.heal} かいふくした！`;
+      case "freeze":
+        return `${enemyName}は こおりついた！`;
+      case "frozen":
+        return `${enemyName}は うごけない！`;
       case "defend":
         return "みを まもっている。MPが すこし かいふくした";
       case "herb":
         return `やくそうを つかった！ HPが ${e.heal} かいふくした`;
       case "win":
         return `${enemyName}を たおした！ けいけんち ${e.exp} を かくとく！`;
+      case "charge":
+        return `${enemyName}は ${e.boss ? "おおきく いきを すいこんだ" : "ちからを ためている"}…！ つぎは 大こうげきだ！ ぼうぎょ しよう！`;
       case "evade":
-        return `${e.breath ? `${enemyName}は ほのおを はいた！` : `${enemyName}の こうげき！`} ひらりと かわした！`;
+        return `${enemyName}の こうげき！ ひらりと かわした！`;
       case "hurt":
-        return `${e.breath ? `${enemyName}は ほのおを はいた！` : `${enemyName}の こうげき！`} ${e.dmg}の ダメージを うけた！${e.guarded ? "（ぼうぎょ）" : ""}${e.resist ? "（ぞくせいで けいげん）" : ""}`;
+        return `${e.smash ? (e.boss ? `${enemyName}は はげしい ほのおを はいた！` : `${enemyName}の 大こうげき！`) : `${enemyName}の こうげき！`} ${e.dmg}の ダメージを うけた！${
+          e.guarded ? (e.smash ? "（たてで うけとめた）" : "（ぼうぎょ）") : ""
+        }${e.resist ? "（ぞくせいで けいげん）" : ""}`;
+      case "counter":
+        return `はんげき！ ${enemyName}に ${e.dmg}の ダメージ！`;
       case "regen":
         return `HPが ${e.heal} かいふくした`;
       case "lose":
@@ -309,13 +338,21 @@ function messagesOf(events, enemyName, answerText) {
   });
 }
 
+const ELEMENT_COLOR = { none: "#e2e8f0", fire: "#f97316", ice: "#38bdf8", thunder: "#facc15", light: "#fef08a", dark: "#a855f7" };
+const FX_MS = 1300;
+
 /** 冒険中の画面 */
 function QuestRun({ stats, pool, speech, sound, dopamine, onEnd, active }) {
   const [run, setRun] = useState(() => createRun(stats, stats.startFloor));
   const [log, setLog] = useState(() => [`${stats.startFloor}階。${run.enemy.name}が あらわれた！`]);
-  const [question, setQuestion] = useState(null); // { action, item, choices }
-  const [pop, setPop] = useState(null); // ダメージの数字
+  const [question, setQuestion] = useState(null); // { action, skillId, item, choices }
+  const [fx, setFx] = useState([]); // 表示中の演出
+  const [busy, setBusy] = useState(false); // 演出中はコマンドを受け付けない
+  const [dying, setDying] = useState(null); // 倒した敵（消える演出）
   const enemyRef = useRef(null);
+  const arenaRef = useRef(null);
+  const fxId = useRef(0);
+  const timers = useRef([]);
   const started = useRef(Date.now());
   const ended = useRef(false);
   const boss = run.enemy.boss;
@@ -324,7 +361,28 @@ function QuestRun({ stats, pool, speech, sound, dopamine, onEnd, active }) {
   useEffect(() => {
     sound.setBattleMusic(active ? (boss ? "boss" : "battle") : null);
   }, [boss, sound, active]);
-  useEffect(() => () => sound.setBattleMusic(null), [sound]);
+  useEffect(() => {
+    sound.play("appear");
+    const list = timers.current;
+    return () => {
+      sound.setBattleMusic(null);
+      list.forEach(clearTimeout);
+    };
+  }, [sound]);
+
+  const later = (ms, fn) => timers.current.push(setTimeout(fn, ms));
+  const addFx = (list) => {
+    const items = list.map((f) => ({ ...f, id: ++fxId.current }));
+    setFx((cur) => [...cur, ...items]);
+    later(FX_MS, () => setFx((cur) => cur.filter((f) => !items.includes(f))));
+  };
+  const animate = (node, frames, ms) => node?.animate?.(frames, { duration: ms, easing: "ease-out" });
+  const shakeArena = (big) =>
+    animate(
+      arenaRef.current,
+      [{ transform: "translate(0,0)" }, { transform: `translate(${big ? -10 : -5}px,${big ? 4 : 2}px)` }, { transform: `translate(${big ? 9 : 4}px,${big ? -5 : -2}px)` }, { transform: `translate(${big ? -6 : -3}px,2px)` }, { transform: "translate(0,0)" }],
+      big ? 500 : 320
+    );
 
   const end = (r) => {
     if (ended.current) return;
@@ -333,76 +391,169 @@ function QuestRun({ stats, pool, speech, sound, dopamine, onEnd, active }) {
     onEnd(r, (Date.now() - started.current) / 1000);
   };
 
-  const shake = (node, big) =>
-    node?.animate?.(
-      [{ transform: "translateX(0)", filter: "brightness(1)" }, { transform: `translateX(${big ? -12 : -6}px)`, filter: "brightness(3)" }, { transform: `translateX(${big ? 10 : 5}px)` }, { transform: "translateX(0)", filter: "brightness(1)" }],
-      { duration: big ? 420 : 300 }
-    );
-
-  const ask = (action) => {
-    if (action === "spell" && run.mp < SPELL_MP) {
+  const ask = (action, skillId = null) => {
+    const cost = action === "spell" ? SPELL_MP : skillId ? SKILLS[skillId].mp : 0;
+    if (cost && run.mp < cost) {
       setLog(["MPが たりない！"]);
       return;
     }
     const item = pool[Math.floor(Math.random() * pool.length)];
-    setQuestion({ action, item, choices: makeChoices(item, pool, Math.random, 4, "japanese") });
+    setQuestion({ action, skillId, item, choices: makeChoices(item, pool, Math.random, 4, "japanese") });
   };
 
-  const doAct = (action, answer = null, item = null) => {
-    const next = act(run, stats, action, answer);
+  /** 主人公の行動の演出 */
+  const playerFx = (e) => {
+    const color = ELEMENT_COLOR[e.element] || ELEMENT_COLOR.none;
+    const list = [];
+    if (e.magic) list.push({ kind: "orb", color, skill: !!e.skill });
+    if (e.skill) list.push({ kind: "flash", color }, { kind: "bigicon", icon: SKILLS[e.element]?.icon || "✨" });
+    list.push({ kind: "slash", rot: -35 + Math.random() * 20 }, { kind: "slash", rot: 30 + Math.random() * 20, late: true });
+    list.push({ kind: "burst", color: e.magic ? color : "#fff7ed", big: e.crit || !!e.skill });
+    const n = e.skill ? 18 : e.crit ? 14 : 8;
+    for (let i = 0; i < n; i++) {
+      const a = (i / n) * Math.PI * 2 + Math.random() * 0.4;
+      const d = (e.skill ? 110 : 60) + Math.random() * 40;
+      list.push({ kind: "particle", dx: Math.cos(a) * d, dy: Math.sin(a) * d, color: i % 3 ? color : "#fde68a" });
+    }
+    list.push({ kind: "number", text: `${e.dmg}`, crit: e.crit, weak: e.weak });
+    addFx(list);
+    sound.play(e.skill ? "spell" : e.magic ? "spell" : "slash");
+    if (e.crit || e.skill) later(120, () => sound.play("explode"));
+    animate(
+      enemyRef.current,
+      [{ transform: "translateX(0)", filter: "brightness(1)" }, { transform: `translateX(${e.crit ? -14 : -7}px)`, filter: "brightness(4) saturate(0)" }, { transform: `translateX(${e.crit ? 12 : 6}px)` }, { transform: "translateX(0)", filter: "brightness(1)" }],
+      e.crit ? 480 : 340
+    );
+    if (e.crit || e.skill) shakeArena(true);
+  };
+
+  /** 敵の行動の演出（主人公の演出のあとに少し遅らせて出す） */
+  const enemyFx = (e) => {
+    if (e.type === "charge") {
+      sound.play("warn");
+      addFx([{ kind: "warn" }]);
+      return;
+    }
+    if (e.type === "frozen") {
+      addFx([{ kind: "ice" }]);
+      return;
+    }
+    // 突進してくる
+    animate(
+      enemyRef.current,
+      [{ transform: "translateY(0) scale(1)" }, { transform: `translateY(${e.smash ? 50 : 30}px) scale(${e.smash ? 1.45 : 1.25})` }, { transform: "translateY(0) scale(1)" }],
+      e.smash ? 520 : 380
+    );
+    if (e.type === "evade") {
+      sound.play("slash");
+      addFx([{ kind: "text", text: "かわした！", color: "#e0f2fe" }]);
+      return;
+    }
+    if (e.type === "hurt") {
+      later(e.smash ? 200 : 140, () => {
+        if (e.guarded) sound.play("block");
+        sound.play(e.smash ? "smash" : "hurt");
+        shakeArena(e.smash);
+        const list = [{ kind: "vignette", big: e.smash }, { kind: "playerHit", text: `-${e.dmg}` }];
+        if (e.guarded) list.push({ kind: "shield" });
+        if (e.smash) list.push({ kind: "flash", color: e.boss ? "#f97316" : "#ef4444" });
+        addFx(list);
+      });
+    }
+    if (e.type === "counter") {
+      later(520, () => {
+        sound.play("slash");
+        addFx([{ kind: "text", text: "はんげき！", color: "#fde68a" }, { kind: "burst", color: "#93c5fd", big: true }, { kind: "number", text: `${e.dmg}` }]);
+        animate(enemyRef.current, [{ filter: "brightness(4) saturate(0)" }, { filter: "brightness(1)" }], 300);
+      });
+    }
+  };
+
+  const doAct = (action, answer = null, item = null, skillId = null) => {
+    const next = act(run, stats, action, answer, Math.random, skillId);
     if (next.error) {
       setLog([next.error]);
       return;
     }
     const answerText = item ? item.japanese.split("／")[0] : "";
     setLog(messagesOf(next.events, run.enemy.name, answerText));
-    for (const e of next.events) {
-      if (e.type === "hit") {
-        sound.play(e.crit || e.spell ? "explode" : "slash");
-        shake(enemyRef.current, e.crit);
-        setPop({ id: Date.now(), text: `${e.dmg}`, crit: e.crit });
-      } else if (e.type === "miss") sound.play("wrong");
-      else if (e.type === "hurt") sound.play("hurt");
-      else if (e.type === "herb" || e.type === "defend") sound.play("correct");
-      else if (e.type === "win") sound.play(e.boss ? "bonus" : "complete");
-    }
     setQuestion(null);
+    setBusy(true);
+    let wait = 0;
+    for (const e of next.events) {
+      if (e.type === "hit") playerFx(e);
+      else if (e.type === "miss") {
+        sound.play("wrong");
+        addFx([{ kind: "text", text: "MISS", color: "#cbd5e1" }]);
+      } else if (e.type === "defend") {
+        sound.play("block");
+        addFx([{ kind: "shield" }]);
+      } else if (e.type === "herb" || e.type === "heal" || e.type === "drain" || e.type === "regen") {
+        const at = e.type === "regen" ? 700 : 0;
+        later(at, () => {
+          sound.play("heal");
+          addFx([{ kind: "heal", text: `+${e.heal}` }]);
+        });
+      } else if (e.type === "freeze") {
+        addFx([{ kind: "ice" }]);
+      } else if (["charge", "frozen", "evade", "hurt", "counter"].includes(e.type)) {
+        wait = 450;
+        later(wait, () => enemyFx(e));
+      } else if (e.type === "win") {
+        const killAt = next.events.some((x) => x.type === "counter") ? 800 : 250;
+        later(killAt, () => {
+          sound.play(e.boss ? "bonus" : "explode");
+          setDying({ kind: run.enemy.kind, boss: run.enemy.boss, id: Date.now() });
+          addFx([{ kind: "text", text: e.boss ? "BOSS DEFEATED!" : "VICTORY!", color: "#fde68a", big: true }]);
+          if (e.boss) later(400, () => sound.play("levelup"));
+        });
+      }
+    }
     setRun(next);
-    if (next.over) setTimeout(() => end(next), 1400);
+    later(wait + 500, () => setBusy(false));
+    if (next.over) later(1600, () => end(next));
   };
 
   const answerWith = (choice) => {
-    const { action, item } = question;
+    const { action, item, skillId } = question;
     const correct = choice.id === item.id;
     dopamine.hit(correct);
     if (correct) sound.play("correct");
     speech.speak(item.english, null, item.id);
-    doAct(action, { id: item.id, correct }, item);
+    doAct(action, { id: item.id, correct }, item, skillId);
   };
 
   const e = run.enemy;
+  const cmd = "flex items-center justify-center gap-1.5 rounded-xl border-2 border-white bg-slate-800 py-3 text-sm font-black active:scale-95 disabled:opacity-40";
   return (
     <div className="flex h-full flex-col bg-slate-950 text-white" data-testid="quest-run">
-      <div className="relative h-[40%] min-h-[210px] overflow-hidden">
+      <div ref={arenaRef} className="relative h-[42%] min-h-[220px] overflow-hidden">
         <BattleBackdrop />
-        <p className="absolute left-3 top-2 rounded-full bg-black/60 px-2.5 py-1 text-xs font-black" data-testid="quest-floor">
+        <p className="absolute left-3 top-2 z-10 rounded-full bg-black/60 px-2.5 py-1 text-xs font-black" data-testid="quest-floor">
           {run.floor}階{isBossFloor(run.floor) ? "（ボス）" : ""}
         </p>
+        {e.charging && !run.won && (
+          <p className="qs-warn-badge absolute right-3 top-2 z-10 rounded-full bg-rose-600 px-2.5 py-1 text-xs font-black shadow-lg" data-testid="quest-charging">
+            ⚠️ 大こうげきが来る！ ぼうぎょ！
+          </p>
+        )}
         <div className="absolute inset-x-0 bottom-3 flex flex-col items-center">
-          {!run.won && (
-            <div ref={enemyRef} className="relative">
-              {e.boss ? <Dragon size={170} /> : <Monster kind={e.kind} size={110} />}
-              {pop && (
-                <span
-                  key={pop.id}
-                  className={`bt-pop absolute inset-x-0 top-0 text-center font-black ${pop.crit ? "text-4xl text-amber-300" : "text-3xl text-white"}`}
-                  style={{ textShadow: "0 2px 0 #000, 0 0 8px #000" }}
-                >
-                  {pop.text}
-                </span>
-              )}
-            </div>
-          )}
+          <div className="relative flex h-[170px] items-end justify-center">
+            {!run.won && (
+              <div key={`${run.floor}`} className="qs-appear">
+                <div className="qs-idle">
+                  <div ref={enemyRef} className={e.charging ? "qs-charge" : ""}>
+                    {e.boss ? <Dragon size={170} /> : <Monster kind={e.kind} size={120} />}
+                  </div>
+                </div>
+              </div>
+            )}
+            {dying && run.won && (
+              <div key={dying.id} className="bt-die absolute bottom-0 left-1/2">
+                {dying.boss ? <Dragon size={170} /> : <Monster kind={dying.kind} size={120} />}
+              </div>
+            )}
+          </div>
           <div className="mt-1 w-44 rounded-lg bg-black/60 px-2 py-1">
             <p className="flex justify-between text-[11px] font-bold">
               <span data-testid="quest-enemy">
@@ -413,26 +564,29 @@ function QuestRun({ stats, pool, speech, sound, dopamine, onEnd, active }) {
               </span>
             </p>
             <div className="h-1.5 overflow-hidden rounded-full bg-white/20">
-              <div className="h-full rounded-full bg-rose-500 transition-all duration-300" style={{ width: `${(e.hp / e.maxHp) * 100}%` }} />
+              <div className="h-full rounded-full bg-rose-500 transition-all duration-500" style={{ width: `${(e.hp / e.maxHp) * 100}%` }} />
             </div>
           </div>
         </div>
+        <FxLayer fx={fx} />
       </div>
 
-      <div className="flex min-h-0 flex-1 flex-col gap-2 p-3">
-        <div className="grid grid-cols-2 gap-3 rounded-xl border-2 border-white bg-slate-900 px-3 py-2" data-testid="quest-status">
+      <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto p-3">
+        <div className="grid shrink-0 grid-cols-2 gap-3 rounded-xl border-2 border-white bg-slate-900 px-3 py-2" data-testid="quest-status">
           <Bar value={run.hp} max={stats.hp} color={run.hp / stats.hp < 0.3 ? "bg-rose-500" : "bg-emerald-400"} label="HP" />
           <Bar value={run.mp} max={stats.mp} color="bg-sky-400" label="MP" />
         </div>
-        <div className="min-h-[64px] rounded-xl border-2 border-white bg-slate-900 px-3 py-2 text-sm leading-relaxed" data-testid="quest-log" aria-live="polite">
+        <div className="min-h-[64px] shrink-0 rounded-xl border-2 border-white bg-slate-900 px-3 py-2 text-sm leading-relaxed" data-testid="quest-log" aria-live="polite">
           {log.map((m, i) => (
             <p key={i}>{m}</p>
           ))}
         </div>
 
         {question ? (
-          <div className="rounded-xl border-2 border-amber-300 bg-slate-900 p-3" data-testid="quest-question">
-            <p className="text-center text-[11px] font-bold text-amber-300">{question.action === "spell" ? "じゅもん" : "こうげき"}: 意味をえらべ！</p>
+          <div className="shrink-0 rounded-xl border-2 border-amber-300 bg-slate-900 p-3" data-testid="quest-question">
+            <p className="text-center text-[11px] font-bold text-amber-300">
+              {question.skillId ? SKILLS[question.skillId].name : question.action === "spell" ? "じゅもん" : "こうげき"}: 意味をえらべ！
+            </p>
             <p className="mt-1 flex items-center justify-center gap-2 text-2xl font-black">
               {question.item.english}
               <button type="button" aria-label="読み上げる" onClick={() => speech.speak(question.item.english, null, question.item.id)} className="text-amber-300">
@@ -453,6 +607,9 @@ function QuestRun({ stats, pool, speech, sound, dopamine, onEnd, active }) {
                 </button>
               ))}
             </div>
+            <button type="button" onClick={() => setQuestion(null)} className="mt-2 w-full text-center text-[11px] font-bold text-white/50">
+              もどる
+            </button>
           </div>
         ) : run.over ? (
           <p className="text-center text-sm font-bold text-white/70">…</p>
@@ -460,12 +617,15 @@ function QuestRun({ stats, pool, speech, sound, dopamine, onEnd, active }) {
           <div className="grid grid-cols-2 gap-2">
             <button
               type="button"
+              disabled={busy}
               onClick={() => {
                 const next = nextFloor(run, stats);
+                setDying(null);
                 setRun(next);
                 setLog([`${next.floor}階へ すすんだ。${next.enemy.name}が あらわれた！`]);
+                sound.play("appear");
               }}
-              className="rounded-xl border-2 border-white bg-emerald-700 py-3 text-sm font-black"
+              className="rounded-xl border-2 border-white bg-emerald-700 py-3 text-sm font-black disabled:opacity-40"
             >
               つぎの階へ
             </button>
@@ -474,27 +634,29 @@ function QuestRun({ stats, pool, speech, sound, dopamine, onEnd, active }) {
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-2 gap-2" data-testid="quest-commands">
-            <button type="button" onClick={() => ask("attack")} className="flex items-center justify-center gap-1.5 rounded-xl border-2 border-white bg-slate-800 py-3 text-sm font-black active:scale-95">
+          <div className="grid shrink-0 grid-cols-2 gap-2" data-testid="quest-commands">
+            <button type="button" disabled={busy} onClick={() => ask("attack")} className={cmd}>
               <Swords size={16} /> たたかう
             </button>
-            <button
-              type="button"
-              onClick={() => ask("spell")}
-              disabled={run.mp < SPELL_MP}
-              className="flex items-center justify-center gap-1.5 rounded-xl border-2 border-white bg-slate-800 py-3 text-sm font-black active:scale-95 disabled:opacity-40"
-            >
+            <button type="button" onClick={() => ask("spell")} disabled={busy || run.mp < SPELL_MP} className={cmd}>
               <Sparkles size={16} /> じゅもん <span className="text-[10px] text-sky-300">MP{SPELL_MP}</span>
             </button>
-            <button type="button" onClick={() => doAct("defend")} className="flex items-center justify-center gap-1.5 rounded-xl border-2 border-white bg-slate-800 py-3 text-sm font-black active:scale-95">
+            {stats.skills.map((sk) => (
+              <button
+                key={sk.id}
+                type="button"
+                onClick={() => ask("skill", sk.id)}
+                disabled={busy || run.mp < sk.mp}
+                className={`${cmd} border-amber-300 bg-gradient-to-r from-amber-600/60 to-pink-600/60`}
+                data-testid="quest-skill"
+              >
+                {sk.icon} {sk.name} <span className="text-[10px] text-sky-200">MP{sk.mp}</span>
+              </button>
+            ))}
+            <button type="button" disabled={busy} onClick={() => doAct("defend")} className={`${cmd} ${e.charging ? "qs-defend-hint border-sky-300 bg-sky-800" : ""}`}>
               <Shield size={16} /> ぼうぎょ
             </button>
-            <button
-              type="button"
-              onClick={() => doAct("herb")}
-              disabled={run.herbs <= 0}
-              className="flex items-center justify-center gap-1.5 rounded-xl border-2 border-white bg-slate-800 py-3 text-sm font-black active:scale-95 disabled:opacity-40"
-            >
+            <button type="button" onClick={() => doAct("herb")} disabled={busy || run.herbs <= 0} className={cmd}>
               <Heart size={16} /> やくそう ×{run.herbs}
             </button>
             <button type="button" onClick={() => end(retreat(run))} className="col-span-2 py-1 text-xs font-bold text-white/50">
@@ -503,6 +665,100 @@ function QuestRun({ stats, pool, speech, sound, dopamine, onEnd, active }) {
           </div>
         )}
       </div>
+    </div>
+  );
+}
+
+/** 演出の重ね絵（敵の中心は戦場の 50%・58%） */
+function FxLayer({ fx }) {
+  const at = { left: "50%", top: "58%" };
+  return (
+    <div className="pointer-events-none absolute inset-0 z-20 overflow-hidden">
+      {fx.map((f) => {
+        switch (f.kind) {
+          case "orb":
+            return (
+              <span
+                key={f.id}
+                className="qs-orb absolute block rounded-full"
+                style={{ ...at, width: f.skill ? 44 : 26, height: f.skill ? 44 : 26, background: `radial-gradient(circle, #fff 0%, ${f.color} 55%, transparent 72%)`, boxShadow: `0 0 24px 8px ${f.color}` }}
+              />
+            );
+          case "flash":
+            return <span key={f.id} className="qs-flash absolute inset-0 block" style={{ background: f.color }} />;
+          case "bigicon":
+            return (
+              <span key={f.id} className="qs-bigicon absolute block text-7xl" style={at}>
+                {f.icon}
+              </span>
+            );
+          case "slash":
+            return (
+              <span
+                key={f.id}
+                className="bt-slash absolute block h-1.5 w-40 rounded-full bg-white"
+                style={{ ...at, "--rot": `${f.rot}deg`, boxShadow: "0 0 12px 3px #fff", animationDelay: f.late ? "0.22s" : undefined }}
+              />
+            );
+          case "burst":
+            return (
+              <span
+                key={f.id}
+                className="bt-burst absolute block rounded-full"
+                style={{ ...at, width: f.big ? 150 : 90, height: f.big ? 150 : 90, background: `radial-gradient(circle, #fff 0%, ${f.color} 40%, transparent 70%)` }}
+              />
+            );
+          case "particle":
+            return <span key={f.id} className="bt-particle absolute block h-2 w-2 rounded-full" style={{ ...at, background: f.color, "--dx": `${f.dx}px`, "--dy": `${f.dy}px` }} />;
+          case "number":
+            return (
+              <span
+                key={f.id}
+                className={`bt-score absolute block font-black ${f.crit ? "text-5xl text-amber-300" : f.weak ? "text-4xl text-orange-300" : "text-3xl text-white"}`}
+                style={{ left: "50%", top: "22%", textShadow: "0 3px 0 #000, 0 0 10px #000" }}
+              >
+                {f.text}
+                {f.crit && <span className="block text-center text-sm">CRITICAL!</span>}
+              </span>
+            );
+          case "text":
+            return (
+              <span
+                key={f.id}
+                className={`bt-pop absolute inset-x-0 text-center font-black italic ${f.big ? "top-[18%] text-4xl" : "top-[30%] text-2xl"}`}
+                style={{ color: f.color, textShadow: "0 3px 0 #000, 0 0 12px #000" }}
+              >
+                {f.text}
+              </span>
+            );
+          case "vignette":
+            return <span key={f.id} className="bt-vignette absolute inset-0 block" style={f.big ? { boxShadow: "inset 0 0 90px 36px rgba(239,68,68,0.95)" } : undefined} />;
+          case "playerHit":
+            return (
+              <span key={f.id} className="bt-score absolute block text-3xl font-black text-rose-400" style={{ left: "50%", bottom: "4%", top: "auto", textShadow: "0 3px 0 #000" }}>
+                {f.text}
+              </span>
+            );
+          case "shield":
+            return (
+              <span key={f.id} className="qs-shield absolute bottom-2 left-1/2 flex h-24 w-24 items-center justify-center rounded-full text-5xl">
+                🛡️
+              </span>
+            );
+          case "heal":
+            return (
+              <span key={f.id} className="qs-heal absolute bottom-6 left-1/2 block text-3xl font-black text-emerald-300" style={{ textShadow: "0 2px 0 #000, 0 0 12px #10b981" }}>
+                ✨{f.text}
+              </span>
+            );
+          case "ice":
+            return <span key={f.id} className="qs-flash absolute inset-0 block" style={{ background: "#7dd3fc" }} />;
+          case "warn":
+            return <span key={f.id} className="qs-warn absolute inset-0 block" />;
+          default:
+            return null;
+        }
+      })}
     </div>
   );
 }

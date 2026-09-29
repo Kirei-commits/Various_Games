@@ -97,7 +97,9 @@ test("進捗: 章ごとの進み具合が見え、章を選ぶと学習画面に
   await page.getByRole("button", { name: "進捗", exact: true }).click();
   await expect(page.getByTestId("progress-pct")).toHaveText(/0%/);
   await expect(page.getByText(/^1 \/ 5500 覚えた$/)).toBeVisible();
+  // 今の章のコース（基本編）は開いていて、章の番号を押すと選べる
   await page.getByRole("button", { name: /電話・メール・SNS/ }).click();
+  await expect(page.getByTestId("chooser-progress")).toContainText("覚えた 0/50");
   await page.getByTestId("chapter-chooser").getByRole("button", { name: /学習する/ }).click();
   await expect(page.getByTestId("swipe-card")).toContainText("第18章");
 });

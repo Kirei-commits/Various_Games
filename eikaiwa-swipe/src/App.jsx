@@ -215,7 +215,7 @@ function DopamineLayer({ fx, streak }) {
       {streak > 0 && (
         <p
           key={`m${streak}`}
-          className={`dp-meter absolute right-3 top-[76px] rounded-full px-2.5 py-1 text-xs font-black text-white shadow-lg ${
+          className={`dp-meter absolute bottom-[84px] right-3 rounded-full px-2.5 py-1 text-xs font-black text-white shadow-lg ${
             streak >= 10 ? "dp-rainbow-bg" : streak >= 5 ? "bg-gradient-to-r from-orange-500 to-rose-600" : "bg-slate-900/80"
           }`}
           data-testid="dopamine-streak"
@@ -277,6 +277,31 @@ function DopamineLayer({ fx, streak }) {
         </div>
       )}
     </div>
+  );
+}
+
+/** 話す速さ（設定の rate）。音声を流す画面から、その場で変えられるように Context で渡す */
+const RateContext = createContext({ rate: 1, setRate() {} });
+
+/** 話す速さのバー（学習・シャドーイング・一覧・テストの画面に置く。設定の「話す速さ」と同じ値） */
+function SpeedBar({ className = "" }) {
+  const { rate, setRate } = useContext(RateContext);
+  return (
+    <label className={`flex items-center gap-1.5 text-xs font-bold text-slate-500 ${className}`} data-testid="speed-bar">
+      <span aria-hidden="true">🐢</span>
+      <input
+        type="range"
+        min="0.6"
+        max="1.3"
+        step="0.05"
+        value={rate}
+        onChange={(e) => setRate(Number(e.target.value))}
+        aria-label="話す速さ"
+        className="w-24 accent-indigo-600"
+      />
+      <span aria-hidden="true">🐇</span>
+      <span className="w-10 tabular-nums text-slate-700">×{rate.toFixed(2)}</span>
+    </label>
   );
 }
 
@@ -1468,9 +1493,12 @@ function StudyScreen({ active, state, onChapter, onSwipe, onResetChapter, speech
           style={{ width: `${(learned / total) * 100}%` }}
         />
       </div>
-      <p className="mt-1 text-right text-xs text-slate-500 tabular-nums">
-        この章で覚えた {learned} / {total}
-      </p>
+      <div className="mt-1 flex items-center justify-between gap-2">
+        <SpeedBar />
+        <p className="text-right text-xs text-slate-500 tabular-nums">
+          この章で覚えた {learned} / {total}
+        </p>
+      </div>
 
       {current ? (
         <>
@@ -1944,6 +1972,7 @@ function TestRun({ quiz, config, pool, speech, recognition, onFinish, onQuit, ac
         </p>
         <p className="text-sm font-bold text-emerald-600 tabular-nums">⭕️ {score}</p>
       </div>
+      <SpeedBar className="mt-2 justify-end" />
       <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-slate-200">
         <div className="h-full bg-indigo-500 transition-all" style={{ width: `${((idx + (phase === "feedback" ? 1 : 0)) / quiz.length) * 100}%` }} />
       </div>
@@ -3665,6 +3694,7 @@ function ShadowScreen({ state, settings, speech, onShadowDone, onSettings }) {
           <Segmented name="pause" value={opts.pause} onChange={(pause) => setOpts((o) => ({ ...o, pause }))} options={PAUSE_OPTIONS} />
         </div>
       </div>
+      <SpeedBar className="mt-2" />
       {recognition.error && <p className="mt-2 rounded-xl bg-amber-50 px-3 py-2 text-xs text-amber-700">{recognition.error}</p>}
 
       <div className="mt-3 min-h-0 flex-1 overflow-y-auto rounded-3xl bg-white p-4 shadow-sm ring-1 ring-slate-200">
@@ -3871,7 +3901,10 @@ function ListScreen({ state, onToggle, speech, initialScope = "all", onToggleFav
   return (
     <div className="flex h-full flex-col">
       <div className="px-5 pt-4 pb-3 bg-slate-50">
-        <h1 className="text-2xl font-extrabold text-slate-900">フレーズ一覧</h1>
+        <div className="flex items-center justify-between gap-2">
+          <h1 className="text-2xl font-extrabold text-slate-900">フレーズ一覧</h1>
+          <SpeedBar />
+        </div>
         <div className="relative mt-3">
           <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
@@ -5583,7 +5616,10 @@ function DiaryScreen({ state, speech, onSave, onSettings }) {
 }
 
 /** 進捗で章を押したとき: 学習するか、一覧で単語を見るか選ぶ */
-function ChapterChooser({ chapter, onChoose, onClose }) {
+function ChapterChooser({ chapter, onChoose, onClose, state = null }) {
+  const n = state ? chapter.items.filter((p) => state.learned[p.id]).length : null;
+  const best = state?.tests[chapter.id]?.best;
+  const bestJaEn = state?.tests[testKey(chapter.id, "ja-en")]?.best;
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-900/40" onClick={onClose}>
       <div
@@ -5596,6 +5632,13 @@ function ChapterChooser({ chapter, onChoose, onClose }) {
       >
         <p className="text-xs font-bold text-slate-400">第{CHAPTER_NO[chapter.id]}章</p>
         <p className="text-lg font-extrabold text-slate-900">{chapter.title}</p>
+        {n != null && (
+          <p className="mt-1 text-xs text-slate-500 tabular-nums" data-testid="chooser-progress">
+            覚えた {n}/{chapter.items.length}
+            {best != null && <span className="ml-2 text-indigo-500">テスト（意味）{best}%</span>}
+            {bestJaEn != null && <span className="ml-2 text-pink-500">テスト（英語）{bestJaEn}%</span>}
+          </p>
+        )}
         <div className="mt-4 grid grid-cols-2 gap-2">
           <button
             type="button"
@@ -5622,6 +5665,10 @@ function ChapterChooser({ chapter, onChoose, onClose }) {
 
 function ProgressScreen({ state, onOpenChapter, storageOk, account, bonusActions }) {
   const [choosing, setChoosing] = useState(null);
+  const current = CHAPTERS.find((c) => c.id === state.chapter) || null;
+  const chapterLearned = (c) => c.items.filter((p) => state.learned[p.id]).length;
+  // 今の章のコースを最初から開いておく
+  const [openPart, setOpenPart] = useState(() => PART_GROUPS.find((g) => g.chapters.some((c) => c.id === state.chapter))?.title || null);
   const learned = ALL_ITEMS.filter((p) => state.learned[p.id]).length;
   const pct = Math.round((learned / TOTAL) * 100);
   const { today, yesterday } = todayAndYesterday();
@@ -5643,6 +5690,7 @@ function ProgressScreen({ state, onOpenChapter, storageOk, account, bonusActions
     <div className="h-full overflow-y-auto px-5 pt-4 pb-6">
       {choosing && (
         <ChapterChooser
+          state={state}
           chapter={choosing}
           onClose={() => setChoosing(null)}
           onChoose={(where) => {
@@ -5653,79 +5701,126 @@ function ProgressScreen({ state, onOpenChapter, storageOk, account, bonusActions
       )}
       <h1 className="text-2xl font-extrabold text-slate-900">学習の進捗</h1>
       <TitleBadge gacha={state.gacha} className="mt-1" />
-      {cloud.available && <AccountCard account={account} />}
-      <BonusCard state={state} {...bonusActions} />
 
-      <div className="mt-4 rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-200 flex flex-col items-center">
-        <div className="relative">
-          <ProgressRing value={learned / TOTAL} />
-          <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <span className="text-4xl font-black text-slate-900 tabular-nums" data-testid="progress-pct">
+      <div className="mt-4 flex items-center gap-4 rounded-3xl bg-white p-4 shadow-sm ring-1 ring-slate-200">
+        <div className="relative shrink-0" style={{ width: 96, height: 96 }}>
+          <div className="origin-top-left" style={{ transform: "scale(0.6)" }}>
+            <ProgressRing value={learned / TOTAL} />
+          </div>
+          <div className="absolute inset-0 flex items-center justify-center">
+            <span className="text-2xl font-black text-slate-900 tabular-nums" data-testid="progress-pct">
               {pct}
-              <span className="text-xl">%</span>
-            </span>
-            <span className="text-xs text-slate-500 tabular-nums">
-              {learned} / {TOTAL} 覚えた
+              <span className="text-sm">%</span>
             </span>
           </div>
         </div>
-        <p className="mt-4 w-full rounded-2xl bg-gradient-to-r from-indigo-50 to-violet-50 px-4 py-3 text-center text-sm font-bold text-slate-800">
-          {motivation(learned)}
-          <span className="mt-1 block text-xs font-medium text-slate-500 tabular-nums">
+        <div className="min-w-0 flex-1">
+          <p className="text-xs text-slate-500 tabular-nums">
+            {learned} / {TOTAL} 覚えた
+          </p>
+          <p className="mt-0.5 text-sm font-bold leading-snug text-slate-800">{motivation(learned)}</p>
+          <p className="mt-1 text-xs text-slate-500 tabular-nums">
             クリアした章 {clearedChapters} / {CHAPTERS.length}
-          </span>
-        </p>
+          </p>
+        </div>
       </div>
 
-      <div className="mt-4 grid grid-cols-2 gap-3">
+      <div className="mt-3 grid grid-cols-3 gap-2">
         {tiles.map((t) => (
-          <div key={t.label} className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200">
-            <div className={`h-9 w-9 rounded-xl flex items-center justify-center ${t.color}`}>{t.icon}</div>
-            <p className="mt-3 text-xs text-slate-500">{t.label}</p>
-            <p className="text-2xl font-extrabold text-slate-900 tabular-nums">{t.value}</p>
+          <div key={t.label} className="rounded-2xl bg-white px-2.5 py-2 shadow-sm ring-1 ring-slate-200">
+            <p className="flex items-center gap-1 text-[10px] text-slate-500">
+              <span className={`flex h-5 w-5 items-center justify-center rounded-md ${t.color}`}>{React.cloneElement(t.icon, { size: 12 })}</span>
+              {t.label}
+            </p>
+            <p className="mt-0.5 text-lg font-extrabold text-slate-900 tabular-nums">{t.value}</p>
           </div>
         ))}
       </div>
 
-      {PART_GROUPS.map((part) => {
-        const partLearned = part.chapters.reduce((n, c) => n + c.items.filter((p) => state.learned[p.id]).length, 0);
-        const partTotal = part.chapters.reduce((n, c) => n + c.items.length, 0);
-        return (
-      <div key={part.title} className="mt-4 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200">
-        <p className="flex items-baseline justify-between text-sm font-bold text-slate-800">
-          {part.title}（第{part.from}〜{part.to}章）
-          <span className="text-xs font-semibold text-slate-500 tabular-nums">
-            {partLearned} / {partTotal}
+      {current && (
+        <button
+          type="button"
+          onClick={() => onOpenChapter(current.id, "study")}
+          className="mt-3 flex w-full items-center gap-3 rounded-2xl bg-gradient-to-r from-indigo-600 to-violet-600 p-3 text-left text-white shadow"
+          data-testid="progress-continue"
+        >
+          <Play size={20} className="shrink-0" />
+          <span className="min-w-0 flex-1">
+            <span className="block text-[10px] font-bold text-white/70">続きから（第{CHAPTER_NO[current.id]}章）</span>
+            <span className="block truncate text-sm font-bold">{current.title}</span>
+            <span className="mt-1 block h-1.5 overflow-hidden rounded-full bg-white/25">
+              <span className="block h-full rounded-full bg-white" style={{ width: `${(chapterLearned(current) / current.items.length) * 100}%` }} />
+            </span>
           </span>
-        </p>
-        <ul className="mt-2 divide-y divide-slate-100">
-          {part.chapters.map((c) => {
-            const n = c.items.filter((p) => state.learned[p.id]).length;
-            const best = state.tests[c.id]?.best;
-            const bestJaEn = state.tests[testKey(c.id, "ja-en")]?.best;
-            return (
-              <li key={c.id}>
-                <button type="button" onClick={() => setChoosing(c)} className="flex w-full items-center gap-3 py-2.5 text-left">
-                  <span className="w-8 shrink-0 text-xs font-bold text-slate-400 tabular-nums">{CHAPTER_NO[c.id]}</span>
-                  <span className="min-w-0 flex-1">
-                    <span className="block truncate text-sm font-semibold text-slate-800">{c.title}</span>
-                    <span className="mt-1 block h-1.5 overflow-hidden rounded-full bg-slate-100">
-                      <span className="block h-full rounded-full bg-emerald-400" style={{ width: `${(n / c.items.length) * 100}%` }} />
+          <span className="text-xs font-bold tabular-nums">
+            {chapterLearned(current)}/{current.items.length}
+          </span>
+        </button>
+      )}
+
+      <BonusCard state={state} {...bonusActions} />
+
+      <p className="mt-4 text-sm font-bold text-slate-800">コースごとの進み具合</p>
+      <div className="mt-2 space-y-2" data-testid="progress-parts">
+        {PART_GROUPS.map((part) => {
+          const partLearned = part.chapters.reduce((n, c) => n + chapterLearned(c), 0);
+          const partTotal = part.chapters.reduce((n, c) => n + c.items.length, 0);
+          const isOpen = openPart === part.title;
+          return (
+            <div key={part.title} className="rounded-2xl bg-white shadow-sm ring-1 ring-slate-200">
+              <button
+                type="button"
+                onClick={() => setOpenPart(isOpen ? null : part.title)}
+                aria-expanded={isOpen}
+                className="flex w-full items-center gap-3 px-3 py-2.5 text-left"
+              >
+                <span className="min-w-0 flex-1">
+                  <span className="flex items-baseline justify-between gap-2">
+                    <span className="truncate text-sm font-bold text-slate-800">
+                      {part.title}
+                      <span className="ml-1 text-[10px] font-semibold text-slate-400">
+                        第{part.from}〜{part.to}章
+                      </span>
+                    </span>
+                    <span className="shrink-0 text-xs font-semibold text-slate-500 tabular-nums">
+                      {partLearned} / {partTotal}
                     </span>
                   </span>
-                  <span className="w-16 shrink-0 text-right text-xs tabular-nums text-slate-500">
-                    {n}/{c.items.length}
-                    {best != null && <span className="block text-indigo-500">意味 {best}%</span>}
-                    {bestJaEn != null && <span className="block text-pink-500">英語 {bestJaEn}%</span>}
+                  <span className="mt-1 block h-1.5 overflow-hidden rounded-full bg-slate-100">
+                    <span className="block h-full rounded-full bg-emerald-400" style={{ width: `${(partLearned / partTotal) * 100}%` }} />
                   </span>
-                </button>
-              </li>
-            );
-          })}
-        </ul>
+                </span>
+                <ChevronDown size={16} className={`shrink-0 text-slate-400 transition ${isOpen ? "rotate-180" : ""}`} />
+              </button>
+              {isOpen && (
+                <div className="grid grid-cols-5 gap-1.5 px-3 pb-3">
+                  {part.chapters.map((c) => {
+                    const n = chapterLearned(c);
+                    const ratio = n / c.items.length;
+                    return (
+                      <button
+                        key={c.id}
+                        type="button"
+                        onClick={() => setChoosing(c)}
+                        aria-label={`第${CHAPTER_NO[c.id]}章 ${c.title} ${n}/${c.items.length}`}
+                        title={c.title}
+                        className={`relative h-10 overflow-hidden rounded-lg text-xs font-bold tabular-nums ring-1 ${
+                          ratio >= 1 ? "bg-emerald-500 text-white ring-emerald-500" : "bg-slate-50 text-slate-600 ring-slate-200"
+                        } ${state.chapter === c.id ? "outline outline-2 outline-indigo-500" : ""}`}
+                      >
+                        {ratio > 0 && ratio < 1 && <span className="absolute inset-x-0 bottom-0 block bg-emerald-300/70" style={{ height: `${ratio * 100}%` }} />}
+                        <span className="relative">{CHAPTER_NO[c.id]}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
-        );
-      })}
+      <p className="mt-1 text-[11px] text-slate-400">コースを開いて章の番号を押すと、学習するか一覧で見るかを選べます。</p>
+      {cloud.available && <AccountCard account={account} />}
 
       {!storageOk && (
         <p className="mt-4 rounded-xl bg-amber-50 px-3 py-2 text-xs text-amber-700">
@@ -5878,6 +5973,7 @@ export default function App() {
   const [storageOk] = useState(() => storage.available());
   const [sound] = useState(() => new SoundEngine());
   const speech = useSpeech(settings);
+  const rateCtx = useMemo(() => ({ rate: settings.rate, setRate: (rate) => setSettings((s) => ({ ...s, rate })) }), [settings.rate]);
 
   // ブラウザは画面に触れるまで音を出させないので、最初のタップで効果音を有効にする
   useEffect(() => {
@@ -6270,6 +6366,7 @@ export default function App() {
 
   return (
     <SoundContext.Provider value={sound}>
+    <RateContext.Provider value={rateCtx}>
     <DopamineContext.Provider value={dopamine}>
     <ThemeContext.Provider value={theme}>
     <LinkingContext.Provider value={settings.linking}>
@@ -6429,6 +6526,7 @@ export default function App() {
     </LinkingContext.Provider>
     </ThemeContext.Provider>
     </DopamineContext.Provider>
+    </RateContext.Provider>
     </SoundContext.Provider>
   );
 }
