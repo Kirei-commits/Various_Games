@@ -157,7 +157,7 @@ import {
   STATE_VERSION,
 } from "./logic.js";
 import { cloud, authErrorMessage } from "./cloud.js";
-import { usableVoices, pickVoices, genderLabel } from "./voices.js";
+import { usableVoices, pickVoices } from "./voices.js";
 import { SoundEngine, setMicActive, silentSound } from "./audio.js";
 import { detectInAppBrowser } from "./env.js";
 import { analyzePronunciation, verdictText, commonIssues } from "./pronounce.js";
@@ -407,12 +407,7 @@ function loadInitialState() {
 }
 
 const DEFAULT_SETTINGS = {
-  voiceURI: "",
-  voiceBURI: "",
-  recorded: true, // 用意した録音（Gemini の音声）があればそれを使う
   rate: 0.95,
-  expressive: true,
-  twoVoices: true,
   linking: true,
   sfx: true,
   sfxVolume: 0.6,
@@ -463,7 +458,7 @@ function useSpeech(settings) {
     if (!supported) return undefined;
     const synth = window.speechSynthesis;
     const update = () => {
-      setVoices(usableVoices(synth.getVoices(), { wide: false }));
+      setVoices(usableVoices(synth.getVoices()));
     };
     update();
     synth.addEventListener?.("voiceschanged", update);
@@ -475,8 +470,9 @@ function useSpeech(settings) {
 
   // B役（会話の相手）は A役と性別が違う声。見つからなければ同じ声を少し高くして区別する
   const { a: voiceA, b: voiceB, sameVoice } = useMemo(
-    () => pickVoices(voices, { aURI: settings.voiceURI, bURI: settings.voiceBURI, twoVoices: settings.twoVoices }),
-    [voices, settings.voiceURI, settings.voiceBURI, settings.twoVoices]
+    // 端末の声は録音の無い文（日記など）だけに使うので、選べるようにはせず自動で選ぶ
+    () => pickVoices(voices, { twoVoices: true }),
+    [voices]
   );
 
   /** speechSynthesis で読み上げる（my は呼び出し側で進めたトークン） */
@@ -491,10 +487,10 @@ function useSpeech(settings) {
         const voice = line.role === "B" ? cast.b : cast.a;
         const persona = { pitch: 1, rate: 1 };
         for (const chunk of prosodyPlan(line.text, {
-          expressive: settings.expressive,
+          expressive: true,
           rate: settings.rate,
           // 声の高さで役を区別するのは、B役も同じ声を使うときだけ（別の声を高くすると不自然になる）
-          role: settings.twoVoices && cast.sameVoice ? line.role : null,
+          role: cast.sameVoice ? line.role : null,
         })) {
           const u = new SpeechSynthesisUtterance(chunk.text);
           u.lang = voice?.lang || "en-US";
@@ -521,7 +517,7 @@ function useSpeech(settings) {
       setTimeout(() => token.current === my && utterances.forEach((u) => synth.speak(u)), 0);
       return true;
     },
-    [voiceA, voiceB, sameVoice, settings.expressive, settings.rate, settings.twoVoices]
+    [voiceA, voiceB, sameVoice, settings.rate]
   );
 
   /**
@@ -533,7 +529,7 @@ function useSpeech(settings) {
     (lines, key, onDone, seed = key) => {
       if (!lines.length) return false;
       // 録音がすべての行にあれば録音を再生する（再生できなければ読み上げに戻す）
-      const urls = settings.recorded ? recordedUrls(lines) : null;
+      const urls = recordedUrls(lines); // 録音があれば必ず録音で読む
       if (urls) {
         if (supported) window.speechSynthesis.cancel();
         const my = ++token.current;
@@ -552,7 +548,7 @@ function useSpeech(settings) {
       stopRecorded();
       return synthLines(lines, key, onDone, seed, ++token.current);
     },
-    [supported, settings.recorded, settings.rate, synthLines]
+    [supported, settings.rate, synthLines]
   );
 
   /** seed を渡すと、その会話と同じ声で読む（見出しと会話例の声をそろえるため） */
@@ -889,7 +885,6 @@ function ResetButton({ onReset }) {
   );
 }
 
-const voiceLabel = (v) => `${v.name}（${[genderLabel(v), v.lang].filter(Boolean).join("・")}）`;
 
 // ---------------------------------------------------------------------------
 // 音声設定
@@ -946,79 +941,10 @@ function SettingsSheet({ open, onClose, settings, setSettings, speech, onResetAl
           <p className="mt-3 rounded-xl bg-amber-50 px-3 py-2 text-xs text-amber-700">このブラウザは音声読み上げに対応していません。</p>
         )}
 
-        {speech.recorded > 0 && (
-          <label className="mt-4 flex items-center gap-3 rounded-xl bg-emerald-50 px-3 py-2.5">
-            <span className="flex-1">
-              <span className="block text-sm font-bold text-slate-800">ネイティブ音声（録音）を使う</span>
-              <span className="block text-xs text-slate-500">
-                アメリカ英語の自然な発音・音のつながりで作った音声です（{speech.recorded.toLocaleString()}文ぶん）。録音の無い文は、この端末の声で読みます。速さは下の「話す速さ」に合わせます
-              </span>
-            </span>
-            <input
-              id="toggle-recorded"
-              type="checkbox"
-              checked={settings.recorded}
-              onChange={(e) => update({ recorded: e.target.checked })}
-              className="h-5 w-5 accent-emerald-600"
-            />
-          </label>
-        )}
-        <label htmlFor="voice-select" className="mt-4 block text-xs font-bold text-slate-500">
-          声の種類（A役・見出しの読み上げ）
-        </label>
-        <div className="relative mt-1">
-          <select
-            id="voice-select"
-            value={speech.voiceA?.voiceURI || ""}
-            onChange={(e) => update({ voiceURI: e.target.value })}
-            className="w-full appearance-none rounded-xl bg-slate-50 py-2.5 pl-3 pr-9 text-sm text-slate-800 ring-1 ring-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          >
-            {speech.voices.length === 0 && <option value="">（利用できる英語の声がありません）</option>}
-            {speech.voices.map((v) => (
-              <option key={v.voiceURI} value={v.voiceURI}>
-                {voiceLabel(v)}
-              </option>
-            ))}
-          </select>
-          <ChevronDown size={16} className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400" />
-        </div>
-        <p className="mt-1 text-xs text-slate-400">「Natural」「Google」「Premium」と付く声は抑揚が自然です（端末により異なります）。</p>
-
-        {settings.twoVoices && (
-          <>
-            <label htmlFor="voice-b-select" className="mt-4 block text-xs font-bold text-slate-500">
-              会話の相手（B役）の声
-            </label>
-            <div className="relative mt-1">
-              <select
-                id="voice-b-select"
-                value={settings.voiceBURI || ""}
-                onChange={(e) => update({ voiceBURI: e.target.value })}
-                className="w-full appearance-none rounded-xl bg-slate-50 py-2.5 pl-3 pr-9 text-sm text-slate-800 ring-1 ring-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              >
-                <option value="">
-                  自動{speech.voiceB && !speech.sameVoice && !settings.voiceBURI ? `（${voiceLabel(speech.voiceB)}）` : "（おすすめ）"}
-                </option>
-                {speech.voices
-                  .filter((v) => v !== speech.voiceA)
-                  .map((v) => (
-                    <option key={v.voiceURI} value={v.voiceURI}>
-                      {voiceLabel(v)}
-                    </option>
-                  ))}
-              </select>
-              <ChevronDown size={16} className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400" />
-            </div>
-            <p className="mt-1 text-xs text-slate-400">
-              自動では A役と性別の違う声を選びます。
-              {speech.sameVoice && speech.voices.length > 0 && "この端末では別の声が見つからないため、同じ声を少し高くして区別しています。"}
-            </p>
-
-          </>
-        )}
-        <p className="mt-2 text-[11px] leading-relaxed text-slate-400">
-          iPhone は「設定 → アクセシビリティ → 読み上げコンテンツ → 声 → 英語」で「Ava（プレミアム）」「Zoe（プレミアム）」「Evan（拡張）」などを
-          ダウンロードすると、とても自然な声が使えるようになります（無料）。
+        <p className="mt-4 rounded-xl bg-emerald-50 px-3 py-2.5 text-xs text-slate-600" data-testid="voice-note">
+          <span className="block text-sm font-bold text-slate-800">読み上げはネイティブの録音</span>
+          アメリカ英語の自然な発音・音のつながりで作った録音で読みます{speech.recorded > 0 ? `（${speech.recorded.toLocaleString()}文ぶん）` : ""}。
+          日記など録音の無い文だけ、この端末の英語の声で読みます。
         </p>
 
         <label htmlFor="rate-range" className="mt-4 flex items-center justify-between text-xs font-bold text-slate-500">
@@ -1034,27 +960,6 @@ function SettingsSheet({ open, onClose, settings, setSettings, speech, onResetAl
           onChange={(e) => update({ rate: Number(e.target.value) })}
           className="mt-2 w-full accent-indigo-600"
         />
-
-        <div className="mt-4 space-y-2">
-          {[
-            ["expressive", "抑揚をつける", "疑問文は語尾を上げ、感嘆文は明るく読み上げます"],
-            ["twoVoices", "会話のAとBで声を変える", "B役（会話の相手）を別の声にします"],
-          ].map(([key, label, hint]) => (
-            <label key={key} className="flex items-center gap-3 rounded-xl bg-slate-50 px-3 py-2.5">
-              <span className="flex-1">
-                <span className="block text-sm font-bold text-slate-800">{label}</span>
-                <span className="block text-xs text-slate-500">{hint}</span>
-              </span>
-              <input
-                id={`toggle-${key}`}
-                type="checkbox"
-                checked={settings[key]}
-                onChange={(e) => update({ [key]: e.target.checked })}
-                className="h-5 w-5 accent-indigo-600"
-              />
-            </label>
-          ))}
-        </div>
 
         <p className="mt-5 text-xs font-bold text-slate-500">表示</p>
         <label className="mt-2 flex items-center gap-3 rounded-xl bg-slate-50 px-3 py-2.5">

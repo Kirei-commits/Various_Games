@@ -101,10 +101,8 @@ const isQualityName = (v) => /premium|enhanced|natural|neural|google/i.test(v.na
  * 訛りの強い地域の声や、効果音のような声は出さない。
  * 絞った結果が空になる端末（Android の「English United States」だけ等）では、英語の声をそのまま使う。
  */
-export function usableVoices(all, { wide = false } = {}) {
+export function usableVoices(all) {
   const english = (all || []).filter((v) => langOf(v).startsWith("en") && !isExcludedVoice(v));
-  // いろいろな国の英語: 訛りのある地域の声や、名前の分からない声もすべて使う（効果音のような声は除く）
-  if (wide) return [...english].sort((a, b) => rank(a) - rank(b) || a.name.localeCompare(b.name));
   const clear = english.filter((v) => CLEAR_LANGS.includes(langOf(v)) && (voiceGender(v) || isQualityName(v)));
   const fallback = english.filter((v) => CLEAR_LANGS.includes(langOf(v)));
   const list = clear.length ? clear : fallback.length ? fallback : english;
@@ -129,41 +127,4 @@ export function pickVoices(voices, { aURI = "", bURI = "", twoVoices = true } = 
   const others = voices.filter((v) => v !== a && voiceGender(v) && voiceGender(v) !== gA);
   const b = others.find((v) => v.lang === a.lang) || others[0];
   return b ? { a, b, sameVoice: false } : { a, b: a, sameVoice: true };
-}
-
-export const genderLabel = (voice) => ({ female: "女性", male: "男性" })[voiceGender(voice)] || "";
-
-/** 文字列から決まる小さな整数（同じ会話にはいつも同じ声を割り当てるため） */
-export function seedOf(text) {
-  let h = 2166136261;
-  for (let i = 0; i < text.length; i++) {
-    h ^= text.charCodeAt(i);
-    h = Math.imul(h, 16777619);
-  }
-  return h >>> 0;
-}
-
-/**
- * 「会話ごとにいろいろな人の声」: seed（問題IDなど）から A 役と B 役の声を選ぶ。
- * 同じ seed ならいつも同じ組み合わせ。B 役は A 役と性別の違う声（なければ同じ声で高さを変える）。
- */
-export function pickVoicesFor(voices, seed, { twoVoices = true } = {}) {
-  if (!voices.length) return { a: null, b: null, sameVoice: true };
-  const h = seedOf(String(seed));
-  const a = voices[h % voices.length];
-  if (!twoVoices) return { a, b: a, sameVoice: true };
-  const gA = voiceGender(a);
-  const others = voices.filter((v) => v !== a && voiceGender(v) && voiceGender(v) !== gA);
-  if (!others.length) return { a, b: a, sameVoice: true };
-  return { a, b: others[Math.floor(h / voices.length) % others.length], sameVoice: false };
-}
-
-/**
- * 話す人の個性（声の高さと速さの倍率）。同じ声しかない端末でも、会話ごとに違う人が話しているように聞こえる。
- * seed（会話）と役（A / B）から決まるので、同じ会話はいつも同じ人。
- * @returns {{ pitch: number, rate: number }} pitch 0.86〜1.16、rate 0.94〜1.06
- */
-export function personaFor(seed, role = "A") {
-  const h = seedOf(`${seed}:${role}`);
-  return { pitch: 0.86 + ((h % 1000) / 1000) * 0.3, rate: 0.94 + ((Math.floor(h / 1000) % 1000) / 1000) * 0.12 };
 }
