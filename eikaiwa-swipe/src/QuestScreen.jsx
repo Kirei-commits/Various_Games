@@ -7,14 +7,17 @@
  * - 結果: 経験値・Lv・ガチャのポイント
  */
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { Volume2, Swords, Shield, Sparkles, Heart, Castle, X } from "lucide-react";
+import { Volume2, Swords, Shield, Heart, Castle, X } from "lucide-react";
 import { BattleBackdrop, Monster, Dragon } from "./battle-art.jsx";
+import { Art, CHEST_ART } from "./gacha-art.jsx";
 import { makeChoices } from "./logic.js";
 import {
   SLOTS,
   ELEMENTS,
-  SPELL_MP,
   SKILLS,
+  elementMultiplier,
+  openChest,
+  PRESETS,
   gearOf,
   slotBonus,
   statsOf,
@@ -54,6 +57,27 @@ function Bar({ value, max, color, label }) {
         <div className={`h-full rounded-full transition-all duration-300 ${color}`} style={{ width: `${pct}%` }} />
       </div>
     </div>
+  );
+}
+
+/** 相性の倍率（1.5 = ばつぐん、0.75 = いまひとつ） */
+function MultBadge({ mult, long = false }) {
+  if (mult === 1) return long ? <span className="rounded bg-white/15 px-1.5 py-0.5 text-[10px] font-black">×1 ふつう</span> : null;
+  const good = mult > 1;
+  return (
+    <span className={`rounded px-1.5 py-0.5 text-[10px] font-black ${good ? "bg-amber-400 text-slate-900" : "bg-slate-500 text-white"}`}>
+      ×{mult}
+      {long ? (good ? " ばつぐん！" : " いまひとつ") : ""}
+    </span>
+  );
+}
+
+/** 属性の相性表 */
+export function AffinityChart({ dark = false }) {
+  return (
+    <p className={`text-[11px] leading-relaxed ${dark ? "text-white/70" : "text-slate-500"}`} data-testid="affinity-chart">
+      相性: 🔥炎 → ❄️氷 → ⚡雷 → 🔥炎、✨光 ⇔ 🌑闇（矢印の先に <b>1.5倍</b>、逆は 0.75倍）
+    </p>
   );
 }
 
@@ -138,7 +162,7 @@ function GearPicker({ slot, owned, cards, current, onPick, onClose }) {
 }
 
 /** 準備画面: 主人公と装備 */
-function QuestHome({ state, cards, stats, header, onEquip, onAutoEquip, onStart }) {
+function QuestHome({ state, cards, stats, header, onEquip, onAutoEquip, onSavePreset, onLoadPreset, onStart }) {
   const [picking, setPicking] = useState(null);
   const q = state.quest;
   const owned = state.gacha.cards || {};
@@ -207,6 +231,42 @@ function QuestHome({ state, cards, stats, header, onEquip, onAutoEquip, onStart 
           おまかせ装備
         </button>
       </div>
+      <div className="mt-2 rounded-2xl bg-white p-2 shadow-sm ring-1 ring-slate-200" data-testid="quest-presets">
+        <p className="px-1 text-[10px] font-bold text-slate-400">装備のプリセット（今の装備を保存して、ワンタップで付け替え）</p>
+        <div className="mt-1 grid grid-cols-3 gap-1.5">
+          {Array.from({ length: PRESETS }, (_, i) => {
+            const p = q.presets?.[i];
+            const count = p ? Object.values(p.equip).filter(Boolean).length : 0;
+            return (
+              <div key={i} className="rounded-xl bg-slate-50 p-1.5 text-center ring-1 ring-slate-200">
+                <p className="text-[11px] font-black text-slate-700">
+                  セット{i + 1}
+                  <span className="ml-1 font-bold text-slate-400">{p ? `${count}か所` : "空"}</span>
+                </p>
+                <div className="mt-1 grid grid-cols-2 gap-1">
+                  <button
+                    type="button"
+                    disabled={!p}
+                    onClick={() => onLoadPreset(i)}
+                    aria-label={`セット${i + 1}を装備する`}
+                    className="rounded-lg bg-indigo-600 py-1 text-[10px] font-bold text-white disabled:opacity-30"
+                  >
+                    装備
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => onSavePreset(i)}
+                    aria-label={`今の装備をセット${i + 1}に保存`}
+                    className="rounded-lg bg-white py-1 text-[10px] font-bold text-indigo-600 ring-1 ring-indigo-200"
+                  >
+                    保存
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
       <ul className="mt-2 grid grid-cols-1 gap-1.5" data-testid="quest-equip">
         {SLOTS.map((s) => {
           const g = stats.gear[s.id];
@@ -250,8 +310,12 @@ function QuestHome({ state, cards, stats, header, onEquip, onAutoEquip, onStart 
           ガチャで単語を集めると、武器や防具として装備できます。レア度が高いほど強く、単語ごとに効果と属性があります。
         </p>
       )}
-      <p className="mt-2 text-[11px] leading-relaxed text-slate-500">
-        名詞は守り・動詞は攻め・形容詞はからめ手の効果。SSR は効果が2つと特製の呪文付き。炎→氷→雷→炎、光⇔闇 の相性で1.5倍。4か所の属性をそろえると攻撃+15%。
+      <div className="mt-2">
+        <AffinityChart />
+      </div>
+      <p className="mt-1 text-[11px] leading-relaxed text-slate-500">
+        名詞は守り・動詞は攻め・形容詞はからめ手の効果。SSR は効果が2つと特製の呪文付き（呪文は SSR の装備だけ）。4か所の属性をそろえると攻撃+15%。
+        5階ごとのボスを倒すと宝箱（冒険限定の単語など）。
         敵が「ちからをためた」ら、次は大こうげき。ぼうぎょで受けとめると、はんげきします（盾が強いほど減らせる）。
       </p>
 
@@ -342,13 +406,14 @@ const ELEMENT_COLOR = { none: "#e2e8f0", fire: "#f97316", ice: "#38bdf8", thunde
 const FX_MS = 1300;
 
 /** 冒険中の画面 */
-function QuestRun({ stats, pool, speech, sound, dopamine, onEnd, active }) {
+function QuestRun({ stats, pool, chestWords, cards, speech, sound, dopamine, onEnd, active }) {
   const [run, setRun] = useState(() => createRun(stats, stats.startFloor));
   const [log, setLog] = useState(() => [`${stats.startFloor}階。${run.enemy.name}が あらわれた！`]);
   const [question, setQuestion] = useState(null); // { action, skillId, item, choices }
   const [fx, setFx] = useState([]); // 表示中の演出
   const [busy, setBusy] = useState(false); // 演出中はコマンドを受け付けない
   const [dying, setDying] = useState(null); // 倒した敵（消える演出）
+  const [chestOpen, setChestOpen] = useState(false); // 宝箱の中身を見せている
   const enemyRef = useRef(null);
   const arenaRef = useRef(null);
   const fxId = useRef(0);
@@ -392,13 +457,15 @@ function QuestRun({ stats, pool, speech, sound, dopamine, onEnd, active }) {
   };
 
   const ask = (action, skillId = null) => {
-    const cost = action === "spell" ? SPELL_MP : skillId ? SKILLS[skillId].mp : 0;
+    const cost = skillId ? SKILLS[skillId].mp : 0;
     if (cost && run.mp < cost) {
       setLog(["MPが たりない！"]);
       return;
     }
     const item = pool[Math.floor(Math.random() * pool.length)];
     setQuestion({ action, skillId, item, choices: makeChoices(item, pool, Math.random, 4, "japanese") });
+    // 単語は問題が出たときに読む（答えたあとに読むと、効果音や合いの手のあとになって遅れるため）
+    speech.speak(item.english, null, item.id);
   };
 
   /** 主人公の行動の演出 */
@@ -417,8 +484,9 @@ function QuestRun({ stats, pool, speech, sound, dopamine, onEnd, active }) {
     }
     list.push({ kind: "number", text: `${e.dmg}`, crit: e.crit, weak: e.weak });
     addFx(list);
-    sound.play(e.skill ? "spell" : e.magic ? "spell" : "slash");
-    if (e.crit || e.skill) later(120, () => sound.play("explode"));
+    // 合いの手（声）は1回の行動で1つだけ（倒したときの声・正解の声）。ここの効果音では流さない
+    sound.play(e.skill ? "spell" : "slash", 0, { cheer: false });
+    if (e.crit || e.skill) later(120, () => sound.play("explode", 0, { cheer: false }));
     animate(
       enemyRef.current,
       [{ transform: "translateX(0)", filter: "brightness(1)" }, { transform: `translateX(${e.crit ? -14 : -7}px)`, filter: "brightness(4) saturate(0)" }, { transform: `translateX(${e.crit ? 12 : 6}px)` }, { transform: "translateX(0)", filter: "brightness(1)" }],
@@ -430,7 +498,7 @@ function QuestRun({ stats, pool, speech, sound, dopamine, onEnd, active }) {
   /** 敵の行動の演出（主人公の演出のあとに少し遅らせて出す） */
   const enemyFx = (e) => {
     if (e.type === "charge") {
-      sound.play("warn");
+      sound.play("warn", 0, { cheer: false });
       addFx([{ kind: "warn" }]);
       return;
     }
@@ -445,14 +513,14 @@ function QuestRun({ stats, pool, speech, sound, dopamine, onEnd, active }) {
       e.smash ? 520 : 380
     );
     if (e.type === "evade") {
-      sound.play("slash");
+      sound.play("slash", 0, { cheer: false });
       addFx([{ kind: "text", text: "かわした！", color: "#e0f2fe" }]);
       return;
     }
     if (e.type === "hurt") {
       later(e.smash ? 200 : 140, () => {
-        if (e.guarded) sound.play("block");
-        sound.play(e.smash ? "smash" : "hurt");
+        if (e.guarded) sound.play("block", 0, { cheer: false });
+        sound.play(e.smash ? "smash" : "hurt", 0, { cheer: false });
         shakeArena(e.smash);
         const list = [{ kind: "vignette", big: e.smash }, { kind: "playerHit", text: `-${e.dmg}` }];
         if (e.guarded) list.push({ kind: "shield" });
@@ -462,7 +530,7 @@ function QuestRun({ stats, pool, speech, sound, dopamine, onEnd, active }) {
     }
     if (e.type === "counter") {
       later(520, () => {
-        sound.play("slash");
+        sound.play("slash", 0, { cheer: false });
         addFx([{ kind: "text", text: "はんげき！", color: "#fde68a" }, { kind: "burst", color: "#93c5fd", big: true }, { kind: "number", text: `${e.dmg}` }]);
         animate(enemyRef.current, [{ filter: "brightness(4) saturate(0)" }, { filter: "brightness(1)" }], 300);
       });
@@ -470,11 +538,16 @@ function QuestRun({ stats, pool, speech, sound, dopamine, onEnd, active }) {
   };
 
   const doAct = (action, answer = null, item = null, skillId = null) => {
-    const next = act(run, stats, action, answer, Math.random, skillId);
+    let next = act(run, stats, action, answer, Math.random, skillId);
     if (next.error) {
       setLog([next.error]);
       return;
     }
+    // 正解の音。倒したときは倒した声を流すので、ここでは声を出さない
+    if (answer?.correct) sound.play("correct", 0, { cheer: !next.won });
+    // ボスを倒したら宝箱
+    const bossWin = next.won && next.events.some((x) => x.type === "win" && x.boss);
+    if (bossWin) next = openChest(next, chestWords);
     const answerText = item ? item.japanese.split("／")[0] : "";
     setLog(messagesOf(next.events, run.enemy.name, answerText));
     setQuestion(null);
@@ -483,15 +556,15 @@ function QuestRun({ stats, pool, speech, sound, dopamine, onEnd, active }) {
     for (const e of next.events) {
       if (e.type === "hit") playerFx(e);
       else if (e.type === "miss") {
-        sound.play("wrong");
+        sound.play("wrong", 0, { cheer: false });
         addFx([{ kind: "text", text: "MISS", color: "#cbd5e1" }]);
       } else if (e.type === "defend") {
-        sound.play("block");
+        sound.play("block", 0, { cheer: false });
         addFx([{ kind: "shield" }]);
       } else if (e.type === "herb" || e.type === "heal" || e.type === "drain" || e.type === "regen") {
         const at = e.type === "regen" ? 700 : 0;
         later(at, () => {
-          sound.play("heal");
+          sound.play("heal", 0, { cheer: false });
           addFx([{ kind: "heal", text: `+${e.heal}` }]);
         });
       } else if (e.type === "freeze") {
@@ -502,10 +575,11 @@ function QuestRun({ stats, pool, speech, sound, dopamine, onEnd, active }) {
       } else if (e.type === "win") {
         const killAt = next.events.some((x) => x.type === "counter") ? 800 : 250;
         later(killAt, () => {
-          sound.play(e.boss ? "bonus" : "explode");
+          sound.play(e.boss ? "bonus" : "explode"); // 倒したときの合いの手はここの1つだけ
           setDying({ kind: run.enemy.kind, boss: run.enemy.boss, id: Date.now() });
           addFx([{ kind: "text", text: e.boss ? "BOSS DEFEATED!" : "VICTORY!", color: "#fde68a", big: true }]);
-          if (e.boss) later(400, () => sound.play("levelup"));
+          if (e.boss) later(400, () => sound.play("levelup", 0, { cheer: false }));
+          if (e.boss) later(1100, () => setChestOpen(true));
         });
       }
     }
@@ -518,8 +592,6 @@ function QuestRun({ stats, pool, speech, sound, dopamine, onEnd, active }) {
     const { action, item, skillId } = question;
     const correct = choice.id === item.id;
     dopamine.hit(correct);
-    if (correct) sound.play("correct");
-    speech.speak(item.english, null, item.id);
     doAct(action, { id: item.id, correct }, item, skillId);
   };
 
@@ -566,9 +638,18 @@ function QuestRun({ stats, pool, speech, sound, dopamine, onEnd, active }) {
             <div className="h-1.5 overflow-hidden rounded-full bg-white/20">
               <div className="h-full rounded-full bg-rose-500 transition-all duration-500" style={{ width: `${(e.hp / e.maxHp) * 100}%` }} />
             </div>
+            <p className="mt-1 flex items-center justify-between gap-1 text-[10px] font-bold" data-testid="quest-matchup">
+              <span>
+                こうげき {el(stats.element).icon || "無"}→{el(e.element).icon || "無"}
+              </span>
+              <MultBadge mult={elementMultiplier(stats.element, e.element)} long />
+            </p>
           </div>
         </div>
         <FxLayer fx={fx} />
+        {chestOpen && run.chests?.length > 0 && (
+          <ChestModal chest={run.chests[run.chests.length - 1]} cards={cards} onClose={() => setChestOpen(false)} />
+        )}
       </div>
 
       <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto p-3">
@@ -582,10 +663,11 @@ function QuestRun({ stats, pool, speech, sound, dopamine, onEnd, active }) {
           ))}
         </div>
 
+        <AffinityChart dark />
         {question ? (
           <div className="shrink-0 rounded-xl border-2 border-amber-300 bg-slate-900 p-3" data-testid="quest-question">
             <p className="text-center text-[11px] font-bold text-amber-300">
-              {question.skillId ? SKILLS[question.skillId].name : question.action === "spell" ? "じゅもん" : "こうげき"}: 意味をえらべ！
+              {question.skillId ? SKILLS[question.skillId].name : "こうげき"}: 意味をえらべ！
             </p>
             <p className="mt-1 flex items-center justify-center gap-2 text-2xl font-black">
               {question.item.english}
@@ -638,9 +720,6 @@ function QuestRun({ stats, pool, speech, sound, dopamine, onEnd, active }) {
             <button type="button" disabled={busy} onClick={() => ask("attack")} className={cmd}>
               <Swords size={16} /> たたかう
             </button>
-            <button type="button" onClick={() => ask("spell")} disabled={busy || run.mp < SPELL_MP} className={cmd}>
-              <Sparkles size={16} /> じゅもん <span className="text-[10px] text-sky-300">MP{SPELL_MP}</span>
-            </button>
             {stats.skills.map((sk) => (
               <button
                 key={sk.id}
@@ -651,6 +730,7 @@ function QuestRun({ stats, pool, speech, sound, dopamine, onEnd, active }) {
                 data-testid="quest-skill"
               >
                 {sk.icon} {sk.name} <span className="text-[10px] text-sky-200">MP{sk.mp}</span>
+                <MultBadge mult={elementMultiplier(sk.element, e.element)} />
               </button>
             ))}
             <button type="button" disabled={busy} onClick={() => doAct("defend")} className={`${cmd} ${e.charging ? "qs-defend-hint border-sky-300 bg-sky-800" : ""}`}>
@@ -664,6 +744,37 @@ function QuestRun({ stats, pool, speech, sound, dopamine, onEnd, active }) {
             </button>
           </div>
         )}
+      </div>
+    </div>
+  );
+}
+
+const LOOT_LABEL = { points: "ガチャのポイント", tickets: "レアチケット", srTickets: "SR チケット", medals: "メダル" };
+
+/** 宝箱をあけた演出（ボスを倒したあと） */
+function ChestModal({ chest, cards, onClose }) {
+  return (
+    <div className="absolute inset-0 z-30 flex items-center justify-center bg-black/60" data-testid="quest-chest" onClick={onClose}>
+      <div className="qs-appear flex flex-col items-center rounded-2xl border-2 border-amber-300 bg-slate-900/95 px-6 py-4 text-center shadow-2xl">
+        <div className="qs-chest">
+          <Art src={CHEST_ART} size={96} />
+        </div>
+        <p className="mt-1 text-sm font-black text-amber-300">{chest.floor}階の たからばこを あけた！</p>
+        <ul className="mt-2 space-y-1 text-sm">
+          {chest.items.map((it, i) =>
+            it.kind === "word" ? (
+              <li key={i} className="qs-heal-in flex items-center justify-center gap-1.5 font-black">
+                <RarityBadge rarity={it.rarity} /> {cards[it.id]?.english || it.id}
+                <span className="text-[10px] font-bold text-amber-300">冒険限定</span>
+              </li>
+            ) : (
+              <li key={i} className="qs-heal-in font-bold">
+                {LOOT_LABEL[it.kind]} +{it.amount}
+              </li>
+            )
+          )}
+        </ul>
+        <p className="mt-2 text-[10px] text-white/50">街に帰ると受け取れます（負けても受け取れます）・タップで閉じる</p>
       </div>
     </div>
   );
@@ -763,7 +874,7 @@ function FxLayer({ fx }) {
   );
 }
 
-function QuestResult({ run, reward, onBack }) {
+function QuestResult({ run, reward, cards, onBack }) {
   return (
     <div className="h-full overflow-y-auto bg-slate-950 px-5 pt-8 pb-6 text-white" data-testid="quest-result">
       <p className="text-center text-2xl font-black">{run.lost ? "ちからつきた…" : "ぶじに 街へ もどった"}</p>
@@ -778,7 +889,30 @@ function QuestResult({ run, reward, onBack }) {
         <p>
           ガチャのポイント: <b>+{reward.points}pt</b>
           {reward.boosted ? "（ブースト中）" : ""}
+          {reward.levelBonus > 0 && <span className="ml-1 text-[11px] text-white/60">（とうたつボーナス {reward.levelBonus}pt を含む）</span>}
         </p>
+        {reward.tickets > 0 && (
+          <p>
+            レアチケット: <b>+{reward.tickets}</b>
+          </p>
+        )}
+        {(run.chests || []).length > 0 && (
+          <div className="rounded-xl bg-amber-400/10 p-2" data-testid="quest-loot">
+            <p className="text-xs font-black text-amber-300">たからばこ（{run.chests.length}こ）</p>
+            {Object.entries(reward.loot || {})
+              .filter(([, v]) => v > 0)
+              .map(([k, v]) => (
+                <p key={k} className="text-xs">
+                  {LOOT_LABEL[k]} +{v}
+                </p>
+              ))}
+            {(reward.words || []).map((w, i) => (
+              <p key={i} className="flex items-center gap-1 text-xs font-bold">
+                <RarityBadge rarity={w.rarity} /> {cards[w.id]?.english || w.id}（冒険限定）
+              </p>
+            ))}
+          </div>
+        )}
         {run.lost && <p className="text-xs text-white/60">負けても、手に入れた経験値はなくなりません。</p>}
       </div>
       <button type="button" onClick={onBack} className="mt-5 w-full rounded-2xl bg-white py-3.5 text-sm font-extrabold text-slate-900">
@@ -792,17 +926,19 @@ function QuestResult({ run, reward, onBack }) {
  * 冒険の画面。
  * @param onFinish (run, seconds) → reward（経験値・ポイントの記録は App 側で行う）
  */
-export default function QuestScreen({ state, cards, pool, speech, sound, dopamine, header, onEquip, onAutoEquip, onFinish, active = true }) {
+export default function QuestScreen({ state, cards, pool, chestWords = [], speech, sound, dopamine, header, onEquip, onAutoEquip, onSavePreset, onLoadPreset, onFinish, active = true }) {
   const stats = useMemo(() => statsOf(state.quest, cards, state.gacha.cards || {}), [state.quest, state.gacha.cards, cards]);
   const [running, setRunning] = useState(null); // { start, id }
   const [result, setResult] = useState(null);
-  if (result) return <QuestResult run={result.run} reward={result.reward} onBack={() => setResult(null)} />;
+  if (result) return <QuestResult run={result.run} reward={result.reward} cards={cards} onBack={() => setResult(null)} />;
   if (running) {
     return (
       <QuestRun
         key={running.id}
         stats={{ ...stats, startFloor: running.start }}
         pool={pool}
+        chestWords={chestWords}
+        cards={cards}
         speech={speech}
         sound={sound}
         dopamine={dopamine}
@@ -816,5 +952,17 @@ export default function QuestScreen({ state, cards, pool, speech, sound, dopamin
       />
     );
   }
-  return <QuestHome state={state} cards={cards} stats={stats} header={header} onEquip={onEquip} onAutoEquip={onAutoEquip} onStart={(start) => setRunning({ start, id: Date.now() })} />;
+  return (
+    <QuestHome
+      state={state}
+      cards={cards}
+      stats={stats}
+      header={header}
+      onEquip={onEquip}
+      onAutoEquip={onAutoEquip}
+      onSavePreset={onSavePreset}
+      onLoadPreset={onLoadPreset}
+      onStart={(start) => setRunning({ start, id: Date.now() })}
+    />
+  );
 }

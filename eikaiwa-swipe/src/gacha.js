@@ -12,7 +12,7 @@
  * - 学習・テスト・バトルのポイントは「かかった時間」に比例させる（どれで遊んでも1分あたりほぼ同じ）。
  * - 5倍ブースト（ログインボーナスでもらえる）を使うと、1時間は学習・テスト・バトルのポイントが5倍。
  */
-import { CHAPTER_POS, POS_OVERRIDES, TRIVIA, SECRETS, TITLES } from "./data/gacha-data.js";
+import { CHAPTER_POS, POS_OVERRIDES, TRIVIA, SECRETS, TITLES, QUEST_WORDS } from "./data/gacha-data.js";
 
 export const RARITIES = ["N", "R", "SR", "SSR"];
 const RANK = { N: 0, R: 1, SR: 2, SSR: 3 };
@@ -21,9 +21,10 @@ const RANK = { N: 0, R: 1, SR: 2, SSR: 3 };
  * sr=SR ガチャチケット（SR 以上）、ssr=SSR ガチャチケット（SSR 確定）
  */
 export const RATES = {
-  points: { N: 9390, R: 500, SR: 100, SSR: 10 }, // N 93.9%・R 5%・SR 1%・SSR 0.1%（すぐにコンプリートしないように）
-  ticket: { N: 0, R: 7000, SR: 2500, SSR: 500 },
-  sr: { N: 0, R: 0, SR: 8500, SSR: 1500 },
+  // N 94.5%・R 5%・SR 0.45%・SSR 0.05%（2026-09-29 ユーザーの依頼で SR・SSR を下げた。以前は SR 1%・SSR 0.1%）
+  points: { N: 9450, R: 500, SR: 45, SSR: 5 },
+  ticket: { N: 0, R: 7800, SR: 2000, SSR: 200 }, // 以前は R 70%・SR 25%・SSR 5%
+  sr: { N: 0, R: 0, SR: 9200, SSR: 800 }, // 以前は SR 85%・SSR 15%
   ssr: { N: 0, R: 0, SR: 0, SSR: 10000 },
 };
 /** 通貨ごとの、ガチャの記録の中の残高の名前 */
@@ -144,6 +145,7 @@ export function buildCatalog(library, parts) {
           pos: POS_OVERRIDES[p.id] || chapterPos || guessPos(p.japanese),
           trivia,
           secret: false,
+          questOnly: QUEST_WORDS.includes(p.id), // 冒険の宝箱でだけ手に入る（ガチャ・交換所には出ない）
         };
         order.push(p.id);
       }
@@ -169,7 +171,7 @@ export function buildCatalog(library, parts) {
   for (const key of POS_KEYS) pools[key] = { N: [], R: [], SR: [], SSR: [] };
   for (const id of order) {
     const c = cards[id];
-    if (c.secret) continue;
+    if (c.secret || c.questOnly) continue;
     pools.all[c.rarity].push(id);
     pools[c.pos][c.rarity].push(id);
   }
@@ -318,6 +320,7 @@ export function exchange(state, catalog, id, payWith = "exPoints") {
   const g = normalize(state.gacha);
   const card = catalog.cards[id];
   if (!card || card.secret) return { state, error: "この単語は交換できません" };
+  if (card.questOnly) return { state, error: "この単語は冒険の宝箱でだけ手に入ります" };
   const copies = g.cards[id] || 0;
   if (copies >= MAX_LEVEL) return { state, error: "すでに MAX です" };
   if (payWith === "exPoints") {

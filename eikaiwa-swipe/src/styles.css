@@ -193,3 +193,7 @@
 @media (prefers-reduced-motion: reduce) {
   .qs-idle, .qs-charge, .qs-warn-badge, .qs-defend-hint { animation: none; }
 }
+@keyframes qs-chest { 0% { transform: rotate(0) scale(1); } 15% { transform: rotate(-8deg) scale(1.05); } 30% { transform: rotate(8deg) scale(1.08); } 45% { transform: rotate(-5deg); } 60% { transform: rotate(0) scale(1.15); filter: brightness(1.8); } 100% { transform: scale(1); filter: brightness(1); } }
+.qs-chest { animation: qs-chest 0.9s ease-out both; }
+@keyframes qs-heal-in { 0% { opacity: 0; transform: translateY(8px); } 100% { opacity: 1; transform: translateY(0); } }
+.qs-heal-in { animation: qs-heal-in 0.4s ease-out 0.7s both; }

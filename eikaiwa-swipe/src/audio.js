@@ -373,9 +373,10 @@ export class SoundEngine {
     src.stop(t + dur + 0.02);
   }
 
-  play(name, n = 0) {
+  /** 効果音を鳴らす。cheer: false なら合いの手は流さない（同じ瞬間にいくつも鳴らすときに、1つだけ声を出すため） */
+  play(name, n = 0, { cheer: withCheer = true } = {}) {
     // 合いの手は効果音と別の設定（効果音をオフにしていても流せる）。音量は効果音に合わせる
-    if (this.cheers) cheer(name, n, this.volume, this.ctx);
+    if (this.cheers && withCheer) cheer(name, n, this.volume, this.ctx);
     if (!this.on || !this.ctx || this.ctx.state !== "running") return;
     switch (name) {
       case "streak": { // ドーパミンモード: 連続正解ほど音が上がっていく（ペンタトニック）

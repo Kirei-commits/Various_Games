@@ -21,7 +21,12 @@ import {
   restoreQuest,
   mergeQuest,
   initialQuest,
-  SPELL_MP,
+  rollChest,
+  openChest,
+  chestRarity,
+  questReward,
+  savePreset,
+  loadPreset,
   START_HERBS,
   SKILLS,
   guardRate,
@@ -107,7 +112,7 @@ test("戦闘: 正解で攻撃・不正解はミス。敵の番でダメージを
   assert.deepEqual(run.results, { w1: true, w2: false });
 });
 
-test("ぼうぎょはダメージ半分と MP 回復、やくそうは HP 回復、じゅもんは MP を使う", () => {
+test("ぼうぎょはダメージ半分と MP 回復、やくそうは HP 回復。ふつうのじゅもんはない（呪文は SSR 装備だけ）", () => {
   const stats = statsOf(initialQuest(), cards, {});
   const base = createRun(stats, 3, fixed(0.5));
   const hit = act(base, stats, "attack", { id: "x", correct: false }, fixed(0.5));
@@ -117,8 +122,8 @@ test("ぼうぎょはダメージ半分と MP 回復、やくそうは HP 回復
   assert.equal(herb.herbs, START_HERBS - 1);
   assert.ok(herb.hp > 5 - 20);
   const spell = act(base, stats, "spell", { id: "y", correct: true }, fixed(0.5));
-  assert.equal(spell.mp, stats.mp - SPELL_MP);
-  assert.equal(act({ ...base, mp: 0 }, stats, "spell", { id: "y", correct: true }).error, "MPがたりない！");
+  assert.equal(spell.mp, base.mp, "spell という行動はなく、MP は減らない");
+  assert.equal(spell.enemy.hp, base.enemy.hp);
 });
 
 test("敵を倒すと経験値。次の階へ進める。5階ごとにボス", () => {
@@ -167,19 +172,67 @@ test("装備: 持っていない単語は付けられない。同じ単語はほ
   assert.equal(Object.keys(auto.quest.equip).length, 7);
 });
 
-test("冒険の結果: 経験値・最高の階・時間ぶんのポイントが記録される", () => {
+test("冒険の報酬はバトル（エンドレス）と同じ水準: 1000〜3000pt ＋ 3階ごとのレベルボーナス、レアチケット", () => {
   const s = freshState();
   const run = { ...createRun(statsOf(s.quest, cards, {}), 1, fixed(0.5)), expGained: 100, bestFloor: 6, cleared: 6, over: true };
+  // 2分 = 1200pt × (1 + 最高記録 0.3) = 1560、レベル3（6階）のボーナス 1500、チケット2枚
+  assert.deepEqual(questReward(run, 120, s.quest), { points: 3060, tickets: 2, levelBonus: 1500, newBest: true });
   const { state, reward } = applyQuest(s, run, 120, 0);
   assert.equal(state.quest.best, 6);
   assert.ok(state.quest.level > 1);
-  assert.equal(reward.points, 1200);
-  assert.equal(state.gacha.points, s.gacha.points + 1200);
-  assert.equal(reward.newBest, true);
+  assert.equal(reward.points, 3060);
+  assert.equal(state.gacha.points, s.gacha.points + 3060);
+  assert.equal(state.gacha.tickets, s.gacha.tickets + 2);
+  // 2階しか倒さなければ時間ぶんだけ
+  assert.deepEqual(questReward({ ...run, cleared: 2 }, 30, s.quest).tickets, 0);
+});
+
+test("宝箱: ボスの階ごとに中身が決まり、序盤は強い単語が出ない。単語はガチャの記録に入る", () => {
+  const words = [
+    { id: "w-n", rarity: "N" },
+    { id: "w-r", rarity: "R" },
+    { id: "w-sr", rarity: "SR" },
+    { id: "w-ssr", rarity: "SSR" },
+  ];
+  assert.deepEqual(chestRarity(5), { N: 75, R: 25, SR: 0, SSR: 0 });
+  // 5階では何回あけても SR・SSR は出ない
+  let seed = 1;
+  const rng = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
+  for (let i = 0; i < 300; i++) {
+    for (const it of rollChest(5, words, rng)) if (it.kind === "word") assert.ok(["N", "R"].includes(it.rarity), it.rarity);
+  }
+  const deep = new Set();
+  for (let i = 0; i < 600; i++) for (const it of rollChest(40, words, rng)) if (it.kind === "word") deep.add(it.rarity);
+  assert.ok(deep.has("SSR") && !deep.has("N"), [...deep].join(","));
+  // 乱数 0 → 単語（45% の枠）・N
+  const items = rollChest(5, words, () => 0);
+  assert.deepEqual(items, [{ kind: "points", amount: 300 }, { kind: "word", id: "w-n", rarity: "N" }]);
+  // 持ち帰り
+  const s = freshState();
+  const run = openChest({ ...createRun(statsOf(s.quest, cards, {}), 5, fixed(0.5)), bestFloor: 5, cleared: 1 }, words, () => 0);
+  const { state, reward } = applyQuest(s, run, 10, 0);
+  assert.equal(state.gacha.cards["w-n"], 1);
+  assert.equal(reward.loot.points, 300);
+  assert.deepEqual(reward.words.map((w) => w.id), ["w-n"]);
+});
+
+test("装備のプリセット: 保存して付け替えられる。持っていない単語は外れる", () => {
+  let s = { ...freshState(), gacha: { ...freshState().gacha, cards: { fire: 1, blaze: 1 } } };
+  s = equip(s, "weapon", "fire");
+  s = equip(s, "body", "blaze");
+  s = savePreset(s, 0);
+  s = equip(s, "weapon", null);
+  s = loadPreset(s, 0);
+  assert.equal(s.quest.equip.weapon, "fire");
+  assert.equal(s.quest.equip.body, "blaze");
+  const lost = loadPreset({ ...s, gacha: { ...s.gacha, cards: { fire: 1 } } }, 0);
+  assert.equal(lost.quest.equip.body, null);
+  assert.equal(loadPreset(s, 2), s, "空のプリセットは何もしない");
+  assert.deepEqual(restoreQuest({ presets: [{ equip: { weapon: "fire" } }, 5] }).presets.map((p) => p?.equip.weapon ?? null), ["fire", null, null]);
 });
 
 test("保存データ: v5 から移行すると冒険の記録が加わる。統合は経験値の多い方", () => {
-  assert.equal(STATE_VERSION, 6);
+  assert.equal(STATE_VERSION, 7);
   const library = buildLibrary(rawChapters);
   const s = restoreState({ version: 5, learned: {} }, library);
   assert.deepEqual(s.quest, initialQuest());

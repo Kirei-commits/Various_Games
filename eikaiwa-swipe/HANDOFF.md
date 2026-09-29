@@ -78,6 +78,10 @@
 - テーマは設定から選ぶ（コインは廃止）
 
 **2026-09-29 に足したもの**
+- 冒険: ふつうのじゅもんを削除（呪文は SSR 装備だけ）、相性の表示、装備プリセット3組（quest.presets。STATE_VERSION 7）、
+  報酬をバトルのエンドレスと同じ水準に（questReward）、5階ごとの宝箱（rollChest・chestRarity）と冒険限定の単語（gacha-data.js の QUEST_WORDS。ガチャ・交換所に出ない）
+- ガチャの排出を下げた: 通常 SR 1%→0.45%・SSR 0.1%→0.05%、レアチケット SR 25%→20%・SSR 5%→2%、SR チケット SSR 15%→8%
+- 声が重ならないように: 読み上げを始めると合いの手を止める（cheers.js の noteSpeech）。`sound.play(name, n, { cheer: false })` で声なしの効果音。冒険は問題が出たときに単語を読む
 - 合いの手が遅い → 声を先読み（`prefetchCheers`）して AudioBuffer にし、効果音と同じ AudioContext ですぐ鳴らす。E2E 用に `window.__cheersPlayed`
 - 端末の声の設定（声の選択・抑揚・A/B で声を変える・録音のオン/オフ・いろいろな人/国の声）をすべてなくした。`voices.js` の pickVoicesFor/personaFor/genderLabel と usableVoices の wide も削除
 - 話す速さのバー（`SpeedBar`・`RateContext`）を学習・シャドーイング・一覧・テストに置いた
