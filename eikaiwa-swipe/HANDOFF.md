@@ -194,21 +194,22 @@ python3 tools/media/tts.py collect              # 終わったバッチを取り
 - アプリ: `src/cheers.js`。効果音（`SoundEngine.play` の名前）に合わせて、場面の声からランダムに流す（場面ごとの確率つき・連続正解は5回ごと・読み上げ中や直前と同じ文は流さない）。設定「合いの手（英語の声で応援）」でオフにできる（声があるときだけ表示）
 - テスト: `tests/logic/cheers.test.mjs`、`tests/e2e/cheers.spec.mjs`
 
-**進み具合（2026-09-29 昼）**: Batch API（3.8 Flash TTS・1文ずつ・半額）で作り、確認は Whisper（無料）
-- アプリに入っている録音: 13,278文のうち **12,973文**。**未確認は 0**（Whisper で 5,381本を確かめ、5,163本が通った。通らない 218本は捨てた）
-- 残り: 録音の無い **305文**（確認で捨てた文）＋ ほかのモデル（2.5 Flash・3.1 Flash・3.8 Flash Lite）で作った **2,918文の置き換え** ＝ **3,223文**（Batch で 約¥60〜100）
-  - 前のコンテナの hold（置き換えの録音）は消えたので、出し直す
-- **Gemini API のプリペイド残高が切れたまま**（2026-09-29 も 402）。AI Studio で残高を足したら、次を順に実行する:
-  1. `tools/media/setup.sh --whisper`
-  2. `python3 tools/media/tts.py submit all --replace-models` → 数分待って `python3 tools/media/tts.py collect`（Whisper で確かめて取り込む）。通らなかった文が出たら、もう一度 submit → collect
-  3. `python3 tools/media/tts.py cheers` → `collect`（合いの手 182本・約$0.03）
-  4. `npm run lint`・`npm run test:logic`・`npm run test:e2e`、コミット
+**進み具合（2026-09-29 夕方）: 録音と合いの手はすべて完了**
+- 録音: **13,278文すべて** 3.8 Flash TTS（Batch）で作り、Whisper で確認済み。ほかのモデルの録音は残っていない
+- 合いの手: **182本すべて**（`audio/cheers/`・`audio/cheers.json`）。12場面・どの文も2声
+- 5回とも Whisper の確認に通らず、そのまま残した8文（manifest に `check` が付いている）。多くは Whisper の聞き違いだが、耳で確かめるとよい:
+  sweat / aisle seat / course / have a lot on my plate / considerate / Aisle seat, please. / I called to congratulate her. / A ferry crosses the strait every hour.
+- 費用: この日の Batch は 3,571件・音声 約2時間で 約$0.8（見積もり。実際は AI Studio で）。前日までと合わせて 約¥1,350〜1,450
+- 作り直すとき: 文や設定を変えたら `submit` → `collect`（Whisper で確かめて取り込む）。合いの手は `cheers.json` を変えて `tts.py cheers` → `collect`
 
 **確認は Whisper（無料）で行う（2026-09-29 から）**
 - `tts.config.json` の `batch.verify.engine: "whisper"`。faster-whisper の `small.en` をこのコンテナの CPU で動かす（1本 約0.7秒）。Gemini で確かめたいときは `engine: "gemini"`
 - 入れ方: `tools/media/setup.sh --whisper`（`requirements-whisper.txt`）。モデルは初回に huggingface.co から落とす（ネットワーク設定で許可済み）
 - Whisper は言い直しを消して「きれいな文」にしがちなので、言いよどみを含む `prompt` を渡している。これで頭を言い直した合成の録音を 24/24 見つけた（prompt なしは 15/24）。Gemini で通った録音は 100本中 98本が通った
 - `compare_words` は分け書きの違い（key card / keycard）も同じとみなす
+- 数の書き方（ten percent / 10%、seven fifty / $7.50、nine oh two one oh / 90210、first / 1st）と、アクセント記号（résumé / resume）の違いも同じとみなす。数字が出てきたときだけ、数のまとまりを比べない（語で書かれた数のくり返しは見つける）
+- 1〜3語の見出しは、通らなければ prompt なしでもう一度聞く（prompt があると aisle seat → I'll see のように聞き違えやすい）
+- 通らなかった録音の WAV は `raw/tts/wav/` に残る。確認のしかたを直したら、作り直さずにその WAV で判定し直せる（2026-09-29 に 27文を無料で取り込んだ）
 - Whisper が文の頭に「Ugh」「You」などを足して通らないことが少しある。通らなかった文は出し直すだけなので（1文 約¥0.02）、そのままにしている
 
 **Batch API で分かったこと**
