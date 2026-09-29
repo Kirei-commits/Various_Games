@@ -1,0 +1,94 @@
+{
+  "_about": "合いの手（英語の声での応援）。tools/media/tts.py cheers で作り、audio/cheers/ と audio/cheers.json にできる。アプリは効果音（SoundEngine.play の名前）に合わせて、ここからランダムに1つ選んで流す。chance は流す確率（毎回だと多すぎるもの用）",
+  "voices": {
+    "coach": {
+      "voices": ["Laomedeia", "Puck"],
+      "_voices": "Laomedeia = 女性・明るく元気 / Puck = 男性・明るく元気（どちらも General American）。どの文も両方の声で作る",
+      "style": "A warm, upbeat American English coach cheering on a learner. Short, genuine and energetic, like a friend who is really happy for them."
+    },
+    "hype": {
+      "voices": ["Fenrir", "Leda"],
+      "_voices": "Fenrir = 男性・熱い / Leda = 女性・若々しく元気。バトル用",
+      "style": "An excited video game announcer hyping up the player in a fantasy battle. Short, punchy and energetic American English."
+    },
+    "gentle": {
+      "voices": ["Sulafat", "Achird"],
+      "_voices": "Sulafat = 女性・あたたかい / Achird = 男性・親しみやすい。まちがえたとき用",
+      "style": "A kind, reassuring American English teacher encouraging a learner who just made a mistake. Warm, calm and supportive, never disappointed."
+    }
+  },
+  "events": {
+    "correct": {
+      "_when": "テストで正解・4択で正解",
+      "voice": "coach",
+      "chance": 0.35,
+      "lines": ["Nice!", "Good job!", "That's right!", "Exactly!", "You got it!", "Perfect!", "Well done!", "Spot on!", "Nailed it!", "Great!", "Correct!", "Yes! That's it!", "Awesome!", "Look at you!", "Nice one!", "Way to go!", "Bingo!", "Sharp!"]
+    },
+    "streak": {
+      "_when": "ドーパミンモードで連続正解（5回ごと）",
+      "voice": "coach",
+      "chance": 1,
+      "lines": ["You're on fire!", "Keep it up!", "You're on a roll!", "Unstoppable!", "Look at you go!", "Another one! Amazing!", "This is incredible!", "Don't stop now!", "What a streak!", "You're crushing it!"]
+    },
+    "complete": {
+      "_when": "テストや学習を最後までやり終えた",
+      "voice": "coach",
+      "chance": 1,
+      "lines": ["Congratulations!", "You did it!", "Awesome work today!", "Great session!", "I'm so proud of you!", "That was fantastic!", "Mission complete!", "Another step closer to fluency!", "Way to finish strong!", "You should be proud of yourself!"]
+    },
+    "learned": {
+      "_when": "学習でカードを「覚えた」に仕分けた",
+      "voice": "coach",
+      "chance": 0.12,
+      "lines": ["Got it!", "One more down!", "Nice, you know this one!", "Easy!", "Moving on!", "Good!"]
+    },
+    "wrong": {
+      "_when": "テストでまちがえた",
+      "voice": "gentle",
+      "chance": 0.3,
+      "lines": ["Almost!", "So close!", "Don't worry, you'll get it!", "Nice try!", "That's okay, keep going!", "Mistakes help you learn!", "You'll remember it next time!", "Good effort!"]
+    },
+    "again": {
+      "_when": "学習でカードを「まだ」に仕分けた",
+      "voice": "gentle",
+      "chance": 0.1,
+      "lines": ["No problem, we'll review it!", "It's okay, take your time.", "You'll see it again soon."]
+    },
+    "explode": {
+      "_when": "バトルで敵を倒した",
+      "voice": "hype",
+      "chance": 0.3,
+      "lines": ["Boom!", "Take that!", "Got 'em!", "Knocked out!", "Direct hit!", "Critical hit!", "Down it goes!", "Too easy!", "Next!", "Smashed it!"]
+    },
+    "levelup": {
+      "_when": "バトルでレベルが上がった",
+      "voice": "hype",
+      "chance": 1,
+      "lines": ["Level up!", "You're getting stronger!", "Power up!", "Leveling up!", "Stronger than ever!"]
+    },
+    "bonus": {
+      "_when": "ボスを倒した・ボーナスをもらった",
+      "voice": "hype",
+      "chance": 1,
+      "lines": ["Incredible!", "Victory!", "Boss defeated!", "Legendary!", "What a champion!", "Unbelievable!"]
+    },
+    "hurt": {
+      "_when": "バトルでダメージを受けた",
+      "voice": "hype",
+      "chance": 0.35,
+      "lines": ["Watch out!", "Ouch! Stay focused!", "Hang in there!", "Shake it off!", "You can do this!"]
+    },
+    "ssr": {
+      "_when": "ガチャで SSR",
+      "voice": "coach",
+      "chance": 1,
+      "lines": ["Whoa! Jackpot!", "No way! Super rare!", "Incredible pull!", "Lucky you!", "Oh my gosh, SSR!", "That's a legendary card!"]
+    },
+    "rare": {
+      "_when": "ガチャで SR",
+      "voice": "coach",
+      "chance": 0.6,
+      "lines": ["Ooh, nice pull!", "Nice! A rare one!", "Look what you got!", "Lucky!"]
+    }
+  }
+}
