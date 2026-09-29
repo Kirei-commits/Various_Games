@@ -236,6 +236,15 @@ test("長いフレーズでも、敵の札と問題文が見切れない（折�
     // 文字が札からはみ出していない（… で切れていない）
     expect(await label.evaluate((el) => el.scrollWidth <= el.clientWidth + 1)).toBe(true);
   }
+  // となりの敵の札どうしが重ならない
+  const boxes = [];
+  for (const label of await page.getByTestId("enemy-label").all()) boxes.push(await label.boundingBox());
+  boxes.sort((a, b) => a.x - b.x);
+  for (let i = 1; i < boxes.length; i++) {
+    const [a, b] = [boxes[i - 1], boxes[i]];
+    const overlapY = a.y < b.y + b.height && b.y < a.y + a.height;
+    if (overlapY) expect(a.x + a.width).toBeLessThanOrEqual(b.x + 1);
+  }
   const target = page.locator('[data-testid="enemy"][data-target="1"]');
   const id = await target.getAttribute("data-phrase-id");
   await expect(target.getByTestId("enemy-label")).toHaveText(LIB.byId[id].english);

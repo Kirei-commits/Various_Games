@@ -2481,8 +2481,8 @@ function BattleRun({ session, speech, recognition, onFinish, active = true, tool
     const scale = 0.72 + 0.38 * Math.min(e.y, 1);
     const size = Math.round((e.boss ? 110 : 60) * scale); // 上ほど小さく見える（文字は小さくしない）
     const top = 8 + Math.min(e.y, 1) * (H - (e.boss ? 190 : 140));
-    // 単語の札は幅の44%まで。札が戦場の外にはみ出さないよう、端の列は内側に寄せる
-    const labelW = Math.min(W * 0.44, 190);
+    // 単語の札は列の間隔（幅の30%）より少し狭く（29%）。となりの敵の札と重ならない。札が戦場の外にはみ出さないよう、端の列は内側に寄せる
+    const labelW = Math.min(W * 0.29, 170);
     const x = Math.min(Math.max(e.x * W, labelW / 2 + 4), W - labelW / 2 - 4);
     return { x, top, cy: top + size / 2, size, scale, labelW };
   };
@@ -2719,7 +2719,7 @@ function BattleRun({ session, speech, recognition, onFinish, active = true, tool
               data-phrase-id={e.item.id}
               data-boss={e.boss ? "1" : "0"}
               className="absolute flex flex-col items-center"
-              style={{ left: box.x, top: box.top, transform: "translateX(-50%)", zIndex: 10 + Math.round(e.y * 100) }}
+              style={{ left: box.x, top: box.top, transform: "translateX(-50%)", zIndex: isTarget ? 140 : 10 + Math.round(e.y * 100) }}
             >
               <div className="relative" ref={(el) => (el ? (enemyEls.current[e.uid] = el) : delete enemyEls.current[e.uid])}>
                 <span
@@ -2739,7 +2739,7 @@ function BattleRun({ session, speech, recognition, onFinish, active = true, tool
                 data-testid="enemy-label"
                 style={{ maxWidth: box.labelW }}
                 className={`mt-1 block break-words rounded-xl px-2.5 py-0.5 text-center text-xs font-extrabold leading-snug shadow ${
-                  isTarget ? "bg-white text-slate-900 ring-2 ring-amber-400" : "line-clamp-2 bg-slate-900/60 text-white ring-1 ring-white/20"
+                  isTarget ? "bg-white text-slate-900 ring-2 ring-amber-400" : "bg-slate-900/60 text-white ring-1 ring-white/20"
                 }`}
               >
                 {jaEn ? e.item.japanese.split("／")[0] : e.item.english}
