@@ -157,7 +157,7 @@ python3 tools/media/tts.py collect              # 終わったバッチを取り
 
 **決まったこと（2026-09-28）**
 - 声: 見出し = Erinome（女性）、A = Achird（男性）、B = Callirrhoe（女性）。10声を聞き比べてユーザーが選んだ
-- **Batch API は当面使わない**（ユーザーの判断）。`generate`（通常の API）で作る
+- ~~Batch API は当面使わない~~ → 2026-09-29 から **Batch API で作る**（下の「進み具合」）
 
 **速さ（2026-09-28 に計測）**
 - 1文あたり: API 約2〜3.5秒、opus への変換 約0.2秒（コンテナが起動した直後の最初の1回だけ ffmpeg の読み込みで 約4秒）
@@ -189,7 +189,8 @@ python3 tools/media/tts.py collect              # 終わったバッチを取り
 
 **合いの手（英語の声での応援）** — ユーザーの依頼「テストやバトルなどで すごい！おめでとう！などの声を」
 - 文と声: `tools/media/cheers.json`（場面ごとに約90文。coach = Laomedeia / Puck、バトルは hype = Fenrir / Leda、まちがえたときは gentle = Sulafat / Achird。どの文も2声）
-- 作り方: `python3 tools/media/tts.py cheers`（録音づくりのあとで。話し方を指定できる 3.x のモデルを先に使う）→ `audio/cheers/*.opus` と `audio/cheers.json`
+- 作り方: `python3 tools/media/tts.py cheers`（**Batch API** に出す。182本・約$0.03。`--dry-run` で送らずに確認）→ `collect` で Whisper の確認に通ったものだけ `audio/cheers/*.opus` と `audio/cheers.json` に入る。通らないものはもう一度 `cheers` で出し直す
+  - 話し方は場面の style ＋ `cheers.json` の `once`（1回だけ・言い直さない）
 - アプリ: `src/cheers.js`。効果音（`SoundEngine.play` の名前）に合わせて、場面の声からランダムに流す（場面ごとの確率つき・連続正解は5回ごと・読み上げ中や直前と同じ文は流さない）。設定「合いの手（英語の声で応援）」でオフにできる（声があるときだけ表示）
 - テスト: `tests/logic/cheers.test.mjs`、`tests/e2e/cheers.spec.mjs`
 
@@ -200,6 +201,13 @@ python3 tools/media/tts.py collect              # 終わったバッチを取り
   - **コンテナが作り直されると hold は消える**。その場合は `submit all --replace-models` で出し直す（約¥60）
 - **Gemini API のプリペイド残高が切れた**（402）。確認の文字起こしが止まったので、`collect --defer-verify` で結果だけ取り込んだ（取り込みは無料）
 - 残高を足したら: `python3 tools/media/tts.py verify`（未確認と置き換え待ちを確かめる）→ `submit all --replace-models` → collect をくり返す → `tts.py cheers`
+
+**確認は Whisper（無料）で行う（2026-09-29 から）**
+- `tts.config.json` の `batch.verify.engine: "whisper"`。faster-whisper の `small.en` をこのコンテナの CPU で動かす（1本 約0.7秒）。Gemini で確かめたいときは `engine: "gemini"`
+- 入れ方: `tools/media/setup.sh --whisper`（`requirements-whisper.txt`）。モデルは初回に huggingface.co から落とす（ネットワーク設定で許可済み）
+- Whisper は言い直しを消して「きれいな文」にしがちなので、言いよどみを含む `prompt` を渡している。これで頭を言い直した合成の録音を 24/24 見つけた（prompt なしは 15/24）。Gemini で通った録音は 100本中 98本が通った
+- `compare_words` は分け書きの違い（key card / keycard）も同じとみなす
+- Whisper が文の頭に「Ugh」「You」などを足して通らないことが少しある。通らなかった文は出し直すだけなので（1文 約¥0.02）、そのままにしている
 
 **Batch API で分かったこと**
 - 1件（200文）が数分で終わる。通常の API の1日100回の上限とは別枠で、残り約1万文を一度に出せた
