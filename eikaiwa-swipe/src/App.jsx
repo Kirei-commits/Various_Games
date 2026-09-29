@@ -47,7 +47,7 @@ import {
 } from "lucide-react";
 import { BattleBackdrop, Monster, Dragon, Hero, monsterKindOf } from "./battle-art.jsx";
 import QuestScreen from "./QuestScreen.jsx";
-import { equip as questEquip, autoEquip as questAutoEquip, applyQuest, runResults, savePreset as questSavePreset, loadPreset as questLoadPreset } from "./quest.js";
+import { equip as questEquip, autoEquip as questAutoEquip, applyQuest, runResults, savePreset as questSavePreset, loadPreset as questLoadPreset, enhance as questEnhance } from "./quest.js";
 import { loadRecordedIndex, playRecorded, recordedCount, recordedUrls, stopRecorded } from "./recorded.js";
 import { cheersAvailable, loadCheers, noteSpeech } from "./cheers.js";
 import { Art, CARD_BACK_ART, CHEST_ART, MACHINE_ART, SHOP_ART, WALLET_ICON } from "./gacha-art.jsx";
@@ -3225,6 +3225,7 @@ function TestScreen({ active, state, settings, setSettings, speech, onFinishTest
         onAutoEquip={quest.onAutoEquip}
         onSavePreset={quest.onSavePreset}
         onLoadPreset={quest.onLoadPreset}
+        onEnhance={quest.onEnhance}
         onFinish={quest.onFinish}
       />
     );
@@ -6093,6 +6094,14 @@ export default function App() {
         stateRef.current = next;
         update(() => next);
         sound.play("tap");
+      },
+      onEnhance(targetId, materials) {
+        const r = questEnhance(stateRef.current, CATALOG.cards, targetId, materials);
+        if (r.error) return r;
+        stateRef.current = r.state;
+        update(() => r.state);
+        sound.play(r.to > r.from ? "levelup" : "heal", 0, { cheer: false });
+        return r;
       },
       onLoadPreset(i) {
         const next = questLoadPreset(stateRef.current, i);

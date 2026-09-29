@@ -449,7 +449,7 @@ export function wordMatch(said, target) {
 // 学習状態
 // ---------------------------------------------------------------------------
 
-export const STATE_VERSION = 7;
+export const STATE_VERSION = 8;
 
 /** v1（22フレーズ版）の保存データの ID → 英語 */
 export const LEGACY_V1_IDS = {
@@ -580,6 +580,8 @@ const MIGRATIONS = {
   // v6 → v7: 冒険の装備が7か所に・装備のプリセット（quest.presets）を追加（足りない値は restoreQuest が埋める。
   // 以前の防具・お守りは体・アクセへ）。冒険限定の単語はガチャの記録（gacha.cards）にそのまま入る
   6: (s) => ({ ...s, version: 7 }),
+  // v7 → v8: 冒険の装備の強化（quest.enhance。足りない値は restoreQuest が埋める）
+  7: (s) => ({ ...s, version: 8 }),
 };
 
 export const stateVersionOf = (saved) => (saved && Number.isInteger(saved.version) ? saved.version : 1);

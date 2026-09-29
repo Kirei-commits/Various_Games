@@ -33,7 +33,7 @@ test("冒険: 集めた単語をおまかせで装備すると能力値が上が
   await expect(page.getByTestId("quest-equip")).toContainText("breakfast");
   await expect(stats).not.toHaveText(before);
   // 装備は7か所。SSR（breakfast）を付けると特製の呪文が使える
-  await expect(page.getByTestId("quest-equip").getByRole("button")).toHaveCount(7);
+  await expect(page.getByTestId("quest-equip").getByRole("listitem")).toHaveCount(7);
   await expect(page.getByTestId("quest-skills")).toBeVisible();
 
   await page.getByRole("button", { name: "1階から" }).click();
@@ -87,7 +87,7 @@ test("冒険: ふつうのじゅもんはなく、相性が表示される。5�
     if (f < 5) await page.getByRole("button", { name: "つぎの階へ" }).click();
   }
   await expect(page.getByTestId("quest-chest")).toContainText("5階の たからばこを あけた！");
-  await expect(page.getByTestId("quest-chest")).toContainText("ガチャのポイント +300");
+  await expect(page.getByTestId("quest-chest")).toContainText("ガチャのポイント +30");
   await page.getByTestId("quest-chest").click();
   await page.getByRole("button", { name: "街に帰る" }).click();
   await expect(page.getByTestId("quest-loot")).toContainText("たからばこ（1こ）");
@@ -104,4 +104,23 @@ test("冒険: 装備をプリセットに保存して、あとで付け替えら
   await expect(page.getByTestId("quest-equip")).not.toContainText("breakfast");
   await page.getByRole("button", { name: "セット1を装備する" }).click();
   await expect(page.getByTestId("quest-equip")).toContainText("breakfast");
+});
+
+test("冒険: 装備を強化できる（あまりの単語を素材に。同じ単語は3倍）", async ({ page }) => {
+  await openQuest(page, { breakfast: 1, park: 4, go: 3 });
+  await page.getByRole("button", { name: "武器を変える" }).click();
+  await page.getByTestId("gear-picker").getByRole("button", { name: /park/ }).click();
+  await page.getByRole("button", { name: "武器を強化" }).click();
+  const sheet = page.getByTestId("enhance-sheet");
+  await expect(sheet).toContainText("「park」を強化 +0");
+  // 同じ単語 park（N）のあまり3枚 = 1 × 3 × 3 = 9pt、go のあまり2枚 = 2pt → 11pt で +1
+  await sheet.getByRole("button", { name: "全部" }).first().click();
+  await sheet.getByRole("button", { name: "goを足す" }).click();
+  await sheet.getByRole("button", { name: "goを足す" }).click();
+  await expect(sheet.getByRole("button", { name: /強化する/ })).toContainText("+11pt → +1");
+  await sheet.getByRole("button", { name: /強化する/ }).click();
+  await expect(page.getByTestId("enhance-message")).toContainText("+0 → +1");
+  await expect(sheet).toContainText("+1");
+  await sheet.getByRole("button", { name: "閉じる" }).click();
+  await expect(page.getByTestId("quest-equip")).toContainText("+1");
 });
