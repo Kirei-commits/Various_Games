@@ -1,7 +1,7 @@
 # CLAUDE.md — SwipeTalk（英会話フレーズ学習）
 
 全110章・5500問（フレーズ50章・単語60章）のスワイプ学習・テスト（英→日／日→英）・シャドーイングアプリ。詳しくは README.md。
-CI はリポジトリ直下の `.github/workflows/ci.yml`（matrix に `eikaiwa-swipe` を登録済み）。
+CI はリポジトリ直下の `.github/workflows/ci.yml`（`changes` ジョブの `ALL` に `eikaiwa-swipe` を登録済み。このディレクトリが変わったときだけ、このゲームの検査が走る）。
 
 ## 壊してはいけない約束
 

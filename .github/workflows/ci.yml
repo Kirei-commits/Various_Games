@@ -1,4 +1,6 @@
-# ゲームを追加したら、下の checks と e2e の matrix にディレクトリ名を足すこと。
+# ゲームを追加したら、下の changes ジョブの ALL にディレクトリ名を足すこと。
+# 各ゲームの検査は、そのゲームのディレクトリ（か、この ci.yml）が変わったときだけ走る。
+# 関係ないゲームの検査で待たされたり、そちらの不安定なテストで赤くなったりしないようにするため。
 name: CI
 
 on:
@@ -18,14 +20,65 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # 変わったゲームを調べて、下のジョブの matrix に渡す
+  changes:
+    name: 変わったゲームを調べる
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      games: ${{ steps.pick.outputs.games }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - id: pick
+        name: 比べる相手を決めて差分を取る
+        env:
+          EVENT: ${{ github.event_name }}
+          BEFORE: ${{ github.event.before }}
+          BASE: ${{ github.event.pull_request.base.sha }}
+          DEFAULT: ${{ github.event.repository.default_branch }}
+        run: |
+          ALL="god-arena gomoku-narabe tsuri-quest eikaiwa-swipe"
+          from=""
+          if [ "$EVENT" = pull_request ]; then
+            from="$BASE"
+          elif [ "$EVENT" = push ]; then
+            # 新しいブランチの最初の push（before が 0 だけ）はデフォルトブランチとの分かれ目から比べる
+            if [ -n "$BEFORE" ] && [ -n "${BEFORE//0/}" ] && git cat-file -e "$BEFORE^{commit}" 2>/dev/null; then
+              from="$BEFORE"
+            else
+              from=$(git merge-base HEAD "origin/$DEFAULT" 2>/dev/null || true)
+            fi
+          fi
+          # 手動実行や、比べる相手が分からないときは全部
+          if [ -z "$from" ]; then
+            changed="*"
+          else
+            changed=$(git diff --name-only "$from" HEAD)
+            echo "$changed"
+            # CI の設定そのものを変えたときは全部
+            if printf '%s\n' "$changed" | grep -qx '.github/workflows/ci.yml'; then changed="*"; fi
+          fi
+          games=""
+          for g in $ALL; do
+            if [ "$changed" = "*" ] || printf '%s\n' "$changed" | grep -q "^$g/"; then
+              games="$games${games:+,}\"$g\""
+            fi
+          done
+          echo "games=[$games]" | tee -a "$GITHUB_OUTPUT"
+
   checks:
     name: 静的検査とロジックテスト (${{ matrix.game }})
+    needs: changes
+    if: needs.changes.outputs.games != '[]'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     strategy:
       fail-fast: false
       matrix:
-        game: [god-arena, gomoku-narabe, tsuri-quest, eikaiwa-swipe]
+        game: ${{ fromJSON(needs.changes.outputs.games) }}
     defaults:
       run:
         working-directory: ${{ matrix.game }}
@@ -50,12 +103,14 @@ jobs:
 
   e2e:
     name: ブラウザテスト (${{ matrix.game }})
+    needs: changes
+    if: needs.changes.outputs.games != '[]'
     runs-on: ubuntu-latest
     timeout-minutes: 25
     strategy:
       fail-fast: false
       matrix:
-        game: [god-arena, gomoku-narabe, tsuri-quest, eikaiwa-swipe]
+        game: ${{ fromJSON(needs.changes.outputs.games) }}
     defaults:
       run:
         working-directory: ${{ matrix.game }}
@@ -99,6 +154,8 @@ jobs:
   # 「詰み・停止・表示崩れ」を探す。E2Eでは見つからない種類の壊れ方を拾う。
   playtest:
     name: 通しプレイ (god-arena)
+    needs: changes
+    if: contains(fromJSON(needs.changes.outputs.games), 'god-arena')
     runs-on: ubuntu-latest
     timeout-minutes: 25
     defaults:

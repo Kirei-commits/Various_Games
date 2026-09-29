@@ -32,5 +32,5 @@ god-arena には実ブラウザで通しプレイする `npm run playtest` も�
 eikaiwa-swipe は `src/` から `index.html` を生成するので、変更後は `npm run build` して `index.html` もコミットします。
 
 CI はリポジトリ直下の `.github/workflows/ci.yml` だけです（GitHub Actions はリポジトリ直下しか読みません）。
-**ゲームを追加したら、CI の matrix と Pages の対象にディレクトリ名を足してください。**
+**ゲームを追加したら、CI（`ci.yml` の `changes` ジョブの `ALL`）と Pages の対象にディレクトリ名を足してください。** CI は変わったゲームの検査だけを走らせます（`ci.yml` 自体を変えたときと手動実行は全部）。
 このリポジトリの改善は自動ループで進めています。手順は [LOOP.md](./LOOP.md) を参照してください。
