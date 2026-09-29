@@ -20,6 +20,7 @@
 import argparse
 import base64
 import hashlib
+import http.client
 import io
 import json
 import os
@@ -146,7 +147,8 @@ def api(method, path, body=None, base=API, pacer=None, tokens=0):
                 time.sleep(wait)
                 continue
             raise ApiError(f"API エラー {e.code} ({method} {path}): {detail[:800]}") from None
-        except (urllib.error.URLError, TimeoutError) as e:
+        except (urllib.error.URLError, TimeoutError, ConnectionError, OSError, http.client.HTTPException) as e:
+            # 途中で接続が切れた（RemoteDisconnected など）ときも、少し待って送り直す
             if attempt < 5:
                 time.sleep(2 ** (attempt + 1))
                 continue
