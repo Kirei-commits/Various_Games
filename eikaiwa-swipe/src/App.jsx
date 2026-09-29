@@ -1509,8 +1509,14 @@ const tierOf = (scope) => {
   return m ? Number(m[1]) : 0;
 };
 
+/** コース（部）まるごとの出題範囲: "part1"〜（基本編・アメリカ生活編などの 1000問） */
+const partOf = (scope) => (/^part\d+$/.test(scope || "") ? PART_GROUPS[Number(scope.slice(4)) - 1] || null : null);
+const PART_SCOPES = PART_GROUPS.map((part, i) => [`part${i + 1}`, `${part.title} 全部（${part.count}問）`]);
+
 function scopeItems(scope, misses, favorites = {}) {
   if (scope === "all") return ALL_ITEMS;
+  const part = partOf(scope);
+  if (part) return part.chapters.flatMap((c) => c.items);
   if (scope === "phrase" || scope === "word") return KIND_ITEMS[scope];
   if (scope === "weak") return ALL_ITEMS.filter((p) => misses[p.id]);
   if (scope === "fav") return ALL_ITEMS.filter((p) => favorites[p.id]);
@@ -1525,6 +1531,7 @@ function scopeLabel(scope) {
   if (scope === "word") return "単語全部から";
   if (scope === "weak") return "苦手な問題";
   if (scope === "fav") return "お気に入り（⭐）";
+  if (partOf(scope)) return `${partOf(scope).title} 全部から`;
   const lv = tierOf(scope);
   if (lv) return `単語の難易度 ${TIER_LABELS[lv - 1]}`;
   return chapterLabel(CHAPTER_BY_ID[scope]);
@@ -1541,10 +1548,10 @@ function ScopePicker({ id, value, onChange, special = [], levels = false }) {
     ...(levels
       ? [{ key: "levels", title: "単語の難易度（5段階）", options: TIER_LABELS.map((label, i) => [`lv${i + 1}`, `${label}（${WORD_TIERS()[i].length}問）`]) }]
       : []),
-    ...PART_GROUPS.map((part) => ({
+    ...PART_GROUPS.map((part, i) => ({
       key: part.title,
       title: `${part.title}（${part.count}問）`,
-      options: part.chapters.map((c) => [c.id, `${chapterLabel(c)}（${c.items.length}問）`]),
+      options: [PART_SCOPES[i], ...part.chapters.map((c) => [c.id, `${chapterLabel(c)}（${c.items.length}問）`])],
     })),
   ];
   const current = groups.find((g) => g.options.some(([v]) => v === value));
@@ -1645,6 +1652,7 @@ function TestSetup({ config, setConfig, misses, favorites = {}, tests, onStart, 
               ["word", `単語全部から（${KIND_ITEMS.word.length}問）`],
               ["weak", `苦手な問題（${weakCount}問）`],
               ["fav", `お気に入り ⭐（${Object.keys(favorites).length}問）`],
+              ...PART_SCOPES,
               ...TIER_LABELS.map((label, i) => [`lv${i + 1}`, `単語の難易度 ${label}（${WORD_TIERS()[i].length}問）`]),
             ]}
             className="mt-1"

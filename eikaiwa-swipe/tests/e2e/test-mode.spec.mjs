@@ -1,4 +1,4 @@
-import { test, expect, startTest, phraseOf } from "./fixtures.mjs";
+import { test, expect, startTest, phraseOf, LIB } from "./fixtures.mjs";
 
 async function currentPhrase(page) {
   return phraseOf(await page.getByTestId("test-question").innerText());
@@ -124,4 +124,23 @@ test("ドーパミンモード: 正解すると演出と連続正解の数が出
   }
   // 「次へ」を押さなくても進んでいる
   await expect(page.getByTestId("test-progress")).toHaveText("3 / 10");
+});
+
+test("出題範囲に「基本編 全部」などコースまるごとを選べる（テスト・バトル）", async ({ page }) => {
+  await page.getByRole("button", { name: "テスト", exact: true }).click();
+  await page.locator("#test-scope").selectOption("part2");
+  await page.getByRole("button", { name: /テストを始める/ }).click();
+  const id = await page.getByTestId("test-question").getAttribute("data-phrase-id");
+  // アメリカ生活編（第21〜40章）の問題が出る
+  const chapterNo = LIB.chapters.findIndex((c) => c.items.some((p) => p.id === id)) + 1;
+  expect(chapterNo).toBeGreaterThanOrEqual(21);
+  expect(chapterNo).toBeLessThanOrEqual(40);
+  await page.getByRole("button", { name: "やめる" }).click();
+  await page.getByRole("button", { name: "バトル", exact: true }).click();
+  await page.getByRole("button", { name: "エンドレス" }).click();
+  await page.getByTestId("battle-scope").click();
+  const panel = page.getByTestId("battle-scope-panel");
+  await panel.getByRole("button", { name: /^単語編・基礎（/ }).click();
+  await panel.getByRole("button", { name: /単語編・基礎 全部（1000問）/ }).click();
+  await expect(page.getByTestId("battle-scope")).toContainText("単語編・基礎 全部");
 });
