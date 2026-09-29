@@ -1,0 +1,3 @@
+# 録音の確認（文字起こし）に使う faster-whisper。setup.sh --whisper で入れる（アプリ本体のビルドやテストには不要）
+# モデルは初回に huggingface.co からダウンロードされる（クラウド環境のネットワーク設定で許可が要る）
+faster-whisper==1.2.1

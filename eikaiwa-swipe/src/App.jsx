@@ -46,6 +46,7 @@ import {
 } from "lucide-react";
 import { BattleBackdrop, Monster, Dragon, Hero, monsterKindOf } from "./battle-art.jsx";
 import { loadRecordedIndex, playRecorded, recordedCount, recordedUrls, stopRecorded } from "./recorded.js";
+import { cheersAvailable, loadCheers } from "./cheers.js";
 import { Art, CARD_BACK_ART, CHEST_ART, MACHINE_ART, SHOP_ART, WALLET_ICON } from "./gacha-art.jsx";
 import { saveDiary, usedWords } from "./diary.js";
 import rawChapters, { PARTS, RENAMED } from "./data/index.js";
@@ -349,6 +350,7 @@ const DEFAULT_SETTINGS = {
   linking: true,
   sfx: true,
   sfxVolume: 0.6,
+  cheers: true, // 合いの手（正解・連続正解・バトル・ガチャなどで英語の声で応援する）
   battleBgm: true, // バトル中の BGM
   bgmVolume: 0.35,
   studyBgm: true, // 学習中の BGM（シャドーイング中は流さない）
@@ -378,11 +380,13 @@ function useSpeech(settings) {
   const [voices, setVoices] = useState([]);
   const [speaking, setSpeaking] = useState(null);
   const [recorded, setRecorded] = useState(0); // 使える録音の数（audio/index.json を読んだあと）
+  const [cheers, setCheers] = useState(false); // 合いの手の声があるか（audio/cheers.json を読んだあと）
   const token = useRef(0);
 
   useEffect(() => {
     let alive = true;
     loadRecordedIndex().then(() => alive && setRecorded(recordedCount()));
+    loadCheers().then(() => alive && setCheers(cheersAvailable()));
     return () => {
       alive = false;
       stopRecorded();
@@ -498,7 +502,7 @@ function useSpeech(settings) {
     if (supported) window.speechSynthesis.cancel();
   }, [supported]);
 
-  return { supported, speak, speakLines, stop, speaking, voices, voiceA, voiceB, sameVoice, recorded };
+  return { supported, speak, speakLines, stop, speaking, voices, voiceA, voiceB, sameVoice, recorded, cheers };
 }
 
 // ---------------------------------------------------------------------------
@@ -1067,6 +1071,22 @@ function SettingsSheet({ open, onClose, settings, setSettings, speech, onResetAl
               className="mt-2 w-full accent-indigo-600"
             />
           </>
+        )}
+
+        {speech.cheers && (
+          <label className="mt-3 flex items-center gap-3 rounded-xl bg-amber-50 px-3 py-2.5">
+            <span className="flex-1">
+              <span className="block text-sm font-bold text-slate-800">合いの手（英語の声で応援）</span>
+              <span className="block text-xs text-slate-500">正解・連続正解・テスト完了・バトル・ガチャで “Nice!” “You're on fire!” などと声をかけます（毎回ではありません）</span>
+            </span>
+            <input
+              id="toggle-cheers"
+              type="checkbox"
+              checked={settings.cheers}
+              onChange={(e) => update({ cheers: e.target.checked })}
+              className="h-5 w-5 accent-amber-500"
+            />
+          </label>
         )}
 
         <p className="mt-5 text-xs font-bold text-slate-500">ドーパミンモード</p>
@@ -5838,6 +5858,7 @@ export default function App() {
     };
   }, [sound]);
   useEffect(() => sound.set(settings.sfx, settings.sfxVolume), [sound, settings.sfx, settings.sfxVolume]);
+  useEffect(() => sound.setCheers(settings.cheers), [sound, settings.cheers]);
   useEffect(() => sound.setBgm(settings.battleBgm, settings.bgmVolume), [sound, settings.battleBgm, settings.bgmVolume]);
   useEffect(() => sound.setStudyBgm(settings.studyBgm, settings.studyBgmVolume), [sound, settings.studyBgm, settings.studyBgmVolume]);
   // 学習中の BGM: シャドーイング（マイクを使う）以外の画面で、アプリを見ているあいだだけ
