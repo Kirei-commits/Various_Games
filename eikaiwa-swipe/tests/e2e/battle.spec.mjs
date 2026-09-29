@@ -240,3 +240,14 @@ test("長いフレーズでも、敵の札と問題文が見切れない（折�
   const id = await target.getAttribute("data-phrase-id");
   await expect(target.getByTestId("enemy-label")).toHaveText(LIB.byId[id].english);
 });
+
+test("敵が出ると、表示している英単語を読み上げる（英語→意味のとき）", async ({ page }) => {
+  await page.addInitScript(() => (window.__swipetalkBattleSpeed = 0));
+  await page.reload();
+  await openBattle(page);
+  await page.getByRole("button", { name: /バトル開始/ }).click();
+  const enemy = page.getByTestId("enemy").first();
+  await expect(enemy).toBeVisible();
+  const word = LIB.byId[await enemy.getAttribute("data-phrase-id")].english;
+  await expect.poll(() => page.evaluate(() => window.__spoken.map((u) => u.text).join(" "))).toContain(word);
+});

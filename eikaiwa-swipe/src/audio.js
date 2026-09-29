@@ -19,6 +19,73 @@ import { cheer } from "./cheers.js";
 
 const NOTE = (n) => 440 * Math.pow(2, (n - 69) / 12); // MIDI ノート番号 → 周波数
 
+/**
+ * iPhone（Safari）では、消音スイッチ（マナーモード）が入っていると Web Audio の音（BGM・効果音）が鳴らない。
+ * 録音（<audio> 要素）は鳴るので、「音が出る声はあるのに BGM だけ聞こえない」になる。
+ * 音の種類を「再生（playback）」にして、消音スイッチがあっても鳴るようにする（動画アプリや音楽アプリと同じ扱い）。
+ * - Safari 17 以降: navigator.audioSession.type = "playback"
+ * - それより古い iOS: 無音の <audio> をループで流しておくと、同じ扱いになる
+ */
+let silentKeeper = null;
+let micActive = false;
+function playThroughSilentSwitch() {
+  if (typeof navigator === "undefined") return;
+  try {
+    if (navigator.audioSession) {
+      if (micActive) return; // マイクを使っているあいだはそのまま
+      if (navigator.audioSession.type !== "playback") navigator.audioSession.type = "playback";
+      return;
+    }
+  } catch {
+    /* 設定できない端末 */
+  }
+  const ios = /iPad|iPhone|iPod/.test(navigator.userAgent || "") || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  if (!ios || typeof Audio === "undefined") return;
+  if (!silentKeeper) {
+    silentKeeper = new Audio(silentWav());
+    silentKeeper.loop = true;
+    silentKeeper.setAttribute("x-webkit-airplay", "deny");
+  }
+  if (silentKeeper.paused) silentKeeper.play().catch(() => {});
+}
+
+/**
+ * マイクを使うあいだ（音声で答える・シャドーイング）は「録音と再生（play-and-record）」にし、終わったら「再生」に戻す。
+ * 「再生」のままだとマイクが使えないことがあるため（navigator.audioSession がある Safari だけ）
+ */
+export function setMicActive(on) {
+  micActive = on;
+  try {
+    if (typeof navigator !== "undefined" && navigator.audioSession) navigator.audioSession.type = on ? "play-and-record" : "playback";
+  } catch {
+    /* 設定できない端末 */
+  }
+}
+
+/** 0.5秒の無音の WAV（data URL） */
+function silentWav() {
+  const rate = 8000;
+  const n = rate / 2;
+  const buf = new DataView(new ArrayBuffer(44 + n));
+  const str = (o, t) => [...t].forEach((c, i) => buf.setUint8(o + i, c.charCodeAt(0)));
+  str(0, "RIFF");
+  buf.setUint32(4, 36 + n, true);
+  str(8, "WAVEfmt ");
+  buf.setUint32(16, 16, true);
+  buf.setUint16(20, 1, true); // PCM
+  buf.setUint16(22, 1, true); // モノラル
+  buf.setUint32(24, rate, true);
+  buf.setUint32(28, rate, true);
+  buf.setUint16(32, 1, true);
+  buf.setUint16(34, 8, true); // 8bit（無音は 128）
+  str(36, "data");
+  buf.setUint32(40, n, true);
+  for (let i = 0; i < n; i++) buf.setUint8(44 + i, 128);
+  let bin = "";
+  for (let i = 0; i < buf.byteLength; i++) bin += String.fromCharCode(buf.getUint8(i));
+  return `data:audio/wav;base64,${btoa(bin)}`;
+}
+
 export class SoundEngine {
   constructor() {
     this.ctx = null;
@@ -39,6 +106,7 @@ export class SoundEngine {
   /** 最初のタップで呼ぶ。以後、効果音が鳴らせる */
   unlock() {
     if (!this.available) return;
+    playThroughSilentSwitch();
     if (!this.ctx) {
       const Ctx = window.AudioContext || window.webkitAudioContext;
       this.ctx = new Ctx();

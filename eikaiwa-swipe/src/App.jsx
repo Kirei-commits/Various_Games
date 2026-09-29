@@ -157,8 +157,8 @@ import {
   STATE_VERSION,
 } from "./logic.js";
 import { cloud, authErrorMessage } from "./cloud.js";
-import { usableVoices, pickVoices, pickVoicesFor, genderLabel, personaFor } from "./voices.js";
-import { SoundEngine, silentSound } from "./audio.js";
+import { usableVoices, pickVoices, genderLabel } from "./voices.js";
+import { SoundEngine, setMicActive, silentSound } from "./audio.js";
 import { detectInAppBrowser } from "./env.js";
 import { analyzePronunciation, verdictText, commonIssues } from "./pronounce.js";
 
@@ -388,8 +388,6 @@ const DEFAULT_SETTINGS = {
   rate: 0.95,
   expressive: true,
   twoVoices: true,
-  voiceVariety: true,
-  voiceWide: true, // いろいろな国の英語の声も使う
   linking: true,
   sfx: true,
   sfxVolume: 0.6,
@@ -440,7 +438,7 @@ function useSpeech(settings) {
     if (!supported) return undefined;
     const synth = window.speechSynthesis;
     const update = () => {
-      setVoices(usableVoices(synth.getVoices(), { wide: settings.voiceWide }));
+      setVoices(usableVoices(synth.getVoices(), { wide: false }));
     };
     update();
     synth.addEventListener?.("voiceschanged", update);
@@ -448,7 +446,7 @@ function useSpeech(settings) {
       synth.removeEventListener?.("voiceschanged", update);
       synth.cancel();
     };
-  }, [supported, settings.voiceWide]);
+  }, [supported]);
 
   // B役（会話の相手）は A役と性別が違う声。見つからなければ同じ声を少し高くして区別する
   const { a: voiceA, b: voiceB, sameVoice } = useMemo(
@@ -462,14 +460,11 @@ function useSpeech(settings) {
       const synth = window.speechSynthesis;
       synth.cancel();
       const utterances = [];
-      // 「会話ごとにいろいろな人の声」なら、会話（seed）ごとに A・B の声の組み合わせを変える
-      const cast = settings.voiceVariety
-        ? pickVoicesFor(voices, seed, { twoVoices: settings.twoVoices })
-        : { a: voiceA, b: voiceB, sameVoice };
+      // 端末の声は選んだ声で固定（ネイティブの録音があるので、会話ごとに声を変える設定・いろいろな国の声の設定はなくした）
+      const cast = { a: voiceA, b: voiceB, sameVoice };
       for (const line of lines) {
         const voice = line.role === "B" ? cast.b : cast.a;
-        // 「いろいろな人の声」なら、会話ごとに声の高さと速さも少し変えて、別の人が話しているようにする
-        const persona = settings.voiceVariety ? personaFor(seed, line.role === "B" ? "B" : "A") : { pitch: 1, rate: 1 };
+        const persona = { pitch: 1, rate: 1 };
         for (const chunk of prosodyPlan(line.text, {
           expressive: settings.expressive,
           rate: settings.rate,
@@ -501,7 +496,7 @@ function useSpeech(settings) {
       setTimeout(() => token.current === my && utterances.forEach((u) => synth.speak(u)), 0);
       return true;
     },
-    [voices, voiceA, voiceB, sameVoice, settings.expressive, settings.rate, settings.twoVoices, settings.voiceVariety]
+    [voiceA, voiceB, sameVoice, settings.expressive, settings.rate, settings.twoVoices]
   );
 
   /**
@@ -585,6 +580,7 @@ function useRecognition() {
       } catch {
         /* すでに止まっている */
       }
+      setMicActive(false);
     }
     setListening(false);
   }, []);
@@ -625,10 +621,12 @@ function useRecognition() {
         r.onend = () => {
           if (rec.current !== r) return;
           rec.current = null;
+          setMicActive(false);
                 setListening(false);
           onEnd?.();
         };
         rec.current = r;
+        setMicActive(true);
         r.start();
         setListening(true);
         return true;
@@ -940,37 +938,6 @@ function SettingsSheet({ open, onClose, settings, setSettings, speech, onResetAl
             />
           </label>
         )}
-        <label className="mt-4 flex items-center gap-3 rounded-xl bg-indigo-50 px-3 py-2.5">
-          <span className="flex-1">
-            <span className="block text-sm font-bold text-slate-800">会話ごとにいろいろな人の声にする</span>
-            <span className="block text-xs text-slate-500">
-              フレーズごとに話す人が変わります（この端末の声 {speech.voices.length}種類 × 高さ・速さの個性）。オフにすると声を選んで固定できます
-            </span>
-          </span>
-          <input
-            id="toggle-voiceVariety"
-            type="checkbox"
-            checked={settings.voiceVariety}
-            onChange={(e) => update({ voiceVariety: e.target.checked })}
-            className="h-5 w-5 accent-indigo-600"
-          />
-        </label>
-        <label className="mt-2 flex items-center gap-3 rounded-xl bg-slate-50 px-3 py-2.5">
-          <span className="flex-1">
-            <span className="block text-sm font-bold text-slate-800">いろいろな国の英語の声も使う</span>
-            <span className="block text-xs text-slate-500">インド・アイルランド・南アフリカなどの英語も聞けます。オフにすると聞き取りやすい声だけ</span>
-          </span>
-          <input
-            id="toggle-voiceWide"
-            type="checkbox"
-            checked={settings.voiceWide}
-            onChange={(e) => update({ voiceWide: e.target.checked })}
-            className="h-5 w-5 accent-indigo-600"
-          />
-        </label>
-
-        {!settings.voiceVariety && (
-          <>
         <label htmlFor="voice-select" className="mt-4 block text-xs font-bold text-slate-500">
           声の種類（A役・見出しの読み上げ）
         </label>
@@ -1021,8 +988,6 @@ function SettingsSheet({ open, onClose, settings, setSettings, speech, onResetAl
               自動では A役と性別の違う声を選びます。
               {speech.sameVoice && speech.voices.length > 0 && "この端末では別の声が見つからないため、同じ声を少し高くして区別しています。"}
             </p>
-          </>
-        )}
 
           </>
         )}
@@ -2534,6 +2499,10 @@ function BattleRun({ session, speech, recognition, onFinish, active = true, tool
   // ほかのタブを見ているあいだは一時停止（テスト画面は裏でも表示したままにしているため）
   const activeRef = useRef(active);
   activeRef.current = active;
+  // 敵が出たとき（ボスの単語が変わったときも）に、表示している英単語を読み上げる（英語→意味のときだけ。日本語→英語では答えになるので読まない）
+  const speechRef = useRef(speech);
+  speechRef.current = speech;
+  const announced = useRef(new Set());
   const b = battle.current;
   const t = target(b);
   const pool = items.length >= 4 ? items : ALL_ITEMS;
@@ -2593,6 +2562,15 @@ function BattleRun({ session, speech, recognition, onFinish, active = true, tool
       const clock = typeof window.__swipetalkBattleTime === "number" ? window.__swipetalkBattleTime : 1;
       const scale = typeof window.__swipetalkBattleSpeed === "number" ? window.__swipetalkBattleSpeed : 1;
       tick(bt, dt * clock, Math.random, scale);
+      let fresh = null;
+      for (const e of bt.enemies) {
+        const key = `${e.uid}:${e.item.id}`;
+        if (!announced.current.has(key)) {
+          announced.current.add(key);
+          fresh = e;
+        }
+      }
+      if (fresh && !jaEn && activeRef.current) speechRef.current.speak(fresh.item.english, null, fresh.item.id);
       if (bt.hp < hp) {
         sound.play("hurt");
         setFlash({ type: "damage", text: "ダメージ！", at: now });
@@ -5903,13 +5881,11 @@ export default function App() {
 
   // ブラウザは画面に触れるまで音を出させないので、最初のタップで効果音を有効にする
   useEffect(() => {
+    // iPhone は touchend・click でないと音の再生を許さないことがあるので、それらでも呼ぶ（何度呼んでもよい）
     const unlock = () => sound.unlock();
-    window.addEventListener("pointerdown", unlock);
-    window.addEventListener("keydown", unlock);
-    return () => {
-      window.removeEventListener("pointerdown", unlock);
-      window.removeEventListener("keydown", unlock);
-    };
+    const events = ["pointerdown", "touchend", "click", "keydown"];
+    events.forEach((ev) => window.addEventListener(ev, unlock));
+    return () => events.forEach((ev) => window.removeEventListener(ev, unlock));
   }, [sound]);
   useEffect(() => sound.set(settings.sfx, settings.sfxVolume), [sound, settings.sfx, settings.sfxVolume]);
   useEffect(() => sound.setCheers(settings.cheers), [sound, settings.cheers]);
