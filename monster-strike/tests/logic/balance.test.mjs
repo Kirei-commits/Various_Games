@@ -3,10 +3,10 @@
  * 数値（HP・攻撃力・ターン数）を触ってここが落ちたら、「バグ」ではなく
  * 「意図した難しさの変更か」を判断し、意図的なら期待値と理由をコミットに残す。
  *
- * 測った値（2026-09-29, teamHp 32000 / ドラゴン HP 45000）:
- *   greedy: 10ターンで勝ち、HP 21000 残り
- *   casual: 勝率 0.73、勝ったときの中央 17ターン
- *   random: 勝率 0.00、ボスまで 97% が到達
+ * 測った値（2026-09-29 フェーズ3, 味方3体・友情コンボあり, teamHp 28000 / ドラゴン HP 55000）:
+ *   greedy: 10ターンで勝ち、HP 22000 残り、友情コンボ 13回
+ *   casual: 勝率 0.73、勝ったときの中央 16ターン。友情コンボを外すと勝率 0.05
+ *   random: 勝率 0.01、ボスまで 100% が到達
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -37,6 +37,19 @@ test('ふつうのプレイヤーは、だいたい勝てるが負けること�
   assert.ok(rate >= 0.55 && rate <= 0.9, `勝率 ${rate}`);
   const t = median(res.filter((r) => r.state === 'won').map((r) => r.turns));
   assert.ok(t >= 10 && t <= 24, `中央 ${t}ターン`);
+});
+
+test('友情コンボはふつうのプレイヤーの勝ち負けを分けるほど効く', () => {
+  const noCombo = { ...mods, D: { units: mods.D.units.map((u) => ({ ...u, combo: null })), stage: mods.D.stage } };
+  const rate = (m) => {
+    let w = 0;
+    for (let i = 0; i < GAMES; i++) if (play(m, { policy: 'casual', random: seededRandom(1000 + i * 7919) }).state === 'won') w++;
+    return w / GAMES;
+  };
+  const withC = rate(mods), without = rate(noCombo);
+  assert.ok(withC - without >= 0.3, `コンボあり ${withC} / なし ${without}`);
+  const g = play(mods, { policy: 'greedy' });
+  assert.ok(g.stats.combos >= 3, `上手なプレイヤーはコンボをねらう（${g.stats.combos}回）`);
 });
 
 test('でたらめに撃つと勝てないが、ボスまではたどり着ける', () => {

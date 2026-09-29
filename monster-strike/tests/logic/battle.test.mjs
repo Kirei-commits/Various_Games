@@ -154,9 +154,118 @@ test('貫通中に敵を倒しても、そのあとの摩擦が強いままに�
 
 test('止まっている味方に当たってもダメージにはならない', () => {
   const { world, battle } = newGame(mods);
-  world.get('A').x = 300;
-  const recs = shoot(world, battle, 'A', -100, 0); // 右へ → B に当たる
-  assert.ok(recs.every((r) => r.enemy !== 'B'));
+  const a = world.get('A');
+  a.x = 130; a.y = 560;
+  const recs = shoot(world, battle, 'A', 0, 900); // 真下へ → 味方の近くの壁
+  assert.ok(recs.every((r) => !['A', 'B', 'C'].includes(r.enemy)));
+});
+
+// ------------------------------------------------------------ 友情コンボ
+/** 味方2体と敵だけの戦場。mover が ally に当たるように置く */
+function comboField(allyCombo, enemies, { shot = 'reflect', ally = { x: 270, y: 600 } } = {}) {
+  const units = [
+    { id: 'M', shot, atk: 1000, combo: null },
+    { id: 'F', shot: 'reflect', atk: 1000, combo: allyCombo }
+  ];
+  const data = { units, stage: { teamHp: 10000, waves: [{ enemies }] } };
+  const world = new P.World();
+  world.add({ id: 'M', kind: 'unit', shot, x: ally.x, y: ally.y + 120, r: 30 });
+  world.add({ id: 'F', kind: 'unit', shot: 'reflect', x: ally.x, y: ally.y, r: 30 });
+  const battle = new B.Battle(data);
+  battle.spawnWave(world);
+  return { world, battle };
+}
+const E = (id, x, y, extra = {}) => ({ id, shape: 'circle', x, y, r: 30, hp: 100000, atk: 1, turns: 9, attack: 'single', ...extra });
+
+test('反射で味方に当たると、その味方の友情コンボが出る', () => {
+  const { world, battle } = comboField({ kind: 'blast', power: 700, radius: 150 }, [E('near', 270, 470), E('far', 80, 100)]);
+  const recs = shoot(world, battle, 'M', 0, -900);
+  const combo = recs.filter((r) => r.combo === 'blast');
+  assert.deepEqual(combo.map((r) => [r.enemy, r.damage, r.unit]), [['near', 700, 'F']]);
+  assert.equal(battle.stats.combos, 1);
+  const fired = battle.drainCombos();
+  assert.equal(fired.length, 1);
+  assert.deepEqual([fired[0].ally, fired[0].by, fired[0].kind], ['F', 'M', 'blast']);
+  assert.deepEqual([fired[0].x, fired[0].y], [270, 600]);
+  assert.equal(battle.drainCombos().length, 0);
+});
+
+test('貫通で味方を通り抜けても友情コンボが出る', () => {
+  const { world, battle } = comboField({ kind: 'blast', power: 700, radius: 150 }, [E('near', 270, 470)], { shot: 'pierce' });
+  shoot(world, battle, 'M', 0, -900);
+  assert.equal(battle.stats.combos, 1);
+});
+
+test('同じ味方の友情コンボは1ショットに1回。次のターンにはまた出る', () => {
+  const { world, battle } = comboField({ kind: 'blast', power: 700, radius: 150 }, [E('e', 80, 100)]);
+  // 味方と下の壁の間を何度も往復させる
+  world.get('F').y = 700; world.get('M').y = 770;
+  const ev = [];
+  world.setVelocity('M', 0, -1600);
+  while (!world.isSettled()) { world.step(); const e = world.drainEvents(); ev.push(...e); battle.apply(e, world); }
+  assert.ok(ev.filter((e) => e.type === 'hit' && e.other === 'F').length >= 2, '2回以上ぶつかった');
+  assert.equal(battle.stats.combos, 1);
+  battle.endTurn(world);
+  world.get('M').x = 270; world.get('M').y = 770;
+  shoot(world, battle, 'M', 0, -1600);
+  assert.equal(battle.stats.combos, 2);
+});
+
+test('クロスレーザーは味方を通る縦横の線上の敵だけに当たる', () => {
+  const laser = { kind: 'laser', power: 900, width: 34 };
+  const { world, battle } = comboField(laser, [
+    E('row', 60, 600),                                      // 横の線上
+    E('col', 270, 200),                                     // 縦の線上
+    E('edge', 480, 600 + 30 + 17 - 1),                      // 縁がぎりぎりかかる
+    E('miss', 100, 300),                                    // どちらにも無い
+    { id: 'wall', shape: 'rect', x: 420, y: 250, w: 200, h: 40, hp: 100000, atk: 1, turns: 9, attack: 'all' } // 矩形は幅で判定
+  ]);
+  const recs = shoot(world, battle, 'M', 0, -700).filter((r) => r.combo === 'laser');
+  const hit = recs.map((r) => r.enemy).sort();
+  assert.deepEqual(hit, ['col', 'edge', 'row']);
+  assert.ok(recs.every((r) => r.damage === 900));
+});
+
+test('爆発は半径の中の敵（矩形は一番近い辺までの距離）に当たる', () => {
+  const blast = { kind: 'blast', power: 800, radius: 150 };
+  const { world, battle } = comboField(blast, [
+    E('in', 270 + 150 + 30 - 1, 600),
+    E('out', 270 - 150 - 30 - 2, 600),
+    { id: 'rect', shape: 'rect', x: 270, y: 600 - 150 - 20 + 1, w: 300, h: 40, hp: 100000, atk: 1, turns: 9, attack: 'all' }
+  ]);
+  const recs = shoot(world, battle, 'M', 0, -700).filter((r) => r.combo === 'blast');
+  assert.deepEqual(recs.map((r) => r.enemy).sort(), ['in', 'rect']);
+});
+
+test('ホーミングは近い敵から順に1発ずつ配り、倒れた敵は飛ばす', () => {
+  const homing = { kind: 'homing', power: 500, count: 5 };
+  const { world, battle } = comboField(homing, [E('far', 480, 80), E('near', 270, 470, { hp: 400 }), E('mid', 60, 400)]);
+  const recs = shoot(world, battle, 'M', 0, -700).filter((r) => r.combo === 'homing');
+  // near は1発目で倒れるので、2巡目からは mid → far の順
+  assert.deepEqual(recs.map((r) => r.enemy).join(), 'near,mid,far,mid,far');
+  assert.equal(recs[0].killed, true);
+  assert.equal(world.get('near'), null);
+});
+
+test('友情コンボで敵を全滅させてもおかしくならない', () => {
+  const { world, battle } = comboField({ kind: 'blast', power: 999999, radius: 999 }, [E('a', 80, 100), E('b', 480, 100)]);
+  shoot(world, battle, 'M', 0, -700);
+  assert.ok(battle.waveCleared());
+  assert.equal(battle.endTurn(world).type, 'won');
+});
+
+test('友情コンボの無い味方・自分自身では何も起きない', () => {
+  const { world, battle } = comboField(null, [E('e', 270, 470)]);
+  shoot(world, battle, 'M', 0, -700);
+  assert.equal(battle.stats.combos, 0);
+  battle.apply([{ type: 'hit', id: 'M', other: 'M' }], world);
+  assert.equal(battle.stats.combos, 0);
+});
+
+test('ステージのキャラは3体とも別々の友情コンボを持つ', () => {
+  // vm の中の配列は別realmなので、文字列にして比べる
+  const kinds = D.units.map((u) => u.combo && u.combo.kind);
+  assert.equal([...kinds].sort().join(), 'blast,homing,laser');
 });
 
 // ------------------------------------------------------------ ターンと敵の攻撃

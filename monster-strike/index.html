@@ -533,7 +533,7 @@
   function Battle(data) {
     var self = this;
     this.units = {};
-    data.units.forEach(function (u) { self.units[u.id] = { id: u.id, atk: u.atk, shot: u.shot }; });
+    data.units.forEach(function (u) { self.units[u.id] = { id: u.id, atk: u.atk, shot: u.shot, combo: u.combo || null }; });
     this.stage = data.stage;
     this.teamHpMax = data.stage.teamHp;
     this.teamHp = this.teamHpMax;
@@ -541,7 +541,9 @@
     this.turn = 1;
     this.enemies = [];
     this.state = 'playing';   // playing | won | lost
-    this.stats = { damage: 0, hits: 0, weak: 0, kills: 0 };
+    this.stats = { damage: 0, hits: 0, weak: 0, kills: 0, combos: 0 };
+    this.comboFired = {};     // このターンに友情コンボを出した味方（1ショット1回）
+    this.combos = [];         // 発動した友情コンボ（演出用。drainCombos() で受け取る）
   }
 
   Battle.WEAK_RATE = WEAK_RATE;
@@ -585,7 +587,8 @@
    *  反射で当たる(hit)      : 攻撃力 ×1（接触点が弱点なら ×3）
    *  貫通で突入する(pierce) : 攻撃力 ×1
    *  貫通で弱点を通る(weak) : 攻撃力 ×3（突入のぶんとは別に入る）
-   * 返り値はダメージの記録（演出用）。
+   *  味方に触れる(hit / pierce の相手が味方) : その味方の友情コンボ（1ショット1回）
+   * 返り値はダメージの記録（演出用）。友情コンボのぶんは combo に種類が入る。
    */
   Battle.prototype.apply = function (events, world) {
     var out = [];
@@ -594,6 +597,10 @@
       var ev = events[i];
       var u = this.units[ev.id];
       if (!u) continue;
+      if ((ev.type === 'hit' || ev.type === 'pierce') && this.units[ev.other]) {
+        this._combo(ev.other, ev.id, world, out);
+        continue;
+      }
       var weak;
       if (ev.type === 'hit') weak = !!ev.weak;
       else if (ev.type === 'pierce') weak = false;
@@ -601,17 +608,84 @@
       else continue;
       var e = this.enemy(ev.other);
       if (!e || !e.alive) continue;
-      var dmg = Math.round(u.atk * (weak ? WEAK_RATE : 1));
-      var dealt = Math.min(dmg, e.hp);
-      e.hp -= dealt;
-      this.stats.damage += dealt;
-      this.stats.hits++;
       if (weak) this.stats.weak++;
-      var rec = { unit: u.id, enemy: e.id, damage: dmg, weak: weak, x: ev.x, y: ev.y, killed: false };
-      if (e.hp <= 0) rec.killed = this.kill(e.id, world);
-      out.push(rec);
+      out.push(this._damage(e, u.id, Math.round(u.atk * (weak ? WEAK_RATE : 1)), weak, ev.x, ev.y, null, world));
     }
     return out;
+  };
+
+  Battle.prototype._damage = function (e, unitId, dmg, weak, x, y, combo, world) {
+    var dealt = Math.min(dmg, e.hp);
+    e.hp -= dealt;
+    this.stats.damage += dealt;
+    this.stats.hits++;
+    var rec = { unit: unitId, enemy: e.id, damage: dmg, weak: weak, x: x, y: y, killed: false, combo: combo };
+    if (e.hp <= 0) rec.killed = this.kill(e.id, world);
+    return rec;
+  };
+
+  /** 点 (x, y) から敵の表面までの距離（中にいれば 0） */
+  function gapTo(d, x, y) {
+    if (d.shape === 'rect') {
+      var dx = Math.max(0, Math.abs(x - d.x) - d.w / 2), dy = Math.max(0, Math.abs(y - d.y) - d.h / 2);
+      return Math.hypot(dx, dy);
+    }
+    return Math.max(0, Math.hypot(x - d.x, y - d.y) - d.r);
+  }
+
+  /**
+   * 友情コンボ。ダメージはその場で入る（倒した敵はすぐ消える）。
+   * 画面側は drainCombos() で発動の記録を受け取り、弾やビームを見せる。
+   */
+  Battle.prototype._combo = function (allyId, byId, world, out) {
+    var ally = this.units[allyId];
+    if (!ally.combo || this.comboFired[allyId] || allyId === byId) return;
+    var body = world.get(allyId);
+    if (!body) return;
+    this.comboFired[allyId] = true;
+    this.stats.combos++;
+    var c = ally.combo, x = body.x, y = body.y, self = this;
+    var fired = { ally: allyId, by: byId, kind: c.kind, name: c.name, x: x, y: y, hits: [], spec: c };
+    function hit(e, px, py) {
+      var rec = self._damage(e, allyId, c.power, false, px, py, c.kind, world);
+      out.push(rec);
+      fired.hits.push(rec);
+    }
+    var alive = this.alive(), i, e, d;
+    if (c.kind === 'laser') {
+      var hw = c.width / 2;
+      for (i = 0; i < alive.length; i++) {
+        e = alive[i]; d = e.def;
+        var ex = d.shape === 'rect' ? d.w / 2 : d.r, ey = d.shape === 'rect' ? d.h / 2 : d.r;
+        if (Math.abs(d.y - y) <= ey + hw) hit(e, d.x, y);                   // 横のビーム
+        if (e.alive && Math.abs(d.x - x) <= ex + hw) hit(e, x, d.y);        // 縦のビーム
+      }
+    } else if (c.kind === 'blast') {
+      for (i = 0; i < alive.length; i++) {
+        e = alive[i];
+        if (gapTo(e.def, x, y) <= c.radius) hit(e, e.def.x, e.def.y);
+      }
+    } else if (c.kind === 'homing') {
+      // 近い敵から順に1発ずつ配って一巡したら最初に戻る。倒れた敵は飛ばす
+      var order = alive.slice().sort(function (a, b) { return gapTo(a.def, x, y) - gapTo(b.def, x, y); });
+      var cursor = 0;
+      for (i = 0; i < c.count; i++) {
+        e = null;
+        for (var k = 0; k < order.length; k++) {
+          var cand = order[(cursor + k) % order.length];
+          if (cand.alive) { e = cand; cursor = (cursor + k + 1) % order.length; break; }
+        }
+        if (!e) break;
+        hit(e, e.def.x, e.def.y);
+      }
+    }
+    this.combos.push(fired);
+  };
+
+  Battle.prototype.drainCombos = function () {
+    var c = this.combos;
+    this.combos = [];
+    return c;
   };
 
   Battle.prototype.waveCleared = function () {
@@ -638,6 +712,7 @@
   Battle.prototype.endTurn = function (world) {
     if (this.state !== 'playing') return { type: this.state, attacks: [] };
     this.turn++;
+    this.comboFired = {};
     if (this.waveCleared()) {
       if (this.wave + 1 < this.stage.waves.length) {
         this.spawnWave(world);
@@ -677,7 +752,10 @@
     b.enemies = this.enemies.map(function (e) {
       return { id: e.id, def: e.def, hp: e.hp, maxHp: e.maxHp, counter: e.counter, alive: e.alive };
     });
-    b.stats = { damage: this.stats.damage, hits: this.stats.hits, weak: this.stats.weak, kills: this.stats.kills };
+    b.stats = { damage: this.stats.damage, hits: this.stats.hits, weak: this.stats.weak, kills: this.stats.kills, combos: this.stats.combos };
+    b.comboFired = {};
+    for (var k in this.comboFired) b.comboFired[k] = true;
+    b.combos = [];
     return b;
   };
 
@@ -690,11 +768,22 @@
 (function (root) {
   'use strict';
 
+  /**
+   * combo: 友情コンボ。動いている味方がこのキャラに触れると、1ショットに1回だけ発動する。
+   *  homing : count 発の弾が近い敵から順に飛ぶ（1発 power）
+   *  laser  : このキャラを通る縦・横の2本のビーム（幅 width）。触れた敵に power
+   *  blast  : このキャラを中心に半径 radius の爆発。範囲内の敵に power
+   */
   var units = [
-    { id: 'A', name: 'A', shot: 'reflect', atk: 1500, x: 170, y: 690, r: 30,
-      colors: ['#c9fbff', '#39b8ff', '#0b3f8a'], accent: '#3cc8ff' },
-    { id: 'B', name: 'B', shot: 'pierce', atk: 1800, x: 370, y: 690, r: 30,
-      colors: ['#ffe7b8', '#ff7a45', '#8a1f14'], accent: '#ff7a45' }
+    { id: 'A', name: 'A', shot: 'reflect', atk: 1500, x: 130, y: 690, r: 30,
+      colors: ['#c9fbff', '#39b8ff', '#0b3f8a'], accent: '#3cc8ff',
+      combo: { kind: 'homing', name: 'ホーミング', count: 6, power: 500 } },
+    { id: 'B', name: 'B', shot: 'pierce', atk: 1800, x: 270, y: 715, r: 30,
+      colors: ['#ffe7b8', '#ff7a45', '#8a1f14'], accent: '#ff7a45',
+      combo: { kind: 'laser', name: 'クロスレーザー', power: 1800, width: 34 } },
+    { id: 'C', name: 'C', shot: 'reflect', atk: 1300, x: 410, y: 690, r: 30,
+      colors: ['#fff3c2', '#f5b82e', '#7a4d06'], accent: '#f5c451',
+      combo: { kind: 'blast', name: '爆発', power: 2500, radius: 150 } }
   ];
 
   var SLIME = ['#c8ffab', '#3fca6b', '#0f5a33'];
@@ -707,7 +796,7 @@
    */
   var stage = {
     name: 'はじまりの洞窟',
-    teamHp: 32000,
+    teamHp: 28000,
     waves: [
       { enemies: [
         { id: 'w1-slime-l', name: 'スライム', look: 'slime', colors: SLIME, shape: 'circle', x: 120, y: 220, r: 40,
@@ -719,7 +808,7 @@
       ] },
       { enemies: [
         { id: 'w2-dragon', name: 'レッドドラゴン', boss: true, look: 'dragon', shape: 'circle', x: 270, y: 250, r: 84,
-          hp: 45000, atk: 6000, turns: 3, attack: 'all', weak: [{ id: 'belly', dx: 0, dy: 84, r: 22 }] },
+          hp: 55000, atk: 6000, turns: 3, attack: 'all', weak: [{ id: 'belly', dx: 0, dy: 84, r: 22 }] },
         { id: 'w2-bat-l', name: 'コウモリ', look: 'slime', colors: BAT, shape: 'circle', x: 100, y: 470, r: 32,
           hp: 5000, atk: 1500, turns: 2, attack: 'single' },
         { id: 'w2-bat-r', name: 'コウモリ', look: 'slime', colors: BAT, shape: 'circle', x: 440, y: 470, r: 32,
@@ -774,13 +863,13 @@
   };
   var shownHp = 0;    // 画面に出しているチームHP（敵の攻撃が当たった瞬間に減らす）
   var pull = null;    // { pointerId, sx, sy, dx, dy, aim }
-  var fx = { particles: [], rings: [], texts: [], shake: 0, hitStop: 0, hurt: 0 };
+  var fx = { particles: [], rings: [], texts: [], bullets: [], beams: [], blasts: [], shake: 0, hitStop: 0, hurt: 0 };
 
   function buildWorld() {
     world = new P.World(cfgOverrides);
     units = D.units.map(function (u) {
       var b = world.add({ id: u.id, kind: 'unit', shot: u.shot, x: u.x, y: u.y, r: u.r });
-      return { def: u, body: b, facing: -Math.PI / 2, squash: 0, trail: [] };
+      return { def: u, body: b, facing: -Math.PI / 2, squash: 0, trail: [], glow: 0 };
     });
     battle = new BT.Battle(D);
     battle.spawnWave(world);
@@ -792,6 +881,7 @@
     shownHp = battle.teamHp;
     pull = null;
     fx.particles.length = 0; fx.rings.length = 0; fx.texts.length = 0;
+    fx.bullets.length = 0; fx.beams.length = 0; fx.blasts.length = 0;
     fx.shake = 0; fx.hitStop = 0; fx.hurt = 0;
     canvas.classList.remove('pulling');
     el.result.hidden = true;
@@ -870,6 +960,10 @@
       wave: function () { tone(440, 440, 0.12, 'square', 0.06); tone(660, 660, 0.12, 'square', 0.06, 0.13); tone(880, 880, 0.2, 'square', 0.06, 0.26); },
       win: function () { [523, 659, 784, 1047].forEach(function (f, i) { tone(f, f, 0.25, 'triangle', 0.1, i * 0.12); }); },
       lose: function () { [392, 330, 262].forEach(function (f, i) { tone(f, f * 0.97, 0.35, 'sawtooth', 0.06, i * 0.22); }); },
+      combo: function () { tone(880, 1320, 0.1, 'triangle', 0.1); tone(1320, 1760, 0.14, 'triangle', 0.09, 0.08); },
+      laser: function () { tone(1800, 300, 0.45, 'sawtooth', 0.07); noise(0.3, 0.12, 4000); },
+      blast: function () { noise(0.6, 0.4, 250); tone(160, 40, 0.5, 'sine', 0.25); },
+      shot: function () { tone(1400, 2200, 0.05, 'sine', 0.05); },
       tick: function () { tone(1200, 1000, 0.03, 'sine', 0.04); },
       stop: function () { tone(330, 300, 0.1, 'sine', 0.05); }
     };
@@ -1040,29 +1134,133 @@
   function handleDamage(recs) {
     for (var i = 0; i < recs.length; i++) {
       var r = recs[i];
-      game.shotHits++;
-      game.shotDamage += r.damage;
-      var jx = (Math.random() - 0.5) * 24;
-      if (r.weak) {
-        floatText(r.x + jx, r.y - 18, String(r.damage), '#ffd166', 26, 1.1);
-        floatText(r.x, r.y - 48, 'WEAK!', '#ffe08a', 18, 0.9);
-        fx.hitStop = Math.max(fx.hitStop, 0.07);
-        fx.shake = Math.max(fx.shake, 9);
-        sound.weak();
-      } else {
-        floatText(r.x + jx, r.y - 14, String(r.damage), '#ffffff', 18, 0.8);
+      if (r.combo === 'homing') continue;   // 弾が届いたときに見せる（updateCombos）
+      showDamage(r);
+    }
+  }
+
+  function showDamage(r) {
+    game.shotHits++;
+    game.shotDamage += r.damage;
+    var jx = (Math.random() - 0.5) * 24;
+    if (r.weak) {
+      floatText(r.x + jx, r.y - 18, String(r.damage), '#ffd166', 26, 1.1);
+      floatText(r.x, r.y - 48, 'WEAK!', '#ffe08a', 18, 0.9);
+      fx.hitStop = Math.max(fx.hitStop, 0.07);
+      fx.shake = Math.max(fx.shake, 9);
+      sound.weak();
+    } else {
+      floatText(r.x + jx, r.y - 14, String(r.damage), r.combo ? '#b8f3ff' : '#ffffff', r.combo ? 16 : 18, 0.8);
+    }
+    if (r.killed) {
+      var d = battle.enemy(r.enemy).def;
+      var size = d.shape === 'rect' ? Math.max(d.w, d.h) / 2 : d.r;
+      burst(d.x, d.y, 0, -1, 40, '#ffd166', 520);
+      burst(d.x, d.y, 0, 1, 30, '#ffffff', 420);
+      ring(d.x, d.y, size * 1.6, '#ffd166');
+      ring(d.x, d.y, size * 1.1, '#ffffff');
+      floatText(d.x, d.y - size - 10, d.boss ? 'BOSS BREAK!' : 'BREAK', '#ffd166', d.boss ? 30 : 20, 1.2);
+      fx.shake = Math.max(fx.shake, d.boss ? 18 : 10);
+      fx.hitStop = Math.max(fx.hitStop, d.boss ? 0.25 : 0.1);
+      sound.kill();
+    }
+  }
+
+  // ---------------------------------------------------------------- 友情コンボの演出
+  //（ダメージは Battle がその場で入れている。ここは見せ方だけ）
+  var COMBO_COLOR = { homing: '#7df0ff', laser: '#ff9a6b', blast: '#ffd166' };
+
+  function startCombos(list) {
+    for (var i = 0; i < list.length; i++) {
+      var c = list[i], u = unitById(c.ally), col = COMBO_COLOR[c.kind];
+      u.glow = 1;
+      u.squash = 1;
+      ring(c.x, c.y, 50, col);
+      floatText(c.x, c.y - 58, c.name, col, 18, 1.1);
+      floatText(c.x, c.y - 80, '友情コンボ!', '#ffffff', 13, 1.1);
+      fx.hitStop = Math.max(fx.hitStop, 0.05);
+      sound.combo();
+      if (c.kind === 'laser') {
+        fx.beams.push({ x: c.x, y: c.y, w: c.spec.width, life: 0, max: 0.55, color: col });
+        fx.shake = Math.max(fx.shake, 6);
+        sound.laser();
+      } else if (c.kind === 'blast') {
+        fx.blasts.push({ x: c.x, y: c.y, r: c.spec.radius, life: 0, max: 0.55 });
+        burst(c.x, c.y, 0, -1, 40, '#ffb347', 520);
+        fx.shake = Math.max(fx.shake, 12);
+        sound.blast();
+      } else if (c.kind === 'homing') {
+        for (var j = 0; j < c.hits.length; j++) {
+          // 最初は左右に広がって、曲がりながら敵へ向かう
+          var side = j % 2 ? 1 : -1, spread = 90 + 25 * (j >> 1);
+          fx.bullets.push({ sx: c.x, sy: c.y, cx: c.x + side * spread, cy: c.y - 120 - 20 * j,
+            rec: c.hits[j], t: -0.06 * j, dur: 0.32, px: c.x, py: c.y });
+        }
       }
-      if (r.killed) {
-        var e = battle.enemy(r.enemy), d = e.def;
-        var size = d.shape === 'rect' ? Math.max(d.w, d.h) / 2 : d.r;
-        burst(d.x, d.y, 0, -1, 40, '#ffd166', 520);
-        burst(d.x, d.y, 0, 1, 30, '#ffffff', 420);
-        ring(d.x, d.y, size * 1.6, '#ffd166');
-        ring(d.x, d.y, size * 1.1, '#ffffff');
-        floatText(d.x, d.y - size - 10, d.boss ? 'BOSS BREAK!' : 'BREAK', '#ffd166', d.boss ? 30 : 20, 1.2);
-        fx.shake = Math.max(fx.shake, d.boss ? 18 : 10);
-        fx.hitStop = Math.max(fx.hitStop, d.boss ? 0.25 : 0.1);
-        sound.kill();
+    }
+  }
+
+  function updateCombos(dt) {
+    var i;
+    for (i = fx.bullets.length - 1; i >= 0; i--) {
+      var b = fx.bullets[i];
+      var was = b.t;
+      b.t += dt;
+      if (was < 0 && b.t >= 0) sound.shot();
+      if (b.t >= b.dur) {
+        burst(b.rec.x, b.rec.y, 0, -1, 10, '#7df0ff', 300);
+        ring(b.rec.x, b.rec.y, 20, '#7df0ff');
+        showDamage(b.rec);
+        if (foes[b.rec.enemy]) { foes[b.rec.enemy].flash = 1; foes[b.rec.enemy].wobble = 1; }
+        fx.bullets.splice(i, 1);
+      }
+    }
+    for (i = fx.beams.length - 1; i >= 0; i--) { fx.beams[i].life += dt; if (fx.beams[i].life >= fx.beams[i].max) fx.beams.splice(i, 1); }
+    for (i = fx.blasts.length - 1; i >= 0; i--) { fx.blasts[i].life += dt; if (fx.blasts[i].life >= fx.blasts[i].max) fx.blasts.splice(i, 1); }
+  }
+
+  function bulletPos(b, f) {
+    var tx = b.rec.x, ty = b.rec.y, g = 1 - f;
+    return { x: g * g * b.sx + 2 * g * f * b.cx + f * f * tx, y: g * g * b.sy + 2 * g * f * b.cy + f * f * ty };
+  }
+
+  function drawCombos() {
+    var i, W = world.cfg.field.w, H = world.cfg.field.h;
+    for (i = 0; i < fx.blasts.length; i++) {
+      var bl = fx.blasts[i], f = bl.life / bl.max, a = 1 - f;
+      var rr = bl.r * Math.min(1, 0.3 + f * 2.2);
+      var g = ctx.createRadialGradient(bl.x, bl.y, 0, bl.x, bl.y, rr);
+      g.addColorStop(0, 'rgba(255,250,220,' + (0.9 * a).toFixed(3) + ')');
+      g.addColorStop(0.5, 'rgba(255,170,60,' + (0.6 * a).toFixed(3) + ')');
+      g.addColorStop(1, 'rgba(255,90,40,0)');
+      ctx.fillStyle = g;
+      ctx.beginPath(); ctx.arc(bl.x, bl.y, rr, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = 'rgba(255,220,140,' + a.toFixed(3) + ')'; ctx.lineWidth = 4 * a + 1;
+      ctx.beginPath(); ctx.arc(bl.x, bl.y, bl.r, 0, Math.PI * 2); ctx.stroke();
+    }
+    for (i = 0; i < fx.beams.length; i++) {
+      var bm = fx.beams[i], fa = 1 - bm.life / bm.max;
+      var grow = Math.min(1, bm.life / 0.08), w = bm.w * (0.4 + 0.6 * grow) * (0.6 + 0.4 * fa);
+      ctx.globalAlpha = fa;
+      ctx.fillStyle = 'rgba(255,120,80,.45)';
+      ctx.fillRect(0, bm.y - w, W, w * 2);
+      ctx.fillRect(bm.x - w, 0, w * 2, H);
+      ctx.fillStyle = 'rgba(255,200,160,.9)';
+      ctx.fillRect(0, bm.y - w / 2, W, w);
+      ctx.fillRect(bm.x - w / 2, 0, w, H);
+      ctx.fillStyle = '#fff';
+      ctx.fillRect(0, bm.y - w / 6, W, w / 3);
+      ctx.fillRect(bm.x - w / 6, 0, w / 3, H);
+      ctx.globalAlpha = 1;
+    }
+    for (i = 0; i < fx.bullets.length; i++) {
+      var b = fx.bullets[i];
+      if (b.t < 0) continue;
+      var f2 = Math.min(1, b.t / b.dur);
+      for (var k = 4; k >= 0; k--) {
+        var p = bulletPos(b, Math.max(0, f2 - k * 0.05));
+        ctx.fillStyle = k ? 'rgba(125,240,255,' + (0.35 - k * 0.06).toFixed(3) + ')' : '#e8fdff';
+        ctx.beginPath(); ctx.arc(p.x, p.y, k ? 9 - k : 7, 0, Math.PI * 2); ctx.fill();
       }
     }
   }
@@ -1092,6 +1290,7 @@
           if (evs.length) {
             handleEvents(evs);
             handleDamage(battle.apply(evs, world));
+            startCombos(battle.drainCombos());
             if (fx.hitStop > 0) { game.acc = 0; break; }
           }
         }
@@ -1108,7 +1307,8 @@
         game.acc = 0;
       }
     } else if (game.phase === 'settling') {
-      game.timer -= sdt;
+      // 友情コンボの弾が飛んでいる間はターンを締めない
+      if (!fx.bullets.length) game.timer -= sdt;
       if (game.mover && game.mover.trail.length) game.mover.trail.shift();
       if (game.timer <= 0) finishTurn();
     } else if (game.phase === 'enemy') {
@@ -1121,7 +1321,11 @@
       if (game.timer <= 0) showResult(game.ending);
     }
 
-    for (var i = 0; i < units.length; i++) units[i].squash = Math.max(0, units[i].squash - dt * 5);
+    for (var i = 0; i < units.length; i++) {
+      units[i].squash = Math.max(0, units[i].squash - dt * 5);
+      units[i].glow = Math.max(0, units[i].glow - dt * 1.6);
+    }
+    updateCombos(dt);
     for (var id in foes) {
       var f = foes[id];
       f.flash = Math.max(0, f.flash - dt * 6);
@@ -1240,7 +1444,7 @@
     else if (game.phase === 'enemy') help = '敵の攻撃！ 数字が<b>0</b>になった敵が攻撃してきます。';
     else if (game.phase === 'wave') help = '次のウェーブ！';
     else if (game.phase === 'won' || game.phase === 'lost' || game.phase === 'ending') help = '';
-    else help = '<b>' + u.def.name + '（' + SHOT_LABEL[u.def.shot] + '）</b>の番。引っぱって離すと発射。光る<b>弱点</b>に当てると3倍ダメージ。';
+    else help = '<b>' + u.def.name + '（' + SHOT_LABEL[u.def.shot] + '）</b>の番。止まっている<b>味方に当てると友情コンボ</b>、光る<b>弱点</b>は3倍ダメージ。';
     el.help.innerHTML = help;
     canvas.dataset.phase = game.phase;
   }
@@ -1363,6 +1567,7 @@
     for (i = 0; i < units.length; i++) if (units[i] !== game.mover) drawUnit(units[i], t);
     if (game.mover) drawUnit(game.mover, t);
     for (i = 0; i < alive.length; i++) drawEnemyUi(alive[i], t);
+    drawCombos();
     if (game.attack) drawAttack(game.attack);
     if (pull) drawPullOrigin(pull);
     drawFx();
@@ -1658,6 +1863,14 @@
     ctx.fillStyle = 'rgba(0,0,0,.4)';
     ctx.beginPath(); ctx.ellipse(3, r * 0.82, r * 0.9, r * 0.32, 0, 0, Math.PI * 2); ctx.fill();
 
+    if (u.glow > 0) {
+      var gg = ctx.createRadialGradient(0, 0, r * 0.8, 0, 0, r * 2.2);
+      gg.addColorStop(0, 'rgba(255,255,255,' + (0.6 * u.glow).toFixed(3) + ')');
+      gg.addColorStop(1, 'rgba(255,255,255,0)');
+      ctx.fillStyle = gg;
+      ctx.beginPath(); ctx.arc(0, 0, r * 2.2, 0, Math.PI * 2); ctx.fill();
+    }
+
     if (isActive) {
       var pulse = 0.5 + 0.5 * Math.sin(t * 5);
       ctx.strokeStyle = 'rgba(255,209,102,' + (0.45 + 0.4 * pulse).toFixed(3) + ')';
@@ -1712,6 +1925,11 @@
     ctx.fillStyle = u.def.accent;
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     ctx.fillText(label, b.x, ly + 9.5);
+    if (u.def.combo) {
+      ctx.font = '700 10px "Hiragino Sans","Noto Sans JP",system-ui,sans-serif';
+      ctx.fillStyle = 'rgba(220,230,255,.75)';
+      ctx.fillText('友情: ' + u.def.combo.name, b.x, ly + 27);
+    }
   }
 
   function drawGuide(u, aim, t) {

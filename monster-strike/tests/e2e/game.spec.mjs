@@ -6,7 +6,7 @@ test('起動するとフィールドが描かれ、Aの番から始まる', asyn
   await expect(page.locator('#field')).toBeVisible();
   await expect(page.locator('#turn')).toHaveText('1');
   await expect(page.locator('#wave')).toHaveText('1/2');
-  await expect(page.locator('#hp-text')).toHaveText('32000 / 32000');
+  await expect(page.locator('#hp-text')).toHaveText('28000 / 28000');
   expect(await page.evaluate(() => window.__ms.battle.alive().length)).toBe(3);
   await expect(page.locator('#active-name')).toHaveText('A');
   await expect(page.locator('#active-type')).toHaveText('反射');
@@ -113,7 +113,8 @@ test('B を押すと B に交代して撃てる（貫通タイプは敵をすり
   expect(golem[0]).toBeLessThan(golem[1]);
   await waitPhase(page, 'ready');
   await expect(page.locator('#turn')).toHaveText('2');
-  await expect(page.locator('#active-name')).toHaveText('A');
+  // 順番は A → B → C。B の次は C
+  await expect(page.locator('#active-name')).toHaveText('C');
   await expectNoErrors(errors);
 });
 
@@ -162,7 +163,7 @@ test('リセットで配置とターンが初めに戻る', async ({ page }) => 
   await expect(page.locator('#turn')).toHaveText('2');
   await page.locator('#btn-reset').click();
   await expect(page.locator('#turn')).toHaveText('1');
-  expect(await body(page, 'A')).toMatchObject({ x: 170, y: 690 });
+  expect(await body(page, 'A')).toMatchObject({ x: 130, y: 690 });
   await expect(page.locator('#wave')).toHaveText('1/2');
   expect(await page.evaluate(() => window.__ms.battle.alive().length)).toBe(3);
   await expectNoErrors(errors);
