@@ -5,6 +5,9 @@ test('起動するとフィールドが描かれ、Aの番から始まる', asyn
   const errors = await open(page);
   await expect(page.locator('#field')).toBeVisible();
   await expect(page.locator('#turn')).toHaveText('1');
+  await expect(page.locator('#wave')).toHaveText('1/2');
+  await expect(page.locator('#hp-text')).toHaveText('32000 / 32000');
+  expect(await page.evaluate(() => window.__ms.battle.alive().length)).toBe(3);
   await expect(page.locator('#active-name')).toHaveText('A');
   await expect(page.locator('#active-type')).toHaveText('反射');
   const box = await page.locator('#field').boundingBox();
@@ -89,48 +92,50 @@ test('動いている間は次の発射を受け付けない', async ({ page }) 
   await expectNoErrors(errors);
 });
 
-test('B を押すと B に交代して撃てる（貫通タイプは的をすり抜ける）', async ({ page }) => {
+test('B を押すと B に交代して撃てる（貫通タイプは敵をすり抜けてダメージを与える）', async ({ page }) => {
   const errors = await open(page);
   await page.evaluate(() => window.__ms.setTimeScale(4));
-  // B を的 t1 の真下へ置き直してから真上へ撃つ
-  await page.evaluate(() => { const b = window.__ms.world.get('B'); b.x = 270; b.y = 560; });
+  // B をゴーレム（矩形。y=420, 高さ56）の真下へ置き直してから真上へ撃つ
+  await page.evaluate(() => { const b = window.__ms.world.get('B'); b.x = 270; b.y = 600; });
   await pullUnit(page, 'B', 0, 170);
   await expect(page.locator('#active-name')).toHaveText('B');
   const seen = await page.evaluate(() => new Promise((resolve) => {
-    // 的の向こう側（上）まで抜けたかを見張る
     const t0 = performance.now();
     (function watch() {
       const b = window.__ms.body('B');
-      if (b.y < 300 - 50 - 30) return resolve(true);
+      if (b.y < 420 - 28 - 30) return resolve(true);
       if (!b.moving || performance.now() - t0 > 8000) return resolve(false);
       requestAnimationFrame(watch);
     })();
   }));
   expect(seen).toBe(true);
+  const golem = await page.evaluate(() => { const e = window.__ms.battle.enemy('w1-golem'); return [e.hp, e.maxHp]; });
+  expect(golem[0]).toBeLessThan(golem[1]);
   await waitPhase(page, 'ready');
   await expect(page.locator('#turn')).toHaveText('2');
-  // 次は A の番に戻る
   await expect(page.locator('#active-name')).toHaveText('A');
   await expectNoErrors(errors);
 });
 
-test('反射タイプは的を通り抜けない', async ({ page }) => {
+test('反射タイプは敵を通り抜けず、当たるとダメージを与える', async ({ page }) => {
   const errors = await open(page);
   await page.evaluate(() => window.__ms.setTimeScale(4));
-  await page.evaluate(() => { const a = window.__ms.world.get('A'); a.x = 270; a.y = 560; });
+  await page.evaluate(() => { const a = window.__ms.world.get('A'); a.x = 270; a.y = 600; });
   await pullUnit(page, 'A', 0, 170);
   const minY = await page.evaluate(() => new Promise((resolve) => {
     let min = Infinity;
     (function watch() {
       const a = window.__ms.body('A');
-      // 真上に撃ったので、t1(y=300) の上側に回り込むには壁で何度も跳ねる必要がある。最初の一往復だけ見る
       min = Math.min(min, a.y);
       if (a.vy > 0 || !a.moving) return resolve(min);
       requestAnimationFrame(watch);
     })();
   }));
-  // t1 の下端（300+50）+ A の半径 より上へは行っていない
-  expect(minY).toBeGreaterThanOrEqual(300 + 50 + 30 - 1);
+  // ゴーレムの下の辺（420+28）+ A の半径 より上へは行っていない
+  expect(minY).toBeGreaterThanOrEqual(420 + 28 + 30 - 1);
+  const hp = await page.evaluate(() => window.__ms.battle.enemy('w1-golem').hp);
+  expect(hp).toBeLessThan(12000);
+  await waitPhase(page, 'ready');
   await expectNoErrors(errors);
 });
 
@@ -157,6 +162,8 @@ test('リセットで配置とターンが初めに戻る', async ({ page }) => 
   await expect(page.locator('#turn')).toHaveText('2');
   await page.locator('#btn-reset').click();
   await expect(page.locator('#turn')).toHaveText('1');
-  expect(await body(page, 'A')).toMatchObject({ x: 170, y: 660 });
+  expect(await body(page, 'A')).toMatchObject({ x: 170, y: 690 });
+  await expect(page.locator('#wave')).toHaveText('1/2');
+  expect(await page.evaluate(() => window.__ms.battle.alive().length)).toBe(3);
   await expectNoErrors(errors);
 });

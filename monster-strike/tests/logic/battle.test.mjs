@@ -1,0 +1,295 @@
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import { loadAll, newGame, shoot } from './helpers.mjs';
+
+const mods = loadAll();
+const { P, B, D } = mods;
+const C = P.DEFAULTS;
+const atk = (id) => D.units.find((u) => u.id === id).atk;
+const def = (id) => D.stage.waves.flatMap((w) => w.enemies).find((e) => e.id === id);
+
+/** 味方1体と敵1体だけの小さな戦場 */
+function duel(unit, enemy, stage) {
+  const units = [{ id: unit.id, shot: unit.shot, atk: unit.atk ?? 1000 }];
+  const data = { units, stage: stage ?? { teamHp: 10000, waves: [{ enemies: [enemy] }] } };
+  const world = new P.World();
+  world.add({ id: unit.id, kind: 'unit', shot: unit.shot, x: unit.x, y: unit.y, r: 30 });
+  const battle = new B.Battle(data);
+  battle.spawnWave(world);
+  return { world, battle };
+}
+
+const SLIME = { id: 'e', shape: 'circle', x: 270, y: 300, r: 40, hp: 100000, atk: 1000, turns: 3, attack: 'single' };
+const WALLRECT = { id: 'e', shape: 'rect', x: 270, y: 300, w: 200, h: 60, hp: 100000, atk: 1000, turns: 3, attack: 'all' };
+const BOSS = { id: 'e', shape: 'circle', x: 270, y: 300, r: 80, hp: 100000, atk: 1000, turns: 3, attack: 'all',
+  weak: [{ id: 'w', dx: 0, dy: 80, r: 22 }] };
+
+// ------------------------------------------------------------ 矩形の当たり判定
+test('反射タイプは矩形の辺で鏡映しに跳ね返る', () => {
+  const { world } = duel({ id: 'A', shot: 'reflect', x: 200, y: 600 }, WALLRECT);
+  world.setVelocity('A', 300, -1200);
+  world.drainEvents();
+  for (let i = 0; i < 400; i++) {
+    const a = world.get('A');
+    const [bvx, bvy] = [a.vx, a.vy];
+    world.step();
+    const hit = world.drainEvents().find((e) => e.type === 'hit');
+    if (hit) {
+      assert.equal(hit.other, 'e');
+      assert.deepEqual([hit.nx, hit.ny], [0, 1], '下の辺の法線');
+      assert.ok(a.vy > 0 && a.vx > 0, '横向きはそのまま、縦だけ返る');
+      assert.ok(Math.abs(a.vx / a.vy + bvx / bvy) < 1e-9, '角度が保たれる');
+      assert.equal(hit.y, 330, '接触点は下の辺の上');
+      return;
+    }
+  }
+  assert.fail('当たらなかった');
+});
+
+test('反射タイプは矩形の角に当たると、角から外向きに跳ね返る', () => {
+  const { world } = duel({ id: 'A', shot: 'reflect', x: 140, y: 600 }, WALLRECT);
+  // 左下の角 (170, 330) をねらう
+  const dx = 170 - 140 - 10, dy = 330 - 600;
+  const s = 1500 / Math.hypot(dx, dy);
+  world.setVelocity('A', dx * s, dy * s);
+  const ev = [];
+  while (!world.isSettled() && ev.every((e) => e.type !== 'hit')) { world.step(); ev.push(...world.drainEvents()); }
+  const hit = ev.find((e) => e.type === 'hit');
+  assert.ok(hit);
+  assert.ok(hit.nx < 0 && hit.ny > 0, `角の法線は左下向き (${hit.nx}, ${hit.ny})`);
+  assert.deepEqual([hit.x, hit.y], [170, 330]);
+});
+
+test('貫通タイプは矩形もすり抜ける', () => {
+  const { world } = duel({ id: 'B', shot: 'pierce', x: 270, y: 600 }, WALLRECT);
+  world.setVelocity('B', 0, -1800);
+  const ev = [];
+  let passed = false;
+  while (!world.isSettled()) {
+    world.step();
+    ev.push(...world.drainEvents());
+    if (world.get('B').y < 270 - 30) passed = true;
+  }
+  assert.ok(ev.some((e) => e.type === 'pierce' && e.other === 'e'));
+  assert.ok(!ev.some((e) => e.type === 'hit'));
+  assert.ok(passed, '矩形の向こう側まで抜けた');
+});
+
+test('矩形の中で止まった貫通タイプは外へ押し出される', () => {
+  for (let s = 300; s <= 900; s += 25) {
+    const { world } = duel({ id: 'B', shot: 'pierce', x: 270, y: 420 }, WALLRECT);
+    world.setVelocity('B', 0, -s);
+    while (!world.isSettled()) world.step();
+    const b = world.get('B');
+    const c = P.contact(b, world.get('e'));
+    assert.ok(!c || c.depth <= 0.01, `速さ ${s} で重なったまま止まった`);
+  }
+});
+
+// ------------------------------------------------------------ ダメージと弱点
+test('反射タイプが敵に当たると攻撃力ぶんのダメージ', () => {
+  const { world, battle } = duel({ id: 'A', shot: 'reflect', atk: 1234, x: 270, y: 600 }, SLIME);
+  const recs = shoot(world, battle, 'A', 0, -700);
+  assert.ok(recs.length >= 1);
+  assert.equal(recs[0].damage, 1234);
+  assert.equal(recs[0].weak, false);
+  assert.equal(battle.enemy('e').hp, 100000 - recs.reduce((a, r) => a + r.damage, 0));
+});
+
+test('反射タイプが弱点に当たると3倍', () => {
+  const { world, battle } = duel({ id: 'A', shot: 'reflect', atk: 1000, x: 270, y: 600 }, BOSS);
+  const recs = shoot(world, battle, 'A', 0, -700);
+  assert.equal(recs[0].weak, true);
+  assert.equal(recs[0].damage, 1000 * B.Battle.WEAK_RATE);
+});
+
+test('弱点から外れた場所に当たると等倍', () => {
+  const { world, battle } = duel({ id: 'A', shot: 'reflect', atk: 1000, x: 150, y: 600 }, BOSS);
+  // 左斜め下から、弱点（真下）ではない所に当てる
+  const recs = shoot(world, battle, 'A', 100, -700);
+  assert.ok(recs.length >= 1);
+  assert.equal(recs[0].weak, false);
+  assert.equal(recs[0].damage, 1000);
+});
+
+test('貫通タイプが弱点を通ると、突入の等倍に加えて弱点の3倍が入る', () => {
+  const { world, battle } = duel({ id: 'B', shot: 'pierce', atk: 1000, x: 270, y: 600 }, BOSS);
+  world.setVelocity('B', 0, -1600);
+  world.drainEvents();
+  const recs = [];
+  // 最初の通過だけを見る（壁で跳ね返って戻ってくる前）
+  while (world.get('B').vy < 0 && !world.isSettled()) {
+    world.step();
+    recs.push(...battle.apply(world.drainEvents(), world));
+  }
+  // 弱点は縁から少しはみ出しているので、体より先に触れることがある（順序は問わない）
+  const got = recs.map((r) => `${r.damage}:${r.weak}`).sort();
+  assert.deepEqual(got, ['1000:false', '3000:true']);
+});
+
+test('HPが0になった敵は消え、その場所は素通りになる', () => {
+  const weak = { ...SLIME, hp: 500 };
+  const { world, battle } = duel({ id: 'A', shot: 'reflect', atk: 1000, x: 270, y: 600 }, weak);
+  const recs = shoot(world, battle, 'A', 0, -1200);
+  assert.equal(recs.length, 1, '倒した後は当たらない');
+  assert.equal(recs[0].killed, true);
+  assert.equal(recs[0].damage, 1000, '表示は攻撃力そのまま');
+  assert.equal(battle.stats.damage, 500, '集計は実際に削ったぶん');
+  assert.equal(world.get('e'), null);
+  assert.equal(battle.enemy('e').alive, false);
+});
+
+test('貫通中に敵を倒しても、そのあとの摩擦が強いままにならない', () => {
+  const weak = { ...SLIME, hp: 1 };
+  const { world, battle } = duel({ id: 'B', shot: 'pierce', atk: 1000, x: 270, y: 600 }, weak);
+  world.setVelocity('B', 0, -1500);
+  world.drainEvents();
+  while (!world.isSettled()) {
+    world.step();
+    battle.apply(world.drainEvents(), world);
+    if (!battle.enemy('e').alive) break;
+  }
+  assert.deepEqual(Object.keys(world.get('B').overlaps), []);
+});
+
+test('止まっている味方に当たってもダメージにはならない', () => {
+  const { world, battle } = newGame(mods);
+  world.get('A').x = 300;
+  const recs = shoot(world, battle, 'A', -100, 0); // 右へ → B に当たる
+  assert.ok(recs.every((r) => r.enemy !== 'B'));
+});
+
+// ------------------------------------------------------------ ターンと敵の攻撃
+test('ターンの終わりにカウンターが減り、0になった敵が攻撃してカウンターが戻る', () => {
+  const { world, battle } = duel({ id: 'A', shot: 'reflect', x: 270, y: 700 }, { ...SLIME, turns: 2, atk: 1500 });
+  assert.equal(battle.enemy('e').counter, 2);
+  let r = battle.endTurn(world);
+  assert.equal(r.type, 'next');
+  assert.equal(battle.enemy('e').counter, 1);
+  r = battle.endTurn(world);
+  assert.equal(r.type, 'attack');
+  assert.equal(r.attacks.length, 1);
+  assert.deepEqual([r.attacks[0].damage, r.attacks[0].hpAfter, r.attacks[0].target], [1500, 8500, 'A']);
+  assert.equal(battle.teamHp, 8500);
+  assert.equal(battle.enemy('e').counter, 2);
+  assert.equal(battle.turn, 3);
+});
+
+test('チームのHPが0になったら負け。その後は何も起きない', () => {
+  const { world, battle } = duel({ id: 'A', shot: 'reflect', x: 270, y: 700 }, { ...SLIME, turns: 1, atk: 6000 });
+  assert.equal(battle.endTurn(world).type, 'attack');
+  const r = battle.endTurn(world);
+  assert.equal(r.type, 'lost');
+  assert.equal(battle.teamHp, 0);
+  assert.equal(battle.state, 'lost');
+  assert.equal(battle.endTurn(world).type, 'lost');
+  assert.deepEqual(battle.apply([{ type: 'hit', id: 'A', other: 'e' }], world).length, 0);
+});
+
+test('全滅させたターンは敵が攻撃せず、次のウェーブが出る。最後のウェーブを倒せば勝ち', () => {
+  const { world, battle } = newGame(mods);
+  assert.equal(battle.wave, 0);
+  const firstIds = battle.enemies.map((e) => e.id);
+  for (const id of firstIds) battle.kill(id, world);
+  const hp = battle.teamHp;
+  let r = battle.endTurn(world);
+  assert.equal(r.type, 'wave');
+  assert.equal(battle.teamHp, hp);
+  assert.equal(battle.wave, 1);
+  assert.ok(battle.enemies.some((e) => e.def.boss));
+  for (const id of firstIds) assert.equal(world.get(id), null);
+  for (const e of battle.enemies) assert.ok(world.get(e.id));
+
+  for (const e of battle.enemies) battle.kill(e.id, world);
+  r = battle.endTurn(world);
+  assert.equal(r.type, 'won');
+  assert.equal(battle.state, 'won');
+});
+
+test('出現した敵に重なる位置にいた味方は押し出される', () => {
+  const { world, battle } = newGame(mods);
+  for (const e of battle.enemies) battle.kill(e.id, world);
+  const dragon = def('w2-dragon');
+  world.get('A').x = dragon.x; world.get('A').y = dragon.y;
+  battle.endTurn(world);
+  const a = world.get('A');
+  for (const e of battle.enemies) {
+    const c = P.contact(a, world.get(e.id));
+    assert.ok(!c || c.depth <= 0.01, `${e.id} に重なっている`);
+  }
+});
+
+test('単体攻撃はいちばん近い味方をねらう', () => {
+  const { world, battle } = newGame(mods);
+  const slime = battle.enemy('w1-slime-l');
+  slime.counter = 1;
+  world.get('B').x = 130; world.get('B').y = 320;
+  const r = battle.endTurn(world);
+  assert.equal(r.attacks.find((a) => a.enemy === 'w1-slime-l').target, 'B');
+});
+
+test('複製は元の戦闘に影響しない', () => {
+  const { world, battle } = newGame(mods);
+  const c = battle.clone();
+  const w = world.clone();
+  c.kill('w1-golem', w);
+  c.endTurn(w);
+  assert.equal(battle.enemy('w1-golem').alive, true);
+  assert.equal(battle.turn, 1);
+  assert.ok(world.get('w1-golem'));
+});
+
+// ------------------------------------------------------------ ステージの定義
+test('ステージの定義: 敵どうし・味方・壁が重ならず、弱点は敵の縁にある', () => {
+  const W = C.field.w, H = C.field.h;
+  for (const [wi, wave] of D.stage.waves.entries()) {
+    const world = new P.World();
+    for (const u of D.units) world.add({ id: u.id, kind: 'unit', shot: u.shot, x: u.x, y: u.y, r: u.r });
+    for (const e of wave.enemies) {
+      const b = world.add({ id: e.id, kind: 'enemy', shape: e.shape, x: e.x, y: e.y, r: e.r, w: e.w, h: e.h });
+      const ex = e.shape === 'rect' ? e.w / 2 : e.r, ey = e.shape === 'rect' ? e.h / 2 : e.r;
+      // 敵と壁の間を味方が通れる（壁カンができる）
+      assert.ok(e.x - ex >= 64 && e.x + ex <= W - 64 && e.y - ey >= 64, `wave${wi + 1} ${e.id} が壁に近すぎる`);
+      assert.ok(e.hp > 0 && e.atk > 0 && e.turns >= 1 && ['single', 'all'].includes(e.attack));
+      for (const w of e.weak || []) {
+        assert.ok(Math.abs(Math.hypot(w.dx, w.dy) - e.r) < 1, '弱点は縁に置く（反射で当てられるように）');
+      }
+      void b;
+    }
+    for (const u of D.units) assert.equal(world._overlapping(world.get(u.id)), null, `wave${wi + 1} ${u.id} が敵に重なる`);
+    const ids = new Set();
+    for (const e of wave.enemies) { assert.ok(!ids.has(e.id)); ids.add(e.id); }
+  }
+  // 敵の id はステージ全体で一意（World から取り除くときに取り違えない）
+  const all = D.stage.waves.flatMap((w) => w.enemies.map((e) => e.id));
+  assert.equal(new Set(all).size, all.length);
+});
+
+test('ステージで乱射しても、すり抜け・めり込み・場外・停止しないが起きない', () => {
+  let seed = 42;
+  const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
+  for (let n = 0; n < 300; n++) {
+    const { world, battle } = newGame(mods);
+    if (n % 2) { for (const e of battle.enemies) battle.kill(e.id, world); battle.endTurn(world); }
+    const id = rnd() < 0.5 ? 'A' : 'B';
+    const me = world.get(id);
+    const ang = rnd() * Math.PI * 2, sp = C.speed.min + rnd() * (C.speed.max - C.speed.min);
+    world.setVelocity(id, Math.cos(ang) * sp, Math.sin(ang) * sp);
+    let steps = 0;
+    while (!world.isSettled()) {
+      world.step();
+      battle.apply(world.drainEvents(), world);
+      steps++;
+      assert.ok(me.x >= me.r - 1e-6 && me.x <= C.field.w - me.r + 1e-6 && me.y >= me.r - 1e-6 && me.y <= C.field.h - me.r + 1e-6, `#${n} 場外`);
+      if (me.shot === 'reflect') {
+        for (const o of world.bodies) {
+          if (o === me) continue;
+          const c = P.contact(me, o);
+          assert.ok(!c || c.depth <= 1, `#${n} ${o.id} に ${c && c.depth} めり込んだ`);
+        }
+      }
+      assert.ok(steps < 240 * 20, `#${n} 止まらない`);
+    }
+    assert.equal(world._overlapping(me), null, `#${n} 重なったまま止まった`);
+  }
+});

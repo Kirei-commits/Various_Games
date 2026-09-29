@@ -3,7 +3,7 @@
  *  1. index.html のインラインスクリプトの構文チェック
  *  2. 外部ファイルを読み込んでいないか（1ファイルでプレビューできることが要件）
  *  3. getElementById で参照する id が HTML に実在するか
- *  4. 物理モジュールが DOM・乱数・時計に触れていないか（テストの決定性を守る）
+ *  4. 物理・戦闘・データが DOM・乱数・時計に触れていないか（テストの決定性を守る）
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -38,10 +38,14 @@ const declared = new Set([...html.matchAll(/\sid="([^"]+)"/g)].map((m) => m[1]))
 const used = new Set([...html.matchAll(/getElementById\('([^']+)'\)/g)].map((m) => m[1]));
 for (const id of used) if (!declared.has(id)) problems.push(`#${id} が HTML に無い`);
 
-// 4. 物理モジュールの純粋さ
-const physics = scripts.find((m) => m[1] === 'ms-physics')?.[2] ?? '';
-for (const bad of ['document', 'Math.random', 'performance.now', 'Date.now', 'requestAnimationFrame']) {
-  if (physics.includes(bad)) problems.push(`物理モジュールが ${bad} を使っている`);
+// 4. 純粋なモジュール（物理・戦闘・データ）
+for (const id of ['ms-physics', 'ms-battle', 'ms-data']) {
+  const src = scripts.find((m) => m[1] === id)?.[2];
+  if (src == null) { problems.push(`<script id="${id}"> が無い`); continue; }
+  if (ids.indexOf(id) > ids.indexOf('ms-game')) problems.push(`${id} は ms-game より前に必要`);
+  for (const bad of ['document', 'window.', 'Math.random', 'performance.now', 'Date.now', 'requestAnimationFrame', 'localStorage']) {
+    if (src.includes(bad)) problems.push(`${id} が ${bad} を使っている`);
+  }
 }
 
 if (problems.length) {

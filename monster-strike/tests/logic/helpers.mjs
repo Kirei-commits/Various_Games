@@ -9,15 +9,49 @@ import { fileURLToPath } from 'node:url';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 
-export function loadPhysics() {
+function extract(html, id) {
+  const m = html.match(new RegExp(`<script id="${id}">([\\s\\S]*?)<\\/script>`));
+  if (!m) throw new Error(`${id} が見つからない`);
+  return m[1];
+}
+
+/** 純粋なモジュール（物理・戦闘・データ）を読み込む。DOM は無い。 */
+export function loadAll() {
   const html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
-  const m = html.match(/<script id="ms-physics">([\s\S]*?)<\/script>/);
-  if (!m) throw new Error('ms-physics が見つからない');
   const sandbox = { Math, JSON, Object, Array, Number, Infinity, NaN };
   sandbox.globalThis = sandbox;
   vm.createContext(sandbox);
-  vm.runInContext(m[1], sandbox, { filename: 'index.html#ms-physics' });
-  return sandbox.MSPhysics;
+  for (const id of ['ms-physics', 'ms-battle', 'ms-data']) {
+    vm.runInContext(extract(html, id), sandbox, { filename: `index.html#${id}` });
+  }
+  return { P: sandbox.MSPhysics, B: sandbox.MSBattle, D: sandbox.MSData };
+}
+
+export function loadPhysics() {
+  return loadAll().P;
+}
+
+/** 本番と同じ始まり方: 味方を置いて、ウェーブ1を出す */
+export function newGame(mods) {
+  const { P, B, D } = mods;
+  const world = new P.World();
+  for (const u of D.units) world.add({ id: u.id, kind: 'unit', shot: u.shot, x: u.x, y: u.y, r: u.r });
+  const battle = new B.Battle(D);
+  battle.spawnWave(world);
+  return { world, battle };
+}
+
+/** 1発撃って止まるまで回す（倒した敵は途中で消える）。ダメージ記録を返す。 */
+export function shoot(world, battle, id, vx, vy) {
+  world.setVelocity(id, vx, vy);
+  world.drainEvents();
+  const records = [];
+  for (let n = 0; n < 240 * 30 && !world.isSettled(); n++) {
+    world.step();
+    const ev = world.drainEvents();
+    if (ev.length) records.push(...battle.apply(ev, world));
+  }
+  return records;
 }
 
 /** 本番と同じ配置（index.html の UNITS / TARGETS と揃える） */
