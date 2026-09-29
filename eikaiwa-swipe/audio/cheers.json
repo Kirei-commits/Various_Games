@@ -1,0 +1,1875 @@
+{
+ "version": 1,
+ "events": {
+  "correct": {
+   "chance": 0.35,
+   "clips": [
+    {
+     "key": "Laomedeia|Nice!",
+     "text": "Nice!",
+     "voice": "Laomedeia",
+     "file": "cheers/bbf5972bd6bc54.opus?v=1",
+     "rev": 1,
+     "sig": "a90fc994e73a",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.36
+    },
+    {
+     "key": "Puck|Nice!",
+     "text": "Nice!",
+     "voice": "Puck",
+     "file": "cheers/861f93dabd8c78.opus?v=1",
+     "rev": 1,
+     "sig": "a20bc549c55c",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.2
+    },
+    {
+     "key": "Laomedeia|Good job!",
+     "text": "Good job!",
+     "voice": "Laomedeia",
+     "file": "cheers/5e32179efc1ac1.opus?v=1",
+     "rev": 1,
+     "sig": "4b764a5ef6fe",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.36
+    },
+    {
+     "key": "Puck|Good job!",
+     "text": "Good job!",
+     "voice": "Puck",
+     "file": "cheers/52e0e6466e8680.opus?v=1",
+     "rev": 1,
+     "sig": "b1d9b9302314",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.6
+    },
+    {
+     "key": "Laomedeia|That's right!",
+     "text": "That's right!",
+     "voice": "Laomedeia",
+     "file": "cheers/5722dbf0b7251f.opus?v=1",
+     "rev": 1,
+     "sig": "71b6b13db3a6",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.48
+    },
+    {
+     "key": "Puck|That's right!",
+     "text": "That's right!",
+     "voice": "Puck",
+     "file": "cheers/97097328ab7fc5.opus?v=1",
+     "rev": 1,
+     "sig": "8cd3923c5f1a",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.56
+    },
+    {
+     "key": "Laomedeia|Exactly!",
+     "text": "Exactly!",
+     "voice": "Laomedeia",
+     "file": "cheers/a0706beee12ce8.opus?v=1",
+     "rev": 1,
+     "sig": "524d589250a3",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.68
+    },
+    {
+     "key": "Puck|Exactly!",
+     "text": "Exactly!",
+     "voice": "Puck",
+     "file": "cheers/b8f213a38ac0e1.opus?v=1",
+     "rev": 1,
+     "sig": "e91988f4b5ac",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.32
+    },
+    {
+     "key": "Laomedeia|You got it!",
+     "text": "You got it!",
+     "voice": "Laomedeia",
+     "file": "cheers/f51e5c375b033e.opus?v=1",
+     "rev": 1,
+     "sig": "c05816c23a75",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.56
+    },
+    {
+     "key": "Puck|You got it!",
+     "text": "You got it!",
+     "voice": "Puck",
+     "file": "cheers/fee2dd05910a22.opus?v=1",
+     "rev": 1,
+     "sig": "2bc2c9addded",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.36
+    },
+    {
+     "key": "Laomedeia|Perfect!",
+     "text": "Perfect!",
+     "voice": "Laomedeia",
+     "file": "cheers/715b975a564a07.opus?v=1",
+     "rev": 1,
+     "sig": "23a90e276fc8",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.4
+    },
+    {
+     "key": "Puck|Perfect!",
+     "text": "Perfect!",
+     "voice": "Puck",
+     "file": "cheers/0b0f2cdbe81578.opus?v=1",
+     "rev": 1,
+     "sig": "95f453aadbe3",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.56
+    },
+    {
+     "key": "Laomedeia|Well done!",
+     "text": "Well done!",
+     "voice": "Laomedeia",
+     "file": "cheers/d5a36a1258feb0.opus?v=1",
+     "rev": 1,
+     "sig": "99beaa286d53",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.8
+    },
+    {
+     "key": "Puck|Well done!",
+     "text": "Well done!",
+     "voice": "Puck",
+     "file": "cheers/54cd8d0294d978.opus?v=1",
+     "rev": 1,
+     "sig": "379d457fc815",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.28
+    },
+    {
+     "key": "Laomedeia|Spot on!",
+     "text": "Spot on!",
+     "voice": "Laomedeia",
+     "file": "cheers/21641371e7cae1.opus?v=1",
+     "rev": 1,
+     "sig": "098d7cf75293",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.72
+    },
+    {
+     "key": "Puck|Spot on!",
+     "text": "Spot on!",
+     "voice": "Puck",
+     "file": "cheers/809ddc7f216fc3.opus?v=1",
+     "rev": 1,
+     "sig": "5776b05b9a6f",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.56
+    },
+    {
+     "key": "Laomedeia|Nailed it!",
+     "text": "Nailed it!",
+     "voice": "Laomedeia",
+     "file": "cheers/3c6e366c9fe682.opus?v=1",
+     "rev": 1,
+     "sig": "f928f34f8563",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.4
+    },
+    {
+     "key": "Puck|Nailed it!",
+     "text": "Nailed it!",
+     "voice": "Puck",
+     "file": "cheers/f7a44ccf4df0b8.opus?v=1",
+     "rev": 1,
+     "sig": "ba82b6a0378b",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.36
+    },
+    {
+     "key": "Laomedeia|Great!",
+     "text": "Great!",
+     "voice": "Laomedeia",
+     "file": "cheers/44b756388fdbec.opus?v=1",
+     "rev": 1,
+     "sig": "40ea4310180d",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.44
+    },
+    {
+     "key": "Puck|Great!",
+     "text": "Great!",
+     "voice": "Puck",
+     "file": "cheers/ae85dab1d767ff.opus?v=1",
+     "rev": 1,
+     "sig": "55d0106f3c28",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.36
+    },
+    {
+     "key": "Laomedeia|Correct!",
+     "text": "Correct!",
+     "voice": "Laomedeia",
+     "file": "cheers/f40e9b06830708.opus?v=1",
+     "rev": 1,
+     "sig": "36f2d75c4f89",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.2
+    },
+    {
+     "key": "Puck|Correct!",
+     "text": "Correct!",
+     "voice": "Puck",
+     "file": "cheers/340fa0e120efcf.opus?v=1",
+     "rev": 1,
+     "sig": "0d6ccf0615b8",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.12
+    },
+    {
+     "key": "Laomedeia|Yes! That's it!",
+     "text": "Yes! That's it!",
+     "voice": "Laomedeia",
+     "file": "cheers/bc003b71114b1a.opus?v=1",
+     "rev": 1,
+     "sig": "d65539b4812b",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.92
+    },
+    {
+     "key": "Puck|Yes! That's it!",
+     "text": "Yes! That's it!",
+     "voice": "Puck",
+     "file": "cheers/56deb5e8da016f.opus?v=1",
+     "rev": 1,
+     "sig": "919af969bb6d",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 2.0
+    },
+    {
+     "key": "Laomedeia|Awesome!",
+     "text": "Awesome!",
+     "voice": "Laomedeia",
+     "file": "cheers/b763341d53d09e.opus?v=1",
+     "rev": 1,
+     "sig": "b07103c6335a",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.44
+    },
+    {
+     "key": "Puck|Awesome!",
+     "text": "Awesome!",
+     "voice": "Puck",
+     "file": "cheers/94bbce3f94cd9d.opus?v=1",
+     "rev": 1,
+     "sig": "808781b1c833",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.44
+    },
+    {
+     "key": "Laomedeia|Look at you!",
+     "text": "Look at you!",
+     "voice": "Laomedeia",
+     "file": "cheers/6af8055cb65a16.opus?v=1",
+     "rev": 1,
+     "sig": "e4155f372125",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.52
+    },
+    {
+     "key": "Puck|Look at you!",
+     "text": "Look at you!",
+     "voice": "Puck",
+     "file": "cheers/5a753fa0a39c39.opus?v=1",
+     "rev": 1,
+     "sig": "489f65fd6320",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 2.12
+    },
+    {
+     "key": "Laomedeia|Nice one!",
+     "text": "Nice one!",
+     "voice": "Laomedeia",
+     "file": "cheers/23a38c001d3c9d.opus?v=1",
+     "rev": 1,
+     "sig": "03ea8a24b8fc",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.36
+    },
+    {
+     "key": "Puck|Nice one!",
+     "text": "Nice one!",
+     "voice": "Puck",
+     "file": "cheers/545c5e86c47697.opus?v=1",
+     "rev": 1,
+     "sig": "152d97569cdb",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.36
+    },
+    {
+     "key": "Laomedeia|Way to go!",
+     "text": "Way to go!",
+     "voice": "Laomedeia",
+     "file": "cheers/69ae0e9c922984.opus?v=1",
+     "rev": 1,
+     "sig": "4da76fc154fb",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.36
+    },
+    {
+     "key": "Puck|Way to go!",
+     "text": "Way to go!",
+     "voice": "Puck",
+     "file": "cheers/5259fafacca7ec.opus?v=1",
+     "rev": 1,
+     "sig": "9ea5ba6009b6",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.44
+    },
+    {
+     "key": "Laomedeia|Bingo!",
+     "text": "Bingo!",
+     "voice": "Laomedeia",
+     "file": "cheers/9b03add7d5d6ff.opus?v=1",
+     "rev": 1,
+     "sig": "9d9d494804e2",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.24
+    },
+    {
+     "key": "Puck|Bingo!",
+     "text": "Bingo!",
+     "voice": "Puck",
+     "file": "cheers/1da8a2be72eb6f.opus?v=1",
+     "rev": 1,
+     "sig": "f9f8c2733a55",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.12
+    },
+    {
+     "key": "Laomedeia|Sharp!",
+     "text": "Sharp!",
+     "voice": "Laomedeia",
+     "file": "cheers/8c889bbb7440b3.opus?v=1",
+     "rev": 1,
+     "sig": "41aca5d6bfa5",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.56
+    },
+    {
+     "key": "Puck|Sharp!",
+     "text": "Sharp!",
+     "voice": "Puck",
+     "file": "cheers/f1434145d02c25.opus?v=1",
+     "rev": 1,
+     "sig": "7af8d4ac6733",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.2
+    }
+   ]
+  },
+  "streak": {
+   "chance": 1,
+   "clips": [
+    {
+     "key": "Laomedeia|You're on fire!",
+     "text": "You're on fire!",
+     "voice": "Laomedeia",
+     "file": "cheers/5d32783e738286.opus?v=1",
+     "rev": 1,
+     "sig": "e9b0161bff83",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.96
+    },
+    {
+     "key": "Puck|You're on fire!",
+     "text": "You're on fire!",
+     "voice": "Puck",
+     "file": "cheers/195cdeed272b3d.opus?v=1",
+     "rev": 1,
+     "sig": "b4a844160ec8",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.56
+    },
+    {
+     "key": "Laomedeia|Keep it up!",
+     "text": "Keep it up!",
+     "voice": "Laomedeia",
+     "file": "cheers/823a44fcf7a47f.opus?v=1",
+     "rev": 1,
+     "sig": "4106c7c13f23",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.36
+    },
+    {
+     "key": "Puck|Keep it up!",
+     "text": "Keep it up!",
+     "voice": "Puck",
+     "file": "cheers/d06eda35b76a91.opus?v=1",
+     "rev": 1,
+     "sig": "1f8c570cd50c",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.48
+    },
+    {
+     "key": "Laomedeia|You're on a roll!",
+     "text": "You're on a roll!",
+     "voice": "Laomedeia",
+     "file": "cheers/b6ae7bec60cb6c.opus?v=1",
+     "rev": 1,
+     "sig": "80513dcbdf8e",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.64
+    },
+    {
+     "key": "Puck|You're on a roll!",
+     "text": "You're on a roll!",
+     "voice": "Puck",
+     "file": "cheers/8f84e304950213.opus?v=1",
+     "rev": 1,
+     "sig": "0c63879a3585",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.6
+    },
+    {
+     "key": "Laomedeia|Unstoppable!",
+     "text": "Unstoppable!",
+     "voice": "Laomedeia",
+     "file": "cheers/d2319e6c36f613.opus?v=1",
+     "rev": 1,
+     "sig": "6fbcf80c4846",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.76
+    },
+    {
+     "key": "Puck|Unstoppable!",
+     "text": "Unstoppable!",
+     "voice": "Puck",
+     "file": "cheers/81307d50bba5ed.opus?v=1",
+     "rev": 1,
+     "sig": "d1007c14a6a8",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.8
+    },
+    {
+     "key": "Laomedeia|Look at you go!",
+     "text": "Look at you go!",
+     "voice": "Laomedeia",
+     "file": "cheers/46ec3f5191a522.opus?v=1",
+     "rev": 1,
+     "sig": "b7ba1eb75686",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.88
+    },
+    {
+     "key": "Puck|Look at you go!",
+     "text": "Look at you go!",
+     "voice": "Puck",
+     "file": "cheers/8357516adcabc9.opus?v=1",
+     "rev": 1,
+     "sig": "51b929a87029",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 2.08
+    },
+    {
+     "key": "Laomedeia|Another one! Amazing!",
+     "text": "Another one! Amazing!",
+     "voice": "Laomedeia",
+     "file": "cheers/e011ee42195b67.opus?v=1",
+     "rev": 1,
+     "sig": "5d044d834412",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 2.76
+    },
+    {
+     "key": "Puck|Another one! Amazing!",
+     "text": "Another one! Amazing!",
+     "voice": "Puck",
+     "file": "cheers/1ae8b6ce9a6d28.opus?v=1",
+     "rev": 1,
+     "sig": "a943475ff39e",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 2.6
+    },
+    {
+     "key": "Laomedeia|This is incredible!",
+     "text": "This is incredible!",
+     "voice": "Laomedeia",
+     "file": "cheers/122d74041f4e3e.opus?v=1",
+     "rev": 1,
+     "sig": "ec5f52cd108f",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 2.24
+    },
+    {
+     "key": "Puck|This is incredible!",
+     "text": "This is incredible!",
+     "voice": "Puck",
+     "file": "cheers/480ec38a2cc20e.opus?v=1",
+     "rev": 1,
+     "sig": "a4a835c34318",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.88
+    },
+    {
+     "key": "Laomedeia|Don't stop now!",
+     "text": "Don't stop now!",
+     "voice": "Laomedeia",
+     "file": "cheers/c157d810051c38.opus?v=1",
+     "rev": 1,
+     "sig": "97b4f02ca2d2",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.64
+    },
+    {
+     "key": "Puck|Don't stop now!",
+     "text": "Don't stop now!",
+     "voice": "Puck",
+     "file": "cheers/fb474ca6128abb.opus?v=1",
+     "rev": 1,
+     "sig": "7e0b5418129b",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.64
+    },
+    {
+     "key": "Laomedeia|What a streak!",
+     "text": "What a streak!",
+     "voice": "Laomedeia",
+     "file": "cheers/14628b27fb59d7.opus?v=1",
+     "rev": 1,
+     "sig": "44d171f4d883",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.72
+    },
+    {
+     "key": "Puck|What a streak!",
+     "text": "What a streak!",
+     "voice": "Puck",
+     "file": "cheers/c3b32bbd55bd87.opus?v=1",
+     "rev": 1,
+     "sig": "bb37d1ec1331",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.48
+    },
+    {
+     "key": "Laomedeia|You're crushing it!",
+     "text": "You're crushing it!",
+     "voice": "Laomedeia",
+     "file": "cheers/d60506f93c3643.opus?v=1",
+     "rev": 1,
+     "sig": "78b6a139a144",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.8
+    },
+    {
+     "key": "Puck|You're crushing it!",
+     "text": "You're crushing it!",
+     "voice": "Puck",
+     "file": "cheers/ddbeed6258672d.opus?v=1",
+     "rev": 1,
+     "sig": "93bb9f2d3976",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.8
+    }
+   ]
+  },
+  "complete": {
+   "chance": 1,
+   "clips": [
+    {
+     "key": "Laomedeia|Congratulations!",
+     "text": "Congratulations!",
+     "voice": "Laomedeia",
+     "file": "cheers/1cbfa9eb6d4019.opus?v=1",
+     "rev": 1,
+     "sig": "5af2b85558d1",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.8
+    },
+    {
+     "key": "Puck|Congratulations!",
+     "text": "Congratulations!",
+     "voice": "Puck",
+     "file": "cheers/ed412c73e6cc80.opus?v=1",
+     "rev": 1,
+     "sig": "43fef8e4c43c",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.96
+    },
+    {
+     "key": "Laomedeia|You did it!",
+     "text": "You did it!",
+     "voice": "Laomedeia",
+     "file": "cheers/e8c9e73e8b9f1b.opus?v=1",
+     "rev": 1,
+     "sig": "2601e28ffd48",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.64
+    },
+    {
+     "key": "Puck|You did it!",
+     "text": "You did it!",
+     "voice": "Puck",
+     "file": "cheers/2ae97b8a617acf.opus?v=1",
+     "rev": 1,
+     "sig": "bcb0cb3f773f",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.4
+    },
+    {
+     "key": "Laomedeia|Awesome work today!",
+     "text": "Awesome work today!",
+     "voice": "Laomedeia",
+     "file": "cheers/7f0228870b2bd4.opus?v=1",
+     "rev": 1,
+     "sig": "4b0590b17a6c",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.72
+    },
+    {
+     "key": "Puck|Awesome work today!",
+     "text": "Awesome work today!",
+     "voice": "Puck",
+     "file": "cheers/1d0aa2b8ff979f.opus?v=1",
+     "rev": 1,
+     "sig": "f020e3d8525a",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.84
+    },
+    {
+     "key": "Laomedeia|Great session!",
+     "text": "Great session!",
+     "voice": "Laomedeia",
+     "file": "cheers/4898a580582239.opus?v=1",
+     "rev": 1,
+     "sig": "6cff373b303f",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.6
+    },
+    {
+     "key": "Puck|Great session!",
+     "text": "Great session!",
+     "voice": "Puck",
+     "file": "cheers/5b2fdf5c14af94.opus?v=1",
+     "rev": 1,
+     "sig": "44a035d70cd6",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.84
+    },
+    {
+     "key": "Laomedeia|I'm so proud of you!",
+     "text": "I'm so proud of you!",
+     "voice": "Laomedeia",
+     "file": "cheers/957d79c46c9e25.opus?v=1",
+     "rev": 1,
+     "sig": "5bc021b863b8",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 2.28
+    },
+    {
+     "key": "Puck|I'm so proud of you!",
+     "text": "I'm so proud of you!",
+     "voice": "Puck",
+     "file": "cheers/034e881b72c8c0.opus?v=1",
+     "rev": 1,
+     "sig": "a30eb5921c16",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 2.44
+    },
+    {
+     "key": "Laomedeia|That was fantastic!",
+     "text": "That was fantastic!",
+     "voice": "Laomedeia",
+     "file": "cheers/76294586583e28.opus?v=1",
+     "rev": 1,
+     "sig": "1dbc23dc6477",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 2.2
+    },
+    {
+     "key": "Puck|That was fantastic!",
+     "text": "That was fantastic!",
+     "voice": "Puck",
+     "file": "cheers/a226880df8dedb.opus?v=1",
+     "rev": 1,
+     "sig": "93fb010aa074",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.92
+    },
+    {
+     "key": "Laomedeia|Mission complete!",
+     "text": "Mission complete!",
+     "voice": "Laomedeia",
+     "file": "cheers/3a72440fed06c4.opus?v=1",
+     "rev": 1,
+     "sig": "1fa130b3e6f7",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.96
+    },
+    {
+     "key": "Puck|Mission complete!",
+     "text": "Mission complete!",
+     "voice": "Puck",
+     "file": "cheers/d7f7ab3f459581.opus?v=1",
+     "rev": 1,
+     "sig": "a909ac0fc2f1",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.76
+    },
+    {
+     "key": "Laomedeia|Another step closer to fluency!",
+     "text": "Another step closer to fluency!",
+     "voice": "Laomedeia",
+     "file": "cheers/9d8bf7dc0d734e.opus?v=1",
+     "rev": 1,
+     "sig": "8934dab6b94f",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 2.64
+    },
+    {
+     "key": "Puck|Another step closer to fluency!",
+     "text": "Another step closer to fluency!",
+     "voice": "Puck",
+     "file": "cheers/24826c6dd1e136.opus?v=1",
+     "rev": 1,
+     "sig": "24f42c67f2cc",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 2.36
+    },
+    {
+     "key": "Laomedeia|Way to finish strong!",
+     "text": "Way to finish strong!",
+     "voice": "Laomedeia",
+     "file": "cheers/cbdf2fda3c7875.opus?v=1",
+     "rev": 1,
+     "sig": "ea6d7d1d9c74",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 2.52
+    },
+    {
+     "key": "Puck|Way to finish strong!",
+     "text": "Way to finish strong!",
+     "voice": "Puck",
+     "file": "cheers/9c6f39727735e3.opus?v=1",
+     "rev": 1,
+     "sig": "0386ba4e67ce",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.92
+    },
+    {
+     "key": "Laomedeia|You should be proud of yourself!",
+     "text": "You should be proud of yourself!",
+     "voice": "Laomedeia",
+     "file": "cheers/7b8f24102c641b.opus?v=1",
+     "rev": 1,
+     "sig": "d5dbdc2cb2fb",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 2.28
+    },
+    {
+     "key": "Puck|You should be proud of yourself!",
+     "text": "You should be proud of yourself!",
+     "voice": "Puck",
+     "file": "cheers/7d010d10b59f8c.opus?v=1",
+     "rev": 1,
+     "sig": "beb6f10e942c",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 2.28
+    }
+   ]
+  },
+  "learned": {
+   "chance": 0.12,
+   "clips": [
+    {
+     "key": "Laomedeia|Got it!",
+     "text": "Got it!",
+     "voice": "Laomedeia",
+     "file": "cheers/deda642fc13026.opus?v=1",
+     "rev": 1,
+     "sig": "ddcdc4e139d9",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.2
+    },
+    {
+     "key": "Puck|Got it!",
+     "text": "Got it!",
+     "voice": "Puck",
+     "file": "cheers/d1daca3b3f44e3.opus?v=1",
+     "rev": 1,
+     "sig": "607a536554c3",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.6
+    },
+    {
+     "key": "Laomedeia|One more down!",
+     "text": "One more down!",
+     "voice": "Laomedeia",
+     "file": "cheers/e008b0355384b9.opus?v=1",
+     "rev": 1,
+     "sig": "f2f533b545a3",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.44
+    },
+    {
+     "key": "Puck|One more down!",
+     "text": "One more down!",
+     "voice": "Puck",
+     "file": "cheers/1270ad0d8df14e.opus?v=1",
+     "rev": 1,
+     "sig": "278ef9626a96",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.6
+    },
+    {
+     "key": "Laomedeia|Nice, you know this one!",
+     "text": "Nice, you know this one!",
+     "voice": "Laomedeia",
+     "file": "cheers/87c6ce6a670813.opus?v=1",
+     "rev": 1,
+     "sig": "4262a6dd76cc",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 2.44
+    },
+    {
+     "key": "Puck|Nice, you know this one!",
+     "text": "Nice, you know this one!",
+     "voice": "Puck",
+     "file": "cheers/be8874dd33f1f0.opus?v=1",
+     "rev": 1,
+     "sig": "2d9fe3ebc48f",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 2.24
+    },
+    {
+     "key": "Laomedeia|Easy!",
+     "text": "Easy!",
+     "voice": "Laomedeia",
+     "file": "cheers/55e108d8190ecd.opus?v=1",
+     "rev": 1,
+     "sig": "eb8b933cad2f",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.32
+    },
+    {
+     "key": "Puck|Easy!",
+     "text": "Easy!",
+     "voice": "Puck",
+     "file": "cheers/ebeb8760072001.opus?v=1",
+     "rev": 1,
+     "sig": "45110dae3e13",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.44
+    },
+    {
+     "key": "Laomedeia|Moving on!",
+     "text": "Moving on!",
+     "voice": "Laomedeia",
+     "file": "cheers/ed16295e407460.opus?v=1",
+     "rev": 1,
+     "sig": "7e46052908ed",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.48
+    },
+    {
+     "key": "Puck|Moving on!",
+     "text": "Moving on!",
+     "voice": "Puck",
+     "file": "cheers/ca83a56b3eb430.opus?v=1",
+     "rev": 1,
+     "sig": "de290b431781",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.16
+    },
+    {
+     "key": "Laomedeia|Good!",
+     "text": "Good!",
+     "voice": "Laomedeia",
+     "file": "cheers/7a7c187c60fc40.opus?v=1",
+     "rev": 1,
+     "sig": "992c60a022d0",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.28
+    },
+    {
+     "key": "Puck|Good!",
+     "text": "Good!",
+     "voice": "Puck",
+     "file": "cheers/461c9be1fff0dc.opus?v=1",
+     "rev": 1,
+     "sig": "4a777744cc39",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.32
+    }
+   ]
+  },
+  "wrong": {
+   "chance": 0.3,
+   "clips": [
+    {
+     "key": "Sulafat|Almost!",
+     "text": "Almost!",
+     "voice": "Sulafat",
+     "file": "cheers/0f5aea9a13a3d5.opus?v=1",
+     "rev": 1,
+     "sig": "87c2ba88bc16",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.6
+    },
+    {
+     "key": "Achird|Almost!",
+     "text": "Almost!",
+     "voice": "Achird",
+     "file": "cheers/5441179479db4a.opus?v=1",
+     "rev": 1,
+     "sig": "0d946e0e2fa2",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.52
+    },
+    {
+     "key": "Sulafat|So close!",
+     "text": "So close!",
+     "voice": "Sulafat",
+     "file": "cheers/1ba3396dfe6890.opus?v=1",
+     "rev": 1,
+     "sig": "8183862f3fd7",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.88
+    },
+    {
+     "key": "Achird|So close!",
+     "text": "So close!",
+     "voice": "Achird",
+     "file": "cheers/601a6f6ef03ef3.opus?v=1",
+     "rev": 1,
+     "sig": "ba6f4adac320",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.8
+    },
+    {
+     "key": "Sulafat|Don't worry, you'll get it!",
+     "text": "Don't worry, you'll get it!",
+     "voice": "Sulafat",
+     "file": "cheers/877a51281f32c5.opus?v=1",
+     "rev": 1,
+     "sig": "a354243af077",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 2.32
+    },
+    {
+     "key": "Achird|Don't worry, you'll get it!",
+     "text": "Don't worry, you'll get it!",
+     "voice": "Achird",
+     "file": "cheers/cc7864b42a8e16.opus?v=1",
+     "rev": 1,
+     "sig": "4208215e3a08",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 2.04
+    },
+    {
+     "key": "Sulafat|Nice try!",
+     "text": "Nice try!",
+     "voice": "Sulafat",
+     "file": "cheers/c75913a491d135.opus?v=1",
+     "rev": 1,
+     "sig": "e3af3799b7c0",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.76
+    },
+    {
+     "key": "Achird|Nice try!",
+     "text": "Nice try!",
+     "voice": "Achird",
+     "file": "cheers/e84af0797b7a77.opus?v=1",
+     "rev": 1,
+     "sig": "7dd7b751189b",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.28
+    },
+    {
+     "key": "Sulafat|That's okay, keep going!",
+     "text": "That's okay, keep going!",
+     "voice": "Sulafat",
+     "file": "cheers/23f9fad656788a.opus?v=1",
+     "rev": 1,
+     "sig": "a4e8174cfabb",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 2.12
+    },
+    {
+     "key": "Achird|That's okay, keep going!",
+     "text": "That's okay, keep going!",
+     "voice": "Achird",
+     "file": "cheers/e3bce2263cae40.opus?v=1",
+     "rev": 1,
+     "sig": "48b4e002d642",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 2.28
+    },
+    {
+     "key": "Sulafat|Mistakes help you learn!",
+     "text": "Mistakes help you learn!",
+     "voice": "Sulafat",
+     "file": "cheers/6172832a8bd725.opus?v=1",
+     "rev": 1,
+     "sig": "642ee51b7ac2",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 2.2
+    },
+    {
+     "key": "Achird|Mistakes help you learn!",
+     "text": "Mistakes help you learn!",
+     "voice": "Achird",
+     "file": "cheers/060f702e159db8.opus?v=1",
+     "rev": 1,
+     "sig": "98ee42e1a099",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 2.12
+    },
+    {
+     "key": "Sulafat|You'll remember it next time!",
+     "text": "You'll remember it next time!",
+     "voice": "Sulafat",
+     "file": "cheers/dc2beee9f8f9f5.opus?v=1",
+     "rev": 1,
+     "sig": "19a4954d0a3f",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.88
+    },
+    {
+     "key": "Achird|You'll remember it next time!",
+     "text": "You'll remember it next time!",
+     "voice": "Achird",
+     "file": "cheers/60c9534abcd33b.opus?v=1",
+     "rev": 1,
+     "sig": "06a4af107e26",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 2.0
+    },
+    {
+     "key": "Sulafat|Good effort!",
+     "text": "Good effort!",
+     "voice": "Sulafat",
+     "file": "cheers/8f12955344b3e5.opus?v=1",
+     "rev": 1,
+     "sig": "b43722a70827",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.68
+    },
+    {
+     "key": "Achird|Good effort!",
+     "text": "Good effort!",
+     "voice": "Achird",
+     "file": "cheers/6c803dc438b7f5.opus?v=1",
+     "rev": 1,
+     "sig": "42501f8e1108",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.28
+    }
+   ]
+  },
+  "again": {
+   "chance": 0.1,
+   "clips": [
+    {
+     "key": "Sulafat|No problem, we'll review it!",
+     "text": "No problem, we'll review it!",
+     "voice": "Sulafat",
+     "file": "cheers/8516c661c012e7.opus?v=1",
+     "rev": 1,
+     "sig": "6873cef33734",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 2.64
+    },
+    {
+     "key": "Achird|No problem, we'll review it!",
+     "text": "No problem, we'll review it!",
+     "voice": "Achird",
+     "file": "cheers/7ee8770b99ef66.opus?v=1",
+     "rev": 1,
+     "sig": "1688d00fff41",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 2.24
+    },
+    {
+     "key": "Sulafat|It's okay, take your time.",
+     "text": "It's okay, take your time.",
+     "voice": "Sulafat",
+     "file": "cheers/9051c04ebc151b.opus?v=1",
+     "rev": 1,
+     "sig": "f14cde11924d",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 2.16
+    },
+    {
+     "key": "Achird|It's okay, take your time.",
+     "text": "It's okay, take your time.",
+     "voice": "Achird",
+     "file": "cheers/ea0fd025503c1d.opus?v=1",
+     "rev": 1,
+     "sig": "2f7cc8d94fdc",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 2.16
+    },
+    {
+     "key": "Sulafat|You'll see it again soon.",
+     "text": "You'll see it again soon.",
+     "voice": "Sulafat",
+     "file": "cheers/f076b7e4887771.opus?v=1",
+     "rev": 1,
+     "sig": "7660b0f92528",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 2.04
+    },
+    {
+     "key": "Achird|You'll see it again soon.",
+     "text": "You'll see it again soon.",
+     "voice": "Achird",
+     "file": "cheers/14e7bb5acd6f49.opus?v=1",
+     "rev": 1,
+     "sig": "2a76ddf40d62",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.68
+    }
+   ]
+  },
+  "explode": {
+   "chance": 0.3,
+   "clips": [
+    {
+     "key": "Fenrir|Boom!",
+     "text": "Boom!",
+     "voice": "Fenrir",
+     "file": "cheers/86297998367881.opus?v=1",
+     "rev": 1,
+     "sig": "4c0e9e89ea84",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.24
+    },
+    {
+     "key": "Leda|Boom!",
+     "text": "Boom!",
+     "voice": "Leda",
+     "file": "cheers/26434575839c1a.opus?v=1",
+     "rev": 1,
+     "sig": "85b2d060e54f",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.36
+    },
+    {
+     "key": "Fenrir|Take that!",
+     "text": "Take that!",
+     "voice": "Fenrir",
+     "file": "cheers/5dad06d6b77fc9.opus?v=1",
+     "rev": 1,
+     "sig": "4e5587f93c7c",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.28
+    },
+    {
+     "key": "Leda|Take that!",
+     "text": "Take that!",
+     "voice": "Leda",
+     "file": "cheers/15db2d29767ab1.opus?v=1",
+     "rev": 1,
+     "sig": "218041d7cc0e",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.32
+    },
+    {
+     "key": "Fenrir|Got 'em!",
+     "text": "Got 'em!",
+     "voice": "Fenrir",
+     "file": "cheers/2799ea5c87a127.opus?v=1",
+     "rev": 1,
+     "sig": "141954e74889",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.08
+    },
+    {
+     "key": "Leda|Got 'em!",
+     "text": "Got 'em!",
+     "voice": "Leda",
+     "file": "cheers/cdf3f1555674ad.opus?v=1",
+     "rev": 1,
+     "sig": "ddccdb50322d",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.12
+    },
+    {
+     "key": "Fenrir|Knocked out!",
+     "text": "Knocked out!",
+     "voice": "Fenrir",
+     "file": "cheers/ad95e37d175f37.opus?v=1",
+     "rev": 1,
+     "sig": "4a4bed5dce3d",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.52
+    },
+    {
+     "key": "Leda|Knocked out!",
+     "text": "Knocked out!",
+     "voice": "Leda",
+     "file": "cheers/0b8bfbb029d713.opus?v=1",
+     "rev": 1,
+     "sig": "7aed78d451a9",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.64
+    },
+    {
+     "key": "Fenrir|Direct hit!",
+     "text": "Direct hit!",
+     "voice": "Fenrir",
+     "file": "cheers/f5ab00eda84d82.opus?v=1",
+     "rev": 1,
+     "sig": "1b18c1404163",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.64
+    },
+    {
+     "key": "Leda|Direct hit!",
+     "text": "Direct hit!",
+     "voice": "Leda",
+     "file": "cheers/3df355a6b38938.opus?v=1",
+     "rev": 1,
+     "sig": "8f9daa71bdc6",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.6
+    },
+    {
+     "key": "Fenrir|Critical hit!",
+     "text": "Critical hit!",
+     "voice": "Fenrir",
+     "file": "cheers/8f93f9ccdb332e.opus?v=1",
+     "rev": 1,
+     "sig": "09c56cc29f7c",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.52
+    },
+    {
+     "key": "Leda|Critical hit!",
+     "text": "Critical hit!",
+     "voice": "Leda",
+     "file": "cheers/64c99264344529.opus?v=1",
+     "rev": 1,
+     "sig": "1f357d40fa5a",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.88
+    },
+    {
+     "key": "Fenrir|Down it goes!",
+     "text": "Down it goes!",
+     "voice": "Fenrir",
+     "file": "cheers/5200d9af263147.opus?v=1",
+     "rev": 1,
+     "sig": "947e741ad8b8",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.6
+    },
+    {
+     "key": "Leda|Down it goes!",
+     "text": "Down it goes!",
+     "voice": "Leda",
+     "file": "cheers/17178b4f667de1.opus?v=1",
+     "rev": 1,
+     "sig": "d41ca55459dc",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.76
+    },
+    {
+     "key": "Fenrir|Too easy!",
+     "text": "Too easy!",
+     "voice": "Fenrir",
+     "file": "cheers/d4e2210f3a118d.opus?v=1",
+     "rev": 1,
+     "sig": "c70c106c787b",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.48
+    },
+    {
+     "key": "Leda|Too easy!",
+     "text": "Too easy!",
+     "voice": "Leda",
+     "file": "cheers/54c5b0c3e14433.opus?v=1",
+     "rev": 1,
+     "sig": "de17da63a875",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.44
+    },
+    {
+     "key": "Fenrir|Next!",
+     "text": "Next!",
+     "voice": "Fenrir",
+     "file": "cheers/2e9a665dd972cc.opus?v=1",
+     "rev": 1,
+     "sig": "62bc7d543fd9",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.32
+    },
+    {
+     "key": "Leda|Next!",
+     "text": "Next!",
+     "voice": "Leda",
+     "file": "cheers/c8ada01182cc63.opus?v=1",
+     "rev": 1,
+     "sig": "49a32b5af377",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.24
+    },
+    {
+     "key": "Fenrir|Smashed it!",
+     "text": "Smashed it!",
+     "voice": "Fenrir",
+     "file": "cheers/7a5da480610bc4.opus?v=1",
+     "rev": 1,
+     "sig": "97d19cf58a49",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.4
+    },
+    {
+     "key": "Leda|Smashed it!",
+     "text": "Smashed it!",
+     "voice": "Leda",
+     "file": "cheers/edd522d7ec249c.opus?v=1",
+     "rev": 1,
+     "sig": "ca82963379d4",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.48
+    }
+   ]
+  },
+  "levelup": {
+   "chance": 1,
+   "clips": [
+    {
+     "key": "Fenrir|Level up!",
+     "text": "Level up!",
+     "voice": "Fenrir",
+     "file": "cheers/cd41d0f1b039c1.opus?v=1",
+     "rev": 1,
+     "sig": "a26f48d11dc7",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.68
+    },
+    {
+     "key": "Leda|Level up!",
+     "text": "Level up!",
+     "voice": "Leda",
+     "file": "cheers/8f9384891961ad.opus?v=1",
+     "rev": 1,
+     "sig": "4d2c81e4dd1d",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.44
+    },
+    {
+     "key": "Fenrir|You're getting stronger!",
+     "text": "You're getting stronger!",
+     "voice": "Fenrir",
+     "file": "cheers/bc77149d3d6ac8.opus?v=1",
+     "rev": 1,
+     "sig": "fa4b05286d71",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 2.0
+    },
+    {
+     "key": "Leda|You're getting stronger!",
+     "text": "You're getting stronger!",
+     "voice": "Leda",
+     "file": "cheers/7b956519ecff2d.opus?v=1",
+     "rev": 1,
+     "sig": "1e0701569ec7",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.8
+    },
+    {
+     "key": "Fenrir|Power up!",
+     "text": "Power up!",
+     "voice": "Fenrir",
+     "file": "cheers/beeeb2ae0a8e7e.opus?v=1",
+     "rev": 1,
+     "sig": "83bc6decda3b",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.44
+    },
+    {
+     "key": "Leda|Power up!",
+     "text": "Power up!",
+     "voice": "Leda",
+     "file": "cheers/487c6e15387424.opus?v=1",
+     "rev": 1,
+     "sig": "1f77b96aec08",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.44
+    },
+    {
+     "key": "Fenrir|Leveling up!",
+     "text": "Leveling up!",
+     "voice": "Fenrir",
+     "file": "cheers/dba75827d3a5ae.opus?v=1",
+     "rev": 1,
+     "sig": "eeb547718e67",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.56
+    },
+    {
+     "key": "Leda|Leveling up!",
+     "text": "Leveling up!",
+     "voice": "Leda",
+     "file": "cheers/bef8ec61182fba.opus?v=1",
+     "rev": 1,
+     "sig": "88fdd2a5118b",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.44
+    },
+    {
+     "key": "Fenrir|Stronger than ever!",
+     "text": "Stronger than ever!",
+     "voice": "Fenrir",
+     "file": "cheers/3f2f0b0d793d5c.opus?v=1",
+     "rev": 1,
+     "sig": "6528b018bdbf",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.8
+    },
+    {
+     "key": "Leda|Stronger than ever!",
+     "text": "Stronger than ever!",
+     "voice": "Leda",
+     "file": "cheers/ca6bab0d070ce5.opus?v=1",
+     "rev": 1,
+     "sig": "ca5ef59f86b8",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 2.12
+    }
+   ]
+  },
+  "bonus": {
+   "chance": 1,
+   "clips": [
+    {
+     "key": "Fenrir|Incredible!",
+     "text": "Incredible!",
+     "voice": "Fenrir",
+     "file": "cheers/ba1a5e5ca3e9a2.opus?v=1",
+     "rev": 1,
+     "sig": "01b0d6117298",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.8
+    },
+    {
+     "key": "Leda|Incredible!",
+     "text": "Incredible!",
+     "voice": "Leda",
+     "file": "cheers/94a5b646816b7f.opus?v=1",
+     "rev": 1,
+     "sig": "6bfb0bd95d5c",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 2.0
+    },
+    {
+     "key": "Fenrir|Victory!",
+     "text": "Victory!",
+     "voice": "Fenrir",
+     "file": "cheers/b6dec26c5155ca.opus?v=1",
+     "rev": 1,
+     "sig": "49cd9e3080c3",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.36
+    },
+    {
+     "key": "Leda|Victory!",
+     "text": "Victory!",
+     "voice": "Leda",
+     "file": "cheers/4b33024ced065e.opus?v=1",
+     "rev": 1,
+     "sig": "0226c8877b4a",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.48
+    },
+    {
+     "key": "Fenrir|Boss defeated!",
+     "text": "Boss defeated!",
+     "voice": "Fenrir",
+     "file": "cheers/1eba43d6956b61.opus?v=1",
+     "rev": 1,
+     "sig": "dbc274e4a3f7",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.76
+    },
+    {
+     "key": "Leda|Boss defeated!",
+     "text": "Boss defeated!",
+     "voice": "Leda",
+     "file": "cheers/bd8a127e672dc0.opus?v=1",
+     "rev": 1,
+     "sig": "2d8938a003f2",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.84
+    },
+    {
+     "key": "Fenrir|Legendary!",
+     "text": "Legendary!",
+     "voice": "Fenrir",
+     "file": "cheers/64fcb14865754d.opus?v=1",
+     "rev": 1,
+     "sig": "40b78283fc13",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.44
+    },
+    {
+     "key": "Leda|Legendary!",
+     "text": "Legendary!",
+     "voice": "Leda",
+     "file": "cheers/8a67ac5dcf6bea.opus?v=1",
+     "rev": 1,
+     "sig": "535d568ffb40",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.6
+    },
+    {
+     "key": "Fenrir|What a champion!",
+     "text": "What a champion!",
+     "voice": "Fenrir",
+     "file": "cheers/5582b2d158d691.opus?v=1",
+     "rev": 1,
+     "sig": "efde2f69cdbf",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.76
+    },
+    {
+     "key": "Fenrir|Unbelievable!",
+     "text": "Unbelievable!",
+     "voice": "Fenrir",
+     "file": "cheers/f301da26c428a5.opus?v=1",
+     "rev": 1,
+     "sig": "d42d377a86a6",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.92
+    },
+    {
+     "key": "Leda|Unbelievable!",
+     "text": "Unbelievable!",
+     "voice": "Leda",
+     "file": "cheers/e6cd94ff20157b.opus?v=1",
+     "rev": 1,
+     "sig": "498b60049435",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.88
+    }
+   ]
+  },
+  "hurt": {
+   "chance": 0.35,
+   "clips": [
+    {
+     "key": "Fenrir|Watch out!",
+     "text": "Watch out!",
+     "voice": "Fenrir",
+     "file": "cheers/b300947b73caf3.opus?v=1",
+     "rev": 1,
+     "sig": "54e4077ca65d",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.2
+    },
+    {
+     "key": "Leda|Watch out!",
+     "text": "Watch out!",
+     "voice": "Leda",
+     "file": "cheers/e366599075e788.opus?v=1",
+     "rev": 1,
+     "sig": "fd029cf32783",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.28
+    },
+    {
+     "key": "Fenrir|Ouch! Stay focused!",
+     "text": "Ouch! Stay focused!",
+     "voice": "Fenrir",
+     "file": "cheers/b4bc094bb36520.opus?v=1",
+     "rev": 1,
+     "sig": "55f5add2e03d",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 2.36
+    },
+    {
+     "key": "Leda|Ouch! Stay focused!",
+     "text": "Ouch! Stay focused!",
+     "voice": "Leda",
+     "file": "cheers/c4251f9e31f999.opus?v=1",
+     "rev": 1,
+     "sig": "52948badf3c7",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 2.32
+    },
+    {
+     "key": "Fenrir|Hang in there!",
+     "text": "Hang in there!",
+     "voice": "Fenrir",
+     "file": "cheers/639ae7f39c0f8f.opus?v=1",
+     "rev": 1,
+     "sig": "d1d083664734",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.2
+    },
+    {
+     "key": "Leda|Hang in there!",
+     "text": "Hang in there!",
+     "voice": "Leda",
+     "file": "cheers/9e4bc8d54427b7.opus?v=1",
+     "rev": 1,
+     "sig": "b088196d97f5",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.4
+    },
+    {
+     "key": "Fenrir|Shake it off!",
+     "text": "Shake it off!",
+     "voice": "Fenrir",
+     "file": "cheers/4a493e548cba53.opus?v=1",
+     "rev": 1,
+     "sig": "cfa70ade4a9e",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.44
+    },
+    {
+     "key": "Leda|Shake it off!",
+     "text": "Shake it off!",
+     "voice": "Leda",
+     "file": "cheers/9481e7b129aa6e.opus?v=1",
+     "rev": 1,
+     "sig": "2c0b90a48d85",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.44
+    },
+    {
+     "key": "Fenrir|You can do this!",
+     "text": "You can do this!",
+     "voice": "Fenrir",
+     "file": "cheers/f25ed548471e25.opus?v=1",
+     "rev": 1,
+     "sig": "5b99e5694105",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.56
+    },
+    {
+     "key": "Leda|You can do this!",
+     "text": "You can do this!",
+     "voice": "Leda",
+     "file": "cheers/b2d9357414674f.opus?v=1",
+     "rev": 1,
+     "sig": "9ffdbdbde1bb",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.76
+    }
+   ]
+  },
+  "ssr": {
+   "chance": 1,
+   "clips": [
+    {
+     "key": "Laomedeia|Whoa! Jackpot!",
+     "text": "Whoa! Jackpot!",
+     "voice": "Laomedeia",
+     "file": "cheers/7648628abc438e.opus?v=1",
+     "rev": 1,
+     "sig": "cdd3b9253a4e",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 2.12
+    },
+    {
+     "key": "Puck|Whoa! Jackpot!",
+     "text": "Whoa! Jackpot!",
+     "voice": "Puck",
+     "file": "cheers/10e880edc13f0a.opus?v=1",
+     "rev": 1,
+     "sig": "4fde39442559",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 2.08
+    },
+    {
+     "key": "Laomedeia|No way! Super rare!",
+     "text": "No way! Super rare!",
+     "voice": "Laomedeia",
+     "file": "cheers/9fef9d66e0b6ab.opus?v=1",
+     "rev": 1,
+     "sig": "94f427f7fa38",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 3.12
+    },
+    {
+     "key": "Puck|No way! Super rare!",
+     "text": "No way! Super rare!",
+     "voice": "Puck",
+     "file": "cheers/b88d68a1b9f3e8.opus?v=1",
+     "rev": 1,
+     "sig": "787bab4dd9ee",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 2.84
+    },
+    {
+     "key": "Laomedeia|Incredible pull!",
+     "text": "Incredible pull!",
+     "voice": "Laomedeia",
+     "file": "cheers/13da5310481be1.opus?v=1",
+     "rev": 1,
+     "sig": "b470a5fa5cbc",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 2.12
+    },
+    {
+     "key": "Puck|Incredible pull!",
+     "text": "Incredible pull!",
+     "voice": "Puck",
+     "file": "cheers/e0cef8884af2b4.opus?v=1",
+     "rev": 1,
+     "sig": "8bf29e7a7a0f",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 2.24
+    },
+    {
+     "key": "Laomedeia|Lucky you!",
+     "text": "Lucky you!",
+     "voice": "Laomedeia",
+     "file": "cheers/997945ee298a1b.opus?v=1",
+     "rev": 1,
+     "sig": "4b97bdc062b2",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.6
+    },
+    {
+     "key": "Puck|Lucky you!",
+     "text": "Lucky you!",
+     "voice": "Puck",
+     "file": "cheers/41fa9e4f5cb16d.opus?v=1",
+     "rev": 1,
+     "sig": "762b195561ba",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.48
+    },
+    {
+     "key": "Laomedeia|Oh my gosh, SSR!",
+     "text": "Oh my gosh, SSR!",
+     "voice": "Laomedeia",
+     "file": "cheers/91f4452cec80ed.opus?v=1",
+     "rev": 1,
+     "sig": "d7a824b59c08",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 2.6
+    },
+    {
+     "key": "Puck|Oh my gosh, SSR!",
+     "text": "Oh my gosh, SSR!",
+     "voice": "Puck",
+     "file": "cheers/5e1477e3bccb4f.opus?v=1",
+     "rev": 1,
+     "sig": "4b27a1730002",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 2.64
+    },
+    {
+     "key": "Laomedeia|That's a legendary card!",
+     "text": "That's a legendary card!",
+     "voice": "Laomedeia",
+     "file": "cheers/c113adff3993b1.opus?v=1",
+     "rev": 1,
+     "sig": "0a4f3731d1a2",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 2.52
+    },
+    {
+     "key": "Puck|That's a legendary card!",
+     "text": "That's a legendary card!",
+     "voice": "Puck",
+     "file": "cheers/1b493ff9ae4a57.opus?v=1",
+     "rev": 1,
+     "sig": "d8ff474dc433",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 2.4
+    }
+   ]
+  },
+  "rare": {
+   "chance": 0.6,
+   "clips": [
+    {
+     "key": "Laomedeia|Ooh, nice pull!",
+     "text": "Ooh, nice pull!",
+     "voice": "Laomedeia",
+     "file": "cheers/21d0185cc4d407.opus?v=1",
+     "rev": 1,
+     "sig": "84504826e6c3",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 2.24
+    },
+    {
+     "key": "Puck|Ooh, nice pull!",
+     "text": "Ooh, nice pull!",
+     "voice": "Puck",
+     "file": "cheers/9dfd3467fd2e05.opus?v=1",
+     "rev": 1,
+     "sig": "f449af6cd315",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.76
+    },
+    {
+     "key": "Laomedeia|Nice! A rare one!",
+     "text": "Nice! A rare one!",
+     "voice": "Laomedeia",
+     "file": "cheers/65e9c6d020e841.opus?v=1",
+     "rev": 1,
+     "sig": "9c6c501c0765",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 2.52
+    },
+    {
+     "key": "Puck|Nice! A rare one!",
+     "text": "Nice! A rare one!",
+     "voice": "Puck",
+     "file": "cheers/a5e0d558e6411f.opus?v=1",
+     "rev": 1,
+     "sig": "acc4bc944595",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 2.16
+    },
+    {
+     "key": "Laomedeia|Look what you got!",
+     "text": "Look what you got!",
+     "voice": "Laomedeia",
+     "file": "cheers/09216eb2850558.opus?v=1",
+     "rev": 1,
+     "sig": "8e115f025b50",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.76
+    },
+    {
+     "key": "Puck|Look what you got!",
+     "text": "Look what you got!",
+     "voice": "Puck",
+     "file": "cheers/607b6c7a7fb6da.opus?v=1",
+     "rev": 1,
+     "sig": "7e32f4f280e3",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.52
+    },
+    {
+     "key": "Laomedeia|Lucky!",
+     "text": "Lucky!",
+     "voice": "Laomedeia",
+     "file": "cheers/e8c910bd1421dd.opus?v=1",
+     "rev": 1,
+     "sig": "c762ad2aad55",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.32
+    },
+    {
+     "key": "Puck|Lucky!",
+     "text": "Lucky!",
+     "voice": "Puck",
+     "file": "cheers/596cbdd3378d98.opus?v=1",
+     "rev": 1,
+     "sig": "d90cdd0c3f03",
+     "model": "gemini-3.8-flash-tts",
+     "seconds": 1.32
+    }
+   ]
+  }
+ }
+}
