@@ -35,7 +35,7 @@ test("はじめてボーナスで10連を引ける。結果が出て、ポイン
   await expect(page.getByTestId("gacha-starter")).toBeVisible();
   await expect(page.getByTestId("wallet-points")).toHaveText("1,000");
   await expect(page.getByTestId("wallet-tickets")).toHaveText(/^1/);
-  await expect(page.getByTestId("gacha-rates")).toContainText("SSR 0.1%");
+  await expect(page.getByTestId("gacha-rates")).toContainText("SSR 0.005%");
 
   await page.getByRole("button", { name: /10連/ }).click();
   const result = page.getByTestId("gacha-result");
@@ -50,7 +50,7 @@ test("はじめてボーナスで10連を引ける。結果が出て、ポイン
   // 天井までの残り: 10連で SSR が出たら、その後に引いた回数だけ減っている
   const lastSsr = rarities.lastIndexOf("SSR");
   const sinceSsr = lastSsr < 0 ? 10 : rarities.length - 1 - lastSsr;
-  await expect(page.getByTestId("gacha-pity")).toContainText(`あと ${500 - sinceSsr} 回`);
+  await expect(page.getByTestId("gacha-pity")).toContainText(`あと ${1000 - sinceSsr} 回`);
 
   // ポイントが足りないと引けない
   await page.getByRole("button", { name: /1回引く/ }).click();
@@ -150,14 +150,14 @@ test("マイ称号: 集めた単語を組み合わせて称号を作り、付け
 test("学習すると、かかった時間に応じてガチャポイントがもらえる（「まだ」でも）", async ({ page }) => {
   await seedGacha(page, { points: 0 });
   await page.getByRole("button", { name: "覚えた", exact: true }).click();
-  await expect(page.getByTestId("earn-toast")).toContainText("+50pt"); // 最初の1枚は5秒ぶん
+  await expect(page.getByTestId("earn-toast")).toContainText("+5pt"); // 最初の1枚は5秒ぶん
   await expect(page.getByTestId("remaining")).toHaveText(/^49/);
   await page.waitForTimeout(1500);
   await page.getByRole("button", { name: "覚えてない", exact: true }).click();
   await openGacha(page);
   const points = Number((await page.getByTestId("wallet-points").innerText()).replace(/\D/g, ""));
-  expect(points).toBeGreaterThanOrEqual(50 + 15);
-  expect(points).toBeLessThan(50 + 200);
+  expect(points).toBeGreaterThanOrEqual(5 + 1);
+  expect(points).toBeLessThan(5 + 20);
 });
 
 test("ダブると Lv が上がり、MAX になると表示が変わる", async ({ page }) => {
@@ -184,19 +184,21 @@ test("引くと光の玉の演出が出て、スキップするとすぐに全�
   await expect(page.getByTestId("word-sheet")).toBeVisible();
 });
 
-test("コード: 単語を入れるとポイント（1日5回・同じ単語は1回だけ）。開発者コード aaa で無限", async ({ page }) => {
+test("コード: 単語を入れるとその単語とポイント（最大5000pt・1日5回・同じ単語は1回だけ）。開発者コード aaa で無限", async ({ page }) => {
   await seedGacha(page, { points: 0 });
   await openGacha(page);
   await page.getByRole("button", { name: "コード", exact: true }).click();
   await expect(page.getByTestId("code-left")).toContainText("あと 5 / 5 回");
-  await page.locator("#gacha-code").fill("adventure");
+  await page.locator("#gacha-code").fill("robot");
   await page.getByRole("button", { name: "入れる" }).click();
-  await expect(page.getByTestId("code-message")).toContainText("adventure");
+  await expect(page.getByTestId("code-message")).toContainText("robot");
+  await expect(page.getByTestId("code-message")).toContainText("単語も手に入れた");
   await expect(page.getByTestId("code-left")).toContainText("あと 4 / 5 回");
   const points = Number((await page.getByTestId("wallet-points").innerText()).replace(/\D/g, ""));
-  expect(points).toBeGreaterThanOrEqual(1000);
+  expect(points).toBeGreaterThanOrEqual(3000);
+  expect(points).toBeLessThanOrEqual(5000);
 
-  await page.locator("#gacha-code").fill("adventure");
+  await page.locator("#gacha-code").fill("robot");
   await page.getByRole("button", { name: "入れる" }).click();
   await expect(page.getByTestId("code-message")).toContainText("もう使いました");
   await page.locator("#gacha-code").fill("zzqqxx");

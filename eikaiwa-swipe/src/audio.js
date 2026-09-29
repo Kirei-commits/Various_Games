@@ -15,8 +15,76 @@
  * バトルの曲が優先。どちらも流さないときは止める。
  */
 import { isRecordedPlaying } from "./recorded.js";
+import { cheer, setCheersWanted } from "./cheers.js";
 
 const NOTE = (n) => 440 * Math.pow(2, (n - 69) / 12); // MIDI ノート番号 → 周波数
+
+/**
+ * iPhone（Safari）では、消音スイッチ（マナーモード）が入っていると Web Audio の音（BGM・効果音）が鳴らない。
+ * 録音（<audio> 要素）は鳴るので、「音が出る声はあるのに BGM だけ聞こえない」になる。
+ * 音の種類を「再生（playback）」にして、消音スイッチがあっても鳴るようにする（動画アプリや音楽アプリと同じ扱い）。
+ * - Safari 17 以降: navigator.audioSession.type = "playback"
+ * - それより古い iOS: 無音の <audio> をループで流しておくと、同じ扱いになる
+ */
+let silentKeeper = null;
+let micActive = false;
+function playThroughSilentSwitch() {
+  if (typeof navigator === "undefined") return;
+  try {
+    if (navigator.audioSession) {
+      if (micActive) return; // マイクを使っているあいだはそのまま
+      if (navigator.audioSession.type !== "playback") navigator.audioSession.type = "playback";
+      return;
+    }
+  } catch {
+    /* 設定できない端末 */
+  }
+  const ios = /iPad|iPhone|iPod/.test(navigator.userAgent || "") || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  if (!ios || typeof Audio === "undefined") return;
+  if (!silentKeeper) {
+    silentKeeper = new Audio(silentWav());
+    silentKeeper.loop = true;
+    silentKeeper.setAttribute("x-webkit-airplay", "deny");
+  }
+  if (silentKeeper.paused) silentKeeper.play().catch(() => {});
+}
+
+/**
+ * マイクを使うあいだ（音声で答える・シャドーイング）は「録音と再生（play-and-record）」にし、終わったら「再生」に戻す。
+ * 「再生」のままだとマイクが使えないことがあるため（navigator.audioSession がある Safari だけ）
+ */
+export function setMicActive(on) {
+  micActive = on;
+  try {
+    if (typeof navigator !== "undefined" && navigator.audioSession) navigator.audioSession.type = on ? "play-and-record" : "playback";
+  } catch {
+    /* 設定できない端末 */
+  }
+}
+
+/** 0.5秒の無音の WAV（data URL） */
+function silentWav() {
+  const rate = 8000;
+  const n = rate / 2;
+  const buf = new DataView(new ArrayBuffer(44 + n));
+  const str = (o, t) => [...t].forEach((c, i) => buf.setUint8(o + i, c.charCodeAt(0)));
+  str(0, "RIFF");
+  buf.setUint32(4, 36 + n, true);
+  str(8, "WAVEfmt ");
+  buf.setUint32(16, 16, true);
+  buf.setUint16(20, 1, true); // PCM
+  buf.setUint16(22, 1, true); // モノラル
+  buf.setUint32(24, rate, true);
+  buf.setUint32(28, rate, true);
+  buf.setUint16(32, 1, true);
+  buf.setUint16(34, 8, true); // 8bit（無音は 128）
+  str(36, "data");
+  buf.setUint32(40, n, true);
+  for (let i = 0; i < n; i++) buf.setUint8(44 + i, 128);
+  let bin = "";
+  for (let i = 0; i < buf.byteLength; i++) bin += String.fromCharCode(buf.getUint8(i));
+  return `data:audio/wav;base64,${btoa(bin)}`;
+}
 
 export class SoundEngine {
   constructor() {
@@ -38,6 +106,7 @@ export class SoundEngine {
   /** 最初のタップで呼ぶ。以後、効果音が鳴らせる */
   unlock() {
     if (!this.available) return;
+    playThroughSilentSwitch();
     if (!this.ctx) {
       const Ctx = window.AudioContext || window.webkitAudioContext;
       this.ctx = new Ctx();
@@ -61,6 +130,12 @@ export class SoundEngine {
     this.on = on;
     this.volume = volume;
     if (this.out) this.out.gain.value = volume;
+  }
+
+  /** 合いの手（英語の声での応援。src/cheers.js）を流すか */
+  setCheers(on) {
+    this.cheers = on;
+    setCheersWanted(on);
   }
 
   /** バトルの BGM の設定 */
@@ -298,7 +373,10 @@ export class SoundEngine {
     src.stop(t + dur + 0.02);
   }
 
-  play(name, n = 0) {
+  /** 効果音を鳴らす。cheer: false なら合いの手は流さない（同じ瞬間にいくつも鳴らすときに、1つだけ声を出すため） */
+  play(name, n = 0, { cheer: withCheer = true } = {}) {
+    // 合いの手は効果音と別の設定（効果音をオフにしていても流せる）。音量は効果音に合わせる
+    if (this.cheers && withCheer) cheer(name, n, this.volume, this.ctx);
     if (!this.on || !this.ctx || this.ctx.state !== "running") return;
     switch (name) {
       case "streak": { // ドーパミンモード: 連続正解ほど音が上がっていく（ペンタトニック）
@@ -378,6 +456,41 @@ export class SoundEngine {
       case "rare": // ガチャ: SR 以上のカードがめくれた
         [84, 88, 91].forEach((n, i) => this.mallet(n, { at: i * 0.05, gain: 0.2, decay: 0.7 }));
         break;
+      case "warn": { // 冒険: 敵がちからをためている（不気味に上がるうなり）
+        const t = this.ctx.currentTime;
+        this.tone(t, { type: "sawtooth", from: 70, to: 140, dur: 0.9, gain: 0.12, attack: 0.4, filter: 700 });
+        this.tone(t + 0.1, { type: "square", from: 55, to: 110, dur: 0.8, gain: 0.06, attack: 0.4, filter: 500 });
+        this.hiss(t, { type: "lowpass", freq: 300, to: 900, dur: 0.9, gain: 0.12 });
+        break;
+      }
+      case "smash": { // 冒険: 大こうげき（重い一撃）
+        const t = this.ctx.currentTime;
+        this.tone(t, { from: 120, to: 30, dur: 0.5, gain: 0.45 });
+        this.hiss(t, { type: "lowpass", freq: 1800, to: 80, dur: 0.55, gain: 0.5 });
+        this.tone(t, { type: "square", from: 200, to: 50, dur: 0.35, gain: 0.12, filter: 900 });
+        break;
+      }
+      case "block": { // 冒険: ぼうぎょで受けとめた（金属の音）
+        const t = this.ctx.currentTime;
+        [1, 2.76, 5.4].forEach((r, i) => this.tone(t, { type: "sine", from: 520 * r, to: 500 * r, dur: 0.5 - i * 0.12, gain: 0.12 / (i + 1) }));
+        this.hiss(t, { type: "highpass", freq: 3000, dur: 0.08, gain: 0.2 });
+        break;
+      }
+      case "heal": // 冒険: 回復（キラキラ上がる）
+        [76, 81, 84, 88, 93].forEach((n, i) => this.mallet(n, { at: i * 0.05, gain: 0.14, decay: 0.5 }));
+        break;
+      case "spell": { // 冒険: じゅもん（うなりながら飛んでいく）
+        const t = this.ctx.currentTime;
+        this.tone(t, { type: "triangle", from: 300, to: 1600, dur: 0.35, gain: 0.14 });
+        this.whoosh({ from: 600, to: 5000, dur: 0.3, gain: 0.3 });
+        this.mallet(91, { at: 0.28, gain: 0.16, decay: 0.4 });
+        break;
+      }
+      case "appear": // 冒険: 敵があらわれた
+        this.whoosh({ from: 300, to: 1500, dur: 0.25, gain: 0.25 });
+        this.mallet(60, { at: 0.05, gain: 0.2, decay: 0.4 });
+        this.mallet(63, { at: 0.15, gain: 0.18, decay: 0.5 });
+        break;
       case "ssr": // ガチャ: SSR！
         [72, 76, 79, 84, 88, 91, 96].forEach((n, i) => this.mallet(n, { at: i * 0.07, gain: 0.22, decay: 1 }));
         this.mallet(100, { at: 0.55, gain: 0.2, decay: 1.6 });
@@ -418,6 +531,7 @@ export const silentSound = {
   play() {},
   unlock() {},
   set() {},
+  setCheers() {},
   setBgm() {},
   setStudyBgm() {},
   setBattleMusic() {},

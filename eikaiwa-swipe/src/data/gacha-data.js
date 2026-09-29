@@ -407,3 +407,15 @@ export const TITLES = [
   { id: "ssr30", name: "語源マスター", desc: "SSR を30語集める", rule: { type: "rarity", rarity: "SSR", min: 30 } },
   { id: "max10", name: "限界突破", desc: "10語を Lv.4（MAX）にする", rule: { type: "max", min: 10 } },
 ];
+
+/**
+ * 冒険の宝箱でだけ手に入る単語（ガチャ・交換所には出ない）。冒険らしい単語を選んだ。
+ * レア度は元のまま（N 15・R 9・SR 10・SSR 2）。称号・シークレットの条件に使う単語は選ばない（テストで確かめる）。宝箱は深い階ほどレアが出やすい（src/quest.js の CHEST_RARITY）。
+ * 以前ガチャで引いた人のカードはそのまま残る。
+ */
+export const QUEST_WORDS = [
+  "light", "ice", "gold", "river", "ship", "map", "desert", "valley", "cliff", "storm", "ocean", "island", "cave", "forest", "shadow",
+  "brave", "journey", "adventure", "explore", "brilliant", "enemy", "weapon", "danger", "rescue",
+  "power", "courage", "wisdom", "destiny", "spirit", "ancient", "king", "queen", "legend", "frozen",
+  "jungle", "escape",
+];

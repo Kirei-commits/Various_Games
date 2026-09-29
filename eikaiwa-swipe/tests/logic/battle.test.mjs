@@ -15,6 +15,8 @@ import {
   STAGE_ENEMIES,
   BOSS_HP,
   PACE,
+  RESPAWN_AFTER_KILL,
+  RESPAWN_EMPTY,
   battleReward,
   byDifficulty,
   difficultyOf,
@@ -110,7 +112,7 @@ test("エンドレス: 倒すほどレベルが上がって敵が速くなり、
   assert.equal(b.over, true);
 });
 
-test("報酬: ポイントは 1000〜3000（時間と成績）、レアチケットは 1〜8 枚。初めての★3はチケット多め。1日の上限はない", () => {
+test("報酬: ポイントは 100〜300（時間と成績）、レアチケットは 1〜8 枚。初めての★3はチケット多め。1日の上限はない", () => {
   const rng = mulberry32(6);
   const play = () => {
     const b = createBattle({ mode: "stage", items: chapter.items, key: "ch51@en-ja", rng });
@@ -119,7 +121,7 @@ test("報酬: ポイントは 1000〜3000（時間と成績）、レアチケッ
   };
   let s = freshState();
   const first = applyBattle(s, play(), "2026-01-01");
-  assert.equal(first.reward.points, BATTLE_POINTS.min); // 短いバトルでも最低 1000
+  assert.equal(first.reward.points, BATTLE_POINTS.min); // 短いバトルでも最低 100
   assert.equal(first.reward.tickets, BATTLE_TICKETS.max); // ★3（6枚）＋初回（2枚）
   assert.equal(first.state.gacha.tickets, 8);
   assert.equal(first.state.battle.stars["ch51@en-ja"], 3);
@@ -133,7 +135,7 @@ test("報酬: ポイントは 1000〜3000（時間と成績）、レアチケッ
   assert.equal(s.battle.earned, 22 * BATTLE_POINTS.min);
 });
 
-test("報酬: 長く遊ぶほどポイントが増える（時間ぶんは 3000 まで＋エンドレスはレベルボーナス）。すぐやめたら時間ぶんだけでチケットなし", () => {
+test("報酬: 長く遊ぶほどポイントが増える（時間ぶんは 300 まで＋エンドレスはレベルボーナス）。すぐやめたら時間ぶんだけでチケットなし", () => {
   const rng = mulberry32(9);
   const b = createBattle({ mode: "endless", items: chapter.items, rng });
   for (let i = 0; i < 25; i++) killNext(b, rng);
@@ -151,7 +153,7 @@ test("報酬: 長く遊ぶほどポイントが増える（時間ぶんは 3000 
   killNext(early, rng);
   early.elapsed = 6000;
   quit(early);
-  assert.deepEqual([battleReward(early).points, battleReward(early).tickets], [60, 0]);
+  assert.deepEqual([battleReward(early).points, battleReward(early).tickets], [6, 0]);
 });
 
 test("5倍ブースト中はバトルのポイントも5倍（チケットはそのまま）", () => {
@@ -223,7 +225,7 @@ test("エンドレスの速さはゆっくり上がる（レベル10でも1.63�
 });
 
 test("エンドレスのレベルボーナスは、後半ほど大きく増える", () => {
-  assert.deepEqual([1, 2, 5, 10, 15].map(endlessLevelBonus), [0, 500, 5000, 22500, 52500]);
+  assert.deepEqual([1, 2, 5, 10, 15].map(endlessLevelBonus), [0, 50, 500, 2250, 5250]);
 });
 
 test("難易度5段階: 単語をやさしい順に均等に5つに分ける", () => {
@@ -264,7 +266,23 @@ test("必殺技: 答えずに敵を倒せる。コンボはそのままで、そ
   assert.equal(resultsOf(b).find((r) => r.id === item.id).correct, false);
 });
 
-test("敵はゆっくり近づく（4択で上から届くまで15秒、次の敵まで4.5秒）", () => {
-  assert.deepEqual(PACE.choice, { reach: 15000, interval: 4500 });
+test("敵はゆっくり近づき、テンポよく出てくる（4択で上から届くまで15秒、次の敵まで2.4秒）", () => {
+  assert.deepEqual(PACE.choice, { reach: 15000, interval: 2400 });
   assert.ok(PACE.type.reach > PACE.choice.reach && PACE.voice.reach > PACE.choice.reach);
+});
+
+test("倒すとすぐ次の敵が出る（場が空なら0.25秒、ほかの敵がいても0.9秒以内）", () => {
+  const rng = mulberry32(5);
+  const b = createBattle({ mode: "endless", items: chapter.items, answer: "type", rng });
+  tick(b, 16, rng, 0); // 1体目が出る（次は4.2秒後の予定）
+  assert.equal(b.enemies.length, 1);
+  attack(b, true, rng);
+  assert.equal(b.enemies.length, 0);
+  tick(b, RESPAWN_EMPTY, rng, 0);
+  assert.equal(b.enemies.length, 1, "場が空になったら0.25秒で次が出る");
+  tick(b, PACE.type.interval, rng, 0); // 2体いる状態にする
+  assert.equal(b.enemies.length, 2);
+  attack(b, true, rng);
+  tick(b, RESPAWN_AFTER_KILL, rng, 0);
+  assert.equal(b.enemies.length, 2, "ほかの敵がいても0.9秒で補充される");
 });

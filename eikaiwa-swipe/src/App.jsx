@@ -43,11 +43,15 @@ import {
   Hourglass,
   Flame as FlameIcon,
   Feather as NotebookPen,
+  Castle,
 } from "lucide-react";
 import { BattleBackdrop, Monster, Dragon, Hero, monsterKindOf } from "./battle-art.jsx";
+import QuestScreen from "./QuestScreen.jsx";
+import { equip as questEquip, autoEquip as questAutoEquip, applyQuest, runResults, savePreset as questSavePreset, loadPreset as questLoadPreset, enhance as questEnhance } from "./quest.js";
 import { loadRecordedIndex, playRecorded, recordedCount, recordedUrls, stopRecorded } from "./recorded.js";
-import { Art, CARD_BACK_ART, CHEST_ART, MACHINE_ART, SHOP_ART, WALLET_ICON } from "./gacha-art.jsx";
-import { saveDiary, usedWords } from "./diary.js";
+import { cheersAvailable, loadCheers, noteSpeech } from "./cheers.js";
+import { Art, CARD_BACK_ART, CHEST_ART, GACHA_PANEL_ART, MACHINE_ART, SHOP_ART, WALLET_ICON } from "./gacha-art.jsx";
+import { saveDiary } from "./diary.js";
 import rawChapters, { PARTS, RENAMED } from "./data/index.js";
 import { analyzeLinking, LINK_LABELS } from "./linking.js";
 import {
@@ -153,8 +157,8 @@ import {
   STATE_VERSION,
 } from "./logic.js";
 import { cloud, authErrorMessage } from "./cloud.js";
-import { usableVoices, pickVoices, pickVoicesFor, genderLabel, personaFor } from "./voices.js";
-import { SoundEngine, silentSound } from "./audio.js";
+import { usableVoices, pickVoices } from "./voices.js";
+import { SoundEngine, setMicActive, silentSound } from "./audio.js";
 import { detectInAppBrowser } from "./env.js";
 import { analyzePronunciation, verdictText, commonIssues } from "./pronounce.js";
 
@@ -186,20 +190,34 @@ const DopamineContext = createContext({ on: false, hit() {} });
 const useDopamine = () => useContext(DopamineContext);
 
 const DP_COLORS = ["#f43f5e", "#f59e0b", "#22c55e", "#3b82f6", "#a855f7", "#ec4899", "#facc15"];
-const dpLabel = (n) => (n >= 20 ? "🔥 FEVER 🔥" : n >= 10 ? "PERFECT!!!" : n >= 6 ? "EXCELLENT!!" : n >= 3 ? "GREAT!" : "NICE!");
+const DP_EMOJI = ["🔥", "✨", "💥", "⭐", "🎉", "💎", "⚡", "🌈"];
+const dpLabel = (n) =>
+  n >= 30 ? "🌈 GODLIKE 🌈" : n >= 20 ? "🔥 FEVER 🔥" : n >= 15 ? "UNSTOPPABLE!!" : n >= 10 ? "PERFECT!!!" : n >= 6 ? "EXCELLENT!!" : n >= 3 ? "GREAT!" : "NICE!";
+/** 5連続ごとの節目（大きな演出と音） */
+const dpMilestone = (n) => n > 0 && n % 5 === 0;
 
-/** ドーパミンモードの演出（画面全体に重ねる。タップは下に通す） */
+/**
+ * ドーパミンモードの演出（画面全体に重ねる。タップは下に通す）。
+ * 連続正解が増えるほど派手になる: 光の輪・放射の光・紙吹雪・絵文字の雨・虹色の文字。5連続ごとに画面いっぱいの節目の演出、
+ * 10連続からはフィーバー（画面のふちが虹色に光り続ける）
+ */
 function DopamineLayer({ fx, streak }) {
   if (!fx && !streak) return null;
   const n = fx?.streak || 0;
   const hot = n >= 10;
+  const big = fx && dpMilestone(n);
   const color = DP_COLORS[n % DP_COLORS.length];
+  const confetti = Math.min(18 + n * 3, big ? 90 : 60);
+  const emoji = Math.min(Math.floor(n / 2) * 2 + (big ? 12 : 0), 28);
   return (
     <div className="pointer-events-none absolute inset-0 z-40 overflow-hidden" data-testid="dopamine">
+      {streak >= 10 && <span className="dp-fever absolute inset-0 block" data-testid="dopamine-fever" />}
       {streak > 0 && (
         <p
           key={`m${streak}`}
-          className={`dp-meter absolute right-3 top-[76px] rounded-full px-2.5 py-1 text-xs font-black text-white shadow-lg ${hot ? "bg-gradient-to-r from-orange-500 to-rose-600" : "bg-slate-900/80"}`}
+          className={`dp-meter absolute bottom-[84px] right-3 rounded-full px-2.5 py-1 text-xs font-black text-white shadow-lg ${
+            streak >= 10 ? "dp-rainbow-bg" : streak >= 5 ? "bg-gradient-to-r from-orange-500 to-rose-600" : "bg-slate-900/80"
+          }`}
           data-testid="dopamine-streak"
         >
           🔥 ×{streak}
@@ -207,17 +225,32 @@ function DopamineLayer({ fx, streak }) {
       )}
       {fx && (
         <div key={fx.id}>
-          <span className="dp-glow absolute inset-0 block" style={{ boxShadow: `inset 0 0 ${hot ? 90 : 50}px ${hot ? 30 : 12}px ${color}` }} />
+          <span className="dp-flash absolute inset-0 block" style={{ background: big ? "white" : color, "--o": big ? 0.85 : 0.35 }} />
+          <span className="dp-glow absolute inset-0 block" style={{ boxShadow: `inset 0 0 ${hot ? 110 : 60}px ${hot ? 36 : 16}px ${color}` }} />
+          {n >= 3 && (
+            <span
+              className="dp-rays absolute left-1/2 top-[36%] block rounded-full"
+              style={{
+                width: big ? 900 : 600,
+                height: big ? 900 : 600,
+                background: `repeating-conic-gradient(from 0deg, ${color}66 0deg 8deg, transparent 8deg 20deg)`,
+              }}
+            />
+          )}
+          <span className="dp-ring absolute left-1/2 top-[36%] block rounded-full" style={{ borderColor: color }} />
+          {big && <span className="dp-ring dp-ring-2 absolute left-1/2 top-[36%] block rounded-full" style={{ borderColor: "#facc15" }} />}
           <p
-            className="bt-pop absolute inset-x-0 top-[30%] text-center font-black italic tracking-tight"
-            style={{ fontSize: hot ? 44 : 34, color, textShadow: "0 3px 0 rgba(0,0,0,0.25), 0 0 20px rgba(255,255,255,0.9)" }}
+            className={`${big ? "dp-stamp" : "bt-pop"} absolute inset-x-0 top-[28%] text-center font-black italic tracking-tight`}
+            style={{ fontSize: big ? 58 : hot ? 46 : 36, textShadow: "0 4px 0 rgba(0,0,0,0.25), 0 0 24px rgba(255,255,255,0.95)" }}
           >
-            {dpLabel(n)}
-            {n >= 2 && <span className="block text-2xl text-slate-900">{n} COMBO</span>}
+            <span className={hot || big ? "dp-rainbow-text" : ""} style={hot || big ? undefined : { color }}>
+              {dpLabel(n)}
+            </span>
+            {n >= 2 && <span className="block text-3xl text-slate-900">{n} COMBO{big ? "!!" : ""}</span>}
           </p>
-          {Array.from({ length: Math.min(12 + n * 2, 48) }, (_, i) => {
-            const a = -Math.PI / 2 + (Math.random() - 0.5) * 2.2;
-            const d = 160 + Math.random() * 260;
+          {Array.from({ length: confetti }, (_, i) => {
+            const a = -Math.PI / 2 + (Math.random() - 0.5) * (big ? 3.4 : 2.4);
+            const d = 180 + Math.random() * (big ? 420 : 300);
             return (
               <span
                 key={i}
@@ -227,14 +260,48 @@ function DopamineLayer({ fx, streak }) {
                   "--dx": `${Math.cos(a) * d}px`,
                   "--dy": `${Math.sin(a) * d}px`,
                   "--rot": `${Math.random() * 720 - 360}deg`,
-                  animationDelay: `${Math.random() * 0.08}s`,
+                  animationDelay: `${Math.random() * 0.1}s`,
                 }}
               />
             );
           })}
+          {Array.from({ length: emoji }, (_, i) => (
+            <span
+              key={`e${i}`}
+              className="dp-rain absolute top-0 block text-2xl"
+              style={{ left: `${Math.random() * 92}%`, animationDelay: `${Math.random() * 0.35}s`, "--fall": `${55 + Math.random() * 40}vh`, "--rot": `${Math.random() * 90 - 45}deg` }}
+            >
+              {DP_EMOJI[(i + n) % DP_EMOJI.length]}
+            </span>
+          ))}
         </div>
       )}
     </div>
+  );
+}
+
+/** 話す速さ（設定の rate）。音声を流す画面から、その場で変えられるように Context で渡す */
+const RateContext = createContext({ rate: 1, setRate() {} });
+
+/** 話す速さのバー（学習・シャドーイング・一覧・テストの画面に置く。設定の「話す速さ」と同じ値） */
+function SpeedBar({ className = "" }) {
+  const { rate, setRate } = useContext(RateContext);
+  return (
+    <label className={`flex items-center gap-1.5 text-xs font-bold text-slate-500 ${className}`} data-testid="speed-bar">
+      <span aria-hidden="true">🐢</span>
+      <input
+        type="range"
+        min="0.6"
+        max="1.3"
+        step="0.05"
+        value={rate}
+        onChange={(e) => setRate(Number(e.target.value))}
+        aria-label="話す速さ"
+        className="w-24 accent-indigo-600"
+      />
+      <span aria-hidden="true">🐇</span>
+      <span className="w-10 tabular-nums text-slate-700">×{rate.toFixed(2)}</span>
+    </label>
   );
 }
 
@@ -288,6 +355,12 @@ const PART_GROUPS = PARTS.map((p) => {
 /** 種類ごとの問題（フレーズ全部・単語全部） */
 /** 単語ガチャの対象（単語の章 3000語＋シークレット） */
 const CATALOG = buildCatalog(LIBRARY, PARTS);
+/** 冒険で出す単語（ガチャの対象の単語。シークレットは除く） */
+const QUEST_POOL = Object.values(CATALOG.cards).filter((c) => !c.secret);
+/** 冒険の宝箱から出る、冒険限定の単語 */
+const CHEST_WORDS = Object.values(CATALOG.cards)
+  .filter((c) => c.questOnly)
+  .map((c) => ({ id: c.id, rarity: c.rarity }));
 const KIND_ITEMS = {
   phrase: PART_GROUPS.filter((p) => p.kind === "phrase").flatMap((p) => p.chapters.flatMap((c) => c.items)),
   word: PART_GROUPS.filter((p) => p.kind === "word").flatMap((p) => p.chapters.flatMap((c) => c.items)),
@@ -338,17 +411,11 @@ function loadInitialState() {
 }
 
 const DEFAULT_SETTINGS = {
-  voiceURI: "",
-  voiceBURI: "",
-  recorded: true, // 用意した録音（Gemini の音声）があればそれを使う
   rate: 0.95,
-  expressive: true,
-  twoVoices: true,
-  voiceVariety: true,
-  voiceWide: true, // いろいろな国の英語の声も使う
   linking: true,
   sfx: true,
   sfxVolume: 0.6,
+  cheers: true, // 合いの手（正解・連続正解・バトル・ガチャなどで英語の声で応援する）
   battleBgm: true, // バトル中の BGM
   bgmVolume: 0.35,
   studyBgm: true, // 学習中の BGM（シャドーイング中は流さない）
@@ -356,7 +423,7 @@ const DEFAULT_SETTINGS = {
   dopamine: false, // ドーパミンモード（派手な演出でテンポよく）
   theme: "", // 着せかえ（空なら以前ログインボーナスで選んだもの、なければスタンダード）
   test: { scope: "ch01", count: 10, direction: "en-ja", prompt: "text", answer: "type" },
-  play: "test", // テスト画面で「テスト」「バトル」のどちらを開くか
+  play: "test", // テスト画面で「テスト」「バトル」「冒険」のどれを開くか
   battle: { mode: "stage", chapter: "ch51", scope: "word", direction: "en-ja", answer: "choice", order: "random" },
 };
 
@@ -378,11 +445,13 @@ function useSpeech(settings) {
   const [voices, setVoices] = useState([]);
   const [speaking, setSpeaking] = useState(null);
   const [recorded, setRecorded] = useState(0); // 使える録音の数（audio/index.json を読んだあと）
+  const [cheers, setCheers] = useState(false); // 合いの手の声があるか（audio/cheers.json を読んだあと）
   const token = useRef(0);
 
   useEffect(() => {
     let alive = true;
     loadRecordedIndex().then(() => alive && setRecorded(recordedCount()));
+    loadCheers().then(() => alive && setCheers(cheersAvailable()));
     return () => {
       alive = false;
       stopRecorded();
@@ -393,7 +462,7 @@ function useSpeech(settings) {
     if (!supported) return undefined;
     const synth = window.speechSynthesis;
     const update = () => {
-      setVoices(usableVoices(synth.getVoices(), { wide: settings.voiceWide }));
+      setVoices(usableVoices(synth.getVoices()));
     };
     update();
     synth.addEventListener?.("voiceschanged", update);
@@ -401,12 +470,13 @@ function useSpeech(settings) {
       synth.removeEventListener?.("voiceschanged", update);
       synth.cancel();
     };
-  }, [supported, settings.voiceWide]);
+  }, [supported]);
 
   // B役（会話の相手）は A役と性別が違う声。見つからなければ同じ声を少し高くして区別する
   const { a: voiceA, b: voiceB, sameVoice } = useMemo(
-    () => pickVoices(voices, { aURI: settings.voiceURI, bURI: settings.voiceBURI, twoVoices: settings.twoVoices }),
-    [voices, settings.voiceURI, settings.voiceBURI, settings.twoVoices]
+    // 端末の声は録音の無い文（日記など）だけに使うので、選べるようにはせず自動で選ぶ
+    () => pickVoices(voices, { twoVoices: true }),
+    [voices]
   );
 
   /** speechSynthesis で読み上げる（my は呼び出し側で進めたトークン） */
@@ -415,19 +485,16 @@ function useSpeech(settings) {
       const synth = window.speechSynthesis;
       synth.cancel();
       const utterances = [];
-      // 「会話ごとにいろいろな人の声」なら、会話（seed）ごとに A・B の声の組み合わせを変える
-      const cast = settings.voiceVariety
-        ? pickVoicesFor(voices, seed, { twoVoices: settings.twoVoices })
-        : { a: voiceA, b: voiceB, sameVoice };
+      // 端末の声は選んだ声で固定（ネイティブの録音があるので、会話ごとに声を変える設定・いろいろな国の声の設定はなくした）
+      const cast = { a: voiceA, b: voiceB, sameVoice };
       for (const line of lines) {
         const voice = line.role === "B" ? cast.b : cast.a;
-        // 「いろいろな人の声」なら、会話ごとに声の高さと速さも少し変えて、別の人が話しているようにする
-        const persona = settings.voiceVariety ? personaFor(seed, line.role === "B" ? "B" : "A") : { pitch: 1, rate: 1 };
+        const persona = { pitch: 1, rate: 1 };
         for (const chunk of prosodyPlan(line.text, {
-          expressive: settings.expressive,
+          expressive: true,
           rate: settings.rate,
           // 声の高さで役を区別するのは、B役も同じ声を使うときだけ（別の声を高くすると不自然になる）
-          role: settings.twoVoices && cast.sameVoice ? line.role : null,
+          role: cast.sameVoice ? line.role : null,
         })) {
           const u = new SpeechSynthesisUtterance(chunk.text);
           u.lang = voice?.lang || "en-US";
@@ -454,7 +521,7 @@ function useSpeech(settings) {
       setTimeout(() => token.current === my && utterances.forEach((u) => synth.speak(u)), 0);
       return true;
     },
-    [voices, voiceA, voiceB, sameVoice, settings.expressive, settings.rate, settings.twoVoices, settings.voiceVariety]
+    [voiceA, voiceB, sameVoice, settings.rate]
   );
 
   /**
@@ -465,8 +532,9 @@ function useSpeech(settings) {
   const speakLines = useCallback(
     (lines, key, onDone, seed = key) => {
       if (!lines.length) return false;
+      noteSpeech(); // 読み上げが優先（合いの手を止めて、重ねない）
       // 録音がすべての行にあれば録音を再生する（再生できなければ読み上げに戻す）
-      const urls = settings.recorded ? recordedUrls(lines) : null;
+      const urls = recordedUrls(lines); // 録音があれば必ず録音で読む
       if (urls) {
         if (supported) window.speechSynthesis.cancel();
         const my = ++token.current;
@@ -485,7 +553,7 @@ function useSpeech(settings) {
       stopRecorded();
       return synthLines(lines, key, onDone, seed, ++token.current);
     },
-    [supported, settings.recorded, settings.rate, synthLines]
+    [supported, settings.rate, synthLines]
   );
 
   /** seed を渡すと、その会話と同じ声で読む（見出しと会話例の声をそろえるため） */
@@ -498,7 +566,7 @@ function useSpeech(settings) {
     if (supported) window.speechSynthesis.cancel();
   }, [supported]);
 
-  return { supported, speak, speakLines, stop, speaking, voices, voiceA, voiceB, sameVoice, recorded };
+  return { supported, speak, speakLines, stop, speaking, voices, voiceA, voiceB, sameVoice, recorded, cheers };
 }
 
 // ---------------------------------------------------------------------------
@@ -538,6 +606,7 @@ function useRecognition() {
       } catch {
         /* すでに止まっている */
       }
+      setMicActive(false);
     }
     setListening(false);
   }, []);
@@ -578,10 +647,12 @@ function useRecognition() {
         r.onend = () => {
           if (rec.current !== r) return;
           rec.current = null;
+          setMicActive(false);
                 setListening(false);
           onEnd?.();
         };
         rec.current = r;
+        setMicActive(true);
         r.start();
         setListening(true);
         return true;
@@ -794,7 +865,15 @@ const RESET_STEPS = [
   "覚えた・テストの記録・苦手がすべて消えます（あと1回）",
 ];
 
-function ResetButton({ onReset }) {
+/** アカウントのデータを消す（3回タップ） */
+const DELETE_STEPS = [
+  "アカウントのデータを消して最初から",
+  "本当に消しますか？（あと2回タップ）",
+  "ガチャ・冒険・日記もすべて消えます。元に戻せません（あと1回）",
+];
+
+function ResetButton({ onReset, steps = RESET_STEPS, testId = "reset-button" }) {
+  const RESET_STEPS_ = steps;
   const [step, setStep] = useState(0);
   useEffect(() => {
     if (step === 0) return undefined;
@@ -804,9 +883,9 @@ function ResetButton({ onReset }) {
   return (
     <button
       type="button"
-      data-testid="reset-button"
+      data-testid={testId}
       onClick={() => {
-        if (step + 1 < RESET_STEPS.length) return setStep(step + 1);
+        if (step + 1 < RESET_STEPS_.length) return setStep(step + 1);
         setStep(0);
         onReset();
       }}
@@ -814,17 +893,16 @@ function ResetButton({ onReset }) {
         step === 0 ? "bg-slate-50 text-slate-400 ring-1 ring-slate-200" : step === 1 ? "bg-rose-100 text-rose-700" : "bg-rose-500 text-white"
       }`}
     >
-      {RESET_STEPS[step]}
+      {RESET_STEPS_[step]}
     </button>
   );
 }
 
-const voiceLabel = (v) => `${v.name}（${[genderLabel(v), v.lang].filter(Boolean).join("・")}）`;
 
 // ---------------------------------------------------------------------------
 // 音声設定
 // ---------------------------------------------------------------------------
-function SettingsSheet({ open, onClose, settings, setSettings, speech, onResetAll, themeId }) {
+function SettingsSheet({ open, onClose, settings, setSettings, speech, onResetAll, onDeleteAccount, signedIn = false, themeId }) {
   const sound = useSound();
   if (!open) return null;
   const update = (patch) => setSettings((s) => ({ ...s, ...patch }));
@@ -876,112 +954,10 @@ function SettingsSheet({ open, onClose, settings, setSettings, speech, onResetAl
           <p className="mt-3 rounded-xl bg-amber-50 px-3 py-2 text-xs text-amber-700">このブラウザは音声読み上げに対応していません。</p>
         )}
 
-        {speech.recorded > 0 && (
-          <label className="mt-4 flex items-center gap-3 rounded-xl bg-emerald-50 px-3 py-2.5">
-            <span className="flex-1">
-              <span className="block text-sm font-bold text-slate-800">ネイティブ音声（録音）を使う</span>
-              <span className="block text-xs text-slate-500">
-                アメリカ英語の自然な発音・音のつながりで作った音声です（{speech.recorded.toLocaleString()}文ぶん）。録音の無い文は、この端末の声で読みます。速さは下の「話す速さ」に合わせます
-              </span>
-            </span>
-            <input
-              id="toggle-recorded"
-              type="checkbox"
-              checked={settings.recorded}
-              onChange={(e) => update({ recorded: e.target.checked })}
-              className="h-5 w-5 accent-emerald-600"
-            />
-          </label>
-        )}
-        <label className="mt-4 flex items-center gap-3 rounded-xl bg-indigo-50 px-3 py-2.5">
-          <span className="flex-1">
-            <span className="block text-sm font-bold text-slate-800">会話ごとにいろいろな人の声にする</span>
-            <span className="block text-xs text-slate-500">
-              フレーズごとに話す人が変わります（この端末の声 {speech.voices.length}種類 × 高さ・速さの個性）。オフにすると声を選んで固定できます
-            </span>
-          </span>
-          <input
-            id="toggle-voiceVariety"
-            type="checkbox"
-            checked={settings.voiceVariety}
-            onChange={(e) => update({ voiceVariety: e.target.checked })}
-            className="h-5 w-5 accent-indigo-600"
-          />
-        </label>
-        <label className="mt-2 flex items-center gap-3 rounded-xl bg-slate-50 px-3 py-2.5">
-          <span className="flex-1">
-            <span className="block text-sm font-bold text-slate-800">いろいろな国の英語の声も使う</span>
-            <span className="block text-xs text-slate-500">インド・アイルランド・南アフリカなどの英語も聞けます。オフにすると聞き取りやすい声だけ</span>
-          </span>
-          <input
-            id="toggle-voiceWide"
-            type="checkbox"
-            checked={settings.voiceWide}
-            onChange={(e) => update({ voiceWide: e.target.checked })}
-            className="h-5 w-5 accent-indigo-600"
-          />
-        </label>
-
-        {!settings.voiceVariety && (
-          <>
-        <label htmlFor="voice-select" className="mt-4 block text-xs font-bold text-slate-500">
-          声の種類（A役・見出しの読み上げ）
-        </label>
-        <div className="relative mt-1">
-          <select
-            id="voice-select"
-            value={speech.voiceA?.voiceURI || ""}
-            onChange={(e) => update({ voiceURI: e.target.value })}
-            className="w-full appearance-none rounded-xl bg-slate-50 py-2.5 pl-3 pr-9 text-sm text-slate-800 ring-1 ring-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          >
-            {speech.voices.length === 0 && <option value="">（利用できる英語の声がありません）</option>}
-            {speech.voices.map((v) => (
-              <option key={v.voiceURI} value={v.voiceURI}>
-                {voiceLabel(v)}
-              </option>
-            ))}
-          </select>
-          <ChevronDown size={16} className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400" />
-        </div>
-        <p className="mt-1 text-xs text-slate-400">「Natural」「Google」「Premium」と付く声は抑揚が自然です（端末により異なります）。</p>
-
-        {settings.twoVoices && (
-          <>
-            <label htmlFor="voice-b-select" className="mt-4 block text-xs font-bold text-slate-500">
-              会話の相手（B役）の声
-            </label>
-            <div className="relative mt-1">
-              <select
-                id="voice-b-select"
-                value={settings.voiceBURI || ""}
-                onChange={(e) => update({ voiceBURI: e.target.value })}
-                className="w-full appearance-none rounded-xl bg-slate-50 py-2.5 pl-3 pr-9 text-sm text-slate-800 ring-1 ring-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              >
-                <option value="">
-                  自動{speech.voiceB && !speech.sameVoice && !settings.voiceBURI ? `（${voiceLabel(speech.voiceB)}）` : "（おすすめ）"}
-                </option>
-                {speech.voices
-                  .filter((v) => v !== speech.voiceA)
-                  .map((v) => (
-                    <option key={v.voiceURI} value={v.voiceURI}>
-                      {voiceLabel(v)}
-                    </option>
-                  ))}
-              </select>
-              <ChevronDown size={16} className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400" />
-            </div>
-            <p className="mt-1 text-xs text-slate-400">
-              自動では A役と性別の違う声を選びます。
-              {speech.sameVoice && speech.voices.length > 0 && "この端末では別の声が見つからないため、同じ声を少し高くして区別しています。"}
-            </p>
-          </>
-        )}
-
-          </>
-        )}
-        <p className="mt-2 text-[11px] leading-relaxed text-slate-400">
-          iPhone は「設定 → アクセシビリティ → 読み上げコンテンツ → 声 → 英語」で「Ava（プレミアム）」「Zoe（プレミアム）」「Evan（拡張）」などを
-          ダウンロードすると、とても自然な声が使えるようになります（無料）。
+        <p className="mt-4 rounded-xl bg-emerald-50 px-3 py-2.5 text-xs text-slate-600" data-testid="voice-note">
+          <span className="block text-sm font-bold text-slate-800">読み上げはネイティブの録音</span>
+          アメリカ英語の自然な発音・音のつながりで作った録音で読みます{speech.recorded > 0 ? `（${speech.recorded.toLocaleString()}文ぶん）` : ""}。
+          日記など録音の無い文だけ、この端末の英語の声で読みます。
         </p>
 
         <label htmlFor="rate-range" className="mt-4 flex items-center justify-between text-xs font-bold text-slate-500">
@@ -997,27 +973,6 @@ function SettingsSheet({ open, onClose, settings, setSettings, speech, onResetAl
           onChange={(e) => update({ rate: Number(e.target.value) })}
           className="mt-2 w-full accent-indigo-600"
         />
-
-        <div className="mt-4 space-y-2">
-          {[
-            ["expressive", "抑揚をつける", "疑問文は語尾を上げ、感嘆文は明るく読み上げます"],
-            ["twoVoices", "会話のAとBで声を変える", "B役（会話の相手）を別の声にします"],
-          ].map(([key, label, hint]) => (
-            <label key={key} className="flex items-center gap-3 rounded-xl bg-slate-50 px-3 py-2.5">
-              <span className="flex-1">
-                <span className="block text-sm font-bold text-slate-800">{label}</span>
-                <span className="block text-xs text-slate-500">{hint}</span>
-              </span>
-              <input
-                id={`toggle-${key}`}
-                type="checkbox"
-                checked={settings[key]}
-                onChange={(e) => update({ [key]: e.target.checked })}
-                className="h-5 w-5 accent-indigo-600"
-              />
-            </label>
-          ))}
-        </div>
 
         <p className="mt-5 text-xs font-bold text-slate-500">表示</p>
         <label className="mt-2 flex items-center gap-3 rounded-xl bg-slate-50 px-3 py-2.5">
@@ -1067,6 +1022,22 @@ function SettingsSheet({ open, onClose, settings, setSettings, speech, onResetAl
               className="mt-2 w-full accent-indigo-600"
             />
           </>
+        )}
+
+        {speech.cheers && (
+          <label className="mt-3 flex items-center gap-3 rounded-xl bg-amber-50 px-3 py-2.5">
+            <span className="flex-1">
+              <span className="block text-sm font-bold text-slate-800">合いの手（英語の声で応援）</span>
+              <span className="block text-xs text-slate-500">正解・連続正解・テスト完了・バトル・ガチャで “Nice!” “You're on fire!” などと声をかけます（毎回ではありません）</span>
+            </span>
+            <input
+              id="toggle-cheers"
+              type="checkbox"
+              checked={settings.cheers}
+              onChange={(e) => update({ cheers: e.target.checked })}
+              className="h-5 w-5 accent-amber-500"
+            />
+          </label>
         )}
 
         <p className="mt-5 text-xs font-bold text-slate-500">ドーパミンモード</p>
@@ -1170,6 +1141,14 @@ function SettingsSheet({ open, onClose, settings, setSettings, speech, onResetAl
                 onClose();
               }}
             />
+          </div>
+          <p className="mt-5 text-xs font-bold text-slate-400">アカウントのデータを消す</p>
+          <p className="mt-1 text-[11px] leading-relaxed text-slate-400">
+            進捗・ガチャ・バトル・冒険・日記・設定をすべて消して、はじめて開いたときの状態に戻します。
+            {signedIn ? "ログイン中なので、クラウドのデータも空にしてログアウトします。" : "この端末のデータを消します。"}
+          </p>
+          <div className="mt-2">
+            <ResetButton steps={DELETE_STEPS} testId="delete-account-button" onReset={onDeleteAccount} />
           </div>
         </div>
       </div>
@@ -1440,9 +1419,12 @@ function StudyScreen({ active, state, onChapter, onSwipe, onResetChapter, speech
           style={{ width: `${(learned / total) * 100}%` }}
         />
       </div>
-      <p className="mt-1 text-right text-xs text-slate-500 tabular-nums">
-        この章で覚えた {learned} / {total}
-      </p>
+      <div className="mt-1 flex items-center justify-between gap-2">
+        <SpeedBar />
+        <p className="text-right text-xs text-slate-500 tabular-nums">
+          この章で覚えた {learned} / {total}
+        </p>
+      </div>
 
       {current ? (
         <>
@@ -1543,8 +1525,14 @@ const tierOf = (scope) => {
   return m ? Number(m[1]) : 0;
 };
 
+/** コース（部）まるごとの出題範囲: "part1"〜（基本編・アメリカ生活編などの 1000問） */
+const partOf = (scope) => (/^part\d+$/.test(scope || "") ? PART_GROUPS[Number(scope.slice(4)) - 1] || null : null);
+const PART_SCOPES = PART_GROUPS.map((part, i) => [`part${i + 1}`, `${part.title} 全部（${part.count}問）`]);
+
 function scopeItems(scope, misses, favorites = {}) {
   if (scope === "all") return ALL_ITEMS;
+  const part = partOf(scope);
+  if (part) return part.chapters.flatMap((c) => c.items);
   if (scope === "phrase" || scope === "word") return KIND_ITEMS[scope];
   if (scope === "weak") return ALL_ITEMS.filter((p) => misses[p.id]);
   if (scope === "fav") return ALL_ITEMS.filter((p) => favorites[p.id]);
@@ -1559,6 +1547,7 @@ function scopeLabel(scope) {
   if (scope === "word") return "単語全部から";
   if (scope === "weak") return "苦手な問題";
   if (scope === "fav") return "お気に入り（⭐）";
+  if (partOf(scope)) return `${partOf(scope).title} 全部から`;
   const lv = tierOf(scope);
   if (lv) return `単語の難易度 ${TIER_LABELS[lv - 1]}`;
   return chapterLabel(CHAPTER_BY_ID[scope]);
@@ -1575,10 +1564,10 @@ function ScopePicker({ id, value, onChange, special = [], levels = false }) {
     ...(levels
       ? [{ key: "levels", title: "単語の難易度（5段階）", options: TIER_LABELS.map((label, i) => [`lv${i + 1}`, `${label}（${WORD_TIERS()[i].length}問）`]) }]
       : []),
-    ...PART_GROUPS.map((part) => ({
+    ...PART_GROUPS.map((part, i) => ({
       key: part.title,
       title: `${part.title}（${part.count}問）`,
-      options: part.chapters.map((c) => [c.id, `${chapterLabel(c)}（${c.items.length}問）`]),
+      options: [PART_SCOPES[i], ...part.chapters.map((c) => [c.id, `${chapterLabel(c)}（${c.items.length}問）`])],
     })),
   ];
   const current = groups.find((g) => g.options.some(([v]) => v === value));
@@ -1679,6 +1668,7 @@ function TestSetup({ config, setConfig, misses, favorites = {}, tests, onStart, 
               ["word", `単語全部から（${KIND_ITEMS.word.length}問）`],
               ["weak", `苦手な問題（${weakCount}問）`],
               ["fav", `お気に入り ⭐（${Object.keys(favorites).length}問）`],
+              ...PART_SCOPES,
               ...TIER_LABELS.map((label, i) => [`lv${i + 1}`, `単語の難易度 ${label}（${WORD_TIERS()[i].length}問）`]),
             ]}
             className="mt-1"
@@ -1916,6 +1906,7 @@ function TestRun({ quiz, config, pool, speech, recognition, onFinish, onQuit, ac
         </p>
         <p className="text-sm font-bold text-emerald-600 tabular-nums">⭕️ {score}</p>
       </div>
+      <SpeedBar className="mt-2 justify-end" />
       <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-slate-200">
         <div className="h-full bg-indigo-500 transition-all" style={{ width: `${((idx + (phase === "feedback" ? 1 : 0)) / quiz.length) * 100}%` }} />
       </div>
@@ -2281,6 +2272,7 @@ function TestKindSwitch({ value, onChange }) {
         options={[
           { value: "test", label: "テスト", icon: PenLine },
           { value: "battle", label: "バトル", icon: Swords },
+          { value: "quest", label: "冒険", icon: Castle },
         ]}
       />
     </div>
@@ -2470,6 +2462,10 @@ function BattleRun({ session, speech, recognition, onFinish, active = true, tool
   // ほかのタブを見ているあいだは一時停止（テスト画面は裏でも表示したままにしているため）
   const activeRef = useRef(active);
   activeRef.current = active;
+  // 敵が出たとき（ボスの単語が変わったときも）に、表示している英単語を読み上げる（英語→意味のときだけ。日本語→英語では答えになるので読まない）
+  const speechRef = useRef(speech);
+  speechRef.current = speech;
+  const announced = useRef(new Set());
   const b = battle.current;
   const t = target(b);
   const pool = items.length >= 4 ? items : ALL_ITEMS;
@@ -2509,8 +2505,8 @@ function BattleRun({ session, speech, recognition, onFinish, active = true, tool
     const scale = 0.72 + 0.38 * Math.min(e.y, 1);
     const size = Math.round((e.boss ? 110 : 60) * scale); // 上ほど小さく見える（文字は小さくしない）
     const top = 8 + Math.min(e.y, 1) * (H - (e.boss ? 190 : 140));
-    // 単語の札は幅の44%まで。札が戦場の外にはみ出さないよう、端の列は内側に寄せる
-    const labelW = Math.min(W * 0.44, 190);
+    // 単語の札は列の間隔（幅の30%）より少し狭く（29%）。となりの敵の札と重ならない。札が戦場の外にはみ出さないよう、端の列は内側に寄せる
+    const labelW = Math.min(W * 0.29, 170);
     const x = Math.min(Math.max(e.x * W, labelW / 2 + 4), W - labelW / 2 - 4);
     return { x, top, cy: top + size / 2, size, scale, labelW };
   };
@@ -2529,6 +2525,15 @@ function BattleRun({ session, speech, recognition, onFinish, active = true, tool
       const clock = typeof window.__swipetalkBattleTime === "number" ? window.__swipetalkBattleTime : 1;
       const scale = typeof window.__swipetalkBattleSpeed === "number" ? window.__swipetalkBattleSpeed : 1;
       tick(bt, dt * clock, Math.random, scale);
+      let fresh = null;
+      for (const e of bt.enemies) {
+        const key = `${e.uid}:${e.item.id}`;
+        if (!announced.current.has(key)) {
+          announced.current.add(key);
+          fresh = e;
+        }
+      }
+      if (fresh && !jaEn && activeRef.current) speechRef.current.speak(fresh.item.english, null, fresh.item.id);
       if (bt.hp < hp) {
         sound.play("hurt");
         setFlash({ type: "damage", text: "ダメージ！", at: now });
@@ -2738,7 +2743,7 @@ function BattleRun({ session, speech, recognition, onFinish, active = true, tool
               data-phrase-id={e.item.id}
               data-boss={e.boss ? "1" : "0"}
               className="absolute flex flex-col items-center"
-              style={{ left: box.x, top: box.top, transform: "translateX(-50%)", zIndex: 10 + Math.round(e.y * 100) }}
+              style={{ left: box.x, top: box.top, transform: "translateX(-50%)", zIndex: isTarget ? 140 : 10 + Math.round(e.y * 100) }}
             >
               <div className="relative" ref={(el) => (el ? (enemyEls.current[e.uid] = el) : delete enemyEls.current[e.uid])}>
                 <span
@@ -2758,7 +2763,7 @@ function BattleRun({ session, speech, recognition, onFinish, active = true, tool
                 data-testid="enemy-label"
                 style={{ maxWidth: box.labelW }}
                 className={`mt-1 block break-words rounded-xl px-2.5 py-0.5 text-center text-xs font-extrabold leading-snug shadow ${
-                  isTarget ? "bg-white text-slate-900 ring-2 ring-amber-400" : "line-clamp-2 bg-slate-900/60 text-white ring-1 ring-white/20"
+                  isTarget ? "bg-white text-slate-900 ring-2 ring-amber-400" : "bg-slate-900/60 text-white ring-1 ring-white/20"
                 }`}
               >
                 {jaEn ? e.item.japanese.split("／")[0] : e.item.english}
@@ -3090,7 +3095,7 @@ function BattleResult({ battle, reward, speech, onRetry, onNext, onBack, favorit
             （Lv.{battle.level} 到達ボーナス +{reward.levelBonus.toLocaleString()}pt を含む）
           </span>
         )}
-        {reward.tickets === 0 && <span className="block text-xs font-normal text-indigo-500">3体以上倒すと、レアチケットと 1000pt 以上がもらえます</span>}
+        {reward.tickets === 0 && <span className="block text-xs font-normal text-indigo-500">3体以上倒すと、レアチケットと {BATTLE_POINTS.min}pt 以上がもらえます</span>}
       </div>
 
       {wrong.length > 0 && (
@@ -3132,7 +3137,9 @@ function BattleResult({ battle, reward, speech, onRetry, onNext, onBack, favorit
   );
 }
 
-function TestScreen({ active, state, settings, setSettings, speech, onFinishTest, onFinishBattle, onSettings, onUseItem, onToggleFavorite }) {
+function TestScreen({ active, state, settings, setSettings, speech, onFinishTest, onFinishBattle, onSettings, onUseItem, onToggleFavorite, quest }) {
+  const sound = useSound();
+  const dopamine = useDopamine();
   const recognition = useRecognition();
   const [session, setSession] = useState(null); // { quiz, pool, runId }
   const [result, setResult] = useState(null);
@@ -3194,6 +3201,32 @@ function TestScreen({ active, state, settings, setSettings, speech, onFinishTest
         onFinish={onBattleOver}
         tools={state.gacha.items}
         onUseItem={onUseItem}
+      />
+    );
+  }
+  if (settings.play === "quest" && !session && !result) {
+    return (
+      <QuestScreen
+        active={active}
+        state={state}
+        cards={CATALOG.cards}
+        pool={QUEST_POOL}
+        chestWords={CHEST_WORDS}
+        speech={speech}
+        sound={sound}
+        dopamine={dopamine}
+        header={
+          <>
+            <ScreenHeader title="冒険" sub="集めた単語を装備して、塔をのぼろう" onSettings={onSettings} />
+            {switcher}
+          </>
+        }
+        onEquip={quest.onEquip}
+        onAutoEquip={quest.onAutoEquip}
+        onSavePreset={quest.onSavePreset}
+        onLoadPreset={quest.onLoadPreset}
+        onEnhance={quest.onEnhance}
+        onFinish={quest.onFinish}
       />
     );
   }
@@ -3599,6 +3632,7 @@ function ShadowScreen({ state, settings, speech, onShadowDone, onSettings }) {
           <Segmented name="pause" value={opts.pause} onChange={(pause) => setOpts((o) => ({ ...o, pause }))} options={PAUSE_OPTIONS} />
         </div>
       </div>
+      <SpeedBar className="mt-2" />
       {recognition.error && <p className="mt-2 rounded-xl bg-amber-50 px-3 py-2 text-xs text-amber-700">{recognition.error}</p>}
 
       <div className="mt-3 min-h-0 flex-1 overflow-y-auto rounded-3xl bg-white p-4 shadow-sm ring-1 ring-slate-200">
@@ -3805,7 +3839,10 @@ function ListScreen({ state, onToggle, speech, initialScope = "all", onToggleFav
   return (
     <div className="flex h-full flex-col">
       <div className="px-5 pt-4 pb-3 bg-slate-50">
-        <h1 className="text-2xl font-extrabold text-slate-900">フレーズ一覧</h1>
+        <div className="flex items-center justify-between gap-2">
+          <h1 className="text-2xl font-extrabold text-slate-900">フレーズ一覧</h1>
+          <SpeedBar />
+        </div>
         <div className="relative mt-3">
           <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
@@ -4019,24 +4056,24 @@ function Wallet({ g, onUseBoost }) {
     ["メダル", g.medals, "text-orange-500", "wallet-medals"],
   ];
   return (
-    <div className="mt-3 grid grid-cols-3 gap-1.5 rounded-2xl bg-white p-2 shadow-sm ring-1 ring-slate-200" data-testid="wallet">
-      {items.map(([label, v, color, id]) => (
-        <div key={label} className="flex items-center gap-1.5 rounded-lg bg-slate-50 px-1.5 py-1">
-          <Art src={WALLET_ICON[id.slice("wallet-".length)]} size={24} />
-          <p className="min-w-0 text-[10px] font-bold leading-tight text-slate-400">
-            {label}
-            <span className={`block text-sm font-black tabular-nums ${color}`} data-testid={id}>
+    <div className="mt-3" data-testid="wallet">
+      <div className="-mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1">
+        {items.map(([label, v, color, id]) => (
+          <div key={label} className="flex shrink-0 items-center gap-1 rounded-full bg-white py-1 pl-1 pr-2.5 shadow-sm ring-1 ring-slate-200" title={label}>
+            <Art src={WALLET_ICON[id.slice("wallet-".length)]} size={20} />
+            <span className="text-[10px] font-bold text-slate-400">{label}</span>
+            <span className={`text-sm font-black tabular-nums ${color}`} data-testid={id}>
               {typeof v === "number" ? v.toLocaleString() : v}
             </span>
-          </p>
-        </div>
-      ))}
+          </div>
+        ))}
+      </div>
       {(g.boosts > 0 || active) && (
-        <div className="col-span-3 flex items-center gap-2 rounded-xl bg-amber-50 px-3 py-1.5 text-xs font-bold text-amber-800" data-testid="wallet-boost">
+        <div className="mt-1 flex items-center gap-2 rounded-full bg-amber-50 py-1 pl-3 pr-1 text-xs font-bold text-amber-800 ring-1 ring-amber-200" data-testid="wallet-boost">
           <Zap size={14} className="fill-amber-400 text-amber-500" />
           <span className="flex-1">
             {BOOST_RATE}倍ブースト ×{g.boosts}
-            <span className="block text-[10px] font-normal text-amber-700">使うと1時間、学習・テスト・バトルのポイントが{BOOST_RATE}倍</span>
+            <span className="ml-1 text-[10px] font-normal text-amber-700">1時間ポイント{BOOST_RATE}倍</span>
           </span>
           {active && <BoostBadge gacha={g} />}
           {g.boosts > 0 && (
@@ -4050,9 +4087,9 @@ function Wallet({ g, onUseBoost }) {
           )}
         </div>
       )}
-      {message && <p className="col-span-3 text-center text-xs font-bold text-rose-500">{message}</p>}
+      {message && <p className="mt-1 text-center text-xs font-bold text-rose-500">{message}</p>}
       {(g.selSR > 0 || g.selSSR > 0) && (
-        <p className="col-span-3 rounded-xl bg-amber-50 px-3 py-1.5 text-center text-xs font-bold text-amber-700" data-testid="wallet-select">
+        <p className="mt-1 rounded-xl bg-amber-50 px-3 py-1.5 text-center text-xs font-bold text-amber-700" data-testid="wallet-select">
           選択チケット SR×{g.selSR}・SSR×{g.selSSR}（図鑑で好きな未獲得の単語に使えます）
         </p>
       )}
@@ -4173,11 +4210,13 @@ function WordSheet({ card, gacha, speech, onClose, onExchange }) {
                 </div>
               )}
               {card.secret && <p className="mt-3 rounded-2xl bg-slate-900 p-3 text-sm font-bold text-amber-300">解放の条件: {card.hint}</p>}
+              {card.questOnly && <p className="mt-3 rounded-2xl bg-emerald-900 p-3 text-sm font-bold text-emerald-200">冒険限定: 冒険でボスを倒した宝箱から手に入ります</p>}
             </>
           )}
         </div>
 
-        {!card.secret && level < MAX_LEVEL && (
+        {card.questOnly && owned && <p className="mt-3 text-center text-[11px] font-bold text-emerald-700">冒険限定の単語（宝箱でまた手に入ると Lv が上がります）</p>}
+        {!card.secret && !card.questOnly && level < MAX_LEVEL && (
           <div className="mt-4 space-y-2">
             <p className="text-xs font-bold text-slate-500">交換所{owned ? `（Lv.${level + 1} に上げる）` : "（この単語を手に入れる）"}</p>
             <button
@@ -4489,9 +4528,9 @@ function GachaResult({ result, onClose, onOpen }) {
 /** ガチャの種類（引くのに使うもの）ごとの見た目と、選べる連数 */
 const GACHA_KINDS = [
   { currency: "points", label: "ポイント", sub: "通常ガチャ", counts: [1, 10, 50, 100, 500, 1000], bg: "from-indigo-600 via-violet-600 to-pink-500" },
-  { currency: "ticket", label: "レア", sub: "レアチケット（R 以上）", counts: [1, 10, 50, 100], bg: "from-rose-500 to-orange-500" },
-  { currency: "sr", label: "SR", sub: "SR チケット（SR 以上）", counts: [1, 10], bg: "from-violet-700 to-fuchsia-600" },
-  { currency: "ssr", label: "SSR", sub: "SSR チケット（SSR 確定）", counts: [1, 10], bg: "from-amber-400 via-pink-500 to-violet-600" },
+  { currency: "ticket", label: "レア", sub: "レアチケット（R の単語だけ）", counts: [1, 10, 50, 100], bg: "from-rose-500 to-orange-500" },
+  { currency: "sr", label: "SR", sub: "SR チケット（SR の単語だけ）", counts: [1, 10], bg: "from-violet-700 to-fuchsia-600" },
+  { currency: "ssr", label: "SSR", sub: "SSR チケット（SSR の単語だけ）", counts: [1, 10], bg: "from-amber-400 via-pink-500 to-violet-600" },
 ];
 
 /** 開閉できる説明の箱 */
@@ -4515,7 +4554,7 @@ function GachaPanel({ g, onPull, onUpgrade }) {
   const kind = GACHA_KINDS.find((k) => k.currency === currency);
   const rates = useMemo(() => currentRates(g, CATALOG, pos, currency), [g, pos, currency]);
   const pull = (times) => setError(onPull({ pos, currency, times }) || "");
-  const fmt = (v) => `${Math.round(v * 10) / 10}%`;
+  const fmt = (v) => `${v >= 1 ? Math.round(v * 10) / 10 : Math.round(v * 1000) / 1000}%`;
   const have = currency === "points" ? g.points : g[BALANCE_KEY[currency]];
   // 「全部引く」: 持っているポイントで引ける回数（無限モードは1000回）
   const allTimes = g.unlimited ? 1000 : Math.min(MAX_PULLS, Math.floor(g.points / PULL_COST));
@@ -4523,42 +4562,68 @@ function GachaPanel({ g, onPull, onUpgrade }) {
   const [first, second, ...rest] = kind.counts;
   return (
     <div className="space-y-3">
-      <Segmented
-        name="gacha-currency"
-        value={currency}
-        onChange={(c) => {
-          setCurrency(c);
-          setError("");
-        }}
-        options={GACHA_KINDS.map((k) => ({ value: k.currency, label: k.label }))}
-      />
-      <div className={`rounded-3xl bg-gradient-to-br ${kind.bg} p-4 text-white shadow-lg`} data-testid="gacha-machine">
-        <div className="flex items-start gap-2">
-          <Art src={MACHINE_ART[currency]} size={72} className="-my-2 -ml-1 bt-float drop-shadow-[0_4px_6px_rgba(0,0,0,0.35)]" />
-          <div className="min-w-0 flex-1">
-            <p className="text-[11px] font-bold tracking-widest text-white/80">{kind.sub}</p>
-            <p className="text-xl font-black">{GACHA_POS_OPTIONS.find((o) => o.value === pos).label}ガチャ</p>
-          </div>
-          <p className="rounded-full bg-black/20 px-2.5 py-1 text-xs font-black tabular-nums">
-            所持 {currency === "points" && g.unlimited ? "∞" : have.toLocaleString()}
-            {currency === "points" ? "pt" : "枚"}
-          </p>
-        </div>
-        <div className="mt-2 flex flex-wrap gap-1">
-          {GACHA_POS_OPTIONS.map((o) => (
+      {/* ガチャの種類（絵のカードで選ぶ） */}
+      <div className="grid grid-cols-4 gap-1.5" role="group" aria-label="ガチャの種類">
+        {GACHA_KINDS.map((k) => {
+          const n = k.currency === "points" ? g.points : g[BALANCE_KEY[k.currency]];
+          const on = k.currency === currency;
+          return (
             <button
-              key={o.value}
+              key={k.currency}
               type="button"
-              aria-pressed={pos === o.value}
-              onClick={() => setPos(o.value)}
-              className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${pos === o.value ? "bg-white text-slate-900" : "bg-white/15 text-white"}`}
+              aria-label={k.label}
+              aria-pressed={on}
+              onClick={() => {
+                setCurrency(k.currency);
+                setError("");
+              }}
+              className={`flex flex-col items-center rounded-2xl px-1 pb-1.5 pt-1 transition active:scale-95 ${
+                on ? `bg-gradient-to-br ${k.bg} text-white shadow-md` : "bg-white text-slate-600 ring-1 ring-slate-200"
+              }`}
             >
-              {o.label}
+              <Art src={MACHINE_ART[k.currency]} size={40} className={on ? "bt-float" : "opacity-80"} />
+              <span className="text-[11px] font-black">{k.label}</span>
+              <span className={`text-[10px] font-bold tabular-nums ${on ? "text-white/80" : "text-slate-400"}`}>
+                {k.currency === "points" && g.unlimited ? "∞" : n.toLocaleString()}
+                {k.currency === "points" ? "pt" : "枚"}
+              </span>
             </button>
-          ))}
+          );
+        })}
+      </div>
+
+      <div className="relative isolate overflow-hidden rounded-3xl bg-slate-900 p-4 text-white shadow-lg" data-testid="gacha-machine">
+        <img src={GACHA_PANEL_ART} alt="" draggable={false} aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 h-full w-full select-none object-cover" />
+        <div className={`pointer-events-none absolute inset-0 -z-10 bg-gradient-to-br ${kind.bg} opacity-60 mix-blend-multiply`} />
+        <div className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-t from-black/40 to-transparent" />
+        <div className="flex items-center gap-2">
+          <div className="min-w-0 flex-1">
+            <p className="text-[11px] font-bold text-white/80">{kind.sub}</p>
+            <p className="text-lg font-black">{GACHA_POS_OPTIONS.find((o) => o.value === pos).label}ガチャ</p>
+          </div>
+          <label className="flex items-center gap-1 rounded-full bg-black/20 py-1 pl-2.5 pr-1 text-[11px] font-bold">
+            品詞
+            <select
+              id="gacha-pos"
+              value={pos}
+              onChange={(e) => setPos(e.target.value)}
+              className="rounded-full bg-white/90 px-2 py-0.5 text-[11px] font-bold text-slate-800 focus:outline-none"
+            >
+              {GACHA_POS_OPTIONS.map((o) => (
+                <option key={o.value} value={o.value}>
+                  {o.label}
+                </option>
+              ))}
+            </select>
+          </label>
         </div>
-        <p className="mt-2 text-[11px] text-white/90 tabular-nums" data-testid="gacha-rates">
+        <p className="mt-1 text-[11px] text-white/90 tabular-nums" data-testid="gacha-rates">
           確率 {["N", "R", "SR", "SSR"].filter((r) => rates[r] > 0).map((r) => `${r} ${fmt(rates[r])}`).join("・")}
+          {PITY_SSR[currency] && (
+            <span className="ml-1 font-bold" data-testid="gacha-pity">
+              ・SSR 確定まで あと {PITY_SSR[currency] - (g.pity[currency] || 0)} 回
+            </span>
+          )}
         </p>
         <div className="mt-3 grid grid-cols-2 gap-2">
           <button type="button" onClick={() => pull(first)} className="rounded-2xl bg-white py-3 text-sm font-extrabold text-slate-800 shadow transition active:scale-95">
@@ -4567,19 +4632,17 @@ function GachaPanel({ g, onPull, onUpgrade }) {
           </button>
           <button type="button" onClick={() => pull(second)} className="rounded-2xl bg-amber-300 py-3 text-sm font-extrabold text-amber-950 shadow transition active:scale-95">
             10連
-            <span className="block text-[11px] font-bold text-amber-800">
-              {costText(second)}
-            </span>
+            <span className="block text-[11px] font-bold text-amber-800">{costText(second)}</span>
           </button>
         </div>
         {rest.length > 0 && (
-          <div className="mt-2 grid gap-1.5" style={{ gridTemplateColumns: `repeat(${rest.length}, minmax(0, 1fr))` }}>
+          <div className="mt-2 grid gap-1.5" style={{ gridTemplateColumns: `repeat(${Math.min(rest.length, 4)}, minmax(0, 1fr))` }}>
             {rest.map((n) => (
               <button
                 key={n}
                 type="button"
                 onClick={() => pull(n)}
-                className="rounded-xl bg-white/20 py-2 text-xs font-extrabold text-white ring-1 ring-white/40 transition active:scale-95"
+                className="rounded-xl bg-white/20 py-1.5 text-xs font-extrabold text-white ring-1 ring-white/40 transition active:scale-95"
               >
                 {n}連
                 <span className="block text-[10px] font-bold text-white/80 tabular-nums">{costText(n)}</span>
@@ -4587,23 +4650,10 @@ function GachaPanel({ g, onPull, onUpgrade }) {
             ))}
           </div>
         )}
-        {currency === "points" && (
-          <button
-            type="button"
-            disabled={allTimes < 1}
-            onClick={() => pull(allTimes)}
-            className="mt-2 w-full rounded-xl bg-black/20 py-2 text-xs font-extrabold text-white ring-1 ring-white/30 transition active:scale-95 disabled:opacity-50"
-          >
-            ポイントを全部使って引く
-            <span className="ml-1 font-bold text-white/80 tabular-nums">
-              {allTimes > 0 ? `（${allTimes.toLocaleString()}回）` : `（${PULL_COST}pt から）`}
-            </span>
+        {currency === "points" && allTimes > 0 && (
+          <button type="button" onClick={() => pull(allTimes)} className="mt-2 w-full text-center text-[11px] font-bold text-white/80 underline underline-offset-2">
+            ポイントを全部使って引く（{allTimes.toLocaleString()}回）
           </button>
-        )}
-        {PITY_SSR[currency] && (
-          <p className="mt-2 text-[11px] font-bold text-white/90 tabular-nums" data-testid="gacha-pity">
-            SSR 確定まで あと {PITY_SSR[currency] - (g.pity[currency] || 0)} 回
-          </p>
         )}
       </div>
       {error && <p className="rounded-xl bg-rose-50 px-3 py-2 text-center text-xs font-bold text-rose-600">{error}</p>}
@@ -4638,8 +4688,8 @@ function GachaPanel({ g, onPull, onUpgrade }) {
           ・毎日のログインボーナス {LOGIN_POINTS.toLocaleString()}pt・{BOOST_RATE}倍ブースト・SR チケット {LOGIN_SR_TICKETS}枚（3日ごとに SSR チケット、7日ごとにレアチケット）
         </p>
         <p>・今日の目標（{DAILY_GOAL}問）達成で {GOAL_POINTS.toLocaleString()}pt</p>
-        <p>・「コード」タブで英単語を入れると、難しい単語ほどたくさん（1日 {CODE_DAILY_LIMIT} 回）</p>
-        <p>・天井: 通常 {PITY_SSR.points}回・レアチケット {PITY_SSR.ticket}枚・SR チケット {PITY_SSR.sr}枚で SSR 確定</p>
+        <p>・「コード」タブで英単語を入れると、その単語と、難しい単語ほどたくさんのポイント（最大 5,000pt・1日 {CODE_DAILY_LIMIT} 回）</p>
+        <p>・天井: 通常ガチャは {PITY_SSR.points}回で SSR 確定。チケットは、そのランクの単語だけが出ます（レア=R・SR=SR・SSR=SSR）</p>
         <p>・同じ単語が出ると Lv が上がり、フレームが銅→銀→キラキラに（Lv.4 で MAX、以降は出なくなります）</p>
         <p>・引くたびに交換ポイントが1つ貯まり、図鑑から好きな単語と交換できます</p>
         <p>
@@ -5012,7 +5062,11 @@ function CodePanel({ g, onRedeem, onEndUnlimited }) {
     setMessage(
       r.unlimited
         ? { ok: true, text: "開発者コード！ ポイントが無限になりました（ガチャを引いても減りません）" }
-        : { ok: true, text: `「${r.card.english}」（${r.card.secret ? "SECRET" : r.card.rarity}）で ${r.points.toLocaleString()}pt ゲット！`, big: r.points >= 20000 }
+        : {
+            ok: true,
+            text: `「${r.card.english}」（${r.card.secret ? "SECRET" : r.card.rarity}）で ${r.points.toLocaleString()}pt ゲット！${r.got ? "　単語も手に入れた！" : ""}`,
+            big: r.points >= 3000,
+          }
     );
   };
   const recent = g.codesUsed.slice(-5).reverse().map((id) => CATALOG.cards[id]).filter(Boolean);
@@ -5370,79 +5424,88 @@ function AccountCard({ account }) {
 }
 
 // ---------------------------------------------------------------------------
-// 日記: 集めた単語で英語の日記を書き、その場で採点する
+// 日記: 今日のことを自由に書いて、日付ごとに保存する（採点はしない）
 // ---------------------------------------------------------------------------
-/** 集めた単語（ガチャ）の、英語（小文字）→ { id, rarity } */
-function ownedCardsByWord(g) {
-  const out = {};
-  for (const [id, n] of Object.entries(g.cards || {})) {
-    const c = CATALOG.cards[id];
-    if (n > 0 && c) out[c.english.toLowerCase()] = { id, rarity: c.secret ? "SSR" : c.rarity };
-  }
-  return out;
-}
+const DIARY_MOODS = ["😄", "🙂", "😐", "😢", "😡", "😴"];
+/** 書くことに迷ったとき用のお題（日付で1つ選ぶ。使わなくてもよい） */
+const DIARY_PROMPTS = [
+  ["What did you eat today?", "今日は何を食べた？"],
+  ["What made you smile today?", "今日笑ったことは？"],
+  ["Where did you go today?", "今日はどこへ行った？"],
+  ["Who did you talk to today?", "今日は誰と話した？"],
+  ["What was the hardest part of your day?", "今日いちばん大変だったことは？"],
+  ["What are you looking forward to?", "楽しみにしていることは？"],
+  ["What did you learn today?", "今日学んだことは？"],
+  ["How was the weather today?", "今日の天気はどうだった？"],
+  ["What do you want to do tomorrow?", "明日したいことは？"],
+  ["What are you grateful for today?", "今日感謝したいことは？"],
+];
+const diaryPromptFor = (date) => DIARY_PROMPTS[[...date].reduce((h, ch) => (h * 31 + ch.charCodeAt(0)) >>> 0, 7) % DIARY_PROMPTS.length];
 
 function DiaryScreen({ state, speech, onSave, onSettings }) {
   const { today } = todayAndYesterday();
   const entry = state.diary?.[today];
   const [text, setText] = useState(entry?.text || "");
+  const [mood, setMood] = useState(entry?.mood || null);
   const [saved, setSaved] = useState(false);
-  const [query, setQuery] = useState("");
   const [openDate, setOpenDate] = useState(null);
-  const textRef = useRef(null);
-  const owned = useMemo(() => ownedCardsByWord(state.gacha), [state.gacha]);
-  const ownedList = useMemo(
-    () =>
-      Object.entries(owned)
-        .map(([english, c]) => ({ english, ...c, japanese: CATALOG.cards[c.id]?.japanese || "" }))
-        .sort((a, b) => RARITIES.indexOf(b.rarity) - RARITIES.indexOf(a.rarity) || a.english.localeCompare(b.english)),
-    [owned]
-  );
-  const q = query.trim().toLowerCase();
-  const chips = ownedList.filter((c) => !q || c.english.includes(q) || c.japanese.includes(q)).slice(0, 80);
-  const usedNow = new Set((text.toLowerCase().match(/[a-z]+(?:'[a-z]+)?/g) || []).filter((w) => owned[w]));
+  const [prompt, promptJa] = diaryPromptFor(today);
   const wordCount = (text.match(/[A-Za-z]+(?:'[A-Za-z]+)?/g) || []).length;
-  const insert = (word) => {
-    const el = textRef.current;
-    const start = el?.selectionStart ?? text.length;
-    const end = el?.selectionEnd ?? text.length;
-    const before = text.slice(0, start);
-    const pad = before && !/\s$/.test(before) ? " " : "";
-    const next = `${before}${pad}${word} ${text.slice(end)}`;
-    setText(next);
-    setTimeout(() => {
-      el?.focus();
-      const pos = (before + pad + word + " ").length;
-      el?.setSelectionRange(pos, pos);
-    }, 0);
-  };
+  const english = /[A-Za-z]/.test(text);
   const history = Object.entries(state.diary || {})
     .filter(([d]) => d !== today)
     .sort((a, b) => (a[0] < b[0] ? 1 : -1));
+  const edited = () => setSaved(false);
   return (
     <div className="h-full overflow-y-auto px-5 pt-4 pb-6" data-testid="diary">
-      <ScreenHeader title="英語日記" sub="集めた単語で、今日のことを書こう" onSettings={onSettings} />
+      <ScreenHeader title="日記" sub="今日のことを自由に書こう" onSettings={onSettings} />
       {entry && !saved && <p className="mt-2 text-center text-[11px] text-slate-500">今日の日記は保存済みです。書き直して「保存する」で上書きできます。</p>}
       <div className="mt-4 rounded-3xl bg-white p-4 shadow-sm ring-1 ring-slate-200">
         <p className="flex items-center justify-between text-xs font-bold text-slate-500">
           <span>{today.replace(/-/g, "/")} の日記</span>
-          <span className="tabular-nums">
-            {wordCount}語・集めた単語 {usedNow.size}個
-          </span>
+          <span className="tabular-nums">{english ? `${wordCount}語` : `${text.length}文字`}</span>
         </p>
+        <div className="mt-2 flex items-center gap-1" role="radiogroup" aria-label="今日の気分">
+          <span className="mr-1 text-[11px] font-bold text-slate-400">気分</span>
+          {DIARY_MOODS.map((m) => (
+            <button
+              key={m}
+              type="button"
+              role="radio"
+              aria-checked={mood === m}
+              onClick={() => {
+                setMood(mood === m ? null : m);
+                edited();
+              }}
+              className={`rounded-full px-1.5 py-0.5 text-xl transition ${mood === m ? "scale-110 bg-indigo-100 ring-2 ring-indigo-400" : "opacity-60"}`}
+            >
+              {m}
+            </button>
+          ))}
+        </div>
+        <button
+          type="button"
+          onClick={() => {
+            if (!text.trim()) setText(`${prompt}\n`);
+          }}
+          className="mt-2 w-full rounded-2xl bg-amber-50 px-3 py-2 text-left ring-1 ring-amber-200"
+          data-testid="diary-prompt"
+        >
+          <span className="block text-[10px] font-bold text-amber-600">今日のお題（書くことに迷ったら）</span>
+          <span className="block text-sm font-bold text-slate-800">{prompt}</span>
+          <span className="block text-[11px] text-slate-500">{promptJa}</span>
+        </button>
         <textarea
           id="diary-text"
-          ref={textRef}
           value={text}
           onChange={(e) => {
             setText(e.target.value);
-            setSaved(false);
+            edited();
           }}
-          rows={6}
-          lang="en"
+          rows={8}
           spellCheck={false}
           autoCapitalize="sentences"
-          placeholder="Today I had breakfast with my family. ..."
+          placeholder={"Today I had breakfast with my family. ...\n（日本語で書いてもかまいません）"}
           className="mt-2 w-full resize-none rounded-2xl bg-slate-50 p-3 text-base leading-relaxed text-slate-900 ring-1 ring-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-400"
         />
         <div className="mt-2 flex gap-2">
@@ -5450,7 +5513,7 @@ function DiaryScreen({ state, speech, onSave, onSettings }) {
             type="button"
             disabled={!text.trim()}
             onClick={() => {
-              onSave(text);
+              onSave(text, mood);
               setSaved(true);
             }}
             className="flex-1 rounded-2xl bg-gradient-to-r from-indigo-600 to-fuchsia-600 py-3 text-sm font-extrabold text-white shadow active:scale-95 disabled:opacity-40"
@@ -5459,7 +5522,7 @@ function DiaryScreen({ state, speech, onSave, onSettings }) {
           </button>
           <button
             type="button"
-            disabled={!text.trim()}
+            disabled={!english}
             onClick={() => speech.speak(text, null, `diary-${today}`)}
             aria-label="読み上げる"
             className="rounded-2xl bg-white px-4 text-indigo-600 ring-1 ring-slate-200 disabled:opacity-40"
@@ -5474,42 +5537,6 @@ function DiaryScreen({ state, speech, onSave, onSettings }) {
         )}
       </div>
 
-      <div className="mt-4">
-        <p className="text-sm font-bold text-slate-800">集めた単語（タップで入れる）</p>
-        {ownedList.length === 0 ? (
-          <p className="mt-2 rounded-2xl bg-white p-4 text-center text-xs text-slate-500 ring-1 ring-slate-200">
-            まだ単語を集めていません。「ガチャ」で単語を集めると、ここから日記に入れられます。
-          </p>
-        ) : (
-          <>
-            <input
-              id="diary-search"
-              type="search"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder={`${ownedList.length}語から検索（英語・日本語）`}
-              className="mt-2 w-full rounded-xl bg-white px-3 py-2 text-sm ring-1 ring-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-400"
-            />
-            <div className="mt-2 flex flex-wrap gap-1.5" data-testid="diary-words">
-              {chips.map((c) => (
-                <button
-                  key={c.id}
-                  type="button"
-                  onClick={() => insert(c.english)}
-                  title={c.japanese}
-                  className={`rounded-full px-2.5 py-1 text-xs font-bold ring-1 ${
-                    usedNow.has(c.english) ? "bg-indigo-600 text-white ring-indigo-600" : "bg-white text-slate-700 ring-slate-200"
-                  }`}
-                >
-                  {c.english}
-                  <span className="ml-1 text-[9px] opacity-60">{c.rarity}</span>
-                </button>
-              ))}
-            </div>
-          </>
-        )}
-      </div>
-
       <div className="mt-5">
         <p className="text-sm font-bold text-slate-800">これまでの日記</p>
         {history.length === 0 && <p className="mt-2 text-xs text-slate-400">まだありません。毎日書くと、ここに並びます。</p>}
@@ -5518,10 +5545,23 @@ function DiaryScreen({ state, speech, onSave, onSettings }) {
             <li key={date} className="rounded-2xl bg-white p-3 shadow-sm ring-1 ring-slate-200">
               <button type="button" onClick={() => setOpenDate(openDate === date ? null : date)} className="flex w-full items-center gap-2 text-left">
                 <span className="text-xs font-bold text-slate-500">{date.replace(/-/g, "/")}</span>
+                {e.mood && <span className="text-base">{e.mood}</span>}
                 <span className="min-w-0 flex-1 truncate text-sm text-slate-800">{e.text}</span>
-                {e.words?.length > 0 && <span className="text-[10px] font-bold text-indigo-500">単語 {e.words.length}</span>}
               </button>
-              {openDate === date && <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-slate-700">{e.text}</p>}
+              {openDate === date && (
+                <div className="mt-2">
+                  <p className="whitespace-pre-wrap text-sm leading-relaxed text-slate-700">{e.text}</p>
+                  {/[A-Za-z]/.test(e.text) && (
+                    <button
+                      type="button"
+                      onClick={() => speech.speak(e.text, null, `diary-${date}`)}
+                      className="mt-2 inline-flex items-center gap-1 rounded-full bg-indigo-50 px-3 py-1 text-xs font-bold text-indigo-600"
+                    >
+                      <Volume2 size={14} /> 読み上げる
+                    </button>
+                  )}
+                </div>
+              )}
             </li>
           ))}
         </ul>
@@ -5531,7 +5571,10 @@ function DiaryScreen({ state, speech, onSave, onSettings }) {
 }
 
 /** 進捗で章を押したとき: 学習するか、一覧で単語を見るか選ぶ */
-function ChapterChooser({ chapter, onChoose, onClose }) {
+function ChapterChooser({ chapter, onChoose, onClose, state = null }) {
+  const n = state ? chapter.items.filter((p) => state.learned[p.id]).length : null;
+  const best = state?.tests[chapter.id]?.best;
+  const bestJaEn = state?.tests[testKey(chapter.id, "ja-en")]?.best;
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-900/40" onClick={onClose}>
       <div
@@ -5544,6 +5587,13 @@ function ChapterChooser({ chapter, onChoose, onClose }) {
       >
         <p className="text-xs font-bold text-slate-400">第{CHAPTER_NO[chapter.id]}章</p>
         <p className="text-lg font-extrabold text-slate-900">{chapter.title}</p>
+        {n != null && (
+          <p className="mt-1 text-xs text-slate-500 tabular-nums" data-testid="chooser-progress">
+            覚えた {n}/{chapter.items.length}
+            {best != null && <span className="ml-2 text-indigo-500">テスト（意味）{best}%</span>}
+            {bestJaEn != null && <span className="ml-2 text-pink-500">テスト（英語）{bestJaEn}%</span>}
+          </p>
+        )}
         <div className="mt-4 grid grid-cols-2 gap-2">
           <button
             type="button"
@@ -5570,6 +5620,10 @@ function ChapterChooser({ chapter, onChoose, onClose }) {
 
 function ProgressScreen({ state, onOpenChapter, storageOk, account, bonusActions }) {
   const [choosing, setChoosing] = useState(null);
+  const current = CHAPTERS.find((c) => c.id === state.chapter) || null;
+  const chapterLearned = (c) => c.items.filter((p) => state.learned[p.id]).length;
+  // 今の章のコースを最初から開いておく
+  const [openPart, setOpenPart] = useState(() => PART_GROUPS.find((g) => g.chapters.some((c) => c.id === state.chapter))?.title || null);
   const learned = ALL_ITEMS.filter((p) => state.learned[p.id]).length;
   const pct = Math.round((learned / TOTAL) * 100);
   const { today, yesterday } = todayAndYesterday();
@@ -5591,6 +5645,7 @@ function ProgressScreen({ state, onOpenChapter, storageOk, account, bonusActions
     <div className="h-full overflow-y-auto px-5 pt-4 pb-6">
       {choosing && (
         <ChapterChooser
+          state={state}
           chapter={choosing}
           onClose={() => setChoosing(null)}
           onChoose={(where) => {
@@ -5601,79 +5656,126 @@ function ProgressScreen({ state, onOpenChapter, storageOk, account, bonusActions
       )}
       <h1 className="text-2xl font-extrabold text-slate-900">学習の進捗</h1>
       <TitleBadge gacha={state.gacha} className="mt-1" />
-      {cloud.available && <AccountCard account={account} />}
-      <BonusCard state={state} {...bonusActions} />
 
-      <div className="mt-4 rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-200 flex flex-col items-center">
-        <div className="relative">
-          <ProgressRing value={learned / TOTAL} />
-          <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <span className="text-4xl font-black text-slate-900 tabular-nums" data-testid="progress-pct">
+      <div className="mt-4 flex items-center gap-4 rounded-3xl bg-white p-4 shadow-sm ring-1 ring-slate-200">
+        <div className="relative shrink-0" style={{ width: 96, height: 96 }}>
+          <div className="origin-top-left" style={{ transform: "scale(0.6)" }}>
+            <ProgressRing value={learned / TOTAL} />
+          </div>
+          <div className="absolute inset-0 flex items-center justify-center">
+            <span className="text-2xl font-black text-slate-900 tabular-nums" data-testid="progress-pct">
               {pct}
-              <span className="text-xl">%</span>
-            </span>
-            <span className="text-xs text-slate-500 tabular-nums">
-              {learned} / {TOTAL} 覚えた
+              <span className="text-sm">%</span>
             </span>
           </div>
         </div>
-        <p className="mt-4 w-full rounded-2xl bg-gradient-to-r from-indigo-50 to-violet-50 px-4 py-3 text-center text-sm font-bold text-slate-800">
-          {motivation(learned)}
-          <span className="mt-1 block text-xs font-medium text-slate-500 tabular-nums">
+        <div className="min-w-0 flex-1">
+          <p className="text-xs text-slate-500 tabular-nums">
+            {learned} / {TOTAL} 覚えた
+          </p>
+          <p className="mt-0.5 text-sm font-bold leading-snug text-slate-800">{motivation(learned)}</p>
+          <p className="mt-1 text-xs text-slate-500 tabular-nums">
             クリアした章 {clearedChapters} / {CHAPTERS.length}
-          </span>
-        </p>
+          </p>
+        </div>
       </div>
 
-      <div className="mt-4 grid grid-cols-2 gap-3">
+      <div className="mt-3 grid grid-cols-3 gap-2">
         {tiles.map((t) => (
-          <div key={t.label} className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200">
-            <div className={`h-9 w-9 rounded-xl flex items-center justify-center ${t.color}`}>{t.icon}</div>
-            <p className="mt-3 text-xs text-slate-500">{t.label}</p>
-            <p className="text-2xl font-extrabold text-slate-900 tabular-nums">{t.value}</p>
+          <div key={t.label} className="rounded-2xl bg-white px-2.5 py-2 shadow-sm ring-1 ring-slate-200">
+            <p className="flex items-center gap-1 text-[10px] text-slate-500">
+              <span className={`flex h-5 w-5 items-center justify-center rounded-md ${t.color}`}>{React.cloneElement(t.icon, { size: 12 })}</span>
+              {t.label}
+            </p>
+            <p className="mt-0.5 text-lg font-extrabold text-slate-900 tabular-nums">{t.value}</p>
           </div>
         ))}
       </div>
 
-      {PART_GROUPS.map((part) => {
-        const partLearned = part.chapters.reduce((n, c) => n + c.items.filter((p) => state.learned[p.id]).length, 0);
-        const partTotal = part.chapters.reduce((n, c) => n + c.items.length, 0);
-        return (
-      <div key={part.title} className="mt-4 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200">
-        <p className="flex items-baseline justify-between text-sm font-bold text-slate-800">
-          {part.title}（第{part.from}〜{part.to}章）
-          <span className="text-xs font-semibold text-slate-500 tabular-nums">
-            {partLearned} / {partTotal}
+      {current && (
+        <button
+          type="button"
+          onClick={() => onOpenChapter(current.id, "study")}
+          className="mt-3 flex w-full items-center gap-3 rounded-2xl bg-gradient-to-r from-indigo-600 to-violet-600 p-3 text-left text-white shadow"
+          data-testid="progress-continue"
+        >
+          <Play size={20} className="shrink-0" />
+          <span className="min-w-0 flex-1">
+            <span className="block text-[10px] font-bold text-white/70">続きから（第{CHAPTER_NO[current.id]}章）</span>
+            <span className="block truncate text-sm font-bold">{current.title}</span>
+            <span className="mt-1 block h-1.5 overflow-hidden rounded-full bg-white/25">
+              <span className="block h-full rounded-full bg-white" style={{ width: `${(chapterLearned(current) / current.items.length) * 100}%` }} />
+            </span>
           </span>
-        </p>
-        <ul className="mt-2 divide-y divide-slate-100">
-          {part.chapters.map((c) => {
-            const n = c.items.filter((p) => state.learned[p.id]).length;
-            const best = state.tests[c.id]?.best;
-            const bestJaEn = state.tests[testKey(c.id, "ja-en")]?.best;
-            return (
-              <li key={c.id}>
-                <button type="button" onClick={() => setChoosing(c)} className="flex w-full items-center gap-3 py-2.5 text-left">
-                  <span className="w-8 shrink-0 text-xs font-bold text-slate-400 tabular-nums">{CHAPTER_NO[c.id]}</span>
-                  <span className="min-w-0 flex-1">
-                    <span className="block truncate text-sm font-semibold text-slate-800">{c.title}</span>
-                    <span className="mt-1 block h-1.5 overflow-hidden rounded-full bg-slate-100">
-                      <span className="block h-full rounded-full bg-emerald-400" style={{ width: `${(n / c.items.length) * 100}%` }} />
+          <span className="text-xs font-bold tabular-nums">
+            {chapterLearned(current)}/{current.items.length}
+          </span>
+        </button>
+      )}
+
+      <BonusCard state={state} {...bonusActions} />
+
+      <p className="mt-4 text-sm font-bold text-slate-800">コースごとの進み具合</p>
+      <div className="mt-2 space-y-2" data-testid="progress-parts">
+        {PART_GROUPS.map((part) => {
+          const partLearned = part.chapters.reduce((n, c) => n + chapterLearned(c), 0);
+          const partTotal = part.chapters.reduce((n, c) => n + c.items.length, 0);
+          const isOpen = openPart === part.title;
+          return (
+            <div key={part.title} className="rounded-2xl bg-white shadow-sm ring-1 ring-slate-200">
+              <button
+                type="button"
+                onClick={() => setOpenPart(isOpen ? null : part.title)}
+                aria-expanded={isOpen}
+                className="flex w-full items-center gap-3 px-3 py-2.5 text-left"
+              >
+                <span className="min-w-0 flex-1">
+                  <span className="flex items-baseline justify-between gap-2">
+                    <span className="truncate text-sm font-bold text-slate-800">
+                      {part.title}
+                      <span className="ml-1 text-[10px] font-semibold text-slate-400">
+                        第{part.from}〜{part.to}章
+                      </span>
+                    </span>
+                    <span className="shrink-0 text-xs font-semibold text-slate-500 tabular-nums">
+                      {partLearned} / {partTotal}
                     </span>
                   </span>
-                  <span className="w-16 shrink-0 text-right text-xs tabular-nums text-slate-500">
-                    {n}/{c.items.length}
-                    {best != null && <span className="block text-indigo-500">意味 {best}%</span>}
-                    {bestJaEn != null && <span className="block text-pink-500">英語 {bestJaEn}%</span>}
+                  <span className="mt-1 block h-1.5 overflow-hidden rounded-full bg-slate-100">
+                    <span className="block h-full rounded-full bg-emerald-400" style={{ width: `${(partLearned / partTotal) * 100}%` }} />
                   </span>
-                </button>
-              </li>
-            );
-          })}
-        </ul>
+                </span>
+                <ChevronDown size={16} className={`shrink-0 text-slate-400 transition ${isOpen ? "rotate-180" : ""}`} />
+              </button>
+              {isOpen && (
+                <div className="grid grid-cols-5 gap-1.5 px-3 pb-3">
+                  {part.chapters.map((c) => {
+                    const n = chapterLearned(c);
+                    const ratio = n / c.items.length;
+                    return (
+                      <button
+                        key={c.id}
+                        type="button"
+                        onClick={() => setChoosing(c)}
+                        aria-label={`第${CHAPTER_NO[c.id]}章 ${c.title} ${n}/${c.items.length}`}
+                        title={c.title}
+                        className={`relative h-10 overflow-hidden rounded-lg text-xs font-bold tabular-nums ring-1 ${
+                          ratio >= 1 ? "bg-emerald-500 text-white ring-emerald-500" : "bg-slate-50 text-slate-600 ring-slate-200"
+                        } ${state.chapter === c.id ? "outline outline-2 outline-indigo-500" : ""}`}
+                      >
+                        {ratio > 0 && ratio < 1 && <span className="absolute inset-x-0 bottom-0 block bg-emerald-300/70" style={{ height: `${ratio * 100}%` }} />}
+                        <span className="relative">{CHAPTER_NO[c.id]}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
-        );
-      })}
+      <p className="mt-1 text-[11px] text-slate-400">コースを開いて章の番号を押すと、学習するか一覧で見るかを選べます。</p>
+      {cloud.available && <AccountCard account={account} />}
 
       {!storageOk && (
         <p className="mt-4 rounded-xl bg-amber-50 px-3 py-2 text-xs text-amber-700">
@@ -5826,18 +5928,18 @@ export default function App() {
   const [storageOk] = useState(() => storage.available());
   const [sound] = useState(() => new SoundEngine());
   const speech = useSpeech(settings);
+  const rateCtx = useMemo(() => ({ rate: settings.rate, setRate: (rate) => setSettings((s) => ({ ...s, rate })) }), [settings.rate]);
 
   // ブラウザは画面に触れるまで音を出させないので、最初のタップで効果音を有効にする
   useEffect(() => {
+    // iPhone は touchend・click でないと音の再生を許さないことがあるので、それらでも呼ぶ（何度呼んでもよい）
     const unlock = () => sound.unlock();
-    window.addEventListener("pointerdown", unlock);
-    window.addEventListener("keydown", unlock);
-    return () => {
-      window.removeEventListener("pointerdown", unlock);
-      window.removeEventListener("keydown", unlock);
-    };
+    const events = ["pointerdown", "touchend", "click", "keydown"];
+    events.forEach((ev) => window.addEventListener(ev, unlock));
+    return () => events.forEach((ev) => window.removeEventListener(ev, unlock));
   }, [sound]);
   useEffect(() => sound.set(settings.sfx, settings.sfxVolume), [sound, settings.sfx, settings.sfxVolume]);
+  useEffect(() => sound.setCheers(settings.cheers), [sound, settings.cheers]);
   useEffect(() => sound.setBgm(settings.battleBgm, settings.bgmVolume), [sound, settings.battleBgm, settings.bgmVolume]);
   useEffect(() => sound.setStudyBgm(settings.studyBgm, settings.studyBgmVolume), [sound, settings.studyBgm, settings.studyBgmVolume]);
   // 学習中の BGM: シャドーイング（マイクを使う）以外の画面で、アプリを見ているあいだだけ
@@ -5879,6 +5981,7 @@ export default function App() {
   const [dpFx, setDpFx] = useState(null);
   const [dpStreak, setDpStreak] = useState(0);
   const dpStreakRef = useRef(0);
+  const rootRef = useRef(null); // 画面を揺らす
   const dopamineOn = settings.dopamine;
   const dopamine = useMemo(
     () => ({
@@ -5894,6 +5997,13 @@ export default function App() {
         setDpStreak(n);
         setDpFx({ id: Date.now() + Math.random(), streak: n });
         sound.play("streak", n);
+        if (dpMilestone(n)) sound.play(n >= 10 ? "ssr" : "bonus");
+        const amp = dpMilestone(n) ? 10 : Math.min(2 + n * 0.5, 7);
+        wiggle(
+          rootRef.current,
+          [{ transform: "translate(0,0)" }, { transform: `translate(${-amp}px,${amp / 2}px) rotate(-0.6deg)` }, { transform: `translate(${amp}px,${-amp / 2}px) rotate(0.6deg)` }, { transform: "translate(0,0)" }],
+          dpMilestone(n) ? 420 : 240
+        );
         try {
           navigator.vibrate?.(n >= 10 ? [15, 30, 25] : 12);
         } catch {
@@ -5920,9 +6030,9 @@ export default function App() {
   const onToggleFavorite = useCallback((id) => update((s) => toggleFavorite(s, id)), [update]);
   /** 日記を保存する（同じ日は上書き） */
   const onSaveDiary = useCallback(
-    (text) => {
+    (text, mood) => {
       const { today } = todayAndYesterday();
-      const next = saveDiary(stateRef.current, today, text, usedWords(text, ownedCardsByWord(stateRef.current.gacha)), Date.now());
+      const next = saveDiary(stateRef.current, today, text, [], Date.now(), { mood: mood || null });
       stateRef.current = next;
       update(() => next);
       sound.play("correct");
@@ -5965,6 +6075,54 @@ export default function App() {
       return res.reward;
     },
     [update]
+  );
+
+  // ---- 冒険（ガチャの単語を装備にするドラクエ風モード）
+  const questActions = useMemo(
+    () => ({
+      onEquip(slot, id) {
+        const next = questEquip(stateRef.current, slot, id);
+        stateRef.current = next;
+        update(() => next);
+        sound.play("tap");
+      },
+      onAutoEquip() {
+        const next = questAutoEquip(stateRef.current, CATALOG.cards);
+        stateRef.current = next;
+        update(() => next);
+        sound.play("correct", 0, { cheer: false });
+      },
+      onSavePreset(i) {
+        const next = questSavePreset(stateRef.current, i);
+        stateRef.current = next;
+        update(() => next);
+        sound.play("tap");
+      },
+      onEnhance(targetId, materials) {
+        const r = questEnhance(stateRef.current, CATALOG.cards, targetId, materials);
+        if (r.error) return r;
+        stateRef.current = r.state;
+        update(() => r.state);
+        sound.play(r.to > r.from ? "levelup" : "heal", 0, { cheer: false });
+        return r;
+      },
+      onLoadPreset(i) {
+        const next = questLoadPreset(stateRef.current, i);
+        stateRef.current = next;
+        update(() => next);
+        sound.play("correct", 0, { cheer: false });
+      },
+      onFinish(run, seconds) {
+        const { today, yesterday } = todayAndYesterday();
+        const withMisses = applyTestResult(stateRef.current, LIBRARY, "quest@en-ja", runResults(run), today, yesterday);
+        const res = applyQuest(withMisses, run, Math.min(seconds, 60 * 60), Date.now());
+        lastActivity.current = Date.now();
+        stateRef.current = res.state;
+        update(() => res.state);
+        return res.reward;
+      },
+    }),
+    [update, sound]
   );
 
   // ---- 単語ガチャ
@@ -6114,6 +6272,34 @@ export default function App() {
     };
   }, [flush]);
 
+  /** アカウントのデータを消して最初から（クラウドは空の状態で上書きしてログアウト。この端末の保存も消す） */
+  const onDeleteAccount = useCallback(async () => {
+    const fresh = freshState(CHAPTERS[0].id);
+    ready.current = false; // 自動保存を止める
+    if (user) {
+      try {
+        await cloud.save(user.uid, fresh, Date.now());
+      } catch {
+        /* 通信できなくても、この端末のデータは消す */
+      }
+    }
+    try {
+      for (const k of Object.keys(localStorage)) if (k.startsWith("swipetalk:")) localStorage.removeItem(k);
+      sessionStorage.removeItem(SKIP_LOGIN_KEY);
+    } catch {
+      /* 保存が使えない環境 */
+    }
+    if (user) {
+      try {
+        await cloud.signOut();
+      } catch {
+        /* もうログアウトしている */
+      }
+    }
+    if (typeof window !== "undefined" && window.__swipetalkNoReload) return; // E2E 用
+    window.location.reload();
+  }, [user]);
+
   const account = {
     user,
     sync,
@@ -6183,11 +6369,12 @@ export default function App() {
 
   return (
     <SoundContext.Provider value={sound}>
+    <RateContext.Provider value={rateCtx}>
     <DopamineContext.Provider value={dopamine}>
     <ThemeContext.Provider value={theme}>
     <LinkingContext.Provider value={settings.linking}>
     <div className="w-full bg-slate-100" style={{ height: "100dvh" }}>
-      <div className="relative mx-auto flex h-full w-full max-w-md flex-col bg-slate-50 shadow-xl">
+      <div ref={rootRef} className="relative mx-auto flex h-full w-full max-w-md flex-col bg-slate-50 shadow-xl">
         {dopamineOn && <DopamineLayer fx={dpFx} streak={dpStreak} />}
         {earnToast && Date.now() - earnToast.at < 1500 && (
           <div className="pointer-events-none absolute inset-x-0 top-2 z-40 flex justify-center">
@@ -6223,6 +6410,7 @@ export default function App() {
               speech={speech}
               onFinishTest={onFinishTest}
               onFinishBattle={onFinishBattle}
+              quest={questActions}
               onUseItem={onConsumeItem}
               onToggleFavorite={onToggleFavorite}
               onSettings={openSettings}
@@ -6334,6 +6522,8 @@ export default function App() {
           setSettings={setSettings}
           speech={speech}
           onResetAll={onResetAll}
+          onDeleteAccount={onDeleteAccount}
+          signedIn={!!user}
           themeId={theme.id}
         />
       </div>
@@ -6341,6 +6531,7 @@ export default function App() {
     </LinkingContext.Provider>
     </ThemeContext.Provider>
     </DopamineContext.Provider>
+    </RateContext.Provider>
     </SoundContext.Provider>
   );
 }

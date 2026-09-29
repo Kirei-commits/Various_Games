@@ -1,6 +1,6 @@
 /*
  * ガチャ画面の絵（台・宝箱・カードの裏・財布のアイコン・ショップの道具）。
- * 絵は src/assets/gacha/*.webp（tools/media/game_art.py が Gemini で作ったもの）。ビルドで index.html に埋め込まれる。
+ * 絵（台・宝箱・カードの裏・財布のアイコン・ショップの道具・台の後ろの背景）は src/assets/gacha/*.webp（tools/media/game_art.py が Gemini で作ったもの）。ビルドで index.html に埋め込まれる。
  */
 import React from "react";
 import machinePoints from "./assets/gacha/machine-points.webp";
@@ -18,6 +18,7 @@ import iconMedal from "./assets/gacha/icon-medal.webp";
 import itemBoost from "./assets/gacha/item-boost.webp";
 import itemFreeze from "./assets/gacha/item-freeze.webp";
 import itemSpecial from "./assets/gacha/item-special.webp";
+import panel from "./assets/gacha/panel.webp";
 
 /** ガチャの種類（currency）ごとの台の絵 */
 export const MACHINE_ART = { points: machinePoints, ticket: machineTicket, sr: machineSr, ssr: machineSsr };
@@ -27,6 +28,8 @@ export const WALLET_ICON = { points: iconPoints, tickets: iconTicket, sr: iconSr
 export const SHOP_ART = { boost: itemBoost, freeze: itemFreeze, special: itemSpecial };
 export const CHEST_ART = chest;
 export const CARD_BACK_ART = cardBack;
+/** ガチャの台の後ろの飾り（宝物庫の背景） */
+export const GACHA_PANEL_ART = panel;
 
 /** 飾りの絵（読み上げでは読まない） */
 export function Art({ src, size, className = "" }) {

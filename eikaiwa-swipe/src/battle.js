@@ -14,14 +14,14 @@ import { grant, boostRate, pointsForTime } from "./gacha.js";
 export const PLAYER_HP = 5;
 export const STAGE_ENEMIES = 10;
 export const BOSS_HP = 3;
-/** 1回のバトルでもらえるポイントの幅（遊んだ時間と成績で決まる。ブースト前） */
-export const BATTLE_POINTS = { min: 1000, max: 3000 };
+/** 1回のバトルでもらえるポイントの幅（遊んだ時間と成績で決まる。ブースト前。2026-09-29 に 1/10 に） */
+export const BATTLE_POINTS = { min: 100, max: 300 };
 /** 1回のバトルでもらえるレアチケットの幅 */
 export const BATTLE_TICKETS = { min: 1, max: 8 };
 /** 報酬をもらうのに必要な撃破数（すぐやめて報酬だけもらうのを防ぐ） */
 export const REWARD_MIN_KILLS = 3;
-/** エンドレスのレベルボーナス: レベル L まで到達すると 500 × (1 + 2 + … + (L-1)) pt（長く続けるほど大きく増える） */
-export const ENDLESS_LEVEL_BONUS = 500;
+/** エンドレスのレベルボーナス: レベル L まで到達すると 50 × (1 + 2 + … + (L-1)) pt（長く続けるほど大きく増える。以前は 500 ×） */
+export const ENDLESS_LEVEL_BONUS = 50;
 export const endlessLevelBonus = (level) => (ENDLESS_LEVEL_BONUS * (level - 1) * level) / 2;
 /** 時止めの砂時計で敵が止まる時間 */
 export const FREEZE_MS = 5000;
@@ -29,12 +29,18 @@ export const FREEZE_MS = 5000;
 export const TIERS = 5;
 export const LEVEL_UP_KILLS = 10;
 
-/** 答え方ごとの、敵が上から下まで届く時間（ms）と、次の敵が出るまでの間隔 */
+/**
+ * 答え方ごとの、敵が上から下まで届く時間（ms）と、次の敵が出るまでの間隔。
+ * 近づく速さはゆっくりのまま、出てくる間隔を短くしてテンポよくする（2026-09-29 ユーザーの依頼）
+ */
 export const PACE = {
-  choice: { reach: 15000, interval: 4500 },
-  type: { reach: 26000, interval: 7500 },
-  voice: { reach: 22000, interval: 7000 },
+  choice: { reach: 15000, interval: 2400 },
+  type: { reach: 26000, interval: 4200 },
+  voice: { reach: 22000, interval: 4000 },
 };
+/** 倒したあと、次の敵が出るまでの最大の待ち（ms）。場に敵がいなくなったら RESPAWN_EMPTY ですぐ出す */
+export const RESPAWN_AFTER_KILL = 900;
+export const RESPAWN_EMPTY = 250;
 
 const shuffle = (list, rng) => {
   const a = [...list];
@@ -212,6 +218,8 @@ export function attack(b, correct, rng = Math.random) {
   }
   b.enemies = b.enemies.filter((e) => e !== t);
   b.kills += 1;
+  // 倒したらすぐ次の敵を出す（待ちが残っていても短くする）
+  b.nextSpawn = Math.min(b.nextSpawn, b.elapsed + (b.enemies.length ? RESPAWN_AFTER_KILL : RESPAWN_EMPTY));
   b.lastEvent = { type: "kill", at: b.elapsed, uid: t.uid, item, boss: t.boss };
   if (b.mode === "endless") b.level = 1 + Math.floor(b.kills / LEVEL_UP_KILLS);
   if (t.boss) {
@@ -281,8 +289,8 @@ const accuracyOf = (b) => {
 
 /**
  * バトルの報酬（ブースト前）。
- * - ポイント: 遊んだ時間ぶん（学習・テストと同じ1分あたりの量）に、正解率・クリア・最高得点更新で上乗せし、1000〜3000 に収める。
- *   エンドレスは、さらに到達レベルのボーナス（endlessLevelBonus。Lv5 で 5,000、Lv10 で 22,500）
+ * - ポイント: 遊んだ時間ぶん（学習・テストと同じ1分あたりの量）に、正解率・クリア・最高得点更新で上乗せし、100〜300 に収める（2026-09-29 に 1/10 に）。
+ *   エンドレスは、さらに到達レベルのボーナス（endlessLevelBonus。Lv5 で 500、Lv10 で 2,250）
  * - レアチケット: ステージは ★1=2・★2=4・★3=6 枚（初めての★3はさらに +2）、クリアできなければ1枚。
  *   エンドレスは 1 + (レベル-1)/2 枚。どちらも 1〜8 枚
  * - 撃破が REWARD_MIN_KILLS 体未満なら、時間ぶんのポイントだけ（チケットなし）
