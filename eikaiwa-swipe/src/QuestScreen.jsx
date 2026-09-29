@@ -8,8 +8,9 @@
  */
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Volume2, Swords, Shield, Heart, Castle, X } from "lucide-react";
-import { BattleBackdrop, Monster, Dragon } from "./battle-art.jsx";
+import { Monster, Dragon } from "./battle-art.jsx";
 import { Art, CHEST_ART } from "./gacha-art.jsx";
+import { SLOT_ART, SKILL_ART, FX_ART, QUEST_BACKDROP, QUEST_HERO, QuestIcon, ElementIcon } from "./quest-art.jsx";
 import { makeChoices } from "./logic.js";
 import {
   SLOTS,
@@ -68,10 +69,10 @@ function Bar({ value, max, color, label }) {
 
 /** 相性の倍率（1.5 = ばつぐん、0.75 = いまひとつ） */
 function MultBadge({ mult, long = false }) {
-  if (mult === 1) return long ? <span className="rounded bg-white/15 px-1.5 py-0.5 text-[10px] font-black">×1 ふつう</span> : null;
+  if (mult === 1) return long ? <span className="whitespace-nowrap rounded bg-white/15 px-1.5 py-0.5 text-[10px] font-black">×1 ふつう</span> : null;
   const good = mult > 1;
   return (
-    <span className={`rounded px-1.5 py-0.5 text-[10px] font-black ${good ? "bg-amber-400 text-slate-900" : "bg-slate-500 text-white"}`}>
+    <span className={`whitespace-nowrap rounded px-1.5 py-0.5 text-[10px] font-black ${good ? "bg-amber-400 text-slate-900" : "bg-slate-500 text-white"}`}>
       ×{mult}
       {long ? (good ? " ばつぐん！" : " いまひとつ") : ""}
     </span>
@@ -117,7 +118,7 @@ function GearPicker({ slot, owned, cards, enhance = {}, current, onPick, onClose
       >
         <div className="flex items-center justify-between">
           <p className="text-base font-extrabold text-slate-900">
-            {info.icon} {info.name}をえらぶ <span className="text-xs font-bold text-slate-400">（{info.stat}が上がる）</span>
+            <QuestIcon src={SLOT_ART[slot]} size={24} /> {info.name}をえらぶ <span className="text-xs font-bold text-slate-400">（{info.stat}が上がる）</span>
           </p>
           <button type="button" onClick={onClose} aria-label="閉じる" className="rounded-full p-1 text-slate-400">
             <X size={20} />
@@ -151,7 +152,7 @@ function GearPicker({ slot, owned, cards, enhance = {}, current, onPick, onClose
                   {g.plus > 0 && <span className="text-[11px] font-black text-amber-500">+{g.plus}</span>}
                   <span className="text-[10px] font-bold text-slate-400">Lv{g.level}</span>
                   <span className="ml-auto text-xs" title={`${el(g.element).name}属性`}>
-                    {el(g.element).icon}
+                    <ElementIcon element={g.element} size={16} />
                   </span>
                   <span className="text-xs font-black text-indigo-600 tabular-nums">{bonusText(slotBonus(slot, g.power))}</span>
                 </span>
@@ -308,7 +309,10 @@ function QuestHome({ state, cards, stats, header, onEquip, onAutoEquip, onSavePr
       {header}
       <div className="mt-4 rounded-3xl bg-slate-900 p-4 text-white shadow-lg ring-2 ring-white/80">
         <p className="flex items-baseline justify-between">
-          <span className="text-lg font-black">ぼうけんしゃ</span>
+          <span className="flex items-center gap-1.5 text-lg font-black">
+            <QuestIcon src={QUEST_HERO} size={40} className="-my-2" />
+            ぼうけんしゃ
+          </span>
           <span className="text-sm font-black text-amber-300" data-testid="quest-level">
             Lv {q.level}
           </span>
@@ -325,7 +329,7 @@ function QuestHome({ state, cards, stats, header, onEquip, onAutoEquip, onSavePr
             ["会心", `${stats.crit}%`],
             ["回避", `${stats.evade}%`],
             ["盾", stats.block],
-            ["属性", `${el(stats.element).icon || "－"}`],
+            ["属性", <ElementIcon element={stats.element} size={20} fallback="－" />],
           ].map(([k, v]) => (
             <div key={k} className="rounded-xl bg-white/10 py-1.5">
               <p className="text-[10px] text-white/60">{k}</p>
@@ -334,8 +338,8 @@ function QuestHome({ state, cards, stats, header, onEquip, onAutoEquip, onSavePr
           ))}
         </div>
         <p className="mt-2 text-[11px] text-white/80">
-          攻撃の属性 {el(stats.element).icon}
-          {el(stats.element).name}・盾の属性 {el(stats.guard).icon}
+          攻撃の属性 <ElementIcon element={stats.element} size={14} />
+          {el(stats.element).name}・盾の属性 <ElementIcon element={stats.guard} size={14} />
           {el(stats.guard).name}
           {stats.setBonus > 0 && <span className="ml-1 font-black text-amber-300">属性そろい！攻撃+{stats.setBonus}%</span>}
         </p>
@@ -345,7 +349,7 @@ function QuestHome({ state, cards, stats, header, onEquip, onAutoEquip, onSavePr
             <p className="text-[10px] font-black text-amber-300">SSR の特製の呪文</p>
             {stats.skills.map((sk) => (
               <p key={sk.id} className="text-[11px]">
-                {sk.icon} <b>{sk.name}</b>（MP{sk.mp}）{sk.text} <span className="text-white/50">← {sk.from}</span>
+                <QuestIcon src={SKILL_ART[sk.element] || SKILL_ART.none} size={18} /> <b>{sk.name}</b>（MP{sk.mp}）{sk.text} <span className="text-white/50">← {sk.from}</span>
               </p>
             ))}
           </div>
@@ -410,7 +414,7 @@ function QuestHome({ state, cards, stats, header, onEquip, onAutoEquip, onSavePr
                 aria-label={`${s.name}を変える`}
                 className="flex w-full items-center gap-2.5 rounded-2xl bg-white px-3 py-2 text-left shadow-sm ring-1 ring-slate-200 active:scale-[0.99]"
               >
-                <span className="w-7 text-center text-xl">{s.icon}</span>
+                <QuestIcon src={SLOT_ART[s.id]} size={32} />
                 <span className="min-w-0 flex-1">
                   <span className="block text-[10px] font-bold text-slate-400">
                     {s.name}（{s.stat}）
@@ -422,8 +426,13 @@ function QuestHome({ state, cards, stats, header, onEquip, onAutoEquip, onSavePr
                         <span className="truncate text-sm font-bold text-slate-900">{g.english}</span>
                         {g.plus > 0 && <span className={`text-[11px] font-black ${g.ultimate ? "text-pink-500" : "text-amber-500"}`}>+{g.plus}</span>}
                         <span className="text-[10px] font-bold text-slate-400">Lv{g.level}</span>
-                        <span className="text-xs">{el(g.element).icon}</span>
-                        {g.rarity === "SSR" && <span className="text-[10px] font-black text-amber-500">{SKILLS[g.element].icon}呪文</span>}
+                        <ElementIcon element={g.element} size={14} />
+                        {g.rarity === "SSR" && (
+                          <span className="flex items-center text-[10px] font-black text-amber-500">
+                            <QuestIcon src={SKILL_ART[g.element] || SKILL_ART.none} size={14} />
+                            呪文
+                          </span>
+                        )}
                       </span>
                       <span className="block truncate text-[11px] text-slate-500">
                         {bonusText(slotBonus(s.id, g.power))}／{g.effects.map(effectText).join("・")}
@@ -622,10 +631,13 @@ function QuestRun({ stats, pool, chestWords, cards, speech, sound, dopamine, onE
   const playerFx = (e) => {
     const color = ELEMENT_COLOR[e.element] || ELEMENT_COLOR.none;
     const list = [];
+    const art = FX_ART[e.element] || FX_ART.none;
     if (e.magic) list.push({ kind: "orb", color, skill: !!e.skill });
-    if (e.skill) list.push({ kind: "flash", color }, { kind: "bigicon", icon: SKILLS[e.element]?.icon || "✨" });
+    if (e.skill) list.push({ kind: "flash", color }, { kind: "bigicon", src: art });
+    else if (e.magic) list.push({ kind: "img", src: art, size: 150 });
     list.push({ kind: "slash", rot: -35 + Math.random() * 20 }, { kind: "slash", rot: 30 + Math.random() * 20, late: true });
     list.push({ kind: "burst", color: e.magic ? color : "#fff7ed", big: e.crit || !!e.skill });
+    if (!e.magic || e.crit) list.push({ kind: "img", src: FX_ART.burst, size: e.crit ? 190 : 130, rot: Math.random() * 360 });
     const n = e.skill ? 18 : e.crit ? 14 : 8;
     for (let i = 0; i < n; i++) {
       const a = (i / n) * Math.PI * 2 + Math.random() * 0.4;
@@ -750,7 +762,15 @@ function QuestRun({ stats, pool, chestWords, cards, speech, sound, dopamine, onE
   return (
     <div className="flex h-full flex-col bg-slate-950 text-white" data-testid="quest-run">
       <div ref={arenaRef} className="relative h-[42%] min-h-[220px] overflow-hidden">
-        <BattleBackdrop />
+        <img src={QUEST_BACKDROP} alt="" draggable={false} aria-hidden="true" className="pointer-events-none absolute inset-0 h-full w-full select-none object-cover object-bottom" />
+        <img
+          src={QUEST_HERO}
+          alt=""
+          draggable={false}
+          aria-hidden="true"
+          className="qs-idle pointer-events-none absolute bottom-1 left-0 z-10 h-[80px] w-[80px] select-none"
+          data-testid="quest-hero"
+        />
         <p className="absolute left-3 top-2 z-10 rounded-full bg-black/60 px-2.5 py-1 text-xs font-black" data-testid="quest-floor">
           {run.floor}階{isBossFloor(run.floor) ? "（ボス）" : ""}
         </p>
@@ -776,10 +796,10 @@ function QuestRun({ stats, pool, chestWords, cards, speech, sound, dopamine, onE
               </div>
             )}
           </div>
-          <div className="mt-1 w-44 rounded-lg bg-black/60 px-2 py-1">
+          <div className="mt-1 w-48 rounded-lg bg-black/60 px-2 py-1">
             <p className="flex justify-between text-[11px] font-bold">
               <span data-testid="quest-enemy">
-                {e.name} {el(e.element).icon}
+                {e.name} <ElementIcon element={e.element} size={14} />
               </span>
               <span className="tabular-nums">
                 {e.hp}/{e.maxHp}
@@ -789,8 +809,8 @@ function QuestRun({ stats, pool, chestWords, cards, speech, sound, dopamine, onE
               <div className="h-full rounded-full bg-rose-500 transition-all duration-500" style={{ width: `${(e.hp / e.maxHp) * 100}%` }} />
             </div>
             <p className="mt-1 flex items-center justify-between gap-1 text-[10px] font-bold" data-testid="quest-matchup">
-              <span>
-                こうげき {el(stats.element).icon || "無"}→{el(e.element).icon || "無"}
+              <span className="flex shrink-0 items-center whitespace-nowrap">
+                こうげき <ElementIcon element={stats.element} size={13} fallback="無" />→<ElementIcon element={e.element} size={13} fallback="無" />
               </span>
               <MultBadge mult={elementMultiplier(stats.element, e.element)} long />
             </p>
@@ -879,7 +899,7 @@ function QuestRun({ stats, pool, chestWords, cards, speech, sound, dopamine, onE
                 className={`${cmd} border-amber-300 bg-gradient-to-r from-amber-600/60 to-pink-600/60`}
                 data-testid="quest-skill"
               >
-                {sk.icon} {sk.name} <span className="text-[10px] text-sky-200">MP{sk.mp}</span>
+                <QuestIcon src={SKILL_ART[sk.element] || SKILL_ART.none} size={20} /> {sk.name} <span className="text-[10px] text-sky-200">MP{sk.mp}</span>
                 <MultBadge mult={elementMultiplier(sk.element, e.element)} />
               </button>
             ))}
@@ -949,16 +969,28 @@ function FxLayer({ fx }) {
             return <span key={f.id} className="qs-flash absolute inset-0 block" style={{ background: f.color }} />;
           case "bigicon":
             return (
-              <span key={f.id} className="qs-bigicon absolute block text-7xl" style={at}>
-                {f.icon}
-              </span>
+              <img key={f.id} src={f.src} alt="" draggable={false} className="qs-bigicon absolute block h-[110px] w-[110px] select-none" style={at} />
             );
           case "slash":
             return (
-              <span
+              <img
                 key={f.id}
-                className="bt-slash absolute block h-1.5 w-40 rounded-full bg-white"
-                style={{ ...at, "--rot": `${f.rot}deg`, boxShadow: "0 0 12px 3px #fff", animationDelay: f.late ? "0.22s" : undefined }}
+                src={FX_ART.slash}
+                alt=""
+                draggable={false}
+                className="bt-slash absolute block h-[150px] w-[150px] select-none"
+                style={{ ...at, "--rot": `${f.rot + 45}deg`, animationDelay: f.late ? "0.22s" : undefined }}
+              />
+            );
+          case "img":
+            return (
+              <img
+                key={f.id}
+                src={f.src}
+                alt=""
+                draggable={false}
+                className="qs-fx absolute block select-none"
+                style={{ ...at, width: f.size, height: f.size, "--rot": `${f.rot || 0}deg` }}
               />
             );
           case "burst":
@@ -1002,8 +1034,8 @@ function FxLayer({ fx }) {
             );
           case "shield":
             return (
-              <span key={f.id} className="qs-shield absolute bottom-2 left-1/2 flex h-24 w-24 items-center justify-center rounded-full text-5xl">
-                🛡️
+              <span key={f.id} className="qs-shield absolute bottom-2 left-1/2 flex h-28 w-28 items-center justify-center rounded-full">
+                <img src={FX_ART.shield} alt="" draggable={false} className="h-full w-full select-none" />
               </span>
             );
           case "heal":

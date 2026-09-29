@@ -50,7 +50,7 @@ import QuestScreen from "./QuestScreen.jsx";
 import { equip as questEquip, autoEquip as questAutoEquip, applyQuest, runResults, savePreset as questSavePreset, loadPreset as questLoadPreset, enhance as questEnhance } from "./quest.js";
 import { loadRecordedIndex, playRecorded, recordedCount, recordedUrls, stopRecorded } from "./recorded.js";
 import { cheersAvailable, loadCheers, noteSpeech } from "./cheers.js";
-import { Art, CARD_BACK_ART, CHEST_ART, MACHINE_ART, SHOP_ART, WALLET_ICON } from "./gacha-art.jsx";
+import { Art, CARD_BACK_ART, CHEST_ART, GACHA_PANEL_ART, MACHINE_ART, SHOP_ART, WALLET_ICON } from "./gacha-art.jsx";
 import { saveDiary } from "./diary.js";
 import rawChapters, { PARTS, RENAMED } from "./data/index.js";
 import { analyzeLinking, LINK_LABELS } from "./linking.js";
@@ -4592,7 +4592,10 @@ function GachaPanel({ g, onPull, onUpgrade }) {
         })}
       </div>
 
-      <div className={`rounded-3xl bg-gradient-to-br ${kind.bg} p-4 text-white shadow-lg`} data-testid="gacha-machine">
+      <div className="relative isolate overflow-hidden rounded-3xl bg-slate-900 p-4 text-white shadow-lg" data-testid="gacha-machine">
+        <img src={GACHA_PANEL_ART} alt="" draggable={false} aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 h-full w-full select-none object-cover" />
+        <div className={`pointer-events-none absolute inset-0 -z-10 bg-gradient-to-br ${kind.bg} opacity-60 mix-blend-multiply`} />
+        <div className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-t from-black/40 to-transparent" />
         <div className="flex items-center gap-2">
           <div className="min-w-0 flex-1">
             <p className="text-[11px] font-bold text-white/80">{kind.sub}</p>
