@@ -1,0 +1,1205 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+<meta name="color-scheme" content="dark" />
+<meta name="description" content="引っぱって離すだけのひっぱりアクション。反射と貫通、2種類の撃ち方で弾き飛ばす。" />
+<title>ひっぱりストライク</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23101a33'/%3E%3Ccircle cx='13' cy='19' r='8' fill='%2334b4ff' stroke='%23fff' stroke-width='2'/%3E%3Cpath d='M19 13l8-8' stroke='%23ffd166' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E" />
+<style>
+  [hidden] { display: none !important; }
+  :root {
+    --bg: #070b18; --panel: rgba(18, 28, 56, .82); --line: rgba(140, 180, 255, .22);
+    --text: #eef3ff; --muted: #9fb0d6; --gold: #ffd166;
+    --reflect: #3cc8ff; --pierce: #ff7a45;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text);
+    font-family: "Hiragino Sans", "Noto Sans JP", "Yu Gothic", system-ui, sans-serif;
+    -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent; }
+  body { overflow: hidden;
+    background-image: radial-gradient(80% 50% at 50% -10%, rgba(60, 110, 230, .35), transparent 70%); }
+  #app { height: 100vh; height: 100dvh; display: grid; grid-template-rows: auto minmax(0, 1fr) auto;
+    max-width: 720px; margin: 0 auto; padding: max(8px, env(safe-area-inset-top)) 10px max(8px, env(safe-area-inset-bottom)); gap: 8px; }
+
+  .hud { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .brand { font-weight: 900; letter-spacing: .08em; font-size: 15px; white-space: nowrap; }
+  .brand b { color: var(--gold); }
+  .chip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px;
+    background: var(--panel); border: 1px solid var(--line); font-size: 13px; white-space: nowrap; }
+  .chip .label { color: var(--muted); font-size: 11px; letter-spacing: .08em; }
+  #turn { font-weight: 800; font-variant-numeric: tabular-nums; }
+  .type { font-size: 11px; font-weight: 800; padding: 1px 7px; border-radius: 6px; color: #06101f; }
+  .type.reflect { background: var(--reflect); }
+  .type.pierce { background: var(--pierce); }
+  .spacer { flex: 1; }
+  button { font: inherit; font-size: 12px; color: var(--text); background: var(--panel);
+    border: 1px solid var(--line); border-radius: 10px; padding: 6px 10px; cursor: pointer; }
+  button:hover { border-color: var(--gold); }
+  button[aria-pressed="false"] { color: var(--muted); }
+
+  #stage { position: relative; display: flex; align-items: center; justify-content: center; min-height: 0; }
+  #field { display: block; touch-action: none; border-radius: 14px; cursor: grab;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, .55), 0 0 0 1px rgba(255, 255, 255, .05); }
+  #field.pulling { cursor: grabbing; }
+
+  .help { margin: 0; text-align: center; color: var(--muted); font-size: 12px; line-height: 1.6; min-height: 1.6em; }
+  .help b { color: var(--text); }
+
+  #tune { position: absolute; top: 8px; right: 8px; width: min(300px, calc(100% - 16px)); max-height: calc(100% - 16px);
+    overflow: auto; padding: 12px 14px; border-radius: 14px; background: rgba(10, 16, 34, .94);
+    border: 1px solid var(--line); box-shadow: 0 10px 30px rgba(0, 0, 0, .5); font-size: 12px; z-index: 2; }
+  #tune h2 { margin: 0 0 8px; font-size: 13px; letter-spacing: .06em; }
+  #tune label { display: grid; grid-template-columns: 1fr auto; gap: 2px 8px; margin: 8px 0; color: var(--muted); }
+  #tune label output { color: var(--text); font-variant-numeric: tabular-nums; }
+  #tune input[type=range] { grid-column: 1 / -1; width: 100%; accent-color: var(--gold); }
+  #tune .row { display: flex; gap: 8px; margin-top: 10px; }
+</style>
+</head>
+<body>
+<div id="app">
+  <header class="hud">
+    <div class="brand">HIPPARI <b>STRIKE</b></div>
+    <div class="chip"><span class="label">TURN</span><span id="turn">1</span></div>
+    <div class="chip"><span class="label">NEXT</span><span id="active-name">A</span><span id="active-type" class="type reflect">反射</span></div>
+    <div class="spacer"></div>
+    <button id="btn-sound" type="button" aria-pressed="true">音 ON</button>
+    <button id="btn-tune" type="button" aria-expanded="false">調整</button>
+    <button id="btn-reset" type="button">リセット</button>
+  </header>
+
+  <main id="stage">
+    <canvas id="field" aria-label="フィールド。キャラを引っぱって離すと発射します"></canvas>
+    <aside id="tune" hidden>
+      <h2>手触りの調整</h2>
+      <div id="tune-list"></div>
+      <div class="row"><button id="btn-tune-default" type="button">初期値に戻す</button><button id="btn-tune-close" type="button">閉じる</button></div>
+    </aside>
+  </main>
+
+  <p class="help" id="help"></p>
+</div>
+
+<!--
+  物理エンジン（DOM にも Canvas にも触らない純粋なモジュール）。
+  tests/logic はこの ms-physics のスクリプトだけを取り出して Node で検証する。
+-->
+<script id="ms-physics">
+(function (root) {
+  'use strict';
+
+  /**
+   * 手触りを決める数値はすべてここに集める。
+   * 単位: 長さ = フィールドの論理px、時間 = 秒。
+   */
+  var DEFAULTS = {
+    field: { w: 540, h: 800 },
+    step: 1 / 240,                        // 固定タイムステップ。1ステップの移動量が半径より十分小さいこと
+    pull: { dead: 16, max: 170 },         // これ未満の引きはキャンセル / これ以上引いても強さは同じ
+    speed: { min: 450, max: 2200 },       // 初速（引き最小〜最大）
+    friction: { linear: 140, drag: 0.2 }, // 減速度 = linear + drag × 速さ
+    stopSpeed: 24,                        // これを下回ったら停止
+    wall: { restitution: 0.88 },          // 壁に当たるたびに残る速さの割合
+    reflect: { restitution: 0.84 },       // 反射タイプがキャラ・的に当たるたびに残る速さの割合
+    pierce: { enterFactor: 0.7, insideDrag: 2.5 } // 貫通: 突入時に残る速さ / 通り抜けている間の摩擦倍率
+  };
+
+  function isObj(v) { return v !== null && typeof v === 'object' && !Array.isArray(v); }
+
+  function mergeDeep(base, over) {
+    var out = {};
+    var k;
+    for (k in base) if (Object.prototype.hasOwnProperty.call(base, k)) out[k] = isObj(base[k]) ? mergeDeep(base[k], {}) : base[k];
+    if (over) {
+      for (k in over) {
+        if (!Object.prototype.hasOwnProperty.call(over, k)) continue;
+        out[k] = isObj(over[k]) && isObj(out[k]) ? mergeDeep(out[k], over[k]) : over[k];
+      }
+    }
+    return out;
+  }
+
+  /**
+   * 引っぱり量（押した点 → 今の指の位置）から初速を求める。
+   * 発射方向は引いた向きの逆。引きが短すぎるときは null（キャンセル）。
+   */
+  function launchVelocity(cfg, dx, dy) {
+    var len = Math.hypot(dx, dy);
+    if (!(len >= cfg.pull.dead)) return null;
+    var power = Math.min(1, (len - cfg.pull.dead) / (cfg.pull.max - cfg.pull.dead));
+    var sp = cfg.speed.min + (cfg.speed.max - cfg.speed.min) * power;
+    return { vx: -dx / len * sp, vy: -dy / len * sp, power: power, speed: sp };
+  }
+
+  /**
+   * フィールド上の円。
+   *  kind : 'unit'（自キャラ） / 'target'（的。フェーズ2で敵になる）
+   *  shot : 'reflect' | 'pierce'（unit のみ）
+   */
+  function Body(o) {
+    this.id = o.id;
+    this.kind = o.kind || 'unit';
+    this.shot = o.shot || null;
+    this.x = o.x; this.y = o.y; this.r = o.r;
+    this.vx = 0; this.vy = 0;
+    this.moving = false;
+    this.traveled = 0;
+    this.overlaps = {};   // 貫通中の相手 id（突入の瞬間だけ減速するため）
+    this.data = o.data || {};
+  }
+
+  Body.prototype.speed = function () { return Math.hypot(this.vx, this.vy); };
+
+  function World(cfg) {
+    this.cfg = mergeDeep(DEFAULTS, cfg || {});
+    this.bodies = [];
+    this.events = [];
+    this.time = 0;
+  }
+
+  World.prototype.add = function (o) {
+    var b = o instanceof Body ? o : new Body(o);
+    this.bodies.push(b);
+    return b;
+  };
+
+  World.prototype.get = function (id) {
+    for (var i = 0; i < this.bodies.length; i++) if (this.bodies[i].id === id) return this.bodies[i];
+    return null;
+  };
+
+  World.prototype.isSettled = function () {
+    for (var i = 0; i < this.bodies.length; i++) if (this.bodies[i].moving) return false;
+    return true;
+  };
+
+  World.prototype.drainEvents = function () {
+    var ev = this.events;
+    this.events = [];
+    return ev;
+  };
+
+  World.prototype._emit = function (type, b, extra) {
+    var ev = { type: type, id: b.id, x: b.x, y: b.y, t: this.time };
+    if (extra) for (var k in extra) ev[k] = extra[k];
+    this.events.push(ev);
+  };
+
+  /** 速度を直接与えて動かす。 */
+  World.prototype.setVelocity = function (id, vx, vy) {
+    var b = this.get(id);
+    if (!b) return false;
+    b.vx = vx; b.vy = vy;
+    b.moving = true;
+    b.traveled = 0;
+    b.overlaps = {};
+    this._emit('launch', b, { speed: Math.hypot(vx, vy) });
+    return true;
+  };
+
+  /** 引っぱり量で弾く。引きが足りなければ false（ターンを消費しない）。 */
+  World.prototype.launch = function (id, pullDx, pullDy) {
+    var v = launchVelocity(this.cfg, pullDx, pullDy);
+    if (!v) return null;
+    this.setVelocity(id, v.vx, v.vy);
+    return v;
+  };
+
+  World.prototype.step = function (dt) {
+    dt = dt || this.cfg.step;
+    this.time += dt;
+    for (var i = 0; i < this.bodies.length; i++) {
+      if (this.bodies[i].moving) this._advance(this.bodies[i], dt);
+    }
+  };
+
+  World.prototype._advance = function (b, dt) {
+    var c = this.cfg;
+    var sp = Math.hypot(b.vx, b.vy);
+    var inside = false;
+    for (var k in b.overlaps) { inside = true; break; }
+    var drag = c.friction.drag * (inside ? c.pierce.insideDrag : 1);
+    var next = sp - (c.friction.linear + drag * sp) * dt;
+    if (next <= c.stopSpeed) { this._stop(b); return; }
+
+    var s = next / sp;
+    b.vx *= s; b.vy *= s;
+    b.x += b.vx * dt;
+    b.y += b.vy * dt;
+    b.traveled += next * dt;
+
+    this._walls(b);
+    this._collide(b);
+  };
+
+  World.prototype._walls = function (b) {
+    var w = this.cfg.field.w, h = this.cfg.field.h;
+    if (b.x - b.r < 0) { b.x = b.r; if (b.vx < 0) this._bounceWall(b, 1, 0); }
+    if (b.x + b.r > w) { b.x = w - b.r; if (b.vx > 0) this._bounceWall(b, -1, 0); }
+    if (b.y - b.r < 0) { b.y = b.r; if (b.vy < 0) this._bounceWall(b, 0, 1); }
+    if (b.y + b.r > h) { b.y = h - b.r; if (b.vy > 0) this._bounceWall(b, 0, -1); }
+  };
+
+  /**
+   * 鏡映しに反射させてから、速さ全体に反発係数を掛ける。
+   * 法線成分だけを減らすと浅い角度で当たったときに角度が変わってしまい、
+   * 「狙った角度でそのまま返ってくる」ひっぱりアクションの読みが成り立たない。
+   */
+  function reflect(b, nx, ny, e) {
+    var vn = b.vx * nx + b.vy * ny;
+    b.vx = (b.vx - 2 * vn * nx) * e;
+    b.vy = (b.vy - 2 * vn * ny) * e;
+    return -vn;
+  }
+
+  World.prototype._bounceWall = function (b, nx, ny) {
+    var impact = reflect(b, nx, ny, this.cfg.wall.restitution);
+    this._emit('wall', b, { nx: nx, ny: ny, impact: impact, speed: b.speed() });
+  };
+
+  /**
+   * 動いている円と、止まっている他の円との当たり。
+   * 止まっている側は動かない（ひっぱりアクションでは弾かれた側だけが動く）。
+   */
+  World.prototype._collide = function (b) {
+    var c = this.cfg;
+    for (var i = 0; i < this.bodies.length; i++) {
+      var o = this.bodies[i];
+      if (o === b || o.moving) continue;
+      var dx = b.x - o.x, dy = b.y - o.y;
+      var min = b.r + o.r;
+      var d2 = dx * dx + dy * dy;
+      if (d2 >= min * min) {
+        if (b.overlaps[o.id]) delete b.overlaps[o.id];
+        continue;
+      }
+      var d = Math.sqrt(d2), nx, ny;
+      if (d > 1e-6) { nx = dx / d; ny = dy / d; }
+      else { var s = b.speed() || 1; nx = -b.vx / s; ny = -b.vy / s; }
+
+      if (b.shot === 'pierce') {
+        if (!b.overlaps[o.id]) {
+          b.overlaps[o.id] = true;
+          b.vx *= c.pierce.enterFactor;
+          b.vy *= c.pierce.enterFactor;
+          this._emit('pierce', b, { other: o.id, x: o.x + nx * o.r, y: o.y + ny * o.r, nx: nx, ny: ny, speed: b.speed() });
+        }
+      } else {
+        b.x = o.x + nx * min;
+        b.y = o.y + ny * min;
+        if (b.vx * nx + b.vy * ny < 0) {
+          var impact = reflect(b, nx, ny, c.reflect.restitution);
+          this._emit('hit', b, { other: o.id, x: o.x + nx * o.r, y: o.y + ny * o.r, nx: nx, ny: ny, impact: impact, speed: b.speed() });
+        }
+        this._walls(b);
+      }
+    }
+  };
+
+  World.prototype._overlapping = function (b) {
+    for (var i = 0; i < this.bodies.length; i++) {
+      var o = this.bodies[i];
+      if (o === b) continue;
+      if (Math.hypot(b.x - o.x, b.y - o.y) < b.r + o.r - 0.01) return o;
+    }
+    return null;
+  };
+
+  World.prototype._inField = function (b, x, y) {
+    return x - b.r >= 0 && y - b.r >= 0 && x + b.r <= this.cfg.field.w && y + b.r <= this.cfg.field.h;
+  };
+
+  /** 他の円に重なったまま止まったら（貫通タイプ）、いちばん近い空き地へ押し出す。 */
+  World.prototype._resolve = function (b) {
+    for (var iter = 0; iter < 12; iter++) {
+      var o = this._overlapping(b);
+      if (!o) return;
+      var dx = b.x - o.x, dy = b.y - o.y, d = Math.hypot(dx, dy);
+      if (d < 1e-6) { dx = 0; dy = -1; d = 1; }
+      var min = b.r + o.r + 0.5;
+      b.x = o.x + dx / d * min;
+      b.y = o.y + dy / d * min;
+      b.x = Math.min(this.cfg.field.w - b.r, Math.max(b.r, b.x));
+      b.y = Math.min(this.cfg.field.h - b.r, Math.max(b.r, b.y));
+    }
+    if (!this._overlapping(b)) return;
+    // 壁と的に挟まれて押し出せないときは、周囲をらせん状に探す
+    var ox = b.x, oy = b.y;
+    for (var rad = 4; rad < 1200; rad += 4) {
+      for (var a = 0; a < 24; a++) {
+        var ang = a / 24 * Math.PI * 2;
+        var x = ox + Math.cos(ang) * rad, y = oy + Math.sin(ang) * rad;
+        if (!this._inField(b, x, y)) continue;
+        b.x = x; b.y = y;
+        if (!this._overlapping(b)) return;
+      }
+    }
+    b.x = ox; b.y = oy;
+  };
+
+  World.prototype._stop = function (b) {
+    b.vx = 0; b.vy = 0;
+    b.moving = false;
+    b.overlaps = {};
+    this._resolve(b);
+    this._emit('stop', b, { traveled: b.traveled });
+  };
+
+  /** 同じ設定・同じ配置の複製（予測軌道の計算用）。 */
+  World.prototype.clone = function () {
+    var w = new World();
+    w.cfg = this.cfg;
+    w.time = this.time;
+    for (var i = 0; i < this.bodies.length; i++) {
+      var s = this.bodies[i];
+      var b = new Body({ id: s.id, kind: s.kind, shot: s.shot, x: s.x, y: s.y, r: s.r });
+      b.vx = s.vx; b.vy = s.vy; b.moving = s.moving; b.traveled = s.traveled;
+      for (var k in s.overlaps) b.overlaps[k] = true;
+      w.bodies.push(b);
+    }
+    return w;
+  };
+
+  /**
+   * 予測軌道。本番と同じ step() を複製の上で回すので、表示と実際の動きがずれない。
+   * maxLen の距離まで、または壁・キャラでの反射が maxBounces 回に達したところで打ち切る。
+   * 貫通は軌道を曲げないので回数に数えない。
+   */
+  World.prototype.predict = function (id, vx, vy, opts) {
+    opts = opts || {};
+    var maxLen = opts.maxLen || 400;
+    var maxBounces = opts.maxBounces == null ? 2 : opts.maxBounces;
+    var w = this.clone();
+    var b = w.get(id);
+    var points = [{ x: b.x, y: b.y }];
+    var contacts = [];
+    w.setVelocity(id, vx, vy);
+    w.drainEvents();
+    var bounces = 0;
+    for (var n = 0; n < 20000 && b.moving; n++) {
+      w.step();
+      var ev = w.drainEvents();
+      var bent = false;
+      for (var i = 0; i < ev.length; i++) {
+        var e = ev[i];
+        if (e.type === 'wall' || e.type === 'hit' || e.type === 'pierce') {
+          contacts.push({ type: e.type, x: e.x, y: e.y });
+          if (e.type !== 'pierce') { bounces++; bent = true; }
+        }
+      }
+      // 折れ曲がる点は必ず残す（間引くと反射の角が丸まって見える）
+      var last = points[points.length - 1];
+      if (bent || Math.hypot(b.x - last.x, b.y - last.y) >= 6) points.push({ x: b.x, y: b.y });
+      if (b.traveled >= maxLen || bounces >= maxBounces) break;
+    }
+    var tail = points[points.length - 1];
+    if (tail.x !== b.x || tail.y !== b.y) points.push({ x: b.x, y: b.y });
+    return { points: points, contacts: contacts, length: b.traveled, stopped: !b.moving };
+  };
+
+  root.MSPhysics = { DEFAULTS: DEFAULTS, World: World, Body: Body, launchVelocity: launchVelocity, mergeDeep: mergeDeep };
+})(typeof window !== 'undefined' ? window : globalThis);
+</script>
+
+<!-- ゲーム本体: 入力・演出・描画・ターン進行 -->
+<script id="ms-game">
+(function () {
+  'use strict';
+
+  var P = window.MSPhysics;
+  var WALL = 22;                    // 画面上の壁の厚み（論理px）。フィールドの外側に描く
+
+  /** キャラ定義。フェーズ2以降はここに HP・攻撃力・友情コンボ・アビリティが増える。 */
+  var UNITS = [
+    { id: 'A', name: 'A', shot: 'reflect', x: 170, y: 660, r: 30,
+      colors: ['#c9fbff', '#39b8ff', '#0b3f8a'], accent: '#3cc8ff' },
+    { id: 'B', name: 'B', shot: 'pierce', x: 370, y: 660, r: 30,
+      colors: ['#ffe7b8', '#ff7a45', '#8a1f14'], accent: '#ff7a45' }
+  ];
+  /** 当たりを確かめるための的。フェーズ2で HP を持つ敵に置き換える。 */
+  var TARGETS = [
+    { id: 't1', x: 270, y: 300, r: 50 },
+    { id: 't2', x: 118, y: 470, r: 36 },
+    { id: 't3', x: 422, y: 470, r: 36 }
+  ];
+  var SHOT_LABEL = { reflect: '反射', pierce: '貫通' };
+
+  var canvas = document.getElementById('field');
+  var ctx = canvas.getContext('2d');
+  var stage = document.getElementById('stage');
+  var el = {
+    turn: document.getElementById('turn'),
+    activeName: document.getElementById('active-name'),
+    activeType: document.getElementById('active-type'),
+    help: document.getElementById('help'),
+    sound: document.getElementById('btn-sound'),
+    tuneBtn: document.getElementById('btn-tune'),
+    tune: document.getElementById('tune'),
+    tuneList: document.getElementById('tune-list')
+  };
+
+  // ---------------------------------------------------------------- 状態
+  var cfgOverrides = {};
+  var world, units, targets;
+  var game = {
+    phase: 'ready',   // ready → pulling → moving → settling → ready
+    turn: 1,
+    active: 0,
+    mover: null,
+    settleTimer: 0,
+    timeScale: 1
+  };
+  var pull = null;    // { pointerId, sx, sy, dx, dy, aim }
+  var fx = { particles: [], rings: [], texts: [], shake: 0, hitStop: 0 };
+
+  function buildWorld() {
+    world = new P.World(cfgOverrides);
+    units = UNITS.map(function (u) {
+      var b = world.add({ id: u.id, kind: 'unit', shot: u.shot, x: u.x, y: u.y, r: u.r });
+      return { def: u, body: b, facing: -Math.PI / 2, squash: 0, trail: [] };
+    });
+    targets = TARGETS.map(function (t) {
+      var b = world.add({ id: t.id, kind: 'target', x: t.x, y: t.y, r: t.r });
+      return { def: t, body: b, flash: 0, wobble: 0, hits: 0 };
+    });
+    game.phase = 'ready';
+    game.turn = 1;
+    game.active = 0;
+    game.mover = null;
+    pull = null;
+    fx.particles.length = 0; fx.rings.length = 0; fx.texts.length = 0;
+    fx.shake = 0; fx.hitStop = 0;
+    canvas.classList.remove('pulling');
+    updateHud();
+  }
+
+  function activeUnit() { return units[game.active]; }
+  function unitById(id) { for (var i = 0; i < units.length; i++) if (units[i].def.id === id) return units[i]; return null; }
+  function targetById(id) { for (var i = 0; i < targets.length; i++) if (targets[i].def.id === id) return targets[i]; return null; }
+
+  // ---------------------------------------------------------------- 効果音（Web Audio で合成）
+  var sound = (function () {
+    var ac = null, on = true, lastWall = 0;
+    try { on = localStorage.getItem('ms.sound') !== 'off'; } catch (e) { /* プライベートモード */ }
+
+    function unlock() {
+      if (!on) return;
+      if (!ac) {
+        var AC = window.AudioContext || window.webkitAudioContext;
+        if (!AC) return;
+        try { ac = new AC(); } catch (e) { return; }
+      }
+      if (ac.state === 'suspended') ac.resume();
+    }
+    function tone(freq, to, dur, type, vol) {
+      if (!on || !ac) return;
+      var t = ac.currentTime, o = ac.createOscillator(), g = ac.createGain();
+      o.type = type; o.frequency.setValueAtTime(freq, t);
+      o.frequency.exponentialRampToValueAtTime(Math.max(20, to), t + dur);
+      g.gain.setValueAtTime(vol, t);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      o.connect(g).connect(ac.destination);
+      o.start(t); o.stop(t + dur + 0.02);
+    }
+    function noise(dur, vol, freq) {
+      if (!on || !ac) return;
+      var t = ac.currentTime, n = Math.floor(ac.sampleRate * dur);
+      var buf = ac.createBuffer(1, n, ac.sampleRate), d = buf.getChannelData(0);
+      for (var i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / n);
+      var src = ac.createBufferSource(), f = ac.createBiquadFilter(), g = ac.createGain();
+      src.buffer = buf; f.type = 'bandpass'; f.frequency.value = freq; f.Q.value = 0.8;
+      g.gain.value = vol;
+      src.connect(f).connect(g).connect(ac.destination);
+      src.start(t);
+    }
+    return {
+      unlock: unlock,
+      get on() { return on; },
+      toggle: function () {
+        on = !on;
+        try { localStorage.setItem('ms.sound', on ? 'on' : 'off'); } catch (e) { /* 保存できなくても続ける */ }
+        if (on) unlock();
+        return on;
+      },
+      launch: function (p) { tone(220 + 260 * p, 900 + 500 * p, 0.16, 'triangle', 0.18); noise(0.12, 0.12, 1800); },
+      wall: function (s) {
+        var now = performance.now();
+        if (now - lastWall < 35) return;
+        lastWall = now;
+        var k = Math.min(1, s / 2000);
+        tone(160 + 140 * k, 90, 0.09, 'square', 0.05 + 0.1 * k);
+      },
+      hit: function (s) { var k = Math.min(1, s / 2000); tone(520 + 400 * k, 260, 0.12, 'sawtooth', 0.07 + 0.08 * k); noise(0.08, 0.2 * k, 3000); },
+      pierce: function (s) { var k = Math.min(1, s / 2000); noise(0.22, 0.12 + 0.2 * k, 900); tone(700, 1400, 0.12, 'sine', 0.06); },
+      tick: function () { tone(1200, 1000, 0.03, 'sine', 0.04); },
+      stop: function () { tone(330, 300, 0.1, 'sine', 0.05); }
+    };
+  })();
+
+  // ---------------------------------------------------------------- 画面サイズ
+  var view = { scale: 1, dpr: 1, cssW: 0, cssH: 0, bg: null };
+
+  function logicalSize() {
+    return { w: world.cfg.field.w + WALL * 2, h: world.cfg.field.h + WALL * 2 };
+  }
+
+  function resize() {
+    var r = stage.getBoundingClientRect();
+    var L = logicalSize();
+    var scale = Math.max(0.1, Math.min(r.width / L.w, r.height / L.h));
+    view.scale = scale;
+    view.dpr = Math.min(3, window.devicePixelRatio || 1);
+    view.cssW = Math.floor(L.w * scale);
+    view.cssH = Math.floor(L.h * scale);
+    canvas.style.width = view.cssW + 'px';
+    canvas.style.height = view.cssH + 'px';
+    canvas.width = Math.round(view.cssW * view.dpr);
+    canvas.height = Math.round(view.cssH * view.dpr);
+    view.bg = renderBackground();
+  }
+
+  /** 画面座標 → フィールド座標 */
+  function toWorld(e) {
+    var r = canvas.getBoundingClientRect();
+    return { x: (e.clientX - r.left) / view.scale - WALL, y: (e.clientY - r.top) / view.scale - WALL };
+  }
+
+  // ---------------------------------------------------------------- 入力（押す → 引く → 離す）
+  function unitAt(p) {
+    for (var i = 0; i < units.length; i++) {
+      var b = units[i].body;
+      if (Math.hypot(p.x - b.x, p.y - b.y) <= b.r + 14) return i;
+    }
+    return -1;
+  }
+
+  function onDown(e) {
+    if (pull) { cancelPull(); return; }            // 2本目の指・別のボタン → キャンセル
+    if (e.button !== undefined && e.button > 0) return;
+    if (game.phase !== 'ready') return;
+    sound.unlock();
+    var p = toWorld(e);
+    var hit = unitAt(p);
+    if (hit >= 0 && hit !== game.active) { game.active = hit; updateHud(); sound.tick(); }
+    pull = { pointerId: e.pointerId, sx: p.x, sy: p.y, dx: 0, dy: 0, aim: null };
+    try { canvas.setPointerCapture(e.pointerId); } catch (err) { /* 合成イベントでは失敗することがある */ }
+    game.phase = 'pulling';
+    canvas.classList.add('pulling');
+    updateHud();
+    e.preventDefault();
+  }
+
+  function onMove(e) {
+    if (!pull || e.pointerId !== pull.pointerId) return;
+    var p = toWorld(e);
+    pull.dx = p.x - pull.sx;
+    pull.dy = p.y - pull.sy;
+    updateAim();
+    e.preventDefault();
+  }
+
+  function onUp(e) {
+    if (!pull || e.pointerId !== pull.pointerId) return;
+    var p = toWorld(e);
+    pull.dx = p.x - pull.sx;
+    pull.dy = p.y - pull.sy;
+    release();
+  }
+
+  function updateAim() {
+    var u = activeUnit();
+    var v = P.launchVelocity(world.cfg, pull.dx, pull.dy);
+    if (!v) { pull.aim = null; return; }
+    u.facing = Math.atan2(v.vy, v.vx);
+    var pred = world.predict(u.def.id, v.vx, v.vy, { maxLen: 170 + 230 * v.power, maxBounces: 2 });
+    pull.aim = { v: v, pred: pred };
+  }
+
+  function release() {
+    var u = activeUnit();
+    var v = world.launch(u.def.id, pull.dx, pull.dy);
+    try { canvas.releasePointerCapture(pull.pointerId); } catch (err) { /* 既に外れている */ }
+    pull = null;
+    canvas.classList.remove('pulling');
+    if (!v) {
+      game.phase = 'ready';
+      floatText(u.body.x, u.body.y - u.body.r - 26, 'キャンセル', '#9fb0d6', 13);
+      updateHud();
+      return;
+    }
+    u.facing = Math.atan2(v.vy, v.vx);
+    u.squash = 1;
+    u.trail.length = 0;
+    game.mover = u;
+    game.phase = 'moving';
+    world.drainEvents();
+    sound.launch(v.power);
+    burst(u.body.x, u.body.y, -v.vx / v.speed, -v.vy / v.speed, 10 + 12 * v.power, u.def.accent, 260);
+    updateHud();
+  }
+
+  function cancelPull() {
+    if (!pull) return;
+    try { canvas.releasePointerCapture(pull.pointerId); } catch (err) { /* 既に外れている */ }
+    pull = null;
+    canvas.classList.remove('pulling');
+    if (game.phase === 'pulling') game.phase = 'ready';
+    updateHud();
+  }
+
+  canvas.addEventListener('pointerdown', onDown);
+  canvas.addEventListener('pointermove', onMove);
+  canvas.addEventListener('pointerup', onUp);
+  canvas.addEventListener('pointercancel', function (e) { if (pull && e.pointerId === pull.pointerId) cancelPull(); });
+  canvas.addEventListener('contextmenu', function (e) { e.preventDefault(); });
+  window.addEventListener('blur', cancelPull);
+  window.addEventListener('keydown', function (e) { if (e.key === 'Escape') cancelPull(); });
+
+  // ---------------------------------------------------------------- 進行
+  function handleEvents(evs) {
+    for (var i = 0; i < evs.length; i++) {
+      var e = evs[i];
+      var u = unitById(e.id);
+      if (e.type === 'wall') {
+        var k = Math.min(1, e.impact / 2000);
+        burst(e.x - e.nx * u.body.r, e.y - e.ny * u.body.r, e.nx, e.ny, 4 + 10 * k, '#fff3c4', 180 + 300 * k);
+        ring(e.x - e.nx * u.body.r, e.y - e.ny * u.body.r, 10 + 18 * k, '#fff3c4');
+        fx.shake = Math.max(fx.shake, 5 * k);
+        u.squash = Math.max(u.squash, 0.4 + 0.6 * k);
+        sound.wall(e.impact);
+      } else if (e.type === 'hit') {
+        var kh = Math.min(1, e.impact / 2000);
+        burst(e.x, e.y, e.nx, e.ny, 8 + 14 * kh, u.def.accent, 220 + 360 * kh);
+        ring(e.x, e.y, 18 + 26 * kh, u.def.accent);
+        fx.shake = Math.max(fx.shake, 3 + 7 * kh);
+        fx.hitStop = Math.max(fx.hitStop, 0.02 + 0.04 * kh);
+        u.squash = 1;
+        bump(e.other);
+        sound.hit(e.impact);
+      } else if (e.type === 'pierce') {
+        var kp = Math.min(1, e.speed / 1600);
+        burst(e.x, e.y, -e.nx, -e.ny, 10 + 12 * kp, '#ffb070', 240 + 320 * kp);
+        ring(e.x, e.y, 22 + 20 * kp, '#ff7a45');
+        fx.shake = Math.max(fx.shake, 2 + 5 * kp);
+        fx.hitStop = Math.max(fx.hitStop, 0.015 + 0.02 * kp);
+        bump(e.other);
+        sound.pierce(e.speed);
+      } else if (e.type === 'stop') {
+        sound.stop();
+      }
+    }
+  }
+
+  function bump(id) {
+    var t = targetById(id);
+    if (t) { t.flash = 1; t.wobble = 1; t.hits++; return; }
+    var u = unitById(id);
+    if (u) u.squash = Math.max(u.squash, 0.6);
+  }
+
+  function update(dt) {
+    var sdt = dt * game.timeScale;
+    if (game.phase === 'moving') {
+      if (fx.hitStop > 0) {
+        fx.hitStop -= dt;
+      } else {
+        var step = world.cfg.step;
+        game.acc = (game.acc || 0) + sdt;
+        var n = 0;
+        while (game.acc >= step && n < 400) {
+          world.step(step);
+          game.acc -= step;
+          n++;
+          var evs = world.drainEvents();
+          if (evs.length) {
+            handleEvents(evs);
+            if (fx.hitStop > 0) { game.acc = 0; break; }
+          }
+        }
+      }
+      var m = game.mover;
+      if (m) {
+        if (m.body.moving) m.facing = Math.atan2(m.body.vy, m.body.vx);
+        m.trail.push({ x: m.body.x, y: m.body.y });
+        if (m.trail.length > 16) m.trail.shift();
+      }
+      if (world.isSettled()) {
+        game.phase = 'settling';
+        game.settleTimer = 0.35;
+        game.acc = 0;
+      }
+    } else if (game.phase === 'settling') {
+      game.settleTimer -= sdt;
+      if (game.mover && game.mover.trail.length) game.mover.trail.shift();
+      if (game.settleTimer <= 0) endTurn();
+    }
+
+    for (var i = 0; i < units.length; i++) units[i].squash = Math.max(0, units[i].squash - dt * 5);
+    for (var j = 0; j < targets.length; j++) {
+      targets[j].flash = Math.max(0, targets[j].flash - dt * 6);
+      targets[j].wobble = Math.max(0, targets[j].wobble - dt * 3);
+    }
+    fx.shake = Math.max(0, fx.shake - dt * 30);
+    updateFx(dt);
+  }
+
+  function endTurn() {
+    if (game.mover) game.mover.trail.length = 0;
+    game.mover = null;
+    game.turn++;
+    game.active = (game.active + 1) % units.length;
+    game.phase = 'ready';
+    var u = activeUnit();
+    floatText(world.cfg.field.w / 2, world.cfg.field.h / 2, 'TURN ' + game.turn, '#ffd166', 30);
+    floatText(u.body.x, u.body.y - u.body.r - 30, 'NEXT', '#ffd166', 13);
+    updateHud();
+  }
+
+  function updateHud() {
+    var u = activeUnit();
+    el.turn.textContent = String(game.turn);
+    el.activeName.textContent = u.def.name;
+    el.activeType.textContent = SHOT_LABEL[u.def.shot];
+    el.activeType.className = 'type ' + u.def.shot;
+    var help;
+    if (game.phase === 'pulling') help = '<b>離すと発射</b>。遠くまで引くほど強く、引きを戻すとキャンセル。';
+    else if (game.phase === 'moving' || game.phase === 'settling') help = u.def.shot === 'reflect'
+      ? '反射タイプは壁・キャラ・的に当たると<b>同じ角度で跳ね返ります</b>。'
+      : '貫通タイプは的やキャラを<b>すり抜けて</b>、そのたびに大きく減速します。';
+    else help = '<b>' + u.def.name + '（' + SHOT_LABEL[u.def.shot] + '）</b>の番。画面を押して引っぱり、離すと発射。別のキャラを押すと交代します。';
+    el.help.innerHTML = help;
+    canvas.dataset.phase = game.phase;
+  }
+
+  // ---------------------------------------------------------------- 演出
+  function burst(x, y, nx, ny, count, color, speed) {
+    var base = Math.atan2(ny, nx);
+    for (var i = 0; i < count; i++) {
+      var a = base + (Math.random() - 0.5) * 2.2;
+      var s = speed * (0.35 + Math.random() * 0.8);
+      fx.particles.push({ x: x, y: y, vx: Math.cos(a) * s, vy: Math.sin(a) * s,
+        life: 0, max: 0.25 + Math.random() * 0.3, size: 2 + Math.random() * 3, color: color });
+    }
+  }
+  function ring(x, y, r, color) { fx.rings.push({ x: x, y: y, r: r, life: 0, max: 0.35, color: color }); }
+  function floatText(x, y, text, color, size) { fx.texts.push({ x: x, y: y, text: text, color: color, size: size, life: 0, max: 0.9 }); }
+
+  function updateFx(dt) {
+    var i;
+    for (i = fx.particles.length - 1; i >= 0; i--) {
+      var p = fx.particles[i];
+      p.life += dt;
+      if (p.life >= p.max) { fx.particles.splice(i, 1); continue; }
+      p.x += p.vx * dt; p.y += p.vy * dt;
+      p.vx *= 1 - 5 * dt; p.vy *= 1 - 5 * dt;
+    }
+    for (i = fx.rings.length - 1; i >= 0; i--) { fx.rings[i].life += dt; if (fx.rings[i].life >= fx.rings[i].max) fx.rings.splice(i, 1); }
+    for (i = fx.texts.length - 1; i >= 0; i--) { fx.texts[i].life += dt; if (fx.texts[i].life >= fx.texts[i].max) fx.texts.splice(i, 1); }
+  }
+
+  // ---------------------------------------------------------------- 描画
+  /** 床と壁は動かないので、サイズが変わったときだけ描いておく。 */
+  function renderBackground() {
+    var L = logicalSize();
+    var c = document.createElement('canvas');
+    c.width = canvas.width; c.height = canvas.height;
+    var g = c.getContext('2d');
+    var k = view.scale * view.dpr;
+    g.setTransform(k, 0, 0, k, 0, 0);
+    var W = world.cfg.field.w, H = world.cfg.field.h;
+
+    // 壁（金属の枠）
+    var frame = g.createLinearGradient(0, 0, L.w, L.h);
+    frame.addColorStop(0, '#3a4a78'); frame.addColorStop(0.5, '#1b2446'); frame.addColorStop(1, '#2f3d6a');
+    g.fillStyle = frame;
+    roundRect(g, 0, 0, L.w, L.h, 18); g.fill();
+    g.strokeStyle = 'rgba(255,255,255,.18)'; g.lineWidth = 2;
+    roundRect(g, 3, 3, L.w - 6, L.h - 6, 15); g.stroke();
+    // 枠の鋲
+    g.fillStyle = 'rgba(200,220,255,.35)';
+    for (var sx = WALL + 30; sx < L.w - WALL; sx += 60) { dot(g, sx, WALL / 2, 2.2); dot(g, sx, L.h - WALL / 2, 2.2); }
+    for (var sy = WALL + 30; sy < L.h - WALL; sy += 60) { dot(g, WALL / 2, sy, 2.2); dot(g, L.w - WALL / 2, sy, 2.2); }
+
+    g.save();
+    g.translate(WALL, WALL);
+    // 床
+    var floor = g.createLinearGradient(0, 0, 0, H);
+    floor.addColorStop(0, '#16284e'); floor.addColorStop(1, '#0d1832');
+    g.fillStyle = floor; g.fillRect(0, 0, W, H);
+    // 石畳（決まった並びの揺らぎ）
+    // 端に半端な列が出ないよう、フィールドを割り切れる枚数で敷く
+    var cols = Math.round(W / 60), rows = Math.round(H / 60);
+    var tw = W / cols, th = H / rows, seed = 7;
+    function rnd() { seed = (seed * 16807) % 2147483647; return seed / 2147483647; }
+    for (var ty = 0; ty < rows; ty++) {
+      for (var tx = 0; tx < cols; tx++) {
+        g.fillStyle = 'rgba(120,160,255,' + (0.03 + rnd() * 0.05).toFixed(3) + ')';
+        g.fillRect(tx * tw + 1.5, ty * th + 1.5, tw - 3, th - 3);
+      }
+    }
+    g.strokeStyle = 'rgba(0,0,0,.35)'; g.lineWidth = 1;
+    for (var gx = 0; gx <= cols; gx++) { g.beginPath(); g.moveTo(gx * tw, 0); g.lineTo(gx * tw, H); g.stroke(); }
+    for (var gy = 0; gy <= rows; gy++) { g.beginPath(); g.moveTo(0, gy * th); g.lineTo(W, gy * th); g.stroke(); }
+    // 中央の魔法陣
+    g.strokeStyle = 'rgba(140,200,255,.10)'; g.lineWidth = 2;
+    g.beginPath(); g.arc(W / 2, H / 2, 150, 0, Math.PI * 2); g.stroke();
+    g.beginPath(); g.arc(W / 2, H / 2, 118, 0, Math.PI * 2); g.stroke();
+    g.beginPath();
+    for (var s = 0; s <= 6; s++) {
+      var a = -Math.PI / 2 + s * Math.PI * 4 / 5;
+      var px = W / 2 + Math.cos(a) * 118, py = H / 2 + Math.sin(a) * 118;
+      if (s === 0) g.moveTo(px, py); else g.lineTo(px, py);
+    }
+    g.stroke();
+    // 周辺減光
+    var vig = g.createRadialGradient(W / 2, H / 2, H * 0.25, W / 2, H / 2, H * 0.75);
+    vig.addColorStop(0, 'rgba(0,0,0,0)'); vig.addColorStop(1, 'rgba(0,0,0,.45)');
+    g.fillStyle = vig; g.fillRect(0, 0, W, H);
+    // 壁の内側の光
+    g.strokeStyle = 'rgba(110,200,255,.55)'; g.lineWidth = 2;
+    g.strokeRect(1, 1, W - 2, H - 2);
+    g.strokeStyle = 'rgba(110,200,255,.15)'; g.lineWidth = 8;
+    g.strokeRect(4, 4, W - 8, H - 8);
+    g.restore();
+    return c;
+  }
+
+  function roundRect(g, x, y, w, h, r) {
+    g.beginPath();
+    g.moveTo(x + r, y); g.arcTo(x + w, y, x + w, y + h, r); g.arcTo(x + w, y + h, x, y + h, r);
+    g.arcTo(x, y + h, x, y, r); g.arcTo(x, y, x + w, y, r); g.closePath();
+  }
+  function dot(g, x, y, r) { g.beginPath(); g.arc(x, y, r, 0, Math.PI * 2); g.fill(); }
+
+  function render(now) {
+    var k = view.scale * view.dpr;
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    var sx = fx.shake ? (Math.random() - 0.5) * fx.shake * 2 : 0;
+    var sy = fx.shake ? (Math.random() - 0.5) * fx.shake * 2 : 0;
+    if (view.bg) ctx.drawImage(view.bg, sx * k, sy * k);
+    ctx.setTransform(k, 0, 0, k, (WALL + sx) * k, (WALL + sy) * k);
+
+    var t = now / 1000;
+    var i;
+    for (i = 0; i < targets.length; i++) drawTarget(targets[i], t);
+    if (game.mover) drawTrail(game.mover);
+    if (pull && pull.aim) drawGuide(activeUnit(), pull.aim, t);
+    // 動いているキャラを最前面に
+    for (i = 0; i < units.length; i++) if (units[i] !== game.mover) drawUnit(units[i], t);
+    if (game.mover) drawUnit(game.mover, t);
+    if (pull) drawPullOrigin(pull);
+    drawFx();
+  }
+
+  function drawTarget(tg, t) {
+    var b = tg.body, r = b.r * (1 + 0.1 * tg.wobble * Math.sin(t * 40));
+    ctx.save();
+    ctx.translate(b.x, b.y);
+    ctx.fillStyle = 'rgba(0,0,0,.35)';
+    ctx.beginPath(); ctx.ellipse(4, r * 0.8, r * 0.95, r * 0.35, 0, 0, Math.PI * 2); ctx.fill();
+    // 木の縁
+    var wood = ctx.createRadialGradient(-r * 0.3, -r * 0.3, r * 0.2, 0, 0, r);
+    wood.addColorStop(0, '#c98b52'); wood.addColorStop(1, '#6a3a1a');
+    ctx.fillStyle = wood;
+    ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2); ctx.fill();
+    // 同心円
+    var bands = ['#f4efe6', '#d8343f', '#f4efe6', '#d8343f'];
+    for (var i = 0; i < bands.length; i++) {
+      ctx.fillStyle = bands[i];
+      ctx.beginPath(); ctx.arc(0, 0, r * (0.84 - i * 0.2), 0, Math.PI * 2); ctx.fill();
+    }
+    ctx.fillStyle = '#ffd166';
+    ctx.beginPath(); ctx.arc(0, 0, r * 0.1, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = 'rgba(0,0,0,.35)'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2); ctx.stroke();
+    // ハイライト
+    ctx.fillStyle = 'rgba(255,255,255,.18)';
+    ctx.beginPath(); ctx.ellipse(-r * 0.35, -r * 0.45, r * 0.4, r * 0.2, -0.6, 0, Math.PI * 2); ctx.fill();
+    if (tg.flash > 0) {
+      ctx.fillStyle = 'rgba(255,255,255,' + (0.7 * tg.flash).toFixed(3) + ')';
+      ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2); ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  function drawTrail(u) {
+    var tr = u.trail;
+    if (tr.length < 2) return;
+    var col = u.def.shot === 'pierce' ? '255,122,69' : '60,200,255';
+    for (var i = 0; i < tr.length; i++) {
+      var a = (i + 1) / tr.length;
+      ctx.fillStyle = 'rgba(' + col + ',' + (0.28 * a).toFixed(3) + ')';
+      ctx.beginPath(); ctx.arc(tr[i].x, tr[i].y, u.body.r * (0.45 + 0.55 * a), 0, Math.PI * 2); ctx.fill();
+    }
+  }
+
+  function drawUnit(u, t) {
+    var b = u.body, r = b.r, c = u.def.colors;
+    var isActive = units[game.active] === u && (game.phase === 'ready' || game.phase === 'pulling');
+    ctx.save();
+    ctx.translate(b.x, b.y);
+
+    // 影
+    ctx.fillStyle = 'rgba(0,0,0,.4)';
+    ctx.beginPath(); ctx.ellipse(3, r * 0.82, r * 0.9, r * 0.32, 0, 0, Math.PI * 2); ctx.fill();
+
+    // 番のキャラの足元の光
+    if (isActive) {
+      var pulse = 0.5 + 0.5 * Math.sin(t * 5);
+      ctx.strokeStyle = 'rgba(255,209,102,' + (0.45 + 0.4 * pulse).toFixed(3) + ')';
+      ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.arc(0, 0, r + 9 + pulse * 3, 0, Math.PI * 2); ctx.stroke();
+      ctx.fillStyle = '#ffd166';
+      var ay = -r - 22 - pulse * 4;
+      ctx.beginPath(); ctx.moveTo(-7, ay); ctx.lineTo(7, ay); ctx.lineTo(0, ay + 9); ctx.closePath(); ctx.fill();
+    }
+
+    ctx.rotate(u.facing);
+    // 当たった瞬間は進行方向に潰れる
+    var sq = u.squash * 0.18;
+    ctx.scale(1 - sq, 1 + sq * 0.7);
+
+    // 撃種の印: 貫通は進行方向の槍先、反射は二重の輪
+    if (u.def.shot === 'pierce') {
+      var tip = ctx.createLinearGradient(r - 4, 0, r + 20, 0);
+      tip.addColorStop(0, '#ffe7b8'); tip.addColorStop(1, '#ffffff');
+      ctx.fillStyle = tip;
+      ctx.beginPath(); ctx.moveTo(r - 6, -11); ctx.lineTo(r + 20, 0); ctx.lineTo(r - 6, 11); ctx.closePath(); ctx.fill();
+      ctx.strokeStyle = '#8a1f14'; ctx.lineWidth = 1.5; ctx.stroke();
+    } else {
+      ctx.strokeStyle = 'rgba(160,235,255,.85)'; ctx.lineWidth = 2.5;
+      ctx.beginPath(); ctx.arc(0, 0, r + 4.5, 0, Math.PI * 2); ctx.stroke();
+      ctx.strokeStyle = 'rgba(60,200,255,.35)'; ctx.lineWidth = 5;
+      ctx.beginPath(); ctx.arc(0, 0, r + 8, 0, Math.PI * 2); ctx.stroke();
+    }
+
+    // 体
+    var body = ctx.createRadialGradient(-r * 0.35, -r * 0.4, r * 0.1, 0, 0, r);
+    body.addColorStop(0, c[0]); body.addColorStop(0.55, c[1]); body.addColorStop(1, c[2]);
+    ctx.fillStyle = body;
+    ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = 'rgba(255,255,255,.9)'; ctx.lineWidth = 2.5; ctx.stroke();
+
+    // 目（進行方向を見る。回転済みなので +x が前）
+    ctx.fillStyle = '#fff';
+    ctx.beginPath(); ctx.ellipse(r * 0.28, -r * 0.3, r * 0.2, r * 0.24, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(r * 0.28, r * 0.3, r * 0.2, r * 0.24, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#10152a';
+    ctx.beginPath(); ctx.arc(r * 0.36, -r * 0.3, r * 0.1, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(r * 0.36, r * 0.3, r * 0.1, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+
+    // ツヤ（回転させない）
+    ctx.fillStyle = 'rgba(255,255,255,.35)';
+    ctx.beginPath(); ctx.ellipse(b.x - r * 0.35, b.y - r * 0.5, r * 0.35, r * 0.16, -0.5, 0, Math.PI * 2); ctx.fill();
+
+    // 名札
+    var label = u.def.name + ' ' + SHOT_LABEL[u.def.shot];
+    ctx.font = '700 12px "Hiragino Sans","Noto Sans JP",system-ui,sans-serif';
+    var tw = ctx.measureText(label).width + 12;
+    var ly = b.y + r + 10;
+    ctx.fillStyle = 'rgba(6,10,24,.75)';
+    roundRect(ctx, b.x - tw / 2, ly, tw, 18, 9); ctx.fill();
+    ctx.fillStyle = u.def.accent;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText(label, b.x, ly + 9.5);
+  }
+
+  function drawGuide(u, aim, t) {
+    var v = aim.v, pts = aim.pred.points, b = u.body;
+    var col = u.def.shot === 'pierce' ? '255,122,69' : '120,220,255';
+
+    // 予測軌道: 先へ行くほど薄くなる点線
+    var total = 0, lens = [0];
+    for (var i = 1; i < pts.length; i++) { total += Math.hypot(pts[i].x - pts[i - 1].x, pts[i].y - pts[i - 1].y); lens.push(total); }
+    var gap = 16, off = (t * 60) % gap, seg = 1;
+    for (var d = b.r + 10 + off; d < total; d += gap) {
+      while (seg < pts.length - 1 && lens[seg] < d) seg++;
+      var p0 = pts[seg - 1], p1 = pts[seg], L = lens[seg] - lens[seg - 1] || 1;
+      var f = (d - lens[seg - 1]) / L;
+      var x = p0.x + (p1.x - p0.x) * f, y = p0.y + (p1.y - p0.y) * f;
+      var a = 1 - d / total;
+      ctx.fillStyle = 'rgba(' + col + ',' + (0.15 + 0.75 * a).toFixed(3) + ')';
+      ctx.beginPath(); ctx.arc(x, y, 3 + 2 * a, 0, Math.PI * 2); ctx.fill();
+    }
+    // 当たる場所
+    for (var j = 0; j < aim.pred.contacts.length; j++) {
+      var cp = aim.pred.contacts[j];
+      ctx.strokeStyle = 'rgba(' + col + ',.8)'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(cp.x, cp.y, 7 + Math.sin(t * 8) * 1.5, 0, Math.PI * 2); ctx.stroke();
+    }
+
+    // 矢印（長さと太さが強さ）
+    var ang = Math.atan2(v.vy, v.vx);
+    var len = 36 + 96 * v.power, wid = 12 + 10 * v.power;
+    ctx.save();
+    ctx.translate(b.x, b.y);
+    ctx.rotate(ang);
+    var grad = ctx.createLinearGradient(b.r, 0, b.r + len + 22, 0);
+    grad.addColorStop(0, 'rgba(255,255,255,.2)');
+    grad.addColorStop(1, v.power > 0.98 ? '#ffd166' : 'rgba(' + col + ',1)');
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.moveTo(b.r + 6, -wid / 2 * 0.55);
+    ctx.lineTo(b.r + 6 + len, -wid / 2 * 0.55);
+    ctx.lineTo(b.r + 6 + len, -wid);
+    ctx.lineTo(b.r + 6 + len + 24, 0);
+    ctx.lineTo(b.r + 6 + len, wid);
+    ctx.lineTo(b.r + 6 + len, wid / 2 * 0.55);
+    ctx.lineTo(b.r + 6, wid / 2 * 0.55);
+    ctx.closePath();
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(255,255,255,.8)'; ctx.lineWidth = 1.5; ctx.stroke();
+    ctx.restore();
+
+    // 強さの輪
+    ctx.strokeStyle = v.power > 0.98 ? '#ffd166' : 'rgba(' + col + ',.9)';
+    ctx.lineWidth = 4;
+    ctx.beginPath(); ctx.arc(b.x, b.y, b.r + 14, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * Math.max(0.02, v.power)); ctx.stroke();
+  }
+
+  function drawPullOrigin(p) {
+    ctx.strokeStyle = 'rgba(255,255,255,.25)'; ctx.lineWidth = 2;
+    ctx.setLineDash([4, 6]);
+    ctx.beginPath(); ctx.moveTo(p.sx, p.sy); ctx.lineTo(p.sx + p.dx, p.sy + p.dy); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.beginPath(); ctx.arc(p.sx, p.sy, world.cfg.pull.dead, 0, Math.PI * 2); ctx.stroke();
+    ctx.fillStyle = 'rgba(255,255,255,.35)';
+    ctx.beginPath(); ctx.arc(p.sx + p.dx, p.sy + p.dy, 6, 0, Math.PI * 2); ctx.fill();
+  }
+
+  function drawFx() {
+    var i;
+    for (i = 0; i < fx.rings.length; i++) {
+      var r = fx.rings[i], a = 1 - r.life / r.max;
+      ctx.globalAlpha = a;
+      ctx.strokeStyle = r.color; ctx.lineWidth = 3 * a + 1;
+      ctx.beginPath(); ctx.arc(r.x, r.y, r.r * (0.4 + (1 - a)), 0, Math.PI * 2); ctx.stroke();
+    }
+    for (i = 0; i < fx.particles.length; i++) {
+      var p = fx.particles[i], pa = 1 - p.life / p.max;
+      ctx.globalAlpha = pa;
+      ctx.fillStyle = p.color;
+      ctx.beginPath(); ctx.arc(p.x, p.y, p.size * pa + 0.5, 0, Math.PI * 2); ctx.fill();
+    }
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    for (i = 0; i < fx.texts.length; i++) {
+      var tx = fx.texts[i], ta = 1 - tx.life / tx.max;
+      ctx.globalAlpha = Math.min(1, ta * 2);
+      ctx.font = '900 ' + tx.size + 'px "Hiragino Sans","Noto Sans JP",system-ui,sans-serif';
+      ctx.lineWidth = 4; ctx.strokeStyle = 'rgba(6,10,24,.8)';
+      var y = tx.y - (1 - ta) * 24;
+      ctx.strokeText(tx.text, tx.x, y);
+      ctx.fillStyle = tx.color;
+      ctx.fillText(tx.text, tx.x, y);
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  // ---------------------------------------------------------------- 調整パネル
+  var TUNE = [
+    { key: 'speed.max', label: '最大初速', min: 1000, max: 3200, step: 50, fmt: 0 },
+    { key: 'speed.min', label: '最小初速', min: 200, max: 1200, step: 20, fmt: 0 },
+    { key: 'friction.linear', label: '摩擦（一定分）', min: 0, max: 700, step: 10, fmt: 0 },
+    { key: 'friction.drag', label: '摩擦（速さに比例）', min: 0, max: 1.2, step: 0.01, fmt: 2 },
+    { key: 'wall.restitution', label: '壁の反発（残る速さ）', min: 0.5, max: 1, step: 0.01, fmt: 2 },
+    { key: 'reflect.restitution', label: '反射の反発（残る速さ）', min: 0.5, max: 1, step: 0.01, fmt: 2 },
+    { key: 'pierce.enterFactor', label: '貫通の減速（残る速さ）', min: 0.3, max: 1, step: 0.01, fmt: 2 },
+    { key: 'pierce.insideDrag', label: '貫通中の摩擦倍率', min: 1, max: 6, step: 0.1, fmt: 1 }
+  ];
+
+  function getPath(o, key) { return key.split('.').reduce(function (a, k) { return a[k]; }, o); }
+  function setPath(o, key, v) {
+    var ks = key.split('.'), last = ks.pop();
+    var tgt = ks.reduce(function (a, k) { if (!a[k]) a[k] = {}; return a[k]; }, o);
+    tgt[last] = v;
+  }
+
+  function buildTune() {
+    el.tuneList.innerHTML = '';
+    TUNE.forEach(function (d) {
+      var label = document.createElement('label');
+      var name = document.createElement('span'); name.textContent = d.label;
+      var out = document.createElement('output');
+      var input = document.createElement('input');
+      input.type = 'range'; input.min = d.min; input.max = d.max; input.step = d.step;
+      input.value = getPath(world.cfg, d.key);
+      input.dataset.key = d.key;
+      out.textContent = Number(input.value).toFixed(d.fmt);
+      input.addEventListener('input', function () {
+        var v = Number(input.value);
+        setPath(world.cfg, d.key, v);
+        setPath(cfgOverrides, d.key, v);
+        out.textContent = v.toFixed(d.fmt);
+      });
+      label.appendChild(name); label.appendChild(out); label.appendChild(input);
+      el.tuneList.appendChild(label);
+    });
+  }
+
+  el.tuneBtn.addEventListener('click', function () {
+    var open = el.tune.hidden;
+    el.tune.hidden = !open;
+    el.tuneBtn.setAttribute('aria-expanded', String(open));
+  });
+  document.getElementById('btn-tune-close').addEventListener('click', function () {
+    el.tune.hidden = true;
+    el.tuneBtn.setAttribute('aria-expanded', 'false');
+  });
+  document.getElementById('btn-tune-default').addEventListener('click', function () {
+    cfgOverrides = {};
+    world.cfg = P.mergeDeep(P.DEFAULTS, {});
+    buildTune();
+  });
+  document.getElementById('btn-reset').addEventListener('click', function () {
+    buildWorld();
+    buildTune();
+    resize();
+  });
+  el.sound.addEventListener('click', function () {
+    var on = sound.toggle();
+    el.sound.textContent = on ? '音 ON' : '音 OFF';
+    el.sound.setAttribute('aria-pressed', String(on));
+  });
+
+  // ---------------------------------------------------------------- 起動
+  buildWorld();
+  buildTune();
+  el.sound.textContent = sound.on ? '音 ON' : '音 OFF';
+  el.sound.setAttribute('aria-pressed', String(sound.on));
+  resize();
+  window.addEventListener('resize', resize);
+  if (window.ResizeObserver) new ResizeObserver(resize).observe(stage);
+
+  var last = performance.now();
+  function frame(now) {
+    var dt = Math.min(0.05, Math.max(0, (now - last) / 1000));
+    last = now;
+    update(dt);
+    render(now);
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+
+  /** テストと調整用の窓口。ゲームの進行はここを通さなくても完結する。 */
+  window.__ms = {
+    get world() { return world; },
+    get phase() { return game.phase; },
+    get turn() { return game.turn; },
+    get active() { return activeUnit().def.id; },
+    get aim() { return pull && pull.aim ? { power: pull.aim.v.power, points: pull.aim.pred.points.length, contacts: pull.aim.pred.contacts.length } : null; },
+    body: function (id) { var b = world.get(id); return b && { x: b.x, y: b.y, r: b.r, vx: b.vx, vy: b.vy, moving: b.moving }; },
+    /** フィールド座標 → ページ座標（E2E でキャラを掴むため） */
+    toClient: function (x, y) {
+      var r = canvas.getBoundingClientRect();
+      return { x: r.left + (x + WALL) * view.scale, y: r.top + (y + WALL) * view.scale };
+    },
+    get scale() { return view.scale; },
+    setTimeScale: function (s) { game.timeScale = s; }
+  };
+})();
+</script>
+</body>
+</html>
