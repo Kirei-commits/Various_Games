@@ -43,12 +43,15 @@ import {
   Hourglass,
   Flame as FlameIcon,
   Feather as NotebookPen,
+  Castle,
 } from "lucide-react";
 import { BattleBackdrop, Monster, Dragon, Hero, monsterKindOf } from "./battle-art.jsx";
+import QuestScreen from "./QuestScreen.jsx";
+import { equip as questEquip, autoEquip as questAutoEquip, applyQuest, runResults } from "./quest.js";
 import { loadRecordedIndex, playRecorded, recordedCount, recordedUrls, stopRecorded } from "./recorded.js";
 import { cheersAvailable, loadCheers } from "./cheers.js";
 import { Art, CARD_BACK_ART, CHEST_ART, MACHINE_ART, SHOP_ART, WALLET_ICON } from "./gacha-art.jsx";
-import { saveDiary, usedWords } from "./diary.js";
+import { saveDiary } from "./diary.js";
 import rawChapters, { PARTS, RENAMED } from "./data/index.js";
 import { analyzeLinking, LINK_LABELS } from "./linking.js";
 import {
@@ -187,20 +190,34 @@ const DopamineContext = createContext({ on: false, hit() {} });
 const useDopamine = () => useContext(DopamineContext);
 
 const DP_COLORS = ["#f43f5e", "#f59e0b", "#22c55e", "#3b82f6", "#a855f7", "#ec4899", "#facc15"];
-const dpLabel = (n) => (n >= 20 ? "🔥 FEVER 🔥" : n >= 10 ? "PERFECT!!!" : n >= 6 ? "EXCELLENT!!" : n >= 3 ? "GREAT!" : "NICE!");
+const DP_EMOJI = ["🔥", "✨", "💥", "⭐", "🎉", "💎", "⚡", "🌈"];
+const dpLabel = (n) =>
+  n >= 30 ? "🌈 GODLIKE 🌈" : n >= 20 ? "🔥 FEVER 🔥" : n >= 15 ? "UNSTOPPABLE!!" : n >= 10 ? "PERFECT!!!" : n >= 6 ? "EXCELLENT!!" : n >= 3 ? "GREAT!" : "NICE!";
+/** 5連続ごとの節目（大きな演出と音） */
+const dpMilestone = (n) => n > 0 && n % 5 === 0;
 
-/** ドーパミンモードの演出（画面全体に重ねる。タップは下に通す） */
+/**
+ * ドーパミンモードの演出（画面全体に重ねる。タップは下に通す）。
+ * 連続正解が増えるほど派手になる: 光の輪・放射の光・紙吹雪・絵文字の雨・虹色の文字。5連続ごとに画面いっぱいの節目の演出、
+ * 10連続からはフィーバー（画面のふちが虹色に光り続ける）
+ */
 function DopamineLayer({ fx, streak }) {
   if (!fx && !streak) return null;
   const n = fx?.streak || 0;
   const hot = n >= 10;
+  const big = fx && dpMilestone(n);
   const color = DP_COLORS[n % DP_COLORS.length];
+  const confetti = Math.min(18 + n * 3, big ? 90 : 60);
+  const emoji = Math.min(Math.floor(n / 2) * 2 + (big ? 12 : 0), 28);
   return (
     <div className="pointer-events-none absolute inset-0 z-40 overflow-hidden" data-testid="dopamine">
+      {streak >= 10 && <span className="dp-fever absolute inset-0 block" data-testid="dopamine-fever" />}
       {streak > 0 && (
         <p
           key={`m${streak}`}
-          className={`dp-meter absolute right-3 top-[76px] rounded-full px-2.5 py-1 text-xs font-black text-white shadow-lg ${hot ? "bg-gradient-to-r from-orange-500 to-rose-600" : "bg-slate-900/80"}`}
+          className={`dp-meter absolute right-3 top-[76px] rounded-full px-2.5 py-1 text-xs font-black text-white shadow-lg ${
+            streak >= 10 ? "dp-rainbow-bg" : streak >= 5 ? "bg-gradient-to-r from-orange-500 to-rose-600" : "bg-slate-900/80"
+          }`}
           data-testid="dopamine-streak"
         >
           🔥 ×{streak}
@@ -208,17 +225,32 @@ function DopamineLayer({ fx, streak }) {
       )}
       {fx && (
         <div key={fx.id}>
-          <span className="dp-glow absolute inset-0 block" style={{ boxShadow: `inset 0 0 ${hot ? 90 : 50}px ${hot ? 30 : 12}px ${color}` }} />
+          <span className="dp-flash absolute inset-0 block" style={{ background: big ? "white" : color, "--o": big ? 0.85 : 0.35 }} />
+          <span className="dp-glow absolute inset-0 block" style={{ boxShadow: `inset 0 0 ${hot ? 110 : 60}px ${hot ? 36 : 16}px ${color}` }} />
+          {n >= 3 && (
+            <span
+              className="dp-rays absolute left-1/2 top-[36%] block rounded-full"
+              style={{
+                width: big ? 900 : 600,
+                height: big ? 900 : 600,
+                background: `repeating-conic-gradient(from 0deg, ${color}66 0deg 8deg, transparent 8deg 20deg)`,
+              }}
+            />
+          )}
+          <span className="dp-ring absolute left-1/2 top-[36%] block rounded-full" style={{ borderColor: color }} />
+          {big && <span className="dp-ring dp-ring-2 absolute left-1/2 top-[36%] block rounded-full" style={{ borderColor: "#facc15" }} />}
           <p
-            className="bt-pop absolute inset-x-0 top-[30%] text-center font-black italic tracking-tight"
-            style={{ fontSize: hot ? 44 : 34, color, textShadow: "0 3px 0 rgba(0,0,0,0.25), 0 0 20px rgba(255,255,255,0.9)" }}
+            className={`${big ? "dp-stamp" : "bt-pop"} absolute inset-x-0 top-[28%] text-center font-black italic tracking-tight`}
+            style={{ fontSize: big ? 58 : hot ? 46 : 36, textShadow: "0 4px 0 rgba(0,0,0,0.25), 0 0 24px rgba(255,255,255,0.95)" }}
           >
-            {dpLabel(n)}
-            {n >= 2 && <span className="block text-2xl text-slate-900">{n} COMBO</span>}
+            <span className={hot || big ? "dp-rainbow-text" : ""} style={hot || big ? undefined : { color }}>
+              {dpLabel(n)}
+            </span>
+            {n >= 2 && <span className="block text-3xl text-slate-900">{n} COMBO{big ? "!!" : ""}</span>}
           </p>
-          {Array.from({ length: Math.min(12 + n * 2, 48) }, (_, i) => {
-            const a = -Math.PI / 2 + (Math.random() - 0.5) * 2.2;
-            const d = 160 + Math.random() * 260;
+          {Array.from({ length: confetti }, (_, i) => {
+            const a = -Math.PI / 2 + (Math.random() - 0.5) * (big ? 3.4 : 2.4);
+            const d = 180 + Math.random() * (big ? 420 : 300);
             return (
               <span
                 key={i}
@@ -228,11 +260,20 @@ function DopamineLayer({ fx, streak }) {
                   "--dx": `${Math.cos(a) * d}px`,
                   "--dy": `${Math.sin(a) * d}px`,
                   "--rot": `${Math.random() * 720 - 360}deg`,
-                  animationDelay: `${Math.random() * 0.08}s`,
+                  animationDelay: `${Math.random() * 0.1}s`,
                 }}
               />
             );
           })}
+          {Array.from({ length: emoji }, (_, i) => (
+            <span
+              key={`e${i}`}
+              className="dp-rain absolute top-0 block text-2xl"
+              style={{ left: `${Math.random() * 92}%`, animationDelay: `${Math.random() * 0.35}s`, "--fall": `${55 + Math.random() * 40}vh`, "--rot": `${Math.random() * 90 - 45}deg` }}
+            >
+              {DP_EMOJI[(i + n) % DP_EMOJI.length]}
+            </span>
+          ))}
         </div>
       )}
     </div>
@@ -289,6 +330,8 @@ const PART_GROUPS = PARTS.map((p) => {
 /** 種類ごとの問題（フレーズ全部・単語全部） */
 /** 単語ガチャの対象（単語の章 3000語＋シークレット） */
 const CATALOG = buildCatalog(LIBRARY, PARTS);
+/** 冒険で出す単語（ガチャの対象の単語。シークレットは除く） */
+const QUEST_POOL = Object.values(CATALOG.cards).filter((c) => !c.secret);
 const KIND_ITEMS = {
   phrase: PART_GROUPS.filter((p) => p.kind === "phrase").flatMap((p) => p.chapters.flatMap((c) => c.items)),
   word: PART_GROUPS.filter((p) => p.kind === "word").flatMap((p) => p.chapters.flatMap((c) => c.items)),
@@ -358,7 +401,7 @@ const DEFAULT_SETTINGS = {
   dopamine: false, // ドーパミンモード（派手な演出でテンポよく）
   theme: "", // 着せかえ（空なら以前ログインボーナスで選んだもの、なければスタンダード）
   test: { scope: "ch01", count: 10, direction: "en-ja", prompt: "text", answer: "type" },
-  play: "test", // テスト画面で「テスト」「バトル」のどちらを開くか
+  play: "test", // テスト画面で「テスト」「バトル」「冒険」のどれを開くか
   battle: { mode: "stage", chapter: "ch51", scope: "word", direction: "en-ja", answer: "choice", order: "random" },
 };
 
@@ -2301,6 +2344,7 @@ function TestKindSwitch({ value, onChange }) {
         options={[
           { value: "test", label: "テスト", icon: PenLine },
           { value: "battle", label: "バトル", icon: Swords },
+          { value: "quest", label: "冒険", icon: Castle },
         ]}
       />
     </div>
@@ -3152,7 +3196,9 @@ function BattleResult({ battle, reward, speech, onRetry, onNext, onBack, favorit
   );
 }
 
-function TestScreen({ active, state, settings, setSettings, speech, onFinishTest, onFinishBattle, onSettings, onUseItem, onToggleFavorite }) {
+function TestScreen({ active, state, settings, setSettings, speech, onFinishTest, onFinishBattle, onSettings, onUseItem, onToggleFavorite, quest }) {
+  const sound = useSound();
+  const dopamine = useDopamine();
   const recognition = useRecognition();
   const [session, setSession] = useState(null); // { quiz, pool, runId }
   const [result, setResult] = useState(null);
@@ -3214,6 +3260,28 @@ function TestScreen({ active, state, settings, setSettings, speech, onFinishTest
         onFinish={onBattleOver}
         tools={state.gacha.items}
         onUseItem={onUseItem}
+      />
+    );
+  }
+  if (settings.play === "quest" && !session && !result) {
+    return (
+      <QuestScreen
+        active={active}
+        state={state}
+        cards={CATALOG.cards}
+        pool={QUEST_POOL}
+        speech={speech}
+        sound={sound}
+        dopamine={dopamine}
+        header={
+          <>
+            <ScreenHeader title="冒険" sub="集めた単語を装備して、塔をのぼろう" onSettings={onSettings} />
+            {switcher}
+          </>
+        }
+        onEquip={quest.onEquip}
+        onAutoEquip={quest.onAutoEquip}
+        onFinish={quest.onFinish}
       />
     );
   }
@@ -5390,79 +5458,88 @@ function AccountCard({ account }) {
 }
 
 // ---------------------------------------------------------------------------
-// 日記: 集めた単語で英語の日記を書き、その場で採点する
+// 日記: 今日のことを自由に書いて、日付ごとに保存する（採点はしない）
 // ---------------------------------------------------------------------------
-/** 集めた単語（ガチャ）の、英語（小文字）→ { id, rarity } */
-function ownedCardsByWord(g) {
-  const out = {};
-  for (const [id, n] of Object.entries(g.cards || {})) {
-    const c = CATALOG.cards[id];
-    if (n > 0 && c) out[c.english.toLowerCase()] = { id, rarity: c.secret ? "SSR" : c.rarity };
-  }
-  return out;
-}
+const DIARY_MOODS = ["😄", "🙂", "😐", "😢", "😡", "😴"];
+/** 書くことに迷ったとき用のお題（日付で1つ選ぶ。使わなくてもよい） */
+const DIARY_PROMPTS = [
+  ["What did you eat today?", "今日は何を食べた？"],
+  ["What made you smile today?", "今日笑ったことは？"],
+  ["Where did you go today?", "今日はどこへ行った？"],
+  ["Who did you talk to today?", "今日は誰と話した？"],
+  ["What was the hardest part of your day?", "今日いちばん大変だったことは？"],
+  ["What are you looking forward to?", "楽しみにしていることは？"],
+  ["What did you learn today?", "今日学んだことは？"],
+  ["How was the weather today?", "今日の天気はどうだった？"],
+  ["What do you want to do tomorrow?", "明日したいことは？"],
+  ["What are you grateful for today?", "今日感謝したいことは？"],
+];
+const diaryPromptFor = (date) => DIARY_PROMPTS[[...date].reduce((h, ch) => (h * 31 + ch.charCodeAt(0)) >>> 0, 7) % DIARY_PROMPTS.length];
 
 function DiaryScreen({ state, speech, onSave, onSettings }) {
   const { today } = todayAndYesterday();
   const entry = state.diary?.[today];
   const [text, setText] = useState(entry?.text || "");
+  const [mood, setMood] = useState(entry?.mood || null);
   const [saved, setSaved] = useState(false);
-  const [query, setQuery] = useState("");
   const [openDate, setOpenDate] = useState(null);
-  const textRef = useRef(null);
-  const owned = useMemo(() => ownedCardsByWord(state.gacha), [state.gacha]);
-  const ownedList = useMemo(
-    () =>
-      Object.entries(owned)
-        .map(([english, c]) => ({ english, ...c, japanese: CATALOG.cards[c.id]?.japanese || "" }))
-        .sort((a, b) => RARITIES.indexOf(b.rarity) - RARITIES.indexOf(a.rarity) || a.english.localeCompare(b.english)),
-    [owned]
-  );
-  const q = query.trim().toLowerCase();
-  const chips = ownedList.filter((c) => !q || c.english.includes(q) || c.japanese.includes(q)).slice(0, 80);
-  const usedNow = new Set((text.toLowerCase().match(/[a-z]+(?:'[a-z]+)?/g) || []).filter((w) => owned[w]));
+  const [prompt, promptJa] = diaryPromptFor(today);
   const wordCount = (text.match(/[A-Za-z]+(?:'[A-Za-z]+)?/g) || []).length;
-  const insert = (word) => {
-    const el = textRef.current;
-    const start = el?.selectionStart ?? text.length;
-    const end = el?.selectionEnd ?? text.length;
-    const before = text.slice(0, start);
-    const pad = before && !/\s$/.test(before) ? " " : "";
-    const next = `${before}${pad}${word} ${text.slice(end)}`;
-    setText(next);
-    setTimeout(() => {
-      el?.focus();
-      const pos = (before + pad + word + " ").length;
-      el?.setSelectionRange(pos, pos);
-    }, 0);
-  };
+  const english = /[A-Za-z]/.test(text);
   const history = Object.entries(state.diary || {})
     .filter(([d]) => d !== today)
     .sort((a, b) => (a[0] < b[0] ? 1 : -1));
+  const edited = () => setSaved(false);
   return (
     <div className="h-full overflow-y-auto px-5 pt-4 pb-6" data-testid="diary">
-      <ScreenHeader title="英語日記" sub="集めた単語で、今日のことを書こう" onSettings={onSettings} />
+      <ScreenHeader title="日記" sub="今日のことを自由に書こう" onSettings={onSettings} />
       {entry && !saved && <p className="mt-2 text-center text-[11px] text-slate-500">今日の日記は保存済みです。書き直して「保存する」で上書きできます。</p>}
       <div className="mt-4 rounded-3xl bg-white p-4 shadow-sm ring-1 ring-slate-200">
         <p className="flex items-center justify-between text-xs font-bold text-slate-500">
           <span>{today.replace(/-/g, "/")} の日記</span>
-          <span className="tabular-nums">
-            {wordCount}語・集めた単語 {usedNow.size}個
-          </span>
+          <span className="tabular-nums">{english ? `${wordCount}語` : `${text.length}文字`}</span>
         </p>
+        <div className="mt-2 flex items-center gap-1" role="radiogroup" aria-label="今日の気分">
+          <span className="mr-1 text-[11px] font-bold text-slate-400">気分</span>
+          {DIARY_MOODS.map((m) => (
+            <button
+              key={m}
+              type="button"
+              role="radio"
+              aria-checked={mood === m}
+              onClick={() => {
+                setMood(mood === m ? null : m);
+                edited();
+              }}
+              className={`rounded-full px-1.5 py-0.5 text-xl transition ${mood === m ? "scale-110 bg-indigo-100 ring-2 ring-indigo-400" : "opacity-60"}`}
+            >
+              {m}
+            </button>
+          ))}
+        </div>
+        <button
+          type="button"
+          onClick={() => {
+            if (!text.trim()) setText(`${prompt}\n`);
+          }}
+          className="mt-2 w-full rounded-2xl bg-amber-50 px-3 py-2 text-left ring-1 ring-amber-200"
+          data-testid="diary-prompt"
+        >
+          <span className="block text-[10px] font-bold text-amber-600">今日のお題（書くことに迷ったら）</span>
+          <span className="block text-sm font-bold text-slate-800">{prompt}</span>
+          <span className="block text-[11px] text-slate-500">{promptJa}</span>
+        </button>
         <textarea
           id="diary-text"
-          ref={textRef}
           value={text}
           onChange={(e) => {
             setText(e.target.value);
-            setSaved(false);
+            edited();
           }}
-          rows={6}
-          lang="en"
+          rows={8}
           spellCheck={false}
           autoCapitalize="sentences"
-          placeholder="Today I had breakfast with my family. ..."
+          placeholder={"Today I had breakfast with my family. ...\n（日本語で書いてもかまいません）"}
           className="mt-2 w-full resize-none rounded-2xl bg-slate-50 p-3 text-base leading-relaxed text-slate-900 ring-1 ring-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-400"
         />
         <div className="mt-2 flex gap-2">
@@ -5470,7 +5547,7 @@ function DiaryScreen({ state, speech, onSave, onSettings }) {
             type="button"
             disabled={!text.trim()}
             onClick={() => {
-              onSave(text);
+              onSave(text, mood);
               setSaved(true);
             }}
             className="flex-1 rounded-2xl bg-gradient-to-r from-indigo-600 to-fuchsia-600 py-3 text-sm font-extrabold text-white shadow active:scale-95 disabled:opacity-40"
@@ -5479,7 +5556,7 @@ function DiaryScreen({ state, speech, onSave, onSettings }) {
           </button>
           <button
             type="button"
-            disabled={!text.trim()}
+            disabled={!english}
             onClick={() => speech.speak(text, null, `diary-${today}`)}
             aria-label="読み上げる"
             className="rounded-2xl bg-white px-4 text-indigo-600 ring-1 ring-slate-200 disabled:opacity-40"
@@ -5494,42 +5571,6 @@ function DiaryScreen({ state, speech, onSave, onSettings }) {
         )}
       </div>
 
-      <div className="mt-4">
-        <p className="text-sm font-bold text-slate-800">集めた単語（タップで入れる）</p>
-        {ownedList.length === 0 ? (
-          <p className="mt-2 rounded-2xl bg-white p-4 text-center text-xs text-slate-500 ring-1 ring-slate-200">
-            まだ単語を集めていません。「ガチャ」で単語を集めると、ここから日記に入れられます。
-          </p>
-        ) : (
-          <>
-            <input
-              id="diary-search"
-              type="search"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder={`${ownedList.length}語から検索（英語・日本語）`}
-              className="mt-2 w-full rounded-xl bg-white px-3 py-2 text-sm ring-1 ring-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-400"
-            />
-            <div className="mt-2 flex flex-wrap gap-1.5" data-testid="diary-words">
-              {chips.map((c) => (
-                <button
-                  key={c.id}
-                  type="button"
-                  onClick={() => insert(c.english)}
-                  title={c.japanese}
-                  className={`rounded-full px-2.5 py-1 text-xs font-bold ring-1 ${
-                    usedNow.has(c.english) ? "bg-indigo-600 text-white ring-indigo-600" : "bg-white text-slate-700 ring-slate-200"
-                  }`}
-                >
-                  {c.english}
-                  <span className="ml-1 text-[9px] opacity-60">{c.rarity}</span>
-                </button>
-              ))}
-            </div>
-          </>
-        )}
-      </div>
-
       <div className="mt-5">
         <p className="text-sm font-bold text-slate-800">これまでの日記</p>
         {history.length === 0 && <p className="mt-2 text-xs text-slate-400">まだありません。毎日書くと、ここに並びます。</p>}
@@ -5538,10 +5579,23 @@ function DiaryScreen({ state, speech, onSave, onSettings }) {
             <li key={date} className="rounded-2xl bg-white p-3 shadow-sm ring-1 ring-slate-200">
               <button type="button" onClick={() => setOpenDate(openDate === date ? null : date)} className="flex w-full items-center gap-2 text-left">
                 <span className="text-xs font-bold text-slate-500">{date.replace(/-/g, "/")}</span>
+                {e.mood && <span className="text-base">{e.mood}</span>}
                 <span className="min-w-0 flex-1 truncate text-sm text-slate-800">{e.text}</span>
-                {e.words?.length > 0 && <span className="text-[10px] font-bold text-indigo-500">単語 {e.words.length}</span>}
               </button>
-              {openDate === date && <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-slate-700">{e.text}</p>}
+              {openDate === date && (
+                <div className="mt-2">
+                  <p className="whitespace-pre-wrap text-sm leading-relaxed text-slate-700">{e.text}</p>
+                  {/[A-Za-z]/.test(e.text) && (
+                    <button
+                      type="button"
+                      onClick={() => speech.speak(e.text, null, `diary-${date}`)}
+                      className="mt-2 inline-flex items-center gap-1 rounded-full bg-indigo-50 px-3 py-1 text-xs font-bold text-indigo-600"
+                    >
+                      <Volume2 size={14} /> 読み上げる
+                    </button>
+                  )}
+                </div>
+              )}
             </li>
           ))}
         </ul>
@@ -5900,6 +5954,7 @@ export default function App() {
   const [dpFx, setDpFx] = useState(null);
   const [dpStreak, setDpStreak] = useState(0);
   const dpStreakRef = useRef(0);
+  const rootRef = useRef(null); // 画面を揺らす
   const dopamineOn = settings.dopamine;
   const dopamine = useMemo(
     () => ({
@@ -5915,6 +5970,13 @@ export default function App() {
         setDpStreak(n);
         setDpFx({ id: Date.now() + Math.random(), streak: n });
         sound.play("streak", n);
+        if (dpMilestone(n)) sound.play(n >= 10 ? "ssr" : "bonus");
+        const amp = dpMilestone(n) ? 10 : Math.min(2 + n * 0.5, 7);
+        wiggle(
+          rootRef.current,
+          [{ transform: "translate(0,0)" }, { transform: `translate(${-amp}px,${amp / 2}px) rotate(-0.6deg)` }, { transform: `translate(${amp}px,${-amp / 2}px) rotate(0.6deg)` }, { transform: "translate(0,0)" }],
+          dpMilestone(n) ? 420 : 240
+        );
         try {
           navigator.vibrate?.(n >= 10 ? [15, 30, 25] : 12);
         } catch {
@@ -5941,9 +6003,9 @@ export default function App() {
   const onToggleFavorite = useCallback((id) => update((s) => toggleFavorite(s, id)), [update]);
   /** 日記を保存する（同じ日は上書き） */
   const onSaveDiary = useCallback(
-    (text) => {
+    (text, mood) => {
       const { today } = todayAndYesterday();
-      const next = saveDiary(stateRef.current, today, text, usedWords(text, ownedCardsByWord(stateRef.current.gacha)), Date.now());
+      const next = saveDiary(stateRef.current, today, text, [], Date.now(), { mood: mood || null });
       stateRef.current = next;
       update(() => next);
       sound.play("correct");
@@ -5986,6 +6048,34 @@ export default function App() {
       return res.reward;
     },
     [update]
+  );
+
+  // ---- 冒険（ガチャの単語を装備にするドラクエ風モード）
+  const questActions = useMemo(
+    () => ({
+      onEquip(slot, id) {
+        const next = questEquip(stateRef.current, slot, id);
+        stateRef.current = next;
+        update(() => next);
+        sound.play("tap");
+      },
+      onAutoEquip() {
+        const next = questAutoEquip(stateRef.current, CATALOG.cards);
+        stateRef.current = next;
+        update(() => next);
+        sound.play("correct");
+      },
+      onFinish(run, seconds) {
+        const { today, yesterday } = todayAndYesterday();
+        const withMisses = applyTestResult(stateRef.current, LIBRARY, "quest@en-ja", runResults(run), today, yesterday);
+        const res = applyQuest(withMisses, run, Math.min(seconds, 60 * 60), Date.now());
+        lastActivity.current = Date.now();
+        stateRef.current = res.state;
+        update(() => res.state);
+        return res.reward;
+      },
+    }),
+    [update, sound]
   );
 
   // ---- 単語ガチャ
@@ -6208,7 +6298,7 @@ export default function App() {
     <ThemeContext.Provider value={theme}>
     <LinkingContext.Provider value={settings.linking}>
     <div className="w-full bg-slate-100" style={{ height: "100dvh" }}>
-      <div className="relative mx-auto flex h-full w-full max-w-md flex-col bg-slate-50 shadow-xl">
+      <div ref={rootRef} className="relative mx-auto flex h-full w-full max-w-md flex-col bg-slate-50 shadow-xl">
         {dopamineOn && <DopamineLayer fx={dpFx} streak={dpStreak} />}
         {earnToast && Date.now() - earnToast.at < 1500 && (
           <div className="pointer-events-none absolute inset-x-0 top-2 z-40 flex justify-center">
@@ -6244,6 +6334,7 @@ export default function App() {
               speech={speech}
               onFinishTest={onFinishTest}
               onFinishBattle={onFinishBattle}
+              quest={questActions}
               onUseItem={onConsumeItem}
               onToggleFavorite={onToggleFavorite}
               onSettings={openSettings}

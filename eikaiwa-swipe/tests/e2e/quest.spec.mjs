@@ -1,0 +1,67 @@
+import { test, expect } from "./fixtures.mjs";
+
+/** ガチャの単語を持った状態で、テスト画面の「冒険」を開く */
+async function openQuest(page, cards) {
+  await page.evaluate((c) => {
+    localStorage.setItem("swipetalk:v2", JSON.stringify({ version: 6, learned: {}, gacha: { starter: true, cards: c } }));
+  }, cards);
+  await page.reload();
+  await page.getByRole("button", { name: "テスト", exact: true }).click();
+  await page.getByRole("button", { name: "冒険" }).click();
+  await expect(page.getByTestId("quest-home")).toBeVisible();
+}
+
+/** 正解を選び続けて、今の階の敵を倒す（負けたら false） */
+async function winFloor(page) {
+  for (let i = 0; i < 60; i++) {
+    if (await page.getByRole("button", { name: "つぎの階へ" }).isVisible()) return true;
+    if (await page.getByTestId("quest-result").isVisible()) return false;
+    const attack = page.getByRole("button", { name: "たたかう" });
+    if (await attack.isVisible()) {
+      await attack.click();
+      await page.locator('[data-testid="quest-choice"][data-correct="1"]').click();
+    }
+  }
+  return false;
+}
+
+test("冒険: 集めた単語をおまかせで装備すると能力値が上がり、塔で敵を倒して経験値をもらえる", async ({ page }) => {
+  await openQuest(page, { breakfast: 2, park: 1, family: 1 });
+  const stats = page.getByTestId("quest-stats");
+  const before = await stats.innerText();
+  await page.getByRole("button", { name: "おまかせ装備" }).click();
+  await expect(page.getByTestId("quest-equip")).toContainText("breakfast");
+  await expect(stats).not.toHaveText(before);
+
+  await page.getByRole("button", { name: "1階から" }).click();
+  await expect(page.getByTestId("quest-run")).toBeVisible();
+  await expect(page.getByTestId("quest-floor")).toHaveText("1階");
+  expect(await winFloor(page)).toBe(true);
+  await expect(page.getByTestId("quest-log")).toContainText("たおした");
+  await page.getByRole("button", { name: "つぎの階へ" }).click();
+  await expect(page.getByTestId("quest-floor")).toHaveText("2階");
+  await page.getByRole("button", { name: "にげる（街に帰る）" }).click();
+  await expect(page.getByTestId("quest-result")).toContainText("けいけんち: +");
+  await expect(page.getByTestId("quest-result")).toContainText("最高記録");
+  await page.getByRole("button", { name: "準備にもどる" }).click();
+  await expect(page.getByTestId("quest-home")).toContainText("最高 1階");
+});
+
+test("冒険: 間違えるとミスになり、正解がメッセージに出る。装備は枠ごとに付け替えられる", async ({ page }) => {
+  await openQuest(page, { breakfast: 1, park: 1 });
+  await page.getByRole("button", { name: "武器を変える" }).click();
+  await page.getByTestId("gear-picker").getByRole("button", { name: /park/ }).click();
+  await expect(page.getByTestId("quest-equip")).toContainText("park");
+  await page.getByRole("button", { name: "1階から" }).click();
+  await page.getByRole("button", { name: "たたかう" }).click();
+  await page.locator('[data-testid="quest-choice"][data-correct="0"]').first().click();
+  await expect(page.getByTestId("quest-log")).toContainText("ミス！");
+  await expect(page.getByTestId("quest-log")).toContainText("正解は");
+});
+
+test("冒険: 単語を持っていなくても遊べる（装備なしの案内が出る）", async ({ page }) => {
+  await openQuest(page, {});
+  await expect(page.getByTestId("quest-home")).toContainText("ガチャで単語を集めると");
+  await page.getByRole("button", { name: "1階から" }).click();
+  await expect(page.getByTestId("quest-commands")).toBeVisible();
+});

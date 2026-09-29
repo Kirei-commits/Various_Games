@@ -6,6 +6,7 @@
 import { initialGacha, restoreGacha, mergeGacha, grant, loginGachaReward, GOAL_POINTS } from "./gacha.js";
 import { initialBattle, restoreBattle, mergeBattle } from "./battle.js";
 import { restoreDiary, mergeDiary } from "./diary.js";
+import { initialQuest, restoreQuest, mergeQuest } from "./quest.js";
 
 // ---------------------------------------------------------------------------
 // データ
@@ -448,7 +449,7 @@ export function wordMatch(said, target) {
 // 学習状態
 // ---------------------------------------------------------------------------
 
-export const STATE_VERSION = 5;
+export const STATE_VERSION = 6;
 
 /** v1（22フレーズ版）の保存データの ID → 英語 */
 export const LEGACY_V1_IDS = {
@@ -482,7 +483,8 @@ export function freshState(firstChapterId = "ch01") {
     gacha: initialGacha(),
     battle: initialBattle(),
     favorites: {}, // 問題ID → true（⭐ を付けた単語・フレーズ）
-    diary: {}, // 日付 → { text, score, points, at, words }
+    diary: {}, // 日付 → { text, mood, at, words }
+    quest: initialQuest(), // 冒険（Lv・経験値・装備・最高の階）
     chapter: firstChapterId,
   };
 }
@@ -573,6 +575,8 @@ const MIGRATIONS = {
   3: (s) => ({ ...s, version: 4 }),
   // v4 → v5: お気に入り（state.favorites）と日記（state.diary）を追加
   4: (s) => ({ ...s, version: 5, favorites: s.favorites || {}, diary: s.diary || {} }),
+  // v5 → v6: 冒険（state.quest。ガチャの単語を装備にするドラクエ風モード）を追加
+  5: (s) => ({ ...s, version: 6, quest: s.quest || initialQuest() }),
 };
 
 export const stateVersionOf = (saved) => (saved && Number.isInteger(saved.version) ? saved.version : 1);
@@ -643,6 +647,7 @@ export function restoreState(saved, library) {
         .map(([id]) => [currentId(id, renamed), true])
     ),
     diary: restoreDiary(s.diary),
+    quest: restoreQuest(s.quest, (id) => currentId(id, renamed)),
     chapter,
   };
 }
@@ -834,6 +839,7 @@ export function mergeStates(a, b, library) {
       battle: mergeBattle(a.battle, b.battle),
       favorites: { ...(a.favorites || {}), ...(b.favorites || {}) },
       diary: mergeDiary(a.diary, b.diary),
+      quest: mergeQuest(a.quest, b.quest),
       chapter: b.chapter,
     },
     library

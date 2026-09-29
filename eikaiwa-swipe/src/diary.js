@@ -1,6 +1,6 @@
 /*
- * 日記: 集めた単語を使って英語の日記を書き、日付ごとに保存する（純粋関数。Node でテストできる）。
- * 採点はしない。
+ * 日記: 今日のことを自由に書き、日付ごとに保存する（純粋関数。Node でテストできる）。
+ * 採点はしない。以前はガチャで集めた単語を使って書く形だった（words はその名残。古い日記の記録として残す）
  */
 
 /** 日記に使った、集めた単語（ガチャ）の ID。cards は英語（小文字）→ { id } */
@@ -13,10 +13,10 @@ export function usedWords(text, cards = {}) {
   return ids;
 }
 
-/** 日記を保存する（同じ日は上書き） */
-export function saveDiary(state, date, text, words, now) {
+/** 日記を保存する（同じ日は上書き）。extra は気分（mood）など */
+export function saveDiary(state, date, text, words, now, extra = {}) {
   const prev = (state.diary || {})[date] || {};
-  return { ...state, diary: { ...(state.diary || {}), [date]: { ...prev, text, at: now, words } } };
+  return { ...state, diary: { ...(state.diary || {}), [date]: { ...prev, ...extra, text, at: now, words } } };
 }
 
 /** 日記の保存データを整える（以前の採点の値 score / points があっても消さずに残す） */
