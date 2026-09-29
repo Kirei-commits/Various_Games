@@ -68,12 +68,53 @@
     background: rgba(4, 7, 16, .72); backdrop-filter: blur(3px); padding: 16px; }
   #title .card { width: min(360px, 100%); text-align: center; padding: 22px 20px; border-radius: 18px; background: rgba(12, 20, 44, .96);
     border: 1px solid var(--line); box-shadow: 0 20px 50px rgba(0, 0, 0, .6); }
-  #title h2 { margin: 0 0 4px; font-size: 26px; letter-spacing: .1em; }
+  #title h2 { margin: 0 0 4px; font-size: clamp(18px, 6vw, 26px); letter-spacing: .08em; white-space: nowrap; }
   #title h2 b { color: var(--gold); }
   #title p { margin: 0 0 14px; color: var(--muted); font-size: 12px; }
   #stage-list { display: grid; gap: 10px; }
   #stage-list button { display: grid; gap: 2px; text-align: left; padding: 12px 14px; font-size: 15px; font-weight: 800; }
   #stage-list button small { color: var(--muted); font-size: 11px; font-weight: 500; }
+  .meta-row { display: flex; gap: 8px; align-items: center; margin-top: 14px; }
+  .meta-row button { flex: 1; font-size: 14px; font-weight: 800; padding: 10px; }
+  .gems { font-weight: 900; color: #7df0ff; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .gems::before { content: '◆ '; color: #7df0ff; }
+  .screen { position: absolute; inset: 0; z-index: 5; overflow: auto; padding: 12px;
+    background: rgba(6, 10, 24, .97); }
+  .screen .head { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .screen h2 { margin: 0; font-size: 20px; letter-spacing: .06em; flex: 1; }
+  .screen .note { color: var(--muted); font-size: 11px; line-height: 1.6; margin: 6px 0 10px; }
+  .rates { width: 100%; border-collapse: collapse; font-size: 12px; margin-bottom: 10px; }
+  .rates td { padding: 4px 6px; border-bottom: 1px solid var(--line); }
+  .rates td:nth-child(2) { font-weight: 800; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .stars { color: var(--gold); letter-spacing: -1px; white-space: nowrap; }
+  .pull-row { display: flex; gap: 10px; }
+  .pull-row button { flex: 1; padding: 12px; font-size: 15px; font-weight: 900; border-color: var(--gold); }
+  .pull-row button small { display: block; font-size: 11px; font-weight: 600; color: #7df0ff; }
+  .cards { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-top: 12px; }
+  .card { position: relative; border-radius: 10px; padding: 6px 2px 5px; text-align: center; font-size: 10px;
+    background: rgba(18, 28, 56, .9); border: 1px solid var(--line); opacity: 0; transform: rotateY(90deg) scale(.8);
+    animation: flip .35s ease-out forwards; }
+  .card.r4 { border-color: #c79bff; box-shadow: 0 0 10px rgba(199, 155, 255, .45); }
+  .card.r5 { border-color: var(--gold); box-shadow: 0 0 16px rgba(255, 209, 102, .8); background: linear-gradient(160deg, #3a2a08, #12183a); }
+  .card .new { position: absolute; top: 2px; right: 3px; color: #7dffa8; font-weight: 900; font-size: 9px; }
+  .card b { display: block; font-size: 11px; margin-top: 3px; white-space: nowrap; overflow: hidden; }
+  @keyframes flip { to { opacity: 1; transform: none; } }
+  .uface { position: relative; width: 44px; height: 44px; margin: 0 auto; border-radius: 50%; display: grid; place-items: center;
+    font-weight: 900; font-size: 18px; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,.7); border: 2px solid rgba(255,255,255,.85); }
+  .uface .el { position: absolute; left: -4px; top: -4px; width: 17px; height: 17px; border-radius: 50%; font-size: 10px;
+    display: grid; place-items: center; background: #0a1022; border: 1.5px solid currentColor; text-shadow: none; }
+  .slots { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+  .slot, .owned-unit { border-radius: 10px; padding: 6px 2px; text-align: center; font-size: 10px; cursor: pointer;
+    background: rgba(18, 28, 56, .9); border: 1px solid var(--line); color: var(--text); }
+  .slot.sel { border-color: var(--gold); box-shadow: 0 0 10px rgba(255, 209, 102, .5); }
+  .slot small { display: block; color: var(--muted); }
+  .owned { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 10px; }
+  .owned-unit.in { opacity: .5; }
+  .owned-unit .tag { display: block; font-size: 9px; color: var(--gold); }
+  .owned-unit.locked { opacity: .25; cursor: default; }
+  .detail { min-height: 5.2em; margin-top: 10px; font-size: 11px; line-height: 1.6; color: var(--muted);
+    padding: 8px 10px; border-radius: 10px; border: 1px solid var(--line); }
+  .detail b { color: var(--text); }
   /* 文字が変わっても幅を変えない（ヘッダーの折り返しが変わるとフィールドがずれる） */
   #btn-ss { width: 7.6em; flex: none; white-space: nowrap; overflow: hidden; font-weight: 800; padding: 4px 8px; }
   #btn-ss:disabled { opacity: .55; cursor: default; }
@@ -128,8 +169,27 @@
         <h2>HIPPARI <b>STRIKE</b></h2>
         <p>ステージを選んでください</p>
         <div id="stage-list"></div>
+        <div class="meta-row"><span class="gems" id="gems">0</span><button id="btn-gacha" type="button">ガチャ</button><button id="btn-party" type="button">編成</button></div>
       </div>
     </div>
+    <section id="gacha" class="screen" hidden>
+      <div class="head"><h2>ガチャ</h2><span class="gems" id="gacha-gems">0</span><button id="btn-gacha-back" type="button">もどる</button></div>
+      <table class="rates" id="rates"></table>
+      <p class="note">10連の10体目は ★4 以上が出ます。同じキャラが出るとラックが上がり、攻撃力とHPが1つにつき1%（最大10%）上がります。
+        ジェムはステージのクリアでもらえます（本物のお金は使いません）。</p>
+      <div class="pull-row">
+        <button id="btn-pull1" type="button">1回<small id="cost1"></small></button>
+        <button id="btn-pull10" type="button">10連<small id="cost10"></small></button>
+      </div>
+      <div class="cards" id="pull-results"></div>
+    </section>
+    <section id="party" class="screen" hidden>
+      <div class="head"><h2>編成</h2><button id="btn-party-back" type="button">もどる</button></div>
+      <p class="note">左から撃つ順です。枠を選んでから、下の手持ちのキャラを選んでください。</p>
+      <div class="slots" id="party-slots"></div>
+      <div class="detail" id="party-detail"></div>
+      <div class="owned" id="party-owned"></div>
+    </section>
   </main>
 
   <p class="help" id="help"></p>
@@ -1413,31 +1473,94 @@
    *            'ssAccel'（SSターン短縮: 触れた味方1体につき自分のSSが1ターン縮む）
    * killers  : [{ race | element, rank }]。rank は S / N（無印）/ M / L / EL
    * resist   : [{ element, rank }]。その属性の敵の攻撃を N 25% / M 50% 減らす
+   * title    : ガチャや編成で見せる名前 / rarity: レア度（★3〜★5）
    * ss       : ストライクショット。turns ショットごとに使える（誰が撃っても1ずつ溜まる）
    *            launch: { speed, friction }（物理: 初速とこのショットの摩擦の倍率）
    *            atk: このショットの攻撃力の倍率 / onStop: 止まったところで出す攻撃（友情と同じ形）
    *            comboTwice: このショットで触れた味方の友情が2回出る
    */
   var units = [
-    { id: 'A', name: 'A', shot: 'reflect', element: 'water', atk: 1500, hp: 8800, x: 90, y: 690, r: 30,
+    { id: 'A', name: 'A', title: 'アクア', rarity: 4, shot: 'reflect', element: 'water', atk: 1500, hp: 8800, x: 90, y: 690, r: 30,
       colors: ['#c9fbff', '#39b8ff', '#0b3f8a'], accent: '#3cc8ff', abilities: ['superAntiDamageWall', 'antiWarp'],
       combo: { kind: 'homing', name: 'ホーミング', count: 6, power: 500 },
       ss: { name: 'ブースト', turns: 8, launch: { speed: 1.35, friction: 0.55 } } },
-    { id: 'B', name: 'B', shot: 'pierce', element: 'fire', atk: 1800, hp: 8200, x: 210, y: 715, r: 30,
+    { id: 'B', name: 'B', title: 'ブレイズ', rarity: 5, shot: 'pierce', element: 'fire', atk: 1800, hp: 8200, x: 210, y: 715, r: 30,
       colors: ['#ffe7b8', '#ff7a45', '#8a1f14'], accent: '#ff7a45', abilities: ['superAntiGravity'],
       killers: [{ race: 'dragon', rank: 'N' }],
       combo: { kind: 'laser', name: 'クロスレーザー', element: 'fire', power: 1800, width: 34 },
       ss: { name: '全力貫通', turns: 13, atk: 1.9 } },
-    { id: 'C', name: 'C', shot: 'reflect', element: 'wood', atk: 1300, hp: 9400, x: 330, y: 690, r: 30,
+    { id: 'C', name: 'C', title: 'シルバ', rarity: 4, shot: 'reflect', element: 'wood', atk: 1300, hp: 9400, x: 330, y: 690, r: 30,
       colors: ['#e6ffc2', '#62c83a', '#1f5a0c'], accent: '#8ee05a', abilities: ['lastStand', 'ssAccel', 'antiBlock'],
       combo: { kind: 'blast', name: '爆発', power: 2500, radius: 150 },
       ss: { name: 'メテオ', turns: 14, onStop: { kind: 'blast', power: 3600, radius: 210 } } },
-    { id: 'D', name: 'D', shot: 'pierce', element: 'light', atk: 1400, hp: 7600, x: 450, y: 715, r: 30,
+    { id: 'D', name: 'D', title: 'ルクス', rarity: 4, shot: 'pierce', element: 'light', atk: 1400, hp: 7600, x: 450, y: 715, r: 30,
       colors: ['#fffbe0', '#f5d63e', '#8a6a06'], accent: '#ffe066', abilities: ['mineSweeper', 'antiMagic'],
       resist: [{ element: 'dark', rank: 'N' }],
       combo: { kind: 'spread', name: '拡散弾', count: 8, power: 700, range: 420 },
       ss: { name: '仲間呼び', turns: 11, launch: { speed: 1.15 }, comboTwice: true } }
   ];
+
+  /**
+   * ガチャで仲間になるキャラ（A〜D は最初からいる4体）。x, y は編成の枠で決まるので持たない。
+   * ★3 は素直な性能、★4 は得意なギミックが2つ、★5 はアビリティが多く SS が強い。
+   */
+  var recruits = [
+    { id: 'E', name: 'E', title: 'ホムラ', rarity: 3, shot: 'reflect', element: 'fire', atk: 1250, hp: 7800, r: 30,
+      colors: ['#ffd9c2', '#ff6a3c', '#7a1a08'], accent: '#ff8a5c', abilities: ['antiGravity'],
+      combo: { kind: 'homing', name: 'ホーミング', element: 'fire', count: 4, power: 450 },
+      ss: { name: '火走り', turns: 12, atk: 1.5 } },
+    { id: 'F', name: 'F', title: 'シズク', rarity: 3, shot: 'pierce', element: 'water', atk: 1350, hp: 7600, r: 30,
+      colors: ['#d6f4ff', '#3aa8e8', '#0a3a66'], accent: '#5cc4ff', abilities: ['antiDamageWall'],
+      combo: { kind: 'laser', name: 'クロスレーザー', element: 'water', power: 1400, width: 30 },
+      ss: { name: '水鉄砲', turns: 13, atk: 1.6 } },
+    { id: 'G', name: 'G', title: 'コダマ', rarity: 3, shot: 'pierce', element: 'wood', atk: 1200, hp: 8200, r: 30,
+      colors: ['#e2ffd0', '#4fbf4a', '#15500f'], accent: '#7ee06a', abilities: ['flying'],
+      combo: { kind: 'spread', name: '拡散弾', count: 6, power: 600, range: 380 },
+      ss: { name: '木霊', turns: 14, onStop: { kind: 'blast', power: 2500, radius: 180 } } },
+    { id: 'H', name: 'H', title: 'ヒカリ', rarity: 3, shot: 'reflect', element: 'light', atk: 1200, hp: 7900, r: 30,
+      colors: ['#fffbe8', '#ffe27a', '#8a7206'], accent: '#fff08a', abilities: ['antiWarp'],
+      combo: { kind: 'blast', name: '爆発', power: 2000, radius: 130 },
+      ss: { name: '閃光', turns: 11, launch: { speed: 1.3 } } },
+    { id: 'I', name: 'I', title: 'ヨル', rarity: 4, shot: 'reflect', element: 'dark', atk: 1450, hp: 8400, r: 30,
+      colors: ['#eadcff', '#8a4ae8', '#2c0f5c'], accent: '#b58cff', abilities: ['mineSweeper', 'antiSlow'],
+      killers: [{ element: 'light', rank: 'N' }],
+      combo: { kind: 'homing', name: 'ホーミング', element: 'dark', count: 6, power: 550 },
+      ss: { name: '影呼び', turns: 12, comboTwice: true } },
+    { id: 'J', name: 'J', title: 'グレン', rarity: 4, shot: 'pierce', element: 'fire', atk: 1650, hp: 8300, r: 30,
+      colors: ['#ffe0c8', '#e8481c', '#6a1204'], accent: '#ff6a3c', abilities: ['superAntiGravity', 'antiBlock'],
+      killers: [{ race: 'golem', rank: 'M' }],
+      combo: { kind: 'laser', name: 'クロスレーザー', element: 'fire', power: 2000, width: 40 },
+      ss: { name: '紅蓮突き', turns: 14, atk: 2.0 } },
+    { id: 'K', name: 'K', title: 'ルナ', rarity: 5, shot: 'pierce', element: 'dark', atk: 1750, hp: 9000, r: 30,
+      colors: ['#f0e0ff', '#6a2ad0', '#1e0648'], accent: '#c49cff', abilities: ['superAntiDamageWall', 'antiMagic', 'mineSweeper'],
+      killers: [{ race: 'beast', rank: 'M' }],
+      combo: { kind: 'spread', name: '拡散弾', element: 'dark', count: 10, power: 800, range: 460 },
+      ss: { name: '月落とし', turns: 16, onStop: { kind: 'blast', power: 4500, radius: 230 } } },
+    { id: 'L', name: 'L', title: 'ソレイユ', rarity: 5, shot: 'reflect', element: 'light', atk: 1700, hp: 9300, r: 30,
+      colors: ['#fffce0', '#ffc83c', '#8a5a06'], accent: '#ffd65c', abilities: ['superAntiGravity', 'antiWarp', 'lastStand'],
+      killers: [{ element: 'dark', rank: 'N' }],
+      combo: { kind: 'blast', name: '大爆発', element: 'light', power: 3200, radius: 170 },
+      ss: { name: '日輪', turns: 15, launch: { speed: 1.4, friction: 0.5 }, atk: 1.3 } }
+  ];
+
+  /** 編成の4つの枠（左から撃つ順）。キャラの置き場所はここで決まる */
+  var slots = [{ x: 90, y: 690 }, { x: 210, y: 715 }, { x: 330, y: 690 }, { x: 450, y: 715 }];
+
+  /**
+   * ガチャ。確率の表示と抽選は同じ rates を使う（表示と実際がずれないように）。
+   * 本物のお金は使わない。ジェムはステージのクリアでもらえる。
+   *  cost / cost10: 1回 / 10連のジェム。10連の10体目は ★4 以上が出る（guarantee）
+   *  luckMax: 同じキャラが出たときに上がるラックの上限。1につき攻撃力とHPが +1%（最大 +10%）
+   */
+  var gacha = {
+    cost: 5, cost10: 50, guarantee: 4,
+    rates: [{ rarity: 5, rate: 0.05 }, { rarity: 4, rate: 0.25 }, { rarity: 3, rate: 0.70 }],
+    luckMax: 99, luckBonusMax: 10
+  };
+
+  /** 最初に持っているジェムとキャラ、ステージのクリア報酬（初回 / 2回目から / 負けても少し） */
+  var meta = { startGems: 30, starter: ['A', 'B', 'C', 'D'],
+    rewards: [{ first: 20, again: 5, lose: 1 }, { first: 30, again: 8, lose: 2 }] };
 
   var SLIME = ['#c8ffab', '#3fca6b', '#0f5a33'];
   var BAT = ['#e7c8ff', '#9a5cf0', '#3a1670'];
@@ -1563,7 +1686,141 @@
     ]
   };
 
-  root.MSData = { units: units, stage: stage, stages: [stage, tower] };
+  root.MSData = { units: units, roster: units.concat(recruits), slots: slots, gacha: gacha, meta: meta, stage: stage, stages: [stage, tower] };
+})(typeof window !== 'undefined' ? window : globalThis);
+</script>
+
+<!-- ガチャ・手持ち・編成・報酬（純粋。乱数は外から渡す）→ window.MSMeta -->
+<script id="ms-meta">
+(function (root) {
+  'use strict';
+
+  var SAVE_VERSION = 1;
+
+  function byId(data, id) {
+    for (var i = 0; i < data.roster.length; i++) if (data.roster[i].id === id) return data.roster[i];
+    return null;
+  }
+
+  /** はじめてのセーブ: 最初の4体とジェム */
+  function newSave(data) {
+    var owned = {};
+    data.meta.starter.forEach(function (id) { owned[id] = { luck: 0 }; });
+    return { v: SAVE_VERSION, gems: data.meta.startGems, owned: owned, party: data.meta.starter.slice(), cleared: {}, pulls: 0 };
+  }
+
+  /**
+   * 保存していたもの（JSON の文字列か、読んだオブジェクト）を確かめて直す。
+   * 壊れていたら最初からにする。知らないキャラ・重複した編成は取り除いて埋め直す。
+   */
+  function load(raw, data) {
+    var s;
+    try { s = typeof raw === 'string' ? JSON.parse(raw) : raw; } catch (e) { s = null; }
+    if (!s || typeof s !== 'object' || s.v !== SAVE_VERSION) return newSave(data);
+    var out = newSave(data);
+    out.gems = Math.max(0, Math.floor(Number(s.gems) || 0));
+    out.pulls = Math.max(0, Math.floor(Number(s.pulls) || 0));
+    for (var id in (s.owned || {})) {
+      if (!byId(data, id)) continue;
+      var luck = Math.floor(Number(s.owned[id] && s.owned[id].luck) || 0);
+      out.owned[id] = { luck: Math.max(0, Math.min(data.gacha.luckMax, luck)) };
+    }
+    for (var k in (s.cleared || {})) if (s.cleared[k]) out.cleared[k] = true;
+    var party = [];
+    (Array.isArray(s.party) ? s.party : []).forEach(function (pid) {
+      if (out.owned[pid] && party.indexOf(pid) < 0 && party.length < data.slots.length) party.push(pid);
+    });
+    // 足りない枠は最初の4体（→ 手持ち）で埋める
+    var fill = data.meta.starter.concat(Object.keys(out.owned));
+    for (var i = 0; i < fill.length && party.length < data.slots.length; i++) if (party.indexOf(fill[i]) < 0 && out.owned[fill[i]]) party.push(fill[i]);
+    out.party = party;
+    return out;
+  }
+
+  /** 確率の表（画面の表示にも抽選にも使う）: [{ rarity, rate, units: [id...] }] */
+  function rateTable(data) {
+    return data.gacha.rates.map(function (r) {
+      return { rarity: r.rarity, rate: r.rate, units: data.roster.filter(function (u) { return u.rarity === r.rarity; }).map(function (u) { return u.id; }) };
+    });
+  }
+
+  /** レア度を1つ引いて、その中から1体。minRarity 以上しか出さないときは確率を割り直す */
+  function drawOne(data, rng, minRarity) {
+    var table = rateTable(data).filter(function (t) { return t.units.length && t.rarity >= (minRarity || 0); });
+    var sum = table.reduce(function (a, t) { return a + t.rate; }, 0);
+    var x = rng() * sum, pick = table[table.length - 1];
+    for (var i = 0; i < table.length; i++) { x -= table[i].rate; if (x < 0) { pick = table[i]; break; } }
+    var id = pick.units[Math.min(pick.units.length - 1, Math.floor(rng() * pick.units.length))];
+    return { id: id, rarity: pick.rarity };
+  }
+
+  /**
+   * ガチャを n 回（1 か 10）引く。ジェムが足りなければ { error } を返して何も変えない。
+   * 10連の10体目は、それまでに ★4 以上が出ていなければ ★4 以上から引く。
+   * 同じキャラが出たらラック +1（上限 luckMax）。
+   */
+  function pull(save, data, n, rng) {
+    var cost = n === 10 ? data.gacha.cost10 : data.gacha.cost * n;
+    if (save.gems < cost) return { error: 'gems', need: cost, have: save.gems };
+    save.gems -= cost;
+    var results = [], high = false;
+    for (var i = 0; i < n; i++) {
+      var guard = n === 10 && i === n - 1 && !high ? data.gacha.guarantee : 0;
+      var r = drawOne(data, rng, guard);
+      if (r.rarity >= data.gacha.guarantee) high = true;
+      r.isNew = !save.owned[r.id];
+      if (r.isNew) save.owned[r.id] = { luck: 0 };
+      else save.owned[r.id].luck = Math.min(data.gacha.luckMax, save.owned[r.id].luck + 1);
+      r.luck = save.owned[r.id].luck;
+      r.guaranteed = !!guard;
+      results.push(r);
+    }
+    save.pulls += n;
+    return { results: results, cost: cost, gems: save.gems };
+  }
+
+  /** ステージが終わったときの報酬。初回クリアは多く、2回目からは少し。負けても少しもらえる */
+  function reward(save, data, stageIndex, won) {
+    var rw = data.meta.rewards[stageIndex] || { first: 0, again: 0, lose: 0 };
+    var key = 's' + stageIndex, gems, first = false;
+    if (!won) gems = rw.lose;
+    else if (!save.cleared[key]) { gems = rw.first; first = true; save.cleared[key] = true; }
+    else gems = rw.again;
+    save.gems += gems;
+    return { gems: gems, first: first, total: save.gems };
+  }
+
+  /** 編成を変える。手持ちの、重ならない、枠の数ちょうどのキャラだけ受け付ける */
+  function setParty(save, data, ids) {
+    if (!Array.isArray(ids) || ids.length !== data.slots.length) return false;
+    for (var i = 0; i < ids.length; i++) {
+      if (!save.owned[ids[i]] || ids.indexOf(ids[i]) !== i) return false;
+    }
+    save.party = ids.slice();
+    return true;
+  }
+
+  /** ラックによる強化の倍率（1につき +1%、最大 luckBonusMax%） */
+  function luckRate(data, luck) { return 1 + Math.min(luck, data.gacha.luckBonusMax) / 100; }
+
+  /**
+   * 戦闘に出す4体の定義。枠の位置を入れ、ラックで攻撃力と HP を上げる（元の定義は書き換えない）。
+   */
+  function partyUnits(save, data) {
+    return save.party.map(function (id, i) {
+      var base = byId(data, id), u = {};
+      for (var k in base) u[k] = base[k];
+      var lr = luckRate(data, (save.owned[id] || { luck: 0 }).luck);
+      u.atk = Math.round(base.atk * lr);
+      u.hp = Math.round(base.hp * lr);
+      u.x = data.slots[i].x;
+      u.y = data.slots[i].y;
+      return u;
+    });
+  }
+
+  root.MSMeta = { newSave: newSave, load: load, rateTable: rateTable, pull: pull, reward: reward,
+    setParty: setParty, partyUnits: partyUnits, luckRate: luckRate, byId: byId, SAVE_VERSION: SAVE_VERSION };
 })(typeof window !== 'undefined' ? window : globalThis);
 </script>
 
@@ -1572,7 +1829,7 @@
 (function () {
   'use strict';
 
-  var P = window.MSPhysics, BT = window.MSBattle, D = window.MSData;
+  var P = window.MSPhysics, BT = window.MSBattle, D = window.MSData, M = window.MSMeta;
   var WALL = 22;                    // 画面上の壁の厚み（論理px）。フィールドの外側に描く
   var SHOT_LABEL = { reflect: '反射', pierce: '貫通' };
   var ABILITY = {
@@ -1646,8 +1903,26 @@
     resultText: document.getElementById('result-text'),
     ss: document.getElementById('btn-ss'),
     title: document.getElementById('title'),
-    stageList: document.getElementById('stage-list')
+    stageList: document.getElementById('stage-list'),
+    gems: document.getElementById('gems'),
+    gacha: document.getElementById('gacha'),
+    gachaGems: document.getElementById('gacha-gems'),
+    rates: document.getElementById('rates'),
+    pullResults: document.getElementById('pull-results'),
+    party: document.getElementById('party'),
+    partySlots: document.getElementById('party-slots'),
+    partyOwned: document.getElementById('party-owned'),
+    partyDetail: document.getElementById('party-detail')
   };
+
+  // ---------------------------------------------------------------- セーブ（ジェム・手持ち・編成。ブラウザに保存）
+  var SAVE_KEY = 'ms.save';
+  var save = (function () {
+    try { return M.load(localStorage.getItem(SAVE_KEY), D); } catch (e) { return M.newSave(D); }
+  })();
+  function persist() {
+    try { localStorage.setItem(SAVE_KEY, JSON.stringify(save)); } catch (e) { /* 保存できなくても遊べる */ }
+  }
 
   // ---------------------------------------------------------------- 状態
   var cfgOverrides = {};
@@ -1669,11 +1944,12 @@
 
   function buildWorld() {
     world = new P.World(cfgOverrides);
-    units = D.units.map(function (u) {
+    var team = M.partyUnits(save, D);
+    units = team.map(function (u) {
       var b = world.add({ id: u.id, kind: 'unit', shot: u.shot, x: u.x, y: u.y, r: u.r, abilities: BT.Battle.abilityMap(u.abilities) });
       return { def: u, body: b, facing: -Math.PI / 2, squash: 0, trail: [], glow: 0 };
     });
-    battle = new BT.Battle({ units: D.units, stage: curStage() });
+    battle = new BT.Battle({ units: team, stage: curStage() });
     battle.spawnWave(world);
     initFoes();
     game.phase = 'ready';
@@ -1773,6 +2049,11 @@
       ss: function () { [660, 880, 1320].forEach(function (f, i) { tone(f, f * 1.5, 0.18, 'sawtooth', 0.07, i * 0.07); }); noise(0.4, 0.2, 2500); },
       mine: function () { noise(0.35, 0.4, 400); tone(200, 50, 0.3, 'square', 0.12); },
       warp: function () { tone(300, 1500, 0.25, 'sine', 0.1); tone(1500, 300, 0.25, 'sine', 0.06, 0.12); },
+      gacha: function (best) {
+        [523, 659, 784].forEach(function (f, i) { tone(f, f * 1.01, 0.12, 'triangle', 0.08, i * 0.08); });
+        if (best >= 5) [1047, 1319, 1568, 2093].forEach(function (f, i) { tone(f, f, 0.2, 'square', 0.06, 0.3 + i * 0.09); });
+        else if (best >= 4) tone(988, 1319, 0.25, 'sine', 0.1, 0.3);
+      },
       heal: function () { [880, 1175, 1568].forEach(function (f, i) { tone(f, f, 0.14, 'triangle', 0.08, i * 0.06); }); },
       chick: function () { tone(1800, 2400, 0.06, 'square', 0.05); tone(1800, 2400, 0.06, 'square', 0.05, 0.1); },
       tick: function () { tone(1200, 1000, 0.03, 'sine', 0.04); },
@@ -2559,10 +2840,13 @@
     el.resultTitle.textContent = kind === 'won' ? 'STAGE CLEAR' : 'GAME OVER';
     el.resultTitle.className = kind;
     var s = battle.stats;
+    var rw = M.reward(save, D, stageIndex, kind === 'won');
+    persist();
     el.resultText.innerHTML = kind === 'won'
       ? curStage().name + ' を <b>' + (battle.turn - 1) + 'ターン</b>でクリア！<br>ヒット ' + s.hits + '回（弱点 ' + s.weak + '回）・与ダメージ ' + s.damage
         + (s.ss ? '<br>SS ' + s.ss + '回' : '')
       : 'チームのHPが0になった…<br>WAVE ' + (battle.wave + 1) + ' / ' + curStage().waves.length + '・与ダメージ ' + s.damage;
+    el.resultText.innerHTML += '<br><span class="gems">+' + rw.gems + '</span>' + (rw.first ? '（初回クリア）' : '') + '　所持 ' + rw.total;
     if (kind === 'won') sound.win(); else sound.lose();
     updateHud();
   }
@@ -3307,10 +3591,116 @@
   // ---------------------------------------------------------------- タイトルとステージ選択
   function showTitle() {
     el.result.hidden = true;
+    el.gacha.hidden = true;
+    el.party.hidden = true;
     el.title.hidden = false;
+    el.gems.textContent = save.gems;
     game.phase = 'title';
     updateHud();
   }
+
+  // ---------------------------------------------------------------- キャラの顔（ガチャ・編成で使う）
+  function faceHtml(u) {
+    var c = u.colors, e = ELEMENT[u.element];
+    return '<div class="uface" style="background: radial-gradient(circle at 35% 30%, ' + c[0] + ', ' + c[1] + ' 55%, ' + c[2] + ')">'
+      + u.name + (e ? '<span class="el" style="color:' + e.color + '">' + e.label + '</span>' : '') + '</div>';
+  }
+  function starsHtml(n) { return '<span class="stars">' + new Array(n + 1).join('★') + '</span>'; }
+
+  // ---------------------------------------------------------------- ガチャ
+  function showGacha() {
+    el.title.hidden = true;
+    el.gacha.hidden = false;
+    el.pullResults.innerHTML = '';
+    // 確率の表は抽選と同じ表（MSMeta.rateTable）から作る
+    el.rates.innerHTML = M.rateTable(D).map(function (t) {
+      var names = t.units.map(function (id) { return M.byId(D, id).title; }).join('・');
+      return '<tr><td>' + starsHtml(t.rarity) + '</td><td>' + (t.rate * 100).toFixed(0) + '%</td><td>' + names
+        + '（1体あたり ' + (t.rate / t.units.length * 100).toFixed(2) + '%）</td></tr>';
+    }).join('');
+    document.getElementById('cost1').textContent = '◆ ' + D.gacha.cost;
+    document.getElementById('cost10').textContent = '◆ ' + D.gacha.cost10;
+    updateGachaButtons();
+  }
+  function updateGachaButtons() {
+    el.gachaGems.textContent = save.gems;
+    document.getElementById('btn-pull1').disabled = save.gems < D.gacha.cost;
+    document.getElementById('btn-pull10').disabled = save.gems < D.gacha.cost10;
+  }
+  function doPull(n) {
+    sound.unlock();
+    var r = M.pull(save, D, n, Math.random);
+    if (r.error) { updateGachaButtons(); return; }
+    persist();
+    var best = 0;
+    el.pullResults.innerHTML = r.results.map(function (x, i) {
+      var u = M.byId(D, x.id);
+      best = Math.max(best, x.rarity);
+      return '<div class="card r' + x.rarity + '" style="animation-delay:' + (i * 0.08).toFixed(2) + 's">'
+        + (x.isNew ? '<span class="new">NEW</span>' : '') + faceHtml(u) + '<b>' + u.title + '</b>' + starsHtml(x.rarity)
+        + (x.isNew ? '' : '<br>ラック ' + x.luck) + '</div>';
+    }).join('');
+    sound.gacha(best);
+    updateGachaButtons();
+  }
+  document.getElementById('btn-gacha').addEventListener('click', function () { sound.unlock(); showGacha(); });
+  document.getElementById('btn-pull1').addEventListener('click', function () { doPull(1); });
+  document.getElementById('btn-pull10').addEventListener('click', function () { doPull(10); });
+  document.getElementById('btn-gacha-back').addEventListener('click', showTitle);
+
+  // ---------------------------------------------------------------- 編成
+  var partySel = 0, partyDraft = null;
+  function showParty() {
+    el.title.hidden = true;
+    el.party.hidden = false;
+    partyDraft = save.party.slice();
+    partySel = 0;
+    renderParty();
+  }
+  function unitDetail(u) {
+    var marks = unitMarks(u).map(function (m) { return m.name; });
+    var e = ELEMENT[u.element];
+    var lk = save.owned[u.id] ? save.owned[u.id].luck : 0;
+    return '<b>' + u.title + '</b> ' + starsHtml(u.rarity) + '　' + (e ? e.label + '属性・' : '') + SHOT_LABEL[u.shot]
+      + '　攻撃 ' + Math.round(u.atk * M.luckRate(D, lk)) + '・HP ' + Math.round(u.hp * M.luckRate(D, lk)) + (lk ? '（ラック ' + lk + '）' : '')
+      + '<br>友情: <b>' + u.combo.name + '</b>　SS: <b>' + u.ss.name + '</b>（' + u.ss.turns + 'ターン）'
+      + (marks.length ? '<br>' + marks.join('・') : '');
+  }
+  function renderParty() {
+    el.partySlots.innerHTML = partyDraft.map(function (id, i) {
+      var u = M.byId(D, id);
+      return '<button type="button" class="slot' + (i === partySel ? ' sel' : '') + '" data-slot="' + i + '">'
+        + faceHtml(u) + '<b>' + u.title + '</b><small>' + (i + 1) + '番目</small></button>';
+    }).join('');
+    el.partyOwned.innerHTML = D.roster.map(function (u) {
+      var have = !!save.owned[u.id];
+      return '<button type="button" class="owned-unit' + (partyDraft.indexOf(u.id) >= 0 ? ' in' : '') + (have ? '' : ' locked') + '"'
+        + ' data-unit="' + u.id + '"' + (have ? '' : ' disabled') + '>'
+        + (have ? faceHtml(u) + '<b>' + u.title + '</b>' : '<div class="uface" style="background:#1a2238">?</div><b>？？？</b>')
+        + starsHtml(u.rarity) + (partyDraft.indexOf(u.id) >= 0 ? '<span class="tag">編成中</span>' : '') + '</button>';
+    }).join('');
+    el.partyDetail.innerHTML = unitDetail(M.byId(D, partyDraft[partySel]));
+  }
+  el.partySlots.addEventListener('click', function (e) {
+    var b = e.target.closest('[data-slot]');
+    if (!b) return;
+    partySel = Number(b.dataset.slot);
+    sound.tick();
+    renderParty();
+  });
+  el.partyOwned.addEventListener('click', function (e) {
+    var b = e.target.closest('[data-unit]');
+    if (!b || b.disabled) return;
+    var id = b.dataset.unit, at = partyDraft.indexOf(id);
+    // すでに編成にいるキャラなら入れ替え、いなければ選んでいる枠に入れる
+    if (at >= 0) { partyDraft[at] = partyDraft[partySel]; }
+    partyDraft[partySel] = id;
+    if (M.setParty(save, D, partyDraft)) persist();
+    sound.tick();
+    renderParty();
+  });
+  document.getElementById('btn-party').addEventListener('click', function () { sound.unlock(); showParty(); });
+  document.getElementById('btn-party-back').addEventListener('click', function () { restart(); showTitle(); });
   function selectStage(i) {
     stageIndex = i;
     el.title.hidden = true;
@@ -3361,6 +3751,7 @@
     get shownHp() { return shownHp; },
     get ssArmed() { return game.ssArmed; },
     get stage() { return stageIndex; },
+    get save() { return save; },
     selectStage: selectStage,
     /** テストで状態を直接変えたあと、表示を合わせる */
     refresh: function () { updateHud(); },

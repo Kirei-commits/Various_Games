@@ -12,12 +12,13 @@ index.html
   <script id="ms-physics">        物理エンジン（純粋。DOM・乱数・時計に触らない）→ window.MSPhysics
   <script id="ms-battle">         戦闘ルール（純粋）: ダメージ・弱点・HP・攻撃カウンター・ウェーブ・勝敗 → window.MSBattle
   <script id="ms-data">           キャラとステージの定義（データだけ）→ window.MSData
+  <script id="ms-meta">           ガチャ・手持ち・編成・報酬（純粋。乱数は引数でもらう）→ window.MSMeta
   <script id="ms-game">           入力・進行・演出・描画・調整パネル → window.__ms（テスト窓口）
 tests/lint.mjs                    インラインスクリプトの構文、外部参照なし、id の実在、純粋さ
 tests/logic/helpers.mjs           純粋な3つのスクリプトを取り出して Node の vm で読み込む
 tests/logic/bot.mjs               バランス測定用の自動プレイ（greedy / casual / random）
 tests/logic/*.test.mjs            physics（物理）/ battle（戦闘）/ element（属性・キラー）/ gimmick（ギミック）/
-                                  phase6（SS・新ギミック・アイテム・2つ目のステージ）/ balance（難しさ）
+                                  phase6（SS・新ギミック・アイテム・2つ目のステージ）/ gacha（ガチャ・編成・報酬）/ balance（難しさ）
 tests/logic/measure.mjs           数値を調整するときの測定（テストではない）: node tests/logic/measure.mjs
 tests/e2e/*.spec.mjs              Playwright（desktop + mobile）
 ```
@@ -100,6 +101,19 @@ HTML コメントの中にスクリプトの開始タグをそのまま書かな
 9. 倍率は `_directRates()` に足す（`ss / dwBoost / sword / mine / chick`）。剣とひよこは友情にも乗る（`_statusRates()`）。
 10. 画面: 起動するとタイトル（`phase: 'title'`）。E2E の `open(page, stage)` がステージのボタンを押して始める。
     SS ボタンは HP の行にあり、幅を固定している（文字が変わってもヘッダーの折り返しが変わらないように）。
+
+## ガチャ・編成の約束ごと
+
+1. **本物のお金は使わない。** ジェムはステージの報酬（`meta.rewards`: 初回 / 2回目から / 負け）でだけ増える。
+2. **確率の表示と抽選は同じ `MSMeta.rateTable()` から作る**（表示と実際がずれると景品表示法の問題になる）。
+   コンプリートで景品が出る仕組み（コンプガチャ）は作らない。
+3. 抽選は `MSMeta.pull(save, data, n, rng)`。乱数は外から渡す（画面は `Math.random`、テストは固定シード）。
+   ジェムが足りないときは何も変えずに `{ error }` を返す。10連の10体目は ★4 以上を確定にしている。
+4. セーブは `localStorage['ms.save']`。読むときは必ず `MSMeta.load()` を通す（壊れた・古いデータを直す）。
+   読み書きは try/catch（プライベートモードでも遊べるように）。
+5. 戦闘に出るのは `MSMeta.partyUnits(save, D)`（枠の位置とラックの強化を入れた写し）。`D.units` は最初の4体のままで、
+   テストと難しさの測定はこれを使う。ガチャのキャラの定義（`D.roster`）に位置を書き足さない。
+6. 新しいキャラを足したら `gacha.test.mjs` の「★3だけでもクリアできる」などを回して、弱すぎ・強すぎを確かめる。
 
 ## ギミックとアビリティの約束ごと
 
