@@ -64,4 +64,4 @@ npm run test:logic # 物理・戦闘・バランス（Node だけで動く）
 npm run test:e2e   # ブラウザ（desktop + mobile）
 ```
 
-設計上の約束ごとは [CLAUDE.md](./CLAUDE.md) にあります。
+設計上の約束ごとは [CLAUDE.md](./CLAUDE.md)、これまでの開発のまとめとモンスターストライクの調査報告書は [docs/summary.md](./docs/summary.md) にあります。
