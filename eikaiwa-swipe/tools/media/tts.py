@@ -503,14 +503,26 @@ def number_words(n):
         return NUMBERS[n]
     if n < 100:
         return TENS[n // 10 * 10] + ("" if n % 10 == 0 else " " + NUMBERS[n % 10])
+    for size, name in ((1000, "thousand"), (100, "hundred")):
+        if n < size * 10 and n >= size:
+            head = "a" if n // size == 1 else NUMBERS[n // size]  # 100 = a hundred（one hundred も a にそろえる）
+            return f"{head} {name}" + ("" if n % size == 0 else " " + number_words(n % size))
     return str(n)
+
+
+def digits_words(m):
+    """数字を語に。5桁以上（電話番号・暗証番号など）は1けたずつ読む。$20 は twenty dollars"""
+    d = m.group(2)
+    words = " ".join(NUMBERS[int(c)] for c in d) if len(d) >= 5 else number_words(int(d))
+    return " " + words + (" dollars" if m.group(1) else "") + " "
 
 
 def words_of(text):
     """比べるための語の並び。書き方の違い（I'm と I am・5 と five・gonna と going to など）はそろえる"""
     import re
-    t = text.lower().replace("’", "'").replace("-", " ")
-    t = re.sub(r"\d+", lambda m: " " + number_words(int(m.group())) + " ", t)
+    t = text.lower().replace("’", "'").replace("-", " ").replace(",", "")
+    t = re.sub(r"(\$)?(\d+)", digits_words, t)
+    t = re.sub(r"\bone (hundred|thousand)\b", r"a \1", t)
     out = []
     for w in re.sub(r"[^a-z' ]", " ", t).split():
         w = SAME.get(w, w)
@@ -520,7 +532,8 @@ def words_of(text):
                 break
         w = w.replace("'s", "")  # 's（is / has / 所有）は区別しない
         out.extend(SAME.get(x, x) for x in w.replace("'", "").split())
-    return " ".join(out).split()
+    # 's は is / has / 所有のどれか分からないので落としている。そろえるため is / has も比べない（channel's と channel is）
+    return [w for w in " ".join(out).split() if w not in ("is", "has")]
 
 
 def run_unit(cfg, unit, model, fmt, pacer):
