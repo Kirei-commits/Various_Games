@@ -23,6 +23,7 @@ import hashlib
 import io
 import json
 import os
+import re
 import subprocess
 import sys
 import threading
@@ -520,7 +521,10 @@ def digits_words(m):
 def words_of(text):
     """比べるための語の並び。書き方の違い（I'm と I am・5 と five・gonna と going to など）はそろえる"""
     import re
-    t = text.lower().replace("’", "'").replace("-", " ").replace(",", "")
+    import unicodedata
+    t = "".join(ch for ch in unicodedata.normalize("NFKD", text) if not unicodedata.combining(ch))  # résumé → resume
+    t = t.lower().replace("’", "'").replace("-", " ").replace(",", "").replace("%", " percent ")
+    t = re.sub(r"(\d+)(st|nd|rd|th)\b", r"\1", t)  # 1st → 1（序数は下の数のまとまりで比べる）
     t = re.sub(r"(\$)?(\d+)", digits_words, t)
     t = re.sub(r"\bone (hundred|thousand)\b", r"a \1", t)
     t = re.sub(r"'em\b", " them", t)  # got 'em / got'em
@@ -942,6 +946,13 @@ def check_clip(cfg, clip, path=None):
         segs, _ = whisper_model(verify).transcribe(str(path), language="en", beam_size=5, initial_prompt=verify["whisper"]["prompt"],
                                                    condition_on_previous_text=False)
         heard = " ".join(s.text.strip() for s in segs).strip()
+        if len(words_of(clip["text"])) <= 3 and not compare_words(clip["text"], heard)[0]:
+            # 1〜3語の見出し（aisle seat・sweat など）は、文脈が無いと prompt に引っぱられて聞き違える（I'll see・No sweat）。
+            # 短い語句は言い直しが起きにくいので、prompt なしでもう一度聞いて、合えば通す
+            segs, _ = whisper_model(verify).transcribe(str(path), language="en", beam_size=5, condition_on_previous_text=False)
+            plain = " ".join(s.text.strip() for s in segs).strip()
+            if compare_words(clip["text"], plain)[0]:
+                heard = plain
     else:
         body = base64.b64encode(path.read_bytes()).decode()
         req = {"contents": [{"parts": [{"inlineData": {"mimeType": "audio/ogg", "data": body}},
@@ -952,11 +963,35 @@ def check_clip(cfg, clip, path=None):
     return ok, heard, kind
 
 
+NUMBER_WORDS = set(NUMBERS + list(TENS.values()) + "hundred thousand point oh dollars dollar cents percent first second third fourth fifth sixth seventh eighth ninth tenth eleventh twelfth twentieth thirtieth".split())
+
+
+def number_blind(words):
+    """数のまとまりを # 1つにする。数の書き方（ten percent / 10%、seven fifty / $7.50、nine oh two one oh / 90210）は Whisper が決めるので比べない"""
+    out = []
+    for i, w in enumerate(words):
+        if w == "and" and out and out[-1] == "#" and i + 1 < len(words) and words[i + 1] in NUMBER_WORDS:
+            continue  # 24 dollars and 50 cents
+        if w in NUMBER_WORDS:
+            if not out or out[-1] != "#":
+                out.append("#")
+        else:
+            out.append(w)
+    return out
+
+
 def compare_words(text, heard):
     """元の文と聞こえた文を比べる。戻り値: (合っているか, 失敗の種類 repeat / omit / other / None)"""
     a, b = words_of(text), words_of(heard)
+    if not a:  # 読む語が無い（「…」だけの行など）
+        return True, None
     if "".join(a) == "".join(b):  # 分け書きの違いだけ（key card / keycard など）
         return True, None
+    # 数字で書かれたときだけ（語で書かれた数は、そのまま比べてくり返しを見つける）
+    if re.search(r"\d", text + heard) and any(w in NUMBER_WORDS for w in a) and any(w in NUMBER_WORDS for w in b):
+        a, b = number_blind(a), number_blind(b)
+        if a == b:
+            return True, None
     # 語数が同じで1語（長い文は1割）までの違いは、聞き取りの揺れとみなす
     if len(a) == len(b):
         return sum(x != y for x, y in zip(a, b)) <= max(1, len(a) // 10), (None if sum(x != y for x, y in zip(a, b)) <= max(1, len(a) // 10) else "other")

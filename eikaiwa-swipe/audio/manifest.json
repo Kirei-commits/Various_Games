@@ -1681,6 +1681,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "0042d3100cfade": {
+   "key": "A|Everything is 30 percent off today.",
+   "text": "Everything is 30 percent off today.",
+   "role": "A",
+   "chapter": "ch58",
+   "id": "percent",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "0187f1852829",
+   "rev": 1,
+   "seconds": 2.44,
+   "via": "batch",
+   "at": "2026-09-29"
+  },
   "0042f4b99e242f": {
    "key": "A|I spent the entire day cleaning.",
    "text": "I spent the entire day cleaning.",
@@ -12887,13 +12901,13 @@
    "role": "A",
    "chapter": "ch05",
    "id": "bon-appetit",
-   "model": "gemini-2.5-flash-preview-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Achird",
-   "sig": "bd380281618f",
-   "rev": 1,
-   "seconds": 1.87,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "94515b12b791",
+   "rev": 2,
+   "seconds": 2.08,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "022fb816104fc7": {
    "key": "B|Yes, it's in aisle three.",
@@ -21364,6 +21378,20 @@
    "seconds": 1.28,
    "via": "batch",
    "at": "2026-09-28"
+  },
+  "03aeba247f1b04": {
+   "key": "A|…",
+   "text": "…",
+   "role": "A",
+   "chapter": "ch49",
+   "id": "could-you-unmute-yourself",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "5757f8be4b4a",
+   "rev": 1,
+   "seconds": 1.08,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "03aee83f8fec4b": {
    "key": "P|When will my bag be delivered?",
@@ -32341,6 +32369,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "059624eae64672": {
+   "key": "B|Two-one-two is the classic one.",
+   "text": "Two-one-two is the classic one.",
+   "role": "B",
+   "chapter": "ch31",
+   "id": "area-code",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "c63f277bc60d",
+   "rev": 1,
+   "seconds": 2.2,
+   "via": "batch",
+   "at": "2026-09-29"
+  },
   "0596555eb39d0b": {
    "key": "P|bike",
    "text": "bike",
@@ -33712,6 +33754,20 @@
    "seconds": 1.6,
    "via": "batch",
    "at": "2026-09-28"
+  },
+  "05cc285da8a987": {
+   "key": "B|Nine-oh-two-one-oh.",
+   "text": "Nine-oh-two-one-oh.",
+   "role": "B",
+   "chapter": "ch34",
+   "id": "zip-code",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "0298b0dd9dfc",
+   "rev": 1,
+   "seconds": 1.72,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "05cc2be2bb5bac": {
    "key": "P|king",
@@ -37294,6 +37350,20 @@
    "sig": "64f625295026",
    "rev": 1,
    "seconds": 2.56,
+   "via": "batch",
+   "at": "2026-09-29"
+  },
+  "0665fb2af863fb": {
+   "key": "B|About twenty-five hundred.",
+   "text": "About twenty-five hundred.",
+   "role": "B",
+   "chapter": "ch26",
+   "id": "one-bedroom",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "cbf88eb22be1",
+   "rev": 1,
+   "seconds": 2.08,
    "via": "batch",
    "at": "2026-09-29"
   },
@@ -42561,6 +42631,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "074dd900766946": {
+   "key": "A|We can only offer a ten percent discount.",
+   "text": "We can only offer a ten percent discount.",
+   "role": "A",
+   "chapter": "ch40",
+   "id": "this-isnt-acceptable",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "6dee72610383",
+   "rev": 1,
+   "seconds": 2.76,
+   "via": "batch",
+   "at": "2026-09-29"
+  },
   "07502dfabe4700": {
    "key": "B|Yes, I'm satisfied.",
    "text": "Yes, I'm satisfied.",
@@ -47075,13 +47159,13 @@
    "role": "B",
    "chapter": "ch06",
    "id": "can-you-give-me-a-discount",
-   "model": "gemini-2.5-flash-preview-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Callirrhoe",
-   "sig": "79c7638cf3c7",
-   "rev": 1,
-   "seconds": 1.44,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "22e31a03b753",
+   "rev": 2,
+   "seconds": 1.6,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "0819b8576ffc6b": {
    "key": "A|Water is essential for life.",
@@ -68111,6 +68195,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "0bd05ba41b5980": {
+   "key": "A|I think it's worth three hundred. You think two.",
+   "text": "I think it's worth three hundred. You think two.",
+   "role": "A",
+   "chapter": "ch40",
+   "id": "how-about-we-split-the-difference",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "439134e5e986",
+   "rev": 1,
+   "seconds": 2.96,
+   "via": "batch",
+   "at": "2026-09-29"
+  },
   "0bd1925217a307": {
    "key": "B|Yes, you'll get two hundred dollars credit.",
    "text": "Yes, you'll get two hundred dollars credit.",
@@ -74985,6 +75083,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "0cf20e6b2a1594": {
+   "key": "A|24 dollars and 50 cents.",
+   "text": "24 dollars and 50 cents.",
+   "role": "A",
+   "chapter": "ch43",
+   "id": "pardon",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "cf29449912b2",
+   "rev": 1,
+   "seconds": 1.84,
+   "via": "batch",
+   "at": "2026-09-29"
+  },
   "0cf258ad867635": {
    "key": "P|come down with",
    "text": "come down with",
@@ -76032,6 +76144,20 @@
    "sig": "fdf0d2c33dfa",
    "rev": 2,
    "seconds": 1.64,
+   "via": "batch",
+   "at": "2026-09-29"
+  },
+  "0d2618fc4583c1": {
+   "key": "A|I can do seven fifty.",
+   "text": "I can do seven fifty.",
+   "role": "A",
+   "chapter": "ch40",
+   "id": "can-you-do-any-better",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "f606864d9a5a",
+   "rev": 1,
+   "seconds": 1.76,
    "via": "batch",
    "at": "2026-09-29"
   },
@@ -82377,6 +82503,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "0e38cff7d8fbb9": {
+   "key": "A|Sales are up 10 percent.",
+   "text": "Sales are up 10 percent.",
+   "role": "A",
+   "chapter": "ch73",
+   "id": "sales",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "ae256be6ff4a",
+   "rev": 1,
+   "seconds": 1.88,
+   "via": "batch",
+   "at": "2026-09-29"
+  },
   "0e397949642f36": {
    "key": "B|They left a note. You can pick it up tomorrow.",
    "text": "They left a note. You can pick it up tomorrow.",
@@ -82752,6 +82892,20 @@
    "sig": "3a56817cbe35",
    "rev": 2,
    "seconds": 1.28,
+   "via": "batch",
+   "at": "2026-09-29"
+  },
+  "0e4c085657d722": {
+   "key": "B|Partially. You'll pay twenty percent.",
+   "text": "Partially. You'll pay twenty percent.",
+   "role": "B",
+   "chapter": "ch29",
+   "id": "is-this-covered-by-my-insurance",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "50fdd182e4ed",
+   "rev": 1,
+   "seconds": 2.44,
    "via": "batch",
    "at": "2026-09-29"
   },
@@ -86801,6 +86955,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "0ef6acf31842cf": {
+   "key": "B|Three point five.",
+   "text": "Three point five.",
+   "role": "B",
+   "chapter": "ch36",
+   "id": "gpa",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "ef22cdb270b3",
+   "rev": 1,
+   "seconds": 1.32,
+   "via": "batch",
+   "at": "2026-09-29"
+  },
   "0ef6afe1d36a2c": {
    "key": "P|Anytime.",
    "text": "Anytime.",
@@ -87542,6 +87710,20 @@
    "seconds": 1.0,
    "via": "batch",
    "at": "2026-09-28"
+  },
+  "0f1daf3a6f2e2e": {
+   "key": "B|About twenty-four percent.",
+   "text": "About twenty-four percent.",
+   "role": "B",
+   "chapter": "ch30",
+   "id": "interest-rate",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "dc041431bf3a",
+   "rev": 1,
+   "seconds": 2.08,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "0f1de9060976bd": {
    "key": "A|Any questions?",
@@ -89584,6 +89766,20 @@
    "sig": "c0f9f4af367a",
    "rev": 1,
    "seconds": 1.16,
+   "via": "batch",
+   "at": "2026-09-29"
+  },
+  "0f73290c943572": {
+   "key": "A|I was wondering if you could help me with my résumé.",
+   "text": "I was wondering if you could help me with my résumé.",
+   "role": "A",
+   "chapter": "ch39",
+   "id": "i-was-wondering-if-you-could-help-me",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "e9879addb23a",
+   "rev": 1,
+   "seconds": 2.44,
    "via": "batch",
    "at": "2026-09-29"
   },
@@ -94983,13 +95179,13 @@
    "role": "P",
    "chapter": "ch11",
    "id": "out-of-shape",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Erinome",
-   "sig": "37015ee6e41b",
-   "rev": 1,
-   "seconds": 0.83,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "757c30ca9149",
+   "rev": 2,
+   "seconds": 1.24,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "105ea61c048d78": {
    "key": "P|police",
@@ -103405,6 +103601,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "11cb526e005bc6": {
+   "key": "B|…",
+   "text": "…",
+   "role": "B",
+   "chapter": "ch48",
+   "id": "say-thank-you",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "80c86fa0340b",
+   "rev": 1,
+   "seconds": 0.56,
+   "via": "batch",
+   "at": "2026-09-29"
+  },
   "11cb866d5e8e75": {
    "key": "A|Turn right at the stoplight.",
    "text": "Turn right at the stoplight.",
@@ -105791,13 +106001,13 @@
    "role": "P",
    "chapter": "ch08",
    "id": "resume",
-   "model": "gemini-2.5-flash-preview-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Erinome",
-   "sig": "25bd8a1b8bb2",
-   "rev": 1,
-   "seconds": 0.66,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "8eb2df8f4cc8",
+   "rev": 2,
+   "seconds": 1.16,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "123965a695b09d": {
    "key": "A|This software is so confusing.",
@@ -123179,13 +123389,13 @@
    "role": "A",
    "chapter": "ch08",
    "id": "resume",
-   "model": "gemini-3.1-flash-tts-preview",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Achird",
-   "sig": "f80f17c247f6",
-   "rev": 1,
-   "seconds": 1.5,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "99f99729a3a4",
+   "rev": 2,
+   "seconds": 1.6,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "1538c5bdc2d63f": {
    "key": "P|Let me help you clean up.",
@@ -123417,13 +123627,13 @@
    "role": "B",
    "chapter": "ch04",
    "id": "rent",
-   "model": "gemini-2.5-flash-preview-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Callirrhoe",
-   "sig": "fa668aab126a",
-   "rev": 1,
-   "seconds": 1.41,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "cff076c2263c",
+   "rev": 2,
+   "seconds": 1.68,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "1545fae95b5602": {
    "key": "P|lie",
@@ -133995,6 +134205,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "17267e2f6a0beb": {
+   "key": "P|amount",
+   "text": "amount",
+   "role": "P",
+   "chapter": "ch58",
+   "id": "amount",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "65145f6bf58d",
+   "rev": 1,
+   "seconds": 1.0,
+   "via": "batch",
+   "at": "2026-09-29"
+  },
   "1726adad7e8ceb": {
    "key": "P|pen",
    "text": "pen",
@@ -143661,13 +143885,13 @@
    "role": "B",
    "chapter": "ch06",
    "id": "on-sale",
-   "model": "gemini-2.5-flash-preview-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Callirrhoe",
-   "sig": "7a852d7e6b7e",
-   "rev": 1,
-   "seconds": 1.67,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "95c71a836136",
+   "rev": 2,
+   "seconds": 2.08,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "18cb8fb605035d": {
    "key": "P|legend",
@@ -151537,6 +151761,20 @@
    "via": "batch",
    "at": "2026-09-29"
   },
+  "1a179ebee64fa1": {
+   "key": "A|This shirt is 100 percent cotton.",
+   "text": "This shirt is 100 percent cotton.",
+   "role": "A",
+   "chapter": "ch66",
+   "id": "cotton",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "1c338d9ae24c",
+   "rev": 1,
+   "seconds": 2.2,
+   "via": "batch",
+   "at": "2026-09-29"
+  },
   "1a17f90c02297b": {
    "key": "P|literature",
    "text": "literature",
@@ -159362,6 +159600,20 @@
    "seconds": 1.16,
    "via": "batch",
    "at": "2026-09-28"
+  },
+  "1b7fbf8a44c227": {
+   "key": "B|September first.",
+   "text": "September first.",
+   "role": "B",
+   "chapter": "ch26",
+   "id": "move-in-date",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "1ace2863d602",
+   "rev": 1,
+   "seconds": 1.56,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "1b800c793ae24e": {
    "key": "A|This bar has great cocktails.",
@@ -169855,13 +170107,13 @@
    "role": "B",
    "chapter": "ch06",
    "id": "discount",
-   "model": "gemini-2.5-flash-preview-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Callirrhoe",
-   "sig": "4b38386560b6",
-   "rev": 1,
-   "seconds": 1.87,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "5ddbd3e3763b",
+   "rev": 2,
+   "seconds": 2.2,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "1d615844866559": {
    "key": "A|I was in the minority.",
@@ -184310,6 +184562,20 @@
    "seconds": 1.64,
    "via": "batch",
    "at": "2026-09-28"
+  },
+  "1fc9a83d181abc": {
+   "key": "P|laugh",
+   "text": "laugh",
+   "role": "P",
+   "chapter": "ch80",
+   "id": "laugh",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "c5190601d269",
+   "rev": 1,
+   "seconds": 0.84,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "1fc9f13c065bf8": {
    "key": "B|Not anymore. It's second nature now.",
