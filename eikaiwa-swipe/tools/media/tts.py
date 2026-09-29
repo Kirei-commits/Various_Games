@@ -67,6 +67,9 @@ def style_for(cfg, clip):
     # 単語の見出し（1〜2語）は、モデルが "No sweat." のように言葉を足すことがあった（2026-09-29）
     if clip.get("role") == "P" and len(clip.get("text", "").split()) <= 2:
         parts.append(f'This is a single vocabulary item on a flashcard. Say only these exact words: "{clip["text"]}". Add nothing before or after them.')
+        hint = cfg.get("pronunciations", {}).get(clip["text"])
+        if hint:
+            parts.append(hint)
     # 3回目からは、前の失敗の種類に合わせた指示を足す（cmd_submit が clip["retry"] に入れる）
     hints = cfg.get("batch", {}).get("verify", {}).get("hints", {})
     for kind in clip.get("retry", []):
