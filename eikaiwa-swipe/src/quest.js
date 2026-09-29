@@ -2,23 +2,31 @@
  * 冒険（ドラクエ風のターン制 RPG）。ガチャで集めた単語を「装備」にして、塔を1階ずつ登る。
  * 画面や音声には触らない純粋関数。乱数は引数で受け取るので Node でテストできる。
  *
- * - 装備は3つ: 武器（攻撃力）・防具（守備力）・お守り（HP と MP）。どの単語でもどの枠に付けられる。
+ * - 装備は7か所: 武器・盾・頭・体・腕・足・アクセ。どの単語でもどこにでも付けられ、場所ごとに上がる能力値が違う（slotBonus）。
  * - 単語の強さ（power）はレア度で決まる土台（RARITY_POWER）に、Lv（ガチャでダブった数）と
  *   「かっこよさ」（長い単語・熟語・x/z/q/j を含む単語ほど少し強い）を足したもの。
  * - 単語ごとに効果が付く: 品詞で種類が決まり（名詞=守り、動詞=攻め、形容詞=からめ手、その他=おまけ）、
- *   数値はレア度で決まる。SSR は効果が2つ。属性（炎・氷・雷・光・闇）は単語の意味（fire・snow など）か ID で決まる。
- * - 武器の属性で攻撃し、防具の属性の攻撃は半分に抑える。3つの属性がそろうと「属性そろい」で攻撃力 +15%。
+ *   数値はレア度で決まる。SSR は効果が2つと、属性ごとの特製の呪文（SKILLS）が付く。
+ * - 属性（炎・氷・雷・光・闇）は単語の意味（fire・snow など）か ID で決まる。武器の属性で攻撃し、盾の属性の攻撃は半分に抑える。
+ *   4か所以上の属性がそろうと「属性そろい」で攻撃力 +15%（7か所そろうと +30%）。
  * - 戦闘: 「たたかう」「じゅもん」は単語の4択に正解すると攻撃できる（間違えるとミス）。
- *   「ぼうぎょ」はダメージ半分と MP 回復、「やくそう」は HP 回復。敵を倒すと経験値、Lv が上がると強くなる。
+ * - 敵はときどき「ちからをためる」。次のターンの大こうげきは、ぼうぎょしないと大ダメージ。
+ *   ぼうぎょしていれば大きく減らし、はんげきする（盾が強いほど減らす）。ボスは3ターンごとにためる。
  * - 5階ごとにボス（ドラゴン）。倒した階は記録され、次からはその次の階（5の倍数+1）から始められる。
  */
 import { grant, boostRate, pointsForTime } from "./gacha.js";
 
 export const SLOTS = [
   { id: "weapon", name: "武器", icon: "⚔️", stat: "攻撃力" },
-  { id: "armor", name: "防具", icon: "🛡️", stat: "守備力" },
-  { id: "charm", name: "お守り", icon: "📿", stat: "HP・MP" },
+  { id: "shield", name: "盾", icon: "🛡️", stat: "守備力・ぼうぎょ" },
+  { id: "head", name: "頭", icon: "⛑️", stat: "守備力・MP" },
+  { id: "body", name: "体", icon: "🥋", stat: "HP・守備力" },
+  { id: "arms", name: "腕", icon: "🧤", stat: "攻撃力・会心" },
+  { id: "feet", name: "足", icon: "👢", stat: "みかわし・守備力" },
+  { id: "accessory", name: "アクセ", icon: "💍", stat: "HP・MP" },
 ];
+/** 以前の3か所の装備（武器・防具・お守り）から、今の場所への引っ越し先 */
+export const OLD_SLOTS = { armor: "body", charm: "accessory" };
 export const SLOT_IDS = SLOTS.map((s) => s.id);
 
 /** レア度ごとの装備の強さ: 土台・Lv が1つ上がるごとの伸び・かっこよさの倍率 */
@@ -132,11 +140,48 @@ export function gearOf(card, copies = 1) {
   return { id: card.id, english: card.english, japanese: card.japanese, rarity, level, power, flair, element: elementOf(card), effects };
 }
 
-/** 装備の枠に付けたときに増える能力値 */
+/** 装備の場所に付けたときに増える能力値 */
 export function slotBonus(slot, power) {
-  if (slot === "weapon") return { atk: power };
-  if (slot === "armor") return { def: Math.round(power * 0.7) };
-  return { hp: power * 2, mp: Math.round(power / 3) };
+  switch (slot) {
+    case "weapon":
+      return { atk: power };
+    case "shield":
+      return { def: Math.round(power * 0.5), block: Math.round(power / 4) };
+    case "head":
+      return { def: Math.round(power * 0.3), mp: Math.round(power / 3) };
+    case "body":
+      return { hp: Math.round(power * 1.5), def: Math.round(power * 0.3) };
+    case "arms":
+      return { atk: Math.round(power * 0.4), crit: Math.max(1, Math.round(power / 10)) };
+    case "feet":
+      return { evade: Math.max(1, Math.round(power / 8)), def: Math.round(power * 0.2) };
+    default:
+      return { hp: power, mp: Math.round(power / 4) };
+  }
+}
+
+/**
+ * SSR の特製の呪文（属性ごと）。MP を使い、4択に正解すると出せる。
+ * mult はこうげきの倍率。effect: freeze = 敵を1ターン止める（ためも消える）／pierce = 守備を無視／heal = 最大 HP の割合を回復／
+ * drain = 与えたダメージの割合を吸収
+ */
+export const SKILLS = {
+  fire: { id: "fire", name: "フレイムバースト", icon: "🔥", mp: 10, mult: 2.4, element: "fire", text: "炎の大爆発" },
+  ice: { id: "ice", name: "ブリザード", icon: "❄️", mp: 10, mult: 1.8, element: "ice", effect: "freeze", text: "敵を凍らせて1ターン止める" },
+  thunder: { id: "thunder", name: "ライトニング", icon: "⚡", mp: 9, mult: 2.0, element: "thunder", effect: "pierce", text: "守備を無視する雷" },
+  light: { id: "light", name: "ホーリーライト", icon: "✨", mp: 8, mult: 1.2, element: "light", effect: "heal", value: 40, text: "光の攻撃と HP 40% 回復" },
+  dark: { id: "dark", name: "ダークドレイン", icon: "🌑", mp: 10, mult: 1.8, element: "dark", effect: "drain", value: 50, text: "与えたダメージの半分を吸収" },
+  none: { id: "none", name: "メテオストライク", icon: "☄️", mp: 12, mult: 2.8, element: "none", text: "隕石の超こうげき" },
+};
+
+/** 装備している SSR の呪文（同じ呪文は1つだけ） */
+export function skillsOf(gear) {
+  const out = [];
+  for (const g of Object.values(gear)) {
+    const sk = g?.rarity === "SSR" ? SKILLS[g.element] : null;
+    if (sk && !out.some((x) => x.id === sk.id)) out.push({ ...sk, from: g.english });
+  }
+  return out;
 }
 
 // ---------------------------------------------------------------------------
@@ -161,7 +206,7 @@ export const baseStats = (level) => ({
  * @param owned 単語ID → 持っている枚数（持っていない単語の装備は無視する）
  */
 export function statsOf(quest, cards, owned = {}) {
-  const s = { ...baseStats(quest.level), crit: 5, evade: 3, regen: 0, expUp: 0, elemUp: 0, drain: 0, element: "none", guard: "none", setBonus: false };
+  const s = { ...baseStats(quest.level), crit: 5, evade: 3, block: 0, regen: 0, expUp: 0, elemUp: 0, drain: 0, element: "none", guard: "none", setBonus: 0 };
   const gear = {};
   const add = { atkUp: 0, defUp: 0, hpUp: 0 };
   for (const slot of SLOT_IDS) {
@@ -178,11 +223,14 @@ export function statsOf(quest, cards, owned = {}) {
     }
   }
   if (gear.weapon) s.element = gear.weapon.element;
-  if (gear.armor) s.guard = gear.armor.element;
-  const els = SLOT_IDS.map((k) => gear[k]?.element);
-  if (els.every((e) => e && e !== "none" && e === els[0])) {
-    s.setBonus = true;
-    add.atkUp += 15;
+  s.guard = (gear.shield || gear.body)?.element || "none";
+  // 属性そろい: 同じ属性が4か所以上で攻撃力 +15%、7か所すべてで +30%
+  const counts = {};
+  for (const g of Object.values(gear)) if (g.element !== "none") counts[g.element] = (counts[g.element] || 0) + 1;
+  const most = Math.max(0, ...Object.values(counts));
+  if (most >= 4) {
+    s.setBonus = most >= SLOT_IDS.length ? 30 : 15;
+    add.atkUp += s.setBonus;
   }
   s.atk = Math.round(s.atk * (1 + add.atkUp / 100));
   s.def = Math.round(s.def * (1 + add.defUp / 100));
@@ -190,7 +238,8 @@ export function statsOf(quest, cards, owned = {}) {
   s.crit = Math.min(s.crit, 60);
   s.evade = Math.min(s.evade, 40);
   s.drain = Math.min(s.drain, 40);
-  return { ...s, gear };
+  s.block = Math.min(s.block, 60);
+  return { ...s, gear, skills: skillsOf(gear) };
 }
 
 // ---------------------------------------------------------------------------
@@ -239,8 +288,15 @@ export const SPELL_MP = 6;
 export const HERB_HEAL = 0.5; // 最大 HP の割合
 export const DEFEND_MP = 3;
 export const CRIT_RATE = 1.8;
+/** ちからをためたあとの大こうげきの倍率（ボスはブレスでもっと強い） */
+export const SMASH_RATE = 2.6;
+export const BOSS_SMASH_RATE = 3;
+/** ふつうの敵がちからをためる確率（2階から） */
+export const CHARGE_CHANCE = 0.22;
 /** 連続正解でダメージが上がる（1つごとに +10%、最大 +50%） */
 export const comboRate = (combo) => 1 + Math.min(combo, 5) * 0.1;
+/** ぼうぎょしたときに受けるダメージの割合（ふつうのこうげき・大こうげき）。盾の block で大こうげきはさらに減る */
+export const guardRate = (smash, block = 0) => (smash ? Math.max(0.1, 0.25 - block / 400) : 0.5);
 
 export const damageOf = (atk, def, rng) => Math.max(1, Math.round((atk - def / 2) * (0.9 + rng() * 0.2)));
 
@@ -269,42 +325,62 @@ export function createRun(stats, start = 1, rng = Math.random) {
 
 /**
  * 1ターン進める。
- * @param action "attack" | "spell" | "defend" | "herb"
- * @param answer { id, correct }（attack・spell のときの4択の答え）
+ * @param action "attack" | "spell" | "skill" | "defend" | "herb"
+ * @param answer { id, correct }（attack・spell・skill のときの4択の答え）
+ * @param skillId skill のときの呪文（SKILLS のキー。装備している SSR のものだけ）
  * @returns 新しい run（error があれば行動できなかった）
  */
-export function act(run, stats, action, answer = null, rng = Math.random) {
+export function act(run, stats, action, answer = null, rng = Math.random, skillId = null) {
   if (run.over || run.won) return run;
+  const skill = action === "skill" ? (stats.skills || []).find((x) => x.id === skillId) : null;
+  if (action === "skill" && !skill) return { ...run, error: "その呪文は使えない！" };
+  const cost = action === "spell" ? SPELL_MP : skill ? skill.mp : 0;
+  if (cost && run.mp < cost) return { ...run, error: "MPがたりない！" };
+  if (action === "herb" && run.herbs <= 0) return { ...run, error: "やくそうがない！" };
   const r = { ...run, enemy: { ...run.enemy }, results: { ...run.results }, events: [], defending: false };
   const ev = (e) => r.events.push(e);
   const e = r.enemy;
-  if (action === "spell" && r.mp < SPELL_MP) return { ...run, error: "MPがたりない！" };
-  if (action === "herb" && r.herbs <= 0) return { ...run, error: "やくそうがない！" };
   r.turn += 1;
 
-  if (action === "attack" || action === "spell") {
+  if (action === "attack" || action === "spell" || skill) {
     if (answer?.id && !(answer.id in r.results)) r.results[answer.id] = !!answer.correct;
     else if (answer?.id && !answer.correct) r.results[answer.id] = false;
-    if (action === "spell") r.mp -= SPELL_MP;
+    r.mp -= cost;
+    const magic = action === "spell" ? "spell" : skill ? "skill" : null;
     if (!answer?.correct) {
       r.combo = 0;
-      ev({ type: "miss", spell: action === "spell" });
+      ev({ type: "miss", magic, skill: skill?.name });
     } else {
       r.combo += 1;
-      const elem = elementMultiplier(stats.element, e.element);
-      const elemBoost = stats.element !== "none" ? 1 + stats.elemUp / 100 : 1;
+      const element = skill ? skill.element : stats.element;
+      const elem = elementMultiplier(element, e.element);
+      const elemBoost = element !== "none" ? 1 + stats.elemUp / 100 : 1;
       const crit = rng() * 100 < stats.crit;
-      const spell = action === "spell";
-      const power = stats.atk * comboRate(r.combo - 1) * (spell ? 1.7 : 1) * elem * elemBoost * (crit ? CRIT_RATE : 1);
-      const dmg = damageOf(power, spell ? e.def / 2 : e.def, rng);
+      const mult = skill ? skill.mult : action === "spell" ? 1.7 : 1;
+      const power = stats.atk * comboRate(r.combo - 1) * mult * elem * elemBoost * (crit ? CRIT_RATE : 1);
+      const def = skill?.effect === "pierce" ? 0 : magic ? e.def / 2 : e.def;
+      const dmg = damageOf(power, def, rng);
       e.hp = Math.max(0, e.hp - dmg);
-      ev({ type: "hit", dmg, crit, spell, weak: elem > 1, resist: elem < 1, combo: r.combo });
-      if (stats.drain > 0) {
-        const heal = Math.min(stats.hp - r.hp, Math.round((dmg * stats.drain) / 100));
+      ev({ type: "hit", dmg, crit, magic, skill: skill?.name, element, weak: elem > 1, resist: elem < 1, combo: r.combo });
+      const drain = skill?.effect === "drain" ? skill.value : stats.drain;
+      if (drain > 0) {
+        const heal = Math.min(stats.hp - r.hp, Math.round((dmg * drain) / 100));
         if (heal > 0) {
           r.hp += heal;
           ev({ type: "drain", heal });
         }
+      }
+      if (skill?.effect === "heal") {
+        const heal = Math.min(stats.hp - r.hp, Math.round((stats.hp * skill.value) / 100));
+        if (heal > 0) {
+          r.hp += heal;
+          ev({ type: "heal", heal });
+        }
+      }
+      if (skill?.effect === "freeze" && e.hp > 0) {
+        e.frozen = true;
+        e.charging = false;
+        ev({ type: "freeze" });
       }
     }
   } else if (action === "defend") {
@@ -328,17 +404,7 @@ export function act(run, stats, action, answer = null, rng = Math.random) {
     return r;
   }
 
-  // 敵の番。ボスは3ターンごとにブレス（1.6倍）
-  const breath = e.boss && r.turn % 3 === 0;
-  if (rng() * 100 < stats.evade) {
-    ev({ type: "evade", breath });
-  } else {
-    const resist = stats.guard !== "none" && stats.guard === e.element;
-    const raw = damageOf(e.atk * (breath ? 1.6 : 1), stats.def, rng);
-    const dmg = Math.max(1, Math.round(raw * (r.defending ? 0.5 : 1) * (resist ? 0.5 : 1)));
-    r.hp = Math.max(0, r.hp - dmg);
-    ev({ type: "hurt", dmg, breath, guarded: r.defending, resist });
-  }
+  enemyTurn(r, stats, rng);
   if (r.hp <= 0) {
     r.over = true;
     r.lost = true;
@@ -351,6 +417,53 @@ export function act(run, stats, action, answer = null, rng = Math.random) {
     ev({ type: "regen", heal });
   }
   return r;
+}
+
+/** 敵の番: 凍っていれば休み。ためていれば大こうげき。ときどき（ボスは3ターンごとに）ちからをためる。それ以外はふつうのこうげき */
+function enemyTurn(r, stats, rng) {
+  const e = r.enemy;
+  const ev = (x) => r.events.push(x);
+  if (e.frozen) {
+    e.frozen = false;
+    ev({ type: "frozen" });
+    return;
+  }
+  const smash = !!e.charging;
+  e.charging = false;
+  if (!smash) {
+    const charge = e.boss ? r.turn % 3 === 2 : r.floor >= 2 && rng() < CHARGE_CHANCE;
+    if (charge) {
+      e.charging = true;
+      ev({ type: "charge", boss: e.boss });
+      return;
+    }
+  }
+  // 大こうげきはかわせない（ぼうぎょで受けるしかない）
+  if (!smash && rng() * 100 < stats.evade) {
+    ev({ type: "evade" });
+    return;
+  }
+  const resist = stats.guard !== "none" && stats.guard === e.element;
+  const rate = smash ? (e.boss ? BOSS_SMASH_RATE : SMASH_RATE) : 1;
+  const raw = damageOf(e.atk * rate, stats.def, rng);
+  const guarded = r.defending ? guardRate(smash, stats.block) : 1;
+  const dmg = Math.max(1, Math.round(raw * guarded * (resist ? 0.5 : 1)));
+  r.hp = Math.max(0, r.hp - dmg);
+  ev({ type: "hurt", dmg, smash, boss: e.boss, guarded: r.defending, resist });
+  // 大こうげきをぼうぎょで受けとめたら、はんげき（守備力と盾で決まる）
+  if (smash && r.defending && r.hp > 0) {
+    const counter = Math.max(1, Math.round((stats.def + stats.block * 2) * (0.9 + rng() * 0.2)));
+    e.hp = Math.max(0, e.hp - counter);
+    ev({ type: "counter", dmg: counter });
+    if (e.hp <= 0) {
+      const exp = Math.round(e.exp * (1 + stats.expUp / 100));
+      r.expGained += exp;
+      r.cleared += 1;
+      r.bestFloor = Math.max(r.bestFloor, r.floor);
+      r.won = true;
+      ev({ type: "win", exp, boss: e.boss });
+    }
+  }
 }
 
 /** 次の階へ（HP は 15%、MP は 20% 回復。ボスを倒したあとはやくそう +1） */
@@ -387,11 +500,13 @@ export const runResults = (run) => Object.entries(run.results).map(([id, correct
 // 記録
 // ---------------------------------------------------------------------------
 
+const emptyEquip = () => Object.fromEntries(SLOT_IDS.map((k) => [k, null]));
+
 export const initialQuest = () => ({
   level: 1,
   exp: 0, // 今の Lv で貯めた経験値
   totalExp: 0,
-  equip: { weapon: null, armor: null, charm: null },
+  equip: emptyEquip(),
   best: 0, // 倒した一番上の階
   wins: 0, // 倒した敵の数
   runs: 0,
@@ -421,13 +536,17 @@ export function equip(state, slot, id) {
   return { ...state, quest: { ...q, equip: eq } };
 }
 
-/** いちばん強くなるように自動で装備する（power の高い順に、武器→防具→お守り） */
+/**
+ * いちばん強くなるように自動で装備する。power の高い順に、武器 → 体 → 盾 → 腕 → 頭 → 足 → アクセ。
+ * SSR は呪文が付くので、できるだけ（属性の違う SSR を）付ける
+ */
+export const AUTO_ORDER = ["weapon", "body", "shield", "arms", "head", "feet", "accessory"];
 export function autoEquip(state, cards) {
   const owned = Object.entries(state.gacha?.cards || {}).filter(([id, n]) => n > 0 && cards[id]);
   const ranked = owned.map(([id, n]) => gearOf(cards[id], n)).sort((a, b) => b.power - a.power || (a.id < b.id ? -1 : 1));
   const q = { ...initialQuest(), ...state.quest };
-  const eq = { weapon: null, armor: null, charm: null };
-  SLOT_IDS.forEach((slot, i) => (eq[slot] = ranked[i]?.id || null));
+  const eq = emptyEquip();
+  AUTO_ORDER.forEach((slot, i) => (eq[slot] = ranked[i]?.id || null));
   return { ...state, quest: { ...q, equip: eq } };
 }
 
@@ -450,9 +569,18 @@ const nonNeg = (v) => (Number.isFinite(v) && v > 0 ? Math.floor(v) : 0);
 export function restoreQuest(saved, rename = (id) => id) {
   const base = initialQuest();
   if (!saved || typeof saved !== "object") return base;
-  const equipSaved = saved.equip && typeof saved.equip === "object" ? saved.equip : {};
-  const eq = {};
-  for (const k of SLOT_IDS) eq[k] = typeof equipSaved[k] === "string" ? rename(equipSaved[k]) : null;
+  const equipSaved = saved.equip && typeof saved.equip === "object" ? { ...saved.equip } : {};
+  // 以前の3か所の装備（防具・お守り）は、今の場所（体・アクセ）へ
+  for (const [old, now] of Object.entries(OLD_SLOTS)) if (equipSaved[now] == null && typeof equipSaved[old] === "string") equipSaved[now] = equipSaved[old];
+  const eq = emptyEquip();
+  const used = new Set();
+  for (const k of SLOT_IDS) {
+    const id = typeof equipSaved[k] === "string" ? rename(equipSaved[k]) : null;
+    if (id && !used.has(id)) {
+      eq[k] = id;
+      used.add(id);
+    }
+  }
   return {
     level: Math.min(MAX_LEVEL, Math.max(1, nonNeg(saved.level) || 1)),
     exp: nonNeg(saved.exp),
