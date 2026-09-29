@@ -194,13 +194,15 @@ python3 tools/media/tts.py collect              # 終わったバッチを取り
 - アプリ: `src/cheers.js`。効果音（`SoundEngine.play` の名前）に合わせて、場面の声からランダムに流す（場面ごとの確率つき・連続正解は5回ごと・読み上げ中や直前と同じ文は流さない）。設定「合いの手（英語の声で応援）」でオフにできる（声があるときだけ表示）
 - テスト: `tests/logic/cheers.test.mjs`、`tests/e2e/cheers.spec.mjs`
 
-**進み具合（2026-09-29 朝）**: Batch API（3.8 Flash TTS・1文ずつ・半額）に切り替えて、ほぼ全部できた
-- アプリに入っている録音: 13,278文のうち **13,193文**。うち **5,411文は「未確認」**（manifest の `unverified`。確認で約95%は通る見込み）
-- 残り 85文は確認で捨てた文（次の `submit all --replace-models` で出し直し）
-- ほかのモデル（2.5 Flash・3.1 Flash・3.8 Flash Lite）で作った **2,918文の置き換え** は、新しい録音が `tools/media/raw/tts/hold/`（git の外）にあり、確認に通るまでアプリは古い録音のまま
-  - **コンテナが作り直されると hold は消える**。その場合は `submit all --replace-models` で出し直す（約¥60）
-- **Gemini API のプリペイド残高が切れた**（402）。確認の文字起こしが止まったので、`collect --defer-verify` で結果だけ取り込んだ（取り込みは無料）
-- 残高を足したら: `python3 tools/media/tts.py verify`（未確認と置き換え待ちを確かめる）→ `submit all --replace-models` → collect をくり返す → `tts.py cheers`
+**進み具合（2026-09-29 昼）**: Batch API（3.8 Flash TTS・1文ずつ・半額）で作り、確認は Whisper（無料）
+- アプリに入っている録音: 13,278文のうち **12,973文**。**未確認は 0**（Whisper で 5,381本を確かめ、5,163本が通った。通らない 218本は捨てた）
+- 残り: 録音の無い **305文**（確認で捨てた文）＋ ほかのモデル（2.5 Flash・3.1 Flash・3.8 Flash Lite）で作った **2,918文の置き換え** ＝ **3,223文**（Batch で 約¥60〜100）
+  - 前のコンテナの hold（置き換えの録音）は消えたので、出し直す
+- **Gemini API のプリペイド残高が切れたまま**（2026-09-29 も 402）。AI Studio で残高を足したら、次を順に実行する:
+  1. `tools/media/setup.sh --whisper`
+  2. `python3 tools/media/tts.py submit all --replace-models` → 数分待って `python3 tools/media/tts.py collect`（Whisper で確かめて取り込む）。通らなかった文が出たら、もう一度 submit → collect
+  3. `python3 tools/media/tts.py cheers` → `collect`（合いの手 182本・約$0.03）
+  4. `npm run lint`・`npm run test:logic`・`npm run test:e2e`、コミット
 
 **確認は Whisper（無料）で行う（2026-09-29 から）**
 - `tts.config.json` の `batch.verify.engine: "whisper"`。faster-whisper の `small.en` をこのコンテナの CPU で動かす（1本 約0.7秒）。Gemini で確かめたいときは `engine: "gemini"`
