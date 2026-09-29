@@ -63,14 +63,15 @@ test('引きを戻して離すとキャンセルになり、ターンは進ま�
 
 test('下に引いて離すと上へ飛び、止まるとターンが進んで B の番になる', async ({ page }) => {
   const errors = await open(page);
-  await page.evaluate(() => window.__ms.setTimeScale(4));
   const before = await body(page, 'A');
   await pullUnit(page, 'A', 0, 120);
   expect(await phase(page)).toBe('moving');
-  // 位置と速度は同じフレームで読む（別々に読むと、その間にスライムで跳ね返っていることがある）
+  // 位置と速度は同じフレームで読む（別々に読むと、その間にスライムで跳ね返っていることがある）。
+  // 飛んでいるのを確かめるまでは等速（早送りだと、重いときに1フレームで跳ね返って戻ってくる）
   const flying = await (await page.waitForFunction(() => { const b = window.__ms.body('A'); return b.y < 600 && b; })).jsonValue();
   expect(flying.y).toBeLessThan(before.y);
   expect(flying.vy).toBeLessThan(0);
+  await page.evaluate(() => window.__ms.setTimeScale(4));
 
   await waitPhase(page, 'ready');
   await expect(page.locator('#turn')).toHaveText('2');

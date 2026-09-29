@@ -5,11 +5,14 @@
  */
 import { expect } from '@playwright/test';
 
-export async function open(page) {
+export async function open(page, stage = 0) {
   const errors = [];
   page.on('pageerror', (e) => errors.push(e.message));
   page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()); });
   await page.goto('/');
+  // 起動するとタイトル（ステージ選択）が出る。stage の番号のボタンを押して始める
+  await page.waitForFunction(() => window.__ms && window.__ms.phase === 'title');
+  await page.locator(`#stage-${stage}`).click();
   await page.waitForFunction(() => window.__ms && window.__ms.phase === 'ready');
   return errors;
 }

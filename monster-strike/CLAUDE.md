@@ -16,7 +16,8 @@ index.html
 tests/lint.mjs                    インラインスクリプトの構文、外部参照なし、id の実在、純粋さ
 tests/logic/helpers.mjs           純粋な3つのスクリプトを取り出して Node の vm で読み込む
 tests/logic/bot.mjs               バランス測定用の自動プレイ（greedy / casual / random）
-tests/logic/*.test.mjs            physics（物理）/ battle（戦闘）/ element（属性・キラー）/ gimmick（ギミック）/ balance（難しさ）
+tests/logic/*.test.mjs            physics（物理）/ battle（戦闘）/ element（属性・キラー）/ gimmick（ギミック）/
+                                  phase6（SS・新ギミック・アイテム・2つ目のステージ）/ balance（難しさ）
 tests/logic/measure.mjs           数値を調整するときの測定（テストではない）: node tests/logic/measure.mjs
 tests/e2e/*.spec.mjs              Playwright（desktop + mobile）
 ```
@@ -78,6 +79,27 @@ HTML コメントの中にスクリプトの開始タグをそのまま書かな
 5. チームのHPはキャラの `hp` の合計。キャラに `hp` が無いテスト用の戦場は `stage.teamHp` を使う。
 6. 説明文（`#help`）は高さ3行で固定。押した瞬間に行数が変わるとフィールドが伸び縮みして、
    指の位置と引っぱりの始点がずれる（実際に出した不具合）。説明を足すときはスマホ幅で3行に収める。
+
+## SS・新しいギミック・アイテムの約束ごと（フェーズ6〜8）
+
+1. **ショットは `battle.beginShot(id, useSS)` で始める。** 返り値（SS の物理の補正 `{ speed, friction }`）を
+   `world.launch(id, dx, dy, mods)` に渡す。予測軌道も `predict(..., { mods })` と `P.applyMods()` で同じ補正を通す。
+   beginShot を呼ばずに撃った（古いテストなど）ときは、最初にイベントを出したキャラをショットの主にする。
+2. **SS の残りは誰が撃っても1ショットごとに全員1ずつ減る**（`endTurn()`）。使うと `turns` に戻る。
+   キャラの `ss.turns` は「4で割った余り＝手番−1」にそろえ、自分の番でちょうど溜まるようにしてある（テストあり）。
+3. **キャラの変わる状態は `battle.us[id]`**（`ssLeft / chick / sword / mines`）。`battle.units` は定義で、複製と共有する。
+   `clone()` は `us`・`shot`・`items` を写す（写さないと先読みで本物の SS や状態が減る）。
+4. ひよこ・剣は「踏んだ（取った）ショット＋次の自分のショット」まで。撃ったキャラの `endTurn` でだけ1減る。
+5. **地雷・ワープ・魔法陣・アイテムは物理の `fields`（`kind` で区別）。** 消えるもの（地雷・アイテム）は
+   `removeField()` で配列を作り直す。`fields` は `clone()` と共有しているので、書き換えない。
+6. ワープは出口の `fieldsIn` に入れてから飛ばす（すぐ吸い込まれない）。予測軌道の点には `jump: true` を付け、
+   画面はその区間に点を打たない。ランダムな出口は作らない（決定的にするため）。
+7. ブロックは `kind: 'block'` の矩形。貫通タイプも跳ね返る。アンチブロックは `_collide()` で素通りにする。
+8. アイテムはウェーブの `items` の `turn` に出る（乱数を使わない）。ハートの育ち具合は `born` からのターン数で決め、
+   物理の円は書き換えない。
+9. 倍率は `_directRates()` に足す（`ss / dwBoost / sword / mine / chick`）。剣とひよこは友情にも乗る（`_statusRates()`）。
+10. 画面: 起動するとタイトル（`phase: 'title'`）。E2E の `open(page, stage)` がステージのボタンを押して始める。
+    SS ボタンは HP の行にあり、幅を固定している（文字が変わってもヘッダーの折り返しが変わらないように）。
 
 ## ギミックとアビリティの約束ごと
 

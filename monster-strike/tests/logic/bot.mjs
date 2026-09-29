@@ -42,28 +42,37 @@ function score(battle, records, hpBefore) {
   return s;
 }
 
-export function play(mods, { policy = 'greedy', random = Math.random, maxTurns = 80 } = {}) {
+/**
+ * ss: SS を使うか。使うのはボスのいるウェーブだけ（雑魚に使うとボス戦で溜まっていない）。
+ *     greedy は SS あり・なしの両方を先読みして良いほう、casual は溜まっていれば使う。
+ */
+export function play(mods, { policy = 'greedy', random = Math.random, maxTurns = 80, stage = 0, ss = true } = {}) {
   const { P, D } = mods;
-  const { world, battle } = newGame(mods);
+  const { world, battle } = newGame(mods, stage);
   const order = D.units.map((u) => u.id);
   const cands = candidates(P, world.cfg);
   let active = 0;
   while (battle.state === 'playing' && battle.turn <= maxTurns) {
     const id = order[active];
-    let v;
+    const bossWave = battle.enemies.some((e) => e.def.boss && e.alive);
+    const canSS = ss && bossWave && battle.ssReady(id);
+    let v, useSS = false;
     if (policy === 'greedy' || policy === 'casual') {
       let best = -Infinity;   // ダメージウォールで減点されると負の値になる
       const pool = policy === 'greedy' ? cands : Array.from({ length: 4 }, () => randomShot(world.cfg, random));
-      for (const c of pool) {
-        const w = world.clone();
-        const b = battle.clone();
-        const s = score(b, shoot(w, b, id, c[0], c[1]), battle.teamHp);
-        if (s > best) { best = s; v = c; }
+      const modes = policy === 'greedy' && canSS ? [false, true] : [canSS];
+      for (const m of modes) {
+        for (const c of pool) {
+          const w = world.clone();
+          const b = battle.clone();
+          const s = score(b, shoot(w, b, id, c[0], c[1], m), battle.teamHp);
+          if (s > best) { best = s; v = c; useSS = m; }
+        }
       }
     } else {
       v = randomShot(world.cfg, random);
     }
-    shoot(world, battle, id, v[0], v[1]);
+    shoot(world, battle, id, v[0], v[1], useSS);
     battle.endTurn(world);
     active = (active + 1) % order.length;
   }

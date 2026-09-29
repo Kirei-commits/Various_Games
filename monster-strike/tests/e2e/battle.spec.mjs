@@ -29,10 +29,10 @@ test('カウンターが0になった敵が攻撃し、チームのHPが減る',
   await weakShot(page);
   await waitPhase(page, 'enemy');
   await waitPhase(page, 'ready');
-  // スライム2体(単体2000×2) + ゴーレム(全体3500)。受けるダメージは属性で変わる（有利な相手から0.66倍、不利な相手から1.33倍）
+  // スライム2体(単体2300×2) + ゴーレム(全体4025)。受けるダメージは属性で変わる（有利な相手から0.66倍、不利な相手から1.33倍）
   const hp = await page.evaluate(() => window.__ms.battle.teamHp);
-  expect(hp).toBeGreaterThanOrEqual(34000 - Math.round(7500 * 1.33));
-  expect(hp).toBeLessThanOrEqual(34000 - Math.round(7500 * 0.66));
+  expect(hp).toBeGreaterThanOrEqual(34000 - Math.round(8625 * 1.33));
+  expect(hp).toBeLessThanOrEqual(34000 - Math.round(8625 * 0.66));
   await expect(page.locator('#hp-text')).toHaveText(`${hp} / 34000`);
   const counters = await page.evaluate(() => window.__ms.battle.alive().map((e) => e.counter));
   expect(counters).toEqual([3, 4, 3]);

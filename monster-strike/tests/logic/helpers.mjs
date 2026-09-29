@@ -31,19 +31,24 @@ export function loadPhysics() {
   return loadAll().P;
 }
 
-/** 本番と同じ始まり方: 味方を置いて、ウェーブ1を出す */
-export function newGame(mods) {
+/** 本番と同じ始まり方: 味方を置いて、ウェーブ1を出す。stage はステージの番号（D.stages） */
+export function newGame(mods, stage = 0) {
   const { P, B, D } = mods;
   const world = new P.World();
   for (const u of D.units) world.add({ id: u.id, kind: 'unit', shot: u.shot, x: u.x, y: u.y, r: u.r, abilities: B.Battle.abilityMap(u.abilities) });
-  const battle = new B.Battle(D);
+  const battle = new B.Battle({ units: D.units, stage: D.stages ? D.stages[stage] : D.stage });
   battle.spawnWave(world);
   return { world, battle };
 }
 
-/** 1発撃って止まるまで回す（倒した敵は途中で消える）。ダメージ記録を返す。 */
-export function shoot(world, battle, id, vx, vy) {
-  world.setVelocity(id, vx, vy);
+/**
+ * 1発撃って止まるまで回す（倒した敵は途中で消える）。ダメージ記録を返す。
+ * useSS なら SS を使う（本番と同じく beginShot → 初速に倍率 → setVelocity）。
+ */
+export function shoot(world, battle, id, vx, vy, useSS = false) {
+  const mods = battle.beginShot ? battle.beginShot(id, useSS) : null;
+  const k = mods && mods.speed ? mods.speed : 1;
+  world.setVelocity(id, vx * k, vy * k, mods);
   world.drainEvents();
   const records = [];
   for (let n = 0; n < 240 * 30 && !world.isSettled(); n++) {

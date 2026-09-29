@@ -355,8 +355,8 @@ test('ステージの定義: 敵どうし・味方・壁が重ならず、弱点
     const world = new P.World();
     for (const u of D.units) world.add({ id: u.id, kind: 'unit', shot: u.shot, x: u.x, y: u.y, r: u.r });
     for (const e of wave.enemies) {
-      const b = world.add({ id: e.id, kind: 'enemy', shape: e.shape, x: e.x, y: e.y, r: e.r, w: e.w, h: e.h });
-      const ex = e.shape === 'rect' ? e.w / 2 : e.r, ey = e.shape === 'rect' ? e.h / 2 : e.r;
+      const b = world.add(B.Battle.enemyBody(e));
+      const ext = B.Battle.extentOf(e), ex = ext.x, ey = ext.y;
       // 敵と壁の間を味方が通れる（壁カンができる）
       assert.ok(e.x - ex >= 64 && e.x + ex <= W - 64 && e.y - ey >= 64, `wave${wi + 1} ${e.id} が壁に近すぎる`);
       assert.ok(e.hp > 0 && e.atk > 0 && e.turns >= 1 && ['single', 'all'].includes(e.attack));

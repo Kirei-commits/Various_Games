@@ -3,13 +3,17 @@
  * 数値（HP・攻撃力・ターン数）を触ってここが落ちたら、「バグ」ではなく
  * 「意図した難しさの変更か」を判断し、意図的なら期待値と理由をコミットに残す。
  *
- * 測った値（2026-09-29 フェーズ5, 4体・属性・キラーあり, チームHP 34000（4体の合計）/ ドラゴン HP 58000,
- *           ダメージウォール 1400（ウェーブ1）・1800（ウェーブ2））:
- *   greedy: 9ターンで勝ち、HP 28015 残り。ダメージウォールに触れたのは0回
- *   casual: 勝率 0.79、勝ったときの中央 16ターン
- *           アビリティを外すと 0.58、友情コンボを外すと 0.05、属性とキラーを外すと 0.57
- *   random: 勝率 0.00、ボスまで 97% が到達
- * 4体になって友情コンボが増えたぶん、ドラゴンのHPとダメージウォールを上げて以前の難しさに戻した。
+ * 測った値（2026-09-29 フェーズ6〜8, SS・超アンチ・翼の当たり判定あり）
+ * はじまりの洞窟（チームHP 34000 / ドラゴン HP 75000、敵の攻撃は フェーズ5 の 1.15倍）:
+ *   greedy: 10ターンで勝ち、HP 24058 残り。SS 1回、ダメージウォールに触れたのは0回（3回は超アンチで無効）
+ *   casual: 勝率 0.81、勝ったときの中央 14ターン
+ *           SS を使わないと 0.41、アビリティを外すと 0.50、友情コンボを外すと 0.11、属性とキラーを外すと 0.59
+ *   random: 勝率 0.00、ボスまで 95% が到達
+ * からくりの塔（3ウェーブ / ボス HP 55000）:
+ *   greedy: 14ターンで勝ち、HP 22773 残り。SS 3回、ワープ2回、ハートで 3833 回復
+ *   casual: 勝率 0.59、SS を使わないと 0.24
+ * 翼に当たり判定が付いて壁との間で跳ね返れるようになり、はじまりの洞窟が簡単になった（0.99）ので
+ * ドラゴンの HP と敵の攻撃を上げた。SS は強すぎないよう B の倍率 1.9・C のメテオ 3600 にした。
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -82,6 +86,31 @@ test('属性とキラーは、ふつうのプレイヤーの勝ち負けを分�
   };
   const withE = rate(mods), without = rate(noElement);
   assert.ok(withE - without >= 0.1, `属性あり ${withE} / なし ${without}`);
+});
+
+test('SS は勝ち負けを分けるほど効くが、使わなくても勝てることはある', () => {
+  const rate = (o) => {
+    let w = 0;
+    for (let i = 0; i < GAMES; i++) if (play(mods, { policy: 'casual', random: seededRandom(1000 + i * 7919), ...o }).state === 'won') w++;
+    return w / GAMES;
+  };
+  const withSS = rate({}), without = rate({ ss: false });
+  assert.ok(withSS - without >= 0.2, `SS あり ${withSS} / なし ${without}`);
+  assert.ok(without >= 0.2, `SS なしでも ${without}`);
+});
+
+test('からくりの塔: 上手なプレイヤーは勝ち、ふつうのプレイヤーには はじまりの洞窟より難しい', () => {
+  const g = play(mods, { policy: 'greedy', stage: 1 });
+  assert.equal(g.state, 'won');
+  assert.ok(g.turns >= 8 && g.turns <= 24, `${g.turns}ターン`);
+  assert.ok(g.stats.ss >= 1 && g.stats.warps + g.stats.minesCollected + g.stats.items >= 1, 'ギミックとアイテムを使う');
+  let w = 0, r = 0;
+  for (let i = 0; i < GAMES; i++) {
+    if (play(mods, { policy: 'casual', stage: 1, random: seededRandom(1000 + i * 7919) }).state === 'won') w++;
+    if (play(mods, { policy: 'random', stage: 1, random: seededRandom(2000 + i * 7919) }).state === 'won') r++;
+  }
+  assert.ok(w / GAMES >= 0.35 && w / GAMES <= 0.75, `ふつう ${w / GAMES}`);
+  assert.ok(r / GAMES <= 0.1, `でたらめ ${r / GAMES}`);
 });
 
 test('上手なプレイヤーはダメージウォールをほとんど踏まない', () => {
