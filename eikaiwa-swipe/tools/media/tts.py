@@ -682,73 +682,106 @@ def cmd_generate(args, cfg):
         print("残りは、同じコマンドで続きから作れます（上限に達したモデルは、戻るまでとばします）")
 
 
-def cmd_cheers(args, cfg):
-    """合いの手の声を作る（元の文は tools/media/cheers.json、できるものは audio/cheers/ と audio/cheers.json）"""
+CHEERS = AUDIO / "cheers.json"
+
+
+def cheers_plan(cfg):
+    """合いの手で作る録音（元の文は tools/media/cheers.json）。戻り値: ({場面: [clip]}, 元の設定)"""
     src = json.loads((HERE / "cheers.json").read_text())
-    out_path = AUDIO / "cheers.json"
-    have = load_json(out_path, {"version": 1, "events": {}})
-    made = {c["key"]: c for ev in have["events"].values() for c in ev.get("clips", [])}
-    todo_by_voice = {}
     plan = {}
     for name, ev in src["events"].items():
         group = src["voices"][ev["voice"]]
+        # 1回だけ・言い直さない は録音と同じ（Batch の試しで言い直しが混ざったため）
+        style = f"{group['style']} {src['once']}"
         plan[name] = []
         for text in ev["lines"]:
             for voice in group["voices"]:
                 key = f"{voice}|{text}"
                 h = hashlib.sha1(key.encode()).hexdigest()[:14]
-                sig = hashlib.sha1(json.dumps([voice, text, group["style"]]).encode()).hexdigest()[:12]
-                clip = {"hash": h, "key": key, "role": "P", "text": text, "chapter": "cheers", "id": name, "context": "", "voice": voice, "sig": sig, "style": group["style"]}
-                plan[name].append(clip)
-                if made.get(key, {}).get("sig") != sig:
-                    todo_by_voice.setdefault((voice, group["style"]), []).append(clip)
-    need = sum(len(v) for v in todo_by_voice.values())
-    print(f"合いの手 {sum(len(v) for v in plan.values())} 本（作るもの {need} 本）")
-    quota = load_quota()
-    known = load_json(MODELS_FILE, {})
-    # 合いの手は気持ちの込め方が大事なので、話し方を指定できる（metadata の）モデルを先に使う
-    models = sorted((m for m in cfg["models"] if m["model"] not in quota), key=lambda m: known.get(m["model"], {}).get("format", m["format"]) != "metadata")
-    for (voice, style), clips in todo_by_voice.items():
-        c2 = {**cfg, "style": style, "roles": {"P": {"voice": voice, "persona": ""}}, "_outdir": "cheers"}
-        units = build_units(c2, clips, {**cfg["packing"], "dialogMode": "roles"})
-        while units and models:
-            m = models[0]
-            info = known.get(m["model"])
-            if info is None:
-                print(f"  {m['model']} はまだ試していないので使わない（generate で試してから）")
-                models.pop(0)
-                continue
-            u = units.pop(0)
-            if not info["packing"] and len(unit_clips(u)) > 1:
-                units[0:0] = [{"kind": "P", "convs": [[c]]} for c in unit_clips(u)]
-                continue
-            r = run_unit(c2, u, m["model"], info["format"], Pacer(m["rpm"], m["tpm"]))
-            if r["status"] == "quota":
-                print(f"  {m['model']}: {r['message']}")
-                quota[m["model"]] = time.time() + 3600 * max(0.5, float(r["message"].split("約")[-1].split("時間")[0] or 1))
-                save_quota(quota)
-                models.pop(0)
-                units.insert(0, u)
-            elif r["status"] == "split":
-                units[0:0] = halves(u)
-            elif r["status"] != "ok":
-                print(f"  {voice}: {r['message']}")
-            else:
-                for c, sec in r["saved"]:
-                    old = made.get(c["key"], {})
-                    made[c["key"]] = {"key": c["key"], "text": c["text"], "voice": voice, "file": f"cheers/{c['hash']}.opus?v={old.get('rev', 0) + 1}",
-                                      "rev": old.get("rev", 0) + 1, "sig": c["sig"], "model": m["model"], "seconds": round(sec, 2)}
-                print(f"  {voice}: {len(r['saved'])} 本（{m['model']}）", flush=True)
-        if units:
-            print("  使えるモデルがなくなったので、残りは次に回します")
-            break
-    events = {}
-    for name, ev in src["events"].items():
-        clips = [made[c["key"]] for c in plan[name] if c["key"] in made]
-        events[name] = {"chance": ev["chance"], "clips": clips}
+                sig = hashlib.sha1(json.dumps([voice, text, style, cfg["output"]]).encode()).hexdigest()[:12]
+                plan[name].append({"hash": h, "key": key, "role": "P", "text": text, "chapter": "cheers", "id": name,
+                                   "voice": voice, "sig": sig, "style": style})
+    return plan, src
+
+
+def cheers_made():
+    have = load_json(CHEERS, {"version": 1, "events": {}})
+    return {c["key"]: c for ev in have["events"].values() for c in ev.get("clips", [])}
+
+
+def save_cheers(cfg, made):
+    """audio/cheers.json を書く（アプリが読む。場面ごとの確率と、できている声の一覧）"""
+    plan, src = cheers_plan(cfg)
+    events = {name: {"chance": src["events"][name]["chance"], "clips": [made[c["key"]] for c in clips if c["key"] in made]}
+              for name, clips in plan.items()}
     AUDIO.mkdir(parents=True, exist_ok=True)
-    out_path.write_text(json.dumps({"version": 1, "events": events}, ensure_ascii=False, indent=1) + "\n")
-    print(f"audio/cheers.json: {sum(len(e['clips']) for e in events.values())} 本")
+    CHEERS.write_text(json.dumps({"version": 1, "events": events}, ensure_ascii=False, indent=1) + "\n")
+    return sum(len(e["clips"]) for e in events.values())
+
+
+def cheers_request(clip):
+    return {
+        "contents": [{"parts": [{"text": clip["text"], "speechMetadata": {"style": clip["style"]}}]}],
+        "generationConfig": {
+            "responseModalities": ["AUDIO"],
+            "speechConfig": {"voiceConfig": {"prebuiltVoiceConfig": {"voiceName": clip["voice"]}}},
+        },
+    }
+
+
+def cmd_cheers(args, cfg):
+    """合いの手の声を Batch API に出す（取り込みは collect）。できるものは audio/cheers/ と audio/cheers.json"""
+    plan, _ = cheers_plan(cfg)
+    made = cheers_made()
+    pending = {h for j in load_json(JOBS, []) if not j.get("collected") for h in j["clips"]}
+    need = [c for clips in plan.values() for c in clips if made.get(c["key"], {}).get("sig") != c["sig"] and c["hash"] not in pending]
+    total = sum(len(v) for v in plan.values())
+    seconds = sum(estimate_seconds(c["text"]) for c in need)
+    price = seconds * cfg["price"]["tokensPerSecond"] / 1e6 * cfg["price"]["audioPerMillionTokens"] * cfg["price"]["batchDiscount"]
+    print(f"合いの手 {total} 本（作るもの {len(need)} 本・音声 約{seconds / 60:.0f}分・Batch で 約${price:.2f}）")
+    if not need:
+        return
+    body = {"batch": {"displayName": "swipetalk-cheers",
+                      "inputConfig": {"requests": {"requests": [{"request": cheers_request(c), "metadata": {"key": c["hash"]}} for c in need]}}}}
+    if args.dry_run:
+        path = RAW / "swipetalk-cheers.request.json"
+        path.write_text(json.dumps(body, ensure_ascii=False, indent=1))
+        print(f"送らずに保存: {path}")
+        return
+    res = api("POST", f"/v1beta/models/{cfg['model']}:batchGenerateContent", body)
+    job_name = res.get("name") or res.get("metadata", {}).get("name")
+    if not job_name:
+        sys.exit(f"バッチの名前が返ってこなかった: {json.dumps(res)[:500]}")
+    save_jobs(load_json(JOBS, []) + [{"name": job_name, "display": "swipetalk-cheers", "kind": "cheers",
+                                      "submitted": datetime.now(timezone.utc).isoformat(), "clips": {c["hash"]: c for c in need}}])
+    print(f"出しました: {job_name}（{len(need)} 本。取り込みは python3 tools/media/tts.py collect）")
+
+
+def collect_cheers(cfg, j, saved):
+    """合いの手のバッチを取り込む。確認に通ったものだけ audio/cheers/ に入れ、通らないものは次の cheers で出し直す"""
+    made = cheers_made()
+    checks = {}
+    with ThreadPoolExecutor(max_workers=verify_workers(cfg)) as pool:
+        for (clip, _), r in zip(saved, pool.map(lambda x: check_clip(cfg, x[0]), saved)):
+            checks[clip["hash"]] = r
+    done = 0
+    for clip, seconds in saved:
+        ok, heard, kind = checks[clip["hash"]]
+        path = STAGING / f"{clip['hash']}.opus"
+        if not ok:
+            print(f"  確認に通らない: {clip['key']}（聞こえた文: {heard}）")
+            with open(RAW / "failures.jsonl", "a") as f:
+                f.write(json.dumps({"key": clip["key"], "heard": heard, "kind": kind, "cheers": True}, ensure_ascii=False) + "\n")
+            path.unlink(missing_ok=True)
+            continue
+        (AUDIO / "cheers").mkdir(parents=True, exist_ok=True)
+        path.replace(AUDIO / "cheers" / f"{clip['hash']}.opus")
+        rev = made.get(clip["key"], {}).get("rev", 0) + 1
+        made[clip["key"]] = {"key": clip["key"], "text": clip["text"], "voice": clip["voice"], "file": f"cheers/{clip['hash']}.opus?v={rev}",
+                             "rev": rev, "sig": clip["sig"], "model": cfg["model"], "seconds": round(seconds, 2)}
+        done += 1
+    n = save_cheers(cfg, made)
+    print(f"{j['display']}: {done}/{len(j['clips'])} 本を取り込みました（audio/cheers.json: {n} 本）")
 
 
 def cmd_submit(args, cfg):
@@ -863,13 +896,44 @@ HOLD = RAW / "hold"  # 確認を後回しにした「置き換え」の録音（
 HOLD_FILE = RAW / "hold.json"
 
 
+_whisper = None
+_whisper_lock = threading.Lock()
+
+
+def whisper_model(verify):
+    """faster-whisper のモデル（無料・このコンテナの CPU で動く）。初回は huggingface.co からダウンロードする"""
+    global _whisper
+    with _whisper_lock:
+        if _whisper is None:
+            try:
+                from faster_whisper import WhisperModel
+            except ImportError:
+                sys.exit("faster-whisper がありません。先に tools/media/setup.sh --whisper を実行してください")
+            w = verify["whisper"]
+            _whisper = WhisperModel(w["model"], device="cpu", compute_type="int8", cpu_threads=w["threads"], num_workers=w["workers"])
+        return _whisper
+
+
+def verify_workers(cfg):
+    verify = cfg["batch"]["verify"]
+    return verify["whisper"]["workers"] if verify.get("engine") == "whisper" else 8
+
+
 def check_clip(cfg, clip, path=None):
     """録音を文字起こしして、元の文と語数が合うか確かめる。戻り値: (合っているか, 聞こえた文, 失敗の種類)"""
-    body = base64.b64encode((path or STAGING / f"{clip['hash']}.opus").read_bytes()).decode()
-    req = {"contents": [{"parts": [{"inlineData": {"mimeType": "audio/ogg", "data": body}},
-                                   {"text": "Transcribe this audio verbatim, word for word, including any repeated words or false starts. Output only the transcript."}]}]}
-    res = api("POST", f"/v1beta/models/{cfg['batch']['verify']['model']}:generateContent", req, pacer=Pacer(0))
-    heard = res["candidates"][0]["content"]["parts"][0]["text"].strip()
+    path = path or STAGING / f"{clip['hash']}.opus"
+    verify = cfg["batch"]["verify"]
+    if verify.get("engine") == "whisper":
+        # Whisper は言い直しを消して「きれいな文」にしがち。言いよどみの入った prompt を渡すと、くり返しもそのまま書く
+        segs, _ = whisper_model(verify).transcribe(str(path), language="en", beam_size=5, initial_prompt=verify["whisper"]["prompt"],
+                                                   condition_on_previous_text=False)
+        heard = " ".join(s.text.strip() for s in segs).strip()
+    else:
+        body = base64.b64encode(path.read_bytes()).decode()
+        req = {"contents": [{"parts": [{"inlineData": {"mimeType": "audio/ogg", "data": body}},
+                                       {"text": "Transcribe this audio verbatim, word for word, including any repeated words or false starts. Output only the transcript."}]}]}
+        res = api("POST", f"/v1beta/models/{verify['model']}:generateContent", req, pacer=Pacer(0))
+        heard = res["candidates"][0]["content"]["parts"][0]["text"].strip()
     ok, kind = compare_words(clip["text"], heard)
     return ok, heard, kind
 
@@ -877,6 +941,8 @@ def check_clip(cfg, clip, path=None):
 def compare_words(text, heard):
     """元の文と聞こえた文を比べる。戻り値: (合っているか, 失敗の種類 repeat / omit / other / None)"""
     a, b = words_of(text), words_of(heard)
+    if "".join(a) == "".join(b):  # 分け書きの違いだけ（key card / keycard など）
+        return True, None
     # 語数が同じで1語（長い文は1割）までの違いは、聞き取りの揺れとみなす
     if len(a) == len(b):
         return sum(x != y for x, y in zip(a, b)) <= max(1, len(a) // 10), (None if sum(x != y for x, y in zip(a, b)) <= max(1, len(a) // 10) else "other")
@@ -923,6 +989,12 @@ def cmd_collect(args, cfg):
                 warnings.append(w)
                 continue
             saved.append((clip, seconds))
+        if j.get("kind") == "cheers":
+            collect_cheers(cfg, j, saved)
+            j["collected"] = datetime.now(timezone.utc).isoformat()
+            taken += 1
+            save_jobs(jobs)
+            continue
         # 文字起こしで確かめる（並列）。合わないものは捨てて、次の submit で出し直す
         if getattr(args, "defer_verify", False):
             # 確認を後回しにする（残高切れなど）。新しい文はアプリに入れて unverified を付け、置き換えは hold に置く
@@ -948,7 +1020,7 @@ def cmd_collect(args, cfg):
             continue
         checks = {}
         if verify and saved:
-            with ThreadPoolExecutor(max_workers=8) as pool:
+            with ThreadPoolExecutor(max_workers=verify_workers(cfg)) as pool:
                 for (clip, _), r in zip(saved, pool.map(lambda x: check_clip(cfg, x[0]), saved)):
                     checks[clip["hash"]] = r
         redo = 0
@@ -999,7 +1071,7 @@ def cmd_verify(args, cfg):
         items = items[: args.limit]
     print(f"確かめる録音 {len(items)} 本（アプリに入っているもの {sum(1 for i in items if i[2] is None)}・置き換え待ち {sum(1 for i in items if i[2] is not None)}）", flush=True)
     passed = failed = 0
-    with ThreadPoolExecutor(max_workers=8) as pool:
+    with ThreadPoolExecutor(max_workers=verify_workers(cfg)) as pool:
         futs = {pool.submit(check_clip, cfg, clip, path): (clip, path, sec) for clip, path, sec in items}
         for n, fut in enumerate(as_completed(futs), 1):
             clip, path, sec = futs[fut]
@@ -1068,7 +1140,9 @@ def main():
     s.add_argument("--voices", help="カンマ区切り（省略すると sampleVoices を全部）")
     s.set_defaults(func=cmd_sample)
     sub.add_parser("status", help="出したバッチの状態").set_defaults(func=cmd_status)
-    sub.add_parser("cheers", help="合いの手の声を作る（tools/media/cheers.json）").set_defaults(func=cmd_cheers)
+    s = sub.add_parser("cheers", help="合いの手の声を Batch API に出す（tools/media/cheers.json。取り込みは collect）")
+    s.add_argument("--dry-run", action="store_true", help="送らずにリクエストを raw/tts/ に保存する")
+    s.set_defaults(func=cmd_cheers)
     s = sub.add_parser("collect", help="終わったバッチの結果を取り込む")
     s.add_argument("--max-jobs", type=int, help="1回に取り込むバッチの数の上限（取り込むたびにコミットするため）")
     s.add_argument("--defer-verify", action="store_true", help="文字起こしの確認を後回しにする（残高切れのときなど。あとで verify）")
@@ -1077,6 +1151,7 @@ def main():
     v.set_defaults(func=cmd_verify)
     s.set_defaults(func=cmd_collect)
     args = p.parse_args()
+    RAW.mkdir(parents=True, exist_ok=True)  # 作業用（コミットしない）。新しいコンテナには無い
     try:
         args.func(args, load_config())
     except ApiError as e:

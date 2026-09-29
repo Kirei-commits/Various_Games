@@ -1,5 +1,6 @@
 {
   "_about": "合いの手（英語の声での応援）。tools/media/tts.py cheers で作り、audio/cheers/ と audio/cheers.json にできる。アプリは効果音（SoundEngine.play の名前）に合わせて、ここからランダムに1つ選んで流す。chance は流す確率（毎回だと多すぎるもの用）",
+  "once": "Say the line exactly once, word for word: no repetitions, false starts, fillers or extra words.",
   "voices": {
     "coach": {
       "voices": ["Laomedeia", "Puck"],

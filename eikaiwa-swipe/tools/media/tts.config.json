@@ -58,6 +58,15 @@
     "_about": "Batch API（料金が通常の半分・結果は最大24時間後。通常の API の1日の上限とは別枠）。chunk は1つのバッチに入れる文の数（同時に出せるバッチは100件まで）",
     "chunk": 200,
     "verify": {
+      "engine": "whisper",
+      "_engine": "whisper = faster-whisper をこのコンテナで動かす（無料。2026-09-29 ユーザーの指示）/ gemini = model の Gemini で文字起こし（有料）",
+      "whisper": {
+        "model": "small.en",
+        "threads": 2,
+        "workers": 2,
+        "prompt": "Umm, let me think like, hmm... Okay, here's what I'm, like, thinking. I- I mean, I, I went to the, to the store.",
+        "_about": "2026-09-29 に確かめた: Gemini で通った録音 100本中 98本が通り（落ちた2本は Wi-Fi と key card の書き方の違い）、頭を言い直した合成の録音は 24/24 を見つけた。1本 約1.2秒（4コア）。prompt が無いと Whisper は言い直しを消してしまい 15/24 しか見つからなかった"
+      },
       "model": "gemini-3.1-flash-lite",
       "maxAttempts": 5,
       "_about": "取り込むときに1文ずつ文字起こしして確かめる。2回目までは同じ指示で出し直し、3回目からは失敗の種類（くり返し・言い落とし）に合わせて指示を足して出し直す（ユーザーの指示: 自己完結で直して送るサイクル）。maxAttempts 回で合わなければ残して manifest に check を付ける。失敗の記録は raw/tts/failures.jsonl",
