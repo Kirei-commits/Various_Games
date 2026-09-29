@@ -523,6 +523,7 @@ def words_of(text):
     t = text.lower().replace("’", "'").replace("-", " ").replace(",", "")
     t = re.sub(r"(\$)?(\d+)", digits_words, t)
     t = re.sub(r"\bone (hundred|thousand)\b", r"a \1", t)
+    t = re.sub(r"'em\b", " them", t)  # got 'em / got'em
     out = []
     for w in re.sub(r"[^a-z' ]", " ", t).split():
         w = SAME.get(w, w)
