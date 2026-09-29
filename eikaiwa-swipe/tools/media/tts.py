@@ -794,7 +794,7 @@ def cmd_submit(args, cfg):
         if not job_name:
             sys.exit(f"バッチの名前が返ってこなかった: {json.dumps(res)[:500]}")
         jobs.append({"name": job_name, "display": name, "submitted": datetime.now(timezone.utc).isoformat(), "clips": {c["hash"]: c for c in part}})
-        JOBS.write_text(json.dumps(jobs, ensure_ascii=False, indent=1))
+        save_jobs(jobs)
         print(f"出しました: {job_name}（{len(part)} 文）")
 
 
@@ -845,6 +845,16 @@ def batch_results(res):
         rows = [json.loads(line) for line in text.splitlines() if line.strip()]
         return [(r.get("key") or (r.get("metadata") or {}).get("key"), r.get("response"), r.get("error")) for r in rows]
     return None
+
+
+def save_jobs(jobs):
+    """jobs.json を書く。ほかのプロセス（submit と collect を同時に動かしたとき）が足したジョブを消さないよう、
+    書く直前に読み直して、ジョブの名前ごとにまとめる（collected は付いている方を残す）"""
+    merged = {j["name"]: j for j in load_json(JOBS, [])}
+    for j in jobs:
+        old = merged.get(j["name"], {})
+        merged[j["name"]] = {**old, **j, **({"collected": old["collected"]} if old.get("collected") and not j.get("collected") else {})}
+    JOBS.write_text(json.dumps(list(merged.values()), ensure_ascii=False, indent=1))
 
 
 ATTEMPTS = RAW / "attempts.json"  # 確認で捨てた回数（文ごと）
@@ -933,7 +943,7 @@ def cmd_collect(args, cfg):
             j["collected"] = datetime.now(timezone.utc).isoformat()
             taken += 1
             save_manifest(man)
-            JOBS.write_text(json.dumps(jobs, ensure_ascii=False, indent=1))
+            save_jobs(jobs)
             print(f"{j['display']}: {done}/{len(j['clips'])} 文を取り込みました（確認は後で: python3 tools/media/tts.py verify）")
             continue
         checks = {}
@@ -970,7 +980,7 @@ def cmd_collect(args, cfg):
         j["collected"] = datetime.now(timezone.utc).isoformat()
         taken += 1
         save_manifest(man)
-        JOBS.write_text(json.dumps(jobs, ensure_ascii=False, indent=1))
+        save_jobs(jobs)
         print(f"{j['display']}: {done}/{len(j['clips'])} 文を取り込みました")
     report(warnings)
 
