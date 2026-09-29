@@ -41,15 +41,11 @@ test("会話の中に録音の無い行があれば、声が混ざらないよ�
   expect(fetched).toEqual([]);
 });
 
-test("設定で録音をオフにすると端末の声で読む", async ({ page }) => {
-  const fetched = await withRecordings(page, [["A", A], ["B", B]]);
+test("設定には録音で読む案内だけが出る（声の選択・録音のオン/オフはない）", async ({ page }) => {
+  await withRecordings(page, [["A", A], ["B", B]]);
   await page.getByRole("button", { name: "音声の設定" }).click();
-  const toggle = page.locator("#toggle-recorded");
-  await expect(toggle).toBeChecked();
-  await expect(page.getByText("ネイティブ音声（録音）を使う").locator("..")).toContainText("2文ぶん");
-  await toggle.uncheck();
-  await page.getByRole("button", { name: "閉じる" }).click();
-  await playDialogue(page);
-  await page.waitForFunction(() => window.__spoken.length >= 2);
-  expect(fetched).toEqual([]);
+  await expect(page.getByTestId("voice-note")).toContainText("2文ぶん");
+  await expect(page.locator("#toggle-recorded")).toHaveCount(0);
+  await expect(page.locator("#voice-select")).toHaveCount(0);
+  await expect(page.locator("#toggle-twoVoices")).toHaveCount(0);
 });

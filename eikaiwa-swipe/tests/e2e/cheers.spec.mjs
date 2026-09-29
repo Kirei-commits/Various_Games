@@ -27,10 +27,13 @@ async function answerCorrectly(page) {
   await expect(page.getByTestId("verdict")).toHaveText("正解！");
 }
 
-test("正解すると合いの手の声が流れる", async ({ page }) => {
+test("合いの手の声は先に読み込んでおき、正解するとすぐ流れる", async ({ page }) => {
   const fetched = await withCheers(page);
-  await answerCorrectly(page);
+  // 正解する前に読み込み済み（ボタンを押してから取りに行かない）
   await expect.poll(() => fetched, { timeout: 10_000 }).toEqual(["nice.opus"]);
+  await answerCorrectly(page);
+  await expect.poll(() => page.evaluate(() => window.__cheersPlayed || [])).toEqual(["Nice!"]);
+  expect(fetched).toEqual(["nice.opus"]);
 });
 
 test("設定で合いの手をオフにすると流れない", async ({ page }) => {
@@ -40,5 +43,5 @@ test("設定で合いの手をオフにすると流れない", async ({ page }) 
   await page.getByRole("button", { name: "閉じる" }).click();
   await answerCorrectly(page);
   await page.waitForTimeout(800);
-  expect(fetched).toEqual([]);
+  expect(await page.evaluate(() => window.__cheersPlayed || [])).toEqual([]);
 });

@@ -78,6 +78,8 @@
 - テーマは設定から選ぶ（コインは廃止）
 
 **2026-09-29 に足したもの**
+- 合いの手が遅い → 声を先読み（`prefetchCheers`）して AudioBuffer にし、効果音と同じ AudioContext ですぐ鳴らす。E2E 用に `window.__cheersPlayed`
+- 端末の声の設定（声の選択・抑揚・A/B で声を変える・録音のオン/オフ・いろいろな人/国の声）をすべてなくした。`voices.js` の pickVoicesFor/personaFor/genderLabel と usableVoices の wide も削除
 - 話す速さのバー（`SpeedBar`・`RateContext`）を学習・シャドーイング・一覧・テストに置いた
 - 進捗の画面をコンパクトに: 要約1行・小さな数字・続きから・コースは開くと章の番号のマス（章の成績は章を押したときの ChapterChooser に）
 - 冒険: 装備7か所（`SLOTS`。古い保存の armor/charm は body/accessory へ）、SSR の特製の呪文（`SKILLS`）、敵のため→大こうげき（ぼうぎょで受けとめてはんげき）、演出と効果音（styles.css の qs-*、audio.js の warn/smash/block/heal/spell/appear）
