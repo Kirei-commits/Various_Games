@@ -30,7 +30,7 @@ test('カウンターが0になった敵が攻撃し、チームのHPが減る',
   await waitPhase(page, 'enemy');
   await waitPhase(page, 'ready');
   // スライム2体(2000×2) + ゴーレム(3500)
-  await expect(page.locator('#hp-text')).toHaveText('20500 / 28000');
+  await expect(page.locator('#hp-text')).toHaveText('26500 / 34000');
   const counters = await page.evaluate(() => window.__ms.battle.alive().map((e) => e.counter));
   expect(counters).toEqual([3, 4, 3]);
   await expectNoErrors(page.errors);
@@ -44,7 +44,7 @@ test('敵を全滅させると次のウェーブ（ボス）が出る', async ({
   await waitPhase(page, 'ready');
   const boss = await page.evaluate(() => window.__ms.battle.alive().filter((e) => e.def.boss).length);
   expect(boss).toBe(1);
-  await expect(page.locator('#hp-text')).toHaveText('28000 / 28000');
+  await expect(page.locator('#hp-text')).toHaveText('34000 / 34000');
   await expectNoErrors(page.errors);
 });
 
@@ -93,7 +93,7 @@ test('チームのHPが0になるとゲームオーバー', async ({ page }) => 
   await waitPhase(page, 'lost');
   await expect(page.locator('#result')).toBeVisible();
   await expect(page.locator('#result-title')).toHaveText('GAME OVER');
-  await expect(page.locator('#hp-text')).toHaveText('0 / 28000');
+  await expect(page.locator('#hp-text')).toHaveText('0 / 34000');
   // 結果画面では撃てない
   expect(await page.evaluate(() => window.__ms.phase)).toBe('lost');
   await expectNoErrors(page.errors);

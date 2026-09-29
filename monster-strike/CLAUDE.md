@@ -16,7 +16,7 @@ index.html
 tests/lint.mjs                    インラインスクリプトの構文、外部参照なし、id の実在、純粋さ
 tests/logic/helpers.mjs           純粋な3つのスクリプトを取り出して Node の vm で読み込む
 tests/logic/bot.mjs               バランス測定用の自動プレイ（greedy / casual / random）
-tests/logic/*.test.mjs            physics（物理）/ battle（戦闘）/ balance（難しさ）
+tests/logic/*.test.mjs            physics（物理）/ battle（戦闘）/ gimmick（ギミック）/ balance（難しさ）
 tests/e2e/*.spec.mjs              Playwright（desktop + mobile）
 ```
 
@@ -63,6 +63,22 @@ HTML コメントの中にスクリプトの開始タグをそのまま書かな
    弾が届いたときに出すが、HP はもう減っている（自動プレイと画面で結果がずれないように）。
 8. 友情コンボは**1ショットにつき味方1体1回**（`comboFired`。`endTurn()` で空にする）。
    弾が飛んでいる間は画面側がターンを締めない（`settling` で待つ）。
+
+## ギミックとアビリティの約束ごと
+
+1. **動きを変えるギミックは物理、HPを減らすギミックは戦闘。**
+   重力バリアは `World.fields` と `_fields()`（入った瞬間に `gravity.enterFactor`、中では `gravity.drag`）。
+   ダメージウォールは `Battle._wall()` が `wall` イベントの辺と位置から判定する。
+2. **アビリティも同じ分け方。** `antiGravity` は物理が `Body.abilities` を見る。
+   `antiDamageWall` は戦闘が `units[id].abilities` を見る。キャラ定義の `abilities` から
+   `Battle.abilityMap()` で両方に渡す（画面側・テストの newGame とも）。
+3. **無効化したときも知らせる**（`gravity` / `dw` の `blocked: true`）。画面で ADW / AGB と出すため。
+   ただし**1回の通過で1回だけ**。無効化したバリアも `fieldsIn` に `false` で入れておき、
+   出るまで知らせない（`in` で判定する。`!fieldsIn[id]` だと毎ステップ出る。実際に出した不具合）。
+4. ギミックはウェーブごと（`waves[i].gimmicks`）。`spawnWave()` が `setFields()` と `damageWalls` を入れ替える。
+5. ダメージウォールで**動いている途中にHPが0になったら、その場で負け**（`state = 'lost'`）。
+   それ以降の `apply()` は何もしない。`endTurn()` は `{ type: 'lost', attacks: [] }` を返す。
+6. 自動プレイの評価は、ダメージウォールで失ったHPを減点する（しないと上手なプレイヤーが壁を踏み続ける）。
 
 ## テスト
 

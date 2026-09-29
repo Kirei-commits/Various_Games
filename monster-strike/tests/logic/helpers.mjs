@@ -35,7 +35,7 @@ export function loadPhysics() {
 export function newGame(mods) {
   const { P, B, D } = mods;
   const world = new P.World();
-  for (const u of D.units) world.add({ id: u.id, kind: 'unit', shot: u.shot, x: u.x, y: u.y, r: u.r });
+  for (const u of D.units) world.add({ id: u.id, kind: 'unit', shot: u.shot, x: u.x, y: u.y, r: u.r, abilities: B.Battle.abilityMap(u.abilities) });
   const battle = new B.Battle(D);
   battle.spawnWave(world);
   return { world, battle };

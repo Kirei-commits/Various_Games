@@ -132,7 +132,8 @@
     stopSpeed: 24,                        // これを下回ったら停止
     wall: { restitution: 0.88 },          // 壁に当たるたびに残る速さの割合
     reflect: { restitution: 0.84 },       // 反射タイプがキャラ・敵に当たるたびに残る速さの割合
-    pierce: { enterFactor: 0.7, insideDrag: 2.5 } // 貫通: 突入時に残る速さ / 通り抜けている間の摩擦倍率
+    pierce: { enterFactor: 0.7, insideDrag: 2.5 }, // 貫通: 突入時に残る速さ / 通り抜けている間の摩擦倍率
+    gravity: { enterFactor: 0.55, drag: 3 }        // 重力バリア: 入った瞬間に残る速さ / 中にいる間の摩擦倍率
   };
 
   function isObj(v) { return v !== null && typeof v === 'object' && !Array.isArray(v); }
@@ -168,6 +169,7 @@
    *  shot    : 'reflect' | 'pierce'（unit のみ）
    *  shape   : 'circle'（x, y, r） | 'rect'（x, y が中心、w, h）
    *  sensors : 当たり判定を持たない円（弱点）。[{ id, dx, dy, r }]（中心からの位置）
+   *  abilities: { antiGravity: true } など。動きに効くアビリティだけを物理が見る
    */
   function Body(o) {
     this.id = o.id;
@@ -183,6 +185,8 @@
     this.traveled = 0;
     this.overlaps = {};   // 貫通中の相手 id（突入の瞬間だけ減速するため）
     this.sensing = {};    // 通過中の弱点（'相手id#弱点id'）
+    this.fieldsIn = {};   // 中にいる重力バリアの id
+    this.abilities = o.abilities || {};
     this.data = o.data || {};
   }
 
@@ -242,9 +246,16 @@
   function World(cfg) {
     this.cfg = mergeDeep(DEFAULTS, cfg || {});
     this.bodies = [];
+    this.fields = [];     // 重力バリア [{ id, x, y, r }]。当たり判定は無く、中を通ると減速する
     this.events = [];
     this.time = 0;
   }
+
+  /** 重力バリアを置き換える（ウェーブごとに変わる） */
+  World.prototype.setFields = function (list) {
+    this.fields = list ? list.slice() : [];
+    for (var i = 0; i < this.bodies.length; i++) this.bodies[i].fieldsIn = {};
+  };
 
   World.prototype.add = function (o) {
     var b = o instanceof Body ? o : new Body(o);
@@ -294,6 +305,7 @@
     b.traveled = 0;
     b.overlaps = {};
     b.sensing = {};
+    b.fieldsIn = {};
     this._emit('launch', b, { speed: Math.hypot(vx, vy) });
     return true;
   };
@@ -317,9 +329,10 @@
   World.prototype._advance = function (b, dt) {
     var c = this.cfg;
     var sp = Math.hypot(b.vx, b.vy);
-    var inside = false;
-    for (var k in b.overlaps) { inside = true; break; }
-    var drag = c.friction.drag * (inside ? c.pierce.insideDrag : 1);
+    var inside = false, heavy = false, k;
+    for (k in b.overlaps) { inside = true; break; }
+    for (k in b.fieldsIn) if (b.fieldsIn[k]) { heavy = true; break; }
+    var drag = c.friction.drag * Math.max(inside ? c.pierce.insideDrag : 1, heavy ? c.gravity.drag : 1);
     var next = sp - (c.friction.linear + drag * sp) * dt;
     if (next <= c.stopSpeed) { this._stop(b); return; }
 
@@ -331,6 +344,31 @@
 
     this._walls(b);
     this._collide(b);
+    if (this.fields.length) this._fields(b);
+  };
+
+  /**
+   * 重力バリア: 入った瞬間に大きく減速し、中にいる間は摩擦が強い。
+   * アンチ重力バリアを持つキャラは影響を受けない（演出のために blocked 付きで知らせる）。
+   */
+  World.prototype._fields = function (b) {
+    for (var i = 0; i < this.fields.length; i++) {
+      var f = this.fields[i];
+      var inside = Math.hypot(b.x - f.x, b.y - f.y) < f.r + b.r * 0.5;
+      if (inside && !(f.id in b.fieldsIn)) {
+        var blocked = !!b.abilities.antiGravity;
+        if (!blocked) {
+          b.fieldsIn[f.id] = true;
+          b.vx *= this.cfg.gravity.enterFactor;
+          b.vy *= this.cfg.gravity.enterFactor;
+        } else {
+          b.fieldsIn[f.id] = false;   // 入ったことだけ覚える（出るまで何度も知らせない）
+        }
+        this._emit('gravity', b, { field: f.id, blocked: blocked, speed: b.speed() });
+      } else if (!inside && f.id in b.fieldsIn) {
+        delete b.fieldsIn[f.id];
+      }
+    }
   };
 
   World.prototype._walls = function (b) {
@@ -457,6 +495,7 @@
     b.moving = false;
     b.overlaps = {};
     b.sensing = {};
+    b.fieldsIn = {};
     this._resolve(b);
     this._emit('stop', b, { traveled: b.traveled });
   };
@@ -466,12 +505,14 @@
     var w = new World();
     w.cfg = this.cfg;
     w.time = this.time;
+    w.fields = this.fields;
     for (var i = 0; i < this.bodies.length; i++) {
       var s = this.bodies[i];
-      var b = new Body({ id: s.id, kind: s.kind, shot: s.shot, shape: s.shape, x: s.x, y: s.y, r: s.r, w: s.w, h: s.h, sensors: s.sensors });
+      var b = new Body({ id: s.id, kind: s.kind, shot: s.shot, shape: s.shape, x: s.x, y: s.y, r: s.r, w: s.w, h: s.h, sensors: s.sensors, abilities: s.abilities });
       b.vx = s.vx; b.vy = s.vy; b.moving = s.moving; b.traveled = s.traveled;
       for (var k in s.overlaps) b.overlaps[k] = true;
       for (var q in s.sensing) b.sensing[q] = true;
+      for (var f in s.fieldsIn) b.fieldsIn[f] = s.fieldsIn[f];
       w.bodies.push(b);
     }
     return w;
@@ -533,7 +574,9 @@
   function Battle(data) {
     var self = this;
     this.units = {};
-    data.units.forEach(function (u) { self.units[u.id] = { id: u.id, atk: u.atk, shot: u.shot, combo: u.combo || null }; });
+    data.units.forEach(function (u) {
+      self.units[u.id] = { id: u.id, atk: u.atk, shot: u.shot, combo: u.combo || null, abilities: abilityMap(u.abilities) };
+    });
     this.stage = data.stage;
     this.teamHpMax = data.stage.teamHp;
     this.teamHp = this.teamHpMax;
@@ -541,17 +584,31 @@
     this.turn = 1;
     this.enemies = [];
     this.state = 'playing';   // playing | won | lost
-    this.stats = { damage: 0, hits: 0, weak: 0, kills: 0, combos: 0 };
+    this.stats = { damage: 0, hits: 0, weak: 0, kills: 0, combos: 0, dwHits: 0, dwBlocked: 0, gravity: 0, gravityBlocked: 0 };
     this.comboFired = {};     // このターンに友情コンボを出した味方（1ショット1回）
     this.combos = [];         // 発動した友情コンボ（演出用。drainCombos() で受け取る）
+    this.hazards = [];        // ギミックに触れた記録（演出用。drainHazards() で受け取る）
+    this.damageWalls = [];    // いまのウェーブのダメージウォール
   }
 
   Battle.WEAK_RATE = WEAK_RATE;
 
+  /** ['antiDamageWall'] → { antiDamageWall: true } */
+  function abilityMap(list) {
+    var m = {};
+    (list || []).forEach(function (a) { m[a] = true; });
+    return m;
+  }
+  Battle.abilityMap = abilityMap;
+
   /** 次のウェーブの敵を World に出す。出現位置に味方がいたら押し出す。 */
   Battle.prototype.spawnWave = function (world) {
     this.wave++;
-    var defs = this.stage.waves[this.wave].enemies;
+    var wave = this.stage.waves[this.wave];
+    var defs = wave.enemies;
+    var g = wave.gimmicks || {};
+    this.damageWalls = g.damageWalls || [];
+    world.setFields(g.gravity || []);
     this.enemies = defs.map(function (d) {
       return { id: d.id, def: d, hp: d.hp, maxHp: d.hp, counter: d.turns, alive: true };
     });
@@ -601,6 +658,12 @@
         this._combo(ev.other, ev.id, world, out);
         continue;
       }
+      if (ev.type === 'wall') { this._wall(u, ev); if (this.state !== 'playing') break; continue; }
+      if (ev.type === 'gravity') {
+        this.stats[ev.blocked ? 'gravityBlocked' : 'gravity']++;
+        this.hazards.push({ kind: 'gravity', unit: u.id, blocked: ev.blocked, x: ev.x, y: ev.y, field: ev.field });
+        continue;
+      }
       var weak;
       if (ev.type === 'hit') weak = !!ev.weak;
       else if (ev.type === 'pierce') weak = false;
@@ -612,6 +675,44 @@
       out.push(this._damage(e, u.id, Math.round(u.atk * (weak ? WEAK_RATE : 1)), weak, ev.x, ev.y, null, world));
     }
     return out;
+  };
+
+  /** 壁の辺と、辺に沿った位置（ダメージウォールの範囲と比べる） */
+  function wallSide(ev) {
+    if (ev.nx === 1) return { side: 'left', at: ev.y };
+    if (ev.nx === -1) return { side: 'right', at: ev.y };
+    if (ev.ny === 1) return { side: 'top', at: ev.x };
+    return { side: 'bottom', at: ev.x };
+  }
+
+  /**
+   * ダメージウォール: 触れるたびにチームのHPが減る（アンチダメージウォールなら無効）。
+   * 動いている途中でHPが0になったら、その場で負けが決まる。
+   */
+  Battle.prototype._wall = function (u, ev) {
+    var ws = wallSide(ev);
+    for (var i = 0; i < this.damageWalls.length; i++) {
+      var dw = this.damageWalls[i];
+      if (dw.side !== ws.side || ws.at < dw.from || ws.at > dw.to) continue;
+      var h = { kind: 'dw', unit: u.id, x: ev.x - ev.nx * 30, y: ev.y - ev.ny * 30, nx: ev.nx, ny: ev.ny, blocked: !!u.abilities.antiDamageWall, damage: 0 };
+      if (h.blocked) {
+        this.stats.dwBlocked++;
+      } else {
+        this.stats.dwHits++;
+        h.damage = dw.damage;
+        this.teamHp = Math.max(0, this.teamHp - dw.damage);
+        if (this.teamHp === 0) this.state = 'lost';
+      }
+      h.hpAfter = this.teamHp;
+      this.hazards.push(h);
+      return;
+    }
+  };
+
+  Battle.prototype.drainHazards = function () {
+    var h = this.hazards;
+    this.hazards = [];
+    return h;
   };
 
   Battle.prototype._damage = function (e, unitId, dmg, weak, x, y, combo, world) {
@@ -752,7 +853,10 @@
     b.enemies = this.enemies.map(function (e) {
       return { id: e.id, def: e.def, hp: e.hp, maxHp: e.maxHp, counter: e.counter, alive: e.alive };
     });
-    b.stats = { damage: this.stats.damage, hits: this.stats.hits, weak: this.stats.weak, kills: this.stats.kills, combos: this.stats.combos };
+    b.stats = {};
+    for (var s in this.stats) b.stats[s] = this.stats[s];
+    b.damageWalls = this.damageWalls;
+    b.hazards = [];
     b.comboFired = {};
     for (var k in this.comboFired) b.comboFired[k] = true;
     b.combos = [];
@@ -773,16 +877,17 @@
    *  homing : count 発の弾が近い敵から順に飛ぶ（1発 power）
    *  laser  : このキャラを通る縦・横の2本のビーム（幅 width）。触れた敵に power
    *  blast  : このキャラを中心に半径 radius の爆発。範囲内の敵に power
+   * abilities: 'antiDamageWall'（ダメージウォールを無効） / 'antiGravity'（重力バリアを無効）
    */
   var units = [
     { id: 'A', name: 'A', shot: 'reflect', atk: 1500, x: 130, y: 690, r: 30,
-      colors: ['#c9fbff', '#39b8ff', '#0b3f8a'], accent: '#3cc8ff',
+      colors: ['#c9fbff', '#39b8ff', '#0b3f8a'], accent: '#3cc8ff', abilities: ['antiDamageWall'],
       combo: { kind: 'homing', name: 'ホーミング', count: 6, power: 500 } },
     { id: 'B', name: 'B', shot: 'pierce', atk: 1800, x: 270, y: 715, r: 30,
-      colors: ['#ffe7b8', '#ff7a45', '#8a1f14'], accent: '#ff7a45',
+      colors: ['#ffe7b8', '#ff7a45', '#8a1f14'], accent: '#ff7a45', abilities: ['antiGravity'],
       combo: { kind: 'laser', name: 'クロスレーザー', power: 1800, width: 34 } },
     { id: 'C', name: 'C', shot: 'reflect', atk: 1300, x: 410, y: 690, r: 30,
-      colors: ['#fff3c2', '#f5b82e', '#7a4d06'], accent: '#f5c451',
+      colors: ['#fff3c2', '#f5b82e', '#7a4d06'], accent: '#f5c451', abilities: [],
       combo: { kind: 'blast', name: '爆発', power: 2500, radius: 150 } }
   ];
 
@@ -793,10 +898,14 @@
    * attack: 'single'（いちばん近い味方をねらう） / 'all'（全体）。どちらもチームのHPを減らす
    * turns : 攻撃までのターン数（攻撃したら元に戻る）
    * weak  : 弱点（中心からの位置と半径）
+   *
+   * gimmicks（ウェーブごと）:
+   *  damageWalls: 壁の一部に電気が走る。side の from〜to（辺に沿った位置）に触れるたび damage
+   *  gravity    : 重力バリア（円）。入ると大きく減速する
    */
   var stage = {
     name: 'はじまりの洞窟',
-    teamHp: 28000,
+    teamHp: 34000,
     waves: [
       { enemies: [
         { id: 'w1-slime-l', name: 'スライム', look: 'slime', colors: SLIME, shape: 'circle', x: 120, y: 220, r: 40,
@@ -805,7 +914,12 @@
           hp: 7000, atk: 2000, turns: 4, attack: 'single' },
         { id: 'w1-golem', name: 'ブロックゴーレム', look: 'golem', shape: 'rect', x: 270, y: 420, w: 160, h: 56,
           hp: 12000, atk: 3500, turns: 3, attack: 'all' }
-      ] },
+      ], gimmicks: {
+        damageWalls: [
+          { side: 'left', from: 120, to: 520, damage: 800 },
+          { side: 'right', from: 120, to: 520, damage: 800 }
+        ]
+      } },
       { enemies: [
         { id: 'w2-dragon', name: 'レッドドラゴン', boss: true, look: 'dragon', shape: 'circle', x: 270, y: 250, r: 84,
           hp: 55000, atk: 6000, turns: 3, attack: 'all', weak: [{ id: 'belly', dx: 0, dy: 84, r: 22 }] },
@@ -813,7 +927,11 @@
           hp: 5000, atk: 1500, turns: 2, attack: 'single' },
         { id: 'w2-bat-r', name: 'コウモリ', look: 'slime', colors: BAT, shape: 'circle', x: 440, y: 470, r: 32,
           hp: 5000, atk: 1500, turns: 3, attack: 'single' }
-      ] }
+      ], gimmicks: {
+        damageWalls: [{ side: 'top', from: 90, to: 450, damage: 1000 }],
+        // ドラゴンの弱点（お腹）への道をふさぐ
+        gravity: [{ id: 'g-belly', x: 270, y: 430, r: 58 }]
+      } }
     ]
   };
 
@@ -829,6 +947,10 @@
   var P = window.MSPhysics, BT = window.MSBattle, D = window.MSData;
   var WALL = 22;                    // 画面上の壁の厚み（論理px）。フィールドの外側に描く
   var SHOT_LABEL = { reflect: '反射', pierce: '貫通' };
+  var ABILITY = {
+    antiDamageWall: { short: 'ADW', name: 'アンチダメージウォール', color: '#ffe066' },
+    antiGravity: { short: 'AGB', name: 'アンチ重力バリア', color: '#c79bff' }
+  };
 
   var canvas = document.getElementById('field');
   var ctx = canvas.getContext('2d');
@@ -863,12 +985,12 @@
   };
   var shownHp = 0;    // 画面に出しているチームHP（敵の攻撃が当たった瞬間に減らす）
   var pull = null;    // { pointerId, sx, sy, dx, dy, aim }
-  var fx = { particles: [], rings: [], texts: [], bullets: [], beams: [], blasts: [], shake: 0, hitStop: 0, hurt: 0 };
+  var fx = { particles: [], rings: [], texts: [], bullets: [], beams: [], blasts: [], shake: 0, hitStop: 0, hurt: 0, wallFlash: {} };
 
   function buildWorld() {
     world = new P.World(cfgOverrides);
     units = D.units.map(function (u) {
-      var b = world.add({ id: u.id, kind: 'unit', shot: u.shot, x: u.x, y: u.y, r: u.r });
+      var b = world.add({ id: u.id, kind: 'unit', shot: u.shot, x: u.x, y: u.y, r: u.r, abilities: BT.Battle.abilityMap(u.abilities) });
       return { def: u, body: b, facing: -Math.PI / 2, squash: 0, trail: [], glow: 0 };
     });
     battle = new BT.Battle(D);
@@ -882,7 +1004,7 @@
     pull = null;
     fx.particles.length = 0; fx.rings.length = 0; fx.texts.length = 0;
     fx.bullets.length = 0; fx.beams.length = 0; fx.blasts.length = 0;
-    fx.shake = 0; fx.hitStop = 0; fx.hurt = 0;
+    fx.shake = 0; fx.hitStop = 0; fx.hurt = 0; fx.wallFlash = {};
     canvas.classList.remove('pulling');
     el.result.hidden = true;
     updateHud();
@@ -960,6 +1082,9 @@
       wave: function () { tone(440, 440, 0.12, 'square', 0.06); tone(660, 660, 0.12, 'square', 0.06, 0.13); tone(880, 880, 0.2, 'square', 0.06, 0.26); },
       win: function () { [523, 659, 784, 1047].forEach(function (f, i) { tone(f, f, 0.25, 'triangle', 0.1, i * 0.12); }); },
       lose: function () { [392, 330, 262].forEach(function (f, i) { tone(f, f * 0.97, 0.35, 'sawtooth', 0.06, i * 0.22); }); },
+      zap: function () { noise(0.18, 0.3, 5000); tone(90, 60, 0.2, 'square', 0.12); },
+      shield: function () { tone(1600, 2400, 0.08, 'sine', 0.06); },
+      gravity: function () { tone(300, 70, 0.4, 'sine', 0.14); },
       combo: function () { tone(880, 1320, 0.1, 'triangle', 0.1); tone(1320, 1760, 0.14, 'triangle', 0.09, 0.08); },
       laser: function () { tone(1800, 300, 0.45, 'sawtooth', 0.07); noise(0.3, 0.12, 4000); },
       blast: function () { noise(0.6, 0.4, 250); tone(160, 40, 0.5, 'sine', 0.25); },
@@ -1166,6 +1291,99 @@
     }
   }
 
+  // ---------------------------------------------------------------- ギミックの演出
+  function handleHazards(list) {
+    for (var i = 0; i < list.length; i++) {
+      var h = list[i], u = unitById(h.unit);
+      if (h.kind === 'dw') {
+        var side = h.nx === 1 ? 'left' : h.nx === -1 ? 'right' : h.ny === 1 ? 'top' : 'bottom';
+        fx.wallFlash[side] = 1;
+        if (h.blocked) {
+          burst(h.x, h.y, h.nx, h.ny, 8, '#9fe8ff', 220);
+          floatText(u.body.x, u.body.y - 44, ABILITY.antiDamageWall.short, ABILITY.antiDamageWall.color, 14, 0.7);
+          sound.shield();
+        } else {
+          burst(h.x, h.y, h.nx, h.ny, 18, '#ffe066', 420);
+          ring(h.x, h.y, 30, '#ffe066');
+          floatText(u.body.x, u.body.y - 44, '-' + h.damage, '#ff6b6b', 20, 0.9);
+          shownHp = h.hpAfter;
+          fx.hurt = Math.max(fx.hurt, 0.6);
+          fx.shake = Math.max(fx.shake, 8);
+          u.squash = 1;
+          sound.zap();
+          updateHud();
+        }
+      } else if (h.kind === 'gravity') {
+        if (h.blocked) {
+          floatText(u.body.x, u.body.y - 44, ABILITY.antiGravity.short, ABILITY.antiGravity.color, 14, 0.7);
+          sound.shield();
+        } else {
+          ring(u.body.x, u.body.y, 46, '#b58cff');
+          floatText(u.body.x, u.body.y - 44, '重力!', '#c79bff', 16, 0.8);
+          sound.gravity();
+        }
+      }
+    }
+  }
+
+  function drawGimmicks(t) {
+    var W = world.cfg.field.w, H = world.cfg.field.h, i;
+    // 重力バリア: 紫の渦
+    for (i = 0; i < world.fields.length; i++) {
+      var f = world.fields[i];
+      var g = ctx.createRadialGradient(f.x, f.y, 0, f.x, f.y, f.r);
+      g.addColorStop(0, 'rgba(120,60,220,.55)'); g.addColorStop(0.7, 'rgba(90,40,180,.3)'); g.addColorStop(1, 'rgba(90,40,180,.05)');
+      ctx.fillStyle = g;
+      ctx.beginPath(); ctx.arc(f.x, f.y, f.r, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = 'rgba(200,160,255,.75)'; ctx.lineWidth = 2;
+      ctx.setLineDash([6, 6]);
+      ctx.beginPath(); ctx.arc(f.x, f.y, f.r, t * 0.8, t * 0.8 + Math.PI * 2); ctx.stroke();
+      ctx.setLineDash([]);
+      // 吸い込まれる輪
+      for (var k = 0; k < 3; k++) {
+        var ph = ((t * 0.6 + k / 3) % 1);
+        ctx.strokeStyle = 'rgba(210,180,255,' + (0.5 * ph).toFixed(3) + ')';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath(); ctx.arc(f.x, f.y, f.r * (1 - ph) + 4, 0, Math.PI * 2); ctx.stroke();
+      }
+      ctx.save(); ctx.translate(f.x, f.y); ctx.rotate(-t * 1.5);
+      ctx.strokeStyle = 'rgba(230,210,255,.6)'; ctx.lineWidth = 2.5;
+      for (var a = 0; a < 3; a++) {
+        ctx.rotate(Math.PI * 2 / 3);
+        ctx.beginPath(); ctx.arc(f.r * 0.25, 0, f.r * 0.45, Math.PI * 0.9, Math.PI * 1.6); ctx.stroke();
+      }
+      ctx.restore();
+    }
+    // ダメージウォール: 壁に沿って走る電気
+    var walls = battle.damageWalls;
+    for (i = 0; i < walls.length; i++) {
+      var dw = walls[i], flash = fx.wallFlash[dw.side] || 0;
+      var pts = [], n = Math.max(2, Math.round((dw.to - dw.from) / 14));
+      for (var j = 0; j <= n; j++) {
+        var along = dw.from + (dw.to - dw.from) * j / n;
+        var jit = (j === 0 || j === n) ? 0 : Math.sin(j * 12.9898 + Math.floor(t * 20) * 78.233) * 5;
+        var off = 3 + jit;
+        if (dw.side === 'left') pts.push([off, along]);
+        else if (dw.side === 'right') pts.push([W - off, along]);
+        else if (dw.side === 'top') pts.push([along, off]);
+        else pts.push([along, H - off]);
+      }
+      // 帯（どこが危ないか、止まっていても分かるように）
+      ctx.fillStyle = 'rgba(255,210,60,' + (0.16 + 0.3 * flash).toFixed(3) + ')';
+      if (dw.side === 'left') ctx.fillRect(0, dw.from, 8, dw.to - dw.from);
+      else if (dw.side === 'right') ctx.fillRect(W - 8, dw.from, 8, dw.to - dw.from);
+      else if (dw.side === 'top') ctx.fillRect(dw.from, 0, dw.to - dw.from, 8);
+      else ctx.fillRect(dw.from, H - 8, dw.to - dw.from, 8);
+      ctx.lineJoin = 'round';
+      [[8 + 6 * flash, 'rgba(255,200,40,.35)'], [3, '#ffe066'], [1.2, '#fffbe0']].forEach(function (st) {
+        ctx.strokeStyle = st[1]; ctx.lineWidth = st[0];
+        ctx.beginPath();
+        pts.forEach(function (p, idx) { if (idx) ctx.lineTo(p[0], p[1]); else ctx.moveTo(p[0], p[1]); });
+        ctx.stroke();
+      });
+    }
+  }
+
   // ---------------------------------------------------------------- 友情コンボの演出
   //（ダメージは Battle がその場で入れている。ここは見せ方だけ）
   var COMBO_COLOR = { homing: '#7df0ff', laser: '#ff9a6b', blast: '#ffd166' };
@@ -1291,6 +1509,7 @@
             handleEvents(evs);
             handleDamage(battle.apply(evs, world));
             startCombos(battle.drainCombos());
+            handleHazards(battle.drainHazards());
             if (fx.hitStop > 0) { game.acc = 0; break; }
           }
         }
@@ -1334,6 +1553,7 @@
     }
     fx.shake = Math.max(0, fx.shake - dt * 30);
     fx.hurt = Math.max(0, fx.hurt - dt * 2.5);
+    for (var side in fx.wallFlash) fx.wallFlash[side] = Math.max(0, fx.wallFlash[side] - dt * 3);
     updateFx(dt);
   }
 
@@ -1354,6 +1574,11 @@
       game.phase = 'ending';
       game.ending = 'won';
       game.timer = 0.6;
+    } else if (res.type === 'lost' && !res.attacks.length) {
+      // ダメージウォールで力尽きた
+      game.phase = 'ending';
+      game.ending = 'lost';
+      game.timer = 0.4;
     } else if (res.attacks.length) {
       game.phase = 'enemy';
       game.attacks = res.attacks.slice();
@@ -1444,7 +1669,11 @@
     else if (game.phase === 'enemy') help = '敵の攻撃！ 数字が<b>0</b>になった敵が攻撃してきます。';
     else if (game.phase === 'wave') help = '次のウェーブ！';
     else if (game.phase === 'won' || game.phase === 'lost' || game.phase === 'ending') help = '';
-    else help = '<b>' + u.def.name + '（' + SHOT_LABEL[u.def.shot] + '）</b>の番。止まっている<b>味方に当てると友情コンボ</b>、光る<b>弱点</b>は3倍ダメージ。';
+    else {
+      var ab = (u.def.abilities || []).map(function (a) { return ABILITY[a].name; });
+      help = '<b>' + u.def.name + '（' + SHOT_LABEL[u.def.shot] + (ab.length ? '・' + ab.join('・') : '') + '）</b>の番。'
+        + '<b>味方に当てると友情コンボ</b>。黄色い<b>電気の壁</b>はHPが減り、紫の<b>重力バリア</b>は大きく減速。';
+    }
     el.help.innerHTML = help;
     canvas.dataset.phase = game.phase;
   }
@@ -1560,6 +1789,7 @@
 
     var t = now / 1000;
     var i, alive = battle.alive();
+    drawGimmicks(t);
     for (i = 0; i < alive.length; i++) drawEnemy(alive[i], t);
     for (i = 0; i < alive.length; i++) drawWeak(alive[i], t);
     if (game.mover) drawTrail(game.mover);
@@ -1917,14 +2147,23 @@
     ctx.beginPath(); ctx.ellipse(b.x - r * 0.35, b.y - r * 0.5, r * 0.35, r * 0.16, -0.5, 0, Math.PI * 2); ctx.fill();
 
     var label = u.def.name + ' ' + SHOT_LABEL[u.def.shot];
+    var abil = (u.def.abilities || []).map(function (a) { return ABILITY[a]; });
     ctx.font = '700 12px "Hiragino Sans","Noto Sans JP",system-ui,sans-serif';
-    var tw = ctx.measureText(label).width + 12;
-    var ly = b.y + r + 10;
+    var lw = ctx.measureText(label).width;
+    ctx.font = '800 10px "Hiragino Sans","Noto Sans JP",system-ui,sans-serif';
+    var aw = abil.reduce(function (a, x) { return a + ctx.measureText(x.short).width + 6; }, 0);
+    var tw = lw + aw + 12;
+    var ly = b.y + r + 10, lx = b.x - tw / 2;
     ctx.fillStyle = 'rgba(6,10,24,.75)';
-    roundRect(ctx, b.x - tw / 2, ly, tw, 18, 9); ctx.fill();
+    roundRect(ctx, lx, ly, tw, 18, 9); ctx.fill();
+    ctx.textBaseline = 'middle'; ctx.textAlign = 'left';
+    ctx.font = '700 12px "Hiragino Sans","Noto Sans JP",system-ui,sans-serif';
     ctx.fillStyle = u.def.accent;
-    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.fillText(label, b.x, ly + 9.5);
+    ctx.fillText(label, lx + 6, ly + 9.5);
+    ctx.font = '800 10px "Hiragino Sans","Noto Sans JP",system-ui,sans-serif';
+    var ax = lx + 6 + lw + 6;
+    abil.forEach(function (x) { ctx.fillStyle = x.color; ctx.fillText(x.short, ax, ly + 10); ax += ctx.measureText(x.short).width + 6; });
+    ctx.textAlign = 'center';
     if (u.def.combo) {
       ctx.font = '700 10px "Hiragino Sans","Noto Sans JP",system-ui,sans-serif';
       ctx.fillStyle = 'rgba(220,230,255,.75)';

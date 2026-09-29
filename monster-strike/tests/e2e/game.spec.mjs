@@ -6,7 +6,7 @@ test('起動するとフィールドが描かれ、Aの番から始まる', asyn
   await expect(page.locator('#field')).toBeVisible();
   await expect(page.locator('#turn')).toHaveText('1');
   await expect(page.locator('#wave')).toHaveText('1/2');
-  await expect(page.locator('#hp-text')).toHaveText('28000 / 28000');
+  await expect(page.locator('#hp-text')).toHaveText('34000 / 34000');
   expect(await page.evaluate(() => window.__ms.battle.alive().length)).toBe(3);
   await expect(page.locator('#active-name')).toHaveText('A');
   await expect(page.locator('#active-type')).toHaveText('反射');
@@ -67,8 +67,8 @@ test('下に引いて離すと上へ飛び、止まるとターンが進んで B
   const before = await body(page, 'A');
   await pullUnit(page, 'A', 0, 120);
   expect(await phase(page)).toBe('moving');
-  await page.waitForFunction(() => window.__ms.body('A').y < 600);
-  const flying = await body(page, 'A');
+  // 位置と速度は同じフレームで読む（別々に読むと、その間にスライムで跳ね返っていることがある）
+  const flying = await (await page.waitForFunction(() => { const b = window.__ms.body('A'); return b.y < 600 && b; })).jsonValue();
   expect(flying.y).toBeLessThan(before.y);
   expect(flying.vy).toBeLessThan(0);
 

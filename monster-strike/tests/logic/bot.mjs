@@ -27,8 +27,8 @@ function randomShot(cfg, random) {
   return [Math.cos(ang) * sp, Math.sin(ang) * sp];
 }
 
-/** 先読みの評価: 与ダメージ + 撃破ボーナス。攻撃が近い敵を優先して倒す */
-function score(battle, records) {
+/** 先読みの評価: 与ダメージ + 撃破ボーナス − ダメージウォールで失ったHP。攻撃が近い敵を優先して倒す */
+function score(battle, records, hpBefore) {
   let s = 0;
   for (const r of records) {
     s += r.damage;
@@ -37,6 +37,8 @@ function score(battle, records) {
       s += 4000 + 3000 / Math.max(1, e.counter);
     }
   }
+  s -= (hpBefore - battle.teamHp) * 2;
+  if (battle.state === 'lost') s -= 1e7;
   return s;
 }
 
@@ -50,12 +52,12 @@ export function play(mods, { policy = 'greedy', random = Math.random, maxTurns =
     const id = order[active];
     let v;
     if (policy === 'greedy' || policy === 'casual') {
-      let best = -1;
+      let best = -Infinity;   // ダメージウォールで減点されると負の値になる
       const pool = policy === 'greedy' ? cands : Array.from({ length: 4 }, () => randomShot(world.cfg, random));
       for (const c of pool) {
         const w = world.clone();
         const b = battle.clone();
-        const s = score(b, shoot(w, b, id, c[0], c[1]));
+        const s = score(b, shoot(w, b, id, c[0], c[1]), battle.teamHp);
         if (s > best) { best = s; v = c; }
       }
     } else {
