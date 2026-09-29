@@ -1239,13 +1239,13 @@
    "role": "A",
    "chapter": "ch08",
    "id": "keep-someone-posted",
-   "model": "gemini-3.1-flash-tts-preview",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Achird",
-   "sig": "3cdc309c15cc",
-   "rev": 1,
-   "seconds": 1.57,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "b21bcce42e36",
+   "rev": 2,
+   "seconds": 1.68,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "00313572f9f3b3": {
    "key": "P|draw",
@@ -6755,13 +6755,13 @@
    "role": "P",
    "chapter": "ch102",
    "id": "round-up",
-   "model": "gemini-3.1-flash-tts-preview",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Erinome",
-   "sig": "81043be16fc1",
-   "rev": 1,
-   "seconds": 0.88,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "ceac26589389",
+   "rev": 2,
+   "seconds": 1.16,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "011e8c393de683": {
    "key": "P|It's pay-to-win.",
@@ -10829,13 +10829,13 @@
    "role": "P",
    "chapter": "ch106",
    "id": "entree",
-   "model": "gemini-3.1-flash-tts-preview",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Erinome",
-   "sig": "55263aecc4f5",
-   "rev": 1,
-   "seconds": 0.78,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "84e957e7d4ab",
+   "rev": 2,
+   "seconds": 1.16,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "01cc836a4a3aa5": {
    "key": "P|Anyway, as I was saying…",
@@ -24353,13 +24353,13 @@
    "role": "P",
    "chapter": "ch11",
    "id": "stomachache",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Erinome",
-   "sig": "428c1e49e64f",
-   "rev": 1,
-   "seconds": 0.96,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "3a5198c80ef8",
+   "rev": 2,
+   "seconds": 1.4,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "043531875c6ce3": {
    "key": "A|Wipe the table, please.",
@@ -110355,13 +110355,13 @@
    "role": "P",
    "chapter": "ch14",
    "id": "get-by",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Erinome",
-   "sig": "36886b307d13",
-   "rev": 1,
-   "seconds": 0.62,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "18363c5ab7c0",
+   "rev": 2,
+   "seconds": 1.12,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "13358d6a0dfbdf": {
    "key": "B|I have mixed feelings about it.",
@@ -127491,13 +127491,13 @@
    "role": "A",
    "chapter": "ch07",
    "id": "customs",
-   "model": "gemini-2.5-flash-preview-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Achird",
-   "sig": "df0bc466c3b3",
-   "rev": 1,
-   "seconds": 1.72,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "99d726839320",
+   "rev": 2,
+   "seconds": 1.84,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "161a315ff99646": {
    "key": "A|I have yogurt for breakfast.",
@@ -133021,13 +133021,13 @@
    "role": "P",
    "chapter": "ch09",
    "id": "save-me-a-seat",
-   "model": "gemini-3.1-flash-tts-preview",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Erinome",
-   "sig": "794c70d60a0b",
-   "rev": 1,
-   "seconds": 1.1,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "7829b38c55ab",
+   "rev": 2,
+   "seconds": 1.28,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "17304c1d817b5b": {
    "key": "A|I got this jacket for ten dollars.",
@@ -144851,13 +144851,13 @@
    "role": "P",
    "chapter": "ch110",
    "id": "dash",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Erinome",
-   "sig": "e809baed6b01",
-   "rev": 1,
-   "seconds": 0.77,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "e76c97468233",
+   "rev": 2,
+   "seconds": 1.24,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "193454ca97afdf": {
    "key": "A|Dinosaurs are extinct.",
@@ -153741,13 +153741,13 @@
    "role": "P",
    "chapter": "ch10",
    "id": "break-up",
-   "model": "gemini-3.1-flash-tts-preview",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Erinome",
-   "sig": "1f16ace3732b",
-   "rev": 1,
-   "seconds": 0.72,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "fe80bd91ca91",
+   "rev": 2,
+   "seconds": 1.28,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "1ac627d8694c3c": {
    "key": "P|many",
@@ -159649,13 +159649,13 @@
    "role": "A",
    "chapter": "ch109",
    "id": "grilled",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Achird",
-   "sig": "0a7ff39f28b0",
-   "rev": 1,
-   "seconds": 1.43,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "7bf6177e2607",
+   "rev": 2,
+   "seconds": 1.56,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "1bdb990cb1e205": {
    "key": "A|Could you speak a little more slowly?",
@@ -161427,13 +161427,13 @@
    "role": "P",
    "chapter": "ch09",
    "id": "lets-play-it-by-ear",
-   "model": "gemini-3.1-flash-tts-preview",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Erinome",
-   "sig": "0ee0e4c3e751",
-   "rev": 1,
-   "seconds": 1.34,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "52793ea3f550",
+   "rev": 2,
+   "seconds": 1.56,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "1c1faf1be99442": {
    "key": "P|It's an emergency.",
@@ -181685,13 +181685,13 @@
    "role": "A",
    "chapter": "ch105",
    "id": "lowkey",
-   "model": "gemini-3.1-flash-tts-preview",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Achird",
-   "sig": "e589a52038bb",
-   "rev": 1,
-   "seconds": 1.7,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "ac29504cfce1",
+   "rev": 2,
+   "seconds": 1.52,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "1f9da7bd170958": {
    "key": "P|clothes",
