@@ -519,6 +519,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "0019c2db1916c3": {
+   "key": "P|know",
+   "text": "know",
+   "role": "P",
+   "chapter": "ch51",
+   "id": "know",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "03df1d6b690a",
+   "rev": 1,
+   "seconds": 0.68,
+   "via": "batch",
+   "at": "2026-09-29"
+  },
   "0019c7d26a2a9a": {
    "key": "B|My friend invited me.",
    "text": "My friend invited me.",
@@ -13321,13 +13335,13 @@
    "role": "A",
    "chapter": "ch07",
    "id": "round-trip",
-   "model": "gemini-2.5-flash-preview-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Achird",
-   "sig": "f36c4cc6f38d",
-   "rev": 1,
-   "seconds": 1.5,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "0fb1de6836f0",
+   "rev": 2,
+   "seconds": 1.56,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "02416b805c340d": {
    "key": "A|Do you think the new plan will work?",
@@ -32557,13 +32571,13 @@
    "role": "B",
    "chapter": "ch04",
    "id": "do-the-laundry",
-   "model": "gemini-2.5-flash-preview-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Callirrhoe",
-   "sig": "b7a475da31ac",
-   "rev": 1,
-   "seconds": 1.24,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "4eddac95345a",
+   "rev": 2,
+   "seconds": 1.6,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "059b1d81ad20bf": {
    "key": "P|compromise",
@@ -46660,6 +46674,20 @@
    "sig": "c3e4795c1068",
    "rev": 1,
    "seconds": 1.28,
+   "via": "batch",
+   "at": "2026-09-29"
+  },
+  "0805b694aaf5f5": {
+   "key": "P|exchange rate",
+   "text": "exchange rate",
+   "role": "P",
+   "chapter": "ch23",
+   "id": "exchange-rate",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "fcd789ab40e1",
+   "rev": 1,
+   "seconds": 1.24,
    "via": "batch",
    "at": "2026-09-29"
   },
@@ -63264,6 +63292,20 @@
    "sig": "77cf1b00bdff",
    "rev": 1,
    "seconds": 2.0,
+   "via": "batch",
+   "at": "2026-09-29"
+  },
+  "0afec3b205309e": {
+   "key": "B|You're not alone. I've felt that way too.",
+   "text": "You're not alone. I've felt that way too.",
+   "role": "B",
+   "chapter": "ch41",
+   "id": "youre-not-alone",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "75f610a82f5a",
+   "rev": 1,
+   "seconds": 2.76,
    "via": "batch",
    "at": "2026-09-29"
   },
@@ -80283,13 +80325,13 @@
    "role": "A",
    "chapter": "ch01",
    "id": "bless-you",
-   "model": "gemini-2.5-flash-preview-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Achird",
-   "sig": "4ef3569da7fa",
-   "rev": 1,
-   "seconds": 0.73,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "b08cf63a3fe6",
+   "rev": 2,
+   "seconds": 1.0,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "0dd96f7d74be45": {
    "key": "P|realtor",
@@ -93255,6 +93297,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "100fa79c710a6b": {
+   "key": "P|make up for",
+   "text": "make up for",
+   "role": "P",
+   "chapter": "ch14",
+   "id": "make-up-for",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Erinome",
+   "sig": "e1fd8d0cd424",
+   "rev": 1,
+   "seconds": 1.16,
+   "via": "batch",
+   "at": "2026-09-29"
+  },
   "10121aa19c1122": {
    "key": "A|Do you want to join our soccer team?",
    "text": "Do you want to join our soccer team?",
@@ -94619,13 +94675,13 @@
    "role": "P",
    "chapter": "ch05",
    "id": "for-here-or-to-go",
-   "model": "gemini-2.5-flash-preview-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Erinome",
-   "sig": "81acd5ebca0c",
-   "rev": 1,
-   "seconds": 1.54,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "097b709eb368",
+   "rev": 2,
+   "seconds": 1.48,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "104952bbaaead4": {
    "key": "A|Where do I pay for this?",
@@ -105147,13 +105203,13 @@
    "role": "A",
    "chapter": "ch108",
    "id": "drip",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Achird",
-   "sig": "3985ec55db46",
-   "rev": 1,
-   "seconds": 1.69,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "4ee1e09251ef",
+   "rev": 2,
+   "seconds": 1.84,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "1216139b36c246": {
    "key": "A|The crows are so loud in the morning.",
@@ -112651,13 +112707,13 @@
    "role": "P",
    "chapter": "ch08",
    "id": "get-back-to-you",
-   "model": "gemini-2.5-flash-preview-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Erinome",
-   "sig": "ab31826dfb91",
-   "rev": 1,
-   "seconds": 0.96,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "5884dbfdbd72",
+   "rev": 2,
+   "seconds": 1.16,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "136cf2c9911ec7": {
    "key": "P|detail",
@@ -113477,13 +113533,13 @@
    "role": "A",
    "chapter": "ch110",
    "id": "spin",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Achird",
-   "sig": "266ab9d52e43",
-   "rev": 1,
-   "seconds": 1.18,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "5d97247ae018",
+   "rev": 2,
+   "seconds": 2.08,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "138adc5d72c3c1": {
    "key": "P|discuss",
@@ -120309,13 +120365,13 @@
    "role": "A",
    "chapter": "ch06",
    "id": "pricey",
-   "model": "gemini-2.5-flash-preview-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Achird",
-   "sig": "5d98e4cadd0d",
-   "rev": 1,
-   "seconds": 1.24,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "8703b0aafd72",
+   "rev": 2,
+   "seconds": 1.36,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "14b2c9e58a62cb": {
    "key": "A|Luckily, no bones were broken.",
@@ -134435,13 +134491,13 @@
    "role": "P",
    "chapter": "ch108",
    "id": "wear-out",
-   "model": "gemini-3.1-flash-tts-preview",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Erinome",
-   "sig": "53d82bcabc5f",
-   "rev": 1,
-   "seconds": 0.92,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "05c0dc049c8b",
+   "rev": 2,
+   "seconds": 1.24,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "17356114730226": {
    "key": "P|approve",
@@ -145111,6 +145167,20 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "18fe9c2f4c743a": {
+   "key": "A|I missed the delivery.",
+   "text": "I missed the delivery.",
+   "role": "A",
+   "chapter": "ch34",
+   "id": "i-missed-the-delivery",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "0550476027f0",
+   "rev": 1,
+   "seconds": 1.96,
+   "via": "batch",
+   "at": "2026-09-29"
+  },
   "18fef5640d04ce": {
    "key": "B|Try restarting your phone.",
    "text": "Try restarting your phone.",
@@ -147693,13 +147763,13 @@
    "role": "P",
    "chapter": "ch110",
    "id": "giggle",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Erinome",
-   "sig": "d0047fd015f4",
-   "rev": 1,
-   "seconds": 0.58,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "3e2d1903dcfc",
+   "rev": 2,
+   "seconds": 1.0,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "196cbafffd3730": {
    "key": "B|Me too! Who's your favorite member?",
@@ -157094,6 +157164,20 @@
    "seconds": 1.44,
    "via": "batch",
    "at": "2026-09-28"
+  },
+  "1b1010fa01e049": {
+   "key": "B|What's he wearing? I'll alert security.",
+   "text": "What's he wearing? I'll alert security.",
+   "role": "B",
+   "chapter": "ch33",
+   "id": "i-cant-find-my-child",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Callirrhoe",
+   "sig": "42b6c91271ae",
+   "rev": 1,
+   "seconds": 2.36,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "1b11757acf5ee7": {
    "key": "A|Can I pet your dog?",
