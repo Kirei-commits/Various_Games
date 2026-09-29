@@ -27,6 +27,11 @@ import {
   questReward,
   savePreset,
   loadPreset,
+  enhance,
+  plusOf,
+  PLUS_EXP,
+  MATERIAL_EXP,
+  spareCopies,
   START_HERBS,
   SKILLS,
   guardRate,
@@ -172,16 +177,16 @@ test("装備: 持っていない単語は付けられない。同じ単語はほ
   assert.equal(Object.keys(auto.quest.equip).length, 7);
 });
 
-test("冒険の報酬はバトル（エンドレス）と同じ水準: 1000〜3000pt ＋ 3階ごとのレベルボーナス、レアチケット", () => {
+test("冒険の報酬はバトル（エンドレス）と同じ水準: 100〜300pt ＋ 3階ごとのレベルボーナス、レアチケット", () => {
   const s = freshState();
   const run = { ...createRun(statsOf(s.quest, cards, {}), 1, fixed(0.5)), expGained: 100, bestFloor: 6, cleared: 6, over: true };
-  // 2分 = 1200pt × (1 + 最高記録 0.3) = 1560、レベル3（6階）のボーナス 1500、チケット2枚
-  assert.deepEqual(questReward(run, 120, s.quest), { points: 3060, tickets: 2, levelBonus: 1500, newBest: true });
+  // 2分 = 120pt × (1 + 最高記録 0.3) = 156 → 160、レベル3（6階）のボーナス 150、チケット2枚
+  assert.deepEqual(questReward(run, 120, s.quest), { points: 310, tickets: 2, levelBonus: 150, newBest: true });
   const { state, reward } = applyQuest(s, run, 120, 0);
   assert.equal(state.quest.best, 6);
   assert.ok(state.quest.level > 1);
-  assert.equal(reward.points, 3060);
-  assert.equal(state.gacha.points, s.gacha.points + 3060);
+  assert.equal(reward.points, 310);
+  assert.equal(state.gacha.points, s.gacha.points + 310);
   assert.equal(state.gacha.tickets, s.gacha.tickets + 2);
   // 2階しか倒さなければ時間ぶんだけ
   assert.deepEqual(questReward({ ...run, cleared: 2 }, 30, s.quest).tickets, 0);
@@ -206,13 +211,13 @@ test("宝箱: ボスの階ごとに中身が決まり、序盤は強い単語が
   assert.ok(deep.has("SSR") && !deep.has("N"), [...deep].join(","));
   // 乱数 0 → 単語（45% の枠）・N
   const items = rollChest(5, words, () => 0);
-  assert.deepEqual(items, [{ kind: "points", amount: 300 }, { kind: "word", id: "w-n", rarity: "N" }]);
+  assert.deepEqual(items, [{ kind: "points", amount: 30 }, { kind: "word", id: "w-n", rarity: "N" }]);
   // 持ち帰り
   const s = freshState();
   const run = openChest({ ...createRun(statsOf(s.quest, cards, {}), 5, fixed(0.5)), bestFloor: 5, cleared: 1 }, words, () => 0);
   const { state, reward } = applyQuest(s, run, 10, 0);
   assert.equal(state.gacha.cards["w-n"], 1);
-  assert.equal(reward.loot.points, 300);
+  assert.equal(reward.loot.points, 30);
   assert.deepEqual(reward.words.map((w) => w.id), ["w-n"]);
 });
 
@@ -232,7 +237,7 @@ test("装備のプリセット: 保存して付け替えられる。持ってい
 });
 
 test("保存データ: v5 から移行すると冒険の記録が加わる。統合は経験値の多い方", () => {
-  assert.equal(STATE_VERSION, 7);
+  assert.equal(STATE_VERSION, 8);
   const library = buildLibrary(rawChapters);
   const s = restoreState({ version: 5, learned: {} }, library);
   assert.deepEqual(s.quest, initialQuest());
@@ -295,4 +300,39 @@ test("SSR の装備には属性ごとの特製の呪文が付く（ブリザー�
   assert.ok(frozen.events.some((e) => e.type === "frozen"), "凍った敵はそのターン動けない");
   assert.equal(frozen.hp, run.hp, "ダメージを受けない");
   assert.equal(act(run, stats, "skill", { id: "w", correct: true }, fixed(0.5), "dark").error, "その呪文は使えない！");
+});
+
+test("強化: 集めた単語のあまりを素材に強化ポイントを貯める。同じ単語は3倍。1枚は残す", () => {
+  let s = { ...freshState(), gacha: { ...freshState().gacha, cards: { fire: 3, sword: 4, blaze: 1 } } };
+  assert.equal(spareCopies(s, "sword"), 3);
+  // N の sword 3枚 = 3pt、同じ fire（R）2枚 = 4 × 3 × 2 = 24pt → 27pt で +2
+  const r = enhance(s, cards, "fire", { sword: 3, fire: 2 });
+  assert.equal(r.gained, 3 * MATERIAL_EXP.N + 2 * MATERIAL_EXP.R * 3);
+  assert.deepEqual([r.from, r.to], [0, 2]);
+  assert.equal(r.state.gacha.cards.sword, 1, "1枚は残る");
+  assert.equal(r.state.gacha.cards.fire, 1);
+  assert.match(enhance(s, cards, "fire", { blaze: 1 }).error, /あまりが足りません/);
+  assert.match(enhance(s, cards, "flame", { sword: 1 }).error, /持っていない/);
+  assert.match(enhance(s, cards, "fire", {}).error, /素材を選んで/);
+});
+
+test("強化: +1 ごとに強くなり、+5 でアルティメット（効果1.5倍・SSR の呪文は「極」）。+10 は 1200pt", () => {
+  assert.equal(PLUS_EXP[10], 1200);
+  assert.deepEqual([0, 9, 10, 149, 150, 1199, 1200, 5000].map(plusOf), [0, 0, 1, 4, 5, 9, 10, 10]);
+  const c = card("b", "blaze", "SSR", "adj");
+  const g0 = gearOf(c, 1, 0);
+  const g4 = gearOf(c, 1, 4);
+  const g5 = gearOf(c, 1, 5);
+  const g10 = gearOf(c, 1, 10);
+  assert.ok(g4.power > g0.power && g10.power === Math.round(g0.power * 2));
+  assert.equal(g5.ultimate, true);
+  assert.ok(g5.effects[0].value >= g4.effects[0].value * 1.4, "+5 で効果が大きく上がる");
+  const q = { ...initialQuest(), equip: { ...initialQuest().equip, weapon: "blaze" }, enhance: { blaze: 150 } };
+  const st = statsOf(q, cards, { blaze: 1 });
+  assert.equal(st.skills[0].name, "極・フレイムバースト");
+  assert.ok(st.skills[0].mult > 3);
+  assert.equal(statsOf({ ...q, enhance: {} }, cards, { blaze: 1 }).skills[0].name, "フレイムバースト");
+  // 保存と統合
+  assert.deepEqual(restoreQuest({ enhance: { blaze: 99999, x: -1 } }).enhance, { blaze: 1200 });
+  assert.equal(mergeQuest({ enhance: { a: 10 } }, { enhance: { a: 30, b: 5 } }).enhance.a, 30);
 });

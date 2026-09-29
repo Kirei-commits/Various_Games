@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""ゲームの絵（バトル・ガチャ）を Gemini の画像モデルで作り、src/assets/<組>/ に置く。
+"""ゲームの絵（バトル・ガチャ・冒険）を Gemini の画像モデルで作り、src/assets/<組>/ に置く。
 
 **Gemini API を呼んで料金がかかる。ユーザーに頼まれたときだけ実行する。**
 環境変数 GEMINI_API_KEY が要る。先に tools/media/setup.sh を実行しておく。
@@ -7,6 +7,10 @@
   python3 tools/media/game_art.py battle                 # バトルの絵を全部作る（src/assets/battle/*.webp を上書き）
   python3 tools/media/game_art.py battle slime ghost     # 名前を指定したものだけ作り直す
   python3 tools/media/game_art.py gacha --convert-only   # API は呼ばず、保存済みの原画から変換だけやり直す
+  python3 tools/media/game_art.py quest sheet-gear       # 3×3 のまとめ絵を1枚だけ作り、9個に切り分ける
+
+安く済ませるため、小さいアイコンやエフェクトは「3×3 のまとめ絵（SHEETS）」を1回で描かせて切り分ける（1回で9個）。
+エフェクトは黒い背景で描かせ、明るさを透明度にして切り抜く（どんな背景の上でも光って見える）。
 
 原画（API のレスポンスから取り出した画像）は tools/media/raw/<組>/ に保存する（コミットしない）。
 絵柄をそろえるため、バトルのスライム（STYLE_REF）を最初に作り、それを見本として残りを描かせる。
@@ -47,6 +51,17 @@ GREEN = "Plain flat solid bright green background (#00FF00), nothing else in the
 
 # 組 → 名前: (プロンプト, 出力の一辺px)。"backdrop" は背景画像として扱う（透明にしない）
 SETS = {
+    "quest": {
+        "backdrop": (
+            "Background art for a vertical mobile RPG dungeon battle screen, no characters. "
+            "Inside an ancient magical stone tower: tall stone pillars on both sides, glowing blue magic crystals and torches with warm light, "
+            "a big arched window at the top showing a starry night sky, a stone floor with a faint glowing magic circle in the lower middle. "
+            "The lower half is darker and simple so characters and text stay readable. Painterly, same art style as the reference sprite. No text.",
+            0,
+        ),
+        "hero": (STYLE + "a young brave swordsman hero seen from behind at a slight angle, spiky brown hair, blue tunic, silver shoulder armor, red cape, "
+                 "holding a sword up in the right hand and a round shield in the left hand, ready to fight. " + WHITE, 256),
+    },
     "battle": {
         "slime": (STYLE + "a round green slime monster with big shiny eyes and a small smile, glossy jelly body. " + WHITE, 256),
         "bat": (STYLE + "a purple bat monster with wide spread wings, yellow eyes and tiny fangs. " + WHITE, 256),
@@ -90,6 +105,55 @@ SETS = {
         "item-boost": (ICON + "a glowing yellow lightning bolt potion bottle. " + WHITE, 128),
         "item-freeze": (ICON + "a magical hourglass made of ice crystals with blue sand. " + WHITE, 128),
         "item-special": (ICON + "a flaming magic scroll with orange fire. " + WHITE, 128),
+        # ガチャの台の後ろの飾り（背景画像）
+        "panel": (
+            "Wide decorative background for a mobile game gacha (lottery) panel, no characters, no machines, no text. "
+            "A magical treasure vault: deep indigo and violet, soft golden light rays from the center, floating sparkles and small stars, "
+            "a few glowing capsules and gold coins scattered softly at the bottom edges. The center is calm and a bit darker so UI stays readable. "
+            "Painterly, same art style as the reference sprite.",
+            -1,
+        ),
+    },
+}
+
+SHEET = (
+    "A game asset sheet: exactly 9 separate items arranged in a strict 3 by 3 grid of equal square cells. "
+    "Each item is centered in its own cell with a wide empty margin, no item touches or crosses a cell edge, no grid lines, no borders, no frames, no labels. "
+    "All items share one consistent art style. No text, no letters, no numbers. "
+)
+GEAR = "Cel-shaded 2D fantasy mobile RPG item icons, clean bold dark outline, vivid saturated colors, soft highlights, simple readable silhouettes. "
+FX = (
+    "Glowing 2D anime game attack effects, bright luminous colors with white-hot cores, soft glow, dynamic shapes, each effect fills most of its cell. "
+    "Plain flat pure black background (#000000) everywhere, nothing else. "
+)
+
+# まとめ絵: 名前 → (プロンプト, [左上から右へ9個の名前], 出力の一辺px, "white" か "black")
+SHEETS = {
+    "quest": {
+        "sheet-gear": (
+            SHEET + GEAR + "Row 1: a steel sword with a gold hilt; a round blue and gold shield; a knight helmet. "
+            "Row 2: a blue and silver chest armor; a steel gauntlet; a pair of brown leather boots. "
+            "Row 3: a gold ring with a red gem; a red fire flame emblem; a light blue ice crystal snowflake emblem. " + WHITE,
+            ["weapon", "shield", "head", "body", "arms", "feet", "accessory", "elem-fire", "elem-ice"],
+            128,
+            "white",
+        ),
+        "sheet-magic": (
+            SHEET + GEAR + "Row 1: a yellow lightning bolt emblem; a white and gold radiant holy star emblem; a purple dark crescent moon emblem with a dark aura. "
+            "Row 2: a magic spell rune circle with a big orange fire explosion; a magic spell rune circle with a blue blizzard of ice shards; a magic spell rune circle with a yellow thunder strike. "
+            "Row 3: a magic spell rune circle with golden holy light and a small green heart; a magic spell rune circle with a purple dark vortex; a magic spell rune circle with a flaming meteor. " + GREEN,
+            ["elem-thunder", "elem-light", "elem-dark", "skill-fire", "skill-ice", "skill-thunder", "skill-light", "skill-dark", "skill-none"],
+            128,
+            "white",
+        ),
+        "sheet-fx": (
+            SHEET + FX + "Row 1: a white sword slash arc; a round orange impact explosion burst with sparks; a big swirling fire blast. "
+            "Row 2: a burst of sharp blue ice crystal shards; a jagged yellow lightning strike with sparks; a golden holy light pillar with sparkles. "
+            "Row 3: a swirling purple dark vortex; a flaming meteor falling diagonally with a fire trail; a round translucent blue magic shield barrier bubble. ",
+            ["fx-slash", "fx-burst", "fx-fire", "fx-ice", "fx-thunder", "fx-light", "fx-dark", "fx-meteor", "fx-shield"],
+            256,
+            "black",
+        ),
     },
 }
 STYLE_REF = ("battle", "slime")
@@ -122,7 +186,7 @@ def raw_dir(group):
 
 
 def raw_path(group, name):
-    found = [p for p in sorted(raw_dir(group).glob(f"{name}.*")) if p.suffix != ".json"]
+    found = [p for p in sorted(raw_dir(group).glob(f"{name}.*")) if p.suffix != ".json" and not p.stem.endswith("-trimmed")]
     return found[0] if found else None
 
 
@@ -132,7 +196,7 @@ def generate(group, name, ref=None):
     raw.mkdir(parents=True, exist_ok=True)
     parts = [image_part(ref), {"text": "Match the art style of this reference image exactly (line weight, shading, colors). "}] if ref else []
     parts.append({"text": prompt})
-    res = call(parts, "2:3" if size == 0 else "1:1")
+    res = call(parts, {0: "2:3", -1: "3:2"}.get(size, "1:1"))
     (raw / f"{name}.json").write_text(json.dumps(res))
     for old in raw.glob(f"{name}.*"):
         if old.suffix != ".json":
@@ -141,29 +205,140 @@ def generate(group, name, ref=None):
     print(f"  {group}/{name}: 出力トークン {res.get('usageMetadata', {}).get('candidatesTokenCount')}")
 
 
+# 描かれた枠（角の丸いふち）を切り落とす背景画像: 名前 → 四辺から削る割合
+TRIM = {("quest", "backdrop"): 0.035}
+
+
 def convert(group, name):
     src = raw_path(group, name)
     if src is None:
         sys.exit(f"{group}/{name} の原画がありません（先に生成する）")
+    if (group, name) in TRIM:
+        from PIL import Image
+
+        img = Image.open(src)
+        t = TRIM[(group, name)]
+        img = img.crop((round(img.width * t), round(img.height * t), round(img.width * (1 - t)), round(img.height * (1 - t))))
+        src = raw_dir(group) / f"{name}-trimmed.png"
+        img.save(src)
     out = ROOT / "src" / "assets" / group / f"{name}.webp"
     size = SETS[group][name][1]
-    if size == 0:
+    if size <= 0:
         cmd = ["image", src, out, "--keep-background", "--size", "0", "--quality", "78"]
     else:
         cmd = ["image", src, out, "--size", str(size), "--tolerance", "40"]
     subprocess.run([sys.executable, HERE / "media.py", *map(str, cmd)], check=True)
 
 
+def generate_sheet(group, sheet, ref):
+    prompt = SHEETS[group][sheet][0]
+    raw = raw_dir(group)
+    raw.mkdir(parents=True, exist_ok=True)
+    parts = [image_part(ref), {"text": "Match the art style of this reference image (line weight, shading, colors), but draw the items described below. "}, {"text": prompt}]
+    res = call(parts, "1:1")
+    (raw / f"{sheet}.json").write_text(json.dumps(res))
+    for old in raw.glob(f"{sheet}.*"):
+        if old.suffix != ".json":
+            old.unlink()
+    subprocess.run([sys.executable, HERE / "media.py", "extract", raw / f"{sheet}.json", raw / sheet], check=True)
+    print(f"  {group}/{sheet}: 出力トークン {res.get('usageMetadata', {}).get('candidatesTokenCount')}")
+
+
+def glow_to_alpha(img):
+    """黒い背景の光の絵を、明るさ＝透明度の画像にする（黒は透明、白い芯は不透明）。"""
+    from PIL import Image, ImageChops
+
+    rgb = img.convert("RGB")
+    r, g, b = rgb.split()
+    alpha = ImageChops.lighter(ImageChops.lighter(r, g), b).point(lambda v: 0 if v < 14 else min(255, int((v - 14) * 1.12)))
+    # 色は明るさで割り戻す（透明にした分だけ暗くならないように）
+    out = Image.new("RGBA", rgb.size)
+    px, ap, op = rgb.load(), alpha.load(), out.load()
+    for y in range(rgb.height):
+        for x in range(rgb.width):
+            a = ap[x, y]
+            if a:
+                c = px[x, y]
+                m = max(c) or 1
+                op[x, y] = tuple(min(255, v * 255 // m) for v in c) + (a,)
+    return out
+
+
+# 輪の中など、ふちとつながっていない背景も抜く絵
+HOLES = {"accessory"}
+
+
+def touch_up(path, green, holes):
+    """切り抜いたあとの仕上げ。緑の背景のにじみ（緑のふち）を消し、輪の中の白い背景も抜く。"""
+    from PIL import Image, ImageFilter
+
+    img = Image.open(path).convert("RGBA")
+    px = img.load()
+    # 緑を消すのは外側のふち（透明な所から 8px 以内）だけ。絵の中の緑（ハートなど）は残す
+    rim = img.getchannel("A").point(lambda v: 255 if v < 250 else 0).filter(ImageFilter.MaxFilter(17)).load()
+    for y in range(img.height):
+        for x in range(img.width):
+            r, g, b, a = px[x, y]
+            if not a:
+                continue
+            if green and rim[x, y] and g > max(r, b) + 8:
+                spill = g - max(r, b)
+                a = max(0, a - spill * 2)  # 緑っぽいほど透明に
+                g = max(r, b)
+            if holes and min(r, g, b) >= 236:
+                a = 0
+            px[x, y] = (r, g, b, a)
+    img.save(path, "WEBP", quality=85, method=6)
+
+
+def split_sheet(group, sheet):
+    """まとめ絵を 3×3 に切り分けて raw/<組>/<名前>.png にし、src/assets/<組>/ に変換する。"""
+    from PIL import Image
+
+    _, names, size, bg = SHEETS[group][sheet]
+    src = raw_path(group, sheet)
+    if src is None:
+        sys.exit(f"{group}/{sheet} の原画がありません（先に生成する）")
+    img = Image.open(src).convert("RGB")
+    corner = img.getpixel((4, 4))
+    green = corner[1] > 180 and corner[0] < 120 and corner[2] < 120
+    cw, ch = img.width / 3, img.height / 3
+    pad = 0.03  # 隣のマスのはみ出しを拾わないよう、ふちを少し削る
+    for i, name in enumerate(names):
+        x, y = i % 3, i // 3
+        box = (round((x + pad) * cw), round((y + pad) * ch), round((x + 1 - pad) * cw), round((y + 1 - pad) * ch))
+        cell = img.crop(box)
+        out = ROOT / "src" / "assets" / group / f"{name}.webp"
+        if bg == "black":
+            glow = glow_to_alpha(cell)
+            bbox = glow.getchannel("A").getbbox()
+            glow = glow.crop(bbox) if bbox else glow
+            scale = size / max(glow.size)
+            glow = glow.resize((max(1, round(glow.width * scale)), max(1, round(glow.height * scale))), Image.LANCZOS)
+            square = Image.new("RGBA", (size, size), (0, 0, 0, 0))
+            square.paste(glow, ((size - glow.width) // 2, (size - glow.height) // 2))
+            out.parent.mkdir(parents=True, exist_ok=True)
+            square.save(out, "WEBP", quality=80, method=6)
+            print(f"{out} ({size}x{size}, {out.stat().st_size} bytes)")
+        else:
+            cell_path = raw_dir(group) / f"{name}.png"
+            cell.save(cell_path)
+            subprocess.run([sys.executable, HERE / "media.py", "image", str(cell_path), str(out), "--size", str(size), "--tolerance", "40"], check=True)
+            if green or name in HOLES:
+                touch_up(out, green, name in HOLES)
+
+
 def main():
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    p.add_argument("group", choices=list(SETS))
+    p.add_argument("group", choices=sorted(set(SETS) | set(SHEETS)))
     p.add_argument("names", nargs="*", help="作るもの。省略するとその組を全部")
     p.add_argument("--convert-only", action="store_true", help="API を呼ばずに原画から変換だけする")
     args = p.parse_args()
-    names = args.names or list(SETS[args.group])
+    singles, sheets = SETS.get(args.group, {}), SHEETS.get(args.group, {})
+    names = args.names or [*singles, *sheets]
     for n in names:
-        if n not in SETS[args.group]:
-            sys.exit(f"{args.group} に {n} はありません（{', '.join(SETS[args.group])}）")
+        if n not in singles and n not in sheets:
+            sys.exit(f"{args.group} に {n} はありません（{', '.join([*singles, *sheets])}）")
 
     if not args.convert_only:
         if (args.group, STYLE_REF[1]) == STYLE_REF and STYLE_REF[1] in names:
@@ -172,10 +347,15 @@ def main():
         if ref is None:
             sys.exit("見本の絵（battle/slime）がありません。先に `game_art.py battle slime` を実行する")
         for n in names:
-            if (args.group, n) != STYLE_REF:
+            if n in sheets:
+                generate_sheet(args.group, n, ref)
+            elif (args.group, n) != STYLE_REF:
                 generate(args.group, n, ref)
     for n in names:
-        convert(args.group, n)
+        if n in sheets:
+            split_sheet(args.group, n)
+        else:
+            convert(args.group, n)
 
 
 if __name__ == "__main__":

@@ -17,7 +17,7 @@ async function winByChoice(page, timeoutMs = 40000) {
   }
 }
 
-/** 報酬の表示からポイントを読む（例: 「ガチャポイント +1,000」） */
+/** 報酬の表示からポイントを読む（例: 「ガチャポイント +100」） */
 async function rewardPoints(page) {
   const text = await page.getByTestId("battle-reward").innerText();
   return Number(text.match(/ガチャポイント \+([\d,]+)/)[1].replace(/,/g, ""));
@@ -42,7 +42,7 @@ test("ステージ: 4択で敵10体とボスを倒すとクリア。ノーダメ
   await expect(page.getByTestId("battle-stars")).toHaveText("★★★");
   await expect(page.getByTestId("battle-reward")).toContainText("レアチケット +8");
   const points = await rewardPoints(page);
-  expect(points).toBeGreaterThanOrEqual(1000);
+  expect(points).toBeGreaterThanOrEqual(100);
   expect(points).toBeLessThanOrEqual(3000);
 
   await page.getByRole("button", { name: "設定に戻る" }).click();
@@ -102,7 +102,7 @@ test("エンドレス: 入力で答えて倒し、間違えると正解が出る
   await expect(page.getByTestId("battle-result-title")).toHaveText("RESULT");
   await expect(page.getByText("最高得点を更新！")).toBeVisible();
   await expect(page.getByTestId("battle-reward")).toContainText("レアチケット +1"); // 3体倒せば報酬あり
-  expect(await rewardPoints(page)).toBeGreaterThanOrEqual(1000);
+  expect(await rewardPoints(page)).toBeGreaterThanOrEqual(100);
 });
 
 test("ほかのタブを見ているあいだはバトルが止まる", async ({ page }) => {
@@ -235,6 +235,15 @@ test("長いフレーズでも、敵の札と問題文が見切れない（折�
     expect(box.x + box.width).toBeLessThanOrEqual(field.x + field.width + 1);
     // 文字が札からはみ出していない（… で切れていない）
     expect(await label.evaluate((el) => el.scrollWidth <= el.clientWidth + 1)).toBe(true);
+  }
+  // となりの敵の札どうしが重ならない
+  const boxes = [];
+  for (const label of await page.getByTestId("enemy-label").all()) boxes.push(await label.boundingBox());
+  boxes.sort((a, b) => a.x - b.x);
+  for (let i = 1; i < boxes.length; i++) {
+    const [a, b] = [boxes[i - 1], boxes[i]];
+    const overlapY = a.y < b.y + b.height && b.y < a.y + a.height;
+    if (overlapY) expect(a.x + a.width).toBeLessThanOrEqual(b.x + 1);
   }
   const target = page.locator('[data-testid="enemy"][data-target="1"]');
   const id = await target.getAttribute("data-phrase-id");

@@ -186,6 +186,8 @@
 .qs-flash { animation: qs-flash 0.5s ease-out both; mix-blend-mode: screen; }
 @keyframes qs-bigicon { 0% { transform: translate(-50%, -50%) scale(0.2) rotate(-30deg); opacity: 0; } 30% { transform: translate(-50%, -50%) scale(1.6) rotate(10deg); opacity: 1; } 100% { transform: translate(-50%, -50%) scale(2.4) rotate(0); opacity: 0; } }
 .qs-bigicon { animation: qs-bigicon 0.9s ease-out both; }
+@keyframes qs-fx { 0% { transform: translate(-50%, -50%) scale(0.3) rotate(var(--rot, 0deg)); opacity: 0; } 25% { transform: translate(-50%, -50%) scale(1) rotate(var(--rot, 0deg)); opacity: 1; } 100% { transform: translate(-50%, -50%) scale(1.25) rotate(var(--rot, 0deg)); opacity: 0; } }
+.qs-fx { animation: qs-fx 0.6s ease-out 0.1s both; }
 @keyframes qs-shield { 0% { transform: translateX(-50%) scale(0.3); opacity: 0; box-shadow: 0 0 0 0 rgba(56, 189, 248, 0.9); } 30% { transform: translateX(-50%) scale(1.15); opacity: 1; } 100% { transform: translateX(-50%) scale(1); opacity: 0; box-shadow: 0 0 0 40px rgba(56, 189, 248, 0); } }
 .qs-shield { animation: qs-shield 0.8s ease-out both; background: radial-gradient(circle, rgba(56, 189, 248, 0.45), transparent 70%); }
 @keyframes qs-heal { 0% { transform: translate(-50%, 0) scale(0.6); opacity: 0; } 25% { transform: translate(-50%, -10px) scale(1.2); opacity: 1; } 100% { transform: translate(-50%, -60px) scale(1); opacity: 0; } }

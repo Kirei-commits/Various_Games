@@ -8,7 +8,7 @@ test("その日最初に開くとログインボーナス（ガチャポイン�
   await page.goto("/");
   const modal = page.getByTestId("bonus-modal");
   await expect(modal).toBeVisible();
-  await expect(page.getByTestId("bonus-gacha")).toContainText("+1,000");
+  await expect(page.getByTestId("bonus-gacha")).toContainText("+100pt");
   await expect(page.getByTestId("bonus-boost")).toContainText("5倍ブースト +1");
   await expect(modal).toContainText("1日連続ログイン");
   await expect(modal).not.toContainText("コイン");

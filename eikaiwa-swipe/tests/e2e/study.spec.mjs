@@ -182,3 +182,23 @@ test("単語の章は、例文つきのカードで学べる", async ({ page }) 
   await expect(page.getByText("EXAMPLE")).toBeVisible();
   await expect(page.getByRole("button", { name: "例文を再生" })).toBeVisible();
 });
+
+test("設定の「アカウントのデータを消して最初から」: 3回タップで、進捗・ガチャなどがすべて消える", async ({ page }) => {
+  await page.evaluate(() => {
+    localStorage.setItem("swipetalk:v2", JSON.stringify({ version: 7, learned: {}, gacha: { starter: true, points: 777, cards: { go: 1 } }, diary: { "2020-01-01": { text: "hi", at: 1 } } }));
+  });
+  await page.reload();
+  await page.getByRole("button", { name: "覚えた", exact: true }).click();
+  await expect(page.getByTestId("remaining")).toHaveText(/^49/);
+  await page.getByRole("button", { name: "音声の設定" }).first().click();
+  const del = page.getByTestId("delete-account-button");
+  await expect(del).toHaveText("アカウントのデータを消して最初から");
+  await del.click();
+  await del.click();
+  await expect(del).toContainText("元に戻せません");
+  await Promise.all([page.waitForEvent("load"), del.click()]);
+  await expect(page.getByTestId("remaining")).toHaveText(/^50/);
+  const saved = await page.evaluate(() => JSON.parse(localStorage.getItem("swipetalk:v2") || "null"));
+  expect(saved?.gacha?.cards?.go ?? 0).toBe(0);
+  expect(Object.keys(saved?.diary || {})).toEqual([]);
+});

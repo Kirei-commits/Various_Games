@@ -15,6 +15,7 @@
  * - 5階ごとにボス（ドラゴン）。倒した階は記録され、次からはその次の階（5の倍数+1）から始められる。
  * - ボスを倒すと宝箱: ガチャのポイントと、冒険限定の単語・チケット・メダルのどれか（深い階ほどレア。rollChest）。
  * - 報酬はバトル（エンドレス）と同じ水準（questReward）。装備はプリセットに3組まで保存できる。
+ * - 装備の強化（+10 まで）: 集めた単語のあまりを素材にして強化ポイントを貯める（同じ単語は3倍）。+5 からアルティメット。
  */
 import { grant, boostRate, pointsForTime, MAX_LEVEL as CARD_MAX, DUP_MEDALS } from "./gacha.js";
 import { BATTLE_POINTS, BATTLE_TICKETS, REWARD_MIN_KILLS, endlessLevelBonus } from "./battle.js";
@@ -128,19 +129,76 @@ export function flairOf(card) {
  * @param card ガチャのカード（id・english・japanese・rarity・pos）
  * @param copies 持っている枚数（Lv = 枚数、最大4）
  */
-export function gearOf(card, copies = 1) {
+export function gearOf(card, copies = 1, plus = 0) {
   const rarity = rarityOf(card);
   const level = levelOf(copies);
   const rp = RARITY_POWER[rarity];
   const flair = flairOf(card);
-  const power = rp.base + rp.grow * (level - 1) + Math.round(rp.flair * flair);
-  const scale = 1 + 0.15 * (level - 1);
+  const ultimate = plus >= ULTIMATE_PLUS;
+  // 強化（+1〜+10）: 強さは 1つごとに +10%（+10 で2倍）、効果は +8%。+5 からはアルティメットで効果がさらに 1.5倍
+  const power = Math.round((rp.base + rp.grow * (level - 1) + Math.round(rp.flair * flair)) * (1 + 0.1 * plus));
+  const scale = (1 + 0.15 * (level - 1)) * (1 + 0.08 * plus) * (ultimate ? 1.5 : 1);
   const pick = (list, seed) => list[hashOf(card.id, seed) % list.length];
   const first = pick(POS_EFFECTS[card.pos] || POS_EFFECTS.other, 3);
   const keys = [first];
   if (rarity === "SSR") keys.push(pick(EFFECT_KEYS.filter((k) => k !== first), 5));
   const effects = keys.map((key) => ({ key, value: Math.round(EFFECTS[key].values[rarity] * scale) }));
-  return { id: card.id, english: card.english, japanese: card.japanese, rarity, level, power, flair, element: elementOf(card), effects };
+  return { id: card.id, english: card.english, japanese: card.japanese, rarity, level, plus, ultimate, power, flair, element: elementOf(card), effects };
+}
+
+// ---------------------------------------------------------------------------
+// 装備の強化（やり込み: +10 まで）
+// ---------------------------------------------------------------------------
+
+export const MAX_PLUS = 10;
+/** +5 から「アルティメット」: 効果がさらに 1.5倍、SSR の呪文は「極」になる */
+export const ULTIMATE_PLUS = 5;
+/** +N に必要な強化ポイント（累計）。+10 は 1200（N のあまり1枚 = 1pt なので、相当やり込まないと届かない） */
+export const PLUS_EXP = [0, 10, 25, 50, 90, 150, 240, 370, 550, 800, 1200];
+/** 素材1枚の強化ポイント（レア度ごと）。強化する単語と同じ単語は 3倍 */
+export const MATERIAL_EXP = { N: 1, R: 4, SR: 12, SSR: 40 };
+export const SAME_BONUS = 3;
+
+export const plusOf = (exp) => {
+  let k = 0;
+  while (k < MAX_PLUS && (exp || 0) >= PLUS_EXP[k + 1]) k++;
+  return k;
+};
+
+/** 素材にできる枚数（図鑑から消えないよう、1枚は残す） */
+export const spareCopies = (state, id) => Math.max(0, (state.gacha?.cards?.[id] || 0) - 1);
+
+/** 素材1枚の強化ポイント */
+export const materialExp = (card, targetId) => (MATERIAL_EXP[rarityOf(card)] || 1) * (card.id === targetId ? SAME_BONUS : 1);
+
+/**
+ * 装備（単語）を強化する。素材は集めた単語のあまり（2枚目以降）を使い、その分ガチャの記録の枚数が減る。
+ * @param materials { 単語ID: 枚数 }
+ * @returns {{ state, gained, from, to, error? }}
+ */
+export function enhance(state, cards, targetId, materials) {
+  if (!cards[targetId] || !(state.gacha?.cards?.[targetId] > 0)) return { state, error: "持っていない単語は強化できません" };
+  const q = { ...initialQuest(), ...state.quest };
+  const before = q.enhance[targetId] || 0;
+  if (plusOf(before) >= MAX_PLUS) return { state, error: "もう +10（最大）です" };
+  const gachaCards = { ...state.gacha.cards };
+  let gained = 0;
+  for (const [id, n] of Object.entries(materials || {})) {
+    const count = Math.floor(n);
+    if (!count) continue;
+    if (!cards[id]) return { state, error: "ない単語です" };
+    if (count > spareCopies(state, id)) return { state, error: `「${cards[id].english}」のあまりが足りません（1枚は残します）` };
+    gachaCards[id] -= count;
+    gained += materialExp(cards[id], targetId) * count;
+  }
+  if (!gained) return { state, error: "素材を選んでください" };
+  const exp = Math.min(PLUS_EXP[MAX_PLUS], before + gained);
+  return {
+    state: { ...state, gacha: { ...state.gacha, cards: gachaCards, rev: (state.gacha.rev || 0) + 1 }, quest: { ...q, enhance: { ...q.enhance, [targetId]: exp } } },
+    gained,
+    from: plusOf(before),
+    to: plusOf(exp),
+  };
 }
 
 /** 装備の場所に付けたときに増える能力値 */
@@ -181,8 +239,15 @@ export const SKILLS = {
 export function skillsOf(gear) {
   const out = [];
   for (const g of Object.values(gear)) {
-    const sk = g?.rarity === "SSR" ? SKILLS[g.element] : null;
-    if (sk && !out.some((x) => x.id === sk.id)) out.push({ ...sk, from: g.english });
+    const base = g?.rarity === "SSR" ? SKILLS[g.element] : null;
+    if (!base) continue;
+    // +5 以上の SSR は「極」の呪文（1.6倍・回復や吸収も多い）
+    const sk = g.ultimate
+      ? { ...base, name: `極・${base.name}`, mult: Math.round(base.mult * 1.6 * 100) / 100, value: base.value ? Math.round(base.value * 1.5) : base.value, ultimate: true }
+      : base;
+    const i = out.findIndex((x) => x.id === sk.id);
+    if (i < 0) out.push({ ...sk, from: g.english });
+    else if (sk.ultimate && !out[i].ultimate) out[i] = { ...sk, from: g.english };
   }
   return out;
 }
@@ -216,7 +281,7 @@ export function statsOf(quest, cards, owned = {}) {
     const id = quest.equip?.[slot];
     const card = id && cards[id];
     if (!card || !(owned[id] > 0)) continue;
-    const g = gearOf(card, owned[id]);
+    const g = gearOf(card, owned[id], plusOf(quest.enhance?.[id]));
     gear[slot] = g;
     for (const [k, v] of Object.entries(slotBonus(slot, g.power))) s[k] += v;
     for (const e of g.effects) {
@@ -514,6 +579,7 @@ export const initialQuest = () => ({
   wins: 0, // 倒した敵の数
   runs: 0,
   presets: [null, null, null], // 装備のプリセット（{ equip } か null）
+  enhance: {}, // 単語ID → 強化ポイント（+N は plusOf で決まる）
 });
 
 /** 経験値を足して Lv を上げる */
@@ -547,8 +613,8 @@ export function equip(state, slot, id) {
 export const AUTO_ORDER = ["weapon", "body", "shield", "arms", "head", "feet", "accessory"];
 export function autoEquip(state, cards) {
   const owned = Object.entries(state.gacha?.cards || {}).filter(([id, n]) => n > 0 && cards[id]);
-  const ranked = owned.map(([id, n]) => gearOf(cards[id], n)).sort((a, b) => b.power - a.power || (a.id < b.id ? -1 : 1));
   const q = { ...initialQuest(), ...state.quest };
+  const ranked = owned.map(([id, n]) => gearOf(cards[id], n, plusOf(q.enhance[id]))).sort((a, b) => b.power - a.power || (a.id < b.id ? -1 : 1));
   const eq = emptyEquip();
   AUTO_ORDER.forEach((slot, i) => (eq[slot] = ranked[i]?.id || null));
   return { ...state, quest: { ...q, equip: eq } };
@@ -583,7 +649,7 @@ const pickWeighted = (weights, rng) => {
  */
 export function rollChest(floor, words, rng = Math.random) {
   const tier = Math.max(1, Math.floor(floor / BOSS_EVERY));
-  const items = [{ kind: "points", amount: 300 * tier }];
+  const items = [{ kind: "points", amount: 30 * tier }]; // ポイントは控えめ（2026-09-29 に 1/10 に）
   const kind = pickWeighted({ word: 45, tickets: 25, medals: 20, srTickets: 10 }, rng);
   if (kind === "word" && words.length) {
     const odds = chestRarity(floor);
@@ -621,7 +687,7 @@ const accuracyOf = (run) => {
 
 /**
  * 冒険の報酬（ブースト前）。バトルのエンドレスと同じ水準にそろえる:
- * - ポイント: 遊んだ時間ぶん × (1 + 0.5 × 正解率 + ボスを倒した 0.5 + 最高記録 0.3) を 1000〜3000 に収め、
+ * - ポイント: 遊んだ時間ぶん × (1 + 0.5 × 正解率 + ボスを倒した 0.5 + 最高記録 0.3) を 100〜300 に収め、
  *   さらに到達レベルのボーナス（endlessLevelBonus。3階倒すごとに1レベル。バトルは10体ごと＝1階あたり約3問のため）
  * - レアチケット: 1 + (レベル-1)/2 枚（1〜8）
  * - 倒した階が REWARD_MIN_KILLS 未満なら、時間ぶんのポイントだけ
@@ -738,6 +804,11 @@ export function restoreQuest(saved, rename = (id) => id) {
     wins: nonNeg(saved.wins),
     runs: nonNeg(saved.runs),
     presets,
+    enhance: Object.fromEntries(
+      Object.entries(saved.enhance && typeof saved.enhance === "object" ? saved.enhance : {})
+        .map(([id, v]) => [rename(id), Math.min(PLUS_EXP[MAX_PLUS], nonNeg(v))])
+        .filter(([, v]) => v > 0)
+    ),
   };
 }
 
@@ -746,5 +817,7 @@ export function mergeQuest(a, b) {
   const x = restoreQuest(a);
   const y = restoreQuest(b);
   const main = y.totalExp >= x.totalExp ? y : x;
-  return { ...main, best: Math.max(x.best, y.best), wins: Math.max(x.wins, y.wins), runs: Math.max(x.runs, y.runs) };
+  const enhance = { ...x.enhance };
+  for (const [id, v] of Object.entries(y.enhance)) enhance[id] = Math.max(enhance[id] || 0, v);
+  return { ...main, best: Math.max(x.best, y.best), wins: Math.max(x.wins, y.wins), runs: Math.max(x.runs, y.runs), enhance };
 }

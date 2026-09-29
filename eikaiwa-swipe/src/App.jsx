@@ -47,10 +47,10 @@ import {
 } from "lucide-react";
 import { BattleBackdrop, Monster, Dragon, Hero, monsterKindOf } from "./battle-art.jsx";
 import QuestScreen from "./QuestScreen.jsx";
-import { equip as questEquip, autoEquip as questAutoEquip, applyQuest, runResults, savePreset as questSavePreset, loadPreset as questLoadPreset } from "./quest.js";
+import { equip as questEquip, autoEquip as questAutoEquip, applyQuest, runResults, savePreset as questSavePreset, loadPreset as questLoadPreset, enhance as questEnhance } from "./quest.js";
 import { loadRecordedIndex, playRecorded, recordedCount, recordedUrls, stopRecorded } from "./recorded.js";
 import { cheersAvailable, loadCheers, noteSpeech } from "./cheers.js";
-import { Art, CARD_BACK_ART, CHEST_ART, MACHINE_ART, SHOP_ART, WALLET_ICON } from "./gacha-art.jsx";
+import { Art, CARD_BACK_ART, CHEST_ART, GACHA_PANEL_ART, MACHINE_ART, SHOP_ART, WALLET_ICON } from "./gacha-art.jsx";
 import { saveDiary } from "./diary.js";
 import rawChapters, { PARTS, RENAMED } from "./data/index.js";
 import { analyzeLinking, LINK_LABELS } from "./linking.js";
@@ -865,7 +865,15 @@ const RESET_STEPS = [
   "覚えた・テストの記録・苦手がすべて消えます（あと1回）",
 ];
 
-function ResetButton({ onReset }) {
+/** アカウントのデータを消す（3回タップ） */
+const DELETE_STEPS = [
+  "アカウントのデータを消して最初から",
+  "本当に消しますか？（あと2回タップ）",
+  "ガチャ・冒険・日記もすべて消えます。元に戻せません（あと1回）",
+];
+
+function ResetButton({ onReset, steps = RESET_STEPS, testId = "reset-button" }) {
+  const RESET_STEPS_ = steps;
   const [step, setStep] = useState(0);
   useEffect(() => {
     if (step === 0) return undefined;
@@ -875,9 +883,9 @@ function ResetButton({ onReset }) {
   return (
     <button
       type="button"
-      data-testid="reset-button"
+      data-testid={testId}
       onClick={() => {
-        if (step + 1 < RESET_STEPS.length) return setStep(step + 1);
+        if (step + 1 < RESET_STEPS_.length) return setStep(step + 1);
         setStep(0);
         onReset();
       }}
@@ -885,7 +893,7 @@ function ResetButton({ onReset }) {
         step === 0 ? "bg-slate-50 text-slate-400 ring-1 ring-slate-200" : step === 1 ? "bg-rose-100 text-rose-700" : "bg-rose-500 text-white"
       }`}
     >
-      {RESET_STEPS[step]}
+      {RESET_STEPS_[step]}
     </button>
   );
 }
@@ -894,7 +902,7 @@ function ResetButton({ onReset }) {
 // ---------------------------------------------------------------------------
 // 音声設定
 // ---------------------------------------------------------------------------
-function SettingsSheet({ open, onClose, settings, setSettings, speech, onResetAll, themeId }) {
+function SettingsSheet({ open, onClose, settings, setSettings, speech, onResetAll, onDeleteAccount, signedIn = false, themeId }) {
   const sound = useSound();
   if (!open) return null;
   const update = (patch) => setSettings((s) => ({ ...s, ...patch }));
@@ -1133,6 +1141,14 @@ function SettingsSheet({ open, onClose, settings, setSettings, speech, onResetAl
                 onClose();
               }}
             />
+          </div>
+          <p className="mt-5 text-xs font-bold text-slate-400">アカウントのデータを消す</p>
+          <p className="mt-1 text-[11px] leading-relaxed text-slate-400">
+            進捗・ガチャ・バトル・冒険・日記・設定をすべて消して、はじめて開いたときの状態に戻します。
+            {signedIn ? "ログイン中なので、クラウドのデータも空にしてログアウトします。" : "この端末のデータを消します。"}
+          </p>
+          <div className="mt-2">
+            <ResetButton steps={DELETE_STEPS} testId="delete-account-button" onReset={onDeleteAccount} />
           </div>
         </div>
       </div>
@@ -1509,8 +1525,14 @@ const tierOf = (scope) => {
   return m ? Number(m[1]) : 0;
 };
 
+/** コース（部）まるごとの出題範囲: "part1"〜（基本編・アメリカ生活編などの 1000問） */
+const partOf = (scope) => (/^part\d+$/.test(scope || "") ? PART_GROUPS[Number(scope.slice(4)) - 1] || null : null);
+const PART_SCOPES = PART_GROUPS.map((part, i) => [`part${i + 1}`, `${part.title} 全部（${part.count}問）`]);
+
 function scopeItems(scope, misses, favorites = {}) {
   if (scope === "all") return ALL_ITEMS;
+  const part = partOf(scope);
+  if (part) return part.chapters.flatMap((c) => c.items);
   if (scope === "phrase" || scope === "word") return KIND_ITEMS[scope];
   if (scope === "weak") return ALL_ITEMS.filter((p) => misses[p.id]);
   if (scope === "fav") return ALL_ITEMS.filter((p) => favorites[p.id]);
@@ -1525,6 +1547,7 @@ function scopeLabel(scope) {
   if (scope === "word") return "単語全部から";
   if (scope === "weak") return "苦手な問題";
   if (scope === "fav") return "お気に入り（⭐）";
+  if (partOf(scope)) return `${partOf(scope).title} 全部から`;
   const lv = tierOf(scope);
   if (lv) return `単語の難易度 ${TIER_LABELS[lv - 1]}`;
   return chapterLabel(CHAPTER_BY_ID[scope]);
@@ -1541,10 +1564,10 @@ function ScopePicker({ id, value, onChange, special = [], levels = false }) {
     ...(levels
       ? [{ key: "levels", title: "単語の難易度（5段階）", options: TIER_LABELS.map((label, i) => [`lv${i + 1}`, `${label}（${WORD_TIERS()[i].length}問）`]) }]
       : []),
-    ...PART_GROUPS.map((part) => ({
+    ...PART_GROUPS.map((part, i) => ({
       key: part.title,
       title: `${part.title}（${part.count}問）`,
-      options: part.chapters.map((c) => [c.id, `${chapterLabel(c)}（${c.items.length}問）`]),
+      options: [PART_SCOPES[i], ...part.chapters.map((c) => [c.id, `${chapterLabel(c)}（${c.items.length}問）`])],
     })),
   ];
   const current = groups.find((g) => g.options.some(([v]) => v === value));
@@ -1645,6 +1668,7 @@ function TestSetup({ config, setConfig, misses, favorites = {}, tests, onStart, 
               ["word", `単語全部から（${KIND_ITEMS.word.length}問）`],
               ["weak", `苦手な問題（${weakCount}問）`],
               ["fav", `お気に入り ⭐（${Object.keys(favorites).length}問）`],
+              ...PART_SCOPES,
               ...TIER_LABELS.map((label, i) => [`lv${i + 1}`, `単語の難易度 ${label}（${WORD_TIERS()[i].length}問）`]),
             ]}
             className="mt-1"
@@ -2481,8 +2505,8 @@ function BattleRun({ session, speech, recognition, onFinish, active = true, tool
     const scale = 0.72 + 0.38 * Math.min(e.y, 1);
     const size = Math.round((e.boss ? 110 : 60) * scale); // 上ほど小さく見える（文字は小さくしない）
     const top = 8 + Math.min(e.y, 1) * (H - (e.boss ? 190 : 140));
-    // 単語の札は幅の44%まで。札が戦場の外にはみ出さないよう、端の列は内側に寄せる
-    const labelW = Math.min(W * 0.44, 190);
+    // 単語の札は列の間隔（幅の30%）より少し狭く（29%）。となりの敵の札と重ならない。札が戦場の外にはみ出さないよう、端の列は内側に寄せる
+    const labelW = Math.min(W * 0.29, 170);
     const x = Math.min(Math.max(e.x * W, labelW / 2 + 4), W - labelW / 2 - 4);
     return { x, top, cy: top + size / 2, size, scale, labelW };
   };
@@ -2719,7 +2743,7 @@ function BattleRun({ session, speech, recognition, onFinish, active = true, tool
               data-phrase-id={e.item.id}
               data-boss={e.boss ? "1" : "0"}
               className="absolute flex flex-col items-center"
-              style={{ left: box.x, top: box.top, transform: "translateX(-50%)", zIndex: 10 + Math.round(e.y * 100) }}
+              style={{ left: box.x, top: box.top, transform: "translateX(-50%)", zIndex: isTarget ? 140 : 10 + Math.round(e.y * 100) }}
             >
               <div className="relative" ref={(el) => (el ? (enemyEls.current[e.uid] = el) : delete enemyEls.current[e.uid])}>
                 <span
@@ -2739,7 +2763,7 @@ function BattleRun({ session, speech, recognition, onFinish, active = true, tool
                 data-testid="enemy-label"
                 style={{ maxWidth: box.labelW }}
                 className={`mt-1 block break-words rounded-xl px-2.5 py-0.5 text-center text-xs font-extrabold leading-snug shadow ${
-                  isTarget ? "bg-white text-slate-900 ring-2 ring-amber-400" : "line-clamp-2 bg-slate-900/60 text-white ring-1 ring-white/20"
+                  isTarget ? "bg-white text-slate-900 ring-2 ring-amber-400" : "bg-slate-900/60 text-white ring-1 ring-white/20"
                 }`}
               >
                 {jaEn ? e.item.japanese.split("／")[0] : e.item.english}
@@ -3071,7 +3095,7 @@ function BattleResult({ battle, reward, speech, onRetry, onNext, onBack, favorit
             （Lv.{battle.level} 到達ボーナス +{reward.levelBonus.toLocaleString()}pt を含む）
           </span>
         )}
-        {reward.tickets === 0 && <span className="block text-xs font-normal text-indigo-500">3体以上倒すと、レアチケットと 1000pt 以上がもらえます</span>}
+        {reward.tickets === 0 && <span className="block text-xs font-normal text-indigo-500">3体以上倒すと、レアチケットと {BATTLE_POINTS.min}pt 以上がもらえます</span>}
       </div>
 
       {wrong.length > 0 && (
@@ -3201,6 +3225,7 @@ function TestScreen({ active, state, settings, setSettings, speech, onFinishTest
         onAutoEquip={quest.onAutoEquip}
         onSavePreset={quest.onSavePreset}
         onLoadPreset={quest.onLoadPreset}
+        onEnhance={quest.onEnhance}
         onFinish={quest.onFinish}
       />
     );
@@ -4031,24 +4056,24 @@ function Wallet({ g, onUseBoost }) {
     ["メダル", g.medals, "text-orange-500", "wallet-medals"],
   ];
   return (
-    <div className="mt-3 grid grid-cols-3 gap-1.5 rounded-2xl bg-white p-2 shadow-sm ring-1 ring-slate-200" data-testid="wallet">
-      {items.map(([label, v, color, id]) => (
-        <div key={label} className="flex items-center gap-1.5 rounded-lg bg-slate-50 px-1.5 py-1">
-          <Art src={WALLET_ICON[id.slice("wallet-".length)]} size={24} />
-          <p className="min-w-0 text-[10px] font-bold leading-tight text-slate-400">
-            {label}
-            <span className={`block text-sm font-black tabular-nums ${color}`} data-testid={id}>
+    <div className="mt-3" data-testid="wallet">
+      <div className="-mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1">
+        {items.map(([label, v, color, id]) => (
+          <div key={label} className="flex shrink-0 items-center gap-1 rounded-full bg-white py-1 pl-1 pr-2.5 shadow-sm ring-1 ring-slate-200" title={label}>
+            <Art src={WALLET_ICON[id.slice("wallet-".length)]} size={20} />
+            <span className="text-[10px] font-bold text-slate-400">{label}</span>
+            <span className={`text-sm font-black tabular-nums ${color}`} data-testid={id}>
               {typeof v === "number" ? v.toLocaleString() : v}
             </span>
-          </p>
-        </div>
-      ))}
+          </div>
+        ))}
+      </div>
       {(g.boosts > 0 || active) && (
-        <div className="col-span-3 flex items-center gap-2 rounded-xl bg-amber-50 px-3 py-1.5 text-xs font-bold text-amber-800" data-testid="wallet-boost">
+        <div className="mt-1 flex items-center gap-2 rounded-full bg-amber-50 py-1 pl-3 pr-1 text-xs font-bold text-amber-800 ring-1 ring-amber-200" data-testid="wallet-boost">
           <Zap size={14} className="fill-amber-400 text-amber-500" />
           <span className="flex-1">
             {BOOST_RATE}倍ブースト ×{g.boosts}
-            <span className="block text-[10px] font-normal text-amber-700">使うと1時間、学習・テスト・バトルのポイントが{BOOST_RATE}倍</span>
+            <span className="ml-1 text-[10px] font-normal text-amber-700">1時間ポイント{BOOST_RATE}倍</span>
           </span>
           {active && <BoostBadge gacha={g} />}
           {g.boosts > 0 && (
@@ -4062,9 +4087,9 @@ function Wallet({ g, onUseBoost }) {
           )}
         </div>
       )}
-      {message && <p className="col-span-3 text-center text-xs font-bold text-rose-500">{message}</p>}
+      {message && <p className="mt-1 text-center text-xs font-bold text-rose-500">{message}</p>}
       {(g.selSR > 0 || g.selSSR > 0) && (
-        <p className="col-span-3 rounded-xl bg-amber-50 px-3 py-1.5 text-center text-xs font-bold text-amber-700" data-testid="wallet-select">
+        <p className="mt-1 rounded-xl bg-amber-50 px-3 py-1.5 text-center text-xs font-bold text-amber-700" data-testid="wallet-select">
           選択チケット SR×{g.selSR}・SSR×{g.selSSR}（図鑑で好きな未獲得の単語に使えます）
         </p>
       )}
@@ -4503,9 +4528,9 @@ function GachaResult({ result, onClose, onOpen }) {
 /** ガチャの種類（引くのに使うもの）ごとの見た目と、選べる連数 */
 const GACHA_KINDS = [
   { currency: "points", label: "ポイント", sub: "通常ガチャ", counts: [1, 10, 50, 100, 500, 1000], bg: "from-indigo-600 via-violet-600 to-pink-500" },
-  { currency: "ticket", label: "レア", sub: "レアチケット（R 以上）", counts: [1, 10, 50, 100], bg: "from-rose-500 to-orange-500" },
-  { currency: "sr", label: "SR", sub: "SR チケット（SR 以上）", counts: [1, 10], bg: "from-violet-700 to-fuchsia-600" },
-  { currency: "ssr", label: "SSR", sub: "SSR チケット（SSR 確定）", counts: [1, 10], bg: "from-amber-400 via-pink-500 to-violet-600" },
+  { currency: "ticket", label: "レア", sub: "レアチケット（R の単語だけ）", counts: [1, 10, 50, 100], bg: "from-rose-500 to-orange-500" },
+  { currency: "sr", label: "SR", sub: "SR チケット（SR の単語だけ）", counts: [1, 10], bg: "from-violet-700 to-fuchsia-600" },
+  { currency: "ssr", label: "SSR", sub: "SSR チケット（SSR の単語だけ）", counts: [1, 10], bg: "from-amber-400 via-pink-500 to-violet-600" },
 ];
 
 /** 開閉できる説明の箱 */
@@ -4529,7 +4554,7 @@ function GachaPanel({ g, onPull, onUpgrade }) {
   const kind = GACHA_KINDS.find((k) => k.currency === currency);
   const rates = useMemo(() => currentRates(g, CATALOG, pos, currency), [g, pos, currency]);
   const pull = (times) => setError(onPull({ pos, currency, times }) || "");
-  const fmt = (v) => `${Math.round(v * 10) / 10}%`;
+  const fmt = (v) => `${v >= 1 ? Math.round(v * 10) / 10 : Math.round(v * 1000) / 1000}%`;
   const have = currency === "points" ? g.points : g[BALANCE_KEY[currency]];
   // 「全部引く」: 持っているポイントで引ける回数（無限モードは1000回）
   const allTimes = g.unlimited ? 1000 : Math.min(MAX_PULLS, Math.floor(g.points / PULL_COST));
@@ -4537,42 +4562,68 @@ function GachaPanel({ g, onPull, onUpgrade }) {
   const [first, second, ...rest] = kind.counts;
   return (
     <div className="space-y-3">
-      <Segmented
-        name="gacha-currency"
-        value={currency}
-        onChange={(c) => {
-          setCurrency(c);
-          setError("");
-        }}
-        options={GACHA_KINDS.map((k) => ({ value: k.currency, label: k.label }))}
-      />
-      <div className={`rounded-3xl bg-gradient-to-br ${kind.bg} p-4 text-white shadow-lg`} data-testid="gacha-machine">
-        <div className="flex items-start gap-2">
-          <Art src={MACHINE_ART[currency]} size={72} className="-my-2 -ml-1 bt-float drop-shadow-[0_4px_6px_rgba(0,0,0,0.35)]" />
-          <div className="min-w-0 flex-1">
-            <p className="text-[11px] font-bold tracking-widest text-white/80">{kind.sub}</p>
-            <p className="text-xl font-black">{GACHA_POS_OPTIONS.find((o) => o.value === pos).label}ガチャ</p>
-          </div>
-          <p className="rounded-full bg-black/20 px-2.5 py-1 text-xs font-black tabular-nums">
-            所持 {currency === "points" && g.unlimited ? "∞" : have.toLocaleString()}
-            {currency === "points" ? "pt" : "枚"}
-          </p>
-        </div>
-        <div className="mt-2 flex flex-wrap gap-1">
-          {GACHA_POS_OPTIONS.map((o) => (
+      {/* ガチャの種類（絵のカードで選ぶ） */}
+      <div className="grid grid-cols-4 gap-1.5" role="group" aria-label="ガチャの種類">
+        {GACHA_KINDS.map((k) => {
+          const n = k.currency === "points" ? g.points : g[BALANCE_KEY[k.currency]];
+          const on = k.currency === currency;
+          return (
             <button
-              key={o.value}
+              key={k.currency}
               type="button"
-              aria-pressed={pos === o.value}
-              onClick={() => setPos(o.value)}
-              className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${pos === o.value ? "bg-white text-slate-900" : "bg-white/15 text-white"}`}
+              aria-label={k.label}
+              aria-pressed={on}
+              onClick={() => {
+                setCurrency(k.currency);
+                setError("");
+              }}
+              className={`flex flex-col items-center rounded-2xl px-1 pb-1.5 pt-1 transition active:scale-95 ${
+                on ? `bg-gradient-to-br ${k.bg} text-white shadow-md` : "bg-white text-slate-600 ring-1 ring-slate-200"
+              }`}
             >
-              {o.label}
+              <Art src={MACHINE_ART[k.currency]} size={40} className={on ? "bt-float" : "opacity-80"} />
+              <span className="text-[11px] font-black">{k.label}</span>
+              <span className={`text-[10px] font-bold tabular-nums ${on ? "text-white/80" : "text-slate-400"}`}>
+                {k.currency === "points" && g.unlimited ? "∞" : n.toLocaleString()}
+                {k.currency === "points" ? "pt" : "枚"}
+              </span>
             </button>
-          ))}
+          );
+        })}
+      </div>
+
+      <div className="relative isolate overflow-hidden rounded-3xl bg-slate-900 p-4 text-white shadow-lg" data-testid="gacha-machine">
+        <img src={GACHA_PANEL_ART} alt="" draggable={false} aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 h-full w-full select-none object-cover" />
+        <div className={`pointer-events-none absolute inset-0 -z-10 bg-gradient-to-br ${kind.bg} opacity-60 mix-blend-multiply`} />
+        <div className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-t from-black/40 to-transparent" />
+        <div className="flex items-center gap-2">
+          <div className="min-w-0 flex-1">
+            <p className="text-[11px] font-bold text-white/80">{kind.sub}</p>
+            <p className="text-lg font-black">{GACHA_POS_OPTIONS.find((o) => o.value === pos).label}ガチャ</p>
+          </div>
+          <label className="flex items-center gap-1 rounded-full bg-black/20 py-1 pl-2.5 pr-1 text-[11px] font-bold">
+            品詞
+            <select
+              id="gacha-pos"
+              value={pos}
+              onChange={(e) => setPos(e.target.value)}
+              className="rounded-full bg-white/90 px-2 py-0.5 text-[11px] font-bold text-slate-800 focus:outline-none"
+            >
+              {GACHA_POS_OPTIONS.map((o) => (
+                <option key={o.value} value={o.value}>
+                  {o.label}
+                </option>
+              ))}
+            </select>
+          </label>
         </div>
-        <p className="mt-2 text-[11px] text-white/90 tabular-nums" data-testid="gacha-rates">
+        <p className="mt-1 text-[11px] text-white/90 tabular-nums" data-testid="gacha-rates">
           確率 {["N", "R", "SR", "SSR"].filter((r) => rates[r] > 0).map((r) => `${r} ${fmt(rates[r])}`).join("・")}
+          {PITY_SSR[currency] && (
+            <span className="ml-1 font-bold" data-testid="gacha-pity">
+              ・SSR 確定まで あと {PITY_SSR[currency] - (g.pity[currency] || 0)} 回
+            </span>
+          )}
         </p>
         <div className="mt-3 grid grid-cols-2 gap-2">
           <button type="button" onClick={() => pull(first)} className="rounded-2xl bg-white py-3 text-sm font-extrabold text-slate-800 shadow transition active:scale-95">
@@ -4581,19 +4632,17 @@ function GachaPanel({ g, onPull, onUpgrade }) {
           </button>
           <button type="button" onClick={() => pull(second)} className="rounded-2xl bg-amber-300 py-3 text-sm font-extrabold text-amber-950 shadow transition active:scale-95">
             10連
-            <span className="block text-[11px] font-bold text-amber-800">
-              {costText(second)}
-            </span>
+            <span className="block text-[11px] font-bold text-amber-800">{costText(second)}</span>
           </button>
         </div>
         {rest.length > 0 && (
-          <div className="mt-2 grid gap-1.5" style={{ gridTemplateColumns: `repeat(${rest.length}, minmax(0, 1fr))` }}>
+          <div className="mt-2 grid gap-1.5" style={{ gridTemplateColumns: `repeat(${Math.min(rest.length, 4)}, minmax(0, 1fr))` }}>
             {rest.map((n) => (
               <button
                 key={n}
                 type="button"
                 onClick={() => pull(n)}
-                className="rounded-xl bg-white/20 py-2 text-xs font-extrabold text-white ring-1 ring-white/40 transition active:scale-95"
+                className="rounded-xl bg-white/20 py-1.5 text-xs font-extrabold text-white ring-1 ring-white/40 transition active:scale-95"
               >
                 {n}連
                 <span className="block text-[10px] font-bold text-white/80 tabular-nums">{costText(n)}</span>
@@ -4601,23 +4650,10 @@ function GachaPanel({ g, onPull, onUpgrade }) {
             ))}
           </div>
         )}
-        {currency === "points" && (
-          <button
-            type="button"
-            disabled={allTimes < 1}
-            onClick={() => pull(allTimes)}
-            className="mt-2 w-full rounded-xl bg-black/20 py-2 text-xs font-extrabold text-white ring-1 ring-white/30 transition active:scale-95 disabled:opacity-50"
-          >
-            ポイントを全部使って引く
-            <span className="ml-1 font-bold text-white/80 tabular-nums">
-              {allTimes > 0 ? `（${allTimes.toLocaleString()}回）` : `（${PULL_COST}pt から）`}
-            </span>
+        {currency === "points" && allTimes > 0 && (
+          <button type="button" onClick={() => pull(allTimes)} className="mt-2 w-full text-center text-[11px] font-bold text-white/80 underline underline-offset-2">
+            ポイントを全部使って引く（{allTimes.toLocaleString()}回）
           </button>
-        )}
-        {PITY_SSR[currency] && (
-          <p className="mt-2 text-[11px] font-bold text-white/90 tabular-nums" data-testid="gacha-pity">
-            SSR 確定まで あと {PITY_SSR[currency] - (g.pity[currency] || 0)} 回
-          </p>
         )}
       </div>
       {error && <p className="rounded-xl bg-rose-50 px-3 py-2 text-center text-xs font-bold text-rose-600">{error}</p>}
@@ -4652,8 +4688,8 @@ function GachaPanel({ g, onPull, onUpgrade }) {
           ・毎日のログインボーナス {LOGIN_POINTS.toLocaleString()}pt・{BOOST_RATE}倍ブースト・SR チケット {LOGIN_SR_TICKETS}枚（3日ごとに SSR チケット、7日ごとにレアチケット）
         </p>
         <p>・今日の目標（{DAILY_GOAL}問）達成で {GOAL_POINTS.toLocaleString()}pt</p>
-        <p>・「コード」タブで英単語を入れると、難しい単語ほどたくさん（1日 {CODE_DAILY_LIMIT} 回）</p>
-        <p>・天井: 通常 {PITY_SSR.points}回・レアチケット {PITY_SSR.ticket}枚・SR チケット {PITY_SSR.sr}枚で SSR 確定</p>
+        <p>・「コード」タブで英単語を入れると、その単語と、難しい単語ほどたくさんのポイント（最大 5,000pt・1日 {CODE_DAILY_LIMIT} 回）</p>
+        <p>・天井: 通常ガチャは {PITY_SSR.points}回で SSR 確定。チケットは、そのランクの単語だけが出ます（レア=R・SR=SR・SSR=SSR）</p>
         <p>・同じ単語が出ると Lv が上がり、フレームが銅→銀→キラキラに（Lv.4 で MAX、以降は出なくなります）</p>
         <p>・引くたびに交換ポイントが1つ貯まり、図鑑から好きな単語と交換できます</p>
         <p>
@@ -5026,7 +5062,11 @@ function CodePanel({ g, onRedeem, onEndUnlimited }) {
     setMessage(
       r.unlimited
         ? { ok: true, text: "開発者コード！ ポイントが無限になりました（ガチャを引いても減りません）" }
-        : { ok: true, text: `「${r.card.english}」（${r.card.secret ? "SECRET" : r.card.rarity}）で ${r.points.toLocaleString()}pt ゲット！`, big: r.points >= 20000 }
+        : {
+            ok: true,
+            text: `「${r.card.english}」（${r.card.secret ? "SECRET" : r.card.rarity}）で ${r.points.toLocaleString()}pt ゲット！${r.got ? "　単語も手に入れた！" : ""}`,
+            big: r.points >= 3000,
+          }
     );
   };
   const recent = g.codesUsed.slice(-5).reverse().map((id) => CATALOG.cards[id]).filter(Boolean);
@@ -6058,6 +6098,14 @@ export default function App() {
         update(() => next);
         sound.play("tap");
       },
+      onEnhance(targetId, materials) {
+        const r = questEnhance(stateRef.current, CATALOG.cards, targetId, materials);
+        if (r.error) return r;
+        stateRef.current = r.state;
+        update(() => r.state);
+        sound.play(r.to > r.from ? "levelup" : "heal", 0, { cheer: false });
+        return r;
+      },
       onLoadPreset(i) {
         const next = questLoadPreset(stateRef.current, i);
         stateRef.current = next;
@@ -6223,6 +6271,34 @@ export default function App() {
       window.removeEventListener("online", flush);
     };
   }, [flush]);
+
+  /** アカウントのデータを消して最初から（クラウドは空の状態で上書きしてログアウト。この端末の保存も消す） */
+  const onDeleteAccount = useCallback(async () => {
+    const fresh = freshState(CHAPTERS[0].id);
+    ready.current = false; // 自動保存を止める
+    if (user) {
+      try {
+        await cloud.save(user.uid, fresh, Date.now());
+      } catch {
+        /* 通信できなくても、この端末のデータは消す */
+      }
+    }
+    try {
+      for (const k of Object.keys(localStorage)) if (k.startsWith("swipetalk:")) localStorage.removeItem(k);
+      sessionStorage.removeItem(SKIP_LOGIN_KEY);
+    } catch {
+      /* 保存が使えない環境 */
+    }
+    if (user) {
+      try {
+        await cloud.signOut();
+      } catch {
+        /* もうログアウトしている */
+      }
+    }
+    if (typeof window !== "undefined" && window.__swipetalkNoReload) return; // E2E 用
+    window.location.reload();
+  }, [user]);
 
   const account = {
     user,
@@ -6446,6 +6522,8 @@ export default function App() {
           setSettings={setSettings}
           speech={speech}
           onResetAll={onResetAll}
+          onDeleteAccount={onDeleteAccount}
+          signedIn={!!user}
           themeId={theme.id}
         />
       </div>

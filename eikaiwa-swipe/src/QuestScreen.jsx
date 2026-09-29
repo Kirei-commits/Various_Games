@@ -8,8 +8,9 @@
  */
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Volume2, Swords, Shield, Heart, Castle, X } from "lucide-react";
-import { BattleBackdrop, Monster, Dragon } from "./battle-art.jsx";
+import { Monster, Dragon } from "./battle-art.jsx";
 import { Art, CHEST_ART } from "./gacha-art.jsx";
+import { SLOT_ART, SKILL_ART, FX_ART, QUEST_BACKDROP, QUEST_HERO, QuestIcon, ElementIcon } from "./quest-art.jsx";
 import { makeChoices } from "./logic.js";
 import {
   SLOTS,
@@ -18,6 +19,12 @@ import {
   elementMultiplier,
   openChest,
   PRESETS,
+  plusOf,
+  PLUS_EXP,
+  MAX_PLUS,
+  ULTIMATE_PLUS,
+  materialExp,
+  spareCopies,
   gearOf,
   slotBonus,
   statsOf,
@@ -62,10 +69,10 @@ function Bar({ value, max, color, label }) {
 
 /** 相性の倍率（1.5 = ばつぐん、0.75 = いまひとつ） */
 function MultBadge({ mult, long = false }) {
-  if (mult === 1) return long ? <span className="rounded bg-white/15 px-1.5 py-0.5 text-[10px] font-black">×1 ふつう</span> : null;
+  if (mult === 1) return long ? <span className="whitespace-nowrap rounded bg-white/15 px-1.5 py-0.5 text-[10px] font-black">×1 ふつう</span> : null;
   const good = mult > 1;
   return (
-    <span className={`rounded px-1.5 py-0.5 text-[10px] font-black ${good ? "bg-amber-400 text-slate-900" : "bg-slate-500 text-white"}`}>
+    <span className={`whitespace-nowrap rounded px-1.5 py-0.5 text-[10px] font-black ${good ? "bg-amber-400 text-slate-900" : "bg-slate-500 text-white"}`}>
       ×{mult}
       {long ? (good ? " ばつぐん！" : " いまひとつ") : ""}
     </span>
@@ -86,16 +93,16 @@ function RarityBadge({ rarity }) {
 }
 
 /** 装備を選ぶシート（持っている単語を強い順に） */
-function GearPicker({ slot, owned, cards, current, onPick, onClose }) {
+function GearPicker({ slot, owned, cards, enhance = {}, current, onPick, onClose }) {
   const [query, setQuery] = useState("");
   const info = SLOTS.find((s) => s.id === slot);
   const list = useMemo(
     () =>
       Object.entries(owned)
         .filter(([id, n]) => n > 0 && cards[id])
-        .map(([id, n]) => gearOf(cards[id], n))
+        .map(([id, n]) => gearOf(cards[id], n, plusOf(enhance?.[id])))
         .sort((a, b) => b.power - a.power || a.english.localeCompare(b.english)),
-    [owned, cards]
+    [owned, cards, enhance]
   );
   const q = query.trim().toLowerCase();
   const shown = list.filter((g) => !q || g.english.toLowerCase().includes(q) || (g.japanese || "").includes(q)).slice(0, 120);
@@ -111,7 +118,7 @@ function GearPicker({ slot, owned, cards, current, onPick, onClose }) {
       >
         <div className="flex items-center justify-between">
           <p className="text-base font-extrabold text-slate-900">
-            {info.icon} {info.name}をえらぶ <span className="text-xs font-bold text-slate-400">（{info.stat}が上がる）</span>
+            <QuestIcon src={SLOT_ART[slot]} size={24} /> {info.name}をえらぶ <span className="text-xs font-bold text-slate-400">（{info.stat}が上がる）</span>
           </p>
           <button type="button" onClick={onClose} aria-label="閉じる" className="rounded-full p-1 text-slate-400">
             <X size={20} />
@@ -142,9 +149,10 @@ function GearPicker({ slot, owned, cards, current, onPick, onClose }) {
                 <span className="flex items-center gap-1.5">
                   <RarityBadge rarity={g.rarity} />
                   <span className="font-bold text-slate-900">{g.english}</span>
+                  {g.plus > 0 && <span className="text-[11px] font-black text-amber-500">+{g.plus}</span>}
                   <span className="text-[10px] font-bold text-slate-400">Lv{g.level}</span>
                   <span className="ml-auto text-xs" title={`${el(g.element).name}属性`}>
-                    {el(g.element).icon}
+                    <ElementIcon element={g.element} size={16} />
                   </span>
                   <span className="text-xs font-black text-indigo-600 tabular-nums">{bonusText(slotBonus(slot, g.power))}</span>
                 </span>
@@ -161,9 +169,134 @@ function GearPicker({ slot, owned, cards, current, onPick, onClose }) {
   );
 }
 
+/** 装備の強化（集めた単語のあまりを素材にする） */
+function EnhanceSheet({ state, cards, targetId, onEnhance, onClose }) {
+  const [picked, setPicked] = useState({});
+  const [query, setQuery] = useState("");
+  const [message, setMessage] = useState("");
+  const target = cards[targetId];
+  const exp = state.quest.enhance?.[targetId] || 0;
+  const plus = plusOf(exp);
+  const maxed = plus >= MAX_PLUS;
+  const next = PLUS_EXP[Math.min(MAX_PLUS, plus + 1)];
+  const list = useMemo(
+    () =>
+      Object.keys(state.gacha.cards || {})
+        .filter((id) => cards[id] && spareCopies(state, id) > 0)
+        .map((id) => ({ id, card: cards[id], spare: spareCopies(state, id), value: materialExp(cards[id], targetId) }))
+        .sort((a, b) => (b.id === targetId) - (a.id === targetId) || b.value - a.value || a.card.english.localeCompare(b.card.english)),
+    [state, cards, targetId]
+  );
+  const q = query.trim().toLowerCase();
+  const shown = list.filter((m) => !q || m.card.english.toLowerCase().includes(q) || (m.card.japanese || "").includes(q)).slice(0, 150);
+  const gain = list.reduce((n, m) => n + (picked[m.id] || 0) * m.value, 0);
+  const after = plusOf(Math.min(PLUS_EXP[MAX_PLUS], exp + gain));
+  const set = (id, n, max) => setPicked((p) => ({ ...p, [id]: Math.max(0, Math.min(max, n)) }));
+  return (
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-900/50" onClick={onClose}>
+      <div
+        role="dialog"
+        aria-label="装備を強化"
+        data-testid="enhance-sheet"
+        className="flex max-h-[85dvh] w-full max-w-md flex-col rounded-t-3xl bg-white p-4 shadow-2xl"
+        style={{ paddingBottom: "calc(1rem + env(safe-area-inset-bottom))" }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between">
+          <p className="text-base font-extrabold text-slate-900">
+            「{target.english}」を強化 <span className="text-amber-500">+{plus}</span>
+            {plus >= ULTIMATE_PLUS && <span className="ml-1 text-xs font-black text-pink-500">ULTIMATE</span>}
+          </p>
+          <button type="button" onClick={onClose} aria-label="閉じる" className="rounded-full p-1 text-slate-400">
+            <X size={20} />
+          </button>
+        </div>
+        <div className="mt-2 rounded-xl bg-slate-50 p-2 text-xs ring-1 ring-slate-200">
+          {maxed ? (
+            <p className="font-bold text-amber-600">+10（最大）です！</p>
+          ) : (
+            <>
+              <p className="flex justify-between font-bold text-slate-600">
+                <span>強化ポイント</span>
+                <span className="tabular-nums">
+                  {exp} / {next}（+{plus + 1} まで あと {next - exp}）
+                </span>
+              </p>
+              <div className="mt-1 h-2 overflow-hidden rounded-full bg-slate-200">
+                <div className="h-full rounded-full bg-amber-400" style={{ width: `${((exp - PLUS_EXP[plus]) / (next - PLUS_EXP[plus])) * 100}%` }} />
+              </div>
+            </>
+          )}
+          <p className="mt-1 text-[11px] leading-relaxed text-slate-500">
+            素材1枚: N 1・R 4・SR 12・SSR 40pt、同じ単語は3倍。1つ強化するごとに強さ +10%・効果 +8%。+{ULTIMATE_PLUS} から
+            <b>アルティメット</b>（効果さらに1.5倍・SSR の呪文は「極」）。素材は2枚目以降だけ使います（図鑑から消えません）。
+          </p>
+        </div>
+        {!maxed && (
+          <>
+            <input
+              type="search"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder={`素材 ${list.length}語から検索`}
+              className="mt-2 w-full rounded-xl bg-slate-50 px-3 py-2 text-sm ring-1 ring-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+            />
+            <ul className="mt-2 min-h-0 flex-1 space-y-1 overflow-y-auto" data-testid="enhance-materials">
+              {shown.map((m) => (
+                <li key={m.id} className="flex items-center gap-2 rounded-xl bg-white px-2 py-1.5 ring-1 ring-slate-200">
+                  <RarityBadge rarity={m.card.rarity} />
+                  <span className="min-w-0 flex-1 truncate text-sm font-bold text-slate-800">
+                    {m.card.english}
+                    {m.id === targetId && <span className="ml-1 text-[10px] text-pink-500">同じ単語 ×3</span>}
+                    <span className="block text-[10px] font-normal text-slate-400">
+                      あまり {m.spare}枚・1枚 {m.value}pt
+                    </span>
+                  </span>
+                  <button type="button" aria-label={`${m.card.english}を減らす`} onClick={() => set(m.id, (picked[m.id] || 0) - 1, m.spare)} className="h-7 w-7 rounded-full bg-slate-100 font-black">
+                    −
+                  </button>
+                  <span className="w-5 text-center text-sm font-black tabular-nums">{picked[m.id] || 0}</span>
+                  <button type="button" aria-label={`${m.card.english}を足す`} onClick={() => set(m.id, (picked[m.id] || 0) + 1, m.spare)} className="h-7 w-7 rounded-full bg-indigo-600 font-black text-white">
+                    ＋
+                  </button>
+                  <button type="button" onClick={() => set(m.id, m.spare, m.spare)} className="rounded-full px-1.5 text-[10px] font-bold text-indigo-600">
+                    全部
+                  </button>
+                </li>
+              ))}
+              {list.length === 0 && <li className="p-4 text-center text-xs text-slate-500">素材にできる単語がありません。ガチャで同じ単語が2枚以上になると素材にできます。</li>}
+            </ul>
+            <button
+              type="button"
+              disabled={!gain}
+              onClick={() => {
+                const r = onEnhance(targetId, picked);
+                if (r?.error) setMessage(r.error);
+                else {
+                  setMessage(r.to > r.from ? `+${r.from} → +${r.to} に強化した！${r.to >= ULTIMATE_PLUS && r.from < ULTIMATE_PLUS ? "　アルティメット解放！" : ""}` : `強化ポイント +${r.gained}`);
+                  setPicked({});
+                }
+              }}
+              className="mt-2 w-full rounded-2xl bg-gradient-to-r from-amber-500 to-pink-500 py-3 text-sm font-extrabold text-white shadow disabled:opacity-40"
+            >
+              強化する（+{gain}pt{gain ? ` → +${after}` : ""}）
+            </button>
+          </>
+        )}
+        {message && (
+          <p className="mt-2 text-center text-sm font-black text-amber-600" data-testid="enhance-message">
+            {message}
+          </p>
+        )}
+      </div>
+    </div>
+  );
+}
+
 /** 準備画面: 主人公と装備 */
-function QuestHome({ state, cards, stats, header, onEquip, onAutoEquip, onSavePreset, onLoadPreset, onStart }) {
+function QuestHome({ state, cards, stats, header, onEquip, onAutoEquip, onSavePreset, onLoadPreset, onEnhance, onStart }) {
   const [picking, setPicking] = useState(null);
+  const [enhancing, setEnhancing] = useState(null);
   const q = state.quest;
   const owned = state.gacha.cards || {};
   const ownedCount = Object.values(owned).filter((n) => n > 0).length;
@@ -176,7 +309,10 @@ function QuestHome({ state, cards, stats, header, onEquip, onAutoEquip, onSavePr
       {header}
       <div className="mt-4 rounded-3xl bg-slate-900 p-4 text-white shadow-lg ring-2 ring-white/80">
         <p className="flex items-baseline justify-between">
-          <span className="text-lg font-black">ぼうけんしゃ</span>
+          <span className="flex items-center gap-1.5 text-lg font-black">
+            <QuestIcon src={QUEST_HERO} size={40} className="-my-2" />
+            ぼうけんしゃ
+          </span>
           <span className="text-sm font-black text-amber-300" data-testid="quest-level">
             Lv {q.level}
           </span>
@@ -193,7 +329,7 @@ function QuestHome({ state, cards, stats, header, onEquip, onAutoEquip, onSavePr
             ["会心", `${stats.crit}%`],
             ["回避", `${stats.evade}%`],
             ["盾", stats.block],
-            ["属性", `${el(stats.element).icon || "－"}`],
+            ["属性", <ElementIcon element={stats.element} size={20} fallback="－" />],
           ].map(([k, v]) => (
             <div key={k} className="rounded-xl bg-white/10 py-1.5">
               <p className="text-[10px] text-white/60">{k}</p>
@@ -202,8 +338,8 @@ function QuestHome({ state, cards, stats, header, onEquip, onAutoEquip, onSavePr
           ))}
         </div>
         <p className="mt-2 text-[11px] text-white/80">
-          攻撃の属性 {el(stats.element).icon}
-          {el(stats.element).name}・盾の属性 {el(stats.guard).icon}
+          攻撃の属性 <ElementIcon element={stats.element} size={14} />
+          {el(stats.element).name}・盾の属性 <ElementIcon element={stats.guard} size={14} />
           {el(stats.guard).name}
           {stats.setBonus > 0 && <span className="ml-1 font-black text-amber-300">属性そろい！攻撃+{stats.setBonus}%</span>}
         </p>
@@ -213,7 +349,7 @@ function QuestHome({ state, cards, stats, header, onEquip, onAutoEquip, onSavePr
             <p className="text-[10px] font-black text-amber-300">SSR の特製の呪文</p>
             {stats.skills.map((sk) => (
               <p key={sk.id} className="text-[11px]">
-                {sk.icon} <b>{sk.name}</b>（MP{sk.mp}）{sk.text} <span className="text-white/50">← {sk.from}</span>
+                <QuestIcon src={SKILL_ART[sk.element] || SKILL_ART.none} size={18} /> <b>{sk.name}</b>（MP{sk.mp}）{sk.text} <span className="text-white/50">← {sk.from}</span>
               </p>
             ))}
           </div>
@@ -278,7 +414,7 @@ function QuestHome({ state, cards, stats, header, onEquip, onAutoEquip, onSavePr
                 aria-label={`${s.name}を変える`}
                 className="flex w-full items-center gap-2.5 rounded-2xl bg-white px-3 py-2 text-left shadow-sm ring-1 ring-slate-200 active:scale-[0.99]"
               >
-                <span className="w-7 text-center text-xl">{s.icon}</span>
+                <QuestIcon src={SLOT_ART[s.id]} size={32} />
                 <span className="min-w-0 flex-1">
                   <span className="block text-[10px] font-bold text-slate-400">
                     {s.name}（{s.stat}）
@@ -288,9 +424,15 @@ function QuestHome({ state, cards, stats, header, onEquip, onAutoEquip, onSavePr
                       <span className="flex items-center gap-1.5">
                         <RarityBadge rarity={g.rarity} />
                         <span className="truncate text-sm font-bold text-slate-900">{g.english}</span>
+                        {g.plus > 0 && <span className={`text-[11px] font-black ${g.ultimate ? "text-pink-500" : "text-amber-500"}`}>+{g.plus}</span>}
                         <span className="text-[10px] font-bold text-slate-400">Lv{g.level}</span>
-                        <span className="text-xs">{el(g.element).icon}</span>
-                        {g.rarity === "SSR" && <span className="text-[10px] font-black text-amber-500">{SKILLS[g.element].icon}呪文</span>}
+                        <ElementIcon element={g.element} size={14} />
+                        {g.rarity === "SSR" && (
+                          <span className="flex items-center text-[10px] font-black text-amber-500">
+                            <QuestIcon src={SKILL_ART[g.element] || SKILL_ART.none} size={14} />
+                            呪文
+                          </span>
+                        )}
                       </span>
                       <span className="block truncate text-[11px] text-slate-500">
                         {bonusText(slotBonus(s.id, g.power))}／{g.effects.map(effectText).join("・")}
@@ -300,6 +442,21 @@ function QuestHome({ state, cards, stats, header, onEquip, onAutoEquip, onSavePr
                     <span className="block text-sm font-bold text-slate-300">なし（タップで装備）</span>
                   )}
                 </span>
+                {g && (
+                  <span
+                    role="button"
+                    tabIndex={0}
+                    aria-label={`${s.name}を強化`}
+                    onClick={(ev) => {
+                      ev.stopPropagation();
+                      setEnhancing(g.id);
+                    }}
+                    onKeyDown={(ev) => ev.key === "Enter" && (ev.stopPropagation(), setEnhancing(g.id))}
+                    className="shrink-0 rounded-full bg-gradient-to-r from-amber-400 to-pink-500 px-2.5 py-1 text-[10px] font-black text-white shadow"
+                  >
+                    強化
+                  </span>
+                )}
               </button>
             </li>
           );
@@ -336,11 +493,13 @@ function QuestHome({ state, cards, stats, header, onEquip, onAutoEquip, onSavePr
       </div>
       <p className="mt-2 text-[11px] text-slate-500">5階ごとにボスがいます。ボスを倒すと、次からはその次の階から始められます。</p>
 
+      {enhancing && <EnhanceSheet state={state} cards={cards} targetId={enhancing} onEnhance={onEnhance} onClose={() => setEnhancing(null)} />}
       {picking && (
         <GearPicker
           slot={picking}
           owned={owned}
           cards={cards}
+          enhance={q.enhance}
           current={q.equip[picking]}
           onClose={() => setPicking(null)}
           onPick={(id) => {
@@ -472,10 +631,13 @@ function QuestRun({ stats, pool, chestWords, cards, speech, sound, dopamine, onE
   const playerFx = (e) => {
     const color = ELEMENT_COLOR[e.element] || ELEMENT_COLOR.none;
     const list = [];
+    const art = FX_ART[e.element] || FX_ART.none;
     if (e.magic) list.push({ kind: "orb", color, skill: !!e.skill });
-    if (e.skill) list.push({ kind: "flash", color }, { kind: "bigicon", icon: SKILLS[e.element]?.icon || "✨" });
+    if (e.skill) list.push({ kind: "flash", color }, { kind: "bigicon", src: art });
+    else if (e.magic) list.push({ kind: "img", src: art, size: 150 });
     list.push({ kind: "slash", rot: -35 + Math.random() * 20 }, { kind: "slash", rot: 30 + Math.random() * 20, late: true });
     list.push({ kind: "burst", color: e.magic ? color : "#fff7ed", big: e.crit || !!e.skill });
+    if (!e.magic || e.crit) list.push({ kind: "img", src: FX_ART.burst, size: e.crit ? 190 : 130, rot: Math.random() * 360 });
     const n = e.skill ? 18 : e.crit ? 14 : 8;
     for (let i = 0; i < n; i++) {
       const a = (i / n) * Math.PI * 2 + Math.random() * 0.4;
@@ -600,7 +762,15 @@ function QuestRun({ stats, pool, chestWords, cards, speech, sound, dopamine, onE
   return (
     <div className="flex h-full flex-col bg-slate-950 text-white" data-testid="quest-run">
       <div ref={arenaRef} className="relative h-[42%] min-h-[220px] overflow-hidden">
-        <BattleBackdrop />
+        <img src={QUEST_BACKDROP} alt="" draggable={false} aria-hidden="true" className="pointer-events-none absolute inset-0 h-full w-full select-none object-cover object-bottom" />
+        <img
+          src={QUEST_HERO}
+          alt=""
+          draggable={false}
+          aria-hidden="true"
+          className="qs-idle pointer-events-none absolute bottom-1 left-0 z-10 h-[80px] w-[80px] select-none"
+          data-testid="quest-hero"
+        />
         <p className="absolute left-3 top-2 z-10 rounded-full bg-black/60 px-2.5 py-1 text-xs font-black" data-testid="quest-floor">
           {run.floor}階{isBossFloor(run.floor) ? "（ボス）" : ""}
         </p>
@@ -626,10 +796,10 @@ function QuestRun({ stats, pool, chestWords, cards, speech, sound, dopamine, onE
               </div>
             )}
           </div>
-          <div className="mt-1 w-44 rounded-lg bg-black/60 px-2 py-1">
+          <div className="mt-1 w-48 rounded-lg bg-black/60 px-2 py-1">
             <p className="flex justify-between text-[11px] font-bold">
               <span data-testid="quest-enemy">
-                {e.name} {el(e.element).icon}
+                {e.name} <ElementIcon element={e.element} size={14} />
               </span>
               <span className="tabular-nums">
                 {e.hp}/{e.maxHp}
@@ -639,8 +809,8 @@ function QuestRun({ stats, pool, chestWords, cards, speech, sound, dopamine, onE
               <div className="h-full rounded-full bg-rose-500 transition-all duration-500" style={{ width: `${(e.hp / e.maxHp) * 100}%` }} />
             </div>
             <p className="mt-1 flex items-center justify-between gap-1 text-[10px] font-bold" data-testid="quest-matchup">
-              <span>
-                こうげき {el(stats.element).icon || "無"}→{el(e.element).icon || "無"}
+              <span className="flex shrink-0 items-center whitespace-nowrap">
+                こうげき <ElementIcon element={stats.element} size={13} fallback="無" />→<ElementIcon element={e.element} size={13} fallback="無" />
               </span>
               <MultBadge mult={elementMultiplier(stats.element, e.element)} long />
             </p>
@@ -729,7 +899,7 @@ function QuestRun({ stats, pool, chestWords, cards, speech, sound, dopamine, onE
                 className={`${cmd} border-amber-300 bg-gradient-to-r from-amber-600/60 to-pink-600/60`}
                 data-testid="quest-skill"
               >
-                {sk.icon} {sk.name} <span className="text-[10px] text-sky-200">MP{sk.mp}</span>
+                <QuestIcon src={SKILL_ART[sk.element] || SKILL_ART.none} size={20} /> {sk.name} <span className="text-[10px] text-sky-200">MP{sk.mp}</span>
                 <MultBadge mult={elementMultiplier(sk.element, e.element)} />
               </button>
             ))}
@@ -799,16 +969,28 @@ function FxLayer({ fx }) {
             return <span key={f.id} className="qs-flash absolute inset-0 block" style={{ background: f.color }} />;
           case "bigicon":
             return (
-              <span key={f.id} className="qs-bigicon absolute block text-7xl" style={at}>
-                {f.icon}
-              </span>
+              <img key={f.id} src={f.src} alt="" draggable={false} className="qs-bigicon absolute block h-[110px] w-[110px] select-none" style={at} />
             );
           case "slash":
             return (
-              <span
+              <img
                 key={f.id}
-                className="bt-slash absolute block h-1.5 w-40 rounded-full bg-white"
-                style={{ ...at, "--rot": `${f.rot}deg`, boxShadow: "0 0 12px 3px #fff", animationDelay: f.late ? "0.22s" : undefined }}
+                src={FX_ART.slash}
+                alt=""
+                draggable={false}
+                className="bt-slash absolute block h-[150px] w-[150px] select-none"
+                style={{ ...at, "--rot": `${f.rot + 45}deg`, animationDelay: f.late ? "0.22s" : undefined }}
+              />
+            );
+          case "img":
+            return (
+              <img
+                key={f.id}
+                src={f.src}
+                alt=""
+                draggable={false}
+                className="qs-fx absolute block select-none"
+                style={{ ...at, width: f.size, height: f.size, "--rot": `${f.rot || 0}deg` }}
               />
             );
           case "burst":
@@ -852,8 +1034,8 @@ function FxLayer({ fx }) {
             );
           case "shield":
             return (
-              <span key={f.id} className="qs-shield absolute bottom-2 left-1/2 flex h-24 w-24 items-center justify-center rounded-full text-5xl">
-                🛡️
+              <span key={f.id} className="qs-shield absolute bottom-2 left-1/2 flex h-28 w-28 items-center justify-center rounded-full">
+                <img src={FX_ART.shield} alt="" draggable={false} className="h-full w-full select-none" />
               </span>
             );
           case "heal":
@@ -926,7 +1108,7 @@ function QuestResult({ run, reward, cards, onBack }) {
  * 冒険の画面。
  * @param onFinish (run, seconds) → reward（経験値・ポイントの記録は App 側で行う）
  */
-export default function QuestScreen({ state, cards, pool, chestWords = [], speech, sound, dopamine, header, onEquip, onAutoEquip, onSavePreset, onLoadPreset, onFinish, active = true }) {
+export default function QuestScreen({ state, cards, pool, chestWords = [], speech, sound, dopamine, header, onEquip, onAutoEquip, onSavePreset, onLoadPreset, onEnhance, onFinish, active = true }) {
   const stats = useMemo(() => statsOf(state.quest, cards, state.gacha.cards || {}), [state.quest, state.gacha.cards, cards]);
   const [running, setRunning] = useState(null); // { start, id }
   const [result, setResult] = useState(null);
@@ -962,6 +1144,7 @@ export default function QuestScreen({ state, cards, pool, chestWords = [], speec
       onAutoEquip={onAutoEquip}
       onSavePreset={onSavePreset}
       onLoadPreset={onLoadPreset}
+      onEnhance={onEnhance}
       onStart={(start) => setRunning({ start, id: Date.now() })}
     />
   );
