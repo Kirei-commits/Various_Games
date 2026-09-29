@@ -82625,6 +82625,21 @@
    "via": "batch",
    "at": "2026-09-28"
   },
+  "0e38cff7d8fbb9": {
+   "key": "A|Sales are up 10 percent.",
+   "text": "Sales are up 10 percent.",
+   "role": "A",
+   "chapter": "ch73",
+   "id": "sales",
+   "model": "gemini-3.8-flash-tts",
+   "voice": "Achird",
+   "sig": "aa2906d98153",
+   "rev": 1,
+   "seconds": 1.92,
+   "via": "batch",
+   "at": "2026-09-29",
+   "check": "Sales are up 10%."
+  },
   "0e397949642f36": {
    "key": "B|They left a note. You can pick it up tomorrow.",
    "text": "They left a note. You can pick it up tomorrow.",
