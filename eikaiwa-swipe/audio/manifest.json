@@ -49,13 +49,13 @@
    "role": "P",
    "chapter": "ch12",
    "id": "get-some-fresh-air",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Erinome",
-   "sig": "ac42516f2d1d",
-   "rev": 1,
-   "seconds": 1.09,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "30068eb6dee5",
+   "rev": 2,
+   "seconds": 1.32,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "00022fa5849183": {
    "key": "P|What's that supposed to mean?",
@@ -147,13 +147,13 @@
    "role": "B",
    "chapter": "ch12",
    "id": "snowstorm",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Callirrhoe",
-   "sig": "1e72b96bd4d2",
-   "rev": 1,
-   "seconds": 1.62,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "fe61a50300b5",
+   "rev": 2,
+   "seconds": 2.32,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "00061ff3096545": {
    "key": "P|Will I get my deposit back?",
@@ -2345,13 +2345,13 @@
    "role": "B",
    "chapter": "ch12",
    "id": "drizzle",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Callirrhoe",
-   "sig": "c5ec2a5f59b6",
-   "rev": 1,
-   "seconds": 1.01,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "097acfe38230",
+   "rev": 2,
+   "seconds": 1.56,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "00630c92f659ea": {
    "key": "P|FYI",
@@ -2387,13 +2387,13 @@
    "role": "A",
    "chapter": "ch12",
    "id": "scenery",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Achird",
-   "sig": "c4fcf161109e",
-   "rev": 1,
-   "seconds": 1.06,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "19f877fbb672",
+   "rev": 2,
+   "seconds": 1.04,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "0065d46de18107": {
    "key": "P|stress",
@@ -2863,13 +2863,13 @@
    "role": "A",
    "chapter": "ch12",
    "id": "sunscreen",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Achird",
-   "sig": "c681c74b4a2a",
-   "rev": 1,
-   "seconds": 1.21,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "fa35f5a3d93b",
+   "rev": 2,
+   "seconds": 1.4,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "007713ea24ca32": {
    "key": "A|How much is your rent?",
@@ -3381,13 +3381,13 @@
    "role": "A",
    "chapter": "ch12",
    "id": "muggy",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Achird",
-   "sig": "4d65fba6c49f",
-   "rev": 1,
-   "seconds": 1.51,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "377c10b4fe75",
+   "rev": 2,
+   "seconds": 2.4,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "008dc62a1a00b5": {
    "key": "P|New Year's Eve",
@@ -4557,13 +4557,13 @@
    "role": "A",
    "chapter": "ch12",
    "id": "its-boiling",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Achird",
-   "sig": "19958e45dcf6",
-   "rev": 1,
-   "seconds": 1.43,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "6a7a12a1c6c9",
+   "rev": 2,
+   "seconds": 2.12,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "00bfe0a0ec4b63": {
    "key": "A|I found your lost cat.",
@@ -5733,13 +5733,13 @@
    "role": "P",
    "chapter": "ch11",
    "id": "i-cant-sleep",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Erinome",
-   "sig": "af2ad1e106d5",
-   "rev": 1,
-   "seconds": 1.36,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "db2ea1fb4a09",
+   "rev": 2,
+   "seconds": 1.52,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "00f01c39a64a91": {
    "key": "A|I'll be away next week.",
@@ -5873,13 +5873,13 @@
    "role": "A",
    "chapter": "ch12",
    "id": "view",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Achird",
-   "sig": "d2f77906e6f8",
-   "rev": 1,
-   "seconds": 0.9,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "6d8683af7bb1",
+   "rev": 2,
+   "seconds": 2.0,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "00f6dff3851ebe": {
    "key": "P|Do you have this in a different color?",
@@ -8589,13 +8589,13 @@
    "role": "A",
    "chapter": "ch12",
    "id": "its-freezing",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Achird",
-   "sig": "91e379f4cdc4",
-   "rev": 1,
-   "seconds": 1.47,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "17e1b88fbec4",
+   "rev": 2,
+   "seconds": 2.16,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "016aeda0c59203": {
    "key": "A|She believes it was her destiny.",
@@ -9051,13 +9051,13 @@
    "role": "A",
    "chapter": "ch12",
    "id": "sunrise",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Achird",
-   "sig": "30621b28e4c9",
-   "rev": 1,
-   "seconds": 2.06,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "75921f329733",
+   "rev": 2,
+   "seconds": 2.32,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "017f733a756991": {
    "key": "A|Is your daughter going to summer camp?",
@@ -9275,13 +9275,13 @@
    "role": "B",
    "chapter": "ch11",
    "id": "i-cant-sleep",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Callirrhoe",
-   "sig": "1d1fe89fd6fd",
-   "rev": 1,
-   "seconds": 2.07,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "e6abbeb2b036",
+   "rev": 2,
+   "seconds": 3.2,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "018a60d9e94537": {
    "key": "A|Who are you taking to prom?",
@@ -9751,13 +9751,13 @@
    "role": "B",
    "chapter": "ch11",
    "id": "gain-weight",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Callirrhoe",
-   "sig": "aa2547ed73e5",
-   "rev": 1,
-   "seconds": 1.97,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "f16a2dc69dfe",
+   "rev": 2,
+   "seconds": 2.36,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "01a1a27226ce61": {
    "key": "P|I have a bad connection.",
@@ -10073,13 +10073,13 @@
    "role": "B",
    "chapter": "ch11",
    "id": "stressed",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Callirrhoe",
-   "sig": "06fd1eee645f",
-   "rev": 1,
-   "seconds": 1.31,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "9af867549a93",
+   "rev": 2,
+   "seconds": 1.6,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "01aba2a33ec703": {
    "key": "A|Do you want mushrooms on your pizza?",
@@ -11417,13 +11417,13 @@
    "role": "P",
    "chapter": "ch12",
    "id": "its-freezing",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Erinome",
-   "sig": "216b459a49c1",
-   "rev": 1,
-   "seconds": 1.31,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "2668c70452eb",
+   "rev": 2,
+   "seconds": 1.68,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "01ea8939d05e7b": {
    "key": "B|He came down with the flu.",
@@ -11431,13 +11431,13 @@
    "role": "B",
    "chapter": "ch11",
    "id": "come-down-with",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Callirrhoe",
-   "sig": "19e5e63d2acd",
-   "rev": 1,
-   "seconds": 1.63,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "bc57531a8143",
+   "rev": 2,
+   "seconds": 1.88,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "01eb1292cd3bab": {
    "key": "A|I love this song!",
@@ -11585,13 +11585,13 @@
    "role": "P",
    "chapter": "ch11",
    "id": "bruise",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Erinome",
-   "sig": "2953b3db78e7",
-   "rev": 1,
-   "seconds": 0.69,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "535d26609c1f",
+   "rev": 2,
+   "seconds": 1.2,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "01ee124acbafc3": {
    "key": "P|faucet",
@@ -12285,13 +12285,13 @@
    "role": "P",
    "chapter": "ch12",
    "id": "its-clearing-up",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Erinome",
-   "sig": "0a50d8b18591",
-   "rev": 1,
-   "seconds": 1.06,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "b143415d5d61",
+   "rev": 2,
+   "seconds": 1.32,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "020f3ef596c435": {
    "key": "A|Thanks, pal.",
@@ -13111,13 +13111,13 @@
    "role": "A",
    "chapter": "ch11",
    "id": "itchy",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Achird",
-   "sig": "8dc8d7ea9369",
-   "rev": 1,
-   "seconds": 2.39,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "433d9d332715",
+   "rev": 2,
+   "seconds": 2.64,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "02371edbdb67dd": {
    "key": "A|She's very mature for her age.",
@@ -15099,13 +15099,13 @@
    "role": "A",
    "chapter": "ch11",
    "id": "balanced-diet",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Achird",
-   "sig": "75ceb9493ee0",
-   "rev": 1,
-   "seconds": 1.09,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "a91725d992ae",
+   "rev": 2,
+   "seconds": 1.6,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "0295d539763180": {
    "key": "P|heads-up",
@@ -17451,13 +17451,13 @@
    "role": "P",
    "chapter": "ch12",
    "id": "starry-sky",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Erinome",
-   "sig": "0157584ec80b",
-   "rev": 1,
-   "seconds": 1.35,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "089a40b4e8cd",
+   "rev": 2,
+   "seconds": 1.88,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "0301d3472fafc6": {
    "key": "A|My gym membership is 40 dollars a month.",
@@ -18711,13 +18711,13 @@
    "role": "P",
    "chapter": "ch11",
    "id": "blood-pressure",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Erinome",
-   "sig": "c3c0aa5e832e",
-   "rev": 1,
-   "seconds": 0.98,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "f19049982981",
+   "rev": 2,
+   "seconds": 1.28,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "0337023c7fafe9": {
    "key": "A|Don't eat too much candy.",
@@ -18767,13 +18767,13 @@
    "role": "B",
    "chapter": "ch12",
    "id": "thunderstorm",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Callirrhoe",
-   "sig": "1046800c096d",
-   "rev": 1,
-   "seconds": 1.33,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "bdb947196dad",
+   "rev": 2,
+   "seconds": 2.12,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "033a691db09184": {
    "key": "P|note",
@@ -19145,13 +19145,13 @@
    "role": "A",
    "chapter": "ch12",
    "id": "foggy",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Achird",
-   "sig": "7b048833360c",
-   "rev": 1,
-   "seconds": 1.74,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "3b28bf946fe9",
+   "rev": 2,
+   "seconds": 1.8,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "034f1026a9c722": {
    "key": "A|Is there a direct flight to New York?",
@@ -20601,13 +20601,13 @@
    "role": "A",
    "chapter": "ch11",
    "id": "swollen",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Achird",
-   "sig": "e9bab06f4962",
-   "rev": 1,
-   "seconds": 1.7,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "cd85212c9d7d",
+   "rev": 2,
+   "seconds": 1.88,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "038dbca8387e74": {
    "key": "P|confirm",
@@ -22127,13 +22127,13 @@
    "role": "B",
    "chapter": "ch12",
    "id": "sunscreen",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Callirrhoe",
-   "sig": "1f872a5a2965",
-   "rev": 1,
-   "seconds": 1.45,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "75d925540cad",
+   "rev": 2,
+   "seconds": 1.56,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "03d630cb381971": {
    "key": "A|The town has a medieval castle.",
@@ -22561,13 +22561,13 @@
    "role": "A",
    "chapter": "ch11",
    "id": "come-down-with",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Achird",
-   "sig": "913b8c771985",
-   "rev": 1,
-   "seconds": 0.75,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "d823ccce4e01",
+   "rev": 2,
+   "seconds": 1.12,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "03e4afab4e91a1": {
    "key": "P|war",
@@ -25039,13 +25039,13 @@
    "role": "P",
    "chapter": "ch11",
    "id": "throw-up",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Erinome",
-   "sig": "241dff4a6d50",
-   "rev": 1,
-   "seconds": 0.78,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "176dd734e3ac",
+   "rev": 2,
+   "seconds": 1.16,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "044b3a5b61d1aa": {
    "key": "P|spam",
@@ -25249,13 +25249,13 @@
    "role": "P",
    "chapter": "ch11",
    "id": "pass-out",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Erinome",
-   "sig": "620bf5fd76b6",
-   "rev": 1,
-   "seconds": 0.81,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "8844c4e83161",
+   "rev": 2,
+   "seconds": 1.16,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "04568fd450af97": {
    "key": "A|What time zone is Chicago in?",
@@ -26327,13 +26327,13 @@
    "role": "A",
    "chapter": "ch11",
    "id": "emergency",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Achird",
-   "sig": "659f27d039de",
-   "rev": 1,
-   "seconds": 1.02,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "280e61f83b25",
+   "rev": 2,
+   "seconds": 1.44,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "048f374049e6a0": {
    "key": "B|Ooh, tell me more!",
@@ -27027,13 +27027,13 @@
    "role": "P",
    "chapter": "ch12",
    "id": "sunscreen",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Erinome",
-   "sig": "b817e4965ac2",
-   "rev": 1,
-   "seconds": 1.1,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "d3538dc63817",
+   "rev": 2,
+   "seconds": 1.24,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "04b62007fee1a8": {
    "key": "P|point out",
@@ -27251,13 +27251,13 @@
    "role": "P",
    "chapter": "ch11",
    "id": "balanced-diet",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Erinome",
-   "sig": "7292f07b1605",
-   "rev": 1,
-   "seconds": 0.95,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "10ebddb56e17",
+   "rev": 2,
+   "seconds": 1.4,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "04bf1fea89b529": {
    "key": "A|He's successful but very humble.",
@@ -27951,13 +27951,13 @@
    "role": "A",
    "chapter": "ch12",
    "id": "its-getting-dark",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Achird",
-   "sig": "53a88d87e1a3",
-   "rev": 1,
-   "seconds": 1.63,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "2b87570dd50f",
+   "rev": 2,
+   "seconds": 1.96,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "04da5c18a21ff3": {
    "key": "A|Here's my two cents: take the job.",
@@ -28007,13 +28007,13 @@
    "role": "B",
    "chapter": "ch12",
    "id": "sunrise",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Callirrhoe",
-   "sig": "2215becadbf0",
-   "rev": 1,
-   "seconds": 0.97,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "5540931f8021",
+   "rev": 2,
+   "seconds": 1.6,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "04db9ad04ee1d9": {
    "key": "B|Good idea, I'm starving.",
@@ -28665,13 +28665,13 @@
    "role": "P",
    "chapter": "ch12",
    "id": "muggy",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Erinome",
-   "sig": "b6cb9d099848",
-   "rev": 1,
-   "seconds": 0.63,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "e17796b61e3e",
+   "rev": 2,
+   "seconds": 1.28,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "04fc9a0e148350": {
    "key": "B|Pretty chill. Just some music and snacks.",
@@ -29015,13 +29015,13 @@
    "role": "P",
    "chapter": "ch12",
    "id": "view",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Erinome",
-   "sig": "087daeba1122",
-   "rev": 1,
-   "seconds": 0.84,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "e260cc88571b",
+   "rev": 2,
+   "seconds": 0.88,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "050bdcf12c4993": {
    "key": "A|Where's Tom these days?",
@@ -31913,13 +31913,13 @@
    "role": "A",
    "chapter": "ch11",
    "id": "blood-pressure",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Achird",
-   "sig": "dd587feb96d7",
-   "rev": 1,
-   "seconds": 1.44,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "e72b84ec5a1c",
+   "rev": 2,
+   "seconds": 1.8,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "058257b01691c1": {
    "key": "B|Don't feed the dog from the table.",
@@ -32067,13 +32067,13 @@
    "role": "B",
    "chapter": "ch11",
    "id": "im-on-medication",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Callirrhoe",
-   "sig": "71d6b4be59bf",
-   "rev": 1,
-   "seconds": 1.97,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "df17ad81a1d5",
+   "rev": 2,
+   "seconds": 2.12,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "058c330a3a4221": {
    "key": "B|I'll send someone up right away.",
@@ -32151,13 +32151,13 @@
    "role": "B",
    "chapter": "ch12",
    "id": "flood",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Callirrhoe",
-   "sig": "64a8bb81d43f",
-   "rev": 1,
-   "seconds": 1.73,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "9caddd736152",
+   "rev": 2,
+   "seconds": 2.52,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "058fb6778c4a9a": {
    "key": "A|Could you pass me the salt?",
@@ -33677,13 +33677,13 @@
    "role": "A",
    "chapter": "ch12",
    "id": "temperature",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Achird",
-   "sig": "2d55624d6ba2",
-   "rev": 1,
-   "seconds": 1.08,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "f195c74ba033",
+   "rev": 2,
+   "seconds": 1.44,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "05cc1031df71a9": {
    "key": "P|I have diarrhea.",
@@ -34069,13 +34069,13 @@
    "role": "B",
    "chapter": "ch12",
    "id": "nature",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Callirrhoe",
-   "sig": "84a89d422ebf",
-   "rev": 1,
-   "seconds": 1.33,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "520aae085906",
+   "rev": 2,
+   "seconds": 2.4,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "05dbffbcd737fc": {
    "key": "A|We'll notify you by email.",
@@ -34979,13 +34979,13 @@
    "role": "B",
    "chapter": "ch11",
    "id": "get-some-rest",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Callirrhoe",
-   "sig": "83a50460c174",
-   "rev": 1,
-   "seconds": 1.81,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "76c16c635c47",
+   "rev": 2,
+   "seconds": 2.72,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "06083a6673d259": {
    "key": "A|This set is a great value.",
@@ -36057,13 +36057,13 @@
    "role": "A",
    "chapter": "ch12",
    "id": "get-a-tan",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Achird",
-   "sig": "a14192e3c281",
-   "rev": 1,
-   "seconds": 1.38,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "9c5e95b1e173",
+   "rev": 2,
+   "seconds": 1.52,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "06335db4bc0d40": {
    "key": "A|I've taken up surfing.",
@@ -36547,13 +36547,13 @@
    "role": "A",
    "chapter": "ch11",
    "id": "recover",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Achird",
-   "sig": "425a39d66a0b",
-   "rev": 1,
-   "seconds": 1.48,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "e18d1e970173",
+   "rev": 2,
+   "seconds": 1.76,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "064ce0ab2e1678": {
    "key": "P|attachment",
@@ -38157,13 +38157,13 @@
    "role": "A",
    "chapter": "ch11",
    "id": "hangover",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Achird",
-   "sig": "9a3d7138909c",
-   "rev": 1,
-   "seconds": 0.99,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "b9d0cb806091",
+   "rev": 2,
+   "seconds": 1.8,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "068be7817846c7": {
    "key": "P|freeze my card",
@@ -41447,13 +41447,13 @@
    "role": "A",
    "chapter": "ch12",
    "id": "it-looks-like-rain",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Achird",
-   "sig": "820c5cb87fe0",
-   "rev": 1,
-   "seconds": 1.01,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "61d9282f1ee7",
+   "rev": 2,
+   "seconds": 1.6,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "071a2bf3e4463e": {
    "key": "A|The customer demanded to see the manager.",
@@ -42301,13 +42301,13 @@
    "role": "B",
    "chapter": "ch11",
    "id": "its-contagious",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Callirrhoe",
-   "sig": "6e563c553bb5",
-   "rev": 1,
-   "seconds": 1.54,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "9b574fa549bd",
+   "rev": 2,
+   "seconds": 2.2,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "0743b2c670218e": {
    "key": "A|So the deadline is...",
@@ -42651,13 +42651,13 @@
    "role": "B",
    "chapter": "ch11",
    "id": "swollen",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Callirrhoe",
-   "sig": "10080bc816c0",
-   "rev": 1,
-   "seconds": 1.24,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "0ecad1654c96",
+   "rev": 2,
+   "seconds": 1.96,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "0755a68836bdd3": {
    "key": "A|Don't talk with your mouth full.",
@@ -42679,13 +42679,13 @@
    "role": "A",
    "chapter": "ch11",
    "id": "im-on-medication",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Achird",
-   "sig": "f90d47abb97d",
-   "rev": 1,
-   "seconds": 0.94,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "78fc64789372",
+   "rev": 2,
+   "seconds": 1.48,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "07565eda26f9a6": {
    "key": "B|Ah, makes sense.",
@@ -43141,13 +43141,13 @@
    "role": "A",
    "chapter": "ch11",
    "id": "healthy",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Achird",
-   "sig": "7ba7a7211023",
-   "rev": 1,
-   "seconds": 1.29,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "2d80e63bee12",
+   "rev": 2,
+   "seconds": 2.0,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "076ca20f121463": {
    "key": "A|I rarely eat fast food.",
@@ -44149,13 +44149,13 @@
    "role": "A",
    "chapter": "ch12",
    "id": "starry-sky",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Achird",
-   "sig": "dc161c24492b",
-   "rev": 1,
-   "seconds": 2.61,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "77fa3a9ac98b",
+   "rev": 2,
+   "seconds": 2.8,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "078d685fafa4b2": {
    "key": "P|account",
@@ -46711,13 +46711,13 @@
    "role": "P",
    "chapter": "ch12",
    "id": "lightning",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Erinome",
-   "sig": "323f875a3bb6",
-   "rev": 1,
-   "seconds": 0.59,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "97447ee833ca",
+   "rev": 2,
+   "seconds": 1.04,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "080e7e2d6e678b": {
    "key": "A|I invited my sister too. I hope that's okay.",
@@ -53095,13 +53095,13 @@
    "role": "B",
    "chapter": "ch12",
    "id": "get-a-tan",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Callirrhoe",
-   "sig": "ec4aafb8b038",
-   "rev": 1,
-   "seconds": 1.49,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "089fb53e78f0",
+   "rev": 2,
+   "seconds": 2.08,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "092a65a499557a": {
    "key": "P|mirror",
@@ -56287,13 +56287,13 @@
    "role": "A",
    "chapter": "ch11",
    "id": "its-contagious",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Achird",
-   "sig": "027f0f632078",
-   "rev": 1,
-   "seconds": 1.17,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "60964ae916f1",
+   "rev": 2,
+   "seconds": 1.48,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "09bb832e285fd5": {
    "key": "A|Who's running the meeting today?",
@@ -56903,13 +56903,13 @@
    "role": "A",
    "chapter": "ch11",
    "id": "i-pulled-a-muscle",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Achird",
-   "sig": "ddda5155b49d",
-   "rev": 1,
-   "seconds": 1.33,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "66ce601272f8",
+   "rev": 2,
+   "seconds": 1.6,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "09d303c3964d0a": {
    "key": "A|So then the cat, the neighbor, and the pizza…",
@@ -57421,13 +57421,13 @@
    "role": "A",
    "chapter": "ch12",
    "id": "flood",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Achird",
-   "sig": "abe77f9951be",
-   "rev": 1,
-   "seconds": 1.22,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "ae08266afe40",
+   "rev": 2,
+   "seconds": 1.72,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "09e96c74aad3d2": {
    "key": "A|I study at the library.",
@@ -57575,13 +57575,13 @@
    "role": "P",
    "chapter": "ch12",
    "id": "foggy",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Erinome",
-   "sig": "0c8506311097",
-   "rev": 1,
-   "seconds": 0.61,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "05658e58f3de",
+   "rev": 2,
+   "seconds": 1.04,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "09f2be54b99582": {
    "key": "P|vandalism",
@@ -57743,13 +57743,13 @@
    "role": "B",
    "chapter": "ch12",
    "id": "it-looks-like-rain",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Callirrhoe",
-   "sig": "de9794cf0be0",
-   "rev": 1,
-   "seconds": 1.93,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "366dad46d446",
+   "rev": 2,
+   "seconds": 2.2,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "09f8c2318135f1": {
    "key": "A|Will it be ready by Friday?",
@@ -59059,13 +59059,13 @@
    "role": "P",
    "chapter": "ch12",
    "id": "nature",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Erinome",
-   "sig": "2eaa305eae79",
-   "rev": 1,
-   "seconds": 0.75,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "cdd8422c2303",
+   "rev": 2,
+   "seconds": 1.16,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "0a35b7888c6646": {
    "key": "P|Let's think outside the box.",
@@ -59339,13 +59339,13 @@
    "role": "B",
    "chapter": "ch12",
    "id": "its-raining-cats-and-dogs",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Callirrhoe",
-   "sig": "9cbd6eaa8c34",
-   "rev": 1,
-   "seconds": 1.52,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "08fab16e130c",
+   "rev": 2,
+   "seconds": 1.6,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "0a3dd6b6d1b9a8": {
    "key": "B|Yes! When do you meet?",
@@ -59465,13 +59465,13 @@
    "role": "B",
    "chapter": "ch12",
    "id": "view",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Callirrhoe",
-   "sig": "1fda3cf48872",
-   "rev": 1,
-   "seconds": 1.32,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "cfc1910e9348",
+   "rev": 2,
+   "seconds": 1.8,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "0a456954c30270": {
    "key": "P|homemade",
@@ -59717,13 +59717,13 @@
    "role": "P",
    "chapter": "ch12",
    "id": "its-raining-cats-and-dogs",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Erinome",
-   "sig": "712726806084",
-   "rev": 1,
-   "seconds": 1.39,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "94e92816af13",
+   "rev": 2,
+   "seconds": 3.12,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "0a52579ce54b91": {
    "key": "A|Thank you for your purchase.",
@@ -59759,13 +59759,13 @@
    "role": "A",
    "chapter": "ch12",
    "id": "rainy-season",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Achird",
-   "sig": "026ee98a034c",
-   "rev": 1,
-   "seconds": 2.04,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "be933044147b",
+   "rev": 2,
+   "seconds": 1.92,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "0a54d1b7d6ea7e": {
    "key": "P|Let me play devil's advocate.",
@@ -59955,13 +59955,13 @@
    "role": "P",
    "chapter": "ch11",
    "id": "im-worn-out",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Erinome",
-   "sig": "69c5637ee160",
-   "rev": 1,
-   "seconds": 1.0,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "996e1f49f06e",
+   "rev": 2,
+   "seconds": 1.76,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "0a5afbc95d4c52": {
    "key": "A|I'm about to go on stage and I'm shaking!",
@@ -60081,13 +60081,13 @@
    "role": "B",
    "chapter": "ch12",
    "id": "the-great-outdoors",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Callirrhoe",
-   "sig": "8c96fa074afb",
-   "rev": 1,
-   "seconds": 1.76,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "c67eaeea5380",
+   "rev": 2,
+   "seconds": 2.8,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "0a6102c2dc838e": {
    "key": "B|See ya!",
@@ -60599,13 +60599,13 @@
    "role": "P",
    "chapter": "ch12",
    "id": "its-pouring",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Erinome",
-   "sig": "719f08942336",
-   "rev": 1,
-   "seconds": 1.26,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "dc36a0f2950e",
+   "rev": 2,
+   "seconds": 1.64,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "0a7c18b3f8c147": {
    "key": "P|What brings you here?",
@@ -61313,13 +61313,13 @@
    "role": "B",
    "chapter": "ch12",
    "id": "sunny",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Callirrhoe",
-   "sig": "9d50749b55dc",
-   "rev": 1,
-   "seconds": 0.92,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "f4a23a5e6be0",
+   "rev": 2,
+   "seconds": 1.48,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "0aa1d56dde93d2": {
    "key": "B|I'm too jet-lagged.",
@@ -63371,13 +63371,13 @@
    "role": "B",
    "chapter": "ch12",
    "id": "temperature",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Callirrhoe",
-   "sig": "27ff4f6c24ac",
-   "rev": 1,
-   "seconds": 1.51,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "ab4da419aad6",
+   "rev": 2,
+   "seconds": 1.8,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "0b09e018d7e14c": {
    "key": "A|The hotel was cheap. Moreover, it was close to the beach.",
@@ -64323,13 +64323,13 @@
    "role": "B",
    "chapter": "ch11",
    "id": "lose-weight",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Callirrhoe",
-   "sig": "4700e95465e8",
-   "rev": 1,
-   "seconds": 1.49,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "def6f70ef92f",
+   "rev": 2,
+   "seconds": 1.76,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "0b314bc17d8be4": {
    "key": "A|The storm was seen by satellite.",
@@ -65779,13 +65779,13 @@
    "role": "P",
    "chapter": "ch11",
    "id": "swollen",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Erinome",
-   "sig": "289665f1295f",
-   "rev": 1,
-   "seconds": 0.84,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "3445728833c8",
+   "rev": 2,
+   "seconds": 1.16,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "0b751fc08ba20a": {
    "key": "A|Clean towels are in the bathroom.",
@@ -67193,13 +67193,13 @@
    "role": "P",
    "chapter": "ch12",
    "id": "breezy",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Erinome",
-   "sig": "310843056d28",
-   "rev": 1,
-   "seconds": 1.07,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "c8e1031aaa09",
+   "rev": 2,
+   "seconds": 1.0,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "0bb1956c28b027": {
    "key": "P|Thanks a lot.",
@@ -67431,13 +67431,13 @@
    "role": "A",
    "chapter": "ch12",
    "id": "typhoon",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Achird",
-   "sig": "217755912328",
-   "rev": 1,
-   "seconds": 1.33,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "7825fe1a53ab",
+   "rev": 2,
+   "seconds": 1.52,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "0bb7ab8ad11d24": {
    "key": "A|Can you check the mailbox?",
@@ -67543,13 +67543,13 @@
    "role": "P",
    "chapter": "ch12",
    "id": "its-below-zero",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Erinome",
-   "sig": "381d296d33ea",
-   "rev": 1,
-   "seconds": 1.68,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "086002bdb21c",
+   "rev": 2,
+   "seconds": 1.84,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "0bbb113312da46": {
    "key": "P|cockroach",
@@ -68425,13 +68425,13 @@
    "role": "P",
    "chapter": "ch11",
    "id": "i-have-a-cough",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Erinome",
-   "sig": "274450c47f62",
-   "rev": 1,
-   "seconds": 1.09,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "ae0e9282655b",
+   "rev": 2,
+   "seconds": 1.28,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "0bdfca5e620ebc": {
    "key": "A|My daughter loves to dance.",
@@ -68663,13 +68663,13 @@
    "role": "B",
    "chapter": "ch12",
    "id": "its-pouring",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Callirrhoe",
-   "sig": "0f230c5e8087",
-   "rev": 1,
-   "seconds": 1.96,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "9b2a26baa5b9",
+   "rev": 2,
+   "seconds": 2.52,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "0bee08e394d8ff": {
    "key": "P|clean up",
@@ -70287,13 +70287,13 @@
    "role": "P",
    "chapter": "ch12",
    "id": "its-chilly",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Erinome",
-   "sig": "bbca17639afd",
-   "rev": 1,
-   "seconds": 0.97,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "60789ddc35eb",
+   "rev": 2,
+   "seconds": 1.4,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "0c3212951cf7af": {
    "key": "A|Can you send me the recipe?",
@@ -71449,13 +71449,13 @@
    "role": "B",
    "chapter": "ch12",
    "id": "autumn-leaves",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Callirrhoe",
-   "sig": "5d95a07f0178",
-   "rev": 1,
-   "seconds": 1.48,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "d9c87960396c",
+   "rev": 2,
+   "seconds": 1.64,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "0c5efd93a31271": {
    "key": "P|excursion",
@@ -71841,13 +71841,13 @@
    "role": "P",
    "chapter": "ch12",
    "id": "flood",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Erinome",
-   "sig": "301635092716",
-   "rev": 1,
-   "seconds": 0.68,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "f8a21c8cdc74",
+   "rev": 2,
+   "seconds": 1.2,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "0c6e826f32eac8": {
    "key": "A|I've lived here since 2015.",
@@ -73227,13 +73227,13 @@
    "role": "A",
    "chapter": "ch12",
    "id": "get-some-fresh-air",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Achird",
-   "sig": "9d562ca8fc33",
-   "rev": 1,
-   "seconds": 1.73,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "bf79521bc343",
+   "rev": 2,
+   "seconds": 2.2,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "0cb2cac0c8c63a": {
    "key": "P|Two wrongs don't make a right.",
@@ -74893,13 +74893,13 @@
    "role": "P",
    "chapter": "ch11",
    "id": "come-down-with",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Erinome",
-   "sig": "dd734e49f18f",
-   "rev": 1,
-   "seconds": 1.09,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "42fdef9d3204",
+   "rev": 2,
+   "seconds": 1.44,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "0cf2816c4aff6f": {
    "key": "A|Are you ready for the trip?",
@@ -77847,13 +77847,13 @@
    "role": "P",
    "chapter": "ch11",
    "id": "itchy",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Erinome",
-   "sig": "a8a80563dba9",
-   "rev": 1,
-   "seconds": 0.7,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "02245ca1fdef",
+   "rev": 2,
+   "seconds": 1.16,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "0d799829fdcc64": {
    "key": "P|fasten",
@@ -77875,13 +77875,13 @@
    "role": "P",
    "chapter": "ch12",
    "id": "its-getting-dark",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Erinome",
-   "sig": "6381caffd16e",
-   "rev": 1,
-   "seconds": 1.02,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "ff24d95b6ad8",
+   "rev": 2,
+   "seconds": 1.44,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "0d79e3757866cb": {
    "key": "P|drugstore",
@@ -78351,13 +78351,13 @@
    "role": "P",
    "chapter": "ch11",
    "id": "im-on-medication",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Erinome",
-   "sig": "e397d8d2d5ce",
-   "rev": 1,
-   "seconds": 1.06,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "591dd4cb825a",
+   "rev": 2,
+   "seconds": 1.56,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "0d8fbd419862e7": {
    "key": "A|Do I need to be home for the repair?",
@@ -78407,13 +78407,13 @@
    "role": "B",
    "chapter": "ch12",
    "id": "its-below-zero",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Callirrhoe",
-   "sig": "aacb6b2f0a76",
-   "rev": 1,
-   "seconds": 1.38,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "24e0194420f5",
+   "rev": 2,
+   "seconds": 1.96,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "0d93ed65dc440d": {
    "key": "P|Don't give up.",
@@ -79891,13 +79891,13 @@
    "role": "P",
    "chapter": "ch11",
    "id": "take-a-deep-breath",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Erinome",
-   "sig": "7f384e6ddfb6",
-   "rev": 1,
-   "seconds": 1.32,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "b478fa315248",
+   "rev": 2,
+   "seconds": 1.68,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "0dd1f31dd7e125": {
    "key": "A|I still can't play this song.",
@@ -80647,13 +80647,13 @@
    "role": "A",
    "chapter": "ch12",
    "id": "humid",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Achird",
-   "sig": "4c40f3beb4b0",
-   "rev": 1,
-   "seconds": 1.91,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "219cc8cdb957",
+   "rev": 2,
+   "seconds": 2.08,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "0df58f498530a1": {
    "key": "A|Sorry, I interrupted you.",
@@ -81683,13 +81683,13 @@
    "role": "A",
    "chapter": "ch11",
    "id": "get-some-rest",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Achird",
-   "sig": "48827939c921",
-   "rev": 1,
-   "seconds": 1.12,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "5f30fe9b7c5b",
+   "rev": 2,
+   "seconds": 1.68,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "0e2077265d025e": {
    "key": "P|substance",
@@ -81893,13 +81893,13 @@
    "role": "P",
    "chapter": "ch11",
    "id": "stressed",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Erinome",
-   "sig": "23461972b725",
-   "rev": 1,
-   "seconds": 0.99,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "60016f924e21",
+   "rev": 2,
+   "seconds": 1.44,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "0e291c0485fd05": {
    "key": "P|queen",
@@ -83055,13 +83055,13 @@
    "role": "A",
    "chapter": "ch12",
    "id": "sunburn",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Achird",
-   "sig": "e5681d1e78e2",
-   "rev": 1,
-   "seconds": 1.97,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "ff5cc98be09c",
+   "rev": 2,
+   "seconds": 2.4,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "0e6004e0b6febf": {
    "key": "P|grade",
@@ -83601,13 +83601,13 @@
    "role": "A",
    "chapter": "ch11",
    "id": "bruise",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Achird",
-   "sig": "3bef4c8a2f7f",
-   "rev": 1,
-   "seconds": 1.38,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "d690e796aa87",
+   "rev": 2,
+   "seconds": 1.92,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "0e77112cd887c9": {
    "key": "A|Try to see it from my perspective.",
@@ -83825,13 +83825,13 @@
    "role": "P",
    "chapter": "ch12",
    "id": "cloudy",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Erinome",
-   "sig": "474abfd4b6ca",
-   "rev": 1,
-   "seconds": 0.8,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "770a9112d6ec",
+   "rev": 2,
+   "seconds": 1.12,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "0e8347df36476e": {
    "key": "P|Someone broke into my car.",
@@ -85673,13 +85673,13 @@
    "role": "B",
    "chapter": "ch11",
    "id": "pass-out",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Callirrhoe",
-   "sig": "30e0a25f336f",
-   "rev": 1,
-   "seconds": 1.46,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "14f681d592ac",
+   "rev": 2,
+   "seconds": 1.8,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "0ed0b6e866b099": {
    "key": "B|Aw, you made my day!",
@@ -85771,13 +85771,13 @@
    "role": "B",
    "chapter": "ch12",
    "id": "typhoon",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Callirrhoe",
-   "sig": "07882257a91d",
-   "rev": 1,
-   "seconds": 1.64,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "855d832a2db9",
+   "rev": 2,
+   "seconds": 1.84,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "0ed5dd88cf9b9d": {
    "key": "P|poison control",
@@ -86527,13 +86527,13 @@
    "role": "P",
    "chapter": "ch12",
    "id": "sunrise",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Erinome",
-   "sig": "b844046e1ad0",
-   "rev": 1,
-   "seconds": 0.81,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "11646b8d679d",
+   "rev": 2,
+   "seconds": 1.08,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "0eeee08cc80c7f": {
    "key": "P|above",
@@ -87101,13 +87101,13 @@
    "role": "A",
    "chapter": "ch12",
    "id": "weather-forecast",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Achird",
-   "sig": "f6cc57ee36cf",
-   "rev": 1,
-   "seconds": 1.7,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "d2bfb01dcf5b",
+   "rev": 2,
+   "seconds": 2.08,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "0f0d3df8c50d6c": {
    "key": "A|We explored the Mayan ruins.",
@@ -87367,13 +87367,13 @@
    "role": "B",
    "chapter": "ch12",
    "id": "rainy-season",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Callirrhoe",
-   "sig": "e5264e35d689",
-   "rev": 1,
-   "seconds": 1.53,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "236dcd4cf93e",
+   "rev": 2,
+   "seconds": 2.52,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "0f18aa797a6098": {
    "key": "A|I live on Schuylkill Avenue.",
@@ -87899,13 +87899,13 @@
    "role": "B",
    "chapter": "ch12",
    "id": "humid",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Callirrhoe",
-   "sig": "094b72f2e0de",
-   "rev": 1,
-   "seconds": 1.8,
-   "via": "sync",
-   "at": "2026-09-28"
+   "sig": "665aa3d997a3",
+   "rev": 2,
+   "seconds": 1.84,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "0f36053c4c8f13": {
    "key": "P|I brought you a little something.",
@@ -88291,13 +88291,13 @@
    "role": "P",
    "chapter": "ch11",
    "id": "ambulance",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Erinome",
-   "sig": "52b6a1f0bbd9",
-   "rev": 1,
-   "seconds": 0.76,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "33e25b299c97",
+   "rev": 2,
+   "seconds": 1.24,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "0f4432de93f6a7": {
    "key": "B|It's the elephant in the room.",
@@ -88389,13 +88389,13 @@
    "role": "B",
    "chapter": "ch12",
    "id": "weather-forecast",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Callirrhoe",
-   "sig": "7803f9633f96",
-   "rev": 1,
-   "seconds": 1.96,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "b8473cc0efc0",
+   "rev": 2,
+   "seconds": 2.68,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "0f4721a98cef51": {
    "key": "A|I went skydiving last month.",
@@ -89901,13 +89901,13 @@
    "role": "P",
    "chapter": "ch11",
    "id": "im-feeling-much-better",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Erinome",
-   "sig": "16d88ccdb80e",
-   "rev": 1,
-   "seconds": 1.23,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "a3393ac3954d",
+   "rev": 2,
+   "seconds": 2.08,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "0f856c8500dae0": {
    "key": "A|When should we meet?",
@@ -90321,13 +90321,13 @@
    "role": "B",
    "chapter": "ch11",
    "id": "i-pulled-a-muscle",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Callirrhoe",
-   "sig": "8c37b9ab4ba7",
-   "rev": 1,
-   "seconds": 1.72,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "d8920fdd73a3",
+   "rev": 2,
+   "seconds": 2.16,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "0f96a277fece31": {
    "key": "A|The operation was a success.",
@@ -90363,13 +90363,13 @@
    "role": "B",
    "chapter": "ch11",
    "id": "recover",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Callirrhoe",
-   "sig": "b56eb40b2083",
-   "rev": 1,
-   "seconds": 1.26,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "76694f032b32",
+   "rev": 2,
+   "seconds": 1.4,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "0f97cc076d745e": {
    "key": "P|go with the flow",
@@ -92519,13 +92519,13 @@
    "role": "A",
    "chapter": "ch12",
    "id": "its-clearing-up",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Achird",
-   "sig": "99cbe7d342b2",
-   "rev": 1,
-   "seconds": 0.98,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "80e9f7befcd8",
+   "rev": 2,
+   "seconds": 1.76,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "0ffc708c183351": {
    "key": "A|I got into running last year.",
@@ -97125,13 +97125,13 @@
    "role": "B",
    "chapter": "ch12",
    "id": "scenery",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Callirrhoe",
-   "sig": "3e6d6055eed8",
-   "rev": 1,
-   "seconds": 2.82,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "c21c1b47e5c5",
+   "rev": 2,
+   "seconds": 2.96,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "10b7590256160c": {
    "key": "P|service",
@@ -97909,13 +97909,13 @@
    "role": "A",
    "chapter": "ch12",
    "id": "cherry-blossoms",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Achird",
-   "sig": "f33caf5a49fc",
-   "rev": 1,
-   "seconds": 1.67,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "97fc75507876",
+   "rev": 2,
+   "seconds": 2.52,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "10dfd0b747e1e3": {
    "key": "P|Will do.",
@@ -98693,13 +98693,13 @@
    "role": "A",
    "chapter": "ch12",
    "id": "full-moon",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Achird",
-   "sig": "a379d7c59629",
-   "rev": 1,
-   "seconds": 2.01,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "c660389c1f3a",
+   "rev": 2,
+   "seconds": 2.6,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "110dd7d773efae": {
    "key": "B|Fantastic! I didn't want to come back.",
@@ -99855,13 +99855,13 @@
    "role": "P",
    "chapter": "ch12",
    "id": "drizzle",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Erinome",
-   "sig": "bc350d751503",
-   "rev": 1,
-   "seconds": 0.59,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "44373726c8b0",
+   "rev": 2,
+   "seconds": 0.88,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "113ed5dc97a0f6": {
    "key": "P|Say thank you.",
@@ -102011,13 +102011,13 @@
    "role": "P",
    "chapter": "ch12",
    "id": "snowstorm",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Erinome",
-   "sig": "fb8eb877a076",
-   "rev": 1,
-   "seconds": 0.9,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "41715a620537",
+   "rev": 2,
+   "seconds": 1.6,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "119b7c80777688": {
    "key": "A|Do you eat fast food?",
@@ -102711,13 +102711,13 @@
    "role": "P",
    "chapter": "ch11",
    "id": "hangover",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Erinome",
-   "sig": "bdbd71bb9779",
-   "rev": 1,
-   "seconds": 0.76,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "0352b875301c",
+   "rev": 2,
+   "seconds": 1.28,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "11b8549fa7d891": {
    "key": "P|worsen",
@@ -103831,13 +103831,13 @@
    "role": "A",
    "chapter": "ch12",
    "id": "drizzle",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Achird",
-   "sig": "c421a93a5d1c",
-   "rev": 1,
-   "seconds": 1.05,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "26edcac6462a",
+   "rev": 2,
+   "seconds": 1.64,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "11e7b8d60311f9": {
    "key": "B|The teacher said he's doing great.",
@@ -104867,13 +104867,13 @@
    "role": "B",
    "chapter": "ch12",
    "id": "foggy",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Callirrhoe",
-   "sig": "f7c6f0a381ff",
-   "rev": 1,
-   "seconds": 0.61,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "2c6b40cf0e4f",
+   "rev": 2,
+   "seconds": 0.92,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "121a7cb6259ac9": {
    "key": "B|It's getting better, thanks.",
@@ -105343,13 +105343,13 @@
    "role": "B",
    "chapter": "ch12",
    "id": "sunburn",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Callirrhoe",
-   "sig": "a3e7a435bcfe",
-   "rev": 1,
-   "seconds": 1.37,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "1f5b5642a85a",
+   "rev": 2,
+   "seconds": 1.96,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "122d98de0f4e95": {
    "key": "A|Let's get some grub.",
@@ -106827,13 +106827,13 @@
    "role": "A",
    "chapter": "ch11",
    "id": "stressed",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Achird",
-   "sig": "698c9df4d284",
-   "rev": 1,
-   "seconds": 1.23,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "910bee4e1b6e",
+   "rev": 2,
+   "seconds": 1.6,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "126fcbe8071195": {
    "key": "P|partner",
@@ -107961,13 +107961,13 @@
    "role": "B",
    "chapter": "ch11",
    "id": "im-worn-out",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Callirrhoe",
-   "sig": "7a31a02e367a",
-   "rev": 1,
-   "seconds": 1.41,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "80da057fb1ec",
+   "rev": 2,
+   "seconds": 2.32,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "12a73f9901f5bf": {
    "key": "P|No spoilers!",
@@ -108871,13 +108871,13 @@
    "role": "B",
    "chapter": "ch11",
    "id": "throw-up",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Callirrhoe",
-   "sig": "2876004b2093",
-   "rev": 1,
-   "seconds": 1.15,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "4ece8ad3b9cf",
+   "rev": 2,
+   "seconds": 1.4,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "12d19102e9199d": {
    "key": "P|idea",
@@ -109375,13 +109375,13 @@
    "role": "A",
    "chapter": "ch11",
    "id": "gain-weight",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Achird",
-   "sig": "747fdd94438c",
-   "rev": 1,
-   "seconds": 1.95,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "232b3322a967",
+   "rev": 2,
+   "seconds": 2.16,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "12e8f5b5b8358a": {
    "key": "B|Sure, go ahead.",
@@ -111503,13 +111503,13 @@
    "role": "P",
    "chapter": "ch12",
    "id": "scenery",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Erinome",
-   "sig": "a60918135405",
-   "rev": 1,
-   "seconds": 0.84,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "23f0c662125b",
+   "rev": 2,
+   "seconds": 1.28,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "134b9089f5d398": {
    "key": "P|Happy belated birthday!",
@@ -111657,13 +111657,13 @@
    "role": "P",
    "chapter": "ch12",
    "id": "autumn-leaves",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Erinome",
-   "sig": "566b1e5804e1",
-   "rev": 1,
-   "seconds": 1.15,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "38f4952396d0",
+   "rev": 2,
+   "seconds": 1.72,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "13509c1bcf52a2": {
    "key": "B|Be careful. It might be phishing.",
@@ -112595,13 +112595,13 @@
    "role": "B",
    "chapter": "ch11",
    "id": "balanced-diet",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Callirrhoe",
-   "sig": "e4d2b5ea9aff",
-   "rev": 1,
-   "seconds": 1.56,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "e5da858c0bf7",
+   "rev": 2,
+   "seconds": 2.36,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "137b32d4bf2eb3": {
    "key": "P|bear",
@@ -112917,13 +112917,13 @@
    "role": "B",
    "chapter": "ch12",
    "id": "earthquake",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Callirrhoe",
-   "sig": "3a9056826340",
-   "rev": 1,
-   "seconds": 1.91,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "566dd7f17cf8",
+   "rev": 2,
+   "seconds": 3.08,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "13867c8a77b580": {
    "key": "B|My checking account.",
@@ -114345,13 +114345,13 @@
    "role": "P",
    "chapter": "ch12",
    "id": "the-great-outdoors",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Erinome",
-   "sig": "531ef8340b10",
-   "rev": 1,
-   "seconds": 1.53,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "99dce7d4e957",
+   "rev": 2,
+   "seconds": 1.64,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "13c027d25e0735": {
    "key": "A|Please read this carefully.",
@@ -114625,13 +114625,13 @@
    "role": "P",
    "chapter": "ch12",
    "id": "get-a-tan",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Erinome",
-   "sig": "9add772540a0",
-   "rev": 1,
-   "seconds": 0.85,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "733fe5a8199d",
+   "rev": 2,
+   "seconds": 1.2,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "13ca1ce8fe1635": {
    "key": "A|Name for the order?",
@@ -114961,13 +114961,13 @@
    "role": "B",
    "chapter": "ch11",
    "id": "emergency",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Callirrhoe",
-   "sig": "3dec68a28856",
-   "rev": 1,
-   "seconds": 1.85,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "f3c83cb018fa",
+   "rev": 2,
+   "seconds": 2.52,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "13d7892a85be8a": {
    "key": "A|How did your exam go?",
@@ -115423,13 +115423,13 @@
    "role": "P",
    "chapter": "ch12",
    "id": "weather-forecast",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Erinome",
-   "sig": "ae23c260f915",
-   "rev": 1,
-   "seconds": 1.5,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "e8cbd7329bcb",
+   "rev": 2,
+   "seconds": 1.24,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "13eb0b7531e9ce": {
    "key": "P|additionally",
@@ -115549,13 +115549,13 @@
    "role": "A",
    "chapter": "ch12",
    "id": "its-below-zero",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Achird",
-   "sig": "45cebcdfc162",
-   "rev": 1,
-   "seconds": 1.03,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "b6bd5eaeab8d",
+   "rev": 2,
+   "seconds": 1.36,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "13f030b4b8a41a": {
    "key": "A|The instructions were very explicit.",
@@ -115955,13 +115955,13 @@
    "role": "A",
    "chapter": "ch12",
    "id": "snowstorm",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Achird",
-   "sig": "5428f7480664",
-   "rev": 1,
-   "seconds": 1.94,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "c2fec0651c3e",
+   "rev": 2,
+   "seconds": 2.56,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "1402f23d5c2a05": {
    "key": "A|He finally got his diploma.",
@@ -116669,13 +116669,13 @@
    "role": "A",
    "chapter": "ch11",
    "id": "ambulance",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Achird",
-   "sig": "387ea0cb6fc9",
-   "rev": 1,
-   "seconds": 1.43,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "71434678c7a7",
+   "rev": 2,
+   "seconds": 1.68,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "1423bab843689b": {
    "key": "A|Are you going to the class reunion?",
@@ -118195,13 +118195,13 @@
    "role": "A",
    "chapter": "ch11",
    "id": "im-feeling-much-better",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Achird",
-   "sig": "1a7db3ceafb7",
-   "rev": 1,
-   "seconds": 0.84,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "64c830ae7f65",
+   "rev": 2,
+   "seconds": 1.16,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "14673d40f908a7": {
    "key": "P|valuable",
@@ -118265,13 +118265,13 @@
    "role": "A",
    "chapter": "ch12",
    "id": "sunny",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Achird",
-   "sig": "e61479328dd5",
-   "rev": 1,
-   "seconds": 2.39,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "72358e6abdce",
+   "rev": 2,
+   "seconds": 2.28,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "146923ff4ca312": {
    "key": "B|She saved the day!",
@@ -118503,13 +118503,13 @@
    "role": "B",
    "chapter": "ch12",
    "id": "its-clearing-up",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Callirrhoe",
-   "sig": "7dac340caaca",
-   "rev": 1,
-   "seconds": 1.86,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "50f63e7d556e",
+   "rev": 2,
+   "seconds": 2.16,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "1471b2a45b7607": {
    "key": "B|I'm trying to eat healthy.",
@@ -120407,13 +120407,13 @@
    "role": "A",
    "chapter": "ch12",
    "id": "heat-wave",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Achird",
-   "sig": "d8412c22287e",
-   "rev": 1,
-   "seconds": 1.87,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "882c632a437a",
+   "rev": 2,
+   "seconds": 2.48,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "14c97f7fc5bbe1": {
    "key": "B|How long will it be?",
@@ -120897,13 +120897,13 @@
    "role": "P",
    "chapter": "ch12",
    "id": "shower",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Erinome",
-   "sig": "e2bf36a4e8d1",
-   "rev": 1,
-   "seconds": 0.6,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "5b1dee160568",
+   "rev": 2,
+   "seconds": 0.88,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "14ddb12b19aa28": {
    "key": "B|How do you spell that?",
@@ -121933,13 +121933,13 @@
    "role": "A",
    "chapter": "ch12",
    "id": "the-great-outdoors",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Achird",
-   "sig": "a5bae888dc9a",
-   "rev": 1,
-   "seconds": 1.65,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "35c697cad3fb",
+   "rev": 2,
+   "seconds": 1.8,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "15061ae5bba592": {
    "key": "P|Beats me.",
@@ -121961,13 +121961,13 @@
    "role": "A",
    "chapter": "ch12",
    "id": "shower",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Achird",
-   "sig": "48a02629c5aa",
-   "rev": 1,
-   "seconds": 2.0,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "936220acff77",
+   "rev": 2,
+   "seconds": 2.68,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "15080e8baf512d": {
    "key": "A|Want to go clubbing?",
@@ -122101,13 +122101,13 @@
    "role": "P",
    "chapter": "ch11",
    "id": "healthy",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Erinome",
-   "sig": "d276974ef01f",
-   "rev": 1,
-   "seconds": 0.7,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "0ead99af363e",
+   "rev": 2,
+   "seconds": 0.92,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "150dc2e0d84a54": {
    "key": "A|The audience was mostly students.",
@@ -123823,13 +123823,13 @@
    "role": "A",
    "chapter": "ch12",
    "id": "earthquake",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Achird",
-   "sig": "50a9c4bc6d0d",
-   "rev": 1,
-   "seconds": 1.25,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "bf8d8dbb4c9e",
+   "rev": 2,
+   "seconds": 1.84,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "15604151e6d150": {
    "key": "A|He was rude, so I was rude back.",
@@ -124873,13 +124873,13 @@
    "role": "A",
    "chapter": "ch11",
    "id": "i-have-a-cough",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Achird",
-   "sig": "6aeb8fc9207f",
-   "rev": 1,
-   "seconds": 1.89,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "37407112aa4b",
+   "rev": 2,
+   "seconds": 2.12,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "1593970e99c2e5": {
    "key": "A|How long did it take to get your green card?",
@@ -126105,13 +126105,13 @@
    "role": "A",
    "chapter": "ch11",
    "id": "im-worn-out",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Achird",
-   "sig": "5678bcd4dbfa",
-   "rev": 1,
-   "seconds": 1.04,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "75738b31baef",
+   "rev": 2,
+   "seconds": 1.4,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "15c2204b5e7e93": {
    "key": "A|They wrote their own wedding vows.",
@@ -126973,13 +126973,13 @@
    "role": "P",
    "chapter": "ch12",
    "id": "thunderstorm",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Erinome",
-   "sig": "425d41b67068",
-   "rev": 1,
-   "seconds": 0.83,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "d88b6397cf88",
+   "rev": 2,
+   "seconds": 1.32,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "15e676b15dd54c": {
    "key": "A|Are you leaving already? The party's just getting started!",
@@ -128933,13 +128933,13 @@
    "role": "P",
    "chapter": "ch12",
    "id": "sunset",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Erinome",
-   "sig": "88a6b3bb07f3",
-   "rev": 1,
-   "seconds": 0.74,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "4866f7bb5c67",
+   "rev": 2,
+   "seconds": 1.04,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "163e3c27dd46ae": {
    "key": "A|Sorry, it's just a small gift.",
@@ -129045,13 +129045,13 @@
    "role": "A",
    "chapter": "ch12",
    "id": "windy",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Achird",
-   "sig": "04da3be5703c",
-   "rev": 1,
-   "seconds": 1.64,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "1c19b0397f42",
+   "rev": 2,
+   "seconds": 2.0,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "16420934f50d14": {
    "key": "P|final call",
@@ -129115,13 +129115,13 @@
    "role": "P",
    "chapter": "ch12",
    "id": "heat-wave",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Erinome",
-   "sig": "d6e5a042d462",
-   "rev": 1,
-   "seconds": 0.89,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "76b7aed4ccb3",
+   "rev": 2,
+   "seconds": 1.16,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "1645b31167efa8": {
    "key": "A|You want the beach, I want the mountains.",
@@ -130151,13 +130151,13 @@
    "role": "B",
    "chapter": "ch12",
    "id": "cloudy",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Callirrhoe",
-   "sig": "3df3543e8c92",
-   "rev": 1,
-   "seconds": 1.84,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "c69aafc8ae6e",
+   "rev": 2,
+   "seconds": 2.6,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "1679b2d7ff8af1": {
    "key": "P|revenue",
@@ -130599,13 +130599,13 @@
    "role": "B",
    "chapter": "ch12",
    "id": "windy",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Callirrhoe",
-   "sig": "d4ab2a188bba",
-   "rev": 1,
-   "seconds": 1.07,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "146527af0f03",
+   "rev": 2,
+   "seconds": 1.64,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "16932dafc1735b": {
    "key": "P|travel",
@@ -131943,13 +131943,13 @@
    "role": "P",
    "chapter": "ch11",
    "id": "lose-weight",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Erinome",
-   "sig": "4b04f74a165a",
-   "rev": 1,
-   "seconds": 0.72,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "09d3e2e018c5",
+   "rev": 2,
+   "seconds": 1.0,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "16d37456ccbc49": {
    "key": "A|We won, and then it started snowing.",
@@ -133119,13 +133119,13 @@
    "role": "P",
    "chapter": "ch12",
    "id": "rainy-season",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Erinome",
-   "sig": "e29a5a4cde4f",
-   "rev": 1,
-   "seconds": 1.16,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "eb9d90b8f648",
+   "rev": 2,
+   "seconds": 1.32,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "170d71b4e4666a": {
    "key": "A|This is the industry benchmark.",
@@ -133231,13 +133231,13 @@
    "role": "P",
    "chapter": "ch11",
    "id": "emergency",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Erinome",
-   "sig": "a4c4358881af",
-   "rev": 1,
-   "seconds": 0.82,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "82e9da32dd58",
+   "rev": 2,
+   "seconds": 1.4,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "1712c8fd88bcdb": {
    "key": "P|Can we get a dog?",
@@ -137165,13 +137165,13 @@
    "role": "P",
    "chapter": "ch12",
    "id": "its-boiling",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Erinome",
-   "sig": "28782dac143f",
-   "rev": 1,
-   "seconds": 1.31,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "56d7026504b6",
+   "rev": 2,
+   "seconds": 1.64,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "17c7544673bd71": {
    "key": "P|here",
@@ -137263,13 +137263,13 @@
    "role": "B",
    "chapter": "ch11",
    "id": "itchy",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Callirrhoe",
-   "sig": "9eb8b509322a",
-   "rev": 1,
-   "seconds": 2.28,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "4584c2b82f8f",
+   "rev": 2,
+   "seconds": 2.6,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "17c996275fe997": {
    "key": "P|relative",
@@ -140427,13 +140427,13 @@
    "role": "B",
    "chapter": "ch11",
    "id": "i-have-a-cough",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Callirrhoe",
-   "sig": "751df294b9ae",
-   "rev": 1,
-   "seconds": 1.3,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "84ef4b2ed03a",
+   "rev": 2,
+   "seconds": 1.72,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "184b6c39be07aa": {
    "key": "A|Sorry about the mess.",
@@ -140973,13 +140973,13 @@
    "role": "A",
    "chapter": "ch12",
    "id": "cloudy",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Achird",
-   "sig": "f5d69b0c58aa",
-   "rev": 1,
-   "seconds": 1.16,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "45d3f30ac960",
+   "rev": 2,
+   "seconds": 1.32,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "1864869a61ab90": {
    "key": "P|lost and found",
@@ -141253,13 +141253,13 @@
    "role": "P",
    "chapter": "ch12",
    "id": "typhoon",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Erinome",
-   "sig": "ece23847e732",
-   "rev": 1,
-   "seconds": 0.9,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "63b81b0395e5",
+   "rev": 2,
+   "seconds": 1.12,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "1871eb4fa16ab9": {
    "key": "A|The sign indicates a sharp turn.",
@@ -141435,13 +141435,13 @@
    "role": "A",
    "chapter": "ch12",
    "id": "lightning",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Achird",
-   "sig": "7ee79837a1b7",
-   "rev": 1,
-   "seconds": 1.28,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "c6e90d5b7104",
+   "rev": 2,
+   "seconds": 1.84,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "1876f20278a6bb": {
    "key": "P|jeans",
@@ -144221,13 +144221,13 @@
    "role": "P",
    "chapter": "ch12",
    "id": "it-looks-like-rain",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Erinome",
-   "sig": "15bf261dfc1e",
-   "rev": 1,
-   "seconds": 1.22,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "3f3654b3d7ea",
+   "rev": 2,
+   "seconds": 1.6,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "18f02f1e1ae937": {
    "key": "P|call off",
@@ -144249,13 +144249,13 @@
    "role": "P",
    "chapter": "ch12",
    "id": "sunburn",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Erinome",
-   "sig": "544067c3f4e6",
-   "rev": 1,
-   "seconds": 0.91,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "225b7be37793",
+   "rev": 2,
+   "seconds": 1.04,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "18f1571a91bf6b": {
    "key": "A|So the problem is the battery?",
@@ -144767,13 +144767,13 @@
    "role": "B",
    "chapter": "ch11",
    "id": "ambulance",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Callirrhoe",
-   "sig": "de7260685bc3",
-   "rev": 1,
-   "seconds": 1.2,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "350525b91402",
+   "rev": 2,
+   "seconds": 1.4,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "1901b72eb2cdde": {
    "key": "P|root",
@@ -145229,13 +145229,13 @@
    "role": "P",
    "chapter": "ch11",
    "id": "i-pulled-a-muscle",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Erinome",
-   "sig": "31553ecf4957",
-   "rev": 1,
-   "seconds": 1.19,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "19d32f2a7950",
+   "rev": 2,
+   "seconds": 1.6,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "19176a0990afeb": {
    "key": "P|emission",
@@ -147525,13 +147525,13 @@
    "role": "P",
    "chapter": "ch12",
    "id": "earthquake",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Erinome",
-   "sig": "aed7d29b46aa",
-   "rev": 1,
-   "seconds": 0.76,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "e797ec9c08e8",
+   "rev": 2,
+   "seconds": 1.2,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "19755522104578": {
    "key": "B|He loves to show off.",
@@ -147819,13 +147819,13 @@
    "role": "B",
    "chapter": "ch12",
    "id": "starry-sky",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Callirrhoe",
-   "sig": "64e2e2556763",
-   "rev": 1,
-   "seconds": 1.37,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "be4df4526e66",
+   "rev": 2,
+   "seconds": 1.72,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "197df23dada29c": {
    "key": "A|Don't criticize him in public.",
@@ -148743,13 +148743,13 @@
    "role": "B",
    "chapter": "ch12",
    "id": "lightning",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Callirrhoe",
-   "sig": "32a0f38bbed6",
-   "rev": 1,
-   "seconds": 1.7,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "d41c2e34083a",
+   "rev": 2,
+   "seconds": 2.24,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "19a4f08637b89f": {
    "key": "A|The road is closed for construction.",
@@ -150199,13 +150199,13 @@
    "role": "B",
    "chapter": "ch12",
    "id": "cherry-blossoms",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Callirrhoe",
-   "sig": "49a213f3579f",
-   "rev": 1,
-   "seconds": 1.51,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "36038f2e5c59",
+   "rev": 2,
+   "seconds": 1.76,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "19e340aef9c20e": {
    "key": "A|Is this bread homemade?",
@@ -150451,13 +150451,13 @@
    "role": "B",
    "chapter": "ch12",
    "id": "its-chilly",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Callirrhoe",
-   "sig": "42957ca8e776",
-   "rev": 1,
-   "seconds": 1.52,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "43795ec813d8",
+   "rev": 2,
+   "seconds": 1.92,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "19ed56040bb2e3": {
    "key": "A|We need to utilize our resources better.",
@@ -151081,13 +151081,13 @@
    "role": "A",
    "chapter": "ch11",
    "id": "take-a-deep-breath",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Achird",
-   "sig": "a6e1ff378f4f",
-   "rev": 1,
-   "seconds": 1.23,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "8cfd1786c17f",
+   "rev": 2,
+   "seconds": 2.08,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "1a0699800c3243": {
    "key": "P|It's a bummer.",
@@ -153027,13 +153027,13 @@
    "role": "P",
    "chapter": "ch12",
    "id": "windy",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Erinome",
-   "sig": "920ee609eee0",
-   "rev": 1,
-   "seconds": 0.94,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "c4616f5ca482",
+   "rev": 2,
+   "seconds": 1.04,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "1a6ae0fcc1c5bc": {
    "key": "P|dizzy",
@@ -153965,13 +153965,13 @@
    "role": "P",
    "chapter": "ch11",
    "id": "check-up",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Erinome",
-   "sig": "4687a7b128bc",
-   "rev": 1,
-   "seconds": 0.54,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "17777d7c1c19",
+   "rev": 2,
+   "seconds": 1.04,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "1a9fde1c75ac99": {
    "key": "P|He's a nice guy.",
@@ -155911,13 +155911,13 @@
    "role": "B",
    "chapter": "ch11",
    "id": "hangover",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Callirrhoe",
-   "sig": "da7baa917e06",
-   "rev": 1,
-   "seconds": 1.37,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "c380ceb8d1b5",
+   "rev": 2,
+   "seconds": 2.04,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "1af8519ff8a5a8": {
    "key": "B|I'll tune in!",
@@ -156163,13 +156163,13 @@
    "role": "A",
    "chapter": "ch12",
    "id": "its-chilly",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Achird",
-   "sig": "34ced025f049",
-   "rev": 1,
-   "seconds": 1.53,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "7cbb0bb04b7e",
+   "rev": 2,
+   "seconds": 2.2,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "1b02dd9af40577": {
    "key": "B|Yeah, your new one is much better.",
@@ -158137,13 +158137,13 @@
    "role": "B",
    "chapter": "ch12",
    "id": "breezy",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Callirrhoe",
-   "sig": "4f20c692475a",
-   "rev": 1,
-   "seconds": 1.24,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "f4614db99b2d",
+   "rev": 2,
+   "seconds": 1.72,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "1b518b80a6ff7c": {
    "key": "B|Yes, we can.",
@@ -161007,13 +161007,13 @@
    "role": "A",
    "chapter": "ch12",
    "id": "nature",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Achird",
-   "sig": "cdde3caeeeea",
-   "rev": 1,
-   "seconds": 1.22,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "b3af6f690a3b",
+   "rev": 2,
+   "seconds": 1.76,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "1be2ce959df20b": {
    "key": "A|Is he still getting married?",
@@ -161049,13 +161049,13 @@
    "role": "P",
    "chapter": "ch11",
    "id": "recover",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Erinome",
-   "sig": "21300a235b78",
-   "rev": 1,
-   "seconds": 0.91,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "27dc3038cccb",
+   "rev": 2,
+   "seconds": 1.0,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "1be551693df670": {
    "key": "A|Jealousy can ruin a relationship.",
@@ -162113,13 +162113,13 @@
    "role": "A",
    "chapter": "ch11",
    "id": "i-cant-sleep",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Achird",
-   "sig": "0a5a9f8a7663",
-   "rev": 1,
-   "seconds": 1.3,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "fa5c0febd199",
+   "rev": 2,
+   "seconds": 1.52,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "1c07fa14954ebc": {
    "key": "A|The car is in good condition.",
@@ -165389,13 +165389,13 @@
    "role": "P",
    "chapter": "ch12",
    "id": "temperature",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Erinome",
-   "sig": "29efc9ccd048",
-   "rev": 1,
-   "seconds": 0.89,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "1e0dc2227521",
+   "rev": 2,
+   "seconds": 1.08,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "1ca71e74c39b72": {
    "key": "A|Is this the right way?",
@@ -166565,13 +166565,13 @@
    "role": "B",
    "chapter": "ch11",
    "id": "take-a-deep-breath",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Callirrhoe",
-   "sig": "2808bca63fd0",
-   "rev": 1,
-   "seconds": 2.09,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "5c0c73ac4b24",
+   "rev": 2,
+   "seconds": 2.28,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "1cda16a40166ce": {
    "key": "A|Who's bringing the booze?",
@@ -167419,13 +167419,13 @@
    "role": "B",
    "chapter": "ch12",
    "id": "heat-wave",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Callirrhoe",
-   "sig": "4b7de4cd2359",
-   "rev": 1,
-   "seconds": 1.07,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "1f740a99a8f8",
+   "rev": 2,
+   "seconds": 1.36,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "1d00011cc2be26": {
    "key": "P|Can I get extra ketchup?",
@@ -168973,13 +168973,13 @@
    "role": "A",
    "chapter": "ch12",
    "id": "sunset",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Achird",
-   "sig": "81eb288d9953",
-   "rev": 1,
-   "seconds": 1.45,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "bd9cebbff11b",
+   "rev": 2,
+   "seconds": 1.68,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "1d482bfa0b2d60": {
    "key": "P|keep up with",
@@ -169407,13 +169407,13 @@
    "role": "P",
    "chapter": "ch12",
    "id": "sunny",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Erinome",
-   "sig": "1390d034076a",
-   "rev": 1,
-   "seconds": 0.7,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "40ef05f5df61",
+   "rev": 2,
+   "seconds": 0.8,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "1d59a7a37c470e": {
    "key": "P|Do I need to be home?",
@@ -169869,13 +169869,13 @@
    "role": "B",
    "chapter": "ch12",
    "id": "shower",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Callirrhoe",
-   "sig": "90f62973f423",
-   "rev": 1,
-   "seconds": 1.32,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "52a52ec5876c",
+   "rev": 2,
+   "seconds": 1.68,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "1d6baf79406957": {
    "key": "A|The fiscal year starts in April.",
@@ -170149,13 +170149,13 @@
    "role": "P",
    "chapter": "ch12",
    "id": "humid",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Erinome",
-   "sig": "ac87b17a32eb",
-   "rev": 1,
-   "seconds": 0.77,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "ee0d0467da4b",
+   "rev": 2,
+   "seconds": 1.28,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "1d7919426115d4": {
    "key": "B|No, it's delayed by two hours.",
@@ -173803,13 +173803,13 @@
    "role": "P",
    "chapter": "ch12",
    "id": "full-moon",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Erinome",
-   "sig": "27cf06a31967",
-   "rev": 1,
-   "seconds": 0.94,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "1ffe09fa12a5",
+   "rev": 2,
+   "seconds": 1.0,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "1e18718409f942": {
    "key": "P|alternatively",
@@ -175385,13 +175385,13 @@
    "role": "B",
    "chapter": "ch12",
    "id": "muggy",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Callirrhoe",
-   "sig": "f098faacd107",
-   "rev": 1,
-   "seconds": 2.27,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "fac14a4d2c15",
+   "rev": 2,
+   "seconds": 2.36,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "1e616efd7d404e": {
    "key": "P|character",
@@ -176435,13 +176435,13 @@
    "role": "B",
    "chapter": "ch12",
    "id": "full-moon",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Callirrhoe",
-   "sig": "68d14da43ac3",
-   "rev": 1,
-   "seconds": 1.77,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "5d7172590ed2",
+   "rev": 2,
+   "seconds": 2.36,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "1e8f299355e143": {
    "key": "A|Are you working overtime again?",
@@ -176981,13 +176981,13 @@
    "role": "P",
    "chapter": "ch11",
    "id": "its-contagious",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Erinome",
-   "sig": "9ba319e2f5b0",
-   "rev": 1,
-   "seconds": 1.21,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "2bd5668459e9",
+   "rev": 2,
+   "seconds": 1.68,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "1eabf912430db5": {
    "key": "P|spring break",
@@ -177121,13 +177121,13 @@
    "role": "B",
    "chapter": "ch11",
    "id": "im-feeling-much-better",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Callirrhoe",
-   "sig": "83768d3f365d",
-   "rev": 1,
-   "seconds": 1.68,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "c0dc6a1e1a92",
+   "rev": 2,
+   "seconds": 2.48,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "1eaf7721daff79": {
    "key": "P|injection",
@@ -177247,13 +177247,13 @@
    "role": "A",
    "chapter": "ch12",
    "id": "thunderstorm",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Achird",
-   "sig": "3b90853fed48",
-   "rev": 1,
-   "seconds": 1.76,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "4793b4bf9fb1",
+   "rev": 2,
+   "seconds": 1.92,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "1eb557f2ae469f": {
    "key": "B|Happy anniversary! One year already!",
@@ -177751,13 +177751,13 @@
    "role": "B",
    "chapter": "ch11",
    "id": "healthy",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Callirrhoe",
-   "sig": "8a5f43acb882",
-   "rev": 1,
-   "seconds": 2.02,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "4db6bb31505b",
+   "rev": 2,
+   "seconds": 2.88,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "1ecba6bec2f4ff": {
    "key": "P|All good things must come to an end.",
@@ -178241,13 +178241,13 @@
    "role": "A",
    "chapter": "ch12",
    "id": "its-pouring",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Achird",
-   "sig": "02d8210f0340",
-   "rev": 1,
-   "seconds": 0.99,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "4b1dee3bc1a6",
+   "rev": 2,
+   "seconds": 1.08,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "1edd1dd81ec449": {
    "key": "B|Actually, I'm from Kyoto.",
@@ -179179,13 +179179,13 @@
    "role": "B",
    "chapter": "ch12",
    "id": "sunset",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Callirrhoe",
-   "sig": "27a0430a6531",
-   "rev": 1,
-   "seconds": 1.46,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "9d0ad0074e4a",
+   "rev": 2,
+   "seconds": 2.72,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "1efce332efeb4f": {
    "key": "A|Sorry I missed your birthday.",
@@ -180285,13 +180285,13 @@
    "role": "A",
    "chapter": "ch12",
    "id": "autumn-leaves",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Achird",
-   "sig": "91ddc59b85f6",
-   "rev": 1,
-   "seconds": 1.83,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "7bdd875321f5",
+   "rev": 2,
+   "seconds": 2.64,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "1f2e4e94ff6bb4": {
    "key": "P|Your guess is as good as mine.",
@@ -180397,13 +180397,13 @@
    "role": "B",
    "chapter": "ch12",
    "id": "its-boiling",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Callirrhoe",
-   "sig": "d062089e9c2c",
-   "rev": 1,
-   "seconds": 2.23,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "3c6d0031949f",
+   "rev": 2,
+   "seconds": 2.2,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "1f30a4a9287bfe": {
    "key": "A|I left something on the plane.",
@@ -181293,13 +181293,13 @@
    "role": "A",
    "chapter": "ch12",
    "id": "its-raining-cats-and-dogs",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Achird",
-   "sig": "c0c06af2a44a",
-   "rev": 1,
-   "seconds": 2.57,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "af169765f7dc",
+   "rev": 2,
+   "seconds": 2.76,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "1f54135745ea9e": {
    "key": "A|They split up after three years.",
@@ -182063,13 +182063,13 @@
    "role": "B",
    "chapter": "ch11",
    "id": "bruise",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Callirrhoe",
-   "sig": "d543122c51c3",
-   "rev": 1,
-   "seconds": 1.5,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "3c4d65f91b83",
+   "rev": 2,
+   "seconds": 1.68,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "1f74ecd4fae356": {
    "key": "P|decaf",
@@ -182119,13 +182119,13 @@
    "role": "A",
    "chapter": "ch11",
    "id": "throw-up",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Achird",
-   "sig": "306e22076d25",
-   "rev": 1,
-   "seconds": 1.44,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "c06a329f3da5",
+   "rev": 2,
+   "seconds": 2.16,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "1f769ef227a3e0": {
    "key": "P|Everything was great.",
@@ -182861,13 +182861,13 @@
    "role": "A",
    "chapter": "ch11",
    "id": "check-up",
-   "model": "gemini-3.8-flash-lite-tts",
+   "model": "gemini-3.8-flash-tts",
    "voice": "Achird",
-   "sig": "2c172bef3380",
-   "rev": 1,
-   "seconds": 1.25,
-   "via": "pack",
-   "at": "2026-09-28"
+   "sig": "04833d0cc54c",
+   "rev": 2,
+   "seconds": 1.64,
+   "via": "batch",
+   "at": "2026-09-29"
   },
   "1f9a1ba094557f": {
    "key": "A|The movie didn't live up to the hype.",
