@@ -156,9 +156,9 @@ test('ステージのギミックの定義: 範囲は壁の長さの中、重力
   }
 });
 
-test('キャラのアビリティ: A はアンチダメージウォール、B はアンチ重力バリア、C は無し', () => {
+test('キャラのアビリティ: A はアンチダメージウォール、B はアンチ重力バリア、C は底力、D は無し', () => {
   const ab = D.units.map((u) => `${u.id}:${(u.abilities || []).join('+')}`).join();
-  assert.equal(ab, 'A:antiDamageWall,B:antiGravity,C:');
+  assert.equal(ab, 'A:antiDamageWall,B:antiGravity,C:lastStand,D:');
 });
 
 test('複製の先読みでダメージウォールを踏んでも、元の戦闘のHPは減らない', () => {

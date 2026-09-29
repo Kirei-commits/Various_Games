@@ -64,7 +64,8 @@
   #result p { margin: 0 0 16px; color: var(--muted); font-size: 13px; line-height: 1.8; }
   #result button { font-size: 14px; padding: 10px 22px; border-color: var(--gold); }
 
-  .help { margin: 0; text-align: center; color: var(--muted); font-size: 12px; line-height: 1.6; min-height: 1.6em; }
+  .help { margin: 0; text-align: center; color: var(--muted); font-size: 12px; line-height: 1.6; height: 4.8em; overflow: hidden; }
+  /* 説明文の高さは3行で固定。押した瞬間に文が変わって行数が変わると、フィールドが伸び縮みして指の位置がずれる */
   .help b { color: var(--text); }
 
   #tune { position: absolute; top: 8px; right: 8px; width: min(300px, calc(100% - 16px)); max-height: calc(100% - 16px);
@@ -567,6 +568,40 @@
   var WEAK_RATE = 3;   // 弱点に当てたときの倍率
 
   /**
+   * 属性。火→木→水→火 の三すくみ、光と闇はお互いに有利。
+   * 有利なら約1.33倍、不利なら約0.66倍。味方が殴るときも、敵の攻撃を受けるときも同じ表を使う。
+   */
+  var ELEMENT_ADV = 1.33, ELEMENT_DIS = 0.66;
+  var BEATS = { fire: 'wood', wood: 'water', water: 'fire', light: 'dark', dark: 'light' };
+  var KILLER = { S: 1.25, N: 1.5, M: 2, L: 2.5, EL: 3 };   // キラーの倍率（N は無印）
+  var RESIST = { N: 0.25, M: 0.5 };                        // 属性耐性の軽減率
+  var LAST_STAND = 1.5;                                    // 底力（チームHPが半分未満）
+
+  /** 属性 att で属性 def を攻撃したときの倍率。どちらかが無属性なら等倍 */
+  function elementRate(att, def) {
+    if (!att || !def) return 1;
+    if (BEATS[att] === def) return ELEMENT_ADV;
+    if (BEATS[def] === att) return ELEMENT_DIS;
+    return 1;
+  }
+
+  /** キラー（種族か属性が合えば発動。複数合えば掛け算） */
+  function killerRate(killers, target) {
+    var r = 1;
+    (killers || []).forEach(function (k) {
+      if ((k.race && k.race === target.race) || (k.element && k.element === target.element)) r *= KILLER[k.rank || 'N'];
+    });
+    return r;
+  }
+
+  /** 倍率の一覧を掛けて最後に1回だけ丸める（途中で丸めると画面と自動プレイで差が出る） */
+  function total(base, rates) {
+    var v = base;
+    for (var i = 0; i < rates.length; i++) v *= rates[i].rate;
+    return Math.round(v);
+  }
+
+  /**
    * 1ステージぶんの戦闘の状態。
    * 物理（World）のイベントを受け取ってダメージに変え、倒した敵は World から取り除く。
    * ターンの終わりに endTurn() を呼ぶと、ウェーブ進行か敵の攻撃が起きる。
@@ -575,10 +610,13 @@
     var self = this;
     this.units = {};
     data.units.forEach(function (u) {
-      self.units[u.id] = { id: u.id, atk: u.atk, shot: u.shot, combo: u.combo || null, abilities: abilityMap(u.abilities) };
+      self.units[u.id] = { id: u.id, atk: u.atk, shot: u.shot, combo: u.combo || null, abilities: abilityMap(u.abilities),
+        element: u.element || null, killers: u.killers || [], resist: u.resist || [], hp: u.hp || 0 };
     });
     this.stage = data.stage;
-    this.teamHpMax = data.stage.teamHp;
+    // チームのHPはキャラのHPの合計。キャラにHPが無い（テスト用の小さな戦場）ときはステージの teamHp
+    var sum = data.units.reduce(function (a, u) { return a + (u.hp || 0); }, 0);
+    this.teamHpMax = data.units.every(function (u) { return u.hp > 0; }) ? sum : data.stage.teamHp;
     this.teamHp = this.teamHpMax;
     this.wave = -1;
     this.turn = 1;
@@ -592,6 +630,12 @@
   }
 
   Battle.WEAK_RATE = WEAK_RATE;
+  Battle.ELEMENT_ADV = ELEMENT_ADV;
+  Battle.ELEMENT_DIS = ELEMENT_DIS;
+  Battle.KILLER = KILLER;
+  Battle.RESIST = RESIST;
+  Battle.LAST_STAND = LAST_STAND;
+  Battle.elementRate = elementRate;
 
   /** ['antiDamageWall'] → { antiDamageWall: true } */
   function abilityMap(list) {
@@ -644,6 +688,7 @@
    *  反射で当たる(hit)      : 攻撃力 ×1（接触点が弱点なら ×3）
    *  貫通で突入する(pierce) : 攻撃力 ×1
    *  貫通で弱点を通る(weak) : 攻撃力 ×3（突入のぶんとは別に入る）
+   *  どれにも 属性・キラー・底力 が掛かる（_directRates）
    *  味方に触れる(hit / pierce の相手が味方) : その味方の友情コンボ（1ショット1回）
    * 返り値はダメージの記録（演出用）。友情コンボのぶんは combo に種類が入る。
    */
@@ -672,7 +717,8 @@
       var e = this.enemy(ev.other);
       if (!e || !e.alive) continue;
       if (weak) this.stats.weak++;
-      out.push(this._damage(e, u.id, Math.round(u.atk * (weak ? WEAK_RATE : 1)), weak, ev.x, ev.y, null, world));
+      var rates = this._directRates(u, e, weak);
+      out.push(this._damage(e, u.id, total(u.atk, rates), weak, ev.x, ev.y, null, world, rates));
     }
     return out;
   };
@@ -715,12 +761,37 @@
     return h;
   };
 
-  Battle.prototype._damage = function (e, unitId, dmg, weak, x, y, combo, world) {
+  /**
+   * 直殴りの倍率: 弱点 × 属性 × キラー × 底力。
+   * 返すのは [{ kind, rate }]（画面は kind で「有利」「キラー」などを出す）。
+   */
+  Battle.prototype._directRates = function (u, e, weak) {
+    var rates = [];
+    if (weak) rates.push({ kind: 'weak', rate: WEAK_RATE });
+    var el = elementRate(u.element, e.def.element);
+    if (el !== 1) rates.push({ kind: el > 1 ? 'adv' : 'dis', rate: el });
+    var k = killerRate(u.killers, e.def);
+    if (k !== 1) rates.push({ kind: 'killer', rate: k });
+    if (u.abilities.lastStand && this.teamHp * 2 < this.teamHpMax) rates.push({ kind: 'lastStand', rate: LAST_STAND });
+    return rates;
+  };
+
+  /** 友情コンボの倍率: 友情に属性があるときだけ属性、キラーは持ち主のもの。弱点・底力は乗らない */
+  Battle.prototype._comboRates = function (ally, c, e) {
+    var rates = [];
+    var el = elementRate(c.element, e.def.element);
+    if (el !== 1) rates.push({ kind: el > 1 ? 'adv' : 'dis', rate: el });
+    var k = killerRate(ally.killers, e.def);
+    if (k !== 1) rates.push({ kind: 'killer', rate: k });
+    return rates;
+  };
+
+  Battle.prototype._damage = function (e, unitId, dmg, weak, x, y, combo, world, rates) {
     var dealt = Math.min(dmg, e.hp);
     e.hp -= dealt;
     this.stats.damage += dealt;
     this.stats.hits++;
-    var rec = { unit: unitId, enemy: e.id, damage: dmg, weak: weak, x: x, y: y, killed: false, combo: combo };
+    var rec = { unit: unitId, enemy: e.id, damage: dmg, weak: weak, x: x, y: y, killed: false, combo: combo, rates: rates || [] };
     if (e.hp <= 0) rec.killed = this.kill(e.id, world);
     return rec;
   };
@@ -732,6 +803,29 @@
       return Math.hypot(dx, dy);
     }
     return Math.max(0, Math.hypot(x - d.x, y - d.y) - d.r);
+  }
+
+  /** 点 (x, y) から向き (dx, dy)（長さ1）へ進んで敵に当たるまでの距離。当たらなければ null */
+  function rayHit(d, x, y, dx, dy) {
+    if (d.shape === 'rect') {
+      var t0 = -Infinity, t1 = Infinity;
+      var axes = [[x, dx, d.x - d.w / 2, d.x + d.w / 2], [y, dy, d.y - d.h / 2, d.y + d.h / 2]];
+      for (var i = 0; i < 2; i++) {
+        var o = axes[i][0], v = axes[i][1], lo = axes[i][2], hi = axes[i][3];
+        if (Math.abs(v) < 1e-12) { if (o < lo || o > hi) return null; continue; }
+        var a = (lo - o) / v, b = (hi - o) / v;
+        t0 = Math.max(t0, Math.min(a, b));
+        t1 = Math.min(t1, Math.max(a, b));
+      }
+      if (t1 < Math.max(t0, 0)) return null;
+      return Math.max(t0, 0);
+    }
+    var fx = x - d.x, fy = y - d.y;
+    var bb = fx * dx + fy * dy, cc = fx * fx + fy * fy - d.r * d.r;
+    if (cc <= 0) return 0;
+    var disc = bb * bb - cc;
+    if (disc < 0 || bb > 0) return null;
+    return -bb - Math.sqrt(disc);
   }
 
   /**
@@ -748,9 +842,11 @@
     var c = ally.combo, x = body.x, y = body.y, self = this;
     var fired = { ally: allyId, by: byId, kind: c.kind, name: c.name, x: x, y: y, hits: [], spec: c };
     function hit(e, px, py) {
-      var rec = self._damage(e, allyId, c.power, false, px, py, c.kind, world);
+      var rates = self._comboRates(ally, c, e);
+      var rec = self._damage(e, allyId, total(c.power, rates), false, px, py, c.kind, world, rates);
       out.push(rec);
       fired.hits.push(rec);
+      return rec;
     }
     var alive = this.alive(), i, e, d;
     if (c.kind === 'laser') {
@@ -779,6 +875,21 @@
         if (!e) break;
         hit(e, e.def.x, e.def.y);
       }
+    } else if (c.kind === 'spread') {
+      // 真上から時計回りに count 方向。それぞれ射程内で最初に当たった敵へ（貫通しない）
+      fired.shots = [];
+      for (i = 0; i < c.count; i++) {
+        var ang = -Math.PI / 2 + i * Math.PI * 2 / c.count;
+        var dx = Math.cos(ang), dy = Math.sin(ang);
+        var best = null, bt = c.range;
+        for (var j = 0; j < alive.length; j++) {
+          if (!alive[j].alive) continue;
+          var tt = rayHit(alive[j].def, x, y, dx, dy);
+          if (tt !== null && tt < bt) { bt = tt; best = alive[j]; }
+        }
+        var sx = x + dx * bt, sy = y + dy * bt;
+        fired.shots.push({ x: sx, y: sy, rec: best ? hit(best, sx, sy) : null });
+      }
     }
     this.combos.push(fired);
   };
@@ -791,6 +902,33 @@
 
   Battle.prototype.waveCleared = function () {
     return this.enemies.every(function (e) { return !e.alive; });
+  };
+
+  /** 属性耐性の軽減率（同じ属性の耐性が複数あれば大きいほう） */
+  function resistRate(u, element) {
+    var r = 0;
+    for (var i = 0; i < u.resist.length; i++) {
+      if (element && u.resist[i].element === element) r = Math.max(r, RESIST[u.resist[i].rank || 'N']);
+    }
+    return r;
+  }
+
+  /**
+   * 敵の攻撃が味方ごとに与えるダメージ。
+   *  single: いちばん近い味方1体に atk
+   *  all   : atk を味方の数で割って1体ずつ（全員が等倍なら合計がちょうど atk）
+   * それぞれ 属性（敵→味方）×（1 − 耐性）。
+   */
+  Battle.prototype._attackHits = function (e, world) {
+    var ids = e.def.attack === 'single' ? [nearestUnit(world, this.units, e)] : Object.keys(this.units);
+    ids = ids.filter(function (id) { return id !== null; });
+    var base = e.def.attack === 'single' ? e.def.atk : e.def.atk / Math.max(1, ids.length);
+    var self = this;
+    return ids.map(function (id) {
+      var u = self.units[id];
+      var rate = elementRate(e.def.element, u.element) * (1 - resistRate(u, e.def.element));
+      return { unit: id, damage: Math.round(base * rate), rate: rate };
+    });
   };
 
   function nearestUnit(world, units, e) {
@@ -829,10 +967,12 @@
       e.counter--;
       if (e.counter > 0) continue;
       e.counter = e.def.turns;
-      this.teamHp = Math.max(0, this.teamHp - e.def.atk);
+      var hits = this._attackHits(e, world);
+      var dmg = hits.reduce(function (a, h) { return a + h.damage; }, 0);
+      this.teamHp = Math.max(0, this.teamHp - dmg);
       attacks.push({
-        enemy: e.id, kind: e.def.attack, damage: e.def.atk, hpAfter: this.teamHp,
-        target: e.def.attack === 'single' ? nearestUnit(world, this.units, e) : null
+        enemy: e.id, kind: e.def.attack, damage: dmg, hits: hits, hpAfter: this.teamHp,
+        target: e.def.attack === 'single' && hits.length ? hits[0].unit : null
       });
       if (this.teamHp === 0) { this.state = 'lost'; break; }
     }
@@ -877,18 +1017,30 @@
    *  homing : count 発の弾が近い敵から順に飛ぶ（1発 power）
    *  laser  : このキャラを通る縦・横の2本のビーム（幅 width）。触れた敵に power
    *  blast  : このキャラを中心に半径 radius の爆発。範囲内の敵に power
+   *  spread : 真上から時計回りに count 方向へ弾。射程 range 内で最初に当たった敵に power
+   *  element: 友情の属性（省略すると無属性で、属性の倍率がかからない）
+   * element  : 'fire' | 'water' | 'wood' | 'light' | 'dark'
+   * hp       : キャラのHP。チームのHPは4体の合計
    * abilities: 'antiDamageWall'（ダメージウォールを無効） / 'antiGravity'（重力バリアを無効）
+   *            'lastStand'（底力: チームHPが半分未満で直殴り1.5倍）
+   * killers  : [{ race | element, rank }]。rank は S / N（無印）/ M / L / EL
+   * resist   : [{ element, rank }]。その属性の敵の攻撃を N 25% / M 50% 減らす
    */
   var units = [
-    { id: 'A', name: 'A', shot: 'reflect', atk: 1500, x: 130, y: 690, r: 30,
+    { id: 'A', name: 'A', shot: 'reflect', element: 'water', atk: 1500, hp: 8800, x: 90, y: 690, r: 30,
       colors: ['#c9fbff', '#39b8ff', '#0b3f8a'], accent: '#3cc8ff', abilities: ['antiDamageWall'],
       combo: { kind: 'homing', name: 'ホーミング', count: 6, power: 500 } },
-    { id: 'B', name: 'B', shot: 'pierce', atk: 1800, x: 270, y: 715, r: 30,
+    { id: 'B', name: 'B', shot: 'pierce', element: 'fire', atk: 1800, hp: 8200, x: 210, y: 715, r: 30,
       colors: ['#ffe7b8', '#ff7a45', '#8a1f14'], accent: '#ff7a45', abilities: ['antiGravity'],
-      combo: { kind: 'laser', name: 'クロスレーザー', power: 1800, width: 34 } },
-    { id: 'C', name: 'C', shot: 'reflect', atk: 1300, x: 410, y: 690, r: 30,
-      colors: ['#fff3c2', '#f5b82e', '#7a4d06'], accent: '#f5c451', abilities: [],
-      combo: { kind: 'blast', name: '爆発', power: 2500, radius: 150 } }
+      killers: [{ race: 'dragon', rank: 'N' }],
+      combo: { kind: 'laser', name: 'クロスレーザー', element: 'fire', power: 1800, width: 34 } },
+    { id: 'C', name: 'C', shot: 'reflect', element: 'wood', atk: 1300, hp: 9400, x: 330, y: 690, r: 30,
+      colors: ['#e6ffc2', '#62c83a', '#1f5a0c'], accent: '#8ee05a', abilities: ['lastStand'],
+      combo: { kind: 'blast', name: '爆発', power: 2500, radius: 150 } },
+    { id: 'D', name: 'D', shot: 'pierce', element: 'light', atk: 1400, hp: 7600, x: 450, y: 715, r: 30,
+      colors: ['#fffbe0', '#f5d63e', '#8a6a06'], accent: '#ffe066', abilities: [],
+      resist: [{ element: 'dark', rank: 'N' }],
+      combo: { kind: 'spread', name: '拡散弾', count: 8, power: 700, range: 420 } }
   ];
 
   var SLIME = ['#c8ffab', '#3fca6b', '#0f5a33'];
@@ -898,6 +1050,7 @@
    * attack: 'single'（いちばん近い味方をねらう） / 'all'（全体）。どちらもチームのHPを減らす
    * turns : 攻撃までのターン数（攻撃したら元に戻る）
    * weak  : 弱点（中心からの位置と半径）
+   * element: 属性（キャラと同じ5種） / race: 種族（キラーの対象。dragon / slime / golem / beast）
    *
    * gimmicks（ウェーブごと）:
    *  damageWalls: 壁の一部に電気が走る。side の from〜to（辺に沿った位置）に触れるたび damage
@@ -905,30 +1058,29 @@
    */
   var stage = {
     name: 'はじまりの洞窟',
-    teamHp: 34000,
     waves: [
       { enemies: [
-        { id: 'w1-slime-l', name: 'スライム', look: 'slime', colors: SLIME, shape: 'circle', x: 120, y: 220, r: 40,
+        { id: 'w1-slime-l', name: 'スライム', element: 'wood', race: 'slime', look: 'slime', colors: SLIME, shape: 'circle', x: 120, y: 220, r: 40,
           hp: 7000, atk: 2000, turns: 3, attack: 'single' },
-        { id: 'w1-slime-r', name: 'スライム', look: 'slime', colors: SLIME, shape: 'circle', x: 420, y: 220, r: 40,
+        { id: 'w1-slime-r', name: 'スライム', element: 'wood', race: 'slime', look: 'slime', colors: SLIME, shape: 'circle', x: 420, y: 220, r: 40,
           hp: 7000, atk: 2000, turns: 4, attack: 'single' },
-        { id: 'w1-golem', name: 'ブロックゴーレム', look: 'golem', shape: 'rect', x: 270, y: 420, w: 160, h: 56,
+        { id: 'w1-golem', name: 'ブロックゴーレム', element: 'water', race: 'golem', look: 'golem', shape: 'rect', x: 270, y: 420, w: 160, h: 56,
           hp: 12000, atk: 3500, turns: 3, attack: 'all' }
       ], gimmicks: {
         damageWalls: [
-          { side: 'left', from: 120, to: 520, damage: 800 },
-          { side: 'right', from: 120, to: 520, damage: 800 }
+          { side: 'left', from: 120, to: 520, damage: 1400 },
+          { side: 'right', from: 120, to: 520, damage: 1400 }
         ]
       } },
       { enemies: [
-        { id: 'w2-dragon', name: 'レッドドラゴン', boss: true, look: 'dragon', shape: 'circle', x: 270, y: 250, r: 84,
-          hp: 55000, atk: 6000, turns: 3, attack: 'all', weak: [{ id: 'belly', dx: 0, dy: 84, r: 22 }] },
-        { id: 'w2-bat-l', name: 'コウモリ', look: 'slime', colors: BAT, shape: 'circle', x: 100, y: 470, r: 32,
+        { id: 'w2-dragon', name: 'レッドドラゴン', element: 'fire', race: 'dragon', boss: true, look: 'dragon', shape: 'circle', x: 270, y: 250, r: 84,
+          hp: 58000, atk: 6000, turns: 3, attack: 'all', weak: [{ id: 'belly', dx: 0, dy: 84, r: 22 }] },
+        { id: 'w2-bat-l', name: 'コウモリ', element: 'dark', race: 'beast', look: 'slime', colors: BAT, shape: 'circle', x: 100, y: 470, r: 32,
           hp: 5000, atk: 1500, turns: 2, attack: 'single' },
-        { id: 'w2-bat-r', name: 'コウモリ', look: 'slime', colors: BAT, shape: 'circle', x: 440, y: 470, r: 32,
+        { id: 'w2-bat-r', name: 'コウモリ', element: 'dark', race: 'beast', look: 'slime', colors: BAT, shape: 'circle', x: 440, y: 470, r: 32,
           hp: 5000, atk: 1500, turns: 3, attack: 'single' }
       ], gimmicks: {
-        damageWalls: [{ side: 'top', from: 90, to: 450, damage: 1000 }],
+        damageWalls: [{ side: 'top', from: 90, to: 450, damage: 1800 }],
         // ドラゴンの弱点（お腹）への道をふさぐ
         gravity: [{ id: 'g-belly', x: 270, y: 430, r: 58 }]
       } }
@@ -949,8 +1101,42 @@
   var SHOT_LABEL = { reflect: '反射', pierce: '貫通' };
   var ABILITY = {
     antiDamageWall: { short: 'ADW', name: 'アンチダメージウォール', color: '#ffe066' },
-    antiGravity: { short: 'AGB', name: 'アンチ重力バリア', color: '#c79bff' }
+    antiGravity: { short: 'AGB', name: 'アンチ重力バリア', color: '#c79bff' },
+    lastStand: { short: '底力', name: '底力', color: '#ff8a65' }
   };
+  var ELEMENT = {
+    fire: { label: '火', color: '#ff6b4a' }, water: { label: '水', color: '#4ab8ff' }, wood: { label: '木', color: '#5fd36b' },
+    light: { label: '光', color: '#ffe45c' }, dark: { label: '闇', color: '#b07cff' }
+  };
+  var RACE = { dragon: '竜', slime: 'スライム', golem: 'ゴーレム', beast: '魔獣' };
+  var RATE_TAG = { adv: { text: '有利', color: '#9dffb0' }, dis: { text: '不利', color: '#9aa7c7' },
+    killer: { text: 'キラー', color: '#ff9ad5' }, lastStand: { text: '底力', color: '#ff8a65' } };
+
+  /** キャラの札に出す短い印（アビリティ・キラー・耐性） */
+  function unitMarks(def) {
+    var m = (def.abilities || []).map(function (a) { return ABILITY[a]; });
+    (def.killers || []).forEach(function (k) {
+      m.push({ short: (k.race ? RACE[k.race] : ELEMENT[k.element].label) + 'K', name: (k.race ? RACE[k.race] : ELEMENT[k.element].label + '属性') + 'キラー', color: '#ff9ad5' });
+    });
+    (def.resist || []).forEach(function (r) {
+      m.push({ short: ELEMENT[r.element].label + '耐', name: ELEMENT[r.element].label + '属性耐性', color: '#9dd8ff' });
+    });
+    return m;
+  }
+
+  /** 属性の丸い印 */
+  function drawElement(x, y, element, size) {
+    var e = ELEMENT[element];
+    if (!e) return;
+    ctx.fillStyle = 'rgba(6,10,24,.9)';
+    ctx.beginPath(); ctx.arc(x, y, size, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = e.color; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.arc(x, y, size - 1, 0, Math.PI * 2); ctx.stroke();
+    ctx.fillStyle = e.color;
+    ctx.font = '900 ' + Math.round(size * 1.15) + 'px "Hiragino Sans","Noto Sans JP",system-ui,sans-serif';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText(e.label, x, y + 1);
+  }
 
   var canvas = document.getElementById('field');
   var ctx = canvas.getContext('2d');
@@ -1259,7 +1445,7 @@
   function handleDamage(recs) {
     for (var i = 0; i < recs.length; i++) {
       var r = recs[i];
-      if (r.combo === 'homing') continue;   // 弾が届いたときに見せる（updateCombos）
+      if (r.combo === 'homing' || r.combo === 'spread') continue;   // 弾が届いたときに見せる（updateCombos）
       showDamage(r);
     }
   }
@@ -1276,6 +1462,13 @@
       sound.weak();
     } else {
       floatText(r.x + jx, r.y - 14, String(r.damage), r.combo ? '#b8f3ff' : '#ffffff', r.combo ? 16 : 18, 0.8);
+    }
+    // 倍率の内訳（弱点は WEAK! で出しているので除く）。友情はたくさん出るので1つ目の印だけ
+    var tags = (r.rates || []).filter(function (x) { return RATE_TAG[x.kind]; });
+    if (r.combo) tags = tags.slice(0, 1);
+    for (var ti = 0; ti < tags.length; ti++) {
+      var tg = RATE_TAG[tags[ti].kind];
+      floatText(r.x + jx, r.y - (r.weak ? 70 : 36) - ti * 16, tg.text, tg.color, 12, 0.8);
     }
     if (r.killed) {
       var d = battle.enemy(r.enemy).def;
@@ -1386,7 +1579,7 @@
 
   // ---------------------------------------------------------------- 友情コンボの演出
   //（ダメージは Battle がその場で入れている。ここは見せ方だけ）
-  var COMBO_COLOR = { homing: '#7df0ff', laser: '#ff9a6b', blast: '#ffd166' };
+  var COMBO_COLOR = { homing: '#7df0ff', laser: '#ff9a6b', blast: '#ffd166', spread: '#fff29a' };
 
   function startCombos(list) {
     for (var i = 0; i < list.length; i++) {
@@ -1412,8 +1605,16 @@
           // 最初は左右に広がって、曲がりながら敵へ向かう
           var side = j % 2 ? 1 : -1, spread = 90 + 25 * (j >> 1);
           fx.bullets.push({ sx: c.x, sy: c.y, cx: c.x + side * spread, cy: c.y - 120 - 20 * j,
-            rec: c.hits[j], t: -0.06 * j, dur: 0.32, px: c.x, py: c.y });
+            tx: c.hits[j].x, ty: c.hits[j].y, rec: c.hits[j], t: -0.06 * j, dur: 0.32, color: '125,240,255' });
         }
+      } else if (c.kind === 'spread') {
+        // まっすぐ飛ぶ。外れた弾も射程の端まで飛んで消える
+        for (var s2 = 0; s2 < c.shots.length; s2++) {
+          var sh = c.shots[s2];
+          fx.bullets.push({ sx: c.x, sy: c.y, cx: (c.x + sh.x) / 2, cy: (c.y + sh.y) / 2,
+            tx: sh.x, ty: sh.y, rec: sh.rec, t: 0, dur: 0.1 + Math.hypot(sh.x - c.x, sh.y - c.y) / 2600, color: '255,242,154' });
+        }
+        sound.shot();
       }
     }
   }
@@ -1426,10 +1627,12 @@
       b.t += dt;
       if (was < 0 && b.t >= 0) sound.shot();
       if (b.t >= b.dur) {
-        burst(b.rec.x, b.rec.y, 0, -1, 10, '#7df0ff', 300);
-        ring(b.rec.x, b.rec.y, 20, '#7df0ff');
-        showDamage(b.rec);
-        if (foes[b.rec.enemy]) { foes[b.rec.enemy].flash = 1; foes[b.rec.enemy].wobble = 1; }
+        if (b.rec) {
+          burst(b.rec.x, b.rec.y, 0, -1, 10, 'rgb(' + b.color + ')', 300);
+          ring(b.rec.x, b.rec.y, 20, 'rgb(' + b.color + ')');
+          showDamage(b.rec);
+          if (foes[b.rec.enemy]) { foes[b.rec.enemy].flash = 1; foes[b.rec.enemy].wobble = 1; }
+        }
         fx.bullets.splice(i, 1);
       }
     }
@@ -1438,7 +1641,7 @@
   }
 
   function bulletPos(b, f) {
-    var tx = b.rec.x, ty = b.rec.y, g = 1 - f;
+    var tx = b.tx, ty = b.ty, g = 1 - f;
     return { x: g * g * b.sx + 2 * g * f * b.cx + f * f * tx, y: g * g * b.sy + 2 * g * f * b.cy + f * f * ty };
   }
 
@@ -1477,7 +1680,7 @@
       var f2 = Math.min(1, b.t / b.dur);
       for (var k = 4; k >= 0; k--) {
         var p = bulletPos(b, Math.max(0, f2 - k * 0.05));
-        ctx.fillStyle = k ? 'rgba(125,240,255,' + (0.35 - k * 0.06).toFixed(3) + ')' : '#e8fdff';
+        ctx.fillStyle = k ? 'rgba(' + b.color + ',' + (0.35 - k * 0.06).toFixed(3) + ')' : '#ffffff';
         ctx.beginPath(); ctx.arc(p.x, p.y, k ? 9 - k : 7, 0, Math.PI * 2); ctx.fill();
       }
     }
@@ -1624,15 +1827,15 @@
     sound.enemy(a.kind === 'all');
     var e = battle.enemy(a.enemy);
     if (foes[a.enemy]) foes[a.enemy].wobble = 1;
-    var targets = a.kind === 'single' ? [unitById(a.target)] : units;
-    targets.forEach(function (u) {
+    // 味方ごとのダメージ（属性で変わる）。有利な相手からは小さく、不利な相手からは大きく出る
+    a.hits.forEach(function (h) {
+      var u = unitById(h.unit);
       if (!u) return;
       u.squash = 1;
       burst(u.body.x, u.body.y, 0, -1, 14, '#ff6b6b', 360);
+      floatText(u.body.x, u.body.y - 44, '-' + h.damage, h.rate > 1 ? '#ff3b3b' : h.rate < 1 ? '#ffb3b3' : '#ff6b6b', a.kind === 'single' ? 24 : 18, 1.1);
+      if (h.rate !== 1) floatText(u.body.x, u.body.y - 66, h.rate > 1 ? '弱い!' : '軽減', h.rate > 1 ? '#ff9a6b' : '#9dd8ff', 11, 1.1);
     });
-    var tx = a.kind === 'single' && targets[0] ? targets[0].body.x : world.cfg.field.w / 2;
-    var ty = a.kind === 'single' && targets[0] ? targets[0].body.y - 44 : units[0].body.y - 60;
-    floatText(tx, ty, '-' + a.damage, '#ff6b6b', 24, 1.1);
     if (a.kind === 'all') floatText(e.def.x, e.def.y, 'ブレス!', '#ff9a6b', 20, 0.9);
     updateHud();
   }
@@ -1670,9 +1873,10 @@
     else if (game.phase === 'wave') help = '次のウェーブ！';
     else if (game.phase === 'won' || game.phase === 'lost' || game.phase === 'ending') help = '';
     else {
-      var ab = (u.def.abilities || []).map(function (a) { return ABILITY[a].name; });
-      help = '<b>' + u.def.name + '（' + SHOT_LABEL[u.def.shot] + (ab.length ? '・' + ab.join('・') : '') + '）</b>の番。'
-        + '<b>味方に当てると友情コンボ</b>。黄色い<b>電気の壁</b>はHPが減り、紫の<b>重力バリア</b>は大きく減速。';
+      var ab = unitMarks(u.def).map(function (a) { return a.name; });
+      var elx = ELEMENT[u.def.element];
+      help = '<b>' + u.def.name + '（' + (elx ? elx.label + '・' : '') + SHOT_LABEL[u.def.shot] + (ab.length ? '・' + ab.join('・') : '') + '）</b>の番。'
+        + '<b>味方に当てると友情コンボ</b>。<b>火→木→水→火・光⇔闇</b>が有利。<b>電気の壁</b>はHPが減り、紫の<b>バリア</b>は減速。';
     }
     el.help.innerHTML = help;
     canvas.dataset.phase = game.phase;
@@ -1997,6 +2201,8 @@
       ctx.fillStyle = ratio > 0.5 ? '#6ee07a' : ratio > 0.25 ? '#ffd166' : '#ff5e5e';
       if (ratio > 0) { roundRect(ctx, bx, by, Math.max(6, bw * ratio), 6, 3); ctx.fill(); }
     }
+    // 属性（右上）
+    if (d.element) drawElement(d.x + ex * 0.8, d.y - ey * 0.8 - (d.shape === 'rect' ? 6 : 0), d.element, 11);
     // 攻撃ターン
     var cx = d.x - ex * 0.8, cy = d.y - ey * 0.8 - (d.shape === 'rect' ? 6 : 0);
     var danger = e.counter <= 1;
@@ -2145,9 +2351,10 @@
 
     ctx.fillStyle = 'rgba(255,255,255,.35)';
     ctx.beginPath(); ctx.ellipse(b.x - r * 0.35, b.y - r * 0.5, r * 0.35, r * 0.16, -0.5, 0, Math.PI * 2); ctx.fill();
+    drawElement(b.x - r * 0.78, b.y - r * 0.78, u.def.element, 9);
 
     var label = u.def.name + ' ' + SHOT_LABEL[u.def.shot];
-    var abil = (u.def.abilities || []).map(function (a) { return ABILITY[a]; });
+    var abil = unitMarks(u.def);
     ctx.font = '700 12px "Hiragino Sans","Noto Sans JP",system-ui,sans-serif';
     var lw = ctx.measureText(label).width;
     ctx.font = '800 10px "Hiragino Sans","Noto Sans JP",system-ui,sans-serif';

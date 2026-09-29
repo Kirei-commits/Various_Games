@@ -16,7 +16,8 @@ index.html
 tests/lint.mjs                    インラインスクリプトの構文、外部参照なし、id の実在、純粋さ
 tests/logic/helpers.mjs           純粋な3つのスクリプトを取り出して Node の vm で読み込む
 tests/logic/bot.mjs               バランス測定用の自動プレイ（greedy / casual / random）
-tests/logic/*.test.mjs            physics（物理）/ battle（戦闘）/ gimmick（ギミック）/ balance（難しさ）
+tests/logic/*.test.mjs            physics（物理）/ battle（戦闘）/ element（属性・キラー）/ gimmick（ギミック）/ balance（難しさ）
+tests/logic/measure.mjs           数値を調整するときの測定（テストではない）: node tests/logic/measure.mjs
 tests/e2e/*.spec.mjs              Playwright（desktop + mobile）
 ```
 
@@ -63,6 +64,20 @@ HTML コメントの中にスクリプトの開始タグをそのまま書かな
    弾が届いたときに出すが、HP はもう減っている（自動プレイと画面で結果がずれないように）。
 8. 友情コンボは**1ショットにつき味方1体1回**（`comboFired`。`endTurn()` で空にする）。
    弾が飛んでいる間は画面側がターンを締めない（`settling` で待つ）。
+
+## 属性・キラーの約束ごと（フェーズ5）
+
+1. **倍率は `_directRates()`（直殴り）と `_comboRates()`（友情）で `[{ kind, rate }]` にして返し、
+   `total()` で最後に1回だけ丸める。** 記録の `rates` を画面が「有利」「キラー」などの印にする。
+   新しい倍率（SS・剣など）もこの配列に足す。
+2. 属性は `elementRate(攻める側, 守る側)` の1つだけ。敵の攻撃を受けるときも同じ関数（光⇔闇はお互いに1.33）。
+3. 友情コンボは**友情に `element` があるときだけ**属性が掛かる（無属性は等倍）。キラーは持ち主のものが乗る。
+   弱点と底力は友情に乗らない。
+4. 敵の全体攻撃は `atk` を味方の数で割って1体ずつ計算する（全員等倍なら合計がちょうど `atk`）。
+   `atk` は「属性の差が無いときのチーム全体への合計」と読む。単体攻撃はいちばん近い1体に `atk`。
+5. チームのHPはキャラの `hp` の合計。キャラに `hp` が無いテスト用の戦場は `stage.teamHp` を使う。
+6. 説明文（`#help`）は高さ3行で固定。押した瞬間に行数が変わるとフィールドが伸び縮みして、
+   指の位置と引っぱりの始点がずれる（実際に出した不具合）。説明を足すときはスマホ幅で3行に収める。
 
 ## ギミックとアビリティの約束ごと
 

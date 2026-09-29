@@ -163,7 +163,7 @@ test('リセットで配置とターンが初めに戻る', async ({ page }) => 
   await expect(page.locator('#turn')).toHaveText('2');
   await page.locator('#btn-reset').click();
   await expect(page.locator('#turn')).toHaveText('1');
-  expect(await body(page, 'A')).toMatchObject({ x: 130, y: 690 });
+  expect(await body(page, 'A')).toMatchObject({ x: 90, y: 690 });
   await expect(page.locator('#wave')).toHaveText('1/2');
   expect(await page.evaluate(() => window.__ms.battle.alive().length)).toBe(3);
   await expectNoErrors(errors);

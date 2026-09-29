@@ -28,7 +28,7 @@ test('アビリティの無い C が電気の壁に触れると、チームのHP
   // 左の壁で跳ね返って右の壁にも届くことがあるので、回数ぶん減っていることを見る
   const s = await stats(page);
   expect(s.dwHits).toBeGreaterThanOrEqual(1);
-  await expect(page.locator('#hp-text')).toHaveText(`${34000 - 800 * s.dwHits} / 34000`);
+  await expect(page.locator('#hp-text')).toHaveText(`${34000 - 1400 * s.dwHits} / 34000`);
   await expectNoErrors(page.errors);
 });
 

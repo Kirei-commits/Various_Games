@@ -157,7 +157,7 @@ test('止まっている味方に当たってもダメージにはならない',
   const a = world.get('A');
   a.x = 130; a.y = 560;
   const recs = shoot(world, battle, 'A', 0, 900); // 真下へ → 味方の近くの壁
-  assert.ok(recs.every((r) => !['A', 'B', 'C'].includes(r.enemy)));
+  assert.ok(recs.every((r) => !['A', 'B', 'C', 'D'].includes(r.enemy)));
 });
 
 // ------------------------------------------------------------ 友情コンボ
@@ -262,10 +262,10 @@ test('友情コンボの無い味方・自分自身では何も起きない', ()
   assert.equal(battle.stats.combos, 0);
 });
 
-test('ステージのキャラは3体とも別々の友情コンボを持つ', () => {
+test('ステージのキャラは4体とも別々の友情コンボを持つ', () => {
   // vm の中の配列は別realmなので、文字列にして比べる
   const kinds = D.units.map((u) => u.combo && u.combo.kind);
-  assert.equal([...kinds].sort().join(), 'blast,homing,laser');
+  assert.equal([...kinds].sort().join(), 'blast,homing,laser,spread');
 });
 
 // ------------------------------------------------------------ ターンと敵の攻撃

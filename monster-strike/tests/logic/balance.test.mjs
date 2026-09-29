@@ -3,11 +3,13 @@
  * 数値（HP・攻撃力・ターン数）を触ってここが落ちたら、「バグ」ではなく
  * 「意図した難しさの変更か」を判断し、意図的なら期待値と理由をコミットに残す。
  *
- * 測った値（2026-09-29 フェーズ4, ダメージウォール・重力バリアあり, teamHp 34000 / ドラゴン HP 55000）:
- *   greedy: 11ターンで勝ち、HP 19700 残り。ダメージウォールに触れたのは1回（2回はアンチで無効）
- *   casual: 勝率 0.75、勝ったときの中央 17ターン
- *           アビリティを外すと 0.43、友情コンボを外すと 0.04
- *   random: 勝率 0.00、ボスまで 100% が到達
+ * 測った値（2026-09-29 フェーズ5, 4体・属性・キラーあり, チームHP 34000（4体の合計）/ ドラゴン HP 58000,
+ *           ダメージウォール 1400（ウェーブ1）・1800（ウェーブ2））:
+ *   greedy: 9ターンで勝ち、HP 28015 残り。ダメージウォールに触れたのは0回
+ *   casual: 勝率 0.79、勝ったときの中央 16ターン
+ *           アビリティを外すと 0.58、友情コンボを外すと 0.05、属性とキラーを外すと 0.57
+ *   random: 勝率 0.00、ボスまで 97% が到達
+ * 4体になって友情コンボが増えたぶん、ドラゴンのHPとダメージウォールを上げて以前の難しさに戻した。
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -28,7 +30,8 @@ test('上手なプレイヤー（全候補を先読み）は余裕を持って�
   const r = play(mods, { policy: 'greedy' });
   assert.equal(r.state, 'won');
   assert.ok(r.turns >= 6 && r.turns <= 16, `${r.turns}ターン`);
-  assert.ok(r.hp >= mods.D.stage.teamHp * 0.3, `残りHP ${r.hp}`);
+  const teamHp = mods.D.units.reduce((a, u) => a + u.hp, 0);
+  assert.ok(r.hp >= teamHp * 0.3, `残りHP ${r.hp}`);
   assert.ok(r.stats.weak > 0, '弱点をねらう価値がある');
 });
 
@@ -67,6 +70,18 @@ test('アビリティ（アンチダメージウォール・アンチ重力バ�
   const withA = run(mods), without = run(noAbility);
   assert.ok(withA.rate - without.rate >= 0.15, `アビリティあり ${withA.rate} / なし ${without.rate}`);
   assert.ok(without.dwPerTurn > withA.dwPerTurn, 'アビリティが無いとダメージウォールで削られる回数が増える');
+});
+
+test('属性とキラーは、ふつうのプレイヤーの勝ち負けを分けるほど効く', () => {
+  const noElement = { ...mods, D: { units: mods.D.units.map((u) => ({ ...u, element: undefined, killers: [],
+    combo: u.combo && { ...u.combo, element: undefined } })), stage: mods.D.stage } };
+  const rate = (m) => {
+    let w = 0;
+    for (let i = 0; i < GAMES; i++) if (play(m, { policy: 'casual', random: seededRandom(1000 + i * 7919) }).state === 'won') w++;
+    return w / GAMES;
+  };
+  const withE = rate(mods), without = rate(noElement);
+  assert.ok(withE - without >= 0.1, `属性あり ${withE} / なし ${without}`);
 });
 
 test('上手なプレイヤーはダメージウォールをほとんど踏まない', () => {
