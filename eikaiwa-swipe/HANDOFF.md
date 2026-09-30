@@ -87,7 +87,8 @@
 - 話す速さのバー（`SpeedBar`・`RateContext`）を学習・シャドーイング・一覧・テストに置いた
 - 進捗の画面をコンパクトに: 要約1行・小さな数字・続きから・コースは開くと章の番号のマス（章の成績は章を押したときの ChapterChooser に）
 - 冒険: 装備7か所（`SLOTS`。古い保存の armor/charm は body/accessory へ）、SSR の特製の呪文（`SKILLS`）、敵のため→大こうげき（ぼうぎょで受けとめてはんげき）、演出と効果音（styles.css の qs-*、audio.js の warn/smash/block/heal/spell/appear）
-- BGM が iPhone で聞こえない: 消音スイッチ（マナーモード）で Web Audio が鳴らないため。`src/audio.js` の unlock で `navigator.audioSession.type = "playback"`（古い iOS は無音の <audio> をループ）。マイクを使うあいだは `setMicActive` で play-and-record に切り替える
+- iPhone のマナーモード: ふつうは Safari のきまりどおり BGM・効果音を鳴らさない（`navigator.audioSession.type = "auto"`）。設定「マナーモード中も BGM・効果音を鳴らす」（`ignoreSilent`）をオンにしたときだけ `"playback"`（古い iOS は無音の <audio> をループ）。
+  以前はいつも playback にしていたので「マナーモードなのに音が出る」と言われた（2026-09-30 に設定へ）。マイクを使うあいだは `setMicActive` で play-and-record に切り替える
 - バトル: 敵が出たとき（ボスの単語が変わったときも）に英単語を読み上げる（英語→意味のときだけ）
 - バトル: 敵が出てくる間隔を短く（4択 4.5秒→2.4秒）、倒したらすぐ次が出る（`RESPAWN_EMPTY` 0.25秒・`RESPAWN_AFTER_KILL` 0.9秒）。近づく速さは変えていない
 - ドーパミンモード: 画面のゆれ・光の輪・放射の光・絵文字の雨・虹色の文字。5連続ごとに節目の大きな演出と音、10連続からフィーバー（画面のふちが虹色）

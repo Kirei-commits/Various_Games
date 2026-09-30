@@ -23,24 +23,39 @@ const NOTE = (n) => 440 * Math.pow(2, (n - 69) / 12); // MIDI ノート番号 �
 const TAIL = 2; // BGM を書き出すときの余韻の長さ（秒）
 
 /**
- * iPhone（Safari）では、消音スイッチ（マナーモード）が入っていると Web Audio の音（BGM・効果音）が鳴らない。
- * 録音（<audio> 要素）は鳴るので、「音が出る声はあるのに BGM だけ聞こえない」になる。
- * 音の種類を「再生（playback）」にして、消音スイッチがあっても鳴るようにする（動画アプリや音楽アプリと同じ扱い）。
- * - Safari 17 以降: navigator.audioSession.type = "playback"
- * - それより古い iOS: 無音の <audio> をループで流しておくと、同じ扱いになる
+ * iPhone（Safari）の消音スイッチ（マナーモード）。
+ * ふつうは Safari のきまりどおり、マナーモード中は Web Audio の音（BGM・効果音・タップ音）を鳴らさない
+ * （録音の読み上げは <audio> 要素なので、マナーモードでも鳴る）。
+ * 設定「マナーモード中も BGM・効果音を鳴らす」をオンにしたときだけ、音の種類を「再生（playback）」にして鳴らす
+ * （以前はいつもそうしていたので、マナーモードなのに音が出ると言われた。2026-09-30 に設定に変更）。
+ * - Safari 17 以降: navigator.audioSession.type = "playback"（オフのときは "auto" に戻す）
+ * - それより古い iOS: 無音の <audio> をループで流しておくと、同じ扱いになる（オフのときは止める）
  */
 let silentKeeper = null;
 let micActive = false;
-function playThroughSilentSwitch() {
+let ignoreSilent = false;
+
+/** マナーモード中も BGM・効果音を鳴らすか（設定） */
+export function setIgnoreSilentSwitch(on) {
+  ignoreSilent = !!on;
+  applySilentSwitch();
+}
+
+function applySilentSwitch() {
   if (typeof navigator === "undefined") return;
   try {
     if (navigator.audioSession) {
       if (micActive) return; // マイクを使っているあいだはそのまま
-      if (navigator.audioSession.type !== "playback") navigator.audioSession.type = "playback";
+      const want = ignoreSilent ? "playback" : "auto";
+      if (navigator.audioSession.type !== want) navigator.audioSession.type = want;
       return;
     }
   } catch {
     /* 設定できない端末 */
+  }
+  if (!ignoreSilent) {
+    if (silentKeeper && !silentKeeper.paused) silentKeeper.pause();
+    return;
   }
   const ios = /iPad|iPhone|iPod/.test(navigator.userAgent || "") || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
   if (!ios || typeof Audio === "undefined") return;
@@ -53,13 +68,13 @@ function playThroughSilentSwitch() {
 }
 
 /**
- * マイクを使うあいだ（音声で答える・シャドーイング）は「録音と再生（play-and-record）」にし、終わったら「再生」に戻す。
+ * マイクを使うあいだ（シャドーイング）は「録音と再生（play-and-record）」にし、終わったら元に戻す。
  * 「再生」のままだとマイクが使えないことがあるため（navigator.audioSession がある Safari だけ）
  */
 export function setMicActive(on) {
   micActive = on;
   try {
-    if (typeof navigator !== "undefined" && navigator.audioSession) navigator.audioSession.type = on ? "play-and-record" : "playback";
+    if (typeof navigator !== "undefined" && navigator.audioSession) navigator.audioSession.type = on ? "play-and-record" : ignoreSilent ? "playback" : "auto";
   } catch {
     /* 設定できない端末 */
   }
@@ -110,7 +125,7 @@ export class SoundEngine {
   /** 最初のタップで呼ぶ。以後、効果音が鳴らせる */
   unlock() {
     if (!this.available) return;
-    playThroughSilentSwitch();
+    applySilentSwitch();
     if (!this.ctx) {
       const Ctx = window.AudioContext || window.webkitAudioContext;
       this.ctx = new Ctx();
