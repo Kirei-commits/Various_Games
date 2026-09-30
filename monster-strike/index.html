@@ -62,6 +62,9 @@
     box-shadow: 0 6px 0 #9a5a0c, 0 10px 24px rgba(40, 70, 130, .35); }
   #field.pulling { cursor: grabbing; }
 
+  #btn-stop { position: absolute; right: 14px; bottom: 14px; z-index: 2; font-size: 15px; padding: 8px 16px;
+    background: linear-gradient(180deg, #ffd0d0, #ff5a5a 55%, #c01f10); color: #fff; border-color: #8a0620; box-shadow: 0 3px 0 #5a0414; }
+
   /* ---------------- 下の段: HP・キャラのアイコン・次のキャラ・SS */
   .bottom { background: linear-gradient(180deg, #ffffff, var(--panel2)); border: 3px solid var(--line); border-radius: 16px;
     padding: 6px 8px 8px; box-shadow: 0 3px 0 var(--line-dark), 0 6px 12px rgba(20, 60, 140, .25); }
@@ -236,6 +239,7 @@
 
   <main id="stage">
     <canvas id="field" aria-label="フィールド。キャラを引っぱって離すと発射します"></canvas>
+    <button id="btn-stop" type="button" hidden>ストップ</button>
     <aside id="tune" hidden>
       <h2>手触りの調整</h2>
       <div id="tune-list"></div>
@@ -335,7 +339,9 @@
     reflect: { restitution: 0.84 },       // 反射タイプがキャラ・敵に当たるたびに残る速さの割合
     pierce: { enterFactor: 0.7, insideDrag: 2.5 }, // 貫通: 突入時に残る速さ / 通り抜けている間の摩擦倍率
     gravity: { enterFactor: 0.55, drag: 3, superBoost: 1.5 }, // 重力バリア: 入った瞬間に残る速さ / 中の摩擦倍率 / 超アンチの加速
-    slowWall: { factor: 0.55 }                     // 減速壁に触れたときに残る速さ（壁ごとに factor で上書きできる）
+    slowWall: { factor: 0.55 },                    // 減速壁に触れたときに残る速さ（壁ごとに factor で上書きできる）
+    allyNudge: 14,                                 // 味方をすり抜けたとき、触れられた味方がずれる距離
+    maxMove: 12                                    // これ以上（秒）動き続けたら止める
   };
 
   function isObj(v) { return v !== null && typeof v === 'object' && !Array.isArray(v); }
@@ -393,6 +399,7 @@
     this.overlaps = {};   // 貫通中の相手 id（突入の瞬間だけ減速するため）
     this.sensing = {};    // 通過中の弱点（'相手id#弱点id'）
     this.fieldsIn = {};   // 中にいる重力バリアの id
+    this.touching = {};   // すり抜け中の味方の id（触れた瞬間だけ知らせるため）
     this.abilities = o.abilities || {};
     this.baseAbilities = this.abilities;   // ゲージショットで足したぶんは止まったら元に戻す
     this.data = o.data || {};
@@ -537,6 +544,7 @@
     b.vx = vx; b.vy = vy;
     b.moving = true;
     b.traveled = 0;
+    b.moveTime = 0;
     b.mods = mods || null;
     b.boosted = false;
     // ゲージショット成功: このショットの間だけアビリティを足す
@@ -550,6 +558,7 @@
     b.overlaps = {};
     b.sensing = {};
     b.fieldsIn = {};
+    b.touching = {};
     this._emit('launch', b, { speed: Math.hypot(vx, vy) });
     return true;
   };
@@ -590,7 +599,8 @@
     var drag = c.friction.drag * Math.max(inside ? c.pierce.insideDrag : 1, heavy ? c.gravity.drag : 1);
     var fm = b.mods && b.mods.friction ? b.mods.friction : 1;
     var next = sp - (c.friction.linear + drag * sp) * fm * dt;
-    if (next <= c.stopSpeed) { this._stop(b); return; }
+    b.moveTime = (b.moveTime || 0) + dt;
+    if (next <= c.stopSpeed || b.moveTime > c.maxMove) { this._stop(b); return; }
 
     var s = next / sp;
     b.vx *= s; b.vy *= s;
@@ -714,6 +724,7 @@
       var o = this.bodies[i];
       if (o === b || o.moving) continue;
       if (o.kind === 'block' && b.abilities.antiBlock) continue;   // アンチブロックは素通り
+      if (b.kind === 'unit' && o.kind === 'unit') { this._touchAlly(b, o); continue; }
       var c = contact(b, o);
       if (!c) {
         if (b.overlaps[o.id]) delete b.overlaps[o.id];
@@ -735,6 +746,29 @@
       }
       // 弱点: 貫通タイプは通り抜けるときに触れた弱点ごとに1回
       if (b.shot === 'pierce' && o.sensors) this._sense(b, o);
+    }
+  };
+
+  /**
+   * 味方には跳ね返らず、減速もせずにすり抜ける（本家と同じ）。触れた瞬間に 'touch' を1回出し、
+   * 触れられた味方は進む向きと直角に少しだけずれる（ずらした先で何かに重なるならずらさない）。
+   */
+  World.prototype._touchAlly = function (b, o) {
+    var c = contact(b, o);
+    if (!c) { if (b.touching[o.id]) delete b.touching[o.id]; return; }
+    if (b.touching[o.id]) return;
+    b.touching[o.id] = true;
+    this._emit('touch', b, { other: o.id, x: c.px, y: c.py, speed: b.speed() });
+    var sp = b.speed() || 1, px = -b.vy / sp, py = b.vx / sp;
+    var side = (o.x - b.x) * px + (o.y - b.y) * py >= 0 ? 1 : -1;
+    var push = this.cfg.allyNudge, ox = o.x, oy = o.y;
+    o.x = Math.min(this.cfg.field.w - o.r, Math.max(o.r, o.x + px * side * push));
+    o.y = Math.min(this.cfg.field.h - o.r, Math.max(o.r, o.y + py * side * push));
+    for (var i = 0; i < this.bodies.length; i++) {
+      var q = this.bodies[i];
+      if (q === o || q === b) continue;
+      var cq = contact(o, q);
+      if (cq && cq.depth > 0.01) { o.x = ox; o.y = oy; break; }
     }
   };
 
@@ -800,8 +834,15 @@
     if (b) this._resolve(b);
   };
 
+  /** 動いている物体をその場で止める（ストップボタン・動きすぎたとき） */
+  World.prototype.stop = function (id) {
+    var b = this.get(id);
+    if (b && b.moving) this._stop(b);
+  };
+
   World.prototype._stop = function (b) {
     b.vx = 0; b.vy = 0;
+    b.touching = {};
     b.moving = false;
     b.overlaps = {};
     b.sensing = {};
@@ -828,6 +869,8 @@
       for (var k in s.overlaps) b.overlaps[k] = true;
       for (var q in s.sensing) b.sensing[q] = true;
       for (var f in s.fieldsIn) b.fieldsIn[f] = s.fieldsIn[f];
+      for (var tk in s.touching) b.touching[tk] = true;
+      b.moveTime = s.moveTime || 0;
       w.bodies.push(b);
     }
     return w;
@@ -856,7 +899,7 @@
       var bent = false;
       for (var i = 0; i < ev.length; i++) {
         var e = ev[i];
-        if (e.type === 'wall' || e.type === 'hit' || e.type === 'pierce' || e.type === 'weak') {
+        if (e.type === 'wall' || e.type === 'hit' || e.type === 'pierce' || e.type === 'weak' || e.type === 'touch') {
           contacts.push({ type: e.type, x: e.x, y: e.y });
           if (e.type === 'wall' || e.type === 'hit') { bounces++; bent = true; }
         } else if (e.type === 'warp' && !e.blocked) {
@@ -902,7 +945,18 @@
   var DW_BOOST = 1.3;        // 超アンチダメージウォール: 触れたショットの攻撃力
   var GAUGE = 1.2;           // ゲージショット成功: そのショットの直殴り
   var STATUS_SHOTS = 2;      // 剣が続く長さ（そのキャラの endTurn の回数。取ったショット＋次の1ショット）
-  var WAVE_HEAL = 0.5;       // 次のウェーブ（ラウンド）に進むと、最大HPのこの割合だけ回復する
+  var WAVE_HEAL = 0.5;
+  // 追加の特性
+  var CRIT_EVERY = 6, CRIT = 5;  // クリティカル: そのキャラの直殴り6回に1回、5倍
+  var DRAIN = 0.1;           // ドレイン: 直殴りのダメージの1割だけ回復
+  var WALL_BOOST = 0.1, WALL_BOOST_MAX = 2;   // 壁ドン: 壁に当たるたび +10%（最大2倍）
+  var COMBO_BOOST = 1.5;     // 友情ブースト
+  var WEAK_KILLER = 2;       // 弱点キラー: 弱点に当てたときさらに2倍
+  var BOSS_KILLER = 1.5;     // ボスキラー
+  var GUARD = 0.7;           // ガード: そのキャラが受ける敵の攻撃
+  var SPEED_UP = 1.2;        // スピードアップ: 初速
+  var HEAL_TOUCH = 0.03;     // ちび癒し: 味方に触れるたび最大HPの3%回復
+  var COUNTER = 1.5;         // カウンター: 敵の攻撃を受けた次の自分のショット       // 次のウェーブ（ラウンド）に進むと、最大HPのこの割合だけ回復する
   var HEART_GROW = 2;        // ハートが育つターン数（小 → 大 → 金）
 
   /** 属性 att で属性 def を攻撃したときの倍率。どちらかが無属性なら等倍 */
@@ -942,7 +996,7 @@
       self.units[u.id] = { id: u.id, atk: u.atk, shot: u.shot, combos: combosOf(u), abilities: abilityMap(u.abilities),
         element: u.element || null, killers: u.killers || [], resist: u.resist || [], hp: u.hp || 0, ss: u.ss || null,
         gauge: abilityMap(u.gauge) };
-      self.us[u.id] = { ssLeft: u.ss ? u.ss.turns : 0, chick: 0, sword: 0, mines: 0 };
+      self.us[u.id] = { ssLeft: u.ss ? u.ss.turns : 0, chick: 0, sword: 0, mines: 0, crit: 0, counter: 0 };
     });
     this.shot = null;         // いまのショット { unit, ss, touched, dwBoost, stopped }（beginShot で始まり endTurn で終わる）
     this.items = [];          // フィールドに出ているアイテム [{ id, item, x, y, born }]
@@ -1077,7 +1131,9 @@
   Battle.prototype.beginShot = function (id, useSS, gauge) {
     var ss = useSS && this.ssReady(id) ? this.units[id].ss : null;
     var u = this.units[id], gaugeOk = !!gauge;
-    this.shot = { unit: id, ss: ss, gauge: gaugeOk, touched: {}, dwBoost: false, stopped: false };
+    this.shot = { unit: id, ss: ss, gauge: gaugeOk, touched: {}, dwBoost: false, stopped: false, walls: 0,
+      counter: !!(this.us[id] && this.us[id].counter) };
+    if (this.us[id]) this.us[id].counter = 0;
     if (gaugeOk) this.stats.gauge++;
     if (ss) { this.us[id].ssLeft = ss.turns; this.stats.ss++; }
     var mods = null, k;
@@ -1088,6 +1144,7 @@
       mods.abilities = {};
       for (k in u.gauge) mods.abilities[k] = true;
     }
+    if (u && this.has(u, 'speedUp')) { mods = mods || {}; mods.speed = (mods.speed || 1) * SPEED_UP; }
     return mods;
   };
 
@@ -1135,7 +1192,7 @@
       if (!u) continue;
       // beginShot を呼ばずに撃った（テストの小さな戦場など）ときは、最初に動いたキャラをショットの主にする
       if (!this.shot) this.shot = { unit: ev.id, ss: null, gauge: false, touched: {}, dwBoost: false, stopped: false };
-      if ((ev.type === 'hit' || ev.type === 'pierce') && this.units[ev.other]) {
+      if ((ev.type === 'hit' || ev.type === 'pierce' || ev.type === 'touch') && this.units[ev.other]) {
         this._touchAlly(u, ev.other);
         this._combo(ev.other, ev.id, world, out);
         continue;
@@ -1175,7 +1232,9 @@
       if (!e || !e.alive) continue;
       if (weak) this.stats.weak++;
       var rates = this._directRates(u, e, weak);
-      out.push(this._damage(e, u.id, total(u.atk, rates), weak, ev.x, ev.y, null, world, rates));
+      var rec = this._damage(e, u.id, total(u.atk, rates), weak, ev.x, ev.y, null, world, rates);
+      out.push(rec);
+      if (this.has(u, 'drain')) this._heal(Math.round(rec.damage * DRAIN), u.id);
     }
     return out;
   };
@@ -1194,6 +1253,7 @@
    */
   Battle.prototype._wall = function (u, ev) {
     var ws = wallSide(ev);
+    if (this.shot && this.shot.unit === u.id) this.shot.walls++;
     for (var i = 0; i < this.damageWalls.length; i++) {
       var dw = this.damageWalls[i];
       if (dw.side !== ws.side || ws.at < dw.from || ws.at > dw.to) continue;
@@ -1221,6 +1281,7 @@
     var sh = this.shot;
     if (!sh || sh.unit !== u.id || sh.touched[otherId]) return;
     sh.touched[otherId] = true;
+    if (this.has(u, 'healTouch')) this._heal(Math.round(this.teamHpMax * HEAL_TOUCH), u.id);
     if (this.has(u, 'ssAccel') && u.ss) {
       var st = this.us[u.id];
       if (st.ssLeft > 0) { st.ssLeft--; this.hazards.push({ kind: 'ssAccel', unit: u.id, left: st.ssLeft }); }
@@ -1306,10 +1367,24 @@
     if (sh && sh.gauge) rates.push({ kind: 'gauge', rate: GAUGE });
     if (sh && sh.ss && sh.ss.atk && sh.ss.atk !== 1) rates.push({ kind: 'ss', rate: sh.ss.atk });
     if (sh && sh.dwBoost) rates.push({ kind: 'dwBoost', rate: DW_BOOST });
+    if (sh && sh.counter) rates.push({ kind: 'counter', rate: COUNTER });
+    if (sh && sh.walls && this.has(u, 'wallBoost')) rates.push({ kind: 'wallBoost', rate: Math.min(WALL_BOOST_MAX, 1 + WALL_BOOST * sh.walls) });
+    if (weak && this.has(u, 'weakKiller')) rates.push({ kind: 'weakKiller', rate: WEAK_KILLER });
+    if (e.def.boss && this.has(u, 'bossKiller')) rates.push({ kind: 'bossKiller', rate: BOSS_KILLER });
     var st = this.us[u.id];
+    if (this.has(u, 'critical') && ++st.crit % CRIT_EVERY === 0) rates.push({ kind: 'critical', rate: CRIT });
     if (st.mines > 0) { rates.push({ kind: 'mine', rate: MINE_SWEEP }); st.mines = 0; }   // 最初に当てた1回だけ
     this._statusRates(u.id, rates);
     return rates;
+  };
+
+  /** チームの回復（最大HPを超えない）。回復した量を返す */
+  Battle.prototype._heal = function (amount, unitId) {
+    var before = this.teamHp = Math.min(this.teamHp, this.teamHpMax);
+    this.teamHp = Math.min(this.teamHpMax, this.teamHp + Math.max(0, amount));
+    var got = this.teamHp - before;
+    if (got > 0) { this.stats.healed += got; this.hazards.push({ kind: 'heal', unit: unitId, heal: got, hpAfter: this.teamHp }); }
+    return got;
   };
 
   /** 剣とひよこ（直殴り・友情・SS のどれにも掛かる） */
@@ -1326,6 +1401,7 @@
     if (el !== 1) rates.push({ kind: el > 1 ? 'adv' : 'dis', rate: el });
     var k = killerRate(ally.killers, e.def);
     if (k !== 1) rates.push({ kind: 'killer', rate: k });
+    if (ally.abilities.comboBoost) rates.push({ kind: 'comboBoost', rate: COMBO_BOOST });
     this._statusRates(ally.id, rates);
     return rates;
   };
@@ -1460,7 +1536,7 @@
         e = alive[i];
         if (gapTo(e.def, x, y) <= c.radius) hit(e, e.def.x, e.def.y);
       }
-    } else if (c.kind === 'homing') {
+    } else if (c.kind === 'homing' || c.kind === 'bigHoming') {
       // 近い敵から順に1発ずつ配って一巡したら最初に戻る。倒れた敵は飛ばす
       var order = alive.slice().sort(function (a, b) { return gapTo(a.def, x, y) - gapTo(b.def, x, y); });
       var cursor = 0;
@@ -1473,7 +1549,7 @@
         if (!e) break;
         hit(e, e.def.x, e.def.y);
       }
-    } else if (c.kind === 'spread') {
+    } else if (c.kind === 'spread' || c.kind === 'shotgun') {
       // 真上から時計回りに count 方向。それぞれ射程内で最初に当たった敵へ（貫通しない）
       fired.shots = [];
       for (i = 0; i < c.count; i++) {
@@ -1524,6 +1600,29 @@
       for (var n2 = 0; n2 < (c.count || 1); n2++) {
         for (i = 0; i < alive.length; i++) if (alive[i].alive) { hit(alive[i], alive[i].def.x, alive[i].def.y); if (!n2) fired.targets.push({ x: alive[i].def.x, y: alive[i].def.y }); }
       }
+    } else if (c.kind === 'meteor') {
+      // メテオ: HP がいちばん多い敵から順に count 発落ちる
+      fired.targets = [];
+      for (i = 0; i < c.count; i++) {
+        var big = alive.filter(function (q) { return q.alive; }).sort(function (a, b) { return b.hp - a.hp; })[0];
+        if (!big) break;
+        fired.targets.push({ x: big.def.x, y: big.def.y });
+        hit(big, big.def.x, big.def.y);
+      }
+    } else if (c.kind === 'heal') {
+      // ヒーリング: チームの HP を回復する（ダメージはない）
+      fired.heal = this._heal(c.power, allyId);
+    } else if (c.kind === 'circle') {
+      // エナジーサークル: 味方から inner〜radius の輪の中にいる敵
+      for (i = 0; i < alive.length; i++) {
+        e = alive[i];
+        if (gapTo(e.def, x, y) <= c.radius && Math.hypot(e.def.x - x, e.def.y - y) >= (c.inner || 0)) hit(e, e.def.x, e.def.y);
+      }
+    } else if (c.kind === 'sword') {
+      // ソード: すぐ近く（range 以内）の敵を count 回切る
+      for (var sn = 0; sn < (c.count || 1); sn++) {
+        for (i = 0; i < alive.length; i++) if (alive[i].alive && gapTo(alive[i].def, x, y) <= c.range) hit(alive[i], alive[i].def.x, alive[i].def.y);
+      }
     } else if (c.kind === 'xlaser' || c.kind === 'star') {
       // クロスレーザー（斜め）/ 全方位レーザー（縦・横・斜めの4本）: フィールドの端まで届くビーム
       var dirs = c.kind === 'xlaser' ? [[1, 1], [1, -1]] : [[1, 0], [0, 1], [1, 1], [1, -1]];
@@ -1570,7 +1669,8 @@
     var self = this;
     return ids.map(function (id) {
       var u = self.units[id];
-      var rate = elementRate(e.def.element, u.element) * (1 - resistRate(u, e.def.element));
+      var rate = elementRate(e.def.element, u.element) * (1 - resistRate(u, e.def.element)) * (u.abilities.guard ? GUARD : 1);
+      if (u.abilities.counter) self.us[id].counter = 1;
       return { unit: id, damage: Math.round(base * rate), rate: rate };
     });
   };
@@ -1608,7 +1708,7 @@
       if (this.wave + 1 < this.stage.waves.length) {
         this.spawnWave(world);
         // 次のラウンドに進むと、最大HPの半分だけ回復する
-        var before = this.teamHp;
+        var before = this.teamHp = Math.min(this.teamHp, this.teamHpMax);
         this.teamHp = Math.min(this.teamHpMax, this.teamHp + Math.round(this.teamHpMax * WAVE_HEAL));
         this.stats.healed += this.teamHp - before;
         return { type: 'wave', wave: this.wave, attacks: [], heal: this.teamHp - before, hpAfter: this.teamHp };
@@ -1643,9 +1743,10 @@
     b.us = {};
     for (var uid in this.us) {
       var st = this.us[uid];
-      b.us[uid] = { ssLeft: st.ssLeft, chick: st.chick, sword: st.sword, mines: st.mines };
+      b.us[uid] = { ssLeft: st.ssLeft, chick: st.chick, sword: st.sword, mines: st.mines, crit: st.crit, counter: st.counter };
     }
-    b.shot = this.shot ? { unit: this.shot.unit, ss: this.shot.ss, gauge: this.shot.gauge, dwBoost: this.shot.dwBoost, stopped: this.shot.stopped, touched: {} } : null;
+    b.shot = this.shot ? { unit: this.shot.unit, ss: this.shot.ss, gauge: this.shot.gauge, dwBoost: this.shot.dwBoost, stopped: this.shot.stopped,
+      walls: this.shot.walls, counter: this.shot.counter, touched: {} } : null;
     if (this.shot) for (var tk in this.shot.touched) b.shot.touched[tk] = true;
     b.items = this.items.slice();
     b.blocks = this.blocks;
@@ -3359,6 +3460,11 @@
         fx.shake = Math.max(fx.shake, 5 * k);
         u.squash = Math.max(u.squash, 0.4 + 0.6 * k);
         sound.wall(e.impact);
+      } else if (e.type === 'touch') {
+        // 味方はすり抜ける: 触れられた味方が少し揺れて光る
+        ring(e.x, e.y, 26, '#ffffff');
+        bump(e.other);
+        sound.tick();
       } else if (e.type === 'hit') {
         var kh = Math.min(1, e.impact / 2000);
         burst(e.x, e.y, e.nx, e.ny, 8 + 14 * kh, u.def.accent, 220 + 360 * kh);
@@ -3907,6 +4013,7 @@
       }
       if (world.isSettled()) {
         game.phase = 'settling';
+        document.getElementById('btn-stop').hidden = true;
         game.timer = 0.35;
         game.acc = 0;
       }
@@ -4096,6 +4203,7 @@
     el.activeName.textContent = u.def.name;
     el.activeType.textContent = SHOT_LABEL[u.def.shot];
     el.activeType.className = 'type ' + u.def.shot;
+    shownHp = Math.max(0, Math.min(shownHp, battle.teamHpMax));   // 表示が最大HPを超えないように
     var ratio = shownHp / battle.teamHpMax;
     el.hpFill.style.width = (ratio * 100).toFixed(1) + '%';
     el.hpFill.className = ratio <= 0.25 ? 'low' : ratio <= 0.5 ? 'mid' : '';
@@ -4121,6 +4229,7 @@
     }
     el.help.innerHTML = help;
     canvas.dataset.phase = game.phase;
+    document.getElementById('btn-stop').hidden = game.phase !== 'moving';
   }
 
   // ---------------------------------------------------------------- 演出の部品
@@ -5022,6 +5131,17 @@
   document.getElementById('btn-retry').addEventListener('click', restart);
 
   // ---------------------------------------------------------------- SS ボタン
+  // 動いているキャラをその場で止める（止まるまで待たなくていい）
+  document.getElementById('btn-stop').addEventListener('click', function () {
+    if (game.phase !== 'moving' || !game.mover) return;
+    world.stop(game.mover.def.id);
+    var evs = world.drainEvents();
+    handleEvents(evs);
+    handleDamage(battle.apply(evs, world));
+    startCombos(battle.drainCombos());
+    handleHazards(battle.drainHazards());
+  });
+
   el.ss.addEventListener('click', function () {
     var u = activeUnit();
     if (game.phase !== 'ready') return;

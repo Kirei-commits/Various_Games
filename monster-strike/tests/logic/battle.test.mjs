@@ -205,8 +205,8 @@ test('同じ味方でも、触れるたびに毎回友情コンボが出る', ()
   const ev = [];
   world.setVelocity('M', 0, -1600);
   while (!world.isSettled()) { world.step(); const e = world.drainEvents(); ev.push(...e); battle.apply(e, world); }
-  const touches = ev.filter((e) => e.type === 'hit' && e.other === 'F').length;
-  assert.ok(touches >= 2, '2回以上ぶつかった');
+  const touches = ev.filter((e) => e.type === 'touch' && e.other === 'F').length;
+  assert.ok(touches >= 2, '2回以上すり抜けた');
   assert.equal(battle.stats.combos, touches);
 });
 
@@ -432,7 +432,7 @@ test('ステージで乱射しても、すり抜け・めり込み・場外・�
       assert.ok(me.x >= me.r - 1e-6 && me.x <= C.field.w - me.r + 1e-6 && me.y >= me.r - 1e-6 && me.y <= C.field.h - me.r + 1e-6, `#${n} 場外`);
       if (me.shot === 'reflect') {
         for (const o of world.bodies) {
-          if (o === me) continue;
+          if (o === me || o.kind === 'unit') continue;   // 味方はすり抜ける
           const c = P.contact(me, o);
           assert.ok(!c || c.depth <= 1, `#${n} ${o.id} に ${c && c.depth} めり込んだ`);
         }
