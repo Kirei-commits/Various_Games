@@ -15,6 +15,13 @@
  * 翼に当たり判定が付いて壁との間で跳ね返れるようになり、はじまりの草原が簡単になった（0.99）ので
  * ドラゴンの HP と敵の攻撃を上げた。SS は強すぎないよう B の倍率 1.9・C のメテオ 3600 にした。
  *
+ * 2026-09-30（ドパる更新）: 友情コンボは触れるたびに毎回・1体3つ、5体編成、ラウンドごとに最大HPの半分回復。
+ * そのままでは全ステージ3〜5ターンで終わったので、敵の HP を 6〜9倍、攻撃を1.2倍にした。
+ *   はじまりの草原 greedy 7ターン / casual 0.85（SS なし 0.63、友情なし 0.00、アビリティなし 0.77、属性なし 0.36）
+ *   からくりの塔 0.67 / 火山 0.72 / 神殿 0.48 / 古城 0.29
+ *   天空の聖域: 最初の5体では上手な人だけ勝てる（casual 0.00）。★5 の5体なら casual 0.33
+ *   終焉の魔界: 最初の5体では勝てない。★5 の5体で greedy は勝ち、casual 0.15
+ *
  * 2026-09-30 ゲージショット（成功で攻撃力1.2倍＋ゲージアビリティ）を入れたら草原の casual が 0.91 になったので
  * ドラゴンの HP を 75000 → 88000 にした。bot は greedy は毎回、casual は半分、random は 2割ゲージに成功する。
  *   はじまりの草原 casual 0.81（SS なし 0.42、アビリティなし 0.47、友情なし 0.18、属性なし 0.62）
@@ -53,7 +60,7 @@ test('ふつうのプレイヤーは、だいたい勝てるが負けること�
 });
 
 test('友情コンボはふつうのプレイヤーの勝ち負けを分けるほど効く', () => {
-  const noCombo = { ...mods, D: { units: mods.D.units.map((u) => ({ ...u, combo: null })), stage: mods.D.stage } };
+  const noCombo = { ...mods, D: { units: mods.D.units.map((u) => ({ ...u, combos: [] })), stage: mods.D.stage } };
   const rate = (m) => {
     let w = 0;
     for (let i = 0; i < GAMES; i++) if (play(m, { policy: 'casual', random: seededRandom(1000 + i * 7919) }).state === 'won') w++;
@@ -77,13 +84,14 @@ test('アビリティ（アンチダメージウォール・アンチ重力バ�
     return { rate: w / GAMES, dwPerTurn: dw / turns };
   };
   const withA = run(mods), without = run(noAbility);
-  assert.ok(withA.rate - without.rate >= 0.15, `アビリティあり ${withA.rate} / なし ${without.rate}`);
+  // ラウンドごとの回復と毎回出る友情で、アビリティの差は前より小さい（2026-09-30: 0.85 / 0.77）
+  assert.ok(withA.rate - without.rate >= 0.04, `アビリティあり ${withA.rate} / なし ${without.rate}`);
   assert.ok(without.dwPerTurn > withA.dwPerTurn, 'アビリティが無いとダメージウォールで削られる回数が増える');
 });
 
 test('属性とキラーは、ふつうのプレイヤーの勝ち負けを分けるほど効く', () => {
   const noElement = { ...mods, D: { units: mods.D.units.map((u) => ({ ...u, element: undefined, killers: [],
-    combo: u.combo && { ...u.combo, element: undefined } })), stage: mods.D.stage } };
+    combos: u.combos.map((c) => ({ ...c, element: undefined })) })), stage: mods.D.stage } };
   const rate = (m) => {
     let w = 0;
     for (let i = 0; i < GAMES; i++) if (play(m, { policy: 'casual', random: seededRandom(1000 + i * 7919) }).state === 'won') w++;
@@ -150,4 +158,27 @@ test('追加の3ステージ: 上手なプレイヤーは最初の4体で勝ち�
   assert.ok(rates[0] >= 0.45 && rates[0] <= 0.8, `火山 ${rates[0]}`);
   assert.ok(rates[2] >= 0.2 && rates[2] <= 0.55, `古城 ${rates[2]}`);
   assert.ok(rates[0] > rates[1] && rates[1] > rates[2], `難しくなっていく ${rates.join(' / ')}`);
+});
+
+/** 最初の5体と、★5 の5体（ガチャで引いた想定） */
+function team(ids) {
+  const sv = JSON.parse(JSON.stringify(mods.M.newSave(mods.D)));
+  for (const id of ids) sv.owned[id] = { luck: 0 };
+  mods.M.setParty(sv, mods.D, ids);
+  return { ...mods, D: { ...mods.D, units: mods.M.partyUnits(sv, mods.D) } };
+}
+
+test('難しいステージ: 天空の聖域と終焉の魔界はガチャの強いキャラで挑む。魔界のほうが難しい', () => {
+  const N = 60;
+  const strong = team(['AH', 'AI', 'AJ', 'AK', 'AL']);
+  const rate = (m, stage) => {
+    let w = 0;
+    for (let i = 0; i < N; i++) if (play(m, { policy: 'casual', stage, random: seededRandom(1000 + i * 7919) }).state === 'won') w++;
+    return w / N;
+  };
+  assert.ok(rate(mods, 5) <= 0.1, '最初の5体では、ふつうのプレイヤーは天空の聖域にほとんど勝てない');
+  for (const stage of [5, 6]) assert.equal(play(strong, { policy: 'greedy', stage }).state, 'won', `★5 の5体なら上手なプレイヤーは勝てる（${stage}）`);
+  const sky = rate(strong, 5), abyss = rate(strong, 6);
+  assert.ok(sky >= 0.15 && sky <= 0.6, `天空 ${sky}`);
+  assert.ok(abyss < sky && abyss <= 0.35, `魔界 ${abyss}`);
 });

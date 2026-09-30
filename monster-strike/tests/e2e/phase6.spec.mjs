@@ -3,7 +3,7 @@
  * 撃つ操作は実際の入力で行い、内部は待ち時間の短縮（SS の残りを0にする・置き場所）だけ直接いじる。
  */
 import { test, expect } from '@playwright/test';
-import { open, pullUnit, waitPhase, expectNoErrors } from './fixtures.mjs';
+import { open, pullUnit, waitPhase, expectNoErrors, maxHp } from './fixtures.mjs';
 
 const place = (page, id, x, y) => page.evaluate(([id, x, y]) => { const b = window.__ms.world.get(id); b.x = x; b.y = y; }, [id, x, y]);
 
@@ -12,7 +12,7 @@ test('起動するとタイトルが出て、ステージを選ぶと始まる�
   page.on('pageerror', (e) => errors.push(e.message));
   await page.goto('/');
   await expect(page.locator('#title')).toBeVisible();
-  await expect(page.locator('#stage-list button')).toHaveCount(5);
+  await expect(page.locator('#stage-list button')).toHaveCount(7);
   await expect(page.locator('#stage-1')).toContainText('からくりの塔');
   await page.locator('#stage-1').click();
   await expect(page.locator('#title')).toBeHidden();
@@ -59,11 +59,11 @@ test('からくりの塔: 地雷を踏むとチームのHPが減り、アンチ�
   page.errors = await open(page, 1);
   await page.evaluate(() => window.__ms.setTimeScale(3));
   // C を左のブロックと地雷の真下へ
-  await place(page, 'C', 190, 650);
+  await place(page, 'C', 200, 620);
   await pullUnit(page, 'C', 0, 40);           // 下へ引く → 上へ
   await waitPhase(page, 'ready');
   const s = await page.evaluate(() => ({ ...window.__ms.battle.stats }));
   expect(s.mines).toBeGreaterThanOrEqual(1);
-  await expect(page.locator('#hp-text')).toHaveText(`${34000 - 1200 * s.mines} / 34000`);
+  await expect(page.locator('#hp-text')).toHaveText(`${(await maxHp(page)) - 1200 * s.mines} / ${await maxHp(page)}`);
   await expectNoErrors(page.errors);
 });

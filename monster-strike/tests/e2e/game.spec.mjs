@@ -1,12 +1,12 @@
 import { test, expect } from '@playwright/test';
-import { open, phase, body, pullUnit, waitPhase, expectNoErrors } from './fixtures.mjs';
+import { open, phase, body, pullUnit, waitPhase, expectNoErrors, maxHp } from './fixtures.mjs';
 
 test('起動するとフィールドが描かれ、Aの番から始まる', async ({ page }) => {
   const errors = await open(page);
   await expect(page.locator('#field')).toBeVisible();
   await expect(page.locator('#turn')).toHaveText('1');
   await expect(page.locator('#wave')).toHaveText('1/2');
-  await expect(page.locator('#hp-text')).toHaveText('34000 / 34000');
+  await expect(page.locator('#hp-text')).toHaveText(`${await maxHp(page)} / ${await maxHp(page)}`);
   expect(await page.evaluate(() => window.__ms.battle.alive().length)).toBe(3);
   await expect(page.locator('#active-name')).toHaveText('A');
   await expect(page.locator('#active-type')).toHaveText('反射');
@@ -136,7 +136,7 @@ test('反射タイプは敵を通り抜けず、当たるとダメージを与�
   // ゴーレムの下の辺（420+28）+ A の半径 より上へは行っていない
   expect(minY).toBeGreaterThanOrEqual(420 + 28 + 30 - 1);
   const hp = await page.evaluate(() => window.__ms.battle.enemy('w1-golem').hp);
-  expect(hp).toBeLessThan(12000);
+  expect(hp).toBeLessThan(await page.evaluate(() => window.__ms.battle.enemy('w1-golem').maxHp));
   await waitPhase(page, 'ready');
   await expectNoErrors(errors);
 });
@@ -164,7 +164,7 @@ test('リセットで配置とターンが初めに戻る', async ({ page }) => 
   await expect(page.locator('#turn')).toHaveText('2');
   await page.locator('#btn-reset').click();
   await expect(page.locator('#turn')).toHaveText('1');
-  expect(await body(page, 'A')).toMatchObject({ x: 90, y: 690 });
+  expect(await body(page, 'A')).toMatchObject({ x: 58, y: 735 });
   await expect(page.locator('#wave')).toHaveText('1/2');
   expect(await page.evaluate(() => window.__ms.battle.alive().length)).toBe(3);
   await expectNoErrors(errors);

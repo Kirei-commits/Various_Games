@@ -37,6 +37,23 @@ test('ガチャ: 確率が出ていて、1回引くと5ジェム減り、読み�
   expect(errors).toEqual([]);
 });
 
+test('編成: パズルのタブでは6体を選べて、モンストの5体とは別に保存される', async ({ page }) => {
+  const errors = await boot(page);
+  await page.evaluate(() => { window.__ms.save.owned.K = { luck: 0 }; });
+  await page.locator('#btn-party').click();
+  await expect(page.locator('[data-slot]')).toHaveCount(5);
+  await page.locator('#tab-puzzle').click();
+  await expect(page.locator('[data-slot]')).toHaveCount(6);
+  await expect(page.locator('[data-slot="0"]')).toContainText('リーダー');
+  await page.locator('[data-slot="5"]').click();
+  await page.locator('#party-owned [data-unit="K"]').click();
+  await expect(page.locator('[data-slot="5"]')).toContainText('ルナ');
+  expect(await page.evaluate(() => [window.__ms.save.pzParty.join(), window.__ms.save.party.join()])).toEqual(['A,B,C,D,E,K', 'A,B,C,D,E']);
+  await page.locator('#tab-strike').click();
+  await expect(page.locator('[data-slot]')).toHaveCount(5);
+  expect(errors).toEqual([]);
+});
+
 test('ガチャ: 10連は10枚出て、10体目までに ★4 以上が1体はいる', async ({ page }) => {
   const errors = await boot(page);
   await page.evaluate(() => { window.__ms.save.gems = 50; });
@@ -67,10 +84,10 @@ test('編成: 枠を選んで手持ちのキャラを入れると、そのキャ
   await expect(page.locator('#active-name')).toHaveText('B');
   // 編成から外れた A はフィールドにいない
   expect(await page.evaluate(() => [!!window.__ms.world.get('K'), !!window.__ms.world.get('A')])).toEqual([true, false]);
-  expect(await page.evaluate(() => window.__ms.save.party.join())).toBe('B,K,C,D');
+  expect(await page.evaluate(() => window.__ms.save.party.join())).toBe('B,K,C,D,E');
   await page.reload();
   await page.waitForFunction(() => window.__ms && window.__ms.phase === 'title');
-  expect(await page.evaluate(() => window.__ms.save.party.join())).toBe('B,K,C,D');
+  expect(await page.evaluate(() => window.__ms.save.party.join())).toBe('B,K,C,D,E');
   expect(errors).toEqual([]);
 });
 

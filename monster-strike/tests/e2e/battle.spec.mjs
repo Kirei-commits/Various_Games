@@ -4,7 +4,7 @@
  * 撃つ操作そのものは実際の入力（pullUnit）で行う。
  */
 import { test, expect } from '@playwright/test';
-import { open, pullUnit, waitPhase, expectNoErrors } from './fixtures.mjs';
+import { open, pullUnit, waitPhase, expectNoErrors, maxHp } from './fixtures.mjs';
 
 async function killWave(page) {
   await page.evaluate(() => {
@@ -29,11 +29,13 @@ test('カウンターが0になった敵が攻撃し、チームのHPが減る',
   await weakShot(page);
   await waitPhase(page, 'enemy');
   await waitPhase(page, 'ready');
-  // スライム2体(単体2300×2) + ゴーレム(全体4025)。受けるダメージは属性で変わる（有利な相手から0.66倍、不利な相手から1.33倍）
+  // スライム2体(単体) + ゴーレム(全体)。受けるダメージは属性で変わる（有利な相手から0.66倍、不利な相手から1.33倍）
   const hp = await page.evaluate(() => window.__ms.battle.teamHp);
-  expect(hp).toBeGreaterThanOrEqual(34000 - Math.round(8625 * 1.33));
-  expect(hp).toBeLessThanOrEqual(34000 - Math.round(8625 * 0.66));
-  await expect(page.locator('#hp-text')).toHaveText(`${hp} / 34000`);
+  const max = await maxHp(page);
+  const total = await page.evaluate(() => window.__ms.battle.alive().reduce((a, e) => a + e.def.atk, 0));
+  expect(hp).toBeGreaterThanOrEqual(max - Math.round(total * 1.33));
+  expect(hp).toBeLessThanOrEqual(max - Math.round(total * 0.66));
+  await expect(page.locator('#hp-text')).toHaveText(`${hp} / ${max}`);
   const counters = await page.evaluate(() => window.__ms.battle.alive().map((e) => e.counter));
   expect(counters).toEqual([3, 4, 3]);
   await expectNoErrors(page.errors);
@@ -47,7 +49,7 @@ test('敵を全滅させると次のウェーブ（ボス）が出る', async ({
   await waitPhase(page, 'ready');
   const boss = await page.evaluate(() => window.__ms.battle.alive().filter((e) => e.def.boss).length);
   expect(boss).toBe(1);
-  await expect(page.locator('#hp-text')).toHaveText('34000 / 34000');
+  await expect(page.locator('#hp-text')).toHaveText(`${await maxHp(page)} / ${await maxHp(page)}`);
   await expectNoErrors(page.errors);
 });
 
@@ -96,7 +98,7 @@ test('チームのHPが0になるとゲームオーバー', async ({ page }) => 
   await waitPhase(page, 'lost');
   await expect(page.locator('#result')).toBeVisible();
   await expect(page.locator('#result-title')).toHaveText('GAME OVER');
-  await expect(page.locator('#hp-text')).toHaveText('0 / 34000');
+  await expect(page.locator('#hp-text')).toHaveText(`0 / ${await maxHp(page)}`);
   // 結果画面では撃てない
   expect(await page.evaluate(() => window.__ms.phase)).toBe('lost');
   await expectNoErrors(page.errors);
