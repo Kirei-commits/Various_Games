@@ -8,7 +8,9 @@
  *
  * ブラウザは利用者が画面に触れるまで音を出させないので、最初のタップで unlock() する。
  *
- * BGM は2種類。どちらも効果音とは別の音量で、少し先の音符を予約しながらループさせる。
+ * BGM は2種類。どちらも効果音とは別の音量。曲は最初に1回だけ OfflineAudioContext で1周分の音に書き出し、
+ * それをループ再生する（2026-09-30。以前は 50ms ごとのタイマーで 0.2秒先の音符を予約していたので、
+ * 画面の処理が重いとき・画面収録中にタイマーが遅れて音がぷつぷつ途切れた）。書き出せない古いブラウザだけ予約のやり方で流す。
  * - バトル: 冒険っぽいループ（ボス戦は速く）。setBattleMusic("battle" | "boss" | null)
  * - 学習中: 勉強の邪魔にならない、ゆったりしたローファイ風のループ。setStudyMusic(true | false)
  *   読み上げ中は小さくする（英語が聞きとりやすいように）。
@@ -18,6 +20,7 @@ import { isRecordedPlaying } from "./recorded.js";
 import { cheer, setCheersWanted } from "./cheers.js";
 
 const NOTE = (n) => 440 * Math.pow(2, (n - 69) / 12); // MIDI ノート番号 → 周波数
+const TAIL = 2; // BGM を書き出すときの余韻の長さ（秒）
 
 /**
  * iPhone（Safari）では、消音スイッチ（マナーモード）が入っていると Web Audio の音（BGM・効果音）が鳴らない。
@@ -96,7 +99,8 @@ export class SoundEngine {
     this.studyOn = true;
     this.studyVolume = 0.25;
     this.want = { battle: null, study: false }; // いま流したい曲
-    this.bgm = null; // 再生中の BGM { kind, timer, step, next }
+    this.bgm = null; // 再生中の BGM { kind, src | timer, step, next }
+    this.loops = {}; // 書き出した曲 kind → AudioBuffer（Promise のあいだは書き出し中）
   }
 
   get available() {
@@ -121,8 +125,17 @@ export class SoundEngine {
       this.music.gain.value = this.bgmVolume;
       this.music.connect(soften);
       soften.connect(this.ctx.destination);
+      // 電話・画面収録の開始・ほかのアプリの音などで止められた（interrupted）ら、戻ってきたときに再開する
+      this.ctx.onstatechange = () => {
+        if (this.ctx.state !== "running" && typeof document !== "undefined" && !document.hidden) this.ctx.resume().catch(() => {});
+      };
+      if (typeof document !== "undefined") {
+        document.addEventListener("visibilitychange", () => {
+          if (!document.hidden && this.ctx.state !== "running") this.ctx.resume().catch(() => {});
+        });
+      }
     }
-    if (this.ctx.state === "suspended") this.ctx.resume().catch(() => {});
+    if (this.ctx.state !== "running") this.ctx.resume().catch(() => {});
     this.refresh();
   }
 
@@ -237,38 +250,131 @@ export class SoundEngine {
   /** BGM を始める（kind: "battle" | "boss" | "study"）。同じ曲が流れていれば何もしない */
   startBgm(kind = "battle") {
     if (!this.ctx) return;
-    if (this.ctx.state === "suspended") this.ctx.resume().catch(() => {});
+    if (this.ctx.state !== "running") this.ctx.resume().catch(() => {});
     if (this.bgm?.kind === kind) return;
     this.stopBgm();
-    const study = kind === "study";
-    const bars = study ? STUDY_BARS : BARS;
-    const bgm = { kind, step: 0, next: this.ctx.currentTime + 0.08, tempo: kind === "boss" ? 156 : study ? 74 : 132 };
     const volume = this.volumeOf(kind);
     this.music.gain.cancelScheduledValues(this.ctx.currentTime);
     this.music.gain.setValueAtTime(volume, this.ctx.currentTime);
-    const schedule = () => {
-      // 学習中の曲は、読み上げのあいだ小さくする
-      if (study) {
+    const bgm = { kind };
+    this.bgm = bgm;
+    // 学習中の曲は、読み上げのあいだ小さくする（音量だけなので、タイマーが遅れても音は途切れない）
+    if (kind === "study") {
+      bgm.duck = setInterval(() => {
         const speaking = isRecordedPlaying() || (typeof window !== "undefined" && window.speechSynthesis?.speaking);
         this.music.gain.setTargetAtTime(this.volumeOf(kind) * (speaking ? 0.3 : 1), this.ctx.currentTime, 0.15);
-      }
-      // 0.2 秒先までの音符を予約する（タイマーが多少遅れても音が途切れない）
-      while (bgm.next < this.ctx.currentTime + 0.2) {
-        if (study) this.studyStep(bgm, bgm.step, bgm.next);
-        else this.bgmStep(bgm, bgm.step, bgm.next);
-        bgm.next += 60 / bgm.tempo / 4; // 16分音符
-        bgm.step = (bgm.step + 1) % (bars.length * 16);
-      }
+      }, 150);
+    }
+    const play = (buffer) => {
+      if (this.bgm !== bgm) return; // 書き出しているあいだに別の曲・停止になった
+      const src = this.ctx.createBufferSource();
+      src.buffer = buffer;
+      src.loop = true;
+      src.connect(this.music);
+      if (bgm.timer) {
+        // 予約のやり方で流していた続きから、書き出した曲に切りかえる（予約済みの音符の次の位置から）
+        clearInterval(bgm.timer);
+        bgm.timer = null;
+        const stepDur = 60 / bgm.tempo / 4;
+        src.start(Math.max(bgm.next, this.ctx.currentTime), (bgm.step * stepDur) % buffer.duration);
+      } else src.start(this.ctx.currentTime + 0.03);
+      bgm.src = src;
     };
-    schedule();
-    bgm.timer = setInterval(schedule, 50);
-    this.bgm = bgm;
+    const loop = this.loopBuffer(kind);
+    if (loop instanceof Promise) {
+      // 書き出しが終わるまでは予約のやり方で流す（無音で待たせない）
+      this.scheduleBgm(bgm);
+      loop.then(play, () => {});
+    } else if (loop) play(loop);
+    else this.scheduleBgm(bgm);
   }
 
   stopBgm() {
     if (!this.bgm) return;
     clearInterval(this.bgm.timer);
+    clearInterval(this.bgm.duck);
+    try {
+      this.bgm.src?.stop();
+    } catch {
+      /* もう止まっている */
+    }
+    this.bgm?.src?.disconnect();
     this.bgm = null;
+  }
+
+  /** 曲の設定（テンポ・小節・1ステップを鳴らす関数） */
+  track(kind) {
+    const study = kind === "study";
+    return {
+      bars: study ? STUDY_BARS : BARS,
+      tempo: kind === "boss" ? 156 : study ? 74 : 132,
+      step: study ? (bgm, step, t) => this.studyStep(bgm, step, t) : (bgm, step, t) => this.bgmStep(bgm, step, t),
+    };
+  }
+
+  /**
+   * 1周分の曲を AudioBuffer に書き出す（曲ごとに1回だけ）。
+   * 1周のあとに余韻の分（TAIL 秒）も書き出し、その余韻を曲の頭に重ねるので、つなぎ目が切れない。
+   * @returns AudioBuffer（書き出し済み）| Promise（書き出し中）| null（書き出せないブラウザ）
+   */
+  loopBuffer(kind) {
+    if (this.loops[kind]) return this.loops[kind];
+    const Offline = typeof window !== "undefined" && (window.OfflineAudioContext || window.webkitOfflineAudioContext);
+    if (!Offline) return null;
+    const { bars, tempo, step } = this.track(kind);
+    const steps = bars.length * 16;
+    const stepDur = 60 / tempo / 4;
+    const rate = 16000; // BGM は 6kHz より上を丸めているので、この速さで十分（書き出しが軽くなる）
+    const loopLen = Math.round(steps * stepDur * rate);
+    const tail = Math.round(TAIL * rate);
+    let off;
+    try {
+      off = new Offline(1, loopLen + tail, rate);
+    } catch {
+      return null;
+    }
+    // tone・hiss は this.ctx と this.music に音をつなぐので、書き出しのあいだだけ差し替える
+    const saved = { ctx: this.ctx, music: this.music, noise: this.noise };
+    this.ctx = off;
+    this.music = off.destination;
+    this.noise = null;
+    try {
+      const bgm = { kind, tempo };
+      for (let i = 0; i < steps; i++) step(bgm, i, i * stepDur);
+    } finally {
+      Object.assign(this, saved);
+    }
+    const rendered = new Promise((resolve, reject) => {
+      off.oncomplete = (e) => resolve(e.renderedBuffer);
+      const r = off.startRendering();
+      if (r && r.then) r.then(resolve, reject);
+    }).then((full) => {
+      const loop = this.ctx.createBuffer(1, loopLen, rate);
+      const data = loop.getChannelData(0);
+      const src = full.getChannelData(0);
+      data.set(src.subarray(0, loopLen));
+      for (let i = 0; i < tail && i < loopLen; i++) data[i] += src[loopLen + i]; // 最後の音の余韻を頭に重ねる
+      this.loops[kind] = loop;
+      return loop;
+    });
+    this.loops[kind] = rendered;
+    rendered.catch(() => delete this.loops[kind]);
+    return rendered;
+  }
+
+  /** 書き出せないブラウザ用（と、書き出しが終わるまで）: 少し先（1秒）までの音符を予約しながら流す */
+  scheduleBgm(bgm) {
+    const { bars, tempo, step } = this.track(bgm.kind);
+    Object.assign(bgm, { step: 0, next: this.ctx.currentTime + 0.08, tempo });
+    const schedule = () => {
+      while (bgm.next < this.ctx.currentTime + 1) {
+        step(bgm, bgm.step, bgm.next);
+        bgm.next += 60 / bgm.tempo / 4; // 16分音符
+        bgm.step = (bgm.step + 1) % (bars.length * 16);
+      }
+    };
+    schedule();
+    bgm.timer = setInterval(schedule, 100);
   }
 
   /** 学習中の曲: エレピ風の和音・やわらかいベース・ブラシのような小さな打楽器・ときどき短いメロディ */

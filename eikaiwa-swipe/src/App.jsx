@@ -97,6 +97,7 @@ import {
   MULTI_PULLS,
   MAX_PULLS,
   CODE_DAILY_LIMIT,
+  CODE_POINTS_MAX,
   CODE_POINTS,
   POINTS_PER_MINUTE,
   BOOST_RATE,
@@ -443,7 +444,8 @@ function loadSettings() {
     ...DEFAULT_SETTINGS,
     ...s,
     test: { ...DEFAULT_SETTINGS.test, ...(s.test || {}) },
-    battle: { ...DEFAULT_SETTINGS.battle, ...(s.battle || {}) },
+    // バトルの音声入力は 2026-09-30 になくした（テンポが悪くなるため）。選んでいた人は4択に
+    battle: { ...DEFAULT_SETTINGS.battle, ...(s.battle || {}), ...(s.battle?.answer === "voice" ? { answer: "choice" } : {}) },
   };
 }
 
@@ -2420,14 +2422,12 @@ function BattleSetup({ config, setConfig, record, misses, favorites, onStart, on
               options={[
                 { value: "choice", label: "4択", icon: ListChecks },
                 { value: "type", label: "入力", icon: Keyboard },
-                { value: "voice", label: "音声", icon: Mic },
               ]}
             />
           </div>
           <p className="mt-2 text-xs leading-relaxed text-slate-500">
             {config.answer === "choice" && "4つから選んで即攻撃。テンポよく連打できます。"}
             {config.answer === "type" && "答えを入力して Enter で攻撃。敵はゆっくり近づきます。"}
-            {config.answer === "voice" && "マイクを押して話すと攻撃。敵はゆっくり近づきます。"}
           </p>
         </div>
       </div>
@@ -2707,14 +2707,6 @@ function BattleRun({ session, speech, recognition, onFinish, active = true, tool
     e.preventDefault();
     if (!t || !input.trim()) return;
     answer(t.item.id, isCorrect(grade(input, t.item).verdict));
-  };
-  const listen = () => {
-    if (!t) return;
-    const item = t.item;
-    recognition.start((alts) => {
-      const ok = alts.some((a) => isCorrect(grade(a, item).verdict));
-      answer(item.id, ok);
-    }, jaEn ? "en-US" : "ja-JP");
   };
 
   /** 道具を使う（時止め・必殺技） */
@@ -3008,7 +3000,7 @@ function BattleRun({ session, speech, recognition, onFinish, active = true, tool
             ))}
           </div>
         )}
-        {(config.answer === "type" || (config.answer === "voice" && !recognition.supported)) && (
+        {config.answer === "type" && (
           <form onSubmit={submitText} className="mt-2 flex gap-2">
             <input
               id="battle-answer"
@@ -3016,7 +3008,7 @@ function BattleRun({ session, speech, recognition, onFinish, active = true, tool
               autoFocus
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder={config.answer === "voice" ? "キーボードのマイク（🎤）で話す" : jaEn ? "英語で入力" : "意味を入力"}
+              placeholder={jaEn ? "英語で入力" : "意味を入力"}
               autoComplete="off"
               autoCapitalize="off"
               autoCorrect="off"
@@ -3028,24 +3020,6 @@ function BattleRun({ session, speech, recognition, onFinish, active = true, tool
               攻撃
             </button>
           </form>
-        )}
-        {config.answer === "voice" && recognition.supported && (
-          <div className="mt-2 flex items-center justify-center gap-3">
-            <button
-              type="button"
-              aria-label="話して攻撃"
-              disabled={!t}
-              onClick={() => (recognition.listening ? recognition.stop() : listen())}
-              className={`flex h-16 w-16 items-center justify-center rounded-full text-white shadow-lg transition active:scale-90 disabled:opacity-40 ${
-                recognition.listening ? "animate-pulse bg-rose-500" : "bg-indigo-600"
-              }`}
-            >
-              {recognition.listening ? <Check size={28} strokeWidth={3} /> : <Mic size={28} />}
-            </button>
-            <p className="min-h-[1.5rem] max-w-[12rem] text-xs text-slate-600">
-              {recognition.listening ? recognition.interim || "聞き取り中…話し終わったら ✓" : "マイクを押して話すと攻撃"}
-            </p>
-          </div>
         )}
         {config.answer !== "choice" && (
           <button
@@ -4782,7 +4756,7 @@ function GachaPanel({ g, onPull, onUpgrade }) {
           ・毎日のログインボーナス {LOGIN_POINTS.toLocaleString()}pt・{BOOST_RATE}倍ブースト・SR チケット {LOGIN_SR_TICKETS}枚（3日ごとに SSR チケット、7日ごとにレアチケット）
         </p>
         <p>・今日の目標（{DAILY_GOAL}問）達成で {GOAL_POINTS.toLocaleString()}pt</p>
-        <p>・「コード」タブで英単語を入れると、その単語と、難しい単語ほどたくさんのポイント（最大 5,000pt・1日 {CODE_DAILY_LIMIT} 回）</p>
+        <p>・「コード」タブで英単語を入れると、その単語と、難しい単語ほどたくさんのポイント（最大 {CODE_POINTS_MAX.toLocaleString()}pt・1日 {CODE_DAILY_LIMIT} 回）</p>
         <p>・天井: 通常ガチャは {PITY_SSR.points}回で SSR 確定。チケットは、そのランクの単語だけが出ます（レア=R・SR=SR・SSR=SSR）</p>
         <p>・同じ単語が出ると Lv が上がり、フレームが銅→銀→キラキラに（Lv.4 で MAX）。MAX の単語もまた出て、そのときは交換ポイントに（N {OVERFLOW_EX.N}・R {OVERFLOW_EX.R}・SR {OVERFLOW_EX.SR}・SSR {OVERFLOW_EX.SSR}）</p>
         <p>・引くたびに交換ポイントが1つ貯まり、図鑑から好きな単語と交換したり、単語を強化（+10 まで。段が上がるほど必要な数が増える）したりできます</p>
@@ -5198,7 +5172,7 @@ function CodePanel({ g, onRedeem, onEndUnlimited }) {
         : {
             ok: true,
             text: `「${r.card.english}」（${r.card.secret ? "SECRET" : r.card.rarity}）で ${r.points.toLocaleString()}pt ゲット！${r.got ? "　単語も手に入れた！" : ""}`,
-            big: r.points >= 3000,
+            big: r.points >= 18000,
           }
     );
   };

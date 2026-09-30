@@ -25,7 +25,23 @@ export const POS_OVERRIDES = {
 
 export const POS_LABELS = { noun: "名詞", verb: "動詞", adj: "形容詞", other: "副詞・その他" };
 
-/** 語源・豆知識（ここにある単語は SSR） */
+/** 語源・豆知識（ここにある単語は SR。2026-09-30 までは SSR） */
+/**
+ * SSR の単語: 単語編・応用から選んだ、特に難しい単語（2026-09-30 から）。
+ * 語源・豆知識のある単語（TRIVIA）は SR（以前は SSR）。
+ */
+export const SSR_WORDS = [
+  "acquisition", "entrepreneur", "recession", "dividend", "logistics", "compliance", "portfolio", "stakeholder",
+  "franchise", "hypothesis", "molecule", "deforestation", "emission", "sculpture", "notarize", "obligation",
+  "liability", "inheritance", "perspective", "consequence", "tendency", "anticipate", "collaborate", "distinguish",
+  "eliminate", "facilitate", "implement", "integrate", "interpret", "perceive", "reinforce", "adequate", "apparent",
+  "consistent", "delicate", "desperate", "elaborate", "excessive", "explicit", "extraordinary", "fundamental",
+  "inevitable", "moderate", "profound", "prominent", "rational", "reluctant", "substantial", "sufficient",
+  "thorough", "tremendous", "vulnerable", "worthwhile", "nonetheless", "probability", "hemisphere", "latitude",
+  "longitude", "peninsula", "medieval", "descendant", "superstition", "valedictorian", "fluctuate", "accumulate",
+  "sophisticated",
+];
+
 export const TRIVIA = {
   sandwich: {
     etymology: "18世紀イギリスの貴族「サンドイッチ伯爵（Earl of Sandwich）」の名前から。",
@@ -403,8 +419,8 @@ export const TITLES = [
   { id: "collector50", name: "単語コレクター", desc: "50語を集める", rule: { type: "count", min: 50 } },
   { id: "collector300", name: "単語ハンター", desc: "300語を集める", rule: { type: "count", min: 300 } },
   { id: "collector1000", name: "歩く辞書", desc: "1000語を集める", rule: { type: "count", min: 1000 } },
-  { id: "ssr5", name: "語源探偵", desc: "SSR を5語集める", rule: { type: "rarity", rarity: "SSR", min: 5 } },
-  { id: "ssr30", name: "語源マスター", desc: "SSR を30語集める", rule: { type: "rarity", rarity: "SSR", min: 30 } },
+  { id: "ssr5", name: "難単語ハンター", desc: "SSR（特に難しい単語）を5語集める", rule: { type: "rarity", rarity: "SSR", min: 5 } },
+  { id: "ssr30", name: "難単語マスター", desc: "SSR（特に難しい単語）を30語集める", rule: { type: "rarity", rarity: "SSR", min: 30 } },
   { id: "max10", name: "限界突破", desc: "10語を Lv.4（MAX）にする", rule: { type: "max", min: 10 } },
 ];
 

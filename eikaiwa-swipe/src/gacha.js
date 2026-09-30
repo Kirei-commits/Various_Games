@@ -12,7 +12,9 @@
  * - 学習・テスト・バトルのポイントは「かかった時間」に比例させる（どれで遊んでも1分あたりほぼ同じ）。
  * - 5倍ブースト（ログインボーナスでもらえる）を使うと、1時間は学習・テスト・バトルのポイントが5倍。
  */
-import { CHAPTER_POS, POS_OVERRIDES, TRIVIA, SECRETS, TITLES, QUEST_WORDS } from "./data/gacha-data.js";
+import { CHAPTER_POS, POS_OVERRIDES, TRIVIA, SECRETS, TITLES, QUEST_WORDS, SSR_WORDS } from "./data/gacha-data.js";
+
+const SSR_SET = new Set(SSR_WORDS);
 
 export const RARITIES = ["N", "R", "SR", "SSR"];
 const RANK = { N: 0, R: 1, SR: 2, SSR: 3 };
@@ -146,7 +148,8 @@ export function buildCatalog(library, parts) {
           example: firstLine(p.exampleContext),
           exampleJa: firstLine(p.exampleJapanese),
           chapterId: ch.id,
-          rarity: trivia ? "SSR" : base,
+          // SSR は特に難しい単語、語源・豆知識のある単語は SR（2026-09-30。以前は語源のある単語が SSR）
+          rarity: SSR_SET.has(p.id) ? "SSR" : trivia ? "SR" : base,
           pos: POS_OVERRIDES[p.id] || chapterPos || guessPos(p.japanese),
           trivia,
           secret: false,
@@ -577,13 +580,13 @@ export function activateBoost(state, now) {
 /** レア度ごとのポイントの幅（短い単語ほど下、長い単語ほど上） */
 /** コードでもらえるポイントの幅（レア度ごと。最大 5000pt。2026-09-29 に以前の約 1/20 に） */
 export const CODE_POINTS = {
-  N: [100, 500],
-  R: [500, 1500],
-  SR: [1500, 3000],
-  SSR: [3000, 5000],
-  secret: [5000, 5000],
+  N: [600, 3000],
+  R: [3000, 9000],
+  SR: [9000, 18000],
+  SSR: [18000, 30000],
+  secret: [30000, 30000],
 };
-export const CODE_POINTS_MAX = 5000;
+export const CODE_POINTS_MAX = 30000; // 2026-09-30 に最大 5,000 → 30,000
 
 /** 単語のコードの価値（ポイント） */
 export function codeValue(card) {

@@ -168,9 +168,9 @@ export const plusOf = (exp) => {
 /**
  * +N に上げるのに使う交換ポイント（1段ずつ）: レア度の基本 × 段の倍率。段が上がるほど重くなる。
  * 交換ポイントはガチャ1回で1つ（MAX の単語がまた出たらもっと）なので、+10 はかなりのやり込み
- * （SSR は +1〜+10 の合計 6,720、+5 まで 760。N は合計 504）。
+ * SR・SSR はかなり重い（2026-09-30）: SSR は +1 で 200、+5 まで 3,800、+10 まで合計 33,600。SR は合計 10,080、R 1,680、N 504。
  */
-export const ENHANCE_BASE = { N: 3, R: 6, SR: 15, SSR: 40 };
+export const ENHANCE_BASE = { N: 3, R: 10, SR: 60, SSR: 200 };
 export const ENHANCE_STEP = [0, 1, 2, 3, 5, 8, 12, 18, 26, 38, 55];
 export const enhanceCost = (card, toPlus) => (ENHANCE_BASE[rarityOf(card)] || ENHANCE_BASE.N) * (ENHANCE_STEP[toPlus] || 0);
 /** +from から +to まで上げるのに使う交換ポイントの合計 */

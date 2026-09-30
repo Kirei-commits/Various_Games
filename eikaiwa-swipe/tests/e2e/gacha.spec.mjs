@@ -64,8 +64,8 @@ test("はじめてボーナスで10連を引ける。結果が出て、ポイン
   expect(await card.getAttribute("data-rarity")).not.toBe("N");
 });
 
-test("図鑑: 未獲得の SSR はシルエットと豆知識のチラ見せだけ。交換すると答えが見られる", async ({ page }) => {
-  await seedGacha(page, { exPoints: 10000 });
+test("図鑑: 未獲得の語源のある単語（SR）はシルエットと豆知識のチラ見せだけ。交換すると答えが見られる", async ({ page }) => {
+  await seedGacha(page, { exPoints: 3000 });
   await openGacha(page);
   await page.getByRole("button", { name: "図鑑" }).click();
   await expect(page.getByTestId("zukan-count")).toContainText("集めた単語 0 /");
@@ -81,7 +81,7 @@ test("図鑑: 未獲得の SSR はシルエットと豆知識のチラ見せだ�
   await expect(sheet).not.toContainText("サンドイッチ伯爵");
   await expect(sheet).not.toContainText("sandwich");
 
-  await sheet.getByRole("button", { name: /交換ポイント 10000 で交換/ }).click();
+  await sheet.getByRole("button", { name: /交換ポイント 3000 で交換/ }).click();
   await expect(sheet.getByRole("heading", { name: "sandwich" })).toBeVisible();
   await expect(sheet.getByTestId("word-trivia")).toContainText("サンドイッチ伯爵");
   await expect(sheet.getByTestId("word-trivia")).toContainText("肉をパンに挟ませて");
@@ -172,15 +172,15 @@ test("ダブると Lv が上がり、MAX になると表示が変わる", async 
 });
 
 test("図鑑: 単語カードでお気に入り・強化ができ、お気に入りだけに絞ったり並べ替えたりできる", async ({ page }) => {
-  await seedGacha(page, { cards: { robot: 1, go: 1, apple: 1 }, exPoints: 50 });
+  await seedGacha(page, { cards: { robot: 1, go: 1, apple: 1 }, exPoints: 70 });
   await openGacha(page);
   await page.getByRole("button", { name: "図鑑" }).click();
   await page.getByRole("button", { name: "獲得済み", exact: true }).click();
   await page.getByTestId("zukan-tile").filter({ hasText: "robot" }).click();
   const sheet = page.getByTestId("word-sheet");
   await sheet.getByRole("button", { name: "お気に入りに追加" }).click();
-  // robot は SSR: +1 は 40（交換ポイント 50 → 10）
-  await sheet.getByRole("button", { name: /\+1 に強化する（交換ポイント 40）/ }).click();
+  // robot は SR（語源のある単語）: +1 は 60（交換ポイント 70 → 10）
+  await sheet.getByRole("button", { name: /\+1 に強化する（交換ポイント 60）/ }).click();
   await expect(sheet.getByTestId("enhance-plus")).toHaveText("+1");
   await expect(sheet).toContainText("交換ポイント 10");
   await sheet.getByRole("button", { name: "閉じる" }).click();
@@ -208,7 +208,7 @@ test("引くと光の玉の演出が出て、スキップするとすぐに全�
   await expect(page.getByTestId("word-sheet")).toBeVisible();
 });
 
-test("コード: 単語を入れるとその単語とポイント（最大5000pt・1日5回・同じ単語は1回だけ）。開発者コード aaa で無限", async ({ page }) => {
+test("コード: 単語を入れるとその単語とポイント（最大30000pt・1日5回・同じ単語は1回だけ）。開発者コード aaa で無限", async ({ page }) => {
   await seedGacha(page, { points: 0 });
   await openGacha(page);
   await page.getByRole("button", { name: "コード", exact: true }).click();
@@ -219,8 +219,9 @@ test("コード: 単語を入れるとその単語とポイント（最大5000pt
   await expect(page.getByTestId("code-message")).toContainText("単語も手に入れた");
   await expect(page.getByTestId("code-left")).toContainText("あと 4 / 5 回");
   const points = Number((await page.getByTestId("wallet-points").innerText()).replace(/\D/g, ""));
-  expect(points).toBeGreaterThanOrEqual(3000);
-  expect(points).toBeLessThanOrEqual(5000);
+  // robot は SR: 9,000〜18,000pt
+  expect(points).toBeGreaterThanOrEqual(9000);
+  expect(points).toBeLessThanOrEqual(18000);
 
   await page.locator("#gacha-code").fill("robot");
   await page.getByRole("button", { name: "入れる" }).click();

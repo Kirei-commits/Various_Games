@@ -26,13 +26,13 @@ async function winFloor(page) {
 }
 
 test("冒険: 集めた単語をおまかせで装備すると能力値が上がり、塔で敵を倒して経験値をもらえる", async ({ page }) => {
-  await openQuest(page, { breakfast: 2, park: 1, family: 1 });
+  await openQuest(page, { inevitable: 2, park: 1, family: 1 });
   const stats = page.getByTestId("quest-stats");
   const before = await stats.innerText();
   await page.getByRole("button", { name: "おまかせ装備" }).click();
-  await expect(page.getByTestId("quest-equip")).toContainText("breakfast");
+  await expect(page.getByTestId("quest-equip")).toContainText("inevitable");
   await expect(stats).not.toHaveText(before);
-  // 装備は7か所。SSR（breakfast）を付けると特製の呪文が使える
+  // 装備は7か所。SSR（inevitable）を付けると特製の呪文が使える
   await expect(page.getByTestId("quest-equip").getByRole("listitem")).toHaveCount(7);
   await expect(page.getByTestId("quest-skills")).toBeVisible();
 
