@@ -174,6 +174,8 @@ export function analyzeLinking(text) {
         tokens[i + k].link = "reduction";
         covered.add(i + k);
       }
+      // リンキングの読み方（ルビ）用: この語から n 語ぶんの読み（「wanna（ワナ）」のカッコの中）
+      tokens[i].reduce = { n, kana: (r.sound.match(/（(.+?)）/) || [])[1] || "" };
       note("reduction", i, i + n - 1, r.sound, r.tip);
       break;
     }
@@ -217,6 +219,7 @@ export function analyzeLinking(text) {
       continue;
     }
     if (STOP_T.has(bare(a)) && /^[b-df-hj-np-tv-z]/.test(b)) {
+      tokens[i].stop = true; // リンキングの読み方（ルビ）で、語尾の t を「ッ」にする
       note("stop", i, i + 1);
     }
   }

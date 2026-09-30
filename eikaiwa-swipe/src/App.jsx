@@ -54,6 +54,8 @@ import { Art, CARD_BACK_ART, CHEST_ART, GACHA_PANEL_ART, MACHINE_ART, SHOP_ART, 
 import { saveDiary } from "./diary.js";
 import rawChapters, { PARTS, RENAMED } from "./data/index.js";
 import { analyzeLinking, LINK_LABELS } from "./linking.js";
+import { readingGroups, kanaOf } from "./reading.js";
+import { buildLookup, lookupWord } from "./lookup.js";
 import {
   buildCatalog,
   pull as gachaPull,
@@ -315,6 +317,10 @@ const ThemeContext = createContext(THEMES[0]);
 const useThemeColors = () => useContext(ThemeContext);
 /** リンキング（音のつながり）を表示するか（設定） */
 const LinkingContext = createContext(true);
+/** 読み方のルビ（カタカナ）: ruby = 1語ずつの読み、linking = リンキングの読み（つながる語をまとめた読み） */
+const RubyContext = createContext({ ruby: false, linking: false });
+/** 例文の単語をタップしたときに意味を出す（null なら単語はタップできない） */
+const WordLookupContext = createContext(null);
 const gradient = (theme, dir = "90deg") => ({ background: `linear-gradient(${dir}, ${theme.colors.join(", ")})` });
 
 /*
@@ -370,6 +376,8 @@ const KIND_ITEMS = {
   phrase: PART_GROUPS.filter((p) => p.kind === "phrase").flatMap((p) => p.chapters.flatMap((c) => c.items)),
   word: PART_GROUPS.filter((p) => p.kind === "word").flatMap((p) => p.chapters.flatMap((c) => c.items)),
 };
+/** 例文の単語をタップしたときの辞書（単語の章を優先） */
+const LOOKUP = buildLookup([...KIND_ITEMS.word, ...KIND_ITEMS.phrase]);
 /** 冒険の深い階で混ざる熟語: フレーズの章の2〜4語の句（文ではないもの。wake up・take a shower など） */
 const IDIOM_POOL = KIND_ITEMS.phrase.filter((p) => {
   const n = p.english.split(" ").length;
@@ -431,6 +439,8 @@ const DEFAULT_SETTINGS = {
   studyBgm: true, // 学習中の BGM（シャドーイング中は流さない）
   studyBgmVolume: 0.25,
   dopamine: false, // ドーパミンモード（派手な演出でテンポよく）
+  ruby: false, // 英文に読み方（カタカナ）のルビをふる
+  rubyLinking: false, // リンキングの読み方（つながる語をまとめた読み）のルビをふる
   ignoreSilent: false, // iPhone のマナーモード中も BGM・効果音を鳴らす（ふつうは鳴らさない）
   theme: "", // 着せかえ（空なら以前ログインボーナスで選んだもの、なければスタンダード）
   test: { scope: "ch01", count: 10, direction: "en-ja", prompt: "text", answer: "type" },
@@ -727,23 +737,142 @@ function SpeakButton({ text, role = null, seed, speech, size = "md", className =
  * 英文を表示し、つながって発音される単語の間に ‿ を重ねる（文字列そのものは変えない）。
  * 語の中で t の音が変わる語（water, twenty など）には点線の下線を引く。
  */
-function LinkedText({ text }) {
+/**
+ * 英文を表示する。
+ * - リンキングの印（‿）と、1語の中の変化の下線（設定「リンキング」）
+ * - 読み方のルビ（設定「読み方」「リンキングの読み方」。src/reading.js）
+ * - lookup なら単語をタップすると意味が出る（WordLookupContext）
+ */
+function LinkedText({ text, lookup = false }) {
   const on = useContext(LinkingContext);
-  const tokens = useMemo(() => (on ? analyzeLinking(text).tokens : null), [text, on]);
-  if (!tokens) return text;
-  return tokens.map((t, i) => (
-    <React.Fragment key={i}>
-      <span className={t.inner.length ? "underline decoration-dotted decoration-amber-400 underline-offset-4" : undefined}>{t.text}</span>
-      {i < tokens.length - 1 &&
-        (t.link ? (
-          <span className="lk" data-k={t.link} title={LINK_LABELS[t.link]}>
-            {" "}
-          </span>
+  const rubyOpt = useContext(RubyContext);
+  const openWord = useContext(WordLookupContext);
+  const canLookup = lookup && !!openWord;
+  const ruby = rubyOpt.ruby || rubyOpt.linking;
+  const data = useMemo(() => {
+    if (!on && !ruby && !canLookup) return null;
+    const { tokens } = analyzeLinking(text);
+    const groups = ruby ? readingGroups(text, rubyOpt.linking) : tokens.map((_, i) => ({ from: i, to: i, kana: null, linked: false }));
+    return { tokens, groups };
+  }, [text, on, ruby, rubyOpt.linking, canLookup]);
+  if (!data) return text;
+  const { tokens, groups } = data;
+  const gap = (i) =>
+    on && tokens[i].link ? (
+      <span className="lk" data-k={tokens[i].link} title={LINK_LABELS[tokens[i].link]}>
+        {" "}
+      </span>
+    ) : (
+      " "
+    );
+  const word = (t, i) => {
+    const cls = on && t.inner.length ? "underline decoration-dotted decoration-amber-400 underline-offset-4" : "";
+    if (!canLookup) return <span className={cls || undefined}>{t.text}</span>;
+    return (
+      <span
+        role="button"
+        tabIndex={0}
+        data-lookup={t.text}
+        onClick={(e) => {
+          e.stopPropagation();
+          openWord(t.text);
+        }}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            openWord(t.text);
+          }
+        }}
+        className={`cursor-pointer rounded-sm decoration-indigo-300 hover:bg-indigo-100/70 ${cls}`}
+      >
+        {t.text}
+      </span>
+    );
+  };
+  return groups.map((g, gi) => {
+    const inner = [];
+    for (let i = g.from; i <= g.to; i++) {
+      inner.push(<React.Fragment key={i}>{word(tokens[i], i)}</React.Fragment>);
+      if (i < g.to) inner.push(<React.Fragment key={`g${i}`}>{gap(i)}</React.Fragment>);
+    }
+    // 1語ずつの読みは「読み方」がオンのとき、まとめた読みは「リンキングの読み方」がオンのとき
+    const show = g.kana && (g.linked ? rubyOpt.linking : rubyOpt.ruby);
+    return (
+      <React.Fragment key={gi}>
+        {show ? (
+          <ruby className="rb" data-testid="ruby">
+            {inner}
+            <rt className={g.linked ? "rt-link" : "rt"}>{g.kana}</rt>
+          </ruby>
         ) : (
-          " "
-        ))}
-    </React.Fragment>
-  ));
+          inner
+        )}
+        {gi < groups.length - 1 && gap(g.to)}
+      </React.Fragment>
+    );
+  });
+}
+
+/** 例文の単語をタップしたときの意味（下から出るカード）。読み上げ・お気に入りもできる */
+function WordLookupSheet({ token, speech, favorites, onToggleFavorite, onClose }) {
+  const hit = useMemo(() => lookupWord(token, LOOKUP), [token]);
+  const word = hit?.word || token.toLowerCase().replace(/^[^a-z']+|[^a-z']+$/g, "");
+  const base = hit && hit.base !== hit.word ? hit.base : null;
+  const reading = kanaOf(word);
+  const seedFor = (w) => (hit?.id && LIBRARY.byId[hit.id]?.english.toLowerCase() === w ? hit.id : null);
+  // 指で単語をタップして開いたとき、そのあとに来る click が背景に当たってすぐ閉じないように、開いた直後は背景のタップを無視する
+  const openedAt = useRef(performance.now());
+  const closeFromBackdrop = () => performance.now() - openedAt.current > 400 && onClose();
+  useEffect(() => {
+    const onKey = (e) => e.key === "Escape" && onClose();
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+  return (
+    <div className="fixed inset-0 z-[60] flex items-end justify-center bg-slate-900/30" onClick={closeFromBackdrop} onPointerDown={(e) => e.stopPropagation()}>
+      <div
+        role="dialog"
+        aria-label="単語の意味"
+        data-testid="word-lookup"
+        className="w-full max-w-md rounded-t-3xl bg-white p-5 shadow-2xl"
+        style={{ paddingBottom: "calc(1.25rem + env(safe-area-inset-bottom))" }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-start gap-3">
+          <div className="min-w-0 flex-1">
+            <p className="break-words text-2xl font-black text-slate-900">{word}</p>
+            {reading && <p className="text-xs font-bold text-indigo-500">{reading}</p>}
+            {base && <p className="mt-0.5 text-xs text-slate-500">元の形: <b className="text-slate-700">{base}</b></p>}
+          </div>
+          {hit?.id && onToggleFavorite && <FavButton id={hit.id} favorites={favorites} onToggle={onToggleFavorite} size={20} />}
+          <button type="button" onClick={onClose} aria-label="閉じる" className="rounded-full p-1.5 text-slate-400 hover:bg-slate-100">
+            <X size={20} />
+          </button>
+        </div>
+        <p className="mt-3 text-lg font-bold text-indigo-600" data-testid="word-lookup-meaning">
+          {hit ? hit.japanese : "この単語は、アプリの辞書にありません"}
+        </p>
+        <div className="mt-4 flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={() => speech.speak(word, null, seedFor(word))}
+            className="flex items-center gap-1.5 rounded-full bg-indigo-600 px-4 py-2 text-sm font-bold text-white active:scale-95"
+          >
+            <Volume2 size={16} /> {word}
+          </button>
+          {base && (
+            <button
+              type="button"
+              onClick={() => speech.speak(base, null, seedFor(base))}
+              className="flex items-center gap-1.5 rounded-full bg-indigo-50 px-4 py-2 text-sm font-bold text-indigo-700 active:scale-95"
+            >
+              <Volume2 size={16} /> {base}
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
 }
 
 /** 英文の「音のつながり」の説明（どこが・どう聞こえるか・なぜか） */
@@ -807,7 +936,7 @@ function Dialogue({ context, translation, speech, seed = context }) {
             <div className={`min-w-0 flex-1 rounded-2xl px-3 py-2 ${isB ? "bg-pink-50 rounded-tr-sm" : "bg-sky-50 rounded-tl-sm"}`}>
               <div className="flex items-start gap-2">
                 <p className="flex-1 text-sm text-slate-800 leading-snug">
-                  <LinkedText text={line.text} />
+                  <LinkedText text={line.text} lookup />
                 </p>
                 <SpeakButton text={line.text} role={line.speaker} seed={seed} speech={speech} size="sm" />
               </div>
@@ -1003,6 +1132,29 @@ function SettingsSheet({ open, onClose, settings, setSettings, speech, onResetAl
             className="h-5 w-5 accent-indigo-600"
           />
         </label>
+        <label className="mt-2 flex items-center gap-3 rounded-xl bg-slate-50 px-3 py-2.5">
+          <span className="flex-1">
+            <span className="block text-sm font-bold text-slate-800">読み方（カタカナ）のルビ</span>
+            <span className="block text-xs text-slate-500">英文の上に1語ずつ読み方をふります（おおよその読み。例: water → ウォーター）</span>
+          </span>
+          <input id="toggle-ruby" type="checkbox" checked={!!settings.ruby} onChange={(e) => update({ ruby: e.target.checked })} className="h-5 w-5 accent-indigo-600" />
+        </label>
+        <label className="mt-2 flex items-center gap-3 rounded-xl bg-slate-50 px-3 py-2.5">
+          <span className="flex-1">
+            <span className="block text-sm font-bold text-slate-800">リンキングの読み方のルビ</span>
+            <span className="block text-xs text-slate-500">
+              つながって発音される語をまとめて、実際に聞こえる読み方をふります（例: get it → ゲリッ、tell him → テリム、want to → ワナ）。赤い字で表示
+            </span>
+          </span>
+          <input
+            id="toggle-ruby-linking"
+            type="checkbox"
+            checked={!!settings.rubyLinking}
+            onChange={(e) => update({ rubyLinking: e.target.checked })}
+            className="h-5 w-5 accent-indigo-600"
+          />
+        </label>
+        <p className="mt-1 text-[11px] text-slate-400">例文の単語をタップすると、意味と読み方が出て、読み上げもできます。</p>
 
         <p className="mt-5 text-xs font-bold text-slate-500">効果音</p>
         <label className="mt-2 flex items-center gap-3 rounded-xl bg-slate-50 px-3 py-2.5">
@@ -1226,6 +1378,12 @@ function SwipeCard({ phrase, exit, onRelease, flipped, onFlip, speech }) {
     const dy = y - st.y;
     if (!cancelled && Math.hypot(dx, dy) < TAP_SLOP) {
       setDrag({ dx: 0, dy: 0, active: false });
+      // 例文の単語をタップしたら、裏返さずに意味を出す（カードが指をつかんでいるので、位置から単語を探す）
+      const w = document.elementFromPoint?.(e.clientX, e.clientY)?.closest?.("[data-lookup]");
+      if (w) {
+        w.click();
+        return;
+      }
       onFlip();
       return;
     }
@@ -3738,7 +3896,7 @@ function ShadowScreen({ state, settings, speech, onShadowDone, onSettings }) {
                           </span>
                         ))
                       ) : (
-                        <LinkedText text={step.text} />
+                        <LinkedText text={step.text} lookup />
                       )}
                     </p>
                     {opts.showJa && step.ja && <p className="mt-0.5 text-xs text-slate-500">{step.ja}</p>}
@@ -4254,7 +4412,7 @@ function WordSheet({ card, gacha, speech, favorites = {}, enhanceExp = 0, onTogg
                 <div className="mt-3 rounded-2xl bg-white/80 p-3">
                   <div className="flex items-start gap-2">
                     <p className="flex-1 text-sm leading-snug text-slate-800">
-                      <LinkedText text={card.example} />
+                      <LinkedText text={card.example} lookup />
                     </p>
                     <SpeakButton text={card.example} seed={card.id} speech={speech} size="sm" />
                   </div>
@@ -6164,6 +6322,9 @@ export default function App() {
   }, [update, spentSeconds, showEarned, dopamine]);
   const onToggle = useCallback((chapter, id) => update((s) => toggleLearned(s, chapter, id)), [update]);
   const onToggleFavorite = useCallback((id) => update((s) => toggleFavorite(s, id)), [update]);
+  // 例文の単語をタップしたときの意味・読み方のルビ
+  const [lookupToken, setLookupToken] = useState(null);
+  const rubyValue = useMemo(() => ({ ruby: !!settings.ruby, linking: !!settings.rubyLinking }), [settings.ruby, settings.rubyLinking]);
   /** 日記を保存する（同じ日は上書き） */
   const onSaveDiary = useCallback(
     (text, mood) => {
@@ -6509,6 +6670,8 @@ export default function App() {
     <DopamineContext.Provider value={dopamine}>
     <ThemeContext.Provider value={theme}>
     <LinkingContext.Provider value={settings.linking}>
+    <RubyContext.Provider value={rubyValue}>
+    <WordLookupContext.Provider value={setLookupToken}>
     <div className="w-full bg-slate-100" style={{ height: "100dvh" }}>
       <div ref={rootRef} className="relative mx-auto flex h-full w-full max-w-md flex-col bg-slate-50 shadow-xl">
         {dopamineOn && <DopamineLayer fx={dpFx} streak={dpStreak} />}
@@ -6664,8 +6827,19 @@ export default function App() {
           signedIn={!!user}
           themeId={theme.id}
         />
+        {lookupToken && (
+          <WordLookupSheet
+            token={lookupToken}
+            speech={speech}
+            favorites={state.favorites || {}}
+            onToggleFavorite={onToggleFavorite}
+            onClose={() => setLookupToken(null)}
+          />
+        )}
       </div>
     </div>
+    </WordLookupContext.Provider>
+    </RubyContext.Provider>
     </LinkingContext.Provider>
     </ThemeContext.Provider>
     </DopamineContext.Provider>
