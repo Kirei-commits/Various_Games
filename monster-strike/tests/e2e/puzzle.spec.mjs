@@ -15,6 +15,8 @@ async function openPuzzle(page) {
   await page.waitForFunction(() => window.__ms && window.__ms.phase === 'title');
   await page.locator('#btn-puzzle').click();
   await expect(page.locator('#puzzle')).toBeVisible();
+  await expect(page.locator('#pz-dungeons button')).toHaveCount(5);
+  await page.locator('#pz-dungeon-0').click();
   await page.waitForFunction(() => window.__ms.puzzle.phase === 'input');
   await page.evaluate((b) => window.__ms.puzzle.setBoard(b), BOARD);
   return errors;

@@ -11,12 +11,14 @@ for (const [stage, name, boss] of [[2, 'ほのおの火山', 'フレイムドラ
     await pullUnit(page, await page.evaluate(() => window.__ms.active), 0, 80);
     await waitPhase(page, 'ready');
     await expect(page.locator('#turn')).toHaveText('2');
-    for (let wave = 0; wave < 2; wave++) {
+    const waves = await page.evaluate(() => window.__ms.battle.stage.waves.length);
+    const bossWave = await page.evaluate(() => window.__ms.battle.stage.waves.findIndex((w) => w.enemies.some((e) => e.boss)));
+    for (let wave = 0; wave < bossWave; wave++) {
       await page.evaluate(() => { const { battle, world } = window.__ms; for (const e of battle.alive()) battle.kill(e.id, world); });
       await pullUnit(page, await page.evaluate(() => window.__ms.active), 0, -20);
       await waitPhase(page, 'ready');
     }
-    await expect(page.locator('#wave')).toHaveText('3/3');
+    await expect(page.locator('#wave')).toHaveText(`${bossWave + 1}/${waves}`);
     expect(await page.evaluate(() => window.__ms.battle.alive().find((e) => e.def.boss).def.name)).toBe(boss);
     await expectNoErrors(errors);
   });
@@ -31,4 +33,43 @@ test('タイトルに7つのステージがあり、クリアしたステージ�
   await page.locator('#btn-gacha').click();
   await page.locator('#btn-gacha-back').click();
   await expect(page.locator('#stage-2.cleared')).toHaveCount(1);
+});
+
+test('ゲージが2本あるボスは、1本目を削ると逃げて次のバトルでまた戦い、最後に倒すとクリア', async ({ page }) => {
+  const errors = await open(page, 4);
+  await page.evaluate(() => window.__ms.setTimeScale(4));
+  const next = async () => {
+    await pullUnit(page, await page.evaluate(() => window.__ms.active), 0, -20);
+  };
+  // ボスのバトルまで進める
+  for (let wave = 0; wave < 2; wave++) {
+    await page.evaluate(() => { const { battle, world } = window.__ms; for (const e of battle.alive()) battle.kill(e.id, world); });
+    await next();
+    await waitPhase(page, 'ready');
+  }
+  const boss1 = await page.evaluate(() => window.__ms.battle.alive().find((e) => e.def.boss).def);
+  expect([boss1.phase, boss1.phases]).toEqual([1, 2]);
+  // 1本目: ボスにダメージを入れて倒す（残りの敵も倒す）
+  await page.evaluate(() => { const { battle, world } = window.__ms; for (const e of battle.alive()) battle.kill(e.id, world); });
+  await next();
+  await waitPhase(page, 'ready');
+  const boss2 = await page.evaluate(() => window.__ms.battle.alive().find((e) => e.def.boss).def);
+  expect([boss2.name, boss2.phase]).toEqual([boss1.name, 2]);
+  await expect(page.locator('#wave')).toHaveText('4/4');
+  await page.evaluate(() => { const { battle, world } = window.__ms; for (const e of battle.alive()) battle.kill(e.id, world); });
+  await next();
+  await expect(page.locator('#result')).toBeVisible({ timeout: 20000 });
+  await expect(page.locator('#result-title')).toHaveText('STAGE CLEAR');
+  await expectNoErrors(errors);
+});
+
+test('ストップボタンで、動いているキャラをその場で止められる', async ({ page }) => {
+  const errors = await open(page, 0);
+  await pullUnit(page, 'A', 0, 150);
+  await expect(page.locator('#btn-stop')).toBeVisible();
+  await page.locator('#btn-stop').click();
+  await waitPhase(page, 'ready');
+  await expect(page.locator('#btn-stop')).toBeHidden();
+  await expect(page.locator('#turn')).toHaveText('2');
+  await expectNoErrors(errors);
 });

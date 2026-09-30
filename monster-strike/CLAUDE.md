@@ -143,6 +143,29 @@ HTML コメントの中にスクリプトの開始タグをそのまま書かな
    それ以降の `apply()` は何もしない。`endTurn()` は `{ type: 'lost', attacks: [] }` を返す。
 6. 自動プレイの評価は、ダメージウォールで失ったHPを減点する（しないと上手なプレイヤーが壁を踏み続ける）。
 
+## モード（ノーマル・ハード）と編成のドラッグ
+
+1. ステージの定義（`D.stages`）はそのまま（テストと難しさの測定の基準）。遊ぶときは `MSMeta.stageFor(D, i, save.mode)` の写しを使う。
+   `D.modes`: ノーマルは敵の HP ×1.3、ハードは HP ×12・攻撃 ×1.5・ウェーブごとにハートと剣を2組足す（空いている場所だけ）・報酬2倍。
+   ハードのクリアの記録は `'s0h'` のように別。
+2. 編成画面は枠が上に貼りつく（sticky）。手持ち → 枠のドラッグで入れる、枠 → 枠で入れ替え。指の場合、手持ちは長押し（0.25秒）してから
+   （すぐ動かすと一覧のスクロール）。動かさずに離したらいつものタップ（詳しい能力を見る）。
+
+## v5 の約束ごと（すり抜け・合成・おすすめ・ボスのゲージ）
+
+1. **味方には跳ね返らない。** 動いているキャラは味方をすり抜け（減速もしない）、触れた瞬間に `touch` を1回出す（`World._touchAlly`）。
+   触れられた味方は `cfg.allyNudge` だけずれる（ずらした先で何かに重なるならずらさない）。友情は `touch` で出る。
+2. 動き続けても `cfg.maxMove` 秒で止まる。画面のストップボタンは `World.stop(id)`。
+3. **HP の回復は `Battle._heal()` を通す**（最大HPを超えない）。画面も `updateHud()` で `shownHp` を最大HPに収める。
+4. 特性は22種（`ABILITY` に desc）、友情は15種（`_burst()`・`startCombos()`・`comboDesc()` の3か所）。LR（rarity 6）は特性7つ・友情7つ。
+5. 同じキャラは何体でも持てる（`owned[id] = { luck, plus, stock }`）。合成 `MSMeta.fuse()` はストック1体で +1（最大 +5、1回 +15%）。
+   強さの倍率は `MSMeta.powerRate()`（ラック × 合成）。報酬は勝つたびに同じだけ（減らない）。
+6. ガチャのコード `MSMeta.redeemCode()`: 「開発者」だけ `save.infinite`（ジェム無限）。ほかは何も起こらない。
+7. おすすめ編成 `MSMeta.recommend(save, D, kind, target)` は純粋関数（ギミック対策・属性・キラー・強さの点数）。ギミックと対策の表は `D.counters`。
+8. ボスのゲージ複数は「同じボスのウェーブを続けて置く」形（`boss: true, phase, phases`）。最後の `phase` だけが撃破演出、それ以外は逃げる演出。
+9. パズルのダンジョンは `D.puzzle.dungeons`（`D.puzzle.floors` は最初のダンジョン）。報酬は `puzzleReward(save, D, won, dungeon)`。
+10. 絵は `<script id="ms-art">`（swipetalk = eikaiwa-swipe の絵を小さくした data URI）。画面の `ART` から使い、無くても描けるようにする。
+
 ## ドパる更新（友情3つ・5体/6体・ラウンド回復）の約束ごと
 
 1. 友情コンボの種類は `homing / laser / blast / spread / pierceHoming / lightning / lockon / xlaser / star`。

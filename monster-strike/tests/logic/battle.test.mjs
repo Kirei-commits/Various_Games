@@ -205,8 +205,8 @@ test('同じ味方でも、触れるたびに毎回友情コンボが出る', ()
   const ev = [];
   world.setVelocity('M', 0, -1600);
   while (!world.isSettled()) { world.step(); const e = world.drainEvents(); ev.push(...e); battle.apply(e, world); }
-  const touches = ev.filter((e) => e.type === 'hit' && e.other === 'F').length;
-  assert.ok(touches >= 2, '2回以上ぶつかった');
+  const touches = ev.filter((e) => e.type === 'touch' && e.other === 'F').length;
+  assert.ok(touches >= 2, '2回以上すり抜けた');
   assert.equal(battle.stats.combos, touches);
 });
 
@@ -297,13 +297,18 @@ test('友情コンボの無い味方・自分自身では何も起きない', ()
   assert.equal(battle.stats.combos, 0);
 });
 
-test('全キャラが3つの違う友情コンボを持つ', () => {
-  const KINDS = ['homing', 'laser', 'blast', 'spread', 'pierceHoming', 'lightning', 'lockon', 'xlaser', 'star'];
+test('全キャラが違う友情コンボを3つ（LR は7つ）持つ', () => {
+  const KINDS = ['homing', 'laser', 'blast', 'spread', 'pierceHoming', 'lightning', 'lockon', 'xlaser', 'star',
+    'meteor', 'heal', 'circle', 'sword', 'shotgun', 'bigHoming'];
   for (const u of D.roster) {
     const ks = u.combos.map((c) => c.kind);
-    assert.equal(ks.length, 3, u.id);
-    assert.equal(new Set(ks).size, 3, `${u.id} は同じ種類を重ねない`);
+    assert.equal(ks.length, u.rarity === 6 ? 7 : 3, u.id);
+    assert.equal(new Set(ks).size, ks.length, `${u.id} は同じ種類を重ねない`);
     for (const c of u.combos) assert.ok(KINDS.includes(c.kind) && c.power > 0 && c.name, `${u.id} ${c.kind}`);
+  }
+  // 15種類すべてを誰かが持っている
+  for (const k of KINDS) assert.ok(D.roster.some((u) => u.combos.some((c) => c.kind === k)), k);
+  for (const u of D.roster) {
   }
   assert.ok(D.roster.some((u) => u.combos.some((c) => c.name === 'レーザーEL')), '最強レーザーがいる');
 });
@@ -432,7 +437,7 @@ test('ステージで乱射しても、すり抜け・めり込み・場外・�
       assert.ok(me.x >= me.r - 1e-6 && me.x <= C.field.w - me.r + 1e-6 && me.y >= me.r - 1e-6 && me.y <= C.field.h - me.r + 1e-6, `#${n} 場外`);
       if (me.shot === 'reflect') {
         for (const o of world.bodies) {
-          if (o === me) continue;
+          if (o === me || o.kind === 'unit') continue;   // 味方はすり抜ける
           const c = P.contact(me, o);
           assert.ok(!c || c.depth <= 1, `#${n} ${o.id} に ${c && c.depth} めり込んだ`);
         }
