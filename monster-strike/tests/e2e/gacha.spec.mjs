@@ -15,21 +15,24 @@ async function boot(page) {
 
 test('ガチャ: 確率が出ていて、1回引くと5ジェム減り、読み直しても手持ちとジェムが残る', async ({ page }) => {
   const errors = await boot(page);
-  await expect(page.locator('#gems')).toHaveText('30');
+  // 最初の50ジェム＋ログインボーナス20
+  await expect(page.locator('#gems')).toHaveText('70');
+  await expect(page.locator('#daily')).toContainText('ログインボーナス');
   await page.locator('#btn-gacha').click();
   await expect(page.locator('#gacha')).toBeVisible();
   await expect(page.locator('#rates tr')).toHaveCount(3);
   await expect(page.locator('#rates')).toContainText('5%');
-  await expect(page.locator('#btn-pull10')).toBeDisabled();       // 30 < 50
+  await expect(page.locator('#btn-pull10')).toBeEnabled();        // 70 >= 50（最初から10連が引ける）
   await page.locator('#btn-pull1').click();
   await expect(page.locator('#pull-results .card')).toHaveCount(1);
-  await expect(page.locator('#gacha-gems')).toHaveText('25');
+  await expect(page.locator('#gacha-gems')).toHaveText('65');
   const owned = await page.evaluate(() => Object.keys(window.__ms.save.owned).length);
   await page.locator('#btn-gacha-back').click();
-  await expect(page.locator('#gems')).toHaveText('25');
+  await expect(page.locator('#gems')).toHaveText('65');
   await page.reload();
   await page.waitForFunction(() => window.__ms && window.__ms.phase === 'title');
-  await expect(page.locator('#gems')).toHaveText('25');
+  await expect(page.locator('#gems')).toHaveText('65');
+  await expect(page.locator('#daily')).toBeHidden();              // ログインボーナスは1日1回
   expect(await page.evaluate(() => Object.keys(window.__ms.save.owned).length)).toBe(owned);
   expect(errors).toEqual([]);
 });
@@ -71,7 +74,7 @@ test('編成: 枠を選んで手持ちのキャラを入れると、そのキャ
   expect(errors).toEqual([]);
 });
 
-test('クリア報酬: 初回クリアで20ジェム。クリア画面に出て、タイトルのジェムも増える', async ({ page }) => {
+test('クリア報酬: 初回クリアで40ジェム。クリア画面に出て、タイトルのジェムも増える', async ({ page }) => {
   const errors = await boot(page);
   await page.locator('#stage-0').click();
   await page.waitForFunction(() => window.__ms.phase === 'ready');
@@ -83,9 +86,9 @@ test('クリア報酬: 初回クリアで20ジェム。クリア画面に出て�
     if (wave === 0) await waitPhase(page, 'ready');
   }
   await expect(page.locator('#result')).toBeVisible({ timeout: 20000 });
-  await expect(page.locator('#result-text')).toContainText('+20');
+  await expect(page.locator('#result-text')).toContainText('+40');
   await expect(page.locator('#result-text')).toContainText('初回クリア');
   await page.locator('#btn-stages').click();
-  await expect(page.locator('#gems')).toHaveText('50');
+  await expect(page.locator('#gems')).toHaveText('110');
   expect(errors).toEqual([]);
 });

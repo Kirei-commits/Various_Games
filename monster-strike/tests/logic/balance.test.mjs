@@ -130,3 +130,24 @@ test('でたらめに撃つと勝てないが、ボスまではたどり着け�
   const boss = res.filter((r) => r.wave >= 1).length / GAMES;
   assert.ok(boss >= 0.7, `ボス到達 ${boss}`);
 });
+
+/*
+ * 2026-09-30 追加の3ステージ（最初の4体・80回）:
+ *   ほのおの火山  greedy 12ターンで勝ち / casual 0.64
+ *   こおりの神殿  greedy 13ターンで勝ち / casual 0.43
+ *   やみの古城    greedy 14ターンで勝ち / casual 0.35（ボス HP 100000）
+ * 後のステージほど難しく、ガチャのキャラ（属性の有利・ゲージアビリティ）で楽になる作り。
+ */
+test('追加の3ステージ: 上手なプレイヤーは最初の4体で勝ち、ふつうのプレイヤーには後ほど難しい', () => {
+  const N = 80;
+  const rates = [2, 3, 4].map((stage) => {
+    const g = play(mods, { policy: 'greedy', stage });
+    assert.equal(g.state, 'won', `ステージ${stage}: ${g.state} wave ${g.wave}`);
+    let w = 0;
+    for (let i = 0; i < N; i++) if (play(mods, { policy: 'casual', stage, random: seededRandom(1000 + i * 7919) }).state === 'won') w++;
+    return w / N;
+  });
+  assert.ok(rates[0] >= 0.45 && rates[0] <= 0.8, `火山 ${rates[0]}`);
+  assert.ok(rates[2] >= 0.2 && rates[2] <= 0.55, `古城 ${rates[2]}`);
+  assert.ok(rates[0] > rates[1] && rates[1] > rates[2], `難しくなっていく ${rates.join(' / ')}`);
+});

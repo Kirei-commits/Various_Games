@@ -119,10 +119,14 @@
   #title h2 { margin: 0 0 2px; font-size: clamp(24px, 8vw, 34px); line-height: 1.1; letter-spacing: .04em; white-space: nowrap; font-weight: 900; }
   #title h2 span { display: block; }
   #title p { margin: 6px 0 12px; color: var(--muted); font-size: 12px; font-weight: 800; }
-  #stage-list { display: grid; gap: 10px; }
-  #stage-list button { display: grid; gap: 2px; text-align: left; padding: 11px 14px; font-size: 16px; font-weight: 900; }
+  #title p.daily { margin: 8px 0 0; padding: 5px 8px; border-radius: 10px; background: #fff3c4; color: #a35a00; border: 2px solid #ffc629; }
+  #title .card { max-height: 100%; overflow: auto; }
+  #stage-list { display: grid; gap: 7px; }
+  #stage-list button { display: grid; gap: 1px; text-align: left; padding: 7px 14px; font-size: 15px; font-weight: 900; position: relative; }
+  #stage-list button.cleared::after { content: 'CLEAR'; position: absolute; right: 10px; top: 7px; font-size: 10px; color: #fff;
+    background: #2fb54a; border-radius: 8px; padding: 1px 6px; }
   #stage-list button small { color: #7a3d00; font-size: 11px; font-weight: 700; }
-  .meta-row { display: flex; gap: 8px; align-items: center; margin-top: 14px; }
+  .meta-row { display: flex; gap: 8px; align-items: center; margin-top: 10px; }
   .meta-row button { flex: 1; font-size: 15px; padding: 10px; }
   .gems { font-weight: 900; color: #0a7fd6; font-variant-numeric: tabular-nums; white-space: nowrap; font-size: 15px; }
   .gems::before { content: '◆ '; color: #19b8ff; }
@@ -204,16 +208,17 @@
     <div id="title" hidden>
       <div class="card">
         <h2><span class="outline">HIPPARI</span><span class="outline-gold">STRIKE</span></h2>
+        <div class="meta-row"><span class="gems" id="gems">0</span><button id="btn-gacha" type="button">ガチャ</button><button id="btn-party" type="button">編成</button></div>
+        <p class="daily" id="daily" hidden></p>
         <p>ステージを選んでください</p>
         <div id="stage-list"></div>
-        <div class="meta-row"><span class="gems" id="gems">0</span><button id="btn-gacha" type="button">ガチャ</button><button id="btn-party" type="button">編成</button></div>
       </div>
     </div>
     <section id="gacha" class="screen" hidden>
       <div class="head"><h2>ガチャ</h2><span class="gems" id="gacha-gems">0</span><button id="btn-gacha-back" type="button">もどる</button></div>
       <table class="rates" id="rates"></table>
       <p class="note">10連の10体目は ★4 以上が出ます。同じキャラが出るとラックが上がり、攻撃力とHPが1つにつき1%（最大10%）上がります。
-        ジェムはステージのクリアでもらえます（本物のお金は使いません）。</p>
+        ジェムはステージのクリア（初回は多め・負けても少し）、1日1回のログインボーナス、ミニゲームでもらえます（本物のお金は使いません）。</p>
       <div class="pull-row">
         <button id="btn-pull1" type="button">1回<small id="cost1"></small></button>
         <button id="btn-pull10" type="button">10連<small id="cost10"></small></button>
@@ -1637,9 +1642,15 @@
     luckMax: 99, luckBonusMax: 10
   };
 
-  /** 最初に持っているジェムとキャラ、ステージのクリア報酬（初回 / 2回目から / 負けても少し） */
-  var meta = { startGems: 30, starter: ['A', 'B', 'C', 'D'],
-    rewards: [{ first: 20, again: 5, lose: 1 }, { first: 30, again: 8, lose: 2 }] };
+  /**
+   * 最初に持っているジェムとキャラ、ステージのクリア報酬（初回 / 2回目から / 負けても少し）。
+   * daily: 1日1回のログインボーナス / puzzle: ミニゲーム「ドロップパズル」の報酬
+   */
+  var meta = { startGems: 50, starter: ['A', 'B', 'C', 'D'],
+    rewards: [{ first: 40, again: 12, lose: 3 }, { first: 50, again: 15, lose: 4 }, { first: 60, again: 18, lose: 5 },
+      { first: 70, again: 20, lose: 5 }, { first: 100, again: 25, lose: 6 }],
+    daily: 20,
+    puzzle: { first: 20, again: 8, lose: 2 } };
 
   var SLIME = ['#c8ffab', '#3fca6b', '#0f5a33'];
   var BAT = ['#e7c8ff', '#9a5cf0', '#3a1670'];
@@ -1767,7 +1778,201 @@
     ]
   };
 
-  root.MSData = { units: units, roster: units.concat(recruits), slots: slots, gacha: gacha, meta: meta, stage: stage, stages: [stage, tower] };
+
+  var LAVA = ['#ffe3a3', '#ff7a1f', '#8a1e00'];
+  var EMBER = ['#ffd0c0', '#ff4d4d', '#6e0a12'];
+  var ICE = ['#f2fbff', '#7fd3ff', '#1d5f9e'];
+  var SNOW = ['#ffffff', '#c9e6ff', '#5d86b8'];
+  var SHADOW = ['#e8d6ff', '#8b4df0', '#2a0c5c'];
+  var GHOST = ['#fff4fb', '#ff8ad0', '#7a1656'];
+
+  /** 3つ目のステージ: 火の敵ばかり。水のキャラが活躍する。ダメージウォール・地雷 → 重力バリア → 火のドラゴン */
+  var volcano = {
+    name: 'ほのおの火山',
+    theme: 'volcano',
+    waves: [
+      { enemies: [
+        { id: 'v1-slime-l', name: 'マグマスライム', element: 'fire', race: 'slime', look: 'slime', colors: LAVA, shape: 'circle', x: 120, y: 210, r: 40,
+          hp: 8100, atk: 2160, turns: 3, attack: 'single' },
+        { id: 'v1-slime-r', name: 'マグマスライム', element: 'fire', race: 'slime', look: 'slime', colors: LAVA, shape: 'circle', x: 420, y: 210, r: 40,
+          hp: 8100, atk: 2160, turns: 4, attack: 'single' },
+        { id: 'v1-golem', name: 'ようがんゴーレム', element: 'fire', race: 'golem', look: 'golem', colors: LAVA, shape: 'rect', x: 270, y: 400, w: 150, h: 54,
+          hp: 12600, atk: 3420, turns: 3, attack: 'all' }
+      ], gimmicks: {
+        damageWalls: [
+          { side: 'left', from: 300, to: 700, damage: 1500 },
+          { side: 'right', from: 300, to: 700, damage: 1500 }
+        ],
+        mines: [
+          { id: 'v1-mine-1', x: 150, y: 520, r: 16, damage: 1300 },
+          { id: 'v1-mine-2', x: 390, y: 520, r: 16, damage: 1300 }
+        ]
+      } },
+      { enemies: [
+        { id: 'v2-bird-l', name: 'ひのとり', element: 'fire', race: 'beast', look: 'slime', colors: EMBER, shape: 'circle', x: 110, y: 180, r: 34,
+          hp: 7200, atk: 1890, turns: 2, attack: 'single' },
+        { id: 'v2-bird-r', name: 'ひのとり', element: 'fire', race: 'beast', look: 'slime', colors: EMBER, shape: 'circle', x: 430, y: 180, r: 34,
+          hp: 7200, atk: 1890, turns: 3, attack: 'single' },
+        { id: 'v2-golem', name: 'ようがんゴーレム', element: 'fire', race: 'golem', look: 'golem', colors: LAVA, shape: 'rect', x: 270, y: 300, w: 170, h: 56,
+          hp: 16200, atk: 3780, turns: 3, attack: 'all' }
+      ], gimmicks: {
+        gravity: [
+          { id: 'v2-grav-l', x: 150, y: 460, r: 54 },
+          { id: 'v2-grav-r', x: 390, y: 460, r: 54 }
+        ]
+      }, items: [
+        { id: 'v2-heart', item: 'heart', x: 270, y: 560, turn: 1 }
+      ] },
+      { enemies: [
+        { id: 'v3-dragon', name: 'フレイムドラゴン', element: 'fire', race: 'dragon', boss: true, look: 'dragon', colors: ['#ffd27a', '#ff6a1a', '#7a1a04'],
+          shape: 'compound', x: 270, y: 240, r: 84,
+          parts: [{ dx: 0, dy: 0, r: 84 }, { dx: -112, dy: -12, r: 34 }, { dx: 112, dy: -12, r: 34 }, { dx: -138, dy: -56, r: 22 }, { dx: 138, dy: -56, r: 22 }],
+          hp: 80000, atk: 6480, turns: 3, attack: 'all', weak: [{ id: 'belly', dx: 0, dy: 84, r: 22 }] },
+        { id: 'v3-slime-l', name: 'マグマスライム', element: 'fire', race: 'slime', look: 'slime', colors: LAVA, shape: 'circle', x: 100, y: 470, r: 34,
+          hp: 6300, atk: 1800, turns: 2, attack: 'single' },
+        { id: 'v3-slime-r', name: 'マグマスライム', element: 'fire', race: 'slime', look: 'slime', colors: LAVA, shape: 'circle', x: 440, y: 470, r: 34,
+          hp: 6300, atk: 1800, turns: 3, attack: 'single' }
+      ], gimmicks: {
+        damageWalls: [{ side: 'top', from: 80, to: 460, damage: 1900 }],
+        gravity: [{ id: 'v3-grav', x: 270, y: 440, r: 56 }],
+        blocks: [
+          { id: 'v3-block-l', x: 130, y: 600, w: 80, h: 24 },
+          { id: 'v3-block-r', x: 410, y: 600, w: 80, h: 24 }
+        ]
+      } }
+    ]
+  };
+
+  /** 4つ目のステージ: 水の敵。木のキャラが活躍する。減速壁・ブロック → 魔法陣・ワープ → 氷の王 */
+  var temple = {
+    name: 'こおりの神殿',
+    theme: 'ice',
+    waves: [
+      { enemies: [
+        { id: 'i1-slime-l', name: 'こおりスライム', element: 'water', race: 'slime', look: 'slime', colors: ICE, shape: 'circle', x: 130, y: 200, r: 40,
+          hp: 7500, atk: 1880, turns: 3, attack: 'single' },
+        { id: 'i1-slime-r', name: 'こおりスライム', element: 'water', race: 'slime', look: 'slime', colors: ICE, shape: 'circle', x: 410, y: 200, r: 40,
+          hp: 7500, atk: 1880, turns: 4, attack: 'single' },
+        { id: 'i1-golem', name: 'ひょうがゴーレム', element: 'water', race: 'golem', look: 'golem', colors: SNOW, shape: 'rect', x: 270, y: 360, w: 150, h: 54,
+          hp: 12000, atk: 2920, turns: 3, attack: 'all' }
+      ], gimmicks: {
+        slowWalls: [
+          { side: 'left', from: 100, to: 700, factor: 0.6 },
+          { side: 'right', from: 100, to: 700, factor: 0.6 }
+        ],
+        blocks: [
+          { id: 'i1-block-l', x: 140, y: 520, w: 90, h: 26 },
+          { id: 'i1-block-r', x: 400, y: 520, w: 90, h: 26 }
+        ]
+      } },
+      { enemies: [
+        { id: 'i2-mage', name: 'ゆきのまどうし', element: 'water', race: 'beast', look: 'slime', colors: SNOW, shape: 'circle', x: 270, y: 220, r: 50,
+          hp: 18000, atk: 3000, turns: 3, attack: 'all' },
+        { id: 'i2-bird-l', name: 'こおりどり', element: 'water', race: 'beast', look: 'slime', colors: ICE, shape: 'circle', x: 120, y: 400, r: 32,
+          hp: 5200, atk: 1420, turns: 2, attack: 'single' },
+        { id: 'i2-bird-r', name: 'こおりどり', element: 'water', race: 'beast', look: 'slime', colors: ICE, shape: 'circle', x: 420, y: 400, r: 32,
+          hp: 5200, atk: 1420, turns: 3, attack: 'single' }
+      ], gimmicks: {
+        magic: [
+          { id: 'i2-magic-l', x: 160, y: 540, r: 36 },
+          { id: 'i2-magic-r', x: 380, y: 540, r: 36 }
+        ],
+        warps: [
+          { id: 'i2-warp-a1', pair: 'i2-warp-a2', x: 270, y: 620, r: 26 },
+          { id: 'i2-warp-a2', pair: 'i2-warp-a1', x: 270, y: 110, r: 26 }
+        ]
+      }, items: [
+        { id: 'i2-sword', item: 'sword', x: 270, y: 330, turn: 1 }
+      ] },
+      { enemies: [
+        { id: 'i3-king', name: 'こおりの王', element: 'water', race: 'golem', boss: true, look: 'slime', colors: ICE, shape: 'circle', x: 270, y: 240, r: 92,
+          hp: 65000, atk: 5550, turns: 3, attack: 'all', weak: [{ id: 'core', dx: 0, dy: 92, r: 22 }] },
+        { id: 'i3-slime-l', name: 'こおりスライム', element: 'water', race: 'slime', look: 'slime', colors: ICE, shape: 'circle', x: 100, y: 480, r: 34,
+          hp: 5600, atk: 1580, turns: 2, attack: 'single' },
+        { id: 'i3-slime-r', name: 'こおりスライム', element: 'water', race: 'slime', look: 'slime', colors: ICE, shape: 'circle', x: 440, y: 480, r: 34,
+          hp: 5600, atk: 1580, turns: 3, attack: 'single' }
+      ], gimmicks: {
+        slowWalls: [
+          { side: 'left', from: 150, to: 650, factor: 0.55 },
+          { side: 'right', from: 150, to: 650, factor: 0.55 }
+        ],
+        damageWalls: [{ side: 'top', from: 100, to: 440, damage: 1800 }],
+        mines: [
+          { id: 'i3-mine-l', x: 190, y: 580, r: 16, damage: 1500 },
+          { id: 'i3-mine-r', x: 350, y: 580, r: 16, damage: 1500 }
+        ]
+      }, items: [
+        { id: 'i3-heart', item: 'heart', x: 270, y: 470, turn: 2 }
+      ] }
+    ]
+  };
+
+  /** 5つ目のステージ: 闇と光の敵。いちばん難しい。魔法陣・地雷 → ワープ・重力 → 闇のドラゴン */
+  var castle = {
+    name: 'やみの古城',
+    theme: 'castle',
+    waves: [
+      { enemies: [
+        { id: 'c1-bat-l', name: 'やみコウモリ', element: 'dark', race: 'beast', look: 'slime', colors: SHADOW, shape: 'circle', x: 110, y: 200, r: 34,
+          hp: 7200, atk: 1840, turns: 2, attack: 'single' },
+        { id: 'c1-bat-r', name: 'やみコウモリ', element: 'dark', race: 'beast', look: 'slime', colors: SHADOW, shape: 'circle', x: 430, y: 200, r: 34,
+          hp: 7200, atk: 1840, turns: 3, attack: 'single' },
+        { id: 'c1-ghost', name: 'おばけ', element: 'light', race: 'beast', look: 'slime', colors: GHOST, shape: 'circle', x: 270, y: 330, r: 46,
+          hp: 13600, atk: 3200, turns: 3, attack: 'all' }
+      ], gimmicks: {
+        magic: [{ id: 'c1-magic', x: 270, y: 520, r: 40 }],
+        mines: [
+          { id: 'c1-mine-1', x: 120, y: 440, r: 16, damage: 1400 },
+          { id: 'c1-mine-2', x: 420, y: 440, r: 16, damage: 1400 },
+          { id: 'c1-mine-3', x: 270, y: 180, r: 16, damage: 1400 }
+        ]
+      } },
+      { enemies: [
+        { id: 'c2-golem-l', name: 'やみゴーレム', element: 'dark', race: 'golem', look: 'golem', colors: SHADOW, shape: 'rect', x: 160, y: 280, w: 130, h: 50,
+          hp: 12800, atk: 2720, turns: 3, attack: 'single' },
+        { id: 'c2-golem-r', name: 'ひかりゴーレム', element: 'light', race: 'golem', look: 'golem', colors: GHOST, shape: 'rect', x: 380, y: 280, w: 130, h: 50,
+          hp: 12800, atk: 2720, turns: 4, attack: 'single' },
+        { id: 'c2-mage', name: 'やみのまどうし', element: 'dark', race: 'beast', look: 'slime', colors: SHADOW, shape: 'circle', x: 270, y: 140, r: 44,
+          hp: 16000, atk: 3440, turns: 3, attack: 'all' }
+      ], gimmicks: {
+        warps: [
+          { id: 'c2-warp-a1', pair: 'c2-warp-a2', x: 70, y: 580, r: 26 },
+          { id: 'c2-warp-a2', pair: 'c2-warp-a1', x: 470, y: 420, r: 26 },
+          { id: 'c2-warp-b1', pair: 'c2-warp-b2', x: 470, y: 580, r: 26 },
+          { id: 'c2-warp-b2', pair: 'c2-warp-b1', x: 70, y: 420, r: 26 }
+        ],
+        gravity: [{ id: 'c2-grav', x: 270, y: 450, r: 54 }],
+        damageWalls: [{ side: 'top', from: 60, to: 480, damage: 1600 }]
+      }, items: [
+        { id: 'c2-heart', item: 'heart', x: 270, y: 600, turn: 1 }
+      ] },
+      { enemies: [
+        { id: 'c3-dragon', name: 'ダークドラゴン', element: 'dark', race: 'dragon', boss: true, look: 'dragon', colors: ['#d9b8ff', '#7a3ce0', '#240a52'],
+          shape: 'compound', x: 270, y: 240, r: 86,
+          parts: [{ dx: 0, dy: 0, r: 86 }, { dx: -114, dy: -12, r: 34 }, { dx: 114, dy: -12, r: 34 }, { dx: -140, dy: -56, r: 22 }, { dx: 140, dy: -56, r: 22 }],
+          hp: 100000, atk: 6240, turns: 3, attack: 'all', weak: [{ id: 'belly', dx: 0, dy: 86, r: 22 }] },
+        { id: 'c3-ghost-l', name: 'おばけ', element: 'light', race: 'beast', look: 'slime', colors: GHOST, shape: 'circle', x: 100, y: 470, r: 34,
+          hp: 6400, atk: 1760, turns: 2, attack: 'single' },
+        { id: 'c3-bat-r', name: 'やみコウモリ', element: 'dark', race: 'beast', look: 'slime', colors: SHADOW, shape: 'circle', x: 440, y: 470, r: 34,
+          hp: 6400, atk: 1760, turns: 3, attack: 'single' }
+      ], gimmicks: {
+        damageWalls: [
+          { side: 'left', from: 80, to: 400, damage: 1700 },
+          { side: 'right', from: 80, to: 400, damage: 1700 }
+        ],
+        gravity: [{ id: 'c3-grav', x: 270, y: 440, r: 54 }],
+        blocks: [
+          { id: 'c3-block-l', x: 150, y: 590, w: 80, h: 24 },
+          { id: 'c3-block-r', x: 390, y: 590, w: 80, h: 24 }
+        ]
+      }, items: [
+        { id: 'c3-heart', item: 'heart', x: 270, y: 540, turn: 2 },
+        { id: 'c3-sword', item: 'sword', x: 270, y: 370, turn: 1 }
+      ] }
+    ]
+  };
+
+  root.MSData = { units: units, roster: units.concat(recruits), slots: slots, gacha: gacha, meta: meta, stage: stage, stages: [stage, tower, volcano, temple, castle] };
 })(typeof window !== 'undefined' ? window : globalThis);
 </script>
 
@@ -1787,7 +1992,7 @@
   function newSave(data) {
     var owned = {};
     data.meta.starter.forEach(function (id) { owned[id] = { luck: 0 }; });
-    return { v: SAVE_VERSION, gems: data.meta.startGems, owned: owned, party: data.meta.starter.slice(), cleared: {}, pulls: 0 };
+    return { v: SAVE_VERSION, gems: data.meta.startGems, owned: owned, party: data.meta.starter.slice(), cleared: {}, pulls: 0, daily: '' };
   }
 
   /**
@@ -1807,6 +2012,7 @@
       out.owned[id] = { luck: Math.max(0, Math.min(data.gacha.luckMax, luck)) };
     }
     for (var k in (s.cleared || {})) if (s.cleared[k]) out.cleared[k] = true;
+    if (typeof s.daily === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(s.daily)) out.daily = s.daily;
     var party = [];
     (Array.isArray(s.party) ? s.party : []).forEach(function (pid) {
       if (out.owned[pid] && party.indexOf(pid) < 0 && party.length < data.slots.length) party.push(pid);
@@ -1862,8 +2068,24 @@
 
   /** ステージが終わったときの報酬。初回クリアは多く、2回目からは少し。負けても少しもらえる */
   function reward(save, data, stageIndex, won) {
-    var rw = data.meta.rewards[stageIndex] || { first: 0, again: 0, lose: 0 };
-    var key = 's' + stageIndex, gems, first = false;
+    return give(save, 's' + stageIndex, data.meta.rewards[stageIndex] || { first: 0, again: 0, lose: 0 }, won);
+  }
+  /** ミニゲーム「ドロップパズル」の報酬（初回クリアの記録は 'puzzle'） */
+  function puzzleReward(save, data, won) { return give(save, 'puzzle', data.meta.puzzle, won); }
+
+  /**
+   * 1日1回のログインボーナス。day は 'YYYY-MM-DD'（日付は画面が決めて渡す）。
+   * 同じ日に2回目なら 0 を返して何も変えない。
+   */
+  function claimDaily(save, data, day) {
+    if (save.daily === day) return { gems: 0, total: save.gems };
+    save.daily = day;
+    save.gems += data.meta.daily;
+    return { gems: data.meta.daily, total: save.gems };
+  }
+
+  function give(save, key, rw, won) {
+    var gems, first = false;
     if (!won) gems = rw.lose;
     else if (!save.cleared[key]) { gems = rw.first; first = true; save.cleared[key] = true; }
     else gems = rw.again;
@@ -1901,6 +2123,7 @@
   }
 
   root.MSMeta = { newSave: newSave, load: load, rateTable: rateTable, pull: pull, reward: reward,
+    puzzleReward: puzzleReward, claimDaily: claimDaily,
     setParty: setParty, partyUnits: partyUnits, luckRate: luckRate, byId: byId, SAVE_VERSION: SAVE_VERSION };
 })(typeof window !== 'undefined' ? window : globalThis);
 </script>
@@ -1927,7 +2150,8 @@
     ssAccel: { short: 'SS短縮', name: 'SSターン短縮', color: '#ffd166' },
     lastStand: { short: '底力', name: '底力', color: '#ff8a65' }
   };
-  var STAGE_NOTE = ['2ウェーブ・電気の壁と重力バリア', '3ウェーブ・地雷・ワープ・魔法陣・アイテム・減速壁'];
+  var STAGE_NOTE = ['2ウェーブ・電気の壁と重力バリア', '3ウェーブ・地雷・ワープ・魔法陣・アイテム・減速壁',
+    '火の敵ばかり（水が有利）・地雷と重力バリア', '水の敵ばかり（木が有利）・減速壁と魔法陣', '闇と光の敵・いちばん難しい'];
   var ELEMENT = {
     fire: { label: '火', color: '#ff6b4a' }, water: { label: '水', color: '#4ab8ff' }, wood: { label: '木', color: '#5fd36b' },
     light: { label: '光', color: '#ffe45c' }, dark: { label: '闇', color: '#b07cff' }
@@ -2006,6 +2230,13 @@
   function persist() {
     try { localStorage.setItem(SAVE_KEY, JSON.stringify(save)); } catch (e) { /* 保存できなくても遊べる */ }
   }
+  /** ログインボーナス（1日1回）。日付はこの端末の日付 */
+  function today() {
+    var d = new Date();
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  }
+  var dailyGot = M.claimDaily(save, D, today()).gems;
+  if (dailyGot) persist();
 
   // ---------------------------------------------------------------- 状態
   var cfgOverrides = {};
@@ -3258,6 +3489,9 @@
     g.translate(WALL, WALL);
     g.beginPath(); g.rect(0, 0, W, H); g.clip();   // 床の模様を枠にはみ出させない
     if (theme === 'tower') drawTowerFloor(g, W, H, rnd);
+    else if (theme === 'volcano') drawVolcanoFloor(g, W, H, rnd);
+    else if (theme === 'ice') drawIceFloor(g, W, H, rnd);
+    else if (theme === 'castle') drawCastleFloor(g, W, H, rnd);
     else drawMeadowFloor(g, W, H, rnd);
     // 内側の縁（床と枠のあいだの影）
     g.strokeStyle = 'rgba(90,50,0,.55)'; g.lineWidth = 3;
@@ -3330,6 +3564,94 @@
     gear(g, W - 60, 300, 30, 'rgba(160,110,40,.22)');
     gear(g, 80, H - 170, 26, 'rgba(160,110,40,.22)');
     emblem(g, W, H, 'rgba(255,255,255,.35)');
+  }
+
+  /** ほのおの火山: 明るい赤土の岩場・溶岩の川・火の粉 */
+  function drawVolcanoFloor(g, W, H, rnd) {
+    var bg = g.createLinearGradient(0, 0, 0, H);
+    bg.addColorStop(0, '#ffb35c'); bg.addColorStop(1, '#e8743a');
+    g.fillStyle = bg; g.fillRect(0, 0, W, H);
+    // 岩のかけら
+    for (var n = 0; n < 26; n++) {
+      var x = rnd() * W, y = rnd() * H, r = 10 + rnd() * 22;
+      g.fillStyle = 'rgba(150,60,20,.28)';
+      g.beginPath();
+      for (var k = 0; k < 6; k++) { var a = k * Math.PI / 3 + rnd() * 0.4, rr = r * (0.7 + rnd() * 0.3); g.lineTo(x + Math.cos(a) * rr, y + Math.sin(a) * rr); }
+      g.closePath(); g.fill();
+    }
+    // 溶岩の川（左右の端をゆるく流れる）
+    [[0, 1], [W, -1]].forEach(function (side) {
+      var lg = g.createLinearGradient(side[0], 0, side[0] + side[1] * 60, 0);
+      lg.addColorStop(0, 'rgba(255,230,90,.95)'); lg.addColorStop(0.5, 'rgba(255,120,30,.6)'); lg.addColorStop(1, 'rgba(255,120,30,0)');
+      g.fillStyle = lg;
+      g.beginPath(); g.moveTo(side[0], 0);
+      for (var yy = 0; yy <= H; yy += 40) g.lineTo(side[0] + side[1] * (34 + Math.sin(yy / 60) * 14), yy);
+      g.lineTo(side[0], H); g.closePath(); g.fill();
+    });
+    // 火の粉
+    for (n = 0; n < 40; n++) { g.fillStyle = 'rgba(255,245,160,' + (0.4 + rnd() * 0.5).toFixed(2) + ')'; dot(g, rnd() * W, rnd() * H, 1.5 + rnd() * 2); }
+    emblem(g, W, H, 'rgba(255,240,200,.32)');
+  }
+
+  /** こおりの神殿: 水色の氷のタイル・雪の結晶・柱の影 */
+  function drawIceFloor(g, W, H, rnd) {
+    var bg = g.createLinearGradient(0, 0, 0, H);
+    bg.addColorStop(0, '#e6f7ff'); bg.addColorStop(1, '#9fd8f7');
+    g.fillStyle = bg; g.fillRect(0, 0, W, H);
+    var size = 60;
+    g.strokeStyle = 'rgba(80,160,220,.35)'; g.lineWidth = 2;
+    for (var y = 0; y <= H; y += size) { g.beginPath(); g.moveTo(0, y); g.lineTo(W, y); g.stroke(); }
+    for (var x = 0; x <= W; x += size) { g.beginPath(); g.moveTo(x, 0); g.lineTo(x, H); g.stroke(); }
+    // 氷のつや
+    for (var n = 0; n < 18; n++) {
+      var sx = Math.floor(rnd() * W / size) * size, sy = Math.floor(rnd() * H / size) * size;
+      g.fillStyle = 'rgba(255,255,255,.45)';
+      g.beginPath(); g.moveTo(sx + 8, sy + 8); g.lineTo(sx + 30, sy + 8); g.lineTo(sx + 8, sy + 30); g.closePath(); g.fill();
+    }
+    // 雪の結晶
+    for (n = 0; n < 12; n++) snowflake(g, 20 + rnd() * (W - 40), 20 + rnd() * (H - 40), 6 + rnd() * 8);
+    // 柱の影（左右）
+    g.fillStyle = 'rgba(60,120,190,.14)'; g.fillRect(0, 0, 26, H); g.fillRect(W - 26, 0, 26, H);
+    emblem(g, W, H, 'rgba(255,255,255,.5)');
+  }
+  function snowflake(g, x, y, r) {
+    g.strokeStyle = 'rgba(255,255,255,.85)'; g.lineWidth = 2; g.lineCap = 'round';
+    for (var i = 0; i < 6; i++) {
+      var a = i * Math.PI / 3, cx = Math.cos(a), cy = Math.sin(a);
+      g.beginPath(); g.moveTo(x, y); g.lineTo(x + cx * r, y + cy * r); g.stroke();
+      g.beginPath(); g.moveTo(x + cx * r * 0.6, y + cy * r * 0.6);
+      g.lineTo(x + Math.cos(a + 0.6) * r * 0.85, y + Math.sin(a + 0.6) * r * 0.85); g.stroke();
+    }
+  }
+
+  /** やみの古城: 明るめの紫の石畳・青い炎の燭台・月の光 */
+  function drawCastleFloor(g, W, H, rnd) {
+    var bg = g.createLinearGradient(0, 0, 0, H);
+    bg.addColorStop(0, '#c6a8f0'); bg.addColorStop(1, '#8a64d0');
+    g.fillStyle = bg; g.fillRect(0, 0, W, H);
+    var tw = 54, th = 36;
+    for (var ty = 0; ty * th < H; ty++) {
+      for (var x = (ty % 2) * -tw / 2; x < W; x += tw) {
+        var shade = 0.88 + rnd() * 0.12;
+        g.fillStyle = 'rgba(' + Math.round(215 * shade) + ',' + Math.round(195 * shade) + ',255,.35)';
+        roundRect(g, x + 2, ty * th + 2, tw - 4, th - 4, 4); g.fill();
+      }
+    }
+    // 赤紫の絨毯
+    g.fillStyle = 'rgba(190,30,110,.45)'; g.fillRect(W / 2 - 44, 0, 88, H);
+    g.fillStyle = 'rgba(255,215,90,.8)'; g.fillRect(W / 2 - 44, 0, 4, H); g.fillRect(W / 2 + 40, 0, 4, H);
+    // 青い炎の燭台
+    [[40, 150], [W - 40, 150], [40, H - 250], [W - 40, H - 250]].forEach(function (p) {
+      var fg = g.createRadialGradient(p[0], p[1], 2, p[0], p[1], 34);
+      fg.addColorStop(0, 'rgba(160,230,255,.9)'); fg.addColorStop(1, 'rgba(160,230,255,0)');
+      g.fillStyle = fg; dot(g, p[0], p[1], 34);
+      g.fillStyle = '#5a3a8a'; g.fillRect(p[0] - 4, p[1] + 6, 8, 18);
+    });
+    // 月の光
+    var light = g.createRadialGradient(W * 0.8, -20, 10, W * 0.8, 0, H * 0.8);
+    light.addColorStop(0, 'rgba(255,255,230,.4)'); light.addColorStop(1, 'rgba(255,255,230,0)');
+    g.fillStyle = light; g.fillRect(0, 0, W, H);
+    emblem(g, W, H, 'rgba(255,255,255,.3)');
   }
 
   function gear(g, x, y, r, col) {
@@ -3459,7 +3781,8 @@
     ctx.fillStyle = 'rgba(0,0,0,.35)';
     ctx.beginPath(); ctx.ellipse(4, h * 0.6, w * 0.52, h * 0.3, 0, 0, Math.PI * 2); ctx.fill();
     var g = ctx.createLinearGradient(0, -h / 2, 0, h / 2);
-    g.addColorStop(0, '#aab3c6'); g.addColorStop(0.5, '#6b7488'); g.addColorStop(1, '#3a4152');
+    var gc = d.colors || ['#aab3c6', '#6b7488', '#3a4152'];
+    g.addColorStop(0, gc[0]); g.addColorStop(0.5, gc[1]); g.addColorStop(1, gc[2]);
     ctx.fillStyle = g;
     roundRect(ctx, -w / 2, -h / 2, w, h, 10); ctx.fill();
     ctx.strokeStyle = 'rgba(0,0,0,.45)'; ctx.lineWidth = 2; ctx.stroke();
@@ -3494,7 +3817,7 @@
       ctx.scale(side, 1);
       ctx.rotate(-flap);
       var wg = ctx.createLinearGradient(r * 0.5, 0, r * 1.7, 0);
-      wg.addColorStop(0, '#7a1420'); wg.addColorStop(1, '#3a0810');
+      wg.addColorStop(0, d.colors ? d.colors[2] : '#7a1420'); wg.addColorStop(1, d.colors ? '#1a0610' : '#3a0810');
       ctx.fillStyle = wg;
       ctx.beginPath();
       ctx.moveTo(r * 0.55, -r * 0.35);
@@ -3520,7 +3843,8 @@
     });
     // 体
     var g = ctx.createRadialGradient(-r * 0.3, -r * 0.4, r * 0.1, 0, 0, r);
-    g.addColorStop(0, '#ff9a7a'); g.addColorStop(0.55, '#c0262d'); g.addColorStop(1, '#5a0c12');
+    var dc = d.colors || ['#ff9a7a', '#c0262d', '#5a0c12'];
+    g.addColorStop(0, dc[0]); g.addColorStop(0.55, dc[1]); g.addColorStop(1, dc[2]);
     ctx.fillStyle = g;
     ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2); ctx.fill();
     ctx.strokeStyle = 'rgba(0,0,0,.45)'; ctx.lineWidth = 3; ctx.stroke();
@@ -3969,6 +4293,13 @@
     el.party.hidden = true;
     el.title.hidden = false;
     el.gems.textContent = save.gems;
+    var dl = document.getElementById('daily');
+    if (dailyGot) { dl.hidden = false; dl.textContent = 'ログインボーナス ◆' + dailyGot + ' ゲット！'; dailyGot = 0; }
+    else dl.hidden = true;
+    D.stages.forEach(function (st, i) {
+      var b = document.getElementById('stage-' + i);
+      if (b) b.classList.toggle('cleared', !!save.cleared['s' + i]);
+    });
     game.phase = 'title';
     sound.music('title');
     updateHud();
@@ -4085,7 +4416,7 @@
     var btn = document.createElement('button');
     btn.type = 'button';
     btn.id = 'stage-' + i;
-    btn.innerHTML = st.name + '<small>' + (STAGE_NOTE[i] || '') + '</small>';
+    btn.innerHTML = '<span class="nm">' + st.name + '</span><small>' + (STAGE_NOTE[i] || '') + '</small>';
     btn.addEventListener('click', function () { sound.unlock(); selectStage(i); });
     el.stageList.appendChild(btn);
   });
