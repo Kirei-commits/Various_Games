@@ -193,7 +193,7 @@ const withParty = (ids) => {
   return { ...mods, D: { ...D, units: M.partyUnits(s, D) } };
 };
 
-test('★3 だけの編成でも、上手なプレイヤーならはじまりの洞窟をクリアできる', () => {
+test('★3 だけの編成でも、上手なプレイヤーならはじまりの草原をクリアできる', () => {
   const r = play(withParty(['E', 'F', 'G', 'H']), { policy: 'greedy' });
   assert.equal(r.state, 'won', `${r.state} wave ${r.wave}`);
 });
@@ -201,4 +201,30 @@ test('★3 だけの編成でも、上手なプレイヤーならはじまりの
 test('ガチャの ★4・★5 を入れた編成で、上手なプレイヤーはからくりの塔をクリアできる', () => {
   const r = play(withParty(['L', 'J', 'I', 'K']), { policy: 'greedy', stage: 1 });
   assert.equal(r.state, 'won', `${r.state} wave ${r.wave}`);
+});
+
+// ------------------------------------------------------------ ジェムの手に入りやすさ
+test('ログインボーナス: 1日1回だけ。日付が変わるとまたもらえる。保存しても残る', () => {
+  const s = fresh();
+  const g0 = s.gems;
+  assert.equal(M.claimDaily(s, D, '2026-09-30').gems, D.meta.daily);
+  assert.equal(M.claimDaily(s, D, '2026-09-30').gems, 0, '同じ日は0');
+  assert.equal(s.gems, g0 + D.meta.daily);
+  const back = M.load(JSON.stringify(s), D);
+  assert.equal(back.daily, '2026-09-30');
+  assert.equal(M.claimDaily(back, D, '2026-09-30').gems, 0, '読み直しても同じ日は0');
+  assert.equal(M.claimDaily(back, D, '2026-10-01').gems, D.meta.daily);
+  assert.equal(M.load(JSON.stringify({ ...s, daily: 'x<script>' }), D).daily, '', '日付でなければ捨てる');
+});
+
+test('ステージは5つとも報酬があり、後のステージほど多い。ミニゲームにも報酬がある', () => {
+  assert.equal(D.meta.rewards.length, D.stages.length);
+  for (let i = 1; i < D.meta.rewards.length; i++) assert.ok(D.meta.rewards[i].first > D.meta.rewards[i - 1].first, `ステージ${i}`);
+  const s = fresh();
+  const p = M.puzzleReward(s, D, true);
+  assert.ok(p.first && p.gems === D.meta.puzzle.first && s.cleared.puzzle);
+  assert.equal(M.puzzleReward(s, D, true).gems, D.meta.puzzle.again);
+  assert.equal(M.puzzleReward(s, D, false).gems, D.meta.puzzle.lose);
+  // 最初のジェム＋ログインボーナスで10連が引ける。はじまりの草原の初回クリアでもう1回近く引ける
+  assert.ok(D.meta.startGems + D.meta.daily >= D.gacha.cost10);
 });

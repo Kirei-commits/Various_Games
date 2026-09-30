@@ -408,8 +408,8 @@ test('複製で地雷・アイテム・SS・状態が変わっても、元の戦
 });
 
 // ------------------------------------------------------------ 2つ目のステージ
-test('ステージは2つ。からくりの塔は3ウェーブで、地雷・ワープ・ブロック・魔法陣・減速壁・アイテムを全部使う', () => {
-  assert.equal(D.stages.length, 2);
+test('ステージは5つ。からくりの塔は3ウェーブで、地雷・ワープ・ブロック・魔法陣・減速壁・アイテムを全部使う', () => {
+  assert.equal(D.stages.length, 5);
   assert.equal(D.stages[0], D.stage);
   const tw = D.stages[1];
   assert.equal(tw.waves.length, 3);

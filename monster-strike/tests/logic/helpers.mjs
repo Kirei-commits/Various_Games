@@ -21,10 +21,10 @@ export function loadAll() {
   const sandbox = { Math, JSON, Object, Array, Number, Infinity, NaN };
   sandbox.globalThis = sandbox;
   vm.createContext(sandbox);
-  for (const id of ['ms-physics', 'ms-battle', 'ms-data', 'ms-meta']) {
+  for (const id of ['ms-physics', 'ms-battle', 'ms-data', 'ms-meta', 'ms-puzzle']) {
     vm.runInContext(extract(html, id), sandbox, { filename: `index.html#${id}` });
   }
-  return { P: sandbox.MSPhysics, B: sandbox.MSBattle, D: sandbox.MSData, M: sandbox.MSMeta };
+  return { P: sandbox.MSPhysics, B: sandbox.MSBattle, D: sandbox.MSData, M: sandbox.MSMeta, Z: sandbox.MSPuzzle };
 }
 
 export function loadPhysics() {
@@ -43,10 +43,10 @@ export function newGame(mods, stage = 0) {
 
 /**
  * 1発撃って止まるまで回す（倒した敵は途中で消える）。ダメージ記録を返す。
- * useSS なら SS を使う（本番と同じく beginShot → 初速に倍率 → setVelocity）。
+ * useSS なら SS を使う（本番と同じく beginShot → 初速に倍率 → setVelocity）。gauge はゲージショットの成否。
  */
-export function shoot(world, battle, id, vx, vy, useSS = false) {
-  const mods = battle.beginShot ? battle.beginShot(id, useSS) : null;
+export function shoot(world, battle, id, vx, vy, useSS = false, gauge = false) {
+  const mods = battle.beginShot ? battle.beginShot(id, useSS, gauge) : null;
   const k = mods && mods.speed ? mods.speed : 1;
   world.setVelocity(id, vx * k, vy * k, mods);
   world.drainEvents();
