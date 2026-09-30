@@ -3,7 +3,7 @@
  * 撃つ操作は実際の入力で行い、キャラの置き場所と敵の全滅（待ち時間の短縮）だけ直接いじる。
  */
 import { test, expect } from '@playwright/test';
-import { open, pullUnit, waitPhase, expectNoErrors } from './fixtures.mjs';
+import { open, pullUnit, waitPhase, expectNoErrors, maxHp } from './fixtures.mjs';
 
 test.beforeEach(async ({ page }) => {
   page.errors = await open(page);
@@ -28,7 +28,7 @@ test('アビリティの無い C が電気の壁に触れると、チームのHP
   // 左の壁で跳ね返って右の壁にも届くことがあるので、回数ぶん減っていることを見る
   const s = await stats(page);
   expect(s.dwHits).toBeGreaterThanOrEqual(1);
-  await expect(page.locator('#hp-text')).toHaveText(`${34000 - 1400 * s.dwHits} / 34000`);
+  await expect(page.locator('#hp-text')).toHaveText(`${(await maxHp(page)) - 1400 * s.dwHits} / ${await maxHp(page)}`);
   await expectNoErrors(page.errors);
 });
 
@@ -39,7 +39,7 @@ test('アンチダメージウォールの A は電気の壁に触れても平�
   const s = await stats(page);
   expect(s.dwHits).toBe(0);
   expect(s.dwBlocked).toBeGreaterThanOrEqual(1);
-  await expect(page.locator('#hp-text')).toHaveText('34000 / 34000');
+  await expect(page.locator('#hp-text')).toHaveText(`${await maxHp(page)} / ${await maxHp(page)}`);
   await expectNoErrors(page.errors);
 });
 
@@ -69,6 +69,6 @@ test('電気の壁でHPが尽きると、動き終わったところでゲーム
   await pullUnit(page, 'C', 40, 0);
   await waitPhase(page, 'lost');
   await expect(page.locator('#result-title')).toHaveText('GAME OVER');
-  await expect(page.locator('#hp-text')).toHaveText('0 / 34000');
+  await expect(page.locator('#hp-text')).toHaveText(`0 / ${await maxHp(page)}`);
   await expectNoErrors(page.errors);
 });

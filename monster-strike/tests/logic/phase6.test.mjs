@@ -242,28 +242,56 @@ test('ブロックはウェーブが変わると消える', () => {
 });
 
 // ------------------------------------------------------------ 魔法陣
-test('魔法陣を踏むとひよこ: 攻撃力と友情が半分、SS が使えない。次の自分のショットが終わるまで続く', () => {
+test('魔法陣を踏むとひよこ: 攻撃力と友情が半分、SS が使えない。ラウンドが変わるまで続く', () => {
   const units = [
     { id: 'A', atk: 1000, x: 270, y: 700, ss: { name: 's', turns: 0 }, combo: { kind: 'blast', name: 'b', power: 1000, radius: 900 } },
     { id: 'B', atk: 1000 }
   ];
   const { world, battle } = field(units, { gimmicks: { magic: [{ id: 'mg', x: 270, y: 560, r: 40 }] } });
-  fire(world, battle, 'A', 0, -300);
-  assert.equal(battle.us.A.chick, 2);
+  battle.beginShot('A', false);
+  battle.apply([{ type: 'magic', id: 'A', field: 'mg', x: 270, y: 560 }], world);
+  assert.equal(battle.us.A.chick, 1);
   assert.equal(battle.ssReady('A'), false);
   const r = battle.apply([{ type: 'hit', id: 'A', other: 'e', x: 270, y: 190 }], world)[0];
   assert.equal(r.damage, 500);
   battle.endTurn(world);
-  assert.equal(battle.us.A.chick, 1, '踏んだショットが終わっても、次の自分のショットまで続く');
   battle.beginShot('B', false);
   const cr = battle.apply([{ type: 'hit', id: 'B', other: 'A' }], world);
   assert.equal(cr[0].damage, 500, '友情も半分');
   battle.endTurn(world);
-  assert.equal(battle.us.A.chick, 1, 'ほかのキャラのショットでは減らない');
   battle.beginShot('A', false);
   battle.endTurn(world);
+  assert.equal(battle.us.A.chick, 1, 'ショットが終わっても、ラウンドが変わるまでひよこのまま');
+});
+
+test('ひよこの魔法陣は踏むたびに ひよこ ⇔ 元の姿 が入れ替わる', () => {
+  const { world, battle } = field([{ id: 'A', atk: 1000, x: 270, y: 700 }], { gimmicks: { magic: [{ id: 'mg', x: 270, y: 560, r: 40 }] } });
+  battle.beginShot('A', false);
+  const step = () => battle.apply([{ type: 'magic', id: 'A', field: 'mg', x: 270, y: 560 }], world);
+  step();
+  assert.equal(battle.us.A.chick, 1);
+  step();
+  assert.equal(battle.us.A.chick, 0, '2回目で元に戻る');
+  step();
+  assert.equal(battle.us.A.chick, 1);
+  const hz = battle.drainHazards().filter((h) => h.kind === 'magic').map((h) => h.chick);
+  assert.deepEqual([...hz], [true, false, true]);
+});
+
+test('ラウンド（ウェーブ）が変わると、ひよこは元に戻り、チームのHPが最大の半分だけ回復する', () => {
+  const { world, battle } = newGame(mods, 1);
+  battle.us.A.chick = 1;
+  battle.teamHp = 1000;
+  for (const e of battle.alive()) battle.kill(e.id, world);
+  const r = battle.endTurn(world);
+  assert.equal(r.type, 'wave');
   assert.equal(battle.us.A.chick, 0);
-  assert.equal(battle.ssReady('A'), true);
+  const heal = Math.round(battle.teamHpMax * BT.WAVE_HEAL);
+  assert.equal(r.heal, heal);
+  assert.equal(battle.teamHp, 1000 + heal);
+  battle.teamHp = battle.teamHpMax - 10;
+  for (const e of battle.alive()) battle.kill(e.id, world);
+  assert.equal(battle.endTurn(world).heal, 10, '最大HPは超えない');
 });
 
 test('アンチ魔法陣はひよこにならない', () => {
@@ -408,8 +436,8 @@ test('複製で地雷・アイテム・SS・状態が変わっても、元の戦
 });
 
 // ------------------------------------------------------------ 2つ目のステージ
-test('ステージは5つ。からくりの塔は3ウェーブで、地雷・ワープ・ブロック・魔法陣・減速壁・アイテムを全部使う', () => {
-  assert.equal(D.stages.length, 5);
+test('ステージは7つ。からくりの塔は3ウェーブで、地雷・ワープ・ブロック・魔法陣・減速壁・アイテムを全部使う', () => {
+  assert.equal(D.stages.length, 7);
   assert.equal(D.stages[0], D.stage);
   const tw = D.stages[1];
   assert.equal(tw.waves.length, 3);

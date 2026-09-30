@@ -16,11 +16,14 @@ const ABILITIES = ['antiDamageWall', 'antiGravity', 'superAntiDamageWall', 'supe
   'antiMagic', 'antiSlow', 'flying', 'mineSweeper', 'ssAccel', 'lastStand'];
 
 // ------------------------------------------------------------ キャラの定義
-test('キャラは12体。最初の4体は今までの A〜D で、残り8体はガチャで仲間になる', () => {
-  assert.equal(D.roster.length, 12);
-  assert.equal(new Set(D.roster.map((u) => u.id)).size, 12);
-  assert.equal(D.roster.slice(0, 4).map((u) => u.id).join(), D.units.map((u) => u.id).join());
-  assert.equal(D.meta.starter.join(), 'A,B,C,D');
+test('キャラは★3・★4・★5 が15体ずつの45体。最初の5体がモンスト、6体がパズルの編成', () => {
+  assert.equal(D.roster.length, 45);
+  assert.equal(new Set(D.roster.map((u) => u.id)).size, 45);
+  for (const r of [3, 4, 5]) assert.equal(D.roster.filter((u) => u.rarity === r).length, 15, `★${r}`);
+  assert.equal(D.roster.slice(0, 5).map((u) => u.id).join(), D.units.map((u) => u.id).join());
+  assert.equal(D.meta.starter.join(), 'A,B,C,D,E,F');
+  assert.equal(D.slots.length, 5);
+  assert.equal(D.puzzleSize, 6);
   const EL = ['fire', 'water', 'wood', 'light', 'dark'];
   for (const u of D.roster) {
     const w = u.id;
@@ -29,7 +32,7 @@ test('キャラは12体。最初の4体は今までの A〜D で、残り8体は
     assert.ok(u.atk > 0 && u.hp > 0 && u.r === 30 && u.colors.length === 3 && u.accent, w);
     for (const a of u.abilities || []) assert.ok(ABILITIES.includes(a), `${w} の ${a}`);
     for (const k of u.killers || []) assert.ok((k.race || k.element) && (!k.rank || BT.KILLER[k.rank]), w);
-    assert.ok(['homing', 'laser', 'blast', 'spread'].includes(u.combo.kind) && u.combo.power > 0, `${w} の友情`);
+    assert.ok(u.combos.length === 3 && u.combos.every((c) => c.power > 0), `${w} の友情`);
     assert.ok(u.ss && u.ss.name && u.ss.turns > 0 && (u.ss.launch || u.ss.atk || u.ss.onStop || u.ss.comboTwice), `${w} の SS`);
   }
   for (const r of [3, 4, 5]) assert.ok(D.roster.some((u) => u.rarity === r), `★${r} がいる`);
@@ -150,24 +153,32 @@ test('クリア報酬: 初回は多く、2回目からは少し。負けても�
 });
 
 // ------------------------------------------------------------ 編成
-test('編成は手持ちの重ならない4体だけ。枠の位置に並び、ラックで強くなる（元の定義は変えない）', () => {
+test('編成はモンスト5体・パズル6体。手持ちの重ならないキャラだけ。枠の位置に並び、ラックで強くなる（元の定義は変えない）', () => {
   const s = fresh();
-  assert.equal(M.setParty(s, D, ['A', 'B', 'C']), false, '3体');
-  assert.equal(M.setParty(s, D, ['A', 'A', 'C', 'D']), false, '重複');
-  assert.equal(M.setParty(s, D, ['A', 'B', 'C', 'K']), false, '持っていない');
+  assert.equal(M.setParty(s, D, ['A', 'B', 'C', 'D']), false, '4体');
+  assert.equal(M.setParty(s, D, ['A', 'A', 'C', 'D', 'E']), false, '重複');
+  assert.equal(M.setParty(s, D, ['A', 'B', 'C', 'D', 'K']), false, '持っていない');
   s.owned.K = { luck: 25 };
-  assert.equal(M.setParty(s, D, ['K', 'B', 'C', 'A']), true);
+  assert.equal(M.setParty(s, D, ['K', 'B', 'C', 'A', 'E']), true);
   const team = M.partyUnits(s, D);
-  assert.equal(team.map((u) => u.id).join(), 'K,B,C,A');
+  assert.equal(team.map((u) => u.id).join(), 'K,B,C,A,E');
   team.forEach((u, i) => { assert.equal(u.x, D.slots[i].x); assert.equal(u.y, D.slots[i].y); });
   const k = M.byId(D, 'K');
   assert.equal(team[0].atk, Math.round(k.atk * 1.1), 'ラックの強化は最大10%');
   assert.equal(team[1].atk, M.byId(D, 'B').atk);
   assert.equal(k.x, undefined, 'ガチャのキャラの定義には位置を書き足さない');
-  assert.equal(D.units[3].x, 450, 'A は4番目の枠に移っても元の定義は変わらない');
+  assert.equal(D.units[3].x, D.slots[3].x, 'A は4番目の枠に移っても元の定義は変わらない');
+  // パズルは6体で、位置は持たない
+  assert.equal(s.pzParty.join(), 'A,B,C,D,E,F');
+  assert.equal(M.setParty(s, D, ['K', 'B', 'C', 'A', 'E'], 'puzzle'), false, 'パズルは6体');
+  assert.equal(M.setParty(s, D, ['K', 'B', 'C', 'A', 'E', 'F'], 'puzzle'), true);
+  const pt = M.partyUnits(s, D, 'puzzle');
+  assert.equal(pt.map((u) => u.id).join(), 'K,B,C,A,E,F');
+  assert.equal(pt[0].x, undefined);
+  assert.equal(s.party.join(), 'K,B,C,A,E', 'モンストの編成はそのまま');
 });
 
-test('保存データ: 壊れていたら最初から。知らないキャラや重なった編成は直す', () => {
+test('保存データ: 壊れていたら最初から。知らないキャラや重なった編成は直す。前の4体編成は5体・6体に埋める', () => {
   assert.deepEqual(clone(M.load('{bad json', D)), fresh());
   assert.deepEqual(clone(M.load(null, D)), fresh());
   assert.deepEqual(clone(M.load({ v: 999, gems: 5000 }, D)), fresh(), '版が違う');
@@ -176,10 +187,11 @@ test('保存データ: 壊れていたら最初から。知らないキャラや
   assert.equal(s.gems, 0);
   assert.equal(s.owned.K.luck, D.gacha.luckMax);
   assert.ok(!s.owned.ZZ, '知らないキャラは消す');
-  assert.ok(s.owned.B, '最初の4体はいつも持っている');
-  assert.equal(s.party.length, 4);
-  assert.equal(new Set(s.party).size, 4);
+  assert.ok(s.owned.B && s.owned.F, '最初の6体はいつも持っている');
+  assert.equal(s.party.length, 5);
+  assert.equal(new Set(s.party).size, 5);
   assert.equal(s.party.slice(0, 2).join(), 'K,A');
+  assert.equal(s.pzParty.length, 6);
   assert.ok(s.cleared.s0);
   const round = M.load(JSON.stringify(s), D);
   assert.deepEqual(clone(round), clone(s), '保存して読み直しても同じ');
@@ -194,12 +206,12 @@ const withParty = (ids) => {
 };
 
 test('★3 だけの編成でも、上手なプレイヤーならはじまりの草原をクリアできる', () => {
-  const r = play(withParty(['E', 'F', 'G', 'H']), { policy: 'greedy' });
+  const r = play(withParty(['E', 'F', 'G', 'H', 'M']), { policy: 'greedy' });
   assert.equal(r.state, 'won', `${r.state} wave ${r.wave}`);
 });
 
 test('ガチャの ★4・★5 を入れた編成で、上手なプレイヤーはからくりの塔をクリアできる', () => {
-  const r = play(withParty(['L', 'J', 'I', 'K']), { policy: 'greedy', stage: 1 });
+  const r = play(withParty(['L', 'J', 'I', 'K', 'AH']), { policy: 'greedy', stage: 1 });
   assert.equal(r.state, 'won', `${r.state} wave ${r.wave}`);
 });
 

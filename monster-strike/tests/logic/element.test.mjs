@@ -190,12 +190,12 @@ test('敵の全体攻撃は攻撃力を味方の数で割って1体ずつ。全�
 });
 
 // ------------------------------------------------------------ ステージの定義
-test('チームのHPは4体のHPの合計', () => {
+test('チームのHPは5体のHPの合計', () => {
   const { battle } = newGame(mods);
   const sum = D.units.reduce((a, u) => a + u.hp, 0);
   assert.equal(battle.teamHpMax, sum);
   assert.equal(battle.teamHp, sum);
-  assert.equal(D.units.length, 4);
+  assert.equal(D.units.length, 5);
 });
 
 test('ステージの定義: キャラと敵は全員5属性のどれか、敵は種族を持つ', () => {

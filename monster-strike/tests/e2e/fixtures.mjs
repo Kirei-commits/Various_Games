@@ -44,3 +44,6 @@ export async function waitPhase(page, name, timeout = 20000) {
 export async function expectNoErrors(errors) {
   expect(errors, errors.join('\n')).toEqual([]);
 }
+
+/** チームの最大HP（編成で変わるので、テストでは数字を書かずにここから読む） */
+export const maxHp = (page) => page.evaluate(() => window.__ms.battle.teamHpMax);

@@ -22,10 +22,10 @@ for (const [stage, name, boss] of [[2, 'ほのおの火山', 'フレイムドラ
   });
 }
 
-test('タイトルに5つのステージがあり、クリアしたステージには CLEAR が付く', async ({ page }) => {
+test('タイトルに7つのステージがあり、クリアしたステージには CLEAR が付く', async ({ page }) => {
   await page.goto('/');
   await page.waitForFunction(() => window.__ms && window.__ms.phase === 'title');
-  await expect(page.locator('#stage-list button')).toHaveCount(5);
+  await expect(page.locator('#stage-list button')).toHaveCount(7);
   await expect(page.locator('#stage-2.cleared')).toHaveCount(0);
   await page.evaluate(() => { window.__ms.save.cleared.s2 = true; });
   await page.locator('#btn-gacha').click();

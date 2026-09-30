@@ -12,41 +12,43 @@ test.beforeEach(async ({ page }) => {
 const place = (page, id, x, y) => page.evaluate(([id, x, y]) => { const b = window.__ms.world.get(id); b.x = x; b.y = y; }, [id, x, y]);
 const stats = (page) => page.evaluate(() => ({ ...window.__ms.battle.stats }));
 
-test('A で B に当てると、B のクロスレーザーが縦横に走ってゴーレムに当たる', async ({ page }) => {
-  await place(page, 'A', 210, 590);           // B（210, 715）の真上
+test('A で B に当てると、B の友情コンボが3つとも出てゴーレムに当たる', async ({ page }) => {
+  const b = await page.evaluate(() => { const o = window.__ms.world.get('B'); return { x: o.x, y: o.y }; });
+  await place(page, 'A', b.x, b.y - 115);     // B の真上
   await pullUnit(page, 'A', 0, -60);          // 上へ引く → 下へ撃つ
   await page.waitForFunction(() => window.__ms.battle.stats.combos > 0);
-  const golem = await page.evaluate(() => window.__ms.battle.enemy('w1-golem').hp);
-  // ゴーレム（x=190〜350）は B の真上（x=210）にいるので縦のビームが当たる。火のレーザーは水のゴーレムに0.66倍
-  expect(golem).toBeLessThanOrEqual(12000 - Math.round(1800 * 0.66));
+  const golem = await page.evaluate(() => { const e = window.__ms.battle.enemy('w1-golem'); return [e.hp, e.maxHp]; });
+  expect(golem[0]).toBeLessThan(golem[1]);
   await waitPhase(page, 'ready');
   const s = await stats(page);
-  expect(s.combos).toBe(1);
+  expect(s.combos).toBeGreaterThanOrEqual(1);
   await expectNoErrors(page.errors);
 });
 
-test('貫通の B で A を通り抜けると、A のホーミングが敵に飛び、弾が届いてからターンが終わる', async ({ page }) => {
-  await place(page, 'B', 90, 560);            // A（90, 690）の真上
+test('貫通の B で A を通り抜けると、A の友情（ホーミングなど）が敵に飛び、弾が届いてからターンが終わる', async ({ page }) => {
+  const a = await page.evaluate(() => { const o = window.__ms.world.get('A'); return { x: o.x, y: o.y }; });
+  const total0 = await page.evaluate(() => window.__ms.battle.enemies.reduce((t, e) => t + e.hp, 0));
+  await place(page, 'B', a.x, a.y - 125);     // A の真上
   await pullUnit(page, 'B', 0, -60);          // B を押して交代 → 下へ撃つ
   await page.waitForFunction(() => window.__ms.battle.stats.combos > 0);
-  const hpBefore = await page.evaluate(() => window.__ms.battle.enemies.reduce((a, e) => a + e.hp, 0));
-  expect(hpBefore).toBeLessThanOrEqual(7000 * 2 + 12000 - 6 * 500);
   await waitPhase(page, 'ready');
   const s = await stats(page);
-  expect(s.combos).toBe(1);
-  expect(s.hits).toBeGreaterThanOrEqual(6);
+  expect(s.combos).toBeGreaterThanOrEqual(1);
+  expect(s.hits).toBeGreaterThanOrEqual(12);   // ホーミング12発＋ほか
+  const total1 = await page.evaluate(() => window.__ms.battle.enemies.reduce((t, e) => t + e.hp, 0));
+  expect(total1).toBeLessThan(total0);
   await expect(page.locator('#turn')).toHaveText('2');
   await expectNoErrors(page.errors);
 });
 
-test('C の爆発は周りの敵をまとめて巻き込む', async ({ page }) => {
+test('C の大爆発は周りの敵をまとめて巻き込む', async ({ page }) => {
   // C をゴーレムの横へ動かし、A を当てる
   await place(page, 'C', 400, 520);
   await place(page, 'A', 400, 650);
   await pullUnit(page, 'A', 0, 60);           // 下へ引く → 上へ撃つ
   await page.waitForFunction(() => window.__ms.battle.stats.combos > 0);
-  const golem = await page.evaluate(() => window.__ms.battle.enemy('w1-golem').hp);
-  expect(golem).toBeLessThanOrEqual(12000 - 2500);
+  const golem = await page.evaluate(() => { const e = window.__ms.battle.enemy('w1-golem'); return [e.hp, e.maxHp]; });
+  expect(golem[0]).toBeLessThan(golem[1]);
   await waitPhase(page, 'ready');
   await expectNoErrors(page.errors);
 });

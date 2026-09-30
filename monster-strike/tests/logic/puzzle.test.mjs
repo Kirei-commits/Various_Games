@@ -10,7 +10,7 @@ const clone = (x) => JSON.parse(JSON.stringify(x));
 /** 文字で盤面を書く: F 火 / W 水 / G 木 / L 光 / K 闇 / H 回復 */
 const K = { F: 'fire', W: 'water', G: 'wood', L: 'light', K: 'dark', H: 'heart' };
 const board = (...rows) => rows.map((r) => [...r].map((ch) => K[ch]));
-const team = () => clone(M.partyUnits(M.newSave(D), D));
+const team = () => clone(M.partyUnits(M.newSave(D), D, 'puzzle'));
 
 test('盤面は6×5で6種類。最初はそろった所が無い（どの乱数でも）', () => {
   for (let seed = 1; seed <= 200; seed++) {
@@ -99,13 +99,14 @@ const combo = (color, n = 3) => ({ color, cells: Array.from({ length: n }, (_, i
 const floors = (hp = 1e6, atk = 1000, turns = 2) => [[{ id: 'e', name: 'e', element: 'dark', hp, atk, turns }]];
 
 test('攻撃: 消した色と同じ属性のキャラが攻撃。リーダーと同じ属性は1.5倍、5個以上は全体攻撃', () => {
-  const t = team();   // A 水（リーダー）/ B 火 / C 木 / D 光
+  const t = team();   // A 水（リーダー）/ B 火 / C 木 / D 光 / E 火 / F 水
   const pb = new Z.PuzzleBattle({ team: t, floors: floors() });
   const r = pb.play([combo('water'), combo('fire', 4)]);
   const a = r.attacks.find((x) => x.unit === 'A'), b = r.attacks.find((x) => x.unit === 'B');
   assert.equal(a.hits[0].damage, Math.round(t[0].atk * 1.25 * 1.5), '水: 2コンボ×リーダー');
   assert.equal(b.hits[0].damage, Math.round(t[1].atk * 1.25 * 1.25), '火: 4個消し×2コンボ');
-  assert.equal(r.attacks.length, 2, '木・光は消していないので攻撃しない');
+  assert.equal(r.attacks.map((x) => x.unit).join(), 'A,B,E,F', '水と火のキャラだけが攻撃する');
+  assert.equal(r.attacks.find((x) => x.unit === 'F').hits[0].damage, Math.round(t[5].atk * 1.25 * 1.5), 'リーダーと同じ水の F も1.5倍');
   const d = pb.play([combo('light')]).attacks[0];
   assert.equal(d.hits[0].damage, Math.round(t[3].atk * 2), '光→闇は2倍');
   const two = new Z.PuzzleBattle({ team: t, floors: [[
