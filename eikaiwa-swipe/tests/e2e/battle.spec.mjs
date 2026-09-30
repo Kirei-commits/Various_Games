@@ -37,13 +37,34 @@ test("ステージ: 4択で敵10体とボスを倒すとクリア。ノーダメ
   await expect(page.getByTestId("battle")).toBeVisible();
   await expect(page.getByTestId("enemy").first()).toBeVisible();
 
-  await winByChoice(page);
+  // ザコを全部倒すとボス。「ボス出現！」は最初の1回だけで、攻撃しても何度も出ない（出た回数を数える）
+  await page.evaluate(() => {
+    window.__bossFlashes = 0;
+    new MutationObserver((list) => {
+      for (const m of list)
+        for (const n of m.addedNodes) if (n.nodeType === 1 && n.dataset?.testid === "battle-flash" && n.textContent.startsWith("ボス出現")) window.__bossFlashes += 1;
+    }).observe(document.body, { childList: true, subtree: true });
+  });
+  const end = Date.now() + 40000;
+  while (Date.now() < end && !(await page.getByTestId("battle-clear").isVisible())) {
+    const correct = page.locator('[data-testid="battle-choice"][data-correct="1"]');
+    if (await correct.count()) await correct.first().click({ timeout: 2000 }).catch(() => {});
+    else await page.waitForTimeout(30);
+  }
+  // ボスを倒すと「STAGE CLEAR!」の演出を見せてから結果の画面
+  await expect(page.getByTestId("battle-clear")).toBeVisible();
+  await expect(page.getByTestId("battle-result")).toBeVisible();
+  expect(await page.evaluate(() => window.__bossFlashes)).toBe(1);
   await expect(page.getByTestId("battle-result-title")).toHaveText("STAGE CLEAR!");
   await expect(page.getByTestId("battle-stars")).toHaveText("★★★");
+  // 次のステージ・もう一度・設定に戻るは、結果の画面の上のほう（報酬より前）にある
+  const actionsY = (await page.getByTestId("battle-result-actions").boundingBox()).y;
+  const rewardY = (await page.getByTestId("battle-reward").boundingBox()).y;
+  expect(actionsY).toBeLessThan(rewardY);
   await expect(page.getByTestId("battle-reward")).toContainText("レアチケット +8");
   const points = await rewardPoints(page);
-  expect(points).toBeGreaterThanOrEqual(100);
-  expect(points).toBeLessThanOrEqual(3000);
+  expect(points).toBeGreaterThanOrEqual(300);
+  expect(points).toBeLessThanOrEqual(900);
 
   await page.getByRole("button", { name: "設定に戻る" }).click();
   await expect(page.getByTestId("battle-record")).toContainText("★★★");
@@ -259,4 +280,26 @@ test("敵が出ると、表示している英単語を読み上げる（英語�
   await expect(enemy).toBeVisible();
   const word = LIB.byId[await enemy.getAttribute("data-phrase-id")].english;
   await expect.poll(() => page.evaluate(() => window.__spoken.map((u) => u.text).join(" "))).toContain(word);
+});
+
+test("ステージの敵の数を 10・50・100 から選べる。複数いるときはタップした敵を狙える", async ({ page }) => {
+  await page.addInitScript(() => {
+    window.__swipetalkBattleTime = 10; // 敵がすぐ出てくる
+    window.__swipetalkBattleSpeed = 0; // 敵は近づかない
+  });
+  await page.reload();
+  await openBattle(page);
+  await page.getByRole("button", { name: "50体" }).click();
+  await page.getByRole("button", { name: /バトル開始/ }).click();
+  await expect(page.getByTestId("battle")).toContainText("敵 0 / 50");
+  await expect(page.getByTestId("enemy")).toHaveCount(3);
+  // 狙っていない敵をタップすると、その敵が狙いになり、選択肢もその単語になる
+  const other = page.locator('[data-testid="enemy"][data-target="0"]').first();
+  const id = await other.getAttribute("data-phrase-id");
+  await other.dispatchEvent("pointerdown");
+  await expect(page.locator(`[data-testid="enemy"][data-phrase-id="${id}"]`)).toHaveAttribute("data-target", "1");
+  await expect(page.locator('[data-testid="enemy"][data-target="1"]')).toHaveCount(1);
+  await page.locator('[data-testid="battle-choice"][data-correct="1"]').first().click();
+  await expect(page.locator(`[data-testid="enemy"][data-phrase-id="${id}"]`)).toHaveCount(0);
+  await expect(page.getByTestId("battle")).toContainText("敵 1 / 50");
 });

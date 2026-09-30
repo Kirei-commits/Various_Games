@@ -13,6 +13,8 @@ import { grant, boostRate, pointsForTime } from "./gacha.js";
 
 export const PLAYER_HP = 5;
 export const STAGE_ENEMIES = 10;
+/** ステージの敵の数（開始前に選ぶ）。章の問題より多いときは、同じ単語がもう一周出る */
+export const STAGE_COUNTS = [10, 50, 100];
 export const BOSS_HP = 3;
 /** 1回のバトルでもらえるポイントの幅（遊んだ時間と成績で決まる。ブースト前。2026-09-29 に 1/10 に） */
 export const BATTLE_POINTS = { min: 300, max: 900 }; // 2026-09-30 に3倍
@@ -83,12 +85,15 @@ export function byDifficulty(list, rng) {
  * @param opts { mode: "stage"|"endless", items, answer: "choice"|"type"|"voice", direction, key, rng }
  *   items はステージなら章の問題、エンドレスなら出題範囲の問題
  */
-export function createBattle({ mode = "stage", items, answer = "choice", direction = "en-ja", key = "", order = "random", rng = Math.random }) {
-  const shuffled = shuffle(items, rng);
+export function createBattle({ mode = "stage", items, answer = "choice", direction = "en-ja", key = "", order = "random", count = STAGE_ENEMIES, rng = Math.random }) {
   const stage = mode === "stage";
   const level = order === "level";
+  const total = STAGE_COUNTS.includes(count) ? count : STAGE_ENEMIES;
+  // 足りなければ、シャッフルし直した問題をつなげる（50体・100体のとき）
+  let shuffled = shuffle(items, rng);
+  while (stage && items.length && shuffled.length < total + BOSS_HP) shuffled = shuffled.concat(shuffle(items, rng));
   // ステージ: ランダムに選んだ単語を、難易度順ならやさしい順に並べる（ボスは一番むずかしい単語）
-  const picked = stage ? shuffled.slice(0, STAGE_ENEMIES + BOSS_HP) : shuffled;
+  const picked = stage ? shuffled.slice(0, total + BOSS_HP) : shuffled;
   const ordered = level ? byDifficulty(picked, rng) : picked;
   return {
     mode,
@@ -97,8 +102,10 @@ export function createBattle({ mode = "stage", items, answer = "choice", directi
     key,
     order,
     pool: items,
-    queue: stage ? ordered.slice(0, STAGE_ENEMIES) : ordered,
-    bossWords: stage ? ordered.slice(STAGE_ENEMIES, STAGE_ENEMIES + BOSS_HP) : [],
+    total: stage ? total : 0, // ステージの敵の数（ボスの前まで）
+    queue: stage ? ordered.slice(0, total) : ordered,
+    bossWords: stage ? ordered.slice(total, total + BOSS_HP) : [],
+    targetUid: null, // タップで選んだ敵（いなければ一番近い敵を狙う）
     bossSpawned: false,
     enemies: [],
     hp: PLAYER_HP,
@@ -183,9 +190,18 @@ export function tick(b, dt, rng = Math.random, moveScale = 1) {
   return b;
 }
 
-/** 狙う敵（一番近い敵） */
+/** 狙う敵（タップで選んだ敵。いなければ一番近い敵） */
 export function target(b) {
+  const picked = b.targetUid != null && b.enemies.find((e) => e.uid === b.targetUid);
+  if (picked) return picked;
   return b.enemies.reduce((best, e) => (!best || e.y > best.y ? e : best), null);
+}
+
+/** 狙う敵をタップで切り替える（倒すと、また一番近い敵に戻る） */
+export function setTarget(b, uid) {
+  if (b.over || !b.enemies.some((e) => e.uid === uid)) return false;
+  b.targetUid = uid;
+  return true;
 }
 
 /**
@@ -217,6 +233,7 @@ export function attack(b, correct, rng = Math.random) {
     return item;
   }
   b.enemies = b.enemies.filter((e) => e !== t);
+  if (b.targetUid === t.uid) b.targetUid = null;
   b.kills += 1;
   // 倒したらすぐ次の敵を出す（待ちが残っていても短くする）
   b.nextSpawn = Math.min(b.nextSpawn, b.elapsed + (b.enemies.length ? RESPAWN_AFTER_KILL : RESPAWN_EMPTY));
