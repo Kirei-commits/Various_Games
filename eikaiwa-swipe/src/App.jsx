@@ -162,7 +162,7 @@ import {
 } from "./logic.js";
 import { cloud, authErrorMessage } from "./cloud.js";
 import { usableVoices, pickVoices } from "./voices.js";
-import { SoundEngine, setMicActive, silentSound } from "./audio.js";
+import { SoundEngine, setMicActive, setIgnoreSilentSwitch, silentSound } from "./audio.js";
 import { detectInAppBrowser } from "./env.js";
 import { analyzePronunciation, verdictText, commonIssues } from "./pronounce.js";
 
@@ -431,6 +431,7 @@ const DEFAULT_SETTINGS = {
   studyBgm: true, // 学習中の BGM（シャドーイング中は流さない）
   studyBgmVolume: 0.25,
   dopamine: false, // ドーパミンモード（派手な演出でテンポよく）
+  ignoreSilent: false, // iPhone のマナーモード中も BGM・効果音を鳴らす（ふつうは鳴らさない）
   theme: "", // 着せかえ（空なら以前ログインボーナスで選んだもの、なければスタンダード）
   test: { scope: "ch01", count: 10, direction: "en-ja", prompt: "text", answer: "type" },
   play: "test", // テスト画面で「テスト」「バトル」「冒険」のどれを開くか
@@ -1014,6 +1015,19 @@ function SettingsSheet({ open, onClose, settings, setSettings, speech, onResetAl
             type="checkbox"
             checked={settings.sfx}
             onChange={(e) => update({ sfx: e.target.checked })}
+            className="h-5 w-5 accent-indigo-600"
+          />
+        </label>
+        <label className="mt-2 flex items-center gap-3 rounded-xl bg-slate-50 px-3 py-2.5">
+          <span className="flex-1">
+            <span className="block text-sm font-bold text-slate-800">マナーモード中も BGM・効果音を鳴らす</span>
+            <span className="block text-xs text-slate-500">iPhone のマナーモード（消音スイッチ）のとき、ふつうは BGM・効果音は鳴りません（読み上げの声は鳴ります）</span>
+          </span>
+          <input
+            id="toggle-ignore-silent"
+            type="checkbox"
+            checked={!!settings.ignoreSilent}
+            onChange={(e) => update({ ignoreSilent: e.target.checked })}
             className="h-5 w-5 accent-indigo-600"
           />
         </label>
@@ -6060,6 +6074,7 @@ export default function App() {
     return () => events.forEach((ev) => window.removeEventListener(ev, unlock));
   }, [sound]);
   useEffect(() => sound.set(settings.sfx, settings.sfxVolume), [sound, settings.sfx, settings.sfxVolume]);
+  useEffect(() => setIgnoreSilentSwitch(settings.ignoreSilent), [settings.ignoreSilent]);
   useEffect(() => sound.setCheers(settings.cheers), [sound, settings.cheers]);
   useEffect(() => sound.setBgm(settings.battleBgm, settings.bgmVolume), [sound, settings.battleBgm, settings.bgmVolume]);
   useEffect(() => sound.setStudyBgm(settings.studyBgm, settings.studyBgmVolume), [sound, settings.studyBgm, settings.studyBgmVolume]);

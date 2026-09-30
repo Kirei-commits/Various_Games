@@ -202,3 +202,18 @@ test("設定の「アカウントのデータを消して最初から」: 3回�
   expect(saved?.gacha?.cards?.go ?? 0).toBe(0);
   expect(Object.keys(saved?.diary || {})).toEqual([]);
 });
+
+test("iPhone のマナーモード: ふつうは BGM・効果音を鳴らさない（音の種類を auto のまま）。設定でオンにすると鳴らす（playback）", async ({ page }) => {
+  await page.addInitScript(() => {
+    // Safari 17 以降の navigator.audioSession の代わり
+    Object.defineProperty(navigator, "audioSession", { value: { type: "auto" }, configurable: true });
+  });
+  await page.reload();
+  await page.mouse.click(5, 5); // 最初のタップで音を有効にする
+  expect(await page.evaluate(() => navigator.audioSession.type)).toBe("auto");
+  await page.getByRole("button", { name: "音声の設定" }).first().click();
+  await page.locator("#toggle-ignore-silent").check();
+  expect(await page.evaluate(() => navigator.audioSession.type)).toBe("playback");
+  await page.locator("#toggle-ignore-silent").uncheck();
+  expect(await page.evaluate(() => navigator.audioSession.type)).toBe("auto");
+});
