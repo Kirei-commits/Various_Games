@@ -13,13 +13,19 @@ const clone = (x) => JSON.parse(JSON.stringify(x));
 const fresh = () => clone(M.newSave(D));
 
 const ABILITIES = ['antiDamageWall', 'antiGravity', 'superAntiDamageWall', 'superAntiGravity', 'antiWarp', 'antiBlock',
-  'antiMagic', 'antiSlow', 'flying', 'mineSweeper', 'ssAccel', 'lastStand'];
+  'antiMagic', 'antiSlow', 'flying', 'mineSweeper', 'ssAccel', 'lastStand',
+  'critical', 'drain', 'wallBoost', 'comboBoost', 'weakKiller', 'bossKiller', 'guard', 'speedUp', 'healTouch', 'counter'];
 
 // ------------------------------------------------------------ キャラの定義
-test('キャラは★3・★4・★5 が15体ずつの45体。最初の5体がモンスト、6体がパズルの編成', () => {
-  assert.equal(D.roster.length, 45);
-  assert.equal(new Set(D.roster.map((u) => u.id)).size, 45);
-  for (const r of [3, 4, 5]) assert.equal(D.roster.filter((u) => u.rarity === r).length, 15, `★${r}`);
+test('キャラは R・SR が15体ずつ、SSR が25体、LR が5体の60体。最初の5体がモンスト、6体がパズルの編成', () => {
+  assert.equal(D.roster.length, 60);
+  assert.equal(new Set(D.roster.map((u) => u.id)).size, 60);
+  const want = { 3: 15, 4: 15, 5: 25, 6: 5 };
+  for (const r of [3, 4, 5, 6]) assert.equal(D.roster.filter((u) => u.rarity === r).length, want[r], `★${r}`);
+  // LR は5属性1体ずつで、特性と友情が7つ
+  const lr = D.roster.filter((u) => u.rarity === 6);
+  assert.equal(new Set(lr.map((u) => u.element)).size, 5);
+  for (const u of lr) { assert.equal(u.abilities.length, 7, u.id); assert.equal(u.combos.length, 7, u.id); }
   assert.equal(D.roster.slice(0, 5).map((u) => u.id).join(), D.units.map((u) => u.id).join());
   assert.equal(D.meta.starter.join(), 'A,B,C,D,E,F');
   assert.equal(D.slots.length, 5);
@@ -27,21 +33,21 @@ test('キャラは★3・★4・★5 が15体ずつの45体。最初の5体が�
   const EL = ['fire', 'water', 'wood', 'light', 'dark'];
   for (const u of D.roster) {
     const w = u.id;
-    assert.ok(u.title && [3, 4, 5].includes(u.rarity), `${w} の名前とレア度`);
+    assert.ok(u.title && [3, 4, 5, 6].includes(u.rarity), `${w} の名前とレア度`);
     assert.ok(EL.includes(u.element) && ['reflect', 'pierce'].includes(u.shot), w);
     assert.ok(u.atk > 0 && u.hp > 0 && u.r === 30 && u.colors.length === 3 && u.accent, w);
     for (const a of u.abilities || []) assert.ok(ABILITIES.includes(a), `${w} の ${a}`);
     for (const k of u.killers || []) assert.ok((k.race || k.element) && (!k.rank || BT.KILLER[k.rank]), w);
-    assert.ok(u.combos.length === 3 && u.combos.every((c) => c.power > 0), `${w} の友情`);
+    assert.ok(u.combos.length === (u.rarity === 6 ? 7 : 3) && u.combos.every((c) => c.power > 0), `${w} の友情`);
     assert.ok(u.ss && u.ss.name && u.ss.turns > 0 && (u.ss.launch || u.ss.atk || u.ss.onStop || u.ss.comboTwice), `${w} の SS`);
   }
-  for (const r of [3, 4, 5]) assert.ok(D.roster.some((u) => u.rarity === r), `★${r} がいる`);
+  for (const r of [3, 4, 5, 6]) assert.ok(D.roster.some((u) => u.rarity === r), `★${r} がいる`);
   assert.equal(new Set(D.roster.map((u) => u.element)).size, 5, '5属性そろっている');
 });
 
 test('レア度が高いほど強い（★ごとの攻撃力と HP の平均が上がる）', () => {
   const avg = (r, k) => { const xs = D.roster.filter((u) => u.rarity === r).map((u) => u[k]); return xs.reduce((a, b) => a + b, 0) / xs.length; };
-  for (const k of ['atk', 'hp']) assert.ok(avg(3, k) < avg(4, k) && avg(4, k) < avg(5, k), k);
+  for (const k of ['atk', 'hp']) assert.ok(avg(3, k) < avg(4, k) && avg(4, k) < avg(5, k) && avg(5, k) < avg(6, k), k);
 });
 
 // ------------------------------------------------------------ 確率
@@ -58,7 +64,7 @@ test('たくさん引くと、出たレア度の割合が表示の確率に近�
   const s = fresh();
   s.gems = 1e9;
   const rng = seededRandom(7);
-  const count = { 3: 0, 4: 0, 5: 0 }, per = {};
+  const count = { 3: 0, 4: 0, 5: 0, 6: 0 }, per = {};
   const N = 30000;
   for (let i = 0; i < N; i++) {
     const r = M.pull(s, D, 1, rng).results[0];
@@ -138,17 +144,17 @@ test('新しいキャラは手持ちに入り、同じキャラはラックが�
 });
 
 // ------------------------------------------------------------ 報酬
-test('クリア報酬: 初回は多く、2回目からは少し。負けても少しもらえる', () => {
+test('クリア報酬: 勝つたびに同じだけもらえる（クリアするたびに減らない）。負けても少しもらえる', () => {
   const s = fresh();
   const g0 = s.gems;
   assert.deepEqual(clone(M.reward(s, D, 0, false)), { gems: D.meta.rewards[0].lose, first: false, total: g0 + D.meta.rewards[0].lose });
   const first = M.reward(s, D, 0, true);
   assert.ok(first.first && first.gems === D.meta.rewards[0].first);
   const again = M.reward(s, D, 0, true);
-  assert.ok(!again.first && again.gems === D.meta.rewards[0].again);
+  assert.ok(!again.first && again.gems === D.meta.rewards[0].first, '2回目も減らない');
   assert.ok(M.reward(s, D, 1, true).first, 'ステージごとに初回がある');
   assert.ok(s.cleared.s0 && s.cleared.s1);
-  for (const r of D.meta.rewards) assert.ok(r.first > r.again && r.again > r.lose && r.lose >= 0);
+  for (const r of D.meta.rewards) assert.ok(r.first > r.lose && r.lose >= 0);
   assert.ok(D.meta.rewards[0].first + D.meta.startGems >= D.gacha.cost10, '最初のクリアで10連が引ける');
 });
 
@@ -235,8 +241,97 @@ test('ステージは5つとも報酬があり、後のステージほど多い�
   const s = fresh();
   const p = M.puzzleReward(s, D, true);
   assert.ok(p.first && p.gems === D.meta.puzzle.first && s.cleared.puzzle);
-  assert.equal(M.puzzleReward(s, D, true).gems, D.meta.puzzle.again);
+  assert.equal(M.puzzleReward(s, D, true).gems, D.meta.puzzle.first);
   assert.equal(M.puzzleReward(s, D, false).gems, D.meta.puzzle.lose);
   // 最初のジェム＋ログインボーナスで10連が引ける。はじまりの草原の初回クリアでもう1回近く引ける
   assert.ok(D.meta.startGems + D.meta.daily >= D.gacha.cost10);
+});
+
+// ------------------------------------------------------------ 重複・合成・コード
+test('同じキャラは何体でも持てる。2体目からはストックになり、合成で +1（最大 +5）。攻撃力と HP が上がる', () => {
+  const s = fresh();
+  s.gems = 1e6;
+  const t = M.rateTable(D);
+  // A が出る乱数
+  let a = 0, b = 0, acc = 0;
+  for (const x of t) { const i = x.units.indexOf('A'); if (i >= 0) { a = acc + x.rate / 2; b = (i + 0.5) / x.units.length; } acc += x.rate; }
+  let n = 0;
+  const rng = () => (n++ % 2 === 0 ? a : b);
+  for (let i = 0; i < 7; i++) M.pull(s, D, 1, rng);
+  assert.equal(s.owned.A.stock, 7);
+  const base = M.partyUnits(s, D)[0];
+  for (let i = 0; i < 5; i++) assert.equal(M.fuse(s, D, 'A'), true);
+  assert.equal(M.fuse(s, D, 'A'), false, '+5 まで');
+  assert.equal(s.owned.A.plus, 5);
+  assert.equal(s.owned.A.stock, 2);
+  const after = M.partyUnits(s, D)[0];
+  assert.ok(after.atk > base.atk * 1.7 && after.hp > base.hp * 1.7, `${base.atk} → ${after.atk}`);
+  assert.equal(M.fuse(s, D, 'B'), false, 'ストックが無ければ合成できない');
+  const back = M.load(JSON.stringify(s), D);
+  assert.deepEqual(clone(back.owned.A), clone(s.owned.A), '保存しても残る');
+});
+
+test('ガチャのコード: 「開発者」でジェムが無限になり、ほかのコードは何も起こらない', () => {
+  const s = fresh();
+  const before = JSON.stringify(s);
+  for (const code of ['', 'abc', 'かいはつしゃ', '開発']) {
+    assert.equal(M.redeemCode(s, code).ok, false, code);
+    assert.equal(JSON.stringify(s), before);
+  }
+  const r = M.redeemCode(s, ' 開発者 ');
+  assert.ok(r.ok && s.infinite);
+  s.gems = 0;
+  assert.equal(M.pull(s, D, 10, seededRandom(1)).results.length, 10, 'ジェムが0でも引ける');
+  assert.equal(s.gems, 0);
+  assert.equal(M.load(JSON.stringify(s), D).infinite, true);
+});
+
+// ------------------------------------------------------------ おすすめ編成
+test('おすすめ編成: 手持ちから重ならない5体。ステージのギミックの対策と、属性の有利なキャラを選ぶ', () => {
+  const s = fresh();
+  for (const u of D.roster) s.owned[u.id] = { luck: 0, plus: 0, stock: 0 };
+  const volcano = M.recommend(s, D, 'strike', 2);
+  assert.equal(volcano.ids.length, 5);
+  assert.equal(new Set(volcano.ids).size, 5);
+  const els = volcano.ids.map((id) => M.byId(D, id).element);
+  assert.ok(els.filter((e) => e === 'water').length >= 2, `火のステージは水を入れる: ${els}`);
+  assert.ok(!els.includes('wood'), '火に不利な木は入れない');
+  // LR を持っていなければ、水がいちばん多くなる
+  const noLr = fresh();
+  for (const u of D.roster) if (u.rarity < 6) noLr.owned[u.id] = { luck: 0, plus: 0, stock: 0 };
+  const els2 = M.recommend(noLr, D, 'strike', 2).ids.map((id) => M.byId(D, id).element);
+  assert.ok(els2.filter((e) => e === 'water').length >= 3, `LR なし: ${els2}`);
+  // 手持ちが最初の6体だけなら、その中から選ぶ
+  const f = fresh();
+  const few = M.recommend(f, D, 'strike', 0);
+  assert.ok(few.ids.every((id) => f.owned[id]));
+  assert.equal(M.setParty(f, D, few.ids), true, 'そのまま編成にできる');
+  // ギミックの対策: 古城（魔法陣・地雷・ワープ・重力・電気の壁・ブロック）は対策を持つキャラが多い
+  const castle = M.recommend(s, D, 'strike', 4);
+  const covered = M.stageProfile(D, D.stages[4]).gimmicks.filter((g) => castle.ids.some((id) => {
+    const u = M.byId(D, id);
+    return D.counters[g].some((a) => (u.abilities || []).includes(a) || (u.gauge || []).includes(a));
+  }));
+  assert.ok(covered.length >= 5, `対策できるギミック ${covered.join()}`);
+});
+
+test('パズルのおすすめ編成は6体で、先頭（リーダー）はダンジョンの敵に有利な属性', () => {
+  const s = fresh();
+  for (const u of D.roster) s.owned[u.id] = { luck: 0, plus: 0, stock: 0 };
+  const fire = M.recommend(s, D, 'puzzle', 1);
+  assert.equal(fire.ids.length, 6);
+  assert.equal(M.byId(D, fire.ids[0]).element, 'water');
+  assert.equal(M.setParty(s, D, fire.ids, 'puzzle'), true);
+});
+
+test('パズルのダンジョンは5つ。後ほどフロアが多く報酬も多い。報酬はダンジョンごとに記録する', () => {
+  const dg = D.puzzle.dungeons;
+  assert.equal(dg.length, 5);
+  for (let i = 1; i < dg.length; i++) assert.ok(dg[i].reward > dg[i - 1].reward && dg[i].floors.length >= dg[i - 1].floors.length);
+  for (const d of dg) assert.ok(d.floors[d.floors.length - 1].some((e) => e.boss), `${d.name} の最後はボス`);
+  const s = fresh();
+  const r1 = M.puzzleReward(s, D, true, 2);
+  assert.ok(r1.first && r1.gems === dg[2].reward && s.cleared.puzzle2);
+  assert.equal(M.puzzleReward(s, D, true, 2).gems, dg[2].reward, '何回でも同じだけ');
+  assert.equal(M.puzzleReward(s, D, false, 4).gems, dg[4].lose);
 });

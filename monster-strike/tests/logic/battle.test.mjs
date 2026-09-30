@@ -297,13 +297,18 @@ test('友情コンボの無い味方・自分自身では何も起きない', ()
   assert.equal(battle.stats.combos, 0);
 });
 
-test('全キャラが3つの違う友情コンボを持つ', () => {
-  const KINDS = ['homing', 'laser', 'blast', 'spread', 'pierceHoming', 'lightning', 'lockon', 'xlaser', 'star'];
+test('全キャラが違う友情コンボを3つ（LR は7つ）持つ', () => {
+  const KINDS = ['homing', 'laser', 'blast', 'spread', 'pierceHoming', 'lightning', 'lockon', 'xlaser', 'star',
+    'meteor', 'heal', 'circle', 'sword', 'shotgun', 'bigHoming'];
   for (const u of D.roster) {
     const ks = u.combos.map((c) => c.kind);
-    assert.equal(ks.length, 3, u.id);
-    assert.equal(new Set(ks).size, 3, `${u.id} は同じ種類を重ねない`);
+    assert.equal(ks.length, u.rarity === 6 ? 7 : 3, u.id);
+    assert.equal(new Set(ks).size, ks.length, `${u.id} は同じ種類を重ねない`);
     for (const c of u.combos) assert.ok(KINDS.includes(c.kind) && c.power > 0 && c.name, `${u.id} ${c.kind}`);
+  }
+  // 15種類すべてを誰かが持っている
+  for (const k of KINDS) assert.ok(D.roster.some((u) => u.combos.some((c) => c.kind === k)), k);
+  for (const u of D.roster) {
   }
   assert.ok(D.roster.some((u) => u.combos.some((c) => c.name === 'レーザーEL')), '最強レーザーがいる');
 });
