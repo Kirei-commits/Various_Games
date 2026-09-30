@@ -2483,13 +2483,13 @@
     waves: [
       { enemies: [
         { id: 'a1-demon-l', name: 'ほのおのあくま', element: 'fire', race: 'beast', look: 'slime', colors: DEMON, shape: 'circle', x: 100, y: 180, r: 36,
-          hp: 118000, atk: 3800, turns: 2, attack: 'single' },
+          hp: 142000, atk: 3800, turns: 2, attack: 'single' },
         { id: 'a1-demon-c', name: 'きのあくま', element: 'wood', race: 'beast', look: 'slime', colors: SLIME, shape: 'circle', x: 270, y: 150, r: 36,
-          hp: 118000, atk: 3800, turns: 2, attack: 'single' },
+          hp: 142000, atk: 3800, turns: 2, attack: 'single' },
         { id: 'a1-demon-r', name: 'みずのあくま', element: 'water', race: 'beast', look: 'slime', colors: ICE, shape: 'circle', x: 440, y: 180, r: 36,
-          hp: 118000, atk: 3800, turns: 2, attack: 'single' },
+          hp: 142000, atk: 3800, turns: 2, attack: 'single' },
         { id: 'a1-golem', name: 'まかいゴーレム', element: 'dark', race: 'golem', look: 'golem', colors: ABYSS, shape: 'rect', x: 270, y: 360, w: 170, h: 56,
-          hp: 214000, atk: 6000, turns: 3, attack: 'all' }
+          hp: 257000, atk: 6000, turns: 3, attack: 'all' }
       ], gimmicks: {
         damageWalls: [{ side: 'left', from: 80, to: 700, damage: 2600 }, { side: 'right', from: 80, to: 700, damage: 2600 }],
         magic: [{ id: 'a1-magic-l', x: 150, y: 520, r: 34 }, { id: 'a1-magic-r', x: 390, y: 520, r: 34 }],
@@ -2497,9 +2497,9 @@
       } },
       { enemies: [
         { id: 'a2-dragon-l', name: 'あかいりゅう', element: 'fire', race: 'dragon', look: 'dragon', colors: ['#ffb08a', '#d82020', '#4a0606'], shape: 'circle', x: 140, y: 220, r: 56,
-          hp: 279000, atk: 5200, turns: 2, attack: 'all' },
+          hp: 335000, atk: 5200, turns: 2, attack: 'all' },
         { id: 'a2-dragon-r', name: 'あおいりゅう', element: 'water', race: 'dragon', look: 'dragon', colors: ['#bfe8ff', '#2a7ad8', '#08244a'], shape: 'circle', x: 400, y: 220, r: 56,
-          hp: 279000, atk: 5200, turns: 3, attack: 'all' }
+          hp: 335000, atk: 5200, turns: 3, attack: 'all' }
       ], gimmicks: {
         gravity: [{ id: 'a2-grav-l', x: 130, y: 450, r: 50 }, { id: 'a2-grav-r', x: 410, y: 450, r: 50 }],
         slowWalls: [{ side: 'top', from: 60, to: 480, factor: 0.5 }],
@@ -2516,11 +2516,11 @@
         { id: 'a3-king', name: 'まおう ディアボロス', element: 'dark', race: 'dragon', boss: true, phase: 1, phases: 3, look: 'dragon', colors: ['#e0b8ff', '#5a1ab0', '#12022e'],
           shape: 'compound', x: 270, y: 240, r: 92,
           parts: [{ dx: 0, dy: 0, r: 92 }, { dx: -120, dy: -12, r: 36 }, { dx: 120, dy: -12, r: 36 }, { dx: -148, dy: -58, r: 22 }, { dx: 148, dy: -58, r: 22 }],
-          hp: 716000, atk: 11000, turns: 3, attack: 'all', weak: [{ id: 'core', dx: 0, dy: 92, r: 22 }] },
+          hp: 859000, atk: 11000, turns: 3, attack: 'all', weak: [{ id: 'core', dx: 0, dy: 92, r: 22 }] },
         { id: 'a3-demon-l', name: 'ほのおのあくま', element: 'fire', race: 'beast', look: 'slime', colors: DEMON, shape: 'circle', x: 100, y: 480, r: 34,
-          hp: 108000, atk: 3600, turns: 2, attack: 'single' },
+          hp: 130000, atk: 3600, turns: 2, attack: 'single' },
         { id: 'a3-demon-r', name: 'ひかりのあくま', element: 'light', race: 'beast', look: 'slime', colors: ANGEL, shape: 'circle', x: 440, y: 480, r: 34,
-          hp: 108000, atk: 3600, turns: 2, attack: 'single' }
+          hp: 130000, atk: 3600, turns: 2, attack: 'single' }
       ], gimmicks: {
         damageWalls: [{ side: 'top', from: 60, to: 480, damage: 3000 }, { side: 'left', from: 380, to: 700, damage: 2600 }, { side: 'right', from: 380, to: 700, damage: 2600 }],
         gravity: [{ id: 'a3-grav', x: 270, y: 450, r: 56 }],
@@ -2533,11 +2533,11 @@
         { id: 'a32-king', name: 'まおう ディアボロス', element: 'dark', race: 'dragon', boss: true, phase: 2, phases: 3, look: 'dragon', colors: ['#e0b8ff', '#5a1ab0', '#12022e'],
           shape: 'compound', x: 270, y: 240, r: 92,
           parts: [{ dx: 0, dy: 0, r: 92 }, { dx: -120, dy: -12, r: 36 }, { dx: 120, dy: -12, r: 36 }, { dx: -148, dy: -58, r: 22 }, { dx: 148, dy: -58, r: 22 }],
-          hp: 716000, atk: 11000, turns: 3, attack: 'all', weak: [{ id: 'core', dx: 0, dy: 92, r: 22 }] },
+          hp: 859000, atk: 11000, turns: 3, attack: 'all', weak: [{ id: 'core', dx: 0, dy: 92, r: 22 }] },
         { id: 'a32-demon-l', name: 'ほのおのあくま', element: 'fire', race: 'beast', look: 'slime', colors: DEMON, shape: 'circle', x: 100, y: 480, r: 34,
-          hp: 108000, atk: 3600, turns: 2, attack: 'single' },
+          hp: 130000, atk: 3600, turns: 2, attack: 'single' },
         { id: 'a32-demon-r', name: 'ひかりのあくま', element: 'light', race: 'beast', look: 'slime', colors: ANGEL, shape: 'circle', x: 440, y: 480, r: 34,
-          hp: 108000, atk: 3600, turns: 2, attack: 'single' }
+          hp: 130000, atk: 3600, turns: 2, attack: 'single' }
       ], gimmicks: {
         damageWalls: [{ side: 'top', from: 60, to: 480, damage: 3000 }, { side: 'left', from: 380, to: 700, damage: 2600 }, { side: 'right', from: 380, to: 700, damage: 2600 }],
         gravity: [{ id: 'a32-grav', x: 270, y: 450, r: 56 }],
@@ -2550,11 +2550,11 @@
         { id: 'a33-king', name: 'まおう ディアボロス', element: 'dark', race: 'dragon', boss: true, phase: 3, phases: 3, look: 'dragon', colors: ['#e0b8ff', '#5a1ab0', '#12022e'],
           shape: 'compound', x: 270, y: 240, r: 92,
           parts: [{ dx: 0, dy: 0, r: 92 }, { dx: -120, dy: -12, r: 36 }, { dx: 120, dy: -12, r: 36 }, { dx: -148, dy: -58, r: 22 }, { dx: 148, dy: -58, r: 22 }],
-          hp: 716000, atk: 11000, turns: 3, attack: 'all', weak: [{ id: 'core', dx: 0, dy: 92, r: 22 }] },
+          hp: 859000, atk: 11000, turns: 3, attack: 'all', weak: [{ id: 'core', dx: 0, dy: 92, r: 22 }] },
         { id: 'a33-demon-l', name: 'ほのおのあくま', element: 'fire', race: 'beast', look: 'slime', colors: DEMON, shape: 'circle', x: 100, y: 480, r: 34,
-          hp: 108000, atk: 3600, turns: 2, attack: 'single' },
+          hp: 130000, atk: 3600, turns: 2, attack: 'single' },
         { id: 'a33-demon-r', name: 'ひかりのあくま', element: 'light', race: 'beast', look: 'slime', colors: ANGEL, shape: 'circle', x: 440, y: 480, r: 34,
-          hp: 108000, atk: 3600, turns: 2, attack: 'single' }
+          hp: 130000, atk: 3600, turns: 2, attack: 'single' }
       ], gimmicks: {
         damageWalls: [{ side: 'top', from: 60, to: 480, damage: 3000 }, { side: 'left', from: 380, to: 700, damage: 2600 }, { side: 'right', from: 380, to: 700, damage: 2600 }],
         gravity: [{ id: 'a33-grav', x: 270, y: 450, r: 56 }],
