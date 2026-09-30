@@ -210,28 +210,56 @@ test('貫通タイプは同じ的の中を進んでいる間、減速は1回だ�
   for (let i = 1; i < first.length; i++) assert.ok(first[i].t - first[i - 1].t > 0.05);
 });
 
-test('反射タイプは味方にも跳ね返り、貫通タイプは味方もすり抜ける', () => {
-  const wa = standardWorld(P);
-  wa.get('A').x = 250;
-  wa.launch('A', -100, 0); // 右へ → B へ
-  const ea = runUntilStop(wa).events;
-  assert.ok(ea.some((e) => e.type === 'hit' && e.other === 'B'));
-
-  const wb = standardWorld(P);
-  wb.get('B').x = 290;
-  wb.launch('B', 100, 0); // 左へ → A へ
-  const eb = runUntilStop(wb).events;
-  assert.ok(eb.some((e) => e.type === 'pierce' && e.other === 'A'));
-  assert.ok(!eb.some((e) => e.type === 'hit'));
+test('味方には跳ね返らず、減速もせずにすり抜けて、触れた瞬間に touch を1回出す（反射も貫通も同じ）', () => {
+  for (const [id, other, x, dx] of [['A', 'B', 250, -100], ['B', 'A', 290, 100]]) {
+    const w = standardWorld(P);
+    w.get(id).x = x;
+    w.launch(id, dx, 0);
+    const ev = [];
+    let sp0 = null, spAfter = null;
+    const me = w.get(id);
+    for (let n = 0; n < 20000 && !w.isSettled(); n++) {
+      const before = me.speed();
+      w.step();
+      const e = w.drainEvents();
+      ev.push(...e);
+      const t = e.find((q) => q.type === 'touch' && q.other === other);
+      if (t) { sp0 = before; spAfter = me.speed(); }
+    }
+    assert.equal(ev.filter((e) => e.type === 'touch' && e.other === other).length >= 1, true, `${id} → ${other}`);
+    assert.ok(!ev.some((e) => (e.type === 'hit' || e.type === 'pierce') && e.other === other), '味方には hit / pierce を出さない');
+    assert.ok(spAfter > sp0 * 0.98, '味方に触れても減速しない');
+  }
 });
 
-test('弾かれていないキャラと的は動かない', () => {
+test('弾かれていないキャラと的は動かない（すり抜けられた味方は少しだけずれる）', () => {
   const w = standardWorld(P);
-  const snap = () => w.bodies.filter((b) => b.id !== 'A').map((b) => [b.id, b.x, b.y]);
+  const snap = () => w.bodies.filter((b) => b.id !== 'A').map((b) => [b.id, b.x, b.y, b.kind]);
   const before = snap();
   w.launch('A', 30, 150);
   runUntilStop(w);
-  assert.deepEqual(snap(), before);
+  const after = snap();
+  before.forEach((b, i) => {
+    const a = after[i], moved = Math.hypot(a[1] - b[1], a[2] - b[2]);
+    if (b[3] === 'unit') assert.ok(moved <= C.allyNudge * 3 + 1e-9, `${b[0]} は少しだけ`);
+    else assert.equal(moved, 0, `${b[0]} は動かない`);
+  });
+});
+
+test('ストップで止められる。動き続けても maxMove 秒で止まる', () => {
+  const w = standardWorld(P);
+  w.launch('A', 0, 150);
+  w.step();
+  w.stop('A');
+  assert.equal(w.get('A').moving, false);
+  assert.ok(w.drainEvents().some((e) => e.type === 'stop'));
+  // 摩擦なしで壁の間を往復させても止まる
+  const w2 = new P.World({ friction: { linear: 0, drag: 0 }, wall: { restitution: 1 } });
+  w2.add({ id: 'A', kind: 'unit', shot: 'reflect', x: 270, y: 400, r: 30 });
+  w2.setVelocity('A', 1500, 0);
+  let n = 0;
+  while (!w2.isSettled() && n < 240 * 30) { w2.step(); n++; }
+  assert.ok(n <= Math.ceil(w2.cfg.maxMove * 240) + 2, `${n} ステップで止まった`);
 });
 
 test('貫通タイプが的の中で止まったら、重ならない位置へ押し出される', () => {
@@ -274,8 +302,12 @@ test('ランダムな1000発: 外に出ない・すり抜けない・重なら�
       assert.ok(me.x >= me.r - 1e-6 && me.x <= C.field.w - me.r + 1e-6, `#${n} x=${me.x}`);
       assert.ok(me.y >= me.r - 1e-6 && me.y <= C.field.h - me.r + 1e-6, `#${n} y=${me.y}`);
       if (me.shot === 'reflect') {
-        const o = w._overlapping(me);
-        assert.ok(!o || Math.hypot(me.x - o.x, me.y - o.y) >= me.r + o.r - 0.5, `#${n} 反射タイプが ${o && o.id} にめり込んだ`);
+        // 味方はすり抜けるので、味方以外（的）にめり込んでいないかを見る
+        for (const o of w.bodies) {
+          if (o === me || o.kind === 'unit') continue;
+          const c = P.contact(me, o);
+          assert.ok(!c || c.depth <= 1, `#${n} 反射タイプが ${o.id} にめり込んだ`);
+        }
       }
       assert.ok(steps < 240 * 20, `#${n} 20秒以内に止まる`);
     }
