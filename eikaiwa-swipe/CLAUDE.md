@@ -10,7 +10,8 @@ CI はリポジトリ直下の `.github/workflows/ci.yml`（`changes` ジョブ�
 2. **`src/logic.js` は DOM・音声API・LocalStorage に触らない純粋関数だけにする。**
    「今日」や乱数は引数で受け取る。これにより lint とロジックテストが依存なしの Node だけで動く。
 3. **教材は各章ちょうど50問、英語の重複なし。** 章を増やしたら `src/data/index.js` の import・配列・`PARTS` と、
-   `tests/lint.mjs` の章数を更新する（単語の章は例文1行「A: 例文 | A: 訳」の形）。章ID（chNN）はテスト記録のキーなので、既存の章の番号は変えず、新しい章は末尾に足す。
+   `tests/lint.mjs` の章数を更新する（単語の章は例文1行「A: 例文 | A: 訳」の形）。
+   教材の英文を足したら `node tools/readings.mjs <cmudict.dict>` で読み方（ルビ）の発音データ `src/data/pron.js` も作り直す（cmudict は `pip download cmudict` の中）。章ID（chNN）はテスト記録のキーなので、既存の章の番号は変えず、新しい章は末尾に足す。
 4. **利用者の学習記録を絶対に失わない。** アプリを改修しても進捗が引き継がれるよう、次を守る。
    - 問題IDは英語から作る。**英語を書き換えたら `src/data/id-changes.js` の `RENAMED` に「古いID: 新しいID」を、
      問題を消したら `RETIRED` に古いIDを書く。** 公開済みIDは `src/data/ids.lock.json`（ビルドが追記する。手で消さない）に

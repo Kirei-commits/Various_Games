@@ -217,3 +217,38 @@ test("iPhone のマナーモード: ふつうは BGM・効果音を鳴らさな�
   await page.locator("#toggle-ignore-silent").uncheck();
   expect(await page.evaluate(() => navigator.audioSession.type)).toBe("auto");
 });
+
+test("例文の単語をタップすると意味と読み方が出て、読み上げられる（カードは裏返らない）。読み方・リンキングの読み方のルビは設定でオン・オフ", async ({ page, isMobile }) => {
+  const card = page.getByTestId("swipe-card");
+  await card.click();
+  await expect(page.getByText("タップで表に戻る")).toBeVisible();
+  // ルビは最初はなし
+  await expect(page.getByTestId("ruby")).toHaveCount(0);
+  // 例文の単語をタップ（スマホは指で）
+  const going = page.locator('[data-lookup="going?"]').first();
+  if (isMobile) await going.tap();
+  else await going.click();
+  const sheet = page.getByTestId("word-lookup");
+  await expect(sheet).toBeVisible();
+  await expect(sheet).toContainText("going");
+  await expect(sheet).toContainText("ゴーイング");
+  await expect(sheet).toContainText("元の形: go");
+  await expect(page.getByTestId("word-lookup-meaning")).toHaveText("行く");
+  await sheet.getByRole("button", { name: "going" }).click();
+  await expect.poll(() => page.evaluate(() => window.__spoken.map((s) => s.text).join("|"))).toContain("going");
+  await sheet.getByRole("button", { name: "閉じる" }).click();
+  await expect(page.getByText("タップで表に戻る")).toBeVisible(); // 裏返っていない
+
+  // 読み方のルビ → 1語ずつ。リンキングの読み方 → つながる語をまとめた読み（赤）
+  await page.getByRole("button", { name: "音声の設定" }).first().click();
+  await page.locator("#toggle-ruby").check();
+  await page.getByRole("dialog", { name: "音声の設定" }).getByRole("button", { name: "閉じる" }).click();
+  await expect(page.getByTestId("ruby").filter({ hasText: "ゴーイング" }).first()).toBeVisible();
+  await expect(page.locator("rt.rt-link")).toHaveCount(0);
+  await page.getByRole("button", { name: "音声の設定" }).first().click();
+  await page.locator("#toggle-ruby").uncheck();
+  await page.locator("#toggle-ruby-linking").check();
+  await page.getByRole("dialog", { name: "音声の設定" }).getByRole("button", { name: "閉じる" }).click();
+  await expect(page.locator("rt.rt-link").first()).toBeVisible();
+  await expect(page.locator("rt.rt:not(.rt-link)")).toHaveCount(0);
+});
