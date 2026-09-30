@@ -7,6 +7,8 @@ import {
   tick,
   attack,
   target,
+  setTarget,
+  STAGE_COUNTS,
   quit,
   starsOf,
   resultsOf,
@@ -285,4 +287,31 @@ test("倒すとすぐ次の敵が出る（場が空なら0.25秒、ほかの敵�
   attack(b, true, rng);
   tick(b, RESPAWN_AFTER_KILL, rng, 0);
   assert.equal(b.enemies.length, 2, "ほかの敵がいても0.9秒で補充される");
+});
+
+test("ステージの敵の数は 10・50・100 から選べる（章の問題より多ければ、同じ単語がもう一周出る）", () => {
+  assert.deepEqual(STAGE_COUNTS, [10, 50, 100]);
+  for (const count of STAGE_COUNTS) {
+    const b = createBattle({ mode: "stage", items: chapter.items, count, rng: mulberry32(1) });
+    assert.equal(b.total, count);
+    assert.equal(b.queue.length, count);
+    assert.equal(b.bossWords.length, 3);
+  }
+  assert.equal(createBattle({ mode: "stage", items: chapter.items, count: 7, rng: mulberry32(1) }).total, 10, "ない数は10体");
+});
+
+test("複数いるときはタップで狙う敵を切り替えられる。倒すとまた一番近い敵を狙う", () => {
+  const rng = mulberry32(3);
+  const b = createBattle({ mode: "stage", items: chapter.items, rng });
+  for (let i = 0; i < 20 && b.enemies.length < 3; i++) tick(b, 3000, rng, 0);
+  assert.equal(b.enemies.length, 3);
+  b.enemies.forEach((e, i) => (e.y = 0.1 * (i + 1))); // 最後の敵が一番近い
+  const far = b.enemies[0];
+  assert.equal(target(b), b.enemies[2]);
+  assert.equal(setTarget(b, far.uid), true);
+  assert.equal(target(b), far);
+  assert.equal(setTarget(b, 9999), false, "いない敵は選べない");
+  attack(b, true, rng);
+  assert.ok(!b.enemies.includes(far));
+  assert.equal(target(b), b.enemies.reduce((a, e) => (e.y > a.y ? e : a)));
 });

@@ -26,13 +26,13 @@ async function winFloor(page) {
 }
 
 test("冒険: 集めた単語をおまかせで装備すると能力値が上がり、塔で敵を倒して経験値をもらえる", async ({ page }) => {
-  await openQuest(page, { breakfast: 2, park: 1, family: 1 });
+  await openQuest(page, { inevitable: 2, park: 1, family: 1 });
   const stats = page.getByTestId("quest-stats");
   const before = await stats.innerText();
   await page.getByRole("button", { name: "おまかせ装備" }).click();
-  await expect(page.getByTestId("quest-equip")).toContainText("breakfast");
+  await expect(page.getByTestId("quest-equip")).toContainText("inevitable");
   await expect(stats).not.toHaveText(before);
-  // 装備は7か所。SSR（breakfast）を付けると特製の呪文が使える
+  // 装備は7か所。SSR（inevitable）を付けると特製の呪文が使える
   await expect(page.getByTestId("quest-equip").getByRole("listitem")).toHaveCount(7);
   await expect(page.getByTestId("quest-skills")).toBeVisible();
 
@@ -140,4 +140,44 @@ test("冒険: 装備を交換ポイントで強化できる（段が上がるほ
   await expect(sheet.getByRole("button", { name: /\+3 に強化する（交換ポイント 9）/ })).toBeDisabled();
   await sheet.getByRole("button", { name: "閉じる" }).click();
   await expect(page.getByTestId("quest-equip")).toContainText("+2");
+});
+
+test("冒険: ぼうぎょも問題に答える。深い階では熟語も出て、「熟語も出す」をオフにすると単語だけ", async ({ page }) => {
+  await page.evaluate(() => {
+    localStorage.setItem("swipetalk:v2", JSON.stringify({ version: 8, learned: {}, quest: { best: 10 }, gacha: { starter: true, cards: { breakfast: 1 } } }));
+  });
+  await page.reload();
+  await page.getByRole("button", { name: "テスト", exact: true }).click();
+  await page.getByRole("button", { name: "冒険" }).click();
+  await expect(page.locator("#quest-idioms")).toBeChecked();
+
+  // 11階（熟語が 26% 混ざる）: 問題を出しては「もどる」を繰り返すと、熟語の問題が出てくる
+  await page.getByRole("button", { name: "11階から" }).click();
+  const question = page.getByTestId("quest-question");
+  let idiom = false;
+  for (let i = 0; i < 40 && !idiom; i++) {
+    await page.getByRole("button", { name: "たたかう" }).click();
+    idiom = (await question.innerText()).includes("熟語の意味をえらべ");
+    await question.getByRole("button", { name: "もどる" }).click();
+  }
+  expect(idiom).toBe(true);
+
+  // ぼうぎょも問題が出る。間違えるとガード失敗
+  await page.getByRole("button", { name: "ぼうぎょ" }).click();
+  await expect(question).toContainText("ぼうぎょ:");
+  await page.locator('[data-testid="quest-choice"][data-correct="0"]').first().click();
+  await expect(page.getByTestId("quest-log")).toContainText("ぼうぎょに しっぱい");
+
+  // オフにすると単語だけ（ガード失敗で倒れていれば、そのまま結果の画面）
+  const flee = page.getByRole("button", { name: "にげる（街に帰る）" });
+  await expect(page.getByTestId("quest-result").or(flee)).toBeVisible();
+  if (await flee.isVisible()) await flee.click();
+  await page.getByRole("button", { name: "準備にもどる" }).click();
+  await page.locator("#quest-idioms").uncheck();
+  await page.getByRole("button", { name: "11階から" }).click();
+  for (let i = 0; i < 25; i++) {
+    await page.getByRole("button", { name: "たたかう" }).click();
+    await expect(question).not.toContainText("熟語");
+    await question.getByRole("button", { name: "もどる" }).click();
+  }
 });

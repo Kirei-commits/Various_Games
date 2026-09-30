@@ -168,9 +168,9 @@ export const plusOf = (exp) => {
 /**
  * +N に上げるのに使う交換ポイント（1段ずつ）: レア度の基本 × 段の倍率。段が上がるほど重くなる。
  * 交換ポイントはガチャ1回で1つ（MAX の単語がまた出たらもっと）なので、+10 はかなりのやり込み
- * （SSR は +1〜+10 の合計 6,720、+5 まで 760。N は合計 504）。
+ * SR・SSR はかなり重い（2026-09-30）: SSR は +1 で 200、+5 まで 3,800、+10 まで合計 33,600。SR は合計 10,080、R 1,680、N 504。
  */
-export const ENHANCE_BASE = { N: 3, R: 6, SR: 15, SSR: 40 };
+export const ENHANCE_BASE = { N: 3, R: 10, SR: 60, SSR: 200 };
 export const ENHANCE_STEP = [0, 1, 2, 3, 5, 8, 12, 18, 26, 38, 55];
 export const enhanceCost = (card, toPlus) => (ENHANCE_BASE[rarityOf(card)] || ENHANCE_BASE.N) * (ENHANCE_STEP[toPlus] || 0);
 /** +from から +to まで上げるのに使う交換ポイントの合計 */
@@ -374,6 +374,13 @@ export function enemyFor(floor, rng = Math.random) {
 // 戦闘
 // ---------------------------------------------------------------------------
 
+/**
+ * 熟語（2〜4語のフレーズ）が問題に混ざる割合。IDIOM_FLOOR 階から 20%、1階ごとに +2%、最大 50%。
+ * 冒険の画面の「熟語も出す」をオフにすると単語だけ
+ */
+export const IDIOM_FLOOR = 8;
+export const idiomChance = (floor) => (floor < IDIOM_FLOOR ? 0 : Math.min(0.5, 0.2 + (floor - IDIOM_FLOOR) * 0.02));
+
 export const START_HERBS = 3;
 export const HERB_HEAL = 0.5; // 最大 HP の割合
 /** ぼうぎょで回復する MP（最大 MP の割合。最低 DEFEND_MP） */
@@ -423,7 +430,7 @@ export function createRun(stats, start = 1, rng = Math.random) {
 /**
  * 1ターン進める。
  * @param action "attack" | "skill" | "defend" | "herb"
- * @param answer { id, correct }（attack・skill のときの4択の答え）
+ * @param answer { id, correct }（attack・skill・defend のときの4択の答え。defend で間違えると身をまもれない）
  * @param skillId skill のときの呪文（SKILLS のキー。装備している SSR のものだけ）
  * @returns 新しい run（error があれば行動できなかった）
  */
@@ -439,9 +446,11 @@ export function act(run, stats, action, answer = null, rng = Math.random, skillI
   const e = r.enemy;
   r.turn += 1;
 
+  // 答えた問題の記録（こうげき・呪文・ぼうぎょ。苦手の記録に使う）
+  if (answer?.id && !(answer.id in r.results)) r.results[answer.id] = !!answer.correct;
+  else if (answer?.id && !answer.correct) r.results[answer.id] = false;
+
   if (action === "attack" || skill) {
-    if (answer?.id && !(answer.id in r.results)) r.results[answer.id] = !!answer.correct;
-    else if (answer?.id && !answer.correct) r.results[answer.id] = false;
     r.mp -= cost;
     const magic = skill ? "skill" : null;
     if (!answer?.correct) {
@@ -481,9 +490,15 @@ export function act(run, stats, action, answer = null, rng = Math.random, skillI
       }
     }
   } else if (action === "defend") {
-    r.defending = true;
-    r.mp = Math.min(stats.mp, r.mp + defendMp(stats.mp));
-    ev({ type: "defend" });
+    // ぼうぎょも4択に答える。間違えると身をまもれない（大こうげきもそのまま受ける）
+    if (answer && !answer.correct) {
+      r.combo = 0;
+      ev({ type: "defendMiss" });
+    } else {
+      r.defending = true;
+      r.mp = Math.min(stats.mp, r.mp + defendMp(stats.mp));
+      ev({ type: "defend" });
+    }
   } else if (action === "herb") {
     r.herbs -= 1;
     const heal = Math.min(stats.hp - r.hp, Math.round(stats.hp * HERB_HEAL));

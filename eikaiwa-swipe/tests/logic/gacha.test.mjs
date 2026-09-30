@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import raw, { PARTS } from "../../src/data/index.js";
-import { SECRETS, TITLES, TRIVIA, QUEST_WORDS } from "../../src/data/gacha-data.js";
+import { SECRETS, TITLES, TRIVIA, QUEST_WORDS, SSR_WORDS } from "../../src/data/gacha-data.js";
 import {
   buildLibrary,
   mulberry32,
@@ -54,16 +54,20 @@ const lib = buildLibrary(raw);
 const catalog = buildCatalog(lib, PARTS);
 const withPoints = (points, tickets = 0) => grant(freshState(), { points, tickets });
 
-test("カタログ: 単語3000語＋シークレット。基礎=N・生活=R・応用=SR、語源のある単語は SSR", () => {
+test("カタログ: 単語3000語＋シークレット。基礎=N・生活=R・応用=SR、語源のある単語も SR、SSR は特に難しい単語", () => {
   const ids = Object.keys(catalog.cards);
   assert.equal(ids.length, 3000 + SECRETS.length);
   assert.equal(catalog.cards.go.rarity, "N");
-  assert.equal(catalog.cards.school.rarity, "SSR");
+  assert.equal(catalog.cards.school.rarity, "SR", "語源のある単語は SR");
   assert.equal(catalog.cards.revenue.rarity, "SR");
+  assert.equal(catalog.cards.inevitable.rarity, "SSR");
+  assert.ok(catalog.cards.inevitable.trivia === null);
   // 冒険限定の単語はガチャに出ない
   const questOnly = Object.values(catalog.cards).filter((c) => c.questOnly);
   assert.equal(questOnly.length, QUEST_WORDS.length);
-  assert.equal(catalog.pools.all.SSR.length, Object.keys(TRIVIA).filter((id) => !QUEST_WORDS.includes(id)).length);
+  assert.equal(catalog.pools.all.SSR.length, SSR_WORDS.length);
+  for (const id of SSR_WORDS) assert.equal(catalog.cards[id]?.rarity, "SSR", id);
+  for (const id of Object.keys(TRIVIA)) if (!SSR_WORDS.includes(id)) assert.equal(catalog.cards[id].rarity, "SR", id);
   assert.ok(!Object.values(catalog.pools.all).flat().some((id) => catalog.cards[id].questOnly));
   // 冒険限定の単語は、称号・シークレットの条件に使わない（ガチャで集められなくなるため）
   for (const t of TITLES) for (const id of t.rule.ids || []) assert.ok(!QUEST_WORDS.includes(id), `TITLE ${t.id}: ${id}`);
@@ -202,7 +206,7 @@ test("品詞別ガチャは、その品詞の単語だけが出る", () => {
 test("交換ポイント: 1回ごとに1、ダブりで追加。好きな単語と交換できる", () => {
   const r = pull(withPoints(1000), catalog, { times: 10 }, mulberry32(3));
   assert.ok(r.state.gacha.exPoints >= 10);
-  let s = { ...r.state, gacha: { ...r.state.gacha, exPoints: EXCHANGE_COST.SSR } };
+  let s = { ...r.state, gacha: { ...r.state.gacha, exPoints: EXCHANGE_COST.SR } };
   const e = exchange(s, catalog, "sandwich");
   assert.equal(e.error, undefined);
   assert.equal(e.state.gacha.cards.sandwich, 1);
@@ -215,8 +219,9 @@ test("交換ポイント: 1回ごとに1、ダブりで追加。好きな単語�
 test("選択チケットは、そのレア度の未所持の単語にだけ使える", () => {
   const s = grant(freshState(), { selSSR: 1 });
   assert.ok(exchange(s, catalog, "go", "selSSR").error);
-  const e = exchange(s, catalog, "robot", "selSSR");
-  assert.equal(e.state.gacha.cards.robot, 1);
+  assert.ok(exchange(s, catalog, "robot", "selSSR").error, "robot は SR");
+  const e = exchange(s, catalog, "inevitable", "selSSR");
+  assert.equal(e.state.gacha.cards.inevitable, 1);
   assert.equal(e.state.gacha.selSSR, 0);
 });
 
@@ -292,22 +297,22 @@ test("5倍ブースト: 使うと1時間ポイント5倍。使用中にもう1�
   assert.equal(s.gacha.boostUntil, 1000 + BOOST_MS * 2);
 });
 
-test("コード: 単語帳の単語を入れるとポイント（100〜最大5000）とその単語。難しい単語ほど多く、1日5回・同じ単語は1回だけ", () => {
+test("コード: 単語帳の単語を入れるとポイント（600〜最大30000）とその単語。難しい単語ほど多く、1日5回・同じ単語は1回だけ", () => {
   const day = "2026-01-01";
   let s = freshState();
   const easy = redeemCode(s, catalog, "go", day);
-  assert.ok(easy.points >= 100 && easy.points <= 500, `${easy.points}`);
+  assert.ok(easy.points >= 600 && easy.points <= 3000, `${easy.points}`);
   assert.equal(easy.got, true);
   assert.equal(easy.state.gacha.cards.go, 1, "入れた単語が手に入る");
   const ssrId = Object.keys(catalog.cards).find((id) => catalog.cards[id].rarity === "SSR" && !catalog.cards[id].secret);
   const hard = redeemCode(easy.state, catalog, `  ${catalog.cards[ssrId].english.toUpperCase()} `, day);
-  assert.ok(hard.points >= 3000 && hard.points <= 5000, `${hard.points}`);
+  assert.ok(hard.points >= 18000 && hard.points <= 30000, `${hard.points}`);
   const secret = redeemCode(s, catalog, "companion", day);
-  assert.equal(secret.points, 5000); // シークレット単語は最高（5000）
+  assert.equal(secret.points, 30000); // シークレット単語は最高（30000）
   assert.equal(secret.got, false, "シークレット単語はコードでは手に入らない");
   assert.equal(redeemCode(s, catalog, "legend", day).got, false, "冒険限定の単語もポイントだけ");
   const values = Object.values(catalog.cards).map(codeValue);
-  assert.ok(Math.min(...values) >= 100 && Math.max(...values) <= 5000);
+  assert.ok(Math.min(...values) >= 600 && Math.max(...values) <= 30000);
 
   s = hard.state;
   assert.match(redeemCode(s, catalog, "go", day).error, /もう使いました/);

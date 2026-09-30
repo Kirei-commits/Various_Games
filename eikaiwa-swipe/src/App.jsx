@@ -97,6 +97,7 @@ import {
   MULTI_PULLS,
   MAX_PULLS,
   CODE_DAILY_LIMIT,
+  CODE_POINTS_MAX,
   CODE_POINTS,
   POINTS_PER_MINUTE,
   BOOST_RATE,
@@ -110,6 +111,8 @@ import {
   quit,
   resultsOf,
   STAGE_ENEMIES,
+  STAGE_COUNTS,
+  setTarget as battleSetTarget,
   BATTLE_POINTS,
   BATTLE_TICKETS,
   applyBattle,
@@ -367,6 +370,11 @@ const KIND_ITEMS = {
   phrase: PART_GROUPS.filter((p) => p.kind === "phrase").flatMap((p) => p.chapters.flatMap((c) => c.items)),
   word: PART_GROUPS.filter((p) => p.kind === "word").flatMap((p) => p.chapters.flatMap((c) => c.items)),
 };
+/** 冒険の深い階で混ざる熟語: フレーズの章の2〜4語の句（文ではないもの。wake up・take a shower など） */
+const IDIOM_POOL = KIND_ITEMS.phrase.filter((p) => {
+  const n = p.english.split(" ").length;
+  return n >= 2 && n <= 4 && !/[?.!]$/.test(p.english);
+});
 
 // ---------------------------------------------------------------------------
 // 永続化
@@ -426,7 +434,8 @@ const DEFAULT_SETTINGS = {
   theme: "", // 着せかえ（空なら以前ログインボーナスで選んだもの、なければスタンダード）
   test: { scope: "ch01", count: 10, direction: "en-ja", prompt: "text", answer: "type" },
   play: "test", // テスト画面で「テスト」「バトル」「冒険」のどれを開くか
-  battle: { mode: "stage", chapter: "ch51", scope: "word", direction: "en-ja", answer: "choice", order: "random" },
+  questIdioms: true, // 冒険で、深い階から熟語（2〜4語のフレーズ）も出す
+  battle: { mode: "stage", chapter: "ch51", scope: "word", direction: "en-ja", answer: "choice", order: "random", count: 10 },
 };
 
 function loadSettings() {
@@ -435,7 +444,8 @@ function loadSettings() {
     ...DEFAULT_SETTINGS,
     ...s,
     test: { ...DEFAULT_SETTINGS.test, ...(s.test || {}) },
-    battle: { ...DEFAULT_SETTINGS.battle, ...(s.battle || {}) },
+    // バトルの音声入力は 2026-09-30 になくした（テンポが悪くなるため）。選んでいた人は4択に
+    battle: { ...DEFAULT_SETTINGS.battle, ...(s.battle || {}), ...(s.battle?.answer === "voice" ? { answer: "choice" } : {}) },
   };
 }
 
@@ -2254,6 +2264,7 @@ const MONSTER_COLOR = {
   dragon: "#fbbf24",
 };
 const FX_LIFE = 1100; // 演出を表示しておく時間（ms）
+const CLEAR_MS = 2000; // ボスを倒してから結果の画面に移るまで（ステージクリアの演出）
 
 /** 要素をその場で少し動かす（Web Animations API。使えない環境では何もしない） */
 const wiggle = (el, keyframes, duration) => {
@@ -2312,7 +2323,7 @@ function BattleSetup({ config, setConfig, record, misses, favorites, onStart, on
           </div>
           <p className="mt-2 text-xs leading-relaxed text-slate-500">
             {stage
-              ? `章や難易度がステージ。敵${STAGE_ENEMIES}体を倒すとボスが登場。ノーダメージでクリアすると★3（初回はレアチケットおまけ）。`
+              ? `章や難易度がステージ。敵${config.count || STAGE_ENEMIES}体を倒すとボスが登場。ノーダメージでクリアすると★3（初回はレアチケットおまけ）。`
               : "10体倒すごとにレベルアップ。敵が少しずつ速く・多くなります。HP がなくなるまで何体倒せるか挑戦！"}
           </p>
         </div>
@@ -2351,6 +2362,20 @@ function BattleSetup({ config, setConfig, record, misses, favorites, onStart, on
             {stage ? `このステージの記録 ${"★".repeat(stars)}${"☆".repeat(3 - stars)}` : `最高得点 ${best}`}
           </p>
         </div>
+
+        {stage && (
+          <div>
+            <p className="text-xs font-bold text-slate-500">敵の数（ボスの前まで）</p>
+            <div className="mt-1">
+              <Segmented
+                name="battle-count"
+                value={String(config.count || STAGE_ENEMIES)}
+                onChange={(v) => set({ count: Number(v) })}
+                options={STAGE_COUNTS.map((n) => ({ value: String(n), label: `${n}体` }))}
+              />
+            </div>
+          </div>
+        )}
 
         <div>
           <p className="text-xs font-bold text-slate-500">出てくる順番</p>
@@ -2397,14 +2422,12 @@ function BattleSetup({ config, setConfig, record, misses, favorites, onStart, on
               options={[
                 { value: "choice", label: "4択", icon: ListChecks },
                 { value: "type", label: "入力", icon: Keyboard },
-                { value: "voice", label: "音声", icon: Mic },
               ]}
             />
           </div>
           <p className="mt-2 text-xs leading-relaxed text-slate-500">
             {config.answer === "choice" && "4つから選んで即攻撃。テンポよく連打できます。"}
             {config.answer === "type" && "答えを入力して Enter で攻撃。敵はゆっくり近づきます。"}
-            {config.answer === "voice" && "マイクを押して話すと攻撃。敵はゆっくり近づきます。"}
           </p>
         </div>
       </div>
@@ -2447,6 +2470,7 @@ function BattleRun({ session, speech, recognition, onFinish, active = true, tool
       answer: config.answer,
       direction: config.direction,
       order: config.order,
+      count: config.count,
       key: session.key,
     });
   }
@@ -2468,6 +2492,8 @@ function BattleRun({ session, speech, recognition, onFinish, active = true, tool
   const speechRef = useRef(speech);
   speechRef.current = speech;
   const announced = useRef(new Set());
+  // ボス出現の演出は1回だけ（下のループの effect は作り直されることがあるので、ref で覚える）
+  const bossSeen = useRef(false);
   const b = battle.current;
   const t = target(b);
   const pool = items.length >= 4 ? items : ALL_ITEMS;
@@ -2496,7 +2522,7 @@ function BattleRun({ session, speech, recognition, onFinish, active = true, tool
 
   const addFx = (list) => {
     const at = performance.now();
-    fx.current = [...fx.current.filter((f) => at - f.at < FX_LIFE), ...list.map((f) => ({ ...f, id: ++fxId.current, at }))];
+    fx.current = [...fx.current.filter((f) => at - f.at < (f.life || FX_LIFE)), ...list.map((f) => ({ ...f, id: ++fxId.current, at }))];
   };
   /** 敵の画面上の位置（px）。上ほど小さく見える（遠近） */
   const layout = () => {
@@ -2517,7 +2543,6 @@ function BattleRun({ session, speech, recognition, onFinish, active = true, tool
   useEffect(() => {
     let raf;
     let last = performance.now();
-    let bossSeen = false;
     const loop = (now) => {
       const bt = battle.current;
       const dt = activeRef.current ? Math.min(100, Math.max(0, now - last)) : 0;
@@ -2547,18 +2572,20 @@ function BattleRun({ session, speech, recognition, onFinish, active = true, tool
         );
         wiggle(heroRef.current, [{ opacity: 0.2 }, { opacity: 1 }, { opacity: 0.2 }, { opacity: 1 }], 600);
       }
-      if (bt.bossSpawned && !bossSeen) {
-        bossSeen = true;
+      if (bt.bossSpawned && !bossSeen.current) {
+        bossSeen.current = true;
         sound.play("complete");
         if (activeRef.current) sound.setBattleMusic("boss");
         setFlash({ type: "boss", text: "ボス出現！", at: now });
         addFx([{ kind: "warning" }]);
       }
       setFrame((n) => n + 1);
-      if (bt.over) {
+      // ステージクリアは撃破の演出を見せてから結果へ（answer が CLEAR_MS 後に finish する）
+      if (bt.over && !bt.cleared) {
         finish();
         return;
       }
+      if (finished.current) return;
       raf = requestAnimationFrame(loop);
     };
     raf = requestAnimationFrame(loop);
@@ -2603,6 +2630,22 @@ function BattleRun({ session, speech, recognition, onFinish, active = true, tool
         { kind: "slash", x: pos.x, y: pos.cy, rot: -30 - Math.random() * 30 },
         { kind: "score", x: pos.x, y: pos.top, text: `+${bt.score - before.score}` },
       ];
+      if (killed && cur.boss) {
+        // ボス撃破: 画面いっぱいの光と「STAGE CLEAR!」、紙吹雪。少し見せてから結果へ
+        hit.push({ kind: "clear", life: CLEAR_MS });
+        for (let i = 0; i < 26; i++) {
+          hit.push({
+            kind: "particle",
+            x: box.W / 2,
+            y: box.H * 0.45,
+            dx: (Math.random() - 0.5) * box.W,
+            dy: -Math.random() * box.H * 0.45,
+            color: ["#fde68a", "#f472b6", "#60a5fa", "#34d399", "#f97316"][i % 5],
+          });
+        }
+        setTimeout(() => sound.play("levelup", 0, { cheer: false }), 350);
+        setTimeout(() => sound.play("complete"), 900);
+      }
       if (killed) {
         const n = cur.boss ? 18 : 10;
         for (let i = 0; i < n; i++) {
@@ -2621,7 +2664,7 @@ function BattleRun({ session, speech, recognition, onFinish, active = true, tool
       addFx(hit);
       const levelUp = bt.level > before.level;
       if (levelUp) setTimeout(() => sound.play("levelup"), 250);
-      setFlash({
+      if (!(killed && ev.boss)) setFlash({
         type: levelUp ? "level" : "kill",
         text: levelUp
           ? `LEVEL UP! Lv.${bt.level}`
@@ -2654,7 +2697,8 @@ function BattleRun({ session, speech, recognition, onFinish, active = true, tool
     }
     setInput("");
     setFrame((n) => n + 1);
-    if (bt.over) finish();
+    if (bt.over && bt.cleared) setTimeout(finish, CLEAR_MS);
+    else if (bt.over) finish();
     if (config.answer !== "choice") setTimeout(() => inputRef.current?.focus(), 0);
   };
 
@@ -2663,14 +2707,6 @@ function BattleRun({ session, speech, recognition, onFinish, active = true, tool
     e.preventDefault();
     if (!t || !input.trim()) return;
     answer(t.item.id, isCorrect(grade(input, t.item).verdict));
-  };
-  const listen = () => {
-    if (!t) return;
-    const item = t.item;
-    recognition.start((alts) => {
-      const ok = alts.some((a) => isCorrect(grade(a, item).verdict));
-      answer(item.id, ok);
-    }, jaEn ? "en-US" : "ja-JP");
   };
 
   /** 道具を使う（時止め・必殺技） */
@@ -2693,7 +2729,7 @@ function BattleRun({ session, speech, recognition, onFinish, active = true, tool
 
   const showFlash = flash && performance.now() - flash.at < 1400;
   const stageLabel =
-    b.mode === "stage" ? (b.bossSpawned ? "BOSS" : `敵 ${Math.min(b.kills, STAGE_ENEMIES)} / ${STAGE_ENEMIES}`) : `Lv.${b.level}`;
+    b.mode === "stage" ? (b.bossSpawned ? "BOSS" : `敵 ${Math.min(b.kills, b.total)} / ${b.total}`) : `Lv.${b.level}`;
 
   return (
     <div className="flex h-full flex-col px-4 pt-3 pb-3" data-testid="battle">
@@ -2744,7 +2780,21 @@ function BattleRun({ session, speech, recognition, onFinish, active = true, tool
               data-target={isTarget ? "1" : "0"}
               data-phrase-id={e.item.id}
               data-boss={e.boss ? "1" : "0"}
-              className="absolute flex flex-col items-center"
+              role="button"
+              tabIndex={-1}
+              aria-label={`${jaEn ? e.item.japanese.split("／")[0] : e.item.english}をねらう`}
+              aria-pressed={!!isTarget}
+              onPointerDown={(ev) => {
+                // タップした敵を狙う（複数いるとき）
+                ev.preventDefault();
+                if (isTarget) return;
+                if (battleSetTarget(battle.current, e.uid)) {
+                  sound.play("tap", 0, { cheer: false });
+                  setFrame((n) => n + 1);
+                  if (config.answer !== "choice") setTimeout(() => inputRef.current?.focus(), 0);
+                }
+              }}
+              className="absolute flex cursor-pointer touch-manipulation flex-col items-center"
               style={{ left: box.x, top: box.top, transform: "translateX(-50%)", zIndex: isTarget ? 140 : 10 + Math.round(e.y * 100) }}
             >
               <div className="relative" ref={(el) => (el ? (enemyEls.current[e.uid] = el) : delete enemyEls.current[e.uid])}>
@@ -2777,7 +2827,7 @@ function BattleRun({ session, speech, recognition, onFinish, active = true, tool
         {/* 演出（弾・爆発・粒・得点） */}
         <div className="pointer-events-none absolute inset-0" style={{ zIndex: 200 }}>
           {fx.current
-            .filter((f) => performance.now() - f.at < FX_LIFE)
+            .filter((f) => performance.now() - f.at < (f.life || FX_LIFE))
             .map((f) => {
               const at = { position: "absolute", left: f.x, top: f.y };
               switch (f.kind) {
@@ -2835,6 +2885,19 @@ function BattleRun({ session, speech, recognition, onFinish, active = true, tool
                   return <span key={f.id} className="bt-warning absolute inset-0 block" />;
                 case "special":
                   return <span key={f.id} className="bt-special absolute inset-0 block" />;
+                case "clear":
+                  return (
+                    <span key={f.id} className="absolute inset-0 block" data-testid="battle-clear">
+                      <span className="bt-clear-flash absolute inset-0 block" />
+                      <span
+                        className="bt-clear-text absolute inset-x-0 top-[30%] block text-center text-4xl font-black italic text-yellow-200"
+                        style={{ textShadow: "0 4px 0 rgba(0,0,0,0.6), 0 0 24px rgba(251,191,36,0.95)" }}
+                      >
+                        STAGE CLEAR!
+                        <span className="block text-base not-italic text-white">ボスを たおした！</span>
+                      </span>
+                    </span>
+                  );
                 case "freeze":
                   return <span key={f.id} className="gc-flash absolute inset-0 block bg-cyan-100/70" />;
                 default:
@@ -2937,7 +3000,7 @@ function BattleRun({ session, speech, recognition, onFinish, active = true, tool
             ))}
           </div>
         )}
-        {(config.answer === "type" || (config.answer === "voice" && !recognition.supported)) && (
+        {config.answer === "type" && (
           <form onSubmit={submitText} className="mt-2 flex gap-2">
             <input
               id="battle-answer"
@@ -2945,7 +3008,7 @@ function BattleRun({ session, speech, recognition, onFinish, active = true, tool
               autoFocus
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder={config.answer === "voice" ? "キーボードのマイク（🎤）で話す" : jaEn ? "英語で入力" : "意味を入力"}
+              placeholder={jaEn ? "英語で入力" : "意味を入力"}
               autoComplete="off"
               autoCapitalize="off"
               autoCorrect="off"
@@ -2957,24 +3020,6 @@ function BattleRun({ session, speech, recognition, onFinish, active = true, tool
               攻撃
             </button>
           </form>
-        )}
-        {config.answer === "voice" && recognition.supported && (
-          <div className="mt-2 flex items-center justify-center gap-3">
-            <button
-              type="button"
-              aria-label="話して攻撃"
-              disabled={!t}
-              onClick={() => (recognition.listening ? recognition.stop() : listen())}
-              className={`flex h-16 w-16 items-center justify-center rounded-full text-white shadow-lg transition active:scale-90 disabled:opacity-40 ${
-                recognition.listening ? "animate-pulse bg-rose-500" : "bg-indigo-600"
-              }`}
-            >
-              {recognition.listening ? <Check size={28} strokeWidth={3} /> : <Mic size={28} />}
-            </button>
-            <p className="min-h-[1.5rem] max-w-[12rem] text-xs text-slate-600">
-              {recognition.listening ? recognition.interim || "聞き取り中…話し終わったら ✓" : "マイクを押して話すと攻撃"}
-            </p>
-          </div>
         )}
         {config.answer !== "choice" && (
           <button
@@ -3087,6 +3132,20 @@ function BattleResult({ battle, reward, speech, onRetry, onNext, onBack, favorit
         {reward.newBest && <p className="mt-2 text-sm font-black text-yellow-200">最高得点を更新！</p>}
       </div>
 
+      <div className="mt-3 grid grid-cols-2 gap-2" data-testid="battle-result-actions">
+        {onNext && (
+          <button type="button" onClick={onNext} className="col-span-2 rounded-2xl bg-gradient-to-r from-rose-500 to-orange-500 py-3.5 text-sm font-extrabold text-white">
+            次のステージへ
+          </button>
+        )}
+        <button type="button" onClick={onRetry} className="rounded-2xl bg-white py-3.5 text-sm font-bold text-slate-700 ring-1 ring-slate-200">
+          もう一度
+        </button>
+        <button type="button" onClick={onBack} className="rounded-2xl bg-white py-3.5 text-sm font-bold text-slate-500 ring-1 ring-slate-200">
+          設定に戻る
+        </button>
+      </div>
+
       <div className="mt-3 rounded-2xl bg-indigo-50 px-4 py-3 text-center text-sm font-bold text-indigo-700" data-testid="battle-reward">
         ガチャポイント +{reward.points}
         {reward.boosted && `（${BOOST_RATE}倍ブースト！）`}
@@ -3122,19 +3181,6 @@ function BattleResult({ battle, reward, speech, onRetry, onNext, onBack, favorit
         <DefeatedReview items={defeated} jaEn={battle.direction === "ja-en"} speech={speech} favorites={favorites} onToggleFavorite={onToggleFavorite} />
       )}
 
-      <div className="mt-5 grid gap-2">
-        {onNext && (
-          <button type="button" onClick={onNext} className="rounded-2xl bg-gradient-to-r from-rose-500 to-orange-500 py-3.5 text-sm font-extrabold text-white">
-            次のステージへ
-          </button>
-        )}
-        <button type="button" onClick={onRetry} className="rounded-2xl bg-white py-3.5 text-sm font-bold text-slate-700 ring-1 ring-slate-200">
-          もう一度
-        </button>
-        <button type="button" onClick={onBack} className="rounded-2xl py-3 text-sm font-bold text-slate-500">
-          設定に戻る
-        </button>
-      </div>
     </div>
   );
 }
@@ -3213,6 +3259,9 @@ function TestScreen({ active, state, settings, setSettings, speech, onFinishTest
         state={state}
         cards={CATALOG.cards}
         pool={QUEST_POOL}
+        idiomPool={IDIOM_POOL}
+        idioms={settings.questIdioms}
+        onIdioms={(on) => setSettings((s) => ({ ...s, questIdioms: on }))}
         chestWords={CHEST_WORDS}
         speech={speech}
         sound={sound}
@@ -4707,7 +4756,7 @@ function GachaPanel({ g, onPull, onUpgrade }) {
           ・毎日のログインボーナス {LOGIN_POINTS.toLocaleString()}pt・{BOOST_RATE}倍ブースト・SR チケット {LOGIN_SR_TICKETS}枚（3日ごとに SSR チケット、7日ごとにレアチケット）
         </p>
         <p>・今日の目標（{DAILY_GOAL}問）達成で {GOAL_POINTS.toLocaleString()}pt</p>
-        <p>・「コード」タブで英単語を入れると、その単語と、難しい単語ほどたくさんのポイント（最大 5,000pt・1日 {CODE_DAILY_LIMIT} 回）</p>
+        <p>・「コード」タブで英単語を入れると、その単語と、難しい単語ほどたくさんのポイント（最大 {CODE_POINTS_MAX.toLocaleString()}pt・1日 {CODE_DAILY_LIMIT} 回）</p>
         <p>・天井: 通常ガチャは {PITY_SSR.points}回で SSR 確定。チケットは、そのランクの単語だけが出ます（レア=R・SR=SR・SSR=SSR）</p>
         <p>・同じ単語が出ると Lv が上がり、フレームが銅→銀→キラキラに（Lv.4 で MAX）。MAX の単語もまた出て、そのときは交換ポイントに（N {OVERFLOW_EX.N}・R {OVERFLOW_EX.R}・SR {OVERFLOW_EX.SR}・SSR {OVERFLOW_EX.SSR}）</p>
         <p>・引くたびに交換ポイントが1つ貯まり、図鑑から好きな単語と交換したり、単語を強化（+10 まで。段が上がるほど必要な数が増える）したりできます</p>
@@ -5123,7 +5172,7 @@ function CodePanel({ g, onRedeem, onEndUnlimited }) {
         : {
             ok: true,
             text: `「${r.card.english}」（${r.card.secret ? "SECRET" : r.card.rarity}）で ${r.points.toLocaleString()}pt ゲット！${r.got ? "　単語も手に入れた！" : ""}`,
-            big: r.points >= 3000,
+            big: r.points >= 18000,
           }
     );
   };

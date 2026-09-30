@@ -199,3 +199,9 @@
 .qs-chest { animation: qs-chest 0.9s ease-out both; }
 @keyframes qs-heal-in { 0% { opacity: 0; transform: translateY(8px); } 100% { opacity: 1; transform: translateY(0); } }
 .qs-heal-in { animation: qs-heal-in 0.4s ease-out 0.7s both; }
+/* バトル: ボス撃破（ステージクリア） */
+@keyframes bt-clear-flash { 0% { opacity: 0; } 10% { opacity: 1; } 100% { opacity: 0; } }
+.bt-clear-flash { animation: bt-clear-flash 2s ease-out both; background: radial-gradient(circle at 50% 45%, rgba(255, 255, 255, 0.95), rgba(253, 224, 71, 0.75) 30%, rgba(244, 114, 182, 0.35) 60%, transparent 85%); }
+@keyframes bt-clear-text { 0% { transform: scale(2.4); opacity: 0; } 18% { transform: scale(0.92); opacity: 1; } 28% { transform: scale(1.05); } 38%, 85% { transform: scale(1); opacity: 1; } 100% { transform: scale(1.1); opacity: 0; } }
+.bt-clear-text { animation: bt-clear-text 2s ease-out both; }
+@media (prefers-reduced-motion: reduce) { .bt-clear-flash, .bt-clear-text { animation-duration: 0.01s; animation-fill-mode: none; } }
