@@ -3,152 +3,227 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
-<meta name="color-scheme" content="dark" />
+<meta name="color-scheme" content="light" />
 <meta name="description" content="引っぱって離すだけのひっぱりアクション。反射と貫通、2種類の撃ち方で敵を倒す。" />
 <title>ひっぱりストライク</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23101a33'/%3E%3Ccircle cx='13' cy='19' r='8' fill='%2334b4ff' stroke='%23fff' stroke-width='2'/%3E%3Cpath d='M19 13l8-8' stroke='%23ffd166' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E" />
 <style>
   [hidden] { display: none !important; }
+  /* 明るいポップな配色: 空色の背景・白いパネル・青い縁取り・金色のアクセント */
   :root {
-    --bg: #070b18; --panel: rgba(18, 28, 56, .82); --line: rgba(140, 180, 255, .22);
-    --text: #eef3ff; --muted: #9fb0d6; --gold: #ffd166;
-    --reflect: #3cc8ff; --pierce: #ff7a45;
+    --sky1: #3ec2ff; --sky2: #bdf0ff; --ink: #1d2b53; --muted: #5a6f99; --line: #2b7de9; --line-dark: #1a4fa8;
+    --panel: #ffffff; --panel2: #eaf6ff; --gold: #ffc629; --gold-dark: #d9801a; --green: #3ccf4e;
+    --reflect: #2fa8ff; --pierce: #ff7a2e; --text: var(--ink);
+    --round: "Hiragino Maru Gothic ProN", "Hiragino Maru Gothic Pro", "M PLUS Rounded 1c", "Rounded Mplus 1c", "Kosugi Maru",
+      "Arial Rounded MT Bold", "Hiragino Sans", "Noto Sans JP", "Yu Gothic", system-ui, sans-serif;
   }
   * { box-sizing: border-box; }
-  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text);
-    font-family: "Hiragino Sans", "Noto Sans JP", "Yu Gothic", system-ui, sans-serif;
+  html, body { margin: 0; height: 100%; color: var(--ink); font-family: var(--round);
     -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent; }
-  body { overflow: hidden;
-    background-image: radial-gradient(80% 50% at 50% -10%, rgba(60, 110, 230, .35), transparent 70%); }
-  #app { height: 100vh; height: 100dvh; display: grid; grid-template-rows: auto auto minmax(0, 1fr) auto;
-    max-width: 720px; margin: 0 auto; padding: max(8px, env(safe-area-inset-top)) 10px max(8px, env(safe-area-inset-bottom)); gap: 8px; }
+  body { overflow: hidden; background: var(--sky1);
+    background-image:
+      radial-gradient(60px 26px at 12% 14%, rgba(255,255,255,.9), transparent 70%),
+      radial-gradient(90px 34px at 20% 16%, rgba(255,255,255,.8), transparent 70%),
+      radial-gradient(80px 30px at 82% 9%, rgba(255,255,255,.85), transparent 70%),
+      radial-gradient(120px 40px at 90% 12%, rgba(255,255,255,.7), transparent 70%),
+      linear-gradient(180deg, var(--sky1) 0%, #7fd9ff 45%, var(--sky2) 100%); }
+  #app { height: 100vh; height: 100dvh; display: grid; grid-template-rows: auto minmax(0, 1fr) auto auto;
+    max-width: 720px; margin: 0 auto; padding: max(6px, env(safe-area-inset-top)) 8px max(6px, env(safe-area-inset-bottom)); gap: 6px; }
 
-  .hud { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-  .brand { font-weight: 900; letter-spacing: .08em; font-size: 15px; white-space: nowrap; }
-  .brand b { color: var(--gold); }
-  .chip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px;
-    background: var(--panel); border: 1px solid var(--line); font-size: 13px; white-space: nowrap; }
-  .chip .label { color: var(--muted); font-size: 11px; letter-spacing: .08em; }
-  #turn { font-weight: 800; font-variant-numeric: tabular-nums; }
-  .type { font-size: 11px; font-weight: 800; padding: 1px 7px; border-radius: 6px; color: #06101f; }
-  .type.reflect { background: var(--reflect); }
-  .type.pierce { background: var(--pierce); }
+  /* 白い縁取りの太い文字（タイトル・リボン） */
+  .outline { color: #fff; -webkit-text-stroke: 5px var(--line-dark); paint-order: stroke fill; }
+  .outline-gold { color: var(--gold); -webkit-text-stroke: 5px #8a3b00; paint-order: stroke fill; }
+
+  button { font: inherit; font-weight: 800; font-size: 13px; color: var(--ink); cursor: pointer;
+    background: linear-gradient(180deg, #ffffff 0%, #ffffff 45%, #dcefff 100%);
+    border: 3px solid var(--line); border-radius: 14px; padding: 6px 10px;
+    box-shadow: 0 3px 0 var(--line-dark), 0 5px 8px rgba(20, 60, 140, .25); transition: transform .06s; }
+  button:active:not(:disabled) { transform: translateY(2px); box-shadow: 0 1px 0 var(--line-dark); }
+  button:disabled { opacity: .55; cursor: default; }
+  button.primary, .pull-row button, #result button, #stage-list button {
+    background: linear-gradient(180deg, #fff6b8 0%, #ffd23f 50%, #ffae1a 100%); border-color: #e07a00;
+    box-shadow: 0 3px 0 #a14f00, 0 5px 10px rgba(160, 80, 0, .3); }
+
+  /* ---------------- ヘッダー（1段） */
+  .hud { display: flex; align-items: center; gap: 6px; }
+  .brand { font-weight: 900; font-size: 16px; letter-spacing: .04em; white-space: nowrap; }
+  .chip { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 999px; white-space: nowrap;
+    background: linear-gradient(180deg, #2f8cff, #1a5fd0); color: #fff; font-weight: 900; font-size: 15px;
+    border: 2px solid #fff; box-shadow: 0 2px 0 var(--line-dark), 0 3px 6px rgba(0, 40, 120, .3); }
+  .chip .label { font-size: 10px; letter-spacing: .08em; opacity: .9; }
+  .chip.wave { background: linear-gradient(180deg, #ff8a3d, #e5480f); box-shadow: 0 2px 0 #9a2a00, 0 3px 6px rgba(120, 30, 0, .3); }
   .spacer { flex: 1; }
-  button { font: inherit; font-size: 12px; color: var(--text); background: var(--panel);
-    border: 1px solid var(--line); border-radius: 10px; padding: 6px 10px; cursor: pointer; }
-  button:hover { border-color: var(--gold); }
-  button[aria-pressed="false"] { color: var(--muted); }
+  .icon-btn { width: 38px; height: 34px; padding: 0; font-size: 17px; line-height: 1; border-radius: 12px; }
+  @media (max-width: 520px) { .brand { display: none; } }
 
+  /* ---------------- フィールド */
   #stage { position: relative; display: flex; align-items: center; justify-content: center; min-height: 0; }
-  #field { display: block; touch-action: none; border-radius: 14px; cursor: grab;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, .55), 0 0 0 1px rgba(255, 255, 255, .05); }
+  #field { display: block; touch-action: none; border-radius: 18px; cursor: grab;
+    box-shadow: 0 6px 0 #9a5a0c, 0 10px 24px rgba(40, 70, 130, .35); }
   #field.pulling { cursor: grabbing; }
 
-  .teamhp { display: flex; align-items: center; gap: 8px; font-size: 12px; }
-  .teamhp .label { color: var(--muted); font-size: 11px; letter-spacing: .08em; font-weight: 800; }
-  .teamhp .bar { position: relative; flex: 1; height: 12px; border-radius: 999px; overflow: hidden;
-    background: rgba(255, 255, 255, .08); border: 1px solid var(--line); }
+  /* ---------------- 下の段: HP・キャラのアイコン・次のキャラ・SS */
+  .bottom { background: linear-gradient(180deg, #ffffff, var(--panel2)); border: 3px solid var(--line); border-radius: 16px;
+    padding: 6px 8px 8px; box-shadow: 0 3px 0 var(--line-dark), 0 6px 12px rgba(20, 60, 140, .25); }
+  .teamhp { display: flex; align-items: center; gap: 6px; font-size: 12px; margin-bottom: 6px; }
+  .teamhp .label { color: #fff; background: var(--green); font-size: 11px; font-weight: 900; padding: 1px 7px; border-radius: 6px;
+    border: 2px solid #1f8a2c; }
+  .teamhp .bar { position: relative; flex: 1; height: 16px; border-radius: 999px; overflow: hidden;
+    background: #40485e; border: 2px solid #1d2b53; box-shadow: inset 0 2px 3px rgba(0,0,0,.4); }
   #hp-fill { position: absolute; inset: 0 auto 0 0; width: 100%; border-radius: inherit;
-    background: linear-gradient(90deg, #3ddc84, #b6f36b); transition: width .35s ease-out; }
-  #hp-fill.mid { background: linear-gradient(90deg, #f0b429, #ffd166); }
-  #hp-fill.low { background: linear-gradient(90deg, #ff4d4d, #ff8a65); }
-  #hp-text { font-weight: 800; font-variant-numeric: tabular-nums; min-width: 8.5em; text-align: right; }
+    background: linear-gradient(180deg, #b6ff7a 0%, #46d64a 55%, #23a02c 100%); transition: width .35s ease-out; }
+  #hp-fill.mid { background: linear-gradient(180deg, #fff08a, #ffc629 55%, #e08a00); }
+  #hp-fill.low { background: linear-gradient(180deg, #ffb0a0, #ff4d3c 55%, #c01f10); }
+  #hp-text { font-weight: 900; font-size: 13px; font-variant-numeric: tabular-nums; min-width: 8.2em; text-align: right; color: var(--ink); }
+  .lineup { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)) 7.8em; gap: 5px; align-items: stretch; }
+  .ucard { position: relative; display: grid; justify-items: center; gap: 1px; padding: 4px 0 3px; border-radius: 12px;
+    background: #fff; border: 3px solid #b9d6f5; box-shadow: none; font-size: 10px; min-width: 0; }
+  .ucard .uface { width: 38px; height: 38px; font-size: 16px; }
+  .ucard .ss { font-weight: 900; font-size: 10px; color: var(--muted); white-space: nowrap; }
+  .ucard.active { border-color: var(--gold); background: #fffbe6; box-shadow: 0 0 0 2px #fff, 0 0 12px rgba(255, 180, 0, .8); transform: translateY(-3px); }
+  .ucard.ready .ss { color: #e5480f; }
+  .ucard.ready .uface { animation: ssglow 1s ease-in-out infinite alternate; }
+  .ucard.chick .uface { filter: grayscale(.6); }
+  @keyframes ssglow { from { box-shadow: 0 0 0 2px #ffd23f, 0 0 6px #ffd23f; } to { box-shadow: 0 0 0 3px #ff7a2e, 0 0 16px #ffd23f; } }
+  .side { display: grid; gap: 4px; align-content: stretch; }
+  .next { display: flex; align-items: center; justify-content: center; gap: 4px; font-size: 11px; font-weight: 900; color: var(--muted); }
+  #active-name { color: var(--ink); font-size: 14px; }
+  .type { font-size: 10px; font-weight: 900; padding: 1px 6px; border-radius: 6px; color: #fff; }
+  .type.reflect { background: var(--reflect); }
+  .type.pierce { background: var(--pierce); }
+  #btn-ss { width: 100%; white-space: nowrap; overflow: hidden; font-weight: 900; font-size: 12px; padding: 6px 2px; }
+  #btn-ss.ready { background: linear-gradient(180deg, #fff6b8, #ffd23f 50%, #ff9a1a); border-color: #e07a00;
+    box-shadow: 0 3px 0 #a14f00, 0 0 14px rgba(255, 170, 0, .9); animation: sspulse .8s ease-in-out infinite alternate; }
+  #btn-ss[aria-pressed="true"] { background: linear-gradient(180deg, #ff9a6b, #ff4d3c); color: #fff; border-color: #b01f10; animation: none; }
+  /* 光だけを脈打たせる（大きさを変えると押す位置がずれる） */
+  @keyframes sspulse { from { box-shadow: 0 3px 0 #a14f00, 0 0 6px rgba(255, 170, 0, .6); } to { box-shadow: 0 3px 0 #a14f00, 0 0 18px rgba(255, 150, 0, 1); } }
 
-  #result { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 3;
-    background: rgba(4, 7, 16, .6); backdrop-filter: blur(2px); }
-  #result .card { text-align: center; padding: 24px 28px; border-radius: 18px; background: rgba(12, 20, 44, .95);
-    border: 1px solid var(--line); box-shadow: 0 20px 50px rgba(0, 0, 0, .6); min-width: 240px; }
-  #result h2 { margin: 0 0 8px; font-size: 28px; letter-spacing: .08em; }
-  #result h2.won { color: var(--gold); }
-  #result h2.lost { color: #ff6b6b; }
-  #result p { margin: 0 0 16px; color: var(--muted); font-size: 13px; line-height: 1.8; }
-  #result button { font-size: 14px; padding: 10px 22px; border-color: var(--gold); }
+  /* 説明文: 高さ3行で固定（行数が変わるとフィールドが伸び縮みして、指の位置がずれる） */
+  .help { margin: 0; text-align: center; color: var(--muted); font-size: 12px; line-height: 1.6; height: 4.8em; overflow: hidden;
+    background: rgba(255,255,255,.85); border-radius: 12px; padding: 0 8px; }
+  .help b { color: var(--ink); }
+
+  /* ---------------- 結果・タイトル・ガチャ・編成 */
+  #result, #title { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 3;
+    background: rgba(40, 110, 200, .35); backdrop-filter: blur(2px); padding: 16px; }
+  #title { z-index: 4; }
+  #result .card, #title .card { text-align: center; padding: 20px 18px; border-radius: 22px; width: min(360px, 100%);
+    background: linear-gradient(180deg, #ffffff, #e3f3ff); border: 4px solid var(--line);
+    box-shadow: 0 5px 0 var(--line-dark), 0 16px 30px rgba(10, 40, 110, .35); }
+  #result h2 { margin: 0 0 8px; font-size: 32px; letter-spacing: .06em; }
+  #result h2.won { color: var(--gold); -webkit-text-stroke: 6px #8a3b00; paint-order: stroke fill; }
+  #result h2.lost { color: #8fa6d6; -webkit-text-stroke: 6px #1d2b53; paint-order: stroke fill; }
+  #result p { margin: 0 0 16px; color: var(--ink); font-size: 13px; line-height: 1.8; }
   #result .row { display: flex; gap: 10px; justify-content: center; }
-  #title { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 4;
-    background: rgba(4, 7, 16, .72); backdrop-filter: blur(3px); padding: 16px; }
-  #title .card { width: min(360px, 100%); text-align: center; padding: 22px 20px; border-radius: 18px; background: rgba(12, 20, 44, .96);
-    border: 1px solid var(--line); box-shadow: 0 20px 50px rgba(0, 0, 0, .6); }
-  #title h2 { margin: 0 0 4px; font-size: clamp(18px, 6vw, 26px); letter-spacing: .08em; white-space: nowrap; }
-  #title h2 b { color: var(--gold); }
-  #title p { margin: 0 0 14px; color: var(--muted); font-size: 12px; }
-  #stage-list { display: grid; gap: 10px; }
-  #stage-list button { display: grid; gap: 2px; text-align: left; padding: 12px 14px; font-size: 15px; font-weight: 800; }
-  #stage-list button small { color: var(--muted); font-size: 11px; font-weight: 500; }
-  .meta-row { display: flex; gap: 8px; align-items: center; margin-top: 14px; }
-  .meta-row button { flex: 1; font-size: 14px; font-weight: 800; padding: 10px; }
-  .gems { font-weight: 900; color: #7df0ff; font-variant-numeric: tabular-nums; white-space: nowrap; }
-  .gems::before { content: '◆ '; color: #7df0ff; }
-  .screen { position: absolute; inset: 0; z-index: 5; overflow: auto; padding: 12px;
-    background: rgba(6, 10, 24, .97); }
+  #result button { font-size: 14px; padding: 10px 16px; }
+  #title h2 { margin: 0 0 2px; font-size: clamp(24px, 8vw, 34px); line-height: 1.1; letter-spacing: .04em; white-space: nowrap; font-weight: 900; }
+  #title h2 span { display: block; }
+  #title p { margin: 6px 0 12px; color: var(--muted); font-size: 12px; font-weight: 800; }
+  #title p.daily { margin: 8px 0 0; padding: 5px 8px; border-radius: 10px; background: #fff3c4; color: #a35a00; border: 2px solid #ffc629; }
+  #title .card { max-height: 100%; overflow: auto; }
+  #stage-list { display: grid; gap: 7px; }
+  #stage-list button { display: grid; gap: 1px; text-align: left; padding: 7px 14px; font-size: 15px; font-weight: 900; position: relative; }
+  #stage-list button.cleared::after { content: 'CLEAR'; position: absolute; right: 10px; top: 7px; font-size: 10px; color: #fff;
+    background: #2fb54a; border-radius: 8px; padding: 1px 6px; }
+  #stage-list button small { color: #7a3d00; font-size: 11px; font-weight: 700; }
+  .meta-row { display: flex; gap: 8px; align-items: center; margin-top: 10px; }
+  .meta-row button { flex: 1; font-size: 15px; padding: 10px; }
+  .gems { font-weight: 900; color: #0a7fd6; font-variant-numeric: tabular-nums; white-space: nowrap; font-size: 15px; }
+  .gems::before { content: '◆ '; color: #19b8ff; }
+  .screen { position: absolute; inset: 0; z-index: 5; overflow: auto; padding: 12px; border-radius: 18px;
+    background: linear-gradient(180deg, #ffffff, #e3f3ff); border: 4px solid var(--line); }
   .screen .head { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
-  .screen h2 { margin: 0; font-size: 20px; letter-spacing: .06em; flex: 1; }
+  .screen h2 { margin: 0; font-size: 24px; flex: 1; font-weight: 900; color: #fff; -webkit-text-stroke: 5px var(--line-dark); paint-order: stroke fill; }
   .screen .note { color: var(--muted); font-size: 11px; line-height: 1.6; margin: 6px 0 10px; }
-  .rates { width: 100%; border-collapse: collapse; font-size: 12px; margin-bottom: 10px; }
-  .rates td { padding: 4px 6px; border-bottom: 1px solid var(--line); }
-  .rates td:nth-child(2) { font-weight: 800; font-variant-numeric: tabular-nums; white-space: nowrap; }
-  .stars { color: var(--gold); letter-spacing: -1px; white-space: nowrap; }
+  .rates { width: 100%; border-collapse: collapse; font-size: 12px; margin-bottom: 8px; background: #fff; border-radius: 10px; }
+  .rates td { padding: 5px 6px; border-bottom: 2px solid #d6e8fb; }
+  .rates td:nth-child(2) { font-weight: 900; font-variant-numeric: tabular-nums; white-space: nowrap; color: #e5480f; }
+  .stars { color: #ffb300; letter-spacing: -1px; white-space: nowrap; text-shadow: 0 1px 0 #8a4b00; }
   .pull-row { display: flex; gap: 10px; }
-  .pull-row button { flex: 1; padding: 12px; font-size: 15px; font-weight: 900; border-color: var(--gold); }
-  .pull-row button small { display: block; font-size: 11px; font-weight: 600; color: #7df0ff; }
+  .pull-row button { flex: 1; padding: 12px; font-size: 17px; }
+  .pull-row button small { display: block; font-size: 12px; font-weight: 800; color: #0a5fb0; }
   .cards { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-top: 12px; }
-  .card { position: relative; border-radius: 10px; padding: 6px 2px 5px; text-align: center; font-size: 10px;
-    background: rgba(18, 28, 56, .9); border: 1px solid var(--line); opacity: 0; transform: rotateY(90deg) scale(.8);
-    animation: flip .35s ease-out forwards; }
-  .card.r4 { border-color: #c79bff; box-shadow: 0 0 10px rgba(199, 155, 255, .45); }
-  .card.r5 { border-color: var(--gold); box-shadow: 0 0 16px rgba(255, 209, 102, .8); background: linear-gradient(160deg, #3a2a08, #12183a); }
-  .card .new { position: absolute; top: 2px; right: 3px; color: #7dffa8; font-weight: 900; font-size: 9px; }
+  .card { position: relative; border-radius: 12px; padding: 6px 2px 5px; text-align: center; font-size: 10px;
+    background: #fff; border: 3px solid #b9d6f5; opacity: 0; transform: rotateY(90deg) scale(.8); animation: flip .35s ease-out forwards; }
+  .card.r4 { border-color: #b36bff; box-shadow: 0 0 10px rgba(179, 107, 255, .6); background: #f7efff; }
+  .card.r5 { border-color: var(--gold); box-shadow: 0 0 16px rgba(255, 190, 0, .95); background: linear-gradient(160deg, #fff7c2, #ffe07a); }
+  .card .new { position: absolute; top: 2px; right: 3px; color: #e5480f; font-weight: 900; font-size: 9px; }
   .card b { display: block; font-size: 11px; margin-top: 3px; white-space: nowrap; overflow: hidden; }
   @keyframes flip { to { opacity: 1; transform: none; } }
   .uface { position: relative; width: 44px; height: 44px; margin: 0 auto; border-radius: 50%; display: grid; place-items: center;
-    font-weight: 900; font-size: 18px; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,.7); border: 2px solid rgba(255,255,255,.85); }
-  .uface .el { position: absolute; left: -4px; top: -4px; width: 17px; height: 17px; border-radius: 50%; font-size: 10px;
-    display: grid; place-items: center; background: #0a1022; border: 1.5px solid currentColor; text-shadow: none; }
+    font-weight: 900; font-size: 18px; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,.6); border: 3px solid #fff;
+    box-shadow: 0 0 0 2px rgba(29, 43, 83, .35); }
+  .uface .el { position: absolute; left: -5px; top: -5px; width: 17px; height: 17px; border-radius: 50%; font-size: 10px;
+    display: grid; place-items: center; background: #fff; border: 2px solid currentColor; text-shadow: none; }
   .slots { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
-  .slot, .owned-unit { border-radius: 10px; padding: 6px 2px; text-align: center; font-size: 10px; cursor: pointer;
-    background: rgba(18, 28, 56, .9); border: 1px solid var(--line); color: var(--text); }
-  .slot.sel { border-color: var(--gold); box-shadow: 0 0 10px rgba(255, 209, 102, .5); }
+  .slot, .owned-unit { border-radius: 12px; padding: 6px 2px; text-align: center; font-size: 10px; cursor: pointer;
+    background: #fff; border: 3px solid #b9d6f5; color: var(--ink); box-shadow: 0 2px 0 #8fb5e0; font-weight: 800; }
+  .slot.sel { border-color: var(--gold); box-shadow: 0 0 0 2px #fff, 0 0 12px rgba(255, 180, 0, .8); }
   .slot small { display: block; color: var(--muted); }
   .owned { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 10px; }
-  .owned-unit.in { opacity: .5; }
-  .owned-unit .tag { display: block; font-size: 9px; color: var(--gold); }
-  .owned-unit.locked { opacity: .25; cursor: default; }
+  .owned-unit.in { opacity: .55; }
+  .owned-unit.locked { opacity: .35; cursor: default; }
+  .owned-unit .tag { display: block; font-size: 9px; color: #e5480f; }
   .detail { min-height: 5.2em; margin-top: 10px; font-size: 11px; line-height: 1.6; color: var(--muted);
-    padding: 8px 10px; border-radius: 10px; border: 1px solid var(--line); }
-  .detail b { color: var(--text); }
-  /* 文字が変わっても幅を変えない（ヘッダーの折り返しが変わるとフィールドがずれる） */
-  #btn-ss { width: 7.6em; flex: none; white-space: nowrap; overflow: hidden; font-weight: 800; padding: 4px 8px; }
-  #btn-ss:disabled { opacity: .55; cursor: default; }
-  #btn-ss.ready { border-color: var(--gold); color: var(--gold); box-shadow: 0 0 12px rgba(255, 209, 102, .45); }
-  #btn-ss[aria-pressed="true"] { background: var(--gold); color: #1a1200; }
+    padding: 8px 10px; border-radius: 12px; border: 3px solid #b9d6f5; background: #fff; }
+  .detail b { color: var(--ink); }
+  .screen h3 { margin: 14px 0 6px; font-size: 14px; color: var(--ink); font-weight: 900; }
+  .info-unit, .info-gim { background: #fff; border: 3px solid #b9d6f5; border-radius: 14px; padding: 8px 10px; margin-bottom: 8px;
+    font-size: 11.5px; line-height: 1.6; color: var(--muted); }
+  .info-unit b, .info-gim b { color: var(--ink); }
+  .info-head { display: flex; gap: 10px; align-items: center; }
+  .info-head .uface { flex: none; }
+  .info-head .nm { font-size: 14px; }
+  .info-unit dl { display: grid; grid-template-columns: auto 1fr; gap: 3px 8px; margin: 6px 0 0; }
+  .info-unit dt { font-weight: 900; color: #fff; background: var(--line); border-radius: 6px; padding: 0 6px; font-size: 10px;
+    align-self: start; margin-top: 2px; text-align: center; }
+  .info-unit dd { margin: 0; }
+  .abil { display: inline-block; font-weight: 900; font-size: 10px; padding: 0 5px; margin-right: 4px; border-radius: 6px;
+    background: #1d2b53; color: var(--c); }
+  .info-gim .ok { color: #1f9d3a; font-weight: 800; }
+  .info-gim .ng { color: #d9480f; font-weight: 800; }
+  #party .detail { font-size: 11px; }
+  #puzzle { position: fixed; inset: 0; z-index: 20; border-radius: 0; border: 0; display: flex; flex-direction: column; align-items: center;
+    padding: max(8px, env(safe-area-inset-top)) 12px 8px; }
+  #puzzle .head { flex: none; margin-bottom: 6px; }
+  #pz-canvas { flex: none; }
+  #puzzle .head { align-self: stretch; }
+  #pz-canvas { display: block; border-radius: 14px; border: 4px solid var(--line); touch-action: none; background: #8f5a2c;
+    box-shadow: 0 4px 0 var(--line-dark); }
+  #pz-help { flex: none; height: 4.8em; overflow: hidden; text-align: center; margin: 6px 0 0; max-width: 540px; }
+  #pz-help b { color: var(--ink); }
+  #pz-result { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: rgba(40, 110, 200, .35); padding: 16px; }
+  #pz-result .card { text-align: center; padding: 20px 18px; border-radius: 22px; width: min(340px, 100%);
+    background: linear-gradient(180deg, #ffffff, #e3f3ff); border: 4px solid var(--line); box-shadow: 0 5px 0 var(--line-dark); }
+  #pz-result h2 { margin: 0 0 8px; font-size: 30px; -webkit-text-stroke: 0; color: var(--gold); }
+  #pz-result h2.lost { color: #8fa6d6; }
+  #pz-result p { color: var(--ink); font-size: 13px; line-height: 1.8; }
+  #pz-result .row { display: flex; gap: 10px; justify-content: center; }
+  #party .detail .info-unit { border: 0; padding: 0; margin: 0; }
 
-  .help { margin: 0; text-align: center; color: var(--muted); font-size: 12px; line-height: 1.6; height: 4.8em; overflow: hidden; }
-  /* 説明文の高さは3行で固定。押した瞬間に文が変わって行数が変わると、フィールドが伸び縮みして指の位置がずれる */
-  .help b { color: var(--text); }
-
+  /* ---------------- 調整パネル */
   #tune { position: absolute; top: 8px; right: 8px; width: min(300px, calc(100% - 16px)); max-height: calc(100% - 16px);
-    overflow: auto; padding: 12px 14px; border-radius: 14px; background: rgba(10, 16, 34, .94);
-    border: 1px solid var(--line); box-shadow: 0 10px 30px rgba(0, 0, 0, .5); font-size: 12px; z-index: 2; }
-  #tune h2 { margin: 0 0 8px; font-size: 13px; letter-spacing: .06em; }
+    overflow: auto; padding: 12px 14px; border-radius: 16px; background: #fff; border: 3px solid var(--line);
+    box-shadow: 0 4px 0 var(--line-dark), 0 10px 20px rgba(0, 40, 120, .3); font-size: 12px; z-index: 2; }
+  #tune h2 { margin: 0 0 8px; font-size: 14px; }
   #tune label { display: grid; grid-template-columns: 1fr auto; gap: 2px 8px; margin: 8px 0; color: var(--muted); }
-  #tune label output { color: var(--text); font-variant-numeric: tabular-nums; }
-  #tune input[type=range] { grid-column: 1 / -1; width: 100%; accent-color: var(--gold); }
+  #tune label output { color: var(--ink); font-variant-numeric: tabular-nums; font-weight: 800; }
+  #tune input[type=range] { grid-column: 1 / -1; width: 100%; accent-color: var(--line); }
   #tune .row { display: flex; gap: 8px; margin-top: 10px; }
 </style>
 </head>
 <body>
 <div id="app">
   <header class="hud">
-    <div class="brand">HIPPARI <b>STRIKE</b></div>
+    <div class="brand"><span class="outline">HIPPARI</span> <span class="outline-gold">STRIKE</span></div>
+    <div class="chip wave"><span class="label">BATTLE</span><span id="wave">1/2</span></div>
     <div class="chip"><span class="label">TURN</span><span id="turn">1</span></div>
-    <div class="chip"><span class="label">WAVE</span><span id="wave">1/2</span></div>
-    <div class="chip"><span class="label">NEXT</span><span id="active-name">A</span><span id="active-type" class="type reflect">反射</span></div>
     <div class="spacer"></div>
-    <button id="btn-sound" type="button" aria-pressed="true">音 ON</button>
-    <button id="btn-tune" type="button" aria-expanded="false">調整</button>
-    <button id="btn-reset" type="button">リセット</button>
+    <button id="btn-info" class="icon-btn" type="button" aria-label="能力">📖</button>
+    <button id="btn-sound" class="icon-btn" type="button" aria-pressed="true" aria-label="音">🔊</button>
+    <button id="btn-tune" class="icon-btn" type="button" aria-expanded="false" aria-label="調整">⚙</button>
+    <button id="btn-reset" class="icon-btn" type="button" aria-label="リセット">↺</button>
   </header>
-
-  <div class="teamhp"><span class="label">HP</span><div class="bar"><div id="hp-fill"></div></div><span id="hp-text"></span><button id="btn-ss" type="button" aria-pressed="false" disabled>SS</button></div>
 
   <main id="stage">
     <canvas id="field" aria-label="フィールド。キャラを引っぱって離すと発射します"></canvas>
@@ -166,22 +241,44 @@
     </div>
     <div id="title" hidden>
       <div class="card">
-        <h2>HIPPARI <b>STRIKE</b></h2>
+        <h2><span class="outline">HIPPARI</span><span class="outline-gold">STRIKE</span></h2>
+        <div class="meta-row"><span class="gems" id="gems">0</span><button id="btn-gacha" type="button">ガチャ</button><button id="btn-party" type="button">編成</button><button id="btn-puzzle" type="button">パズル</button></div>
+        <p class="daily" id="daily" hidden></p>
         <p>ステージを選んでください</p>
         <div id="stage-list"></div>
-        <div class="meta-row"><span class="gems" id="gems">0</span><button id="btn-gacha" type="button">ガチャ</button><button id="btn-party" type="button">編成</button></div>
       </div>
     </div>
     <section id="gacha" class="screen" hidden>
       <div class="head"><h2>ガチャ</h2><span class="gems" id="gacha-gems">0</span><button id="btn-gacha-back" type="button">もどる</button></div>
       <table class="rates" id="rates"></table>
       <p class="note">10連の10体目は ★4 以上が出ます。同じキャラが出るとラックが上がり、攻撃力とHPが1つにつき1%（最大10%）上がります。
-        ジェムはステージのクリアでもらえます（本物のお金は使いません）。</p>
+        ジェムはステージのクリア（初回は多め・負けても少し）、1日1回のログインボーナス、ミニゲームでもらえます（本物のお金は使いません）。</p>
       <div class="pull-row">
         <button id="btn-pull1" type="button">1回<small id="cost1"></small></button>
         <button id="btn-pull10" type="button">10連<small id="cost10"></small></button>
       </div>
       <div class="cards" id="pull-results"></div>
+    </section>
+    <section id="info" class="screen" hidden>
+      <div class="head"><h2>能力</h2><button id="btn-info-back" type="button">もどる</button></div>
+      <p class="note">いま編成しているキャラの能力と、このステージのギミックです。<b>ゲージ</b>のアビリティは、引っぱっている間に動く
+        ゲージが金色の所で離したとき（ゲージショット）だけ付きます。</p>
+      <h3>このステージのギミック</h3>
+      <div id="info-gimmicks"></div>
+      <h3>キャラの能力</h3>
+      <div id="info-units"></div>
+    </section>
+    <section id="puzzle" class="screen" hidden>
+      <div class="head"><h2>ドロップパズル</h2><button id="btn-puzzle-back" type="button">やめる</button></div>
+      <canvas id="pz-canvas" aria-label="パズルの盤面。ドロップを押したまま動かして、3つ以上そろえると消えます"></canvas>
+      <p class="note" id="pz-help"></p>
+      <div id="pz-result" hidden>
+        <div class="card">
+          <h2 id="pz-result-title"></h2>
+          <p id="pz-result-text"></p>
+          <div class="row"><button id="btn-pz-retry" type="button">もう一度</button><button id="btn-pz-back" type="button">もどる</button></div>
+        </div>
+      </div>
     </section>
     <section id="party" class="screen" hidden>
       <div class="head"><h2>編成</h2><button id="btn-party-back" type="button">もどる</button></div>
@@ -192,6 +289,16 @@
     </section>
   </main>
 
+  <section class="bottom">
+    <div class="teamhp"><span class="label">HP</span><div class="bar"><div id="hp-fill"></div></div><span id="hp-text"></span></div>
+    <div class="lineup">
+      <div id="lineup" style="display: contents"></div>
+      <div class="side">
+        <div class="next">NEXT <span id="active-name">A</span><span id="active-type" class="type reflect">反射</span></div>
+        <button id="btn-ss" type="button" aria-pressed="false" disabled>SS</button>
+      </div>
+    </div>
+  </section>
   <p class="help" id="help"></p>
 </div>
 
@@ -277,6 +384,7 @@
     this.sensing = {};    // 通過中の弱点（'相手id#弱点id'）
     this.fieldsIn = {};   // 中にいる重力バリアの id
     this.abilities = o.abilities || {};
+    this.baseAbilities = this.abilities;   // ゲージショットで足したぶんは止まったら元に戻す
     this.data = o.data || {};
   }
 
@@ -421,6 +529,14 @@
     b.traveled = 0;
     b.mods = mods || null;
     b.boosted = false;
+    // ゲージショット成功: このショットの間だけアビリティを足す
+    b.abilities = b.baseAbilities;
+    if (mods && mods.abilities) {
+      var merged = {}, k;
+      for (k in b.baseAbilities) merged[k] = b.baseAbilities[k];
+      for (k in mods.abilities) merged[k] = mods.abilities[k];
+      b.abilities = merged;
+    }
     b.overlaps = {};
     b.sensing = {};
     b.fieldsIn = {};
@@ -431,6 +547,7 @@
   /**
    * 引っぱり量で弾く。引きが足りなければ null（ターンを消費しない）。
    * mods: { speed: 初速の倍率, friction: このショットの摩擦の倍率 }（SS）
+   *       abilities: このショットの間だけ足すアビリティ（ゲージショット）
    */
   World.prototype.launch = function (id, pullDx, pullDy, mods) {
     var v = launchVelocity(this.cfg, pullDx, pullDy);
@@ -680,6 +797,7 @@
     b.sensing = {};
     b.fieldsIn = {};
     b.mods = null;
+    b.abilities = b.baseAbilities;
     this._resolve(b);
     this._emit('stop', b, { traveled: b.traveled });
   };
@@ -693,7 +811,8 @@
     w.slowWalls = this.slowWalls;
     for (var i = 0; i < this.bodies.length; i++) {
       var s = this.bodies[i];
-      var b = new Body({ id: s.id, kind: s.kind, shot: s.shot, shape: s.shape, x: s.x, y: s.y, r: s.r, w: s.w, h: s.h, sensors: s.sensors, parts: s.parts, abilities: s.abilities });
+      var b = new Body({ id: s.id, kind: s.kind, shot: s.shot, shape: s.shape, x: s.x, y: s.y, r: s.r, w: s.w, h: s.h, sensors: s.sensors, parts: s.parts, abilities: s.baseAbilities });
+      b.abilities = s.abilities;
       b.vx = s.vx; b.vy = s.vy; b.moving = s.moving; b.traveled = s.traveled;
       b.mods = s.mods; b.boosted = s.boosted;
       for (var k in s.overlaps) b.overlaps[k] = true;
@@ -771,6 +890,7 @@
   var MINE_SWEEP = 1.5;      // マインスイーパー: 地雷をまとって最初に当てた1回
   var MINE_MAX = 4;          // まとえる地雷の数
   var DW_BOOST = 1.3;        // 超アンチダメージウォール: 触れたショットの攻撃力
+  var GAUGE = 1.2;           // ゲージショット成功: そのショットの直殴り
   var STATUS_SHOTS = 2;      // ひよこ・剣が続く長さ（そのキャラの endTurn の回数。踏んだショット＋次の1ショット）
   var HEART_GROW = 2;        // ハートが育つターン数（小 → 大 → 金）
 
@@ -809,7 +929,8 @@
     this.us = {};             // キャラごとの状態（SSの残り・ひよこ・剣・まとった地雷）
     data.units.forEach(function (u) {
       self.units[u.id] = { id: u.id, atk: u.atk, shot: u.shot, combo: u.combo || null, abilities: abilityMap(u.abilities),
-        element: u.element || null, killers: u.killers || [], resist: u.resist || [], hp: u.hp || 0, ss: u.ss || null };
+        element: u.element || null, killers: u.killers || [], resist: u.resist || [], hp: u.hp || 0, ss: u.ss || null,
+        gauge: abilityMap(u.gauge) };
       self.us[u.id] = { ssLeft: u.ss ? u.ss.turns : 0, chick: 0, sword: 0, mines: 0 };
     });
     this.shot = null;         // いまのショット { unit, ss, touched, dwBoost, stopped }（beginShot で始まり endTurn で終わる）
@@ -826,7 +947,7 @@
     this.enemies = [];
     this.state = 'playing';   // playing | won | lost
     this.stats = { damage: 0, hits: 0, weak: 0, kills: 0, combos: 0, dwHits: 0, dwBlocked: 0, gravity: 0, gravityBlocked: 0,
-      ss: 0, mines: 0, minesCollected: 0, minesBlocked: 0, warps: 0, magic: 0, slow: 0, items: 0, healed: 0 };
+      ss: 0, gauge: 0, mines: 0, minesCollected: 0, minesBlocked: 0, warps: 0, magic: 0, slow: 0, items: 0, healed: 0 };
     this.comboFired = {};     // このターンに友情コンボを出した味方（1ショット1回）
     this.combos = [];         // 発動した友情コンボ（演出用。drainCombos() で受け取る）
     this.hazards = [];        // ギミックに触れた記録（演出用。drainHazards() で受け取る）
@@ -844,6 +965,7 @@
   Battle.MINE_SWEEP = MINE_SWEEP;
   Battle.MINE_MAX = MINE_MAX;
   Battle.DW_BOOST = DW_BOOST;
+  Battle.GAUGE = GAUGE;
   Battle.elementRate = elementRate;
 
   /** ['antiDamageWall'] → { antiDamageWall: true } */
@@ -933,13 +1055,28 @@
    * ショットの始まり。useSS なら SS を使い、残りターンを元に戻す。
    * 返り値は物理に渡す補正（World.launch の mods）。SS でなければ null。
    */
-  Battle.prototype.beginShot = function (id, useSS) {
+  Battle.prototype.beginShot = function (id, useSS, gauge) {
     var ss = useSS && this.ssReady(id) ? this.units[id].ss : null;
-    this.shot = { unit: id, ss: ss, touched: {}, dwBoost: false, stopped: false };
-    if (!ss) return null;
-    this.us[id].ssLeft = ss.turns;
-    this.stats.ss++;
-    return ss.launch || null;
+    var u = this.units[id], gaugeOk = !!gauge;
+    this.shot = { unit: id, ss: ss, gauge: gaugeOk, touched: {}, dwBoost: false, stopped: false };
+    if (gaugeOk) this.stats.gauge++;
+    if (ss) { this.us[id].ssLeft = ss.turns; this.stats.ss++; }
+    var mods = null, k;
+    if (ss && ss.launch) { mods = {}; for (k in ss.launch) mods[k] = ss.launch[k]; }
+    // ゲージアビリティのうち、動きに効くもの（物理が見るもの）を物理にも渡す
+    if (gaugeOk && u && Object.keys(u.gauge).length) {
+      mods = mods || {};
+      mods.abilities = {};
+      for (k in u.gauge) mods.abilities[k] = true;
+    }
+    return mods;
+  };
+
+  /** アビリティを持っているか（ゲージショットに成功したショットの間は、ゲージアビリティも持っている） */
+  Battle.prototype.has = function (u, name) {
+    if (u.abilities[name]) return true;
+    var sh = this.shot;
+    return !!(sh && sh.unit === u.id && sh.gauge && u.gauge[name]);
   };
 
   Battle.prototype.enemy = function (id) {
@@ -978,7 +1115,7 @@
       var u = this.units[ev.id];
       if (!u) continue;
       // beginShot を呼ばずに撃った（テストの小さな戦場など）ときは、最初に動いたキャラをショットの主にする
-      if (!this.shot) this.shot = { unit: ev.id, ss: null, touched: {}, dwBoost: false, stopped: false };
+      if (!this.shot) this.shot = { unit: ev.id, ss: null, gauge: false, touched: {}, dwBoost: false, stopped: false };
       if ((ev.type === 'hit' || ev.type === 'pierce') && this.units[ev.other]) {
         this._touchAlly(u, ev.other);
         this._combo(ev.other, ev.id, world, out);
@@ -1039,9 +1176,9 @@
     for (var i = 0; i < this.damageWalls.length; i++) {
       var dw = this.damageWalls[i];
       if (dw.side !== ws.side || ws.at < dw.from || ws.at > dw.to) continue;
-      var sup = !!u.abilities.superAntiDamageWall;
+      var sup = this.has(u, 'superAntiDamageWall');
       var h = { kind: 'dw', unit: u.id, x: ev.x - ev.nx * 30, y: ev.y - ev.ny * 30, nx: ev.nx, ny: ev.ny,
-        blocked: !!u.abilities.antiDamageWall || sup, boost: false, damage: 0 };
+        blocked: this.has(u, 'antiDamageWall') || sup, boost: false, damage: 0 };
       if (h.blocked) {
         this.stats.dwBlocked++;
         // 超アンチダメージウォール: 触れたショットの間、攻撃力アップ（1ショット1回）
@@ -1063,7 +1200,7 @@
     var sh = this.shot;
     if (!sh || sh.unit !== u.id || sh.touched[otherId]) return;
     sh.touched[otherId] = true;
-    if (u.abilities.ssAccel && u.ss) {
+    if (this.has(u, 'ssAccel') && u.ss) {
       var st = this.us[u.id];
       if (st.ssLeft > 0) { st.ssLeft--; this.hazards.push({ kind: 'ssAccel', unit: u.id, left: st.ssLeft }); }
     }
@@ -1143,8 +1280,9 @@
     if (el !== 1) rates.push({ kind: el > 1 ? 'adv' : 'dis', rate: el });
     var k = killerRate(u.killers, e.def);
     if (k !== 1) rates.push({ kind: 'killer', rate: k });
-    if (u.abilities.lastStand && this.teamHp * 2 < this.teamHpMax) rates.push({ kind: 'lastStand', rate: LAST_STAND });
+    if (this.has(u, 'lastStand') && this.teamHp * 2 < this.teamHpMax) rates.push({ kind: 'lastStand', rate: LAST_STAND });
     var sh = this.shot && this.shot.unit === u.id ? this.shot : null;
+    if (sh && sh.gauge) rates.push({ kind: 'gauge', rate: GAUGE });
     if (sh && sh.ss && sh.ss.atk && sh.ss.atk !== 1) rates.push({ kind: 'ss', rate: sh.ss.atk });
     if (sh && sh.dwBoost) rates.push({ kind: 'dwBoost', rate: DW_BOOST });
     var st = this.us[u.id];
@@ -1422,7 +1560,7 @@
       var st = this.us[uid];
       b.us[uid] = { ssLeft: st.ssLeft, chick: st.chick, sword: st.sword, mines: st.mines };
     }
-    b.shot = this.shot ? { unit: this.shot.unit, ss: this.shot.ss, dwBoost: this.shot.dwBoost, stopped: this.shot.stopped, touched: {} } : null;
+    b.shot = this.shot ? { unit: this.shot.unit, ss: this.shot.ss, gauge: this.shot.gauge, dwBoost: this.shot.dwBoost, stopped: this.shot.stopped, touched: {} } : null;
     if (this.shot) for (var tk in this.shot.touched) b.shot.touched[tk] = true;
     b.items = this.items.slice();
     b.blocks = this.blocks;
@@ -1471,6 +1609,7 @@
    *            'antiWarp' / 'antiBlock' / 'antiMagic' / 'antiSlow'（それぞれのギミックを無効）
    *            'flying'（地雷を避ける） / 'mineSweeper'（地雷を回収し、次に当てた1回が1.5倍）
    *            'ssAccel'（SSターン短縮: 触れた味方1体につき自分のSSが1ターン縮む）
+   * gauge    : ゲージアビリティ。ゲージショットに成功したショットの間だけ付く（攻撃力も1.2倍）
    * killers  : [{ race | element, rank }]。rank は S / N（無印）/ M / L / EL
    * resist   : [{ element, rank }]。その属性の敵の攻撃を N 25% / M 50% 減らす
    * title    : ガチャや編成で見せる名前 / rarity: レア度（★3〜★5）
@@ -1481,20 +1620,20 @@
    */
   var units = [
     { id: 'A', name: 'A', title: 'アクア', rarity: 4, shot: 'reflect', element: 'water', atk: 1500, hp: 8800, x: 90, y: 690, r: 30,
-      colors: ['#c9fbff', '#39b8ff', '#0b3f8a'], accent: '#3cc8ff', abilities: ['superAntiDamageWall', 'antiWarp'],
+      colors: ['#c9fbff', '#39b8ff', '#0b3f8a'], accent: '#3cc8ff', gauge: ['antiGravity'], abilities: ['superAntiDamageWall', 'antiWarp'],
       combo: { kind: 'homing', name: 'ホーミング', count: 6, power: 500 },
       ss: { name: 'ブースト', turns: 8, launch: { speed: 1.35, friction: 0.55 } } },
     { id: 'B', name: 'B', title: 'ブレイズ', rarity: 5, shot: 'pierce', element: 'fire', atk: 1800, hp: 8200, x: 210, y: 715, r: 30,
-      colors: ['#ffe7b8', '#ff7a45', '#8a1f14'], accent: '#ff7a45', abilities: ['superAntiGravity'],
+      colors: ['#ffe7b8', '#ff7a45', '#8a1f14'], accent: '#ff7a45', gauge: ['antiDamageWall'], abilities: ['superAntiGravity'],
       killers: [{ race: 'dragon', rank: 'N' }],
       combo: { kind: 'laser', name: 'クロスレーザー', element: 'fire', power: 1800, width: 34 },
       ss: { name: '全力貫通', turns: 13, atk: 1.9 } },
     { id: 'C', name: 'C', title: 'シルバ', rarity: 4, shot: 'reflect', element: 'wood', atk: 1300, hp: 9400, x: 330, y: 690, r: 30,
-      colors: ['#e6ffc2', '#62c83a', '#1f5a0c'], accent: '#8ee05a', abilities: ['lastStand', 'ssAccel', 'antiBlock'],
+      colors: ['#e6ffc2', '#62c83a', '#1f5a0c'], accent: '#8ee05a', gauge: ['antiWarp'], abilities: ['lastStand', 'ssAccel', 'antiBlock'],
       combo: { kind: 'blast', name: '爆発', power: 2500, radius: 150 },
       ss: { name: 'メテオ', turns: 14, onStop: { kind: 'blast', power: 3600, radius: 210 } } },
     { id: 'D', name: 'D', title: 'ルクス', rarity: 4, shot: 'pierce', element: 'light', atk: 1400, hp: 7600, x: 450, y: 715, r: 30,
-      colors: ['#fffbe0', '#f5d63e', '#8a6a06'], accent: '#ffe066', abilities: ['mineSweeper', 'antiMagic'],
+      colors: ['#fffbe0', '#f5d63e', '#8a6a06'], accent: '#ffe066', gauge: ['antiBlock'], abilities: ['mineSweeper', 'antiMagic'],
       resist: [{ element: 'dark', rank: 'N' }],
       combo: { kind: 'spread', name: '拡散弾', count: 8, power: 700, range: 420 },
       ss: { name: '仲間呼び', turns: 11, launch: { speed: 1.15 }, comboTwice: true } }
@@ -1506,38 +1645,38 @@
    */
   var recruits = [
     { id: 'E', name: 'E', title: 'ホムラ', rarity: 3, shot: 'reflect', element: 'fire', atk: 1250, hp: 7800, r: 30,
-      colors: ['#ffd9c2', '#ff6a3c', '#7a1a08'], accent: '#ff8a5c', abilities: ['antiGravity'],
+      colors: ['#ffd9c2', '#ff6a3c', '#7a1a08'], accent: '#ff8a5c', gauge: ['antiDamageWall'], abilities: ['antiGravity'],
       combo: { kind: 'homing', name: 'ホーミング', element: 'fire', count: 4, power: 450 },
       ss: { name: '火走り', turns: 12, atk: 1.5 } },
     { id: 'F', name: 'F', title: 'シズク', rarity: 3, shot: 'pierce', element: 'water', atk: 1350, hp: 7600, r: 30,
-      colors: ['#d6f4ff', '#3aa8e8', '#0a3a66'], accent: '#5cc4ff', abilities: ['antiDamageWall'],
+      colors: ['#d6f4ff', '#3aa8e8', '#0a3a66'], accent: '#5cc4ff', gauge: ['antiGravity'], abilities: ['antiDamageWall'],
       combo: { kind: 'laser', name: 'クロスレーザー', element: 'water', power: 1400, width: 30 },
       ss: { name: '水鉄砲', turns: 13, atk: 1.6 } },
     { id: 'G', name: 'G', title: 'コダマ', rarity: 3, shot: 'pierce', element: 'wood', atk: 1200, hp: 8200, r: 30,
-      colors: ['#e2ffd0', '#4fbf4a', '#15500f'], accent: '#7ee06a', abilities: ['flying'],
+      colors: ['#e2ffd0', '#4fbf4a', '#15500f'], accent: '#7ee06a', gauge: ['antiMagic'], abilities: ['flying'],
       combo: { kind: 'spread', name: '拡散弾', count: 6, power: 600, range: 380 },
       ss: { name: '木霊', turns: 14, onStop: { kind: 'blast', power: 2500, radius: 180 } } },
     { id: 'H', name: 'H', title: 'ヒカリ', rarity: 3, shot: 'reflect', element: 'light', atk: 1200, hp: 7900, r: 30,
-      colors: ['#fffbe8', '#ffe27a', '#8a7206'], accent: '#fff08a', abilities: ['antiWarp'],
+      colors: ['#fffbe8', '#ffe27a', '#8a7206'], accent: '#fff08a', gauge: ['antiBlock'], abilities: ['antiWarp'],
       combo: { kind: 'blast', name: '爆発', power: 2000, radius: 130 },
       ss: { name: '閃光', turns: 11, launch: { speed: 1.3 } } },
     { id: 'I', name: 'I', title: 'ヨル', rarity: 4, shot: 'reflect', element: 'dark', atk: 1450, hp: 8400, r: 30,
-      colors: ['#eadcff', '#8a4ae8', '#2c0f5c'], accent: '#b58cff', abilities: ['mineSweeper', 'antiSlow'],
+      colors: ['#eadcff', '#8a4ae8', '#2c0f5c'], accent: '#b58cff', gauge: ['antiWarp'], abilities: ['mineSweeper', 'antiSlow'],
       killers: [{ element: 'light', rank: 'N' }],
       combo: { kind: 'homing', name: 'ホーミング', element: 'dark', count: 6, power: 550 },
       ss: { name: '影呼び', turns: 12, comboTwice: true } },
     { id: 'J', name: 'J', title: 'グレン', rarity: 4, shot: 'pierce', element: 'fire', atk: 1650, hp: 8300, r: 30,
-      colors: ['#ffe0c8', '#e8481c', '#6a1204'], accent: '#ff6a3c', abilities: ['superAntiGravity', 'antiBlock'],
+      colors: ['#ffe0c8', '#e8481c', '#6a1204'], accent: '#ff6a3c', gauge: ['antiMagic'], abilities: ['superAntiGravity', 'antiBlock'],
       killers: [{ race: 'golem', rank: 'M' }],
       combo: { kind: 'laser', name: 'クロスレーザー', element: 'fire', power: 2000, width: 40 },
       ss: { name: '紅蓮突き', turns: 14, atk: 2.0 } },
     { id: 'K', name: 'K', title: 'ルナ', rarity: 5, shot: 'pierce', element: 'dark', atk: 1750, hp: 9000, r: 30,
-      colors: ['#f0e0ff', '#6a2ad0', '#1e0648'], accent: '#c49cff', abilities: ['superAntiDamageWall', 'antiMagic', 'mineSweeper'],
+      colors: ['#f0e0ff', '#6a2ad0', '#1e0648'], accent: '#c49cff', gauge: ['antiWarp'], abilities: ['superAntiDamageWall', 'antiMagic', 'mineSweeper'],
       killers: [{ race: 'beast', rank: 'M' }],
       combo: { kind: 'spread', name: '拡散弾', element: 'dark', count: 10, power: 800, range: 460 },
       ss: { name: '月落とし', turns: 16, onStop: { kind: 'blast', power: 4500, radius: 230 } } },
     { id: 'L', name: 'L', title: 'ソレイユ', rarity: 5, shot: 'reflect', element: 'light', atk: 1700, hp: 9300, r: 30,
-      colors: ['#fffce0', '#ffc83c', '#8a5a06'], accent: '#ffd65c', abilities: ['superAntiGravity', 'antiWarp', 'lastStand'],
+      colors: ['#fffce0', '#ffc83c', '#8a5a06'], accent: '#ffd65c', gauge: ['antiMagic'], abilities: ['superAntiGravity', 'antiWarp', 'lastStand'],
       killers: [{ element: 'dark', rank: 'N' }],
       combo: { kind: 'blast', name: '大爆発', element: 'light', power: 3200, radius: 170 },
       ss: { name: '日輪', turns: 15, launch: { speed: 1.4, friction: 0.5 }, atk: 1.3 } }
@@ -1558,9 +1697,15 @@
     luckMax: 99, luckBonusMax: 10
   };
 
-  /** 最初に持っているジェムとキャラ、ステージのクリア報酬（初回 / 2回目から / 負けても少し） */
-  var meta = { startGems: 30, starter: ['A', 'B', 'C', 'D'],
-    rewards: [{ first: 20, again: 5, lose: 1 }, { first: 30, again: 8, lose: 2 }] };
+  /**
+   * 最初に持っているジェムとキャラ、ステージのクリア報酬（初回 / 2回目から / 負けても少し）。
+   * daily: 1日1回のログインボーナス / puzzle: ミニゲーム「ドロップパズル」の報酬
+   */
+  var meta = { startGems: 50, starter: ['A', 'B', 'C', 'D'],
+    rewards: [{ first: 40, again: 12, lose: 3 }, { first: 50, again: 15, lose: 4 }, { first: 60, again: 18, lose: 5 },
+      { first: 70, again: 20, lose: 5 }, { first: 100, again: 25, lose: 6 }],
+    daily: 20,
+    puzzle: { first: 20, again: 8, lose: 2 } };
 
   var SLIME = ['#c8ffab', '#3fca6b', '#0f5a33'];
   var BAT = ['#e7c8ff', '#9a5cf0', '#3a1670'];
@@ -1583,7 +1728,8 @@
    * items（ウェーブごと）: [{ id, item: 'heart' | 'sword', x, y, turn }]。ウェーブの turn ターン目に出る
    */
   var stage = {
-    name: 'はじまりの洞窟',
+    name: 'はじまりの草原',
+    theme: 'meadow',
     waves: [
       { enemies: [
         { id: 'w1-slime-l', name: 'スライム', element: 'wood', race: 'slime', look: 'slime', colors: SLIME, shape: 'circle', x: 120, y: 220, r: 40,
@@ -1602,7 +1748,7 @@
         // 翼にも当たり判定がある（本体の円＋左右2つずつの円）
         { id: 'w2-dragon', name: 'レッドドラゴン', element: 'fire', race: 'dragon', boss: true, look: 'dragon', shape: 'compound', x: 270, y: 250, r: 84,
           parts: [{ dx: 0, dy: 0, r: 84 }, { dx: -112, dy: -12, r: 34 }, { dx: 112, dy: -12, r: 34 }, { dx: -138, dy: -56, r: 22 }, { dx: 138, dy: -56, r: 22 }],
-          hp: 75000, atk: 6900, turns: 3, attack: 'all', weak: [{ id: 'belly', dx: 0, dy: 84, r: 22 }] },
+          hp: 88000, atk: 6900, turns: 3, attack: 'all', weak: [{ id: 'belly', dx: 0, dy: 84, r: 22 }] },
         { id: 'w2-bat-l', name: 'コウモリ', element: 'dark', race: 'beast', look: 'slime', colors: BAT, shape: 'circle', x: 100, y: 470, r: 32,
           hp: 5000, atk: 1725, turns: 2, attack: 'single' },
         { id: 'w2-bat-r', name: 'コウモリ', element: 'dark', race: 'beast', look: 'slime', colors: BAT, shape: 'circle', x: 440, y: 470, r: 32,
@@ -1622,6 +1768,7 @@
   /** 2つ目のステージ: 地雷・ブロック → ワープ・魔法陣・アイテム → 減速壁のボス戦 */
   var tower = {
     name: 'からくりの塔',
+    theme: 'tower',
     waves: [
       { enemies: [
         { id: 't1-bomb-l', name: 'ボムスライム', element: 'fire', race: 'slime', look: 'slime', colors: BOMB, shape: 'circle', x: 130, y: 200, r: 38,
@@ -1686,7 +1833,220 @@
     ]
   };
 
-  root.MSData = { units: units, roster: units.concat(recruits), slots: slots, gacha: gacha, meta: meta, stage: stage, stages: [stage, tower] };
+
+  var LAVA = ['#ffe3a3', '#ff7a1f', '#8a1e00'];
+  var EMBER = ['#ffd0c0', '#ff4d4d', '#6e0a12'];
+  var ICE = ['#f2fbff', '#7fd3ff', '#1d5f9e'];
+  var SNOW = ['#ffffff', '#c9e6ff', '#5d86b8'];
+  var SHADOW = ['#e8d6ff', '#8b4df0', '#2a0c5c'];
+  var GHOST = ['#fff4fb', '#ff8ad0', '#7a1656'];
+
+  /** 3つ目のステージ: 火の敵ばかり。水のキャラが活躍する。ダメージウォール・地雷 → 重力バリア → 火のドラゴン */
+  var volcano = {
+    name: 'ほのおの火山',
+    theme: 'volcano',
+    waves: [
+      { enemies: [
+        { id: 'v1-slime-l', name: 'マグマスライム', element: 'fire', race: 'slime', look: 'slime', colors: LAVA, shape: 'circle', x: 120, y: 210, r: 40,
+          hp: 8100, atk: 2160, turns: 3, attack: 'single' },
+        { id: 'v1-slime-r', name: 'マグマスライム', element: 'fire', race: 'slime', look: 'slime', colors: LAVA, shape: 'circle', x: 420, y: 210, r: 40,
+          hp: 8100, atk: 2160, turns: 4, attack: 'single' },
+        { id: 'v1-golem', name: 'ようがんゴーレム', element: 'fire', race: 'golem', look: 'golem', colors: LAVA, shape: 'rect', x: 270, y: 400, w: 150, h: 54,
+          hp: 12600, atk: 3420, turns: 3, attack: 'all' }
+      ], gimmicks: {
+        damageWalls: [
+          { side: 'left', from: 300, to: 700, damage: 1500 },
+          { side: 'right', from: 300, to: 700, damage: 1500 }
+        ],
+        mines: [
+          { id: 'v1-mine-1', x: 150, y: 520, r: 16, damage: 1300 },
+          { id: 'v1-mine-2', x: 390, y: 520, r: 16, damage: 1300 }
+        ]
+      } },
+      { enemies: [
+        { id: 'v2-bird-l', name: 'ひのとり', element: 'fire', race: 'beast', look: 'slime', colors: EMBER, shape: 'circle', x: 110, y: 180, r: 34,
+          hp: 7200, atk: 1890, turns: 2, attack: 'single' },
+        { id: 'v2-bird-r', name: 'ひのとり', element: 'fire', race: 'beast', look: 'slime', colors: EMBER, shape: 'circle', x: 430, y: 180, r: 34,
+          hp: 7200, atk: 1890, turns: 3, attack: 'single' },
+        { id: 'v2-golem', name: 'ようがんゴーレム', element: 'fire', race: 'golem', look: 'golem', colors: LAVA, shape: 'rect', x: 270, y: 300, w: 170, h: 56,
+          hp: 16200, atk: 3780, turns: 3, attack: 'all' }
+      ], gimmicks: {
+        gravity: [
+          { id: 'v2-grav-l', x: 150, y: 460, r: 54 },
+          { id: 'v2-grav-r', x: 390, y: 460, r: 54 }
+        ]
+      }, items: [
+        { id: 'v2-heart', item: 'heart', x: 270, y: 560, turn: 1 }
+      ] },
+      { enemies: [
+        { id: 'v3-dragon', name: 'フレイムドラゴン', element: 'fire', race: 'dragon', boss: true, look: 'dragon', colors: ['#ffd27a', '#ff6a1a', '#7a1a04'],
+          shape: 'compound', x: 270, y: 240, r: 84,
+          parts: [{ dx: 0, dy: 0, r: 84 }, { dx: -112, dy: -12, r: 34 }, { dx: 112, dy: -12, r: 34 }, { dx: -138, dy: -56, r: 22 }, { dx: 138, dy: -56, r: 22 }],
+          hp: 80000, atk: 6480, turns: 3, attack: 'all', weak: [{ id: 'belly', dx: 0, dy: 84, r: 22 }] },
+        { id: 'v3-slime-l', name: 'マグマスライム', element: 'fire', race: 'slime', look: 'slime', colors: LAVA, shape: 'circle', x: 100, y: 470, r: 34,
+          hp: 6300, atk: 1800, turns: 2, attack: 'single' },
+        { id: 'v3-slime-r', name: 'マグマスライム', element: 'fire', race: 'slime', look: 'slime', colors: LAVA, shape: 'circle', x: 440, y: 470, r: 34,
+          hp: 6300, atk: 1800, turns: 3, attack: 'single' }
+      ], gimmicks: {
+        damageWalls: [{ side: 'top', from: 80, to: 460, damage: 1900 }],
+        gravity: [{ id: 'v3-grav', x: 270, y: 440, r: 56 }],
+        blocks: [
+          { id: 'v3-block-l', x: 130, y: 600, w: 80, h: 24 },
+          { id: 'v3-block-r', x: 410, y: 600, w: 80, h: 24 }
+        ]
+      } }
+    ]
+  };
+
+  /** 4つ目のステージ: 水の敵。木のキャラが活躍する。減速壁・ブロック → 魔法陣・ワープ → 氷の王 */
+  var temple = {
+    name: 'こおりの神殿',
+    theme: 'ice',
+    waves: [
+      { enemies: [
+        { id: 'i1-slime-l', name: 'こおりスライム', element: 'water', race: 'slime', look: 'slime', colors: ICE, shape: 'circle', x: 130, y: 200, r: 40,
+          hp: 7500, atk: 1880, turns: 3, attack: 'single' },
+        { id: 'i1-slime-r', name: 'こおりスライム', element: 'water', race: 'slime', look: 'slime', colors: ICE, shape: 'circle', x: 410, y: 200, r: 40,
+          hp: 7500, atk: 1880, turns: 4, attack: 'single' },
+        { id: 'i1-golem', name: 'ひょうがゴーレム', element: 'water', race: 'golem', look: 'golem', colors: SNOW, shape: 'rect', x: 270, y: 360, w: 150, h: 54,
+          hp: 12000, atk: 2920, turns: 3, attack: 'all' }
+      ], gimmicks: {
+        slowWalls: [
+          { side: 'left', from: 100, to: 700, factor: 0.6 },
+          { side: 'right', from: 100, to: 700, factor: 0.6 }
+        ],
+        blocks: [
+          { id: 'i1-block-l', x: 140, y: 520, w: 90, h: 26 },
+          { id: 'i1-block-r', x: 400, y: 520, w: 90, h: 26 }
+        ]
+      } },
+      { enemies: [
+        { id: 'i2-mage', name: 'ゆきのまどうし', element: 'water', race: 'beast', look: 'slime', colors: SNOW, shape: 'circle', x: 270, y: 220, r: 50,
+          hp: 18000, atk: 3000, turns: 3, attack: 'all' },
+        { id: 'i2-bird-l', name: 'こおりどり', element: 'water', race: 'beast', look: 'slime', colors: ICE, shape: 'circle', x: 120, y: 400, r: 32,
+          hp: 5200, atk: 1420, turns: 2, attack: 'single' },
+        { id: 'i2-bird-r', name: 'こおりどり', element: 'water', race: 'beast', look: 'slime', colors: ICE, shape: 'circle', x: 420, y: 400, r: 32,
+          hp: 5200, atk: 1420, turns: 3, attack: 'single' }
+      ], gimmicks: {
+        magic: [
+          { id: 'i2-magic-l', x: 160, y: 540, r: 36 },
+          { id: 'i2-magic-r', x: 380, y: 540, r: 36 }
+        ],
+        warps: [
+          { id: 'i2-warp-a1', pair: 'i2-warp-a2', x: 270, y: 620, r: 26 },
+          { id: 'i2-warp-a2', pair: 'i2-warp-a1', x: 270, y: 110, r: 26 }
+        ]
+      }, items: [
+        { id: 'i2-sword', item: 'sword', x: 270, y: 330, turn: 1 }
+      ] },
+      { enemies: [
+        { id: 'i3-king', name: 'こおりの王', element: 'water', race: 'golem', boss: true, look: 'slime', colors: ICE, shape: 'circle', x: 270, y: 240, r: 92,
+          hp: 65000, atk: 5550, turns: 3, attack: 'all', weak: [{ id: 'core', dx: 0, dy: 92, r: 22 }] },
+        { id: 'i3-slime-l', name: 'こおりスライム', element: 'water', race: 'slime', look: 'slime', colors: ICE, shape: 'circle', x: 100, y: 480, r: 34,
+          hp: 5600, atk: 1580, turns: 2, attack: 'single' },
+        { id: 'i3-slime-r', name: 'こおりスライム', element: 'water', race: 'slime', look: 'slime', colors: ICE, shape: 'circle', x: 440, y: 480, r: 34,
+          hp: 5600, atk: 1580, turns: 3, attack: 'single' }
+      ], gimmicks: {
+        slowWalls: [
+          { side: 'left', from: 150, to: 650, factor: 0.55 },
+          { side: 'right', from: 150, to: 650, factor: 0.55 }
+        ],
+        damageWalls: [{ side: 'top', from: 100, to: 440, damage: 1800 }],
+        mines: [
+          { id: 'i3-mine-l', x: 190, y: 580, r: 16, damage: 1500 },
+          { id: 'i3-mine-r', x: 350, y: 580, r: 16, damage: 1500 }
+        ]
+      }, items: [
+        { id: 'i3-heart', item: 'heart', x: 270, y: 470, turn: 2 }
+      ] }
+    ]
+  };
+
+  /** 5つ目のステージ: 闇と光の敵。いちばん難しい。魔法陣・地雷 → ワープ・重力 → 闇のドラゴン */
+  var castle = {
+    name: 'やみの古城',
+    theme: 'castle',
+    waves: [
+      { enemies: [
+        { id: 'c1-bat-l', name: 'やみコウモリ', element: 'dark', race: 'beast', look: 'slime', colors: SHADOW, shape: 'circle', x: 110, y: 200, r: 34,
+          hp: 7200, atk: 1840, turns: 2, attack: 'single' },
+        { id: 'c1-bat-r', name: 'やみコウモリ', element: 'dark', race: 'beast', look: 'slime', colors: SHADOW, shape: 'circle', x: 430, y: 200, r: 34,
+          hp: 7200, atk: 1840, turns: 3, attack: 'single' },
+        { id: 'c1-ghost', name: 'おばけ', element: 'light', race: 'beast', look: 'slime', colors: GHOST, shape: 'circle', x: 270, y: 330, r: 46,
+          hp: 13600, atk: 3200, turns: 3, attack: 'all' }
+      ], gimmicks: {
+        magic: [{ id: 'c1-magic', x: 270, y: 520, r: 40 }],
+        mines: [
+          { id: 'c1-mine-1', x: 120, y: 440, r: 16, damage: 1400 },
+          { id: 'c1-mine-2', x: 420, y: 440, r: 16, damage: 1400 },
+          { id: 'c1-mine-3', x: 270, y: 180, r: 16, damage: 1400 }
+        ]
+      } },
+      { enemies: [
+        { id: 'c2-golem-l', name: 'やみゴーレム', element: 'dark', race: 'golem', look: 'golem', colors: SHADOW, shape: 'rect', x: 160, y: 280, w: 130, h: 50,
+          hp: 12800, atk: 2720, turns: 3, attack: 'single' },
+        { id: 'c2-golem-r', name: 'ひかりゴーレム', element: 'light', race: 'golem', look: 'golem', colors: GHOST, shape: 'rect', x: 380, y: 280, w: 130, h: 50,
+          hp: 12800, atk: 2720, turns: 4, attack: 'single' },
+        { id: 'c2-mage', name: 'やみのまどうし', element: 'dark', race: 'beast', look: 'slime', colors: SHADOW, shape: 'circle', x: 270, y: 140, r: 44,
+          hp: 16000, atk: 3440, turns: 3, attack: 'all' }
+      ], gimmicks: {
+        warps: [
+          { id: 'c2-warp-a1', pair: 'c2-warp-a2', x: 70, y: 580, r: 26 },
+          { id: 'c2-warp-a2', pair: 'c2-warp-a1', x: 470, y: 420, r: 26 },
+          { id: 'c2-warp-b1', pair: 'c2-warp-b2', x: 470, y: 580, r: 26 },
+          { id: 'c2-warp-b2', pair: 'c2-warp-b1', x: 70, y: 420, r: 26 }
+        ],
+        gravity: [{ id: 'c2-grav', x: 270, y: 450, r: 54 }],
+        damageWalls: [{ side: 'top', from: 60, to: 480, damage: 1600 }]
+      }, items: [
+        { id: 'c2-heart', item: 'heart', x: 270, y: 600, turn: 1 }
+      ] },
+      { enemies: [
+        { id: 'c3-dragon', name: 'ダークドラゴン', element: 'dark', race: 'dragon', boss: true, look: 'dragon', colors: ['#d9b8ff', '#7a3ce0', '#240a52'],
+          shape: 'compound', x: 270, y: 240, r: 86,
+          parts: [{ dx: 0, dy: 0, r: 86 }, { dx: -114, dy: -12, r: 34 }, { dx: 114, dy: -12, r: 34 }, { dx: -140, dy: -56, r: 22 }, { dx: 140, dy: -56, r: 22 }],
+          hp: 100000, atk: 6240, turns: 3, attack: 'all', weak: [{ id: 'belly', dx: 0, dy: 86, r: 22 }] },
+        { id: 'c3-ghost-l', name: 'おばけ', element: 'light', race: 'beast', look: 'slime', colors: GHOST, shape: 'circle', x: 100, y: 470, r: 34,
+          hp: 6400, atk: 1760, turns: 2, attack: 'single' },
+        { id: 'c3-bat-r', name: 'やみコウモリ', element: 'dark', race: 'beast', look: 'slime', colors: SHADOW, shape: 'circle', x: 440, y: 470, r: 34,
+          hp: 6400, atk: 1760, turns: 3, attack: 'single' }
+      ], gimmicks: {
+        damageWalls: [
+          { side: 'left', from: 80, to: 400, damage: 1700 },
+          { side: 'right', from: 80, to: 400, damage: 1700 }
+        ],
+        gravity: [{ id: 'c3-grav', x: 270, y: 440, r: 54 }],
+        blocks: [
+          { id: 'c3-block-l', x: 150, y: 590, w: 80, h: 24 },
+          { id: 'c3-block-r', x: 390, y: 590, w: 80, h: 24 }
+        ]
+      }, items: [
+        { id: 'c3-heart', item: 'heart', x: 270, y: 540, turn: 2 },
+        { id: 'c3-sword', item: 'sword', x: 270, y: 370, turn: 1 }
+      ] }
+    ]
+  };
+
+  /**
+   * ミニゲーム「ドロップパズル」の敵（3フロア）。見た目は look / colors / r（ゴーレムは w, h）。
+   * turns ターンごとに atk でチームを攻撃する。
+   */
+  var puzzle = { floors: [
+    [
+      { id: 'p1-slime', name: 'スライム', element: 'wood', look: 'slime', colors: SLIME, r: 44, hp: 6300, atk: 4800, turns: 2 },
+      { id: 'p1-bat', name: 'コウモリ', element: 'dark', look: 'slime', colors: BAT, r: 38, hp: 4900, atk: 3600, turns: 1 },
+      { id: 'p1-slime2', name: 'こおりスライム', element: 'water', look: 'slime', colors: ICE, r: 44, hp: 6300, atk: 4800, turns: 3 }
+    ],
+    [
+      { id: 'p2-golem', name: 'ブロックゴーレム', element: 'water', look: 'golem', w: 150, h: 56, r: 60, hp: 15400, atk: 8400, turns: 3 },
+      { id: 'p2-mage', name: 'まどうし', element: 'light', look: 'slime', colors: GHOST, r: 46, hp: 9800, atk: 6000, turns: 2 }
+    ],
+    [
+      { id: 'p3-dragon', name: 'レッドドラゴン', element: 'fire', boss: true, look: 'dragon', r: 70, hp: 42000, atk: 15000, turns: 3 }
+    ]
+  ] };
+
+  root.MSData = { units: units, puzzle: puzzle, roster: units.concat(recruits), slots: slots, gacha: gacha, meta: meta, stage: stage, stages: [stage, tower, volcano, temple, castle] };
 })(typeof window !== 'undefined' ? window : globalThis);
 </script>
 
@@ -1706,7 +2066,7 @@
   function newSave(data) {
     var owned = {};
     data.meta.starter.forEach(function (id) { owned[id] = { luck: 0 }; });
-    return { v: SAVE_VERSION, gems: data.meta.startGems, owned: owned, party: data.meta.starter.slice(), cleared: {}, pulls: 0 };
+    return { v: SAVE_VERSION, gems: data.meta.startGems, owned: owned, party: data.meta.starter.slice(), cleared: {}, pulls: 0, daily: '' };
   }
 
   /**
@@ -1726,6 +2086,7 @@
       out.owned[id] = { luck: Math.max(0, Math.min(data.gacha.luckMax, luck)) };
     }
     for (var k in (s.cleared || {})) if (s.cleared[k]) out.cleared[k] = true;
+    if (typeof s.daily === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(s.daily)) out.daily = s.daily;
     var party = [];
     (Array.isArray(s.party) ? s.party : []).forEach(function (pid) {
       if (out.owned[pid] && party.indexOf(pid) < 0 && party.length < data.slots.length) party.push(pid);
@@ -1781,8 +2142,24 @@
 
   /** ステージが終わったときの報酬。初回クリアは多く、2回目からは少し。負けても少しもらえる */
   function reward(save, data, stageIndex, won) {
-    var rw = data.meta.rewards[stageIndex] || { first: 0, again: 0, lose: 0 };
-    var key = 's' + stageIndex, gems, first = false;
+    return give(save, 's' + stageIndex, data.meta.rewards[stageIndex] || { first: 0, again: 0, lose: 0 }, won);
+  }
+  /** ミニゲーム「ドロップパズル」の報酬（初回クリアの記録は 'puzzle'） */
+  function puzzleReward(save, data, won) { return give(save, 'puzzle', data.meta.puzzle, won); }
+
+  /**
+   * 1日1回のログインボーナス。day は 'YYYY-MM-DD'（日付は画面が決めて渡す）。
+   * 同じ日に2回目なら 0 を返して何も変えない。
+   */
+  function claimDaily(save, data, day) {
+    if (save.daily === day) return { gems: 0, total: save.gems };
+    save.daily = day;
+    save.gems += data.meta.daily;
+    return { gems: data.meta.daily, total: save.gems };
+  }
+
+  function give(save, key, rw, won) {
+    var gems, first = false;
     if (!won) gems = rw.lose;
     else if (!save.cleared[key]) { gems = rw.first; first = true; save.cleared[key] = true; }
     else gems = rw.again;
@@ -1820,7 +2197,218 @@
   }
 
   root.MSMeta = { newSave: newSave, load: load, rateTable: rateTable, pull: pull, reward: reward,
+    puzzleReward: puzzleReward, claimDaily: claimDaily,
     setParty: setParty, partyUnits: partyUnits, luckRate: luckRate, byId: byId, SAVE_VERSION: SAVE_VERSION };
+})(typeof window !== 'undefined' ? window : globalThis);
+</script>
+
+<!--
+  ミニゲーム「ドロップパズル」（パズドラの仕組みを参考にしたもの。docs/puzzle-research.md）。
+  DOM・乱数・時計に触れない純粋なモジュール。乱数は引数でもらう。
+-->
+<script id="ms-puzzle">
+(function (root) {
+  'use strict';
+
+  var COLS = 6, ROWS = 5;
+  var COLORS = ['fire', 'water', 'wood', 'light', 'dark', 'heart'];
+  var MOVE_TIME = 5;           // 最初に入れ替えてから動かせる秒数
+  var LEADER = 1.5;            // リーダー（先頭）と同じ属性の攻撃
+  var ALL_AT = 5;              // この数以上つなげて消すと全体攻撃
+  var ADV = { fire: 'wood', wood: 'water', water: 'fire' };
+
+  function pick(rng) { return COLORS[Math.min(COLORS.length - 1, Math.floor(rng() * COLORS.length))]; }
+
+  /** 最初の盤面。横にも縦にも3つそろった所を作らない */
+  function newBoard(rng) {
+    var b = [];
+    for (var r = 0; r < ROWS; r++) {
+      b.push([]);
+      for (var c = 0; c < COLS; c++) {
+        var col;
+        do { col = pick(rng); } while (
+          (c >= 2 && b[r][c - 1] === col && b[r][c - 2] === col) ||
+          (r >= 2 && b[r - 1][c] === col && b[r - 2][c] === col));
+        b[r].push(col);
+      }
+    }
+    return b;
+  }
+
+  function copy(b) { return b.map(function (row) { return row.slice(); }); }
+
+  /** 隣（斜めも含む）なら入れ替えて true。盤面はその場で書き換える */
+  function swap(b, r1, c1, r2, c2) {
+    if (Math.max(Math.abs(r1 - r2), Math.abs(c1 - c2)) !== 1) return false;
+    if (r2 < 0 || r2 >= ROWS || c2 < 0 || c2 >= COLS) return false;
+    var t = b[r1][c1]; b[r1][c1] = b[r2][c2]; b[r2][c2] = t;
+    return true;
+  }
+
+  /**
+   * そろった所を探す。縦か横に3個以上並んだドロップに印を付け、
+   * 印の付いた同じ色のドロップで上下左右につながったものを1コンボにまとめる。
+   * 返り値: [{ color, cells: [[r, c]...] }]（上の行・左の列から見つかった順）
+   */
+  function findMatches(b) {
+    var mark = [], r, c, k;
+    for (r = 0; r < ROWS; r++) { mark.push([]); for (c = 0; c < COLS; c++) mark[r].push(false); }
+    for (r = 0; r < ROWS; r++) {
+      for (c = 0; c < COLS; c++) {
+        var col = b[r][c];
+        if (!col) continue;
+        if (c + 2 < COLS && b[r][c + 1] === col && b[r][c + 2] === col) for (k = c; k < COLS && b[r][k] === col; k++) mark[r][k] = true;
+        if (r + 2 < ROWS && b[r + 1][c] === col && b[r + 2][c] === col) for (k = r; k < ROWS && b[k][c] === col; k++) mark[k][c] = true;
+      }
+    }
+    var seen = [], combos = [];
+    for (r = 0; r < ROWS; r++) { seen.push([]); for (c = 0; c < COLS; c++) seen[r].push(false); }
+    for (r = 0; r < ROWS; r++) {
+      for (c = 0; c < COLS; c++) {
+        if (!mark[r][c] || seen[r][c]) continue;
+        var color = b[r][c], cells = [], stack = [[r, c]];
+        seen[r][c] = true;
+        while (stack.length) {
+          var p = stack.pop();
+          cells.push(p);
+          [[1, 0], [-1, 0], [0, 1], [0, -1]].forEach(function (d) {
+            var y = p[0] + d[0], x = p[1] + d[1];
+            if (y >= 0 && y < ROWS && x >= 0 && x < COLS && mark[y][x] && !seen[y][x] && b[y][x] === color) { seen[y][x] = true; stack.push([y, x]); }
+          });
+        }
+        cells.sort(function (a, z) { return a[0] - z[0] || a[1] - z[1]; });
+        combos.push({ color: color, cells: cells });
+      }
+    }
+    return combos;
+  }
+
+  /**
+   * 消えた所（null）に上のドロップが落ち、空いた所に新しいドロップが降る。
+   * 返り値: { board, moves: [{ r, c, from }] }。from は元の行（新しいドロップは -1, -2 …）
+   */
+  function fall(b, rng) {
+    var out = copy(b), moves = [];
+    for (var c = 0; c < COLS; c++) {
+      var r = ROWS - 1;
+      for (var y = ROWS - 1; y >= 0; y--) {
+        if (b[y][c] === null) continue;
+        out[r][c] = b[y][c];
+        if (r !== y) moves.push({ r: r, c: c, from: y });
+        r--;
+      }
+      for (var n = 1; r >= 0; r--, n++) { out[r][c] = pick(rng); moves.push({ r: r, c: c, from: -n }); }
+    }
+    return { board: out, moves: moves };
+  }
+
+  /**
+   * そろわなくなるまで「消す → 落ちる」を繰り返す（落ちコン）。
+   * 返り値: { board, combos, steps: [{ combos, cleared, board, moves }] }
+   */
+  function resolve(b, rng) {
+    var steps = [], all = [];
+    for (var guard = 0; guard < 50; guard++) {
+      var combos = findMatches(b);
+      if (!combos.length) break;
+      var cleared = copy(b);
+      combos.forEach(function (cb) { cb.cells.forEach(function (p) { cleared[p[0]][p[1]] = null; }); });
+      var f = fall(cleared, rng);
+      steps.push({ combos: combos, cleared: cleared, board: f.board, moves: f.moves });
+      all = all.concat(combos);
+      b = f.board;
+    }
+    return { board: b, combos: all, steps: steps };
+  }
+
+  /** 属性の倍率（パズドラと同じ: 有利2倍・不利0.5倍、光と闇はお互いに2倍） */
+  function elementRate(a, d) {
+    if (!a || !d) return 1;
+    if (ADV[a] === d) return 2;
+    if (ADV[d] === a) return 0.5;
+    if ((a === 'light' && d === 'dark') || (a === 'dark' && d === 'light')) return 2;
+    return 1;
+  }
+  function comboRate(n) { return 1 + 0.25 * Math.max(0, n - 1); }
+  function sizeRate(n) { return 1 + 0.25 * (n - 3); }
+
+  /**
+   * パズルのバトル。team: 編成の4体（先頭がリーダー）/ floors: [[敵の定義]]
+   * 敵の定義: { id, name, element, hp, atk, turns }。turns ターンごとに atk で攻撃する。
+   */
+  function PuzzleBattle(opts) {
+    this.team = opts.team;
+    this.floors = opts.floors;
+    this.hpMax = this.team.reduce(function (a, u) { return a + u.hp; }, 0);
+    this.hp = this.hpMax;
+    this.rcv = this.team.reduce(function (a, u) { return a + Math.round(u.hp / 20); }, 0);
+    this.floor = 0;
+    this.turn = 1;
+    this.state = 'playing';
+    this.stats = { maxCombo: 0, combos: 0, damage: 0, healed: 0 };
+    this.spawn();
+  }
+  PuzzleBattle.prototype.spawn = function () {
+    this.enemies = this.floors[this.floor].map(function (d) { return { id: d.id, def: d, hp: d.hp, hpMax: d.hp, cd: d.turns }; });
+  };
+  PuzzleBattle.prototype.alive = function () { return this.enemies.filter(function (e) { return e.hp > 0; }); };
+
+  /**
+   * 1ターン: 消したコンボで攻撃と回復 → 敵が残っていれば敵のターン。
+   * 返り値: { attacks: [{ unit, element, all, hits: [{ enemy, damage }] }], heal, enemyAttacks: [{ enemy, damage }], floorCleared, state }
+   */
+  PuzzleBattle.prototype.play = function (combos) {
+    if (this.state !== 'playing') return null;
+    var self = this, n = combos.length, cr = comboRate(n);
+    var leader = this.team[0].element;
+    var res = { attacks: [], heal: 0, enemyAttacks: [], floorCleared: false, combos: n };
+    this.stats.combos += n;
+    this.stats.maxCombo = Math.max(this.stats.maxCombo, n);
+    this.team.forEach(function (u) {
+      var mine = combos.filter(function (cb) { return cb.color === u.element; });
+      if (!mine.length) return;
+      var base = mine.reduce(function (a, cb) { return a + u.atk * sizeRate(cb.cells.length); }, 0);
+      var power = base * cr * (u.element === leader ? LEADER : 1);
+      var all = mine.some(function (cb) { return cb.cells.length >= ALL_AT; });
+      var targets = all ? self.alive() : self.alive().slice(0, 1);
+      if (!targets.length) return;
+      var hits = targets.map(function (e) {
+        var dmg = Math.round(power * elementRate(u.element, e.def.element));
+        e.hp = Math.max(0, e.hp - dmg);
+        self.stats.damage += dmg;
+        return { enemy: e.id, damage: dmg, rate: elementRate(u.element, e.def.element) };
+      });
+      res.attacks.push({ unit: u.id, element: u.element, all: all, hits: hits });
+    });
+    var hearts = combos.filter(function (cb) { return cb.color === 'heart'; });
+    if (hearts.length) {
+      var heal = Math.round(hearts.reduce(function (a, cb) { return a + self.rcv * sizeRate(cb.cells.length); }, 0) * cr);
+      res.heal = Math.min(heal, this.hpMax - this.hp);
+      this.hp += res.heal;
+      this.stats.healed += res.heal;
+    }
+    if (!this.alive().length) {
+      res.floorCleared = true;
+      if (this.floor + 1 >= this.floors.length) this.state = 'won';
+      else { this.floor++; this.spawn(); }
+    } else {
+      this.alive().forEach(function (e) {
+        e.cd--;
+        if (e.cd > 0) return;
+        e.cd = e.def.turns;
+        self.hp = Math.max(0, self.hp - e.def.atk);
+        res.enemyAttacks.push({ enemy: e.id, damage: e.def.atk });
+      });
+      if (this.hp <= 0) this.state = 'lost';
+    }
+    this.turn++;
+    res.state = this.state;
+    return res;
+  };
+
+  root.MSPuzzle = { COLS: COLS, ROWS: ROWS, COLORS: COLORS, MOVE_TIME: MOVE_TIME, LEADER: LEADER, ALL_AT: ALL_AT,
+    newBoard: newBoard, copy: copy, swap: swap, findMatches: findMatches, fall: fall, resolve: resolve,
+    elementRate: elementRate, comboRate: comboRate, sizeRate: sizeRate, PuzzleBattle: PuzzleBattle };
 })(typeof window !== 'undefined' ? window : globalThis);
 </script>
 
@@ -1833,27 +2421,39 @@
   var WALL = 22;                    // 画面上の壁の厚み（論理px）。フィールドの外側に描く
   var SHOT_LABEL = { reflect: '反射', pierce: '貫通' };
   var ABILITY = {
-    antiDamageWall: { short: 'ADW', name: 'アンチダメージウォール', color: '#ffe066' },
-    antiGravity: { short: 'AGB', name: 'アンチ重力バリア', color: '#c79bff' },
-    superAntiDamageWall: { short: '超ADW', name: '超アンチダメージウォール', color: '#ffe066' },
-    superAntiGravity: { short: '超AGB', name: '超アンチ重力バリア', color: '#c79bff' },
-    antiWarp: { short: 'AW', name: 'アンチワープ', color: '#7df0ff' },
-    antiBlock: { short: 'AB', name: 'アンチブロック', color: '#c9d2e3' },
-    antiMagic: { short: 'AM', name: 'アンチ魔法陣', color: '#ff9ad5' },
-    antiSlow: { short: 'AS', name: 'アンチ減速壁', color: '#8fd3ff' },
-    flying: { short: '飛行', name: '飛行', color: '#b8f3ff' },
-    mineSweeper: { short: 'MS', name: 'マインスイーパー', color: '#ff9a6b' },
-    ssAccel: { short: 'SS短縮', name: 'SSターン短縮', color: '#ffd166' },
-    lastStand: { short: '底力', name: '底力', color: '#ff8a65' }
+    antiDamageWall: { short: 'ADW', name: 'アンチダメージウォール', color: '#ffe066', desc: '電気の壁（ダメージウォール）に触れてもHPが減らない' },
+    antiGravity: { short: 'AGB', name: 'アンチ重力バリア', color: '#c79bff', desc: '重力バリアに入っても減速しない' },
+    superAntiDamageWall: { short: '超ADW', name: '超アンチダメージウォール', color: '#ffe066', desc: '電気の壁を無効にし、触れたショットの攻撃力が1.3倍' },
+    superAntiGravity: { short: '超AGB', name: '超アンチ重力バリア', color: '#c79bff', desc: '重力バリアを無効にし、最初に触れたバリアで1度だけ加速' },
+    antiWarp: { short: 'AW', name: 'アンチワープ', color: '#7df0ff', desc: 'ワープに吸い込まれない' },
+    antiBlock: { short: 'AB', name: 'アンチブロック', color: '#c9d2e3', desc: 'ブロックを通り抜ける' },
+    antiMagic: { short: 'AM', name: 'アンチ魔法陣', color: '#ff9ad5', desc: '魔法陣を踏んでもひよこにならない' },
+    antiSlow: { short: 'AS', name: 'アンチ減速壁', color: '#8fd3ff', desc: '減速壁に触れても遅くならない' },
+    flying: { short: '飛行', name: '飛行', color: '#b8f3ff', desc: '地雷を踏まない' },
+    mineSweeper: { short: 'MS', name: 'マインスイーパー', color: '#ff9a6b', desc: '地雷を回収してダメージを受けず、次に当てた1回が1.5倍' },
+    ssAccel: { short: 'SS短縮', name: 'SSターン短縮', color: '#ffd166', desc: '触れた味方1体につき、自分のSSが1ターン早く溜まる' },
+    lastStand: { short: '底力', name: '底力', color: '#ff8a65', desc: 'チームのHPが半分未満のとき、直殴りが1.5倍' }
   };
-  var STAGE_NOTE = ['2ウェーブ・電気の壁と重力バリア', '3ウェーブ・地雷・ワープ・魔法陣・アイテム・減速壁'];
+  var STAGE_NOTE = ['2ウェーブ・電気の壁と重力バリア', '3ウェーブ・地雷・ワープ・魔法陣・アイテム・減速壁',
+    '火の敵ばかり（水が有利）・地雷と重力バリア', '水の敵ばかり（木が有利）・減速壁と魔法陣', '闇と光の敵・いちばん難しい'];
   var ELEMENT = {
     fire: { label: '火', color: '#ff6b4a' }, water: { label: '水', color: '#4ab8ff' }, wood: { label: '木', color: '#5fd36b' },
     light: { label: '光', color: '#ffe45c' }, dark: { label: '闇', color: '#b07cff' }
   };
   var RACE = { dragon: '竜', slime: 'スライム', golem: 'ゴーレム', beast: '魔獣' };
+  /** ギミックの説明と、無効にできるアビリティ（能力の画面で使う） */
+  var GIMMICK = {
+    damageWalls: { name: '電気の壁', desc: '壁の光っている所に触れるたびにチームのHPが減る', counter: ['antiDamageWall', 'superAntiDamageWall'] },
+    gravity: { name: '重力バリア', desc: '紫の円に入ると大きく減速する', counter: ['antiGravity', 'superAntiGravity'] },
+    mines: { name: '地雷', desc: '触れるとチームのHPが減る', counter: ['flying', 'mineSweeper'] },
+    warps: { name: 'ワープ', desc: '入ると対になったワープへ飛ばされる', counter: ['antiWarp'] },
+    magic: { name: '魔法陣', desc: '踏むとひよこになり、攻撃力と友情が半分・SSが使えない', counter: ['antiMagic'] },
+    blocks: { name: 'ブロック', desc: '貫通タイプでも跳ね返される', counter: ['antiBlock'] },
+    slowWalls: { name: '減速壁', desc: '壁の青い所に触れると遅くなる', counter: ['antiSlow'] }
+  };
   var RATE_TAG = { adv: { text: '有利', color: '#9dffb0' }, dis: { text: '不利', color: '#9aa7c7' },
     killer: { text: 'キラー', color: '#ff9ad5' }, lastStand: { text: '底力', color: '#ff8a65' },
+    gauge: { text: 'ゲージ', color: '#ffd23f' },
     ss: { text: 'SS', color: '#ffd166' }, dwBoost: { text: '攻撃UP', color: '#ffe066' }, sword: { text: '剣', color: '#e0e8ff' },
     mine: { text: 'MS', color: '#ff9a6b' }, chick: { text: 'ひよこ', color: '#fff27a' } };
 
@@ -1867,6 +2467,48 @@
       m.push({ short: ELEMENT[r.element].label + '耐', name: ELEMENT[r.element].label + '属性耐性', color: '#9dd8ff' });
     });
     return m;
+  }
+
+  /** 友情コンボと SS の説明（能力の画面・編成で使う） */
+  function comboDesc(c) {
+    var el = c.element ? ELEMENT[c.element].label + '属性の' : '';
+    if (c.kind === 'homing') return el + '弾が' + c.count + '発、近い敵へ飛ぶ（1発 ' + c.power + '）';
+    if (c.kind === 'laser') return el + 'ビームが縦と横に走る（' + c.power + '）';
+    if (c.kind === 'blast') return '周りの敵を' + el + '爆発で巻き込む（' + c.power + '）';
+    return el + '弾を' + c.count + '方向へ撃つ（1発 ' + c.power + '）';
+  }
+  function ssDesc(ss) {
+    var d = [];
+    if (ss.launch && ss.launch.speed) d.push('スピード' + ss.launch.speed + '倍' + (ss.launch.friction ? 'でよく滑る' : ''));
+    if (ss.atk) d.push('攻撃力' + ss.atk + '倍');
+    if (ss.onStop) d.push('止まった所で大爆発（' + ss.onStop.power + '）');
+    if (ss.comboTwice) d.push('触れた味方の友情が2回出る');
+    return d.join('・');
+  }
+  function chipHtml(m) {
+    return '<span class="abil" style="--c:' + m.color + '">' + m.short + '</span>';
+  }
+  /** キャラの能力をすべて説明する（能力の画面と編成の画面） */
+  function unitInfoHtml(u, luck) {
+    var e = ELEMENT[u.element], lr = M.luckRate(D, luck || 0);
+    var rows = [];
+    (u.abilities || []).forEach(function (a) { rows.push(['アビリティ', chipHtml(ABILITY[a]) + '<b>' + ABILITY[a].name + '</b> ' + ABILITY[a].desc]); });
+    (u.gauge || []).forEach(function (a) {
+      rows.push(['ゲージ', chipHtml(ABILITY[a]) + '<b>' + ABILITY[a].name + '</b> ' + ABILITY[a].desc + '（ゲージショット成功時だけ・攻撃力も1.2倍）']);
+    });
+    (u.killers || []).forEach(function (k) {
+      var who = k.race ? RACE[k.race] : ELEMENT[k.element].label + '属性';
+      rows.push(['キラー', '<b>' + who + 'キラー</b> ' + who + 'の敵への攻撃が' + BT.Battle.KILLER[k.rank] + '倍']);
+    });
+    (u.resist || []).forEach(function (r) {
+      rows.push(['耐性', '<b>' + ELEMENT[r.element].label + '属性耐性</b> ' + ELEMENT[r.element].label + '属性の敵の攻撃を' + Math.round(BT.Battle.RESIST[r.rank] * 100) + '%軽くする']);
+    });
+    rows.push(['友情', '<b>' + u.combo.name + '</b> ' + comboDesc(u.combo) + '。動いている味方がこのキャラに触れると出る']);
+    rows.push(['SS', '<b>' + u.ss.name + '</b>（' + u.ss.turns + 'ターン） ' + ssDesc(u.ss)]);
+    return '<div class="info-unit"><div class="info-head">' + faceHtml(u) + '<div><b class="nm">' + u.title + '</b> ' + starsHtml(u.rarity)
+      + '<br>' + (e ? e.label + '属性・' : '') + SHOT_LABEL[u.shot] + 'タイプ　攻撃 ' + Math.round(u.atk * lr) + '・HP ' + Math.round(u.hp * lr)
+      + (luck ? '（ラック ' + luck + '）' : '') + '</div></div>'
+      + '<dl>' + rows.map(function (r) { return '<dt>' + r[0] + '</dt><dd>' + r[1] + '</dd>'; }).join('') + '</dl></div>';
   }
 
   /** 属性の丸い印 */
@@ -1904,12 +2546,15 @@
     ss: document.getElementById('btn-ss'),
     title: document.getElementById('title'),
     stageList: document.getElementById('stage-list'),
+    lineup: document.getElementById('lineup'),
     gems: document.getElementById('gems'),
     gacha: document.getElementById('gacha'),
     gachaGems: document.getElementById('gacha-gems'),
     rates: document.getElementById('rates'),
     pullResults: document.getElementById('pull-results'),
     party: document.getElementById('party'),
+    info: document.getElementById('info'),
+    puzzle: document.getElementById('puzzle'),
     partySlots: document.getElementById('party-slots'),
     partyOwned: document.getElementById('party-owned'),
     partyDetail: document.getElementById('party-detail')
@@ -1923,6 +2568,13 @@
   function persist() {
     try { localStorage.setItem(SAVE_KEY, JSON.stringify(save)); } catch (e) { /* 保存できなくても遊べる */ }
   }
+  /** ログインボーナス（1日1回）。日付はこの端末の日付 */
+  function today() {
+    var d = new Date();
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  }
+  var dailyGot = M.claimDaily(save, D, today()).gems;
+  if (dailyGot) persist();
 
   // ---------------------------------------------------------------- 状態
   var cfgOverrides = {};
@@ -1950,10 +2602,12 @@
       return { def: u, body: b, facing: -Math.PI / 2, squash: 0, trail: [], glow: 0 };
     });
     battle = new BT.Battle({ units: team, stage: curStage() });
+    buildLineup();
     battle.spawnWave(world);
     initFoes();
     game.phase = 'ready';
     game.ssArmed = false;
+    sound.music('battle');
     game.active = 0;
     game.mover = null;
     game.attacks = []; game.attack = null; game.ending = null;
@@ -1989,6 +2643,7 @@
         try { ac = new AC(); } catch (e) { return; }
       }
       if (ac.state === 'suspended') ac.resume();
+      bgm.start();
     }
     function tone(freq, to, dur, type, vol, delay) {
       if (!on || !ac) return;
@@ -2012,13 +2667,140 @@
       src.start(t);
     }
     function throttle(last, ms) { var now = performance.now(); return now - last < ms ? -1 : now; }
+
+    // ------------------------------------------------------------ BGM（オリジナル曲。音はすべてその場で合成）
+    /**
+     * 曲は8小節のループ。1小節 = 8分音符8つ。
+     *  chord: 和音（アルペジオと白玉） / bass: ベースの根音 / mel: メロディ（'.' は休み、'-' は前の音を伸ばす）
+     *  drums: 'calm'（タイトル） / 'pop'（戦闘） / 'drive'（ボス）
+     */
+    var SONGS = {
+      title: { bpm: 116, drums: 'calm', lead: 'triangle', bars: [
+        { chord: ['F4', 'A4', 'C5'], bass: 'F2', mel: 'C5 . F5 . A5 . G5 F5' },
+        { chord: ['D4', 'F4', 'A4'], bass: 'D2', mel: 'D5 . F5 . A5 . C6 -' },
+        { chord: ['Bb3', 'D4', 'F4'], bass: 'Bb1', mel: 'D6 . C6 Bb5 A5 . F5 .' },
+        { chord: ['C4', 'E4', 'G4'], bass: 'C2', mel: 'G5 . A5 . Bb5 . C6 .' },
+        { chord: ['F4', 'A4', 'C5'], bass: 'F2', mel: 'A5 . C6 . F6 . E6 D6' },
+        { chord: ['D4', 'F4', 'A4'], bass: 'D2', mel: 'C6 . A5 . F5 . D5 .' },
+        { chord: ['Bb3', 'D4', 'F4'], bass: 'Bb1', mel: 'F5 G5 A5 Bb5 C6 . D6 .' },
+        { chord: ['C4', 'E4', 'G4'], bass: 'C2', mel: 'C6 - - - E5 . . .' }
+      ] },
+      battle: { bpm: 152, drums: 'pop', lead: 'square', bars: [
+        { chord: ['C4', 'E4', 'G4'], bass: 'C2', mel: 'E5 G5 C6 G5 E5 G5 A5 G5' },
+        { chord: ['B3', 'D4', 'G4'], bass: 'G1', mel: 'D5 G5 B5 G5 D6 B5 A5 G5' },
+        { chord: ['A3', 'C4', 'E4'], bass: 'A1', mel: 'C5 E5 A5 E5 C6 B5 A5 E5' },
+        { chord: ['A3', 'C4', 'F4'], bass: 'F1', mel: 'F5 A5 C6 A5 F5 G5 A5 C6' },
+        { chord: ['C4', 'E4', 'G4'], bass: 'C2', mel: 'E6 - D6 C6 - G5 E5 G5' },
+        { chord: ['B3', 'D4', 'G4'], bass: 'G1', mel: 'D6 - B5 G5 - D5 G5 B5' },
+        { chord: ['A3', 'C4', 'F4'], bass: 'F1', mel: 'C6 A5 F5 A5 C6 D6 E6 F6' },
+        { chord: ['B3', 'D4', 'G4'], bass: 'G1', mel: 'G6 - F6 E6 D6 - B5 G5' }
+      ] },
+      boss: { bpm: 168, drums: 'drive', lead: 'sawtooth', bars: [
+        { chord: ['A3', 'C4', 'E4'], bass: 'A1', mel: 'A4 C5 E5 A5 G5 E5 C5 E5' },
+        { chord: ['A3', 'C4', 'F4'], bass: 'F1', mel: 'F5 A5 C6 A5 G5 F5 E5 C5' },
+        { chord: ['B3', 'D4', 'G4'], bass: 'G1', mel: 'D5 G5 B5 D6 C6 B5 G5 D5' },
+        { chord: ['B3', 'E4', 'G4'], bass: 'E1', mel: 'E5 G5 B5 E6 D6 B5 G5 B5' },
+        { chord: ['A3', 'C4', 'E4'], bass: 'A1', mel: 'A5 . A5 C6 B5 A5 E5 .' },
+        { chord: ['A3', 'C4', 'F4'], bass: 'F1', mel: 'F5 . F5 A5 G5 F5 C5 .' },
+        { chord: ['B3', 'D4', 'G4'], bass: 'G1', mel: 'G5 B5 D6 G6 F6 D6 B5 G5' },
+        { chord: ['G#3', 'B3', 'E4'], bass: 'E1', mel: 'G#5 B5 E6 G#5 B5 D6 E6 -' }
+      ] }
+    };
+    var NOTE = { C: 0, 'C#': 1, Db: 1, D: 2, 'D#': 3, Eb: 3, E: 4, F: 5, 'F#': 6, Gb: 6, G: 7, 'G#': 8, Ab: 8, A: 9, 'A#': 10, Bb: 10, B: 11 };
+    function freqOf(n) {
+      var m = /^([A-G][#b]?)(-?\d)$/.exec(n);
+      return 440 * Math.pow(2, (NOTE[m[1]] + (Number(m[2]) + 1) * 12 - 69) / 12);
+    }
+
+    var bgm = (function () {
+      var name = null, timer = null, gain = null, step = 0, next = 0;
+      function out() {
+        if (!gain) { gain = ac.createGain(); gain.gain.value = 0.55; gain.connect(ac.destination); }
+        return gain;
+      }
+      function voice(type, f, t, dur, vol, attack) {
+        var o = ac.createOscillator(), g = ac.createGain();
+        o.type = type; o.frequency.setValueAtTime(f, t);
+        g.gain.setValueAtTime(0.0001, t);
+        g.gain.linearRampToValueAtTime(vol, t + (attack || 0.01));
+        g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+        o.connect(g).connect(out());
+        o.start(t); o.stop(t + dur + 0.05);
+      }
+      function hit(kind, t) {
+        if (kind === 'kick') {
+          var o = ac.createOscillator(), g = ac.createGain();
+          o.frequency.setValueAtTime(150, t); o.frequency.exponentialRampToValueAtTime(45, t + 0.12);
+          g.gain.setValueAtTime(0.5, t); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.16);
+          o.connect(g).connect(out()); o.start(t); o.stop(t + 0.2);
+          return;
+        }
+        var dur = kind === 'snare' ? 0.12 : 0.04, n = Math.floor(ac.sampleRate * dur);
+        var buf = ac.createBuffer(1, n, ac.sampleRate), d = buf.getChannelData(0);
+        for (var i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / n);
+        var src = ac.createBufferSource(), f = ac.createBiquadFilter(), g2 = ac.createGain();
+        src.buffer = buf; f.type = kind === 'snare' ? 'bandpass' : 'highpass'; f.frequency.value = kind === 'snare' ? 1800 : 7000;
+        g2.gain.value = kind === 'snare' ? 0.28 : 0.09;
+        src.connect(f).connect(g2).connect(out()); src.start(t);
+      }
+      /** 8分音符1つぶんを鳴らす */
+      function play(song, i, t) {
+        var e8 = 60 / song.bpm / 2, bar = song.bars[Math.floor(i / 8) % song.bars.length], k = i % 8;
+        var mel = bar.mel.split(' '), tok = mel[k];
+        if (tok !== '.' && tok !== '-') {
+          var len = 1;
+          while (k + len < 8 && mel[k + len] === '-') len++;
+          voice(song.lead, freqOf(tok), t, e8 * len * 0.95, song.lead === 'sawtooth' ? 0.05 : 0.07);
+          voice('sine', freqOf(tok) * 2, t, e8 * len * 0.6, 0.015);
+        }
+        // ベース: 根音と1オクターブ上を交互に
+        var bf = freqOf(bar.bass) * (k % 2 ? 2 : 1);
+        voice('triangle', bf, t, e8 * 0.9, song.drums === 'calm' && k % 2 ? 0 : 0.16);
+        // アルペジオ（和音を順に）
+        voice('sine', freqOf(bar.chord[k % 3]) * 2, t, e8 * 0.8, 0.035);
+        if (k === 0) bar.chord.forEach(function (n) { voice('triangle', freqOf(n), t, e8 * 8, 0.025, 0.08); });
+        // ドラム
+        if (song.drums === 'calm') { if (k === 0 || k === 4) hit('kick', t); if (k % 2) hit('hat', t); }
+        else if (song.drums === 'pop') { if (k === 0 || k === 4 || k === 5) hit('kick', t); if (k === 2 || k === 6) hit('snare', t); hit('hat', t); }
+        else { if (k % 2 === 0) hit('kick', t); if (k === 2 || k === 6) hit('snare', t); hit('hat', t); hit('hat', t + e8 / 2); }
+      }
+      function tick() {
+        if (!ac || !on || !name) return;
+        var song = SONGS[name];
+        while (next < ac.currentTime + 0.25) {
+          play(song, step, next);
+          next += 60 / song.bpm / 2;
+          step = (step + 1) % (song.bars.length * 8);
+        }
+      }
+      return {
+        /** 曲を替える（null で止める）。同じ曲なら続きから */
+        set: function (n) {
+          if (n === name) return;
+          name = n; step = 0;
+          if (ac) next = ac.currentTime + 0.08;
+          this.start();
+        },
+        start: function () {
+          if (!ac || !on || !name || timer) return;
+          next = Math.max(next, ac.currentTime + 0.08);
+          timer = setInterval(tick, 40);
+          tick();
+        },
+        stop: function () { if (timer) { clearInterval(timer); timer = null; } },
+        get name() { return name; }
+      };
+    })();
+
     return {
       unlock: unlock,
+      music: function (n) { bgm.set(n); if (!n) bgm.stop(); },
+      get track() { return bgm.name; },
       get on() { return on; },
       toggle: function () {
         on = !on;
         try { localStorage.setItem('ms.sound', on ? 'on' : 'off'); } catch (e) { /* 保存できなくても続ける */ }
-        if (on) unlock();
+        if (on) unlock(); else bgm.stop();
         return on;
       },
       launch: function (p) { tone(220 + 260 * p, 900 + 500 * p, 0.16, 'triangle', 0.18); noise(0.12, 0.12, 1800); },
@@ -2057,6 +2839,7 @@
       heal: function () { [880, 1175, 1568].forEach(function (f, i) { tone(f, f, 0.14, 'triangle', 0.08, i * 0.06); }); },
       chick: function () { tone(1800, 2400, 0.06, 'square', 0.05); tone(1800, 2400, 0.06, 'square', 0.05, 0.1); },
       tick: function () { tone(1200, 1000, 0.03, 'sine', 0.04); },
+      gauge: function () { tone(988, 1976, 0.12, 'square', 0.06); tone(1319, 2637, 0.14, 'triangle', 0.06, 0.06); },
       stop: function () { tone(330, 300, 0.1, 'sine', 0.05); }
     };
   })();
@@ -2106,7 +2889,7 @@
     var p = toWorld(e);
     var hit = unitAt(p);
     if (hit >= 0 && hit !== game.active) { game.active = hit; game.ssArmed = false; updateHud(); sound.tick(); }
-    pull = { pointerId: e.pointerId, sx: p.x, sy: p.y, dx: 0, dy: 0, aim: null };
+    pull = { pointerId: e.pointerId, sx: p.x, sy: p.y, dx: 0, dy: 0, aim: null, t0: performance.now(), gaugeOk: false };
     try { canvas.setPointerCapture(e.pointerId); } catch (err) { /* 合成イベントでは失敗することがある */ }
     game.phase = 'pulling';
     canvas.classList.add('pulling');
@@ -2133,8 +2916,51 @@
 
   /** SS ボタンが押されていれば、その SS の物理の補正（予測軌道と本番で同じものを使う） */
   function armedMods() {
-    var u = activeUnit();
-    return game.ssArmed && u.def.ss ? u.def.ss.launch || null : null;
+    var u = activeUnit(), m = null, k;
+    if (game.ssArmed && u.def.ss && u.def.ss.launch) { m = {}; for (k in u.def.ss.launch) m[k] = u.def.ss.launch[k]; }
+    // ゲージが成功の範囲にあるときは、ゲージアビリティも足した動きを予測する（離した瞬間と同じ）
+    if (pull && pull.gaugeOk && u.def.gauge && u.def.gauge.length) {
+      m = m || {};
+      m.abilities = {};
+      u.def.gauge.forEach(function (a) { m.abilities[a] = true; });
+    }
+    return m;
+  }
+
+  // ---------------------------------------------------------------- ゲージショット
+  //（引っぱっている間ゲージが行き来し、右端の金色の範囲で離すと成功）
+  var GAUGE_PERIOD = 1100, GAUGE_OK = 0.85;
+  function gaugeValue(now) {
+    if (!pull) return 0;
+    var f = ((now - pull.t0) % GAUGE_PERIOD) / GAUGE_PERIOD;
+    return 1 - Math.abs(f * 2 - 1);   // 0 → 1 → 0
+  }
+  /** 毎フレーム: 成功の範囲に出入りしたら予測軌道を引き直す */
+  function updateGauge(now) {
+    if (!pull) return;
+    var ok = gaugeValue(now) >= GAUGE_OK;
+    if (ok !== pull.gaugeOk) { pull.gaugeOk = ok; if (pull.aim) updateAim(); }
+  }
+  function drawGauge(u, now) {
+    var v = gaugeValue(now), ok = v >= GAUGE_OK, b = u.body;
+    var w = 76, h = 11, x = b.x - w / 2, y = b.y - b.r - 36;
+    ctx.fillStyle = 'rgba(29,43,83,.85)';
+    roundRect(ctx, x - 3, y - 3, w + 6, h + 6, 8); ctx.fill();
+    ctx.fillStyle = 'rgba(255,198,41,.45)';
+    ctx.fillRect(x + w * GAUGE_OK, y, w * (1 - GAUGE_OK), h);
+    var g = ctx.createLinearGradient(x, 0, x + w, 0);
+    g.addColorStop(0, '#7df0ff'); g.addColorStop(0.7, '#3cc8ff'); g.addColorStop(1, '#ffd23f');
+    ctx.fillStyle = ok ? '#ffd23f' : g;
+    roundRect(ctx, x, y, Math.max(4, w * v), h, 5); ctx.fill();
+    ctx.strokeStyle = ok ? '#fff' : 'rgba(255,255,255,.6)'; ctx.lineWidth = ok ? 2.5 : 1.5;
+    roundRect(ctx, x, y, w, h, 5); ctx.stroke();
+    ctx.font = '900 10px ' + '"Hiragino Maru Gothic ProN","Hiragino Sans","Noto Sans JP",system-ui,sans-serif';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
+    ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(29,43,83,.9)';
+    var label = ok ? 'GAUGE OK!' : 'GAUGE';
+    ctx.strokeText(label, b.x, y - 4);
+    ctx.fillStyle = ok ? '#ffd23f' : '#ffffff';
+    ctx.fillText(label, b.x, y - 4);
   }
 
   function updateAim() {
@@ -2151,14 +2977,21 @@
   function release() {
     var u = activeUnit();
     var v = null, useSS = false;
+    var gaugeOk = gaugeValue(performance.now()) >= GAUGE_OK;
     if (P.launchVelocity(world.cfg, pull.dx, pull.dy)) {
       useSS = game.ssArmed && battle.ssReady(u.def.id);
-      v = world.launch(u.def.id, pull.dx, pull.dy, battle.beginShot(u.def.id, useSS));
+      v = world.launch(u.def.id, pull.dx, pull.dy, battle.beginShot(u.def.id, useSS, gaugeOk));
       game.ssArmed = false;
     }
     try { canvas.releasePointerCapture(pull.pointerId); } catch (err) { /* 既に外れている */ }
     pull = null;
     canvas.classList.remove('pulling');
+    if (v && gaugeOk) {
+      var gnames = (u.def.gauge || []).map(function (a) { return ABILITY[a].short; }).join(' ');
+      floatText(u.body.x, u.body.y - u.body.r - 20, 'GAUGE OK!' + (gnames ? ' ' + gnames : ''), '#ffd23f', 17, 1.1);
+      ring(u.body.x, u.body.y, 56, '#ffd23f');
+      sound.gauge();
+    }
     if (useSS) {
       floatText(u.body.x, u.body.y - u.body.r - 40, 'SS ' + u.def.ss.name + '!', '#ffd166', 24, 1.2);
       ring(u.body.x, u.body.y, 70, '#ffd166');
@@ -2256,13 +3089,13 @@
     game.shotDamage += r.damage;
     var jx = (Math.random() - 0.5) * 24;
     if (r.weak) {
-      floatText(r.x + jx, r.y - 18, String(r.damage), '#ffd166', 26, 1.1);
+      floatText(r.x + jx, r.y - 18, String(r.damage), '#ffe23a', 32, 1.1);
       floatText(r.x, r.y - 48, 'WEAK!', '#ffe08a', 18, 0.9);
       fx.hitStop = Math.max(fx.hitStop, 0.07);
       fx.shake = Math.max(fx.shake, 9);
       sound.weak();
     } else {
-      floatText(r.x + jx, r.y - 14, String(r.damage), r.combo ? '#b8f3ff' : '#ffffff', r.combo ? 16 : 18, 0.8);
+      floatText(r.x + jx, r.y - 14, String(r.damage), r.combo ? '#9ff0ff' : '#ffffff', r.combo ? 18 : 22, 0.8);
     }
     // 倍率の内訳（弱点は WEAK! で出しているので除く）。友情はたくさん出るので1つ目の印だけ
     var tags = (r.rates || []).filter(function (x) { return RATE_TAG[x.kind]; });
@@ -2420,13 +3253,14 @@
         else pts.push([along, H - off]);
       }
       // 帯（どこが危ないか、止まっていても分かるように）
-      ctx.fillStyle = 'rgba(255,210,60,' + (0.16 + 0.3 * flash).toFixed(3) + ')';
+      ctx.fillStyle = 'rgba(255,150,0,' + (0.45 + 0.35 * flash).toFixed(3) + ')';
       if (dw.side === 'left') ctx.fillRect(0, dw.from, 8, dw.to - dw.from);
       else if (dw.side === 'right') ctx.fillRect(W - 8, dw.from, 8, dw.to - dw.from);
       else if (dw.side === 'top') ctx.fillRect(dw.from, 0, dw.to - dw.from, 8);
       else ctx.fillRect(dw.from, H - 8, dw.to - dw.from, 8);
       ctx.lineJoin = 'round';
-      [[8 + 6 * flash, 'rgba(255,200,40,.35)'], [3, '#ffe066'], [1.2, '#fffbe0']].forEach(function (st) {
+      // 明るい床でも見えるように、濃い縁取りの上に電気を描く
+      [[8 + 6 * flash, 'rgba(255,200,40,.45)'], [6, 'rgba(110,40,0,.85)'], [3.2, '#ffe066'], [1.2, '#ffffff']].forEach(function (st) {
         ctx.strokeStyle = st[1]; ctx.lineWidth = st[0];
         ctx.beginPath();
         pts.forEach(function (p, idx) { if (idx) ctx.lineTo(p[0], p[1]); else ctx.moveTo(p[0], p[1]); });
@@ -2688,6 +3522,7 @@
 
   // ---------------------------------------------------------------- 進行
   function update(dt) {
+    updateGauge(performance.now());
     var sdt = dt * game.timeScale;
     if (game.phase === 'moving') {
       if (fx.hitStop > 0) {
@@ -2764,6 +3599,7 @@
       initFoes();
       var boss = battle.enemies.some(function (e) { return e.def.boss; });
       banner(boss ? 'BOSS BATTLE' : 'WAVE ' + (res.wave + 1), boss ? '#ff6b6b' : '#ffd166');
+      if (boss) sound.music('boss');
       game.phase = 'wave';
       game.timer = 1.4;
       sound.wave();
@@ -2847,9 +3683,36 @@
         + (s.ss ? '<br>SS ' + s.ss + '回' : '')
       : 'チームのHPが0になった…<br>WAVE ' + (battle.wave + 1) + ' / ' + curStage().waves.length + '・与ダメージ ' + s.damage;
     el.resultText.innerHTML += '<br><span class="gems">+' + rw.gems + '</span>' + (rw.first ? '（初回クリア）' : '') + '　所持 ' + rw.total;
+    sound.music(null);
     if (kind === 'won') sound.win(); else sound.lose();
     updateHud();
   }
+
+  // ---------------------------------------------------------------- 下の段のキャラのアイコン（押すとそのキャラに持ちかえる）
+  function buildLineup() {
+    el.lineup.innerHTML = units.map(function (u, i) {
+      return '<button type="button" class="ucard" data-idx="' + i + '" aria-label="' + u.def.title + '">' + faceHtml(u.def)
+        + '<span class="ss"></span></button>';
+    }).join('');
+  }
+  function updateLineup() {
+    var cards = el.lineup.children;
+    for (var i = 0; i < cards.length; i++) {
+      var u = units[i], st = battle.us[u.def.id], c = cards[i];
+      c.classList.toggle('active', i === game.active);
+      c.classList.toggle('ready', !!u.def.ss && st.ssLeft === 0 && !st.chick);
+      c.classList.toggle('chick', st.chick > 0);
+      c.querySelector('.ss').textContent = !u.def.ss ? '' : st.ssLeft === 0 ? 'SS OK!' : 'SS ' + st.ssLeft;
+    }
+  }
+  el.lineup.addEventListener('click', function (e) {
+    var b = e.target.closest('[data-idx]');
+    if (!b || game.phase !== 'ready') return;
+    var i = Number(b.dataset.idx);
+    sound.unlock();
+    if (i === game.active && battle.ssReady(units[i].def.id)) { el.ss.click(); return; }   // 選んでいるキャラをもう一度押すと SS
+    if (i !== game.active) { game.active = i; game.ssArmed = false; sound.tick(); updateHud(); }
+  });
 
   /** SS ボタン: 残りターン / 使える / 発動待ち。幅は CSS で固定 */
   function updateSSButton(u) {
@@ -2870,6 +3733,7 @@
     el.turn.textContent = String(battle.turn);
     el.wave.textContent = (battle.wave + 1) + '/' + curStage().waves.length;
     updateSSButton(u);
+    updateLineup();
     el.activeName.textContent = u.def.name;
     el.activeType.textContent = SHOT_LABEL[u.def.shot];
     el.activeType.className = 'type ' + u.def.shot;
@@ -2880,7 +3744,7 @@
     var help;
     if (game.phase === 'pulling') help = game.ssArmed && u.def.ss
       ? '<b>SS「' + u.def.ss.name + '」</b>で撃ちます。<b>離すと発射</b>、引きを戻すとキャンセル。'
-      : '<b>離すと発射</b>。遠くまで引くほど強く、引きを戻すとキャンセル。';
+      : '<b>離すと発射</b>。ゲージが<b>金色の所</b>で離すと攻撃力UP＋ゲージアビリティ。引きを戻すとキャンセル。';
     else if (game.phase === 'moving' || game.phase === 'settling') help = game.mover && game.mover.def.shot === 'pierce'
       ? '貫通タイプは敵を<b>すり抜けて</b>、そのたびに大きく減速します。'
       : '反射タイプは敵と壁の間で<b>何度も跳ね返る</b>と大ダメージ。';
@@ -2888,10 +3752,13 @@
     else if (game.phase === 'wave') help = '次のウェーブ！';
     else if (game.phase === 'won' || game.phase === 'lost' || game.phase === 'ending') help = '';
     else {
-      var ab = unitMarks(u.def).map(function (a) { return a.name; });
+      var ab = unitMarks(u.def).map(function (a) { return a.short; });
       var elx = ELEMENT[u.def.element];
+      var gm = curStage().waves[battle.wave].gimmicks || {}, gn = [];
+      for (var gk in gm) if (GIMMICK[gk] && gm[gk].length) gn.push(GIMMICK[gk].name);
       help = '<b>' + u.def.name + '（' + (elx ? elx.label + '・' : '') + SHOT_LABEL[u.def.shot] + (ab.length ? '・' + ab.join('・') : '') + '）</b>の番。'
-        + '<b>味方に当てると友情コンボ</b>。<b>火→木→水→火・光⇔闇</b>が有利。<b>電気の壁</b>はHPが減り、紫の<b>バリア</b>は減速。';
+        + '<b>味方に当てると友情コンボ</b>。<b>火→木→水→火・光⇔闇</b>が有利。'
+        + (gn.length ? 'ギミック: <b>' + gn.join('・') + '</b>。' : '') + '<b>📖</b>で能力の説明。';
     }
     el.help.innerHTML = help;
     canvas.dataset.phase = game.phase;
@@ -2938,55 +3805,220 @@
     var k = view.scale * view.dpr;
     g.setTransform(k, 0, 0, k, 0, 0);
     var W = world.cfg.field.w, H = world.cfg.field.h;
+    var theme = (curStage() && curStage().theme) || 'meadow';
+    var seed = 7;
+    function rnd() { seed = (seed * 16807) % 2147483647; return seed / 2147483647; }
 
-    // 壁（金属の枠）
-    var frame = g.createLinearGradient(0, 0, L.w, L.h);
-    frame.addColorStop(0, '#3a4a78'); frame.addColorStop(0.5, '#1b2446'); frame.addColorStop(1, '#2f3d6a');
+    // 枠: 金色の額縁（外側が濃く、内側に明るい縁）
+    var frame = g.createLinearGradient(0, 0, 0, L.h);
+    frame.addColorStop(0, '#ffe27a'); frame.addColorStop(0.5, '#f0a820'); frame.addColorStop(1, '#c9700c');
     g.fillStyle = frame;
     roundRect(g, 0, 0, L.w, L.h, 18); g.fill();
-    g.strokeStyle = 'rgba(255,255,255,.18)'; g.lineWidth = 2;
-    roundRect(g, 3, 3, L.w - 6, L.h - 6, 15); g.stroke();
-    g.fillStyle = 'rgba(200,220,255,.35)';
-    for (var sx = WALL + 30; sx < L.w - WALL; sx += 60) { dot(g, sx, WALL / 2, 2.2); dot(g, sx, L.h - WALL / 2, 2.2); }
-    for (var sy = WALL + 30; sy < L.h - WALL; sy += 60) { dot(g, WALL / 2, sy, 2.2); dot(g, L.w - WALL / 2, sy, 2.2); }
+    g.strokeStyle = '#8a4a06'; g.lineWidth = 3;
+    roundRect(g, 1.5, 1.5, L.w - 3, L.h - 3, 17); g.stroke();
+    g.strokeStyle = 'rgba(255,255,255,.75)'; g.lineWidth = 2;
+    roundRect(g, 5, 5, L.w - 10, L.h - 10, 14); g.stroke();
+    // 鋲
+    for (var sx = WALL + 30; sx < L.w - WALL; sx += 60) { gem(sx, WALL / 2); gem(sx, L.h - WALL / 2); }
+    for (var sy = WALL + 30; sy < L.h - WALL; sy += 60) { gem(WALL / 2, sy); gem(L.w - WALL / 2, sy); }
+    function gem(x, y) {
+      g.fillStyle = '#8a4a06'; dot(g, x, y + 1, 3.6);
+      g.fillStyle = '#fff6c8'; dot(g, x, y, 3);
+    }
 
     g.save();
     g.translate(WALL, WALL);
-    var floor = g.createLinearGradient(0, 0, 0, H);
-    floor.addColorStop(0, '#16284e'); floor.addColorStop(1, '#0d1832');
-    g.fillStyle = floor; g.fillRect(0, 0, W, H);
-    // 端に半端な列が出ないよう、フィールドを割り切れる枚数で敷く
-    var cols = Math.round(W / 60), rows = Math.round(H / 60);
-    var tw = W / cols, th = H / rows, seed = 7;
-    function rnd() { seed = (seed * 16807) % 2147483647; return seed / 2147483647; }
+    g.beginPath(); g.rect(0, 0, W, H); g.clip();   // 床の模様を枠にはみ出させない
+    if (theme === 'tower') drawTowerFloor(g, W, H, rnd);
+    else if (theme === 'volcano') drawVolcanoFloor(g, W, H, rnd);
+    else if (theme === 'ice') drawIceFloor(g, W, H, rnd);
+    else if (theme === 'castle') drawCastleFloor(g, W, H, rnd);
+    else drawMeadowFloor(g, W, H, rnd);
+    // 内側の縁（床と枠のあいだの影）
+    g.strokeStyle = 'rgba(90,50,0,.55)'; g.lineWidth = 3;
+    g.strokeRect(1.5, 1.5, W - 3, H - 3);
+    g.strokeStyle = 'rgba(0,0,0,.12)'; g.lineWidth = 10;
+    g.strokeRect(6, 6, W - 12, H - 12);
+    g.restore();
+    return c;
+  }
+
+  /** はじまりの草原: 刈り込みの縞・花・小石・真ん中の紋章 */
+  function drawMeadowFloor(g, W, H, rnd) {
+    var sky = g.createLinearGradient(0, 0, 0, H);
+    sky.addColorStop(0, '#8ee86a'); sky.addColorStop(1, '#4cbf3c');
+    g.fillStyle = sky; g.fillRect(0, 0, W, H);
+    var stripes = 10, sw = W / stripes;
+    for (var i = 0; i < stripes; i++) {
+      if (i % 2) continue;
+      g.fillStyle = 'rgba(255,255,255,.10)';
+      g.fillRect(i * sw, 0, sw, H);
+    }
+    // 草のふさ
+    for (var n = 0; n < 140; n++) {
+      var x = rnd() * W, y = rnd() * H;
+      g.strokeStyle = 'rgba(30,110,30,' + (0.25 + rnd() * 0.3).toFixed(2) + ')'; g.lineWidth = 1.5;
+      g.beginPath(); g.moveTo(x, y); g.lineTo(x - 2, y - 6); g.moveTo(x, y); g.lineTo(x + 2, y - 7); g.stroke();
+    }
+    // 花
+    var petals = ['#ffffff', '#fff27a', '#ffb3d9', '#ff9a6b'];
+    for (n = 0; n < 34; n++) {
+      var fx0 = 12 + rnd() * (W - 24), fy0 = 12 + rnd() * (H - 24), col = petals[Math.floor(rnd() * petals.length)];
+      g.fillStyle = col;
+      for (var p = 0; p < 5; p++) { var a = p * Math.PI * 2 / 5; dot(g, fx0 + Math.cos(a) * 3.2, fy0 + Math.sin(a) * 3.2, 2.6); }
+      g.fillStyle = '#ffb300'; dot(g, fx0, fy0, 2);
+    }
+    // 小石
+    for (n = 0; n < 10; n++) {
+      var rx = rnd() * W, ry = rnd() * H, rr = 4 + rnd() * 5;
+      g.fillStyle = 'rgba(80,90,70,.35)'; g.beginPath(); g.ellipse(rx + 1, ry + 2, rr, rr * 0.6, 0, 0, Math.PI * 2); g.fill();
+      g.fillStyle = '#d9dccd'; g.beginPath(); g.ellipse(rx, ry, rr, rr * 0.6, 0, 0, Math.PI * 2); g.fill();
+    }
+    emblem(g, W, H, 'rgba(255,255,255,.28)');
+    // 上から差す光
+    var light = g.createRadialGradient(W / 2, -H * 0.1, 10, W / 2, 0, H * 0.9);
+    light.addColorStop(0, 'rgba(255,255,220,.35)'); light.addColorStop(1, 'rgba(255,255,220,0)');
+    g.fillStyle = light; g.fillRect(0, 0, W, H);
+  }
+
+  /** からくりの塔: 明るい砂岩のタイル・歯車の模様・赤い絨毯 */
+  function drawTowerFloor(g, W, H, rnd) {
+    g.fillStyle = '#f3dca8'; g.fillRect(0, 0, W, H);
+    var cols = 9, rows = 13, tw = W / cols, th = H / rows;
     for (var ty = 0; ty < rows; ty++) {
       for (var tx = 0; tx < cols; tx++) {
-        g.fillStyle = 'rgba(120,160,255,' + (0.03 + rnd() * 0.05).toFixed(3) + ')';
-        g.fillRect(tx * tw + 1.5, ty * th + 1.5, tw - 3, th - 3);
+        var off = ty % 2 ? tw / 2 : 0, x = tx * tw + off - (ty % 2 ? tw : 0);
+        for (var rep = 0; rep < (ty % 2 ? 2 : 1); rep++, x += tw) {
+          var shade = 0.9 + rnd() * 0.1;
+          g.fillStyle = 'rgb(' + Math.round(246 * shade) + ',' + Math.round(222 * shade) + ',' + Math.round(170 * shade) + ')';
+          g.fillRect(x + 2, ty * th + 2, tw - 4, th - 4);
+        }
       }
     }
-    g.strokeStyle = 'rgba(0,0,0,.35)'; g.lineWidth = 1;
-    for (var gx = 0; gx <= cols; gx++) { g.beginPath(); g.moveTo(gx * tw, 0); g.lineTo(gx * tw, H); g.stroke(); }
+    g.strokeStyle = 'rgba(150,100,40,.35)'; g.lineWidth = 2;
     for (var gy = 0; gy <= rows; gy++) { g.beginPath(); g.moveTo(0, gy * th); g.lineTo(W, gy * th); g.stroke(); }
-    g.strokeStyle = 'rgba(140,200,255,.10)'; g.lineWidth = 2;
+    // 絨毯
+    g.fillStyle = 'rgba(215,40,50,.55)'; g.fillRect(W / 2 - 46, 0, 92, H);
+    g.fillStyle = 'rgba(255,210,80,.8)'; g.fillRect(W / 2 - 46, 0, 5, H); g.fillRect(W / 2 + 41, 0, 5, H);
+    // 歯車
+    gear(g, 70, 90, 38, 'rgba(160,110,40,.25)');
+    gear(g, W - 60, 300, 30, 'rgba(160,110,40,.22)');
+    gear(g, 80, H - 170, 26, 'rgba(160,110,40,.22)');
+    emblem(g, W, H, 'rgba(255,255,255,.35)');
+  }
+
+  /** ほのおの火山: 明るい赤土の岩場・溶岩の川・火の粉 */
+  function drawVolcanoFloor(g, W, H, rnd) {
+    var bg = g.createLinearGradient(0, 0, 0, H);
+    bg.addColorStop(0, '#ffb35c'); bg.addColorStop(1, '#e8743a');
+    g.fillStyle = bg; g.fillRect(0, 0, W, H);
+    // 岩のかけら
+    for (var n = 0; n < 26; n++) {
+      var x = rnd() * W, y = rnd() * H, r = 10 + rnd() * 22;
+      g.fillStyle = 'rgba(150,60,20,.28)';
+      g.beginPath();
+      for (var k = 0; k < 6; k++) { var a = k * Math.PI / 3 + rnd() * 0.4, rr = r * (0.7 + rnd() * 0.3); g.lineTo(x + Math.cos(a) * rr, y + Math.sin(a) * rr); }
+      g.closePath(); g.fill();
+    }
+    // 溶岩の川（左右の端をゆるく流れる）
+    [[0, 1], [W, -1]].forEach(function (side) {
+      var lg = g.createLinearGradient(side[0], 0, side[0] + side[1] * 60, 0);
+      lg.addColorStop(0, 'rgba(255,230,90,.95)'); lg.addColorStop(0.5, 'rgba(255,120,30,.6)'); lg.addColorStop(1, 'rgba(255,120,30,0)');
+      g.fillStyle = lg;
+      g.beginPath(); g.moveTo(side[0], 0);
+      for (var yy = 0; yy <= H; yy += 40) g.lineTo(side[0] + side[1] * (34 + Math.sin(yy / 60) * 14), yy);
+      g.lineTo(side[0], H); g.closePath(); g.fill();
+    });
+    // 火の粉
+    for (n = 0; n < 40; n++) { g.fillStyle = 'rgba(255,245,160,' + (0.4 + rnd() * 0.5).toFixed(2) + ')'; dot(g, rnd() * W, rnd() * H, 1.5 + rnd() * 2); }
+    emblem(g, W, H, 'rgba(255,240,200,.32)');
+  }
+
+  /** こおりの神殿: 水色の氷のタイル・雪の結晶・柱の影 */
+  function drawIceFloor(g, W, H, rnd) {
+    var bg = g.createLinearGradient(0, 0, 0, H);
+    bg.addColorStop(0, '#e6f7ff'); bg.addColorStop(1, '#9fd8f7');
+    g.fillStyle = bg; g.fillRect(0, 0, W, H);
+    var size = 60;
+    g.strokeStyle = 'rgba(80,160,220,.35)'; g.lineWidth = 2;
+    for (var y = 0; y <= H; y += size) { g.beginPath(); g.moveTo(0, y); g.lineTo(W, y); g.stroke(); }
+    for (var x = 0; x <= W; x += size) { g.beginPath(); g.moveTo(x, 0); g.lineTo(x, H); g.stroke(); }
+    // 氷のつや
+    for (var n = 0; n < 18; n++) {
+      var sx = Math.floor(rnd() * W / size) * size, sy = Math.floor(rnd() * H / size) * size;
+      g.fillStyle = 'rgba(255,255,255,.45)';
+      g.beginPath(); g.moveTo(sx + 8, sy + 8); g.lineTo(sx + 30, sy + 8); g.lineTo(sx + 8, sy + 30); g.closePath(); g.fill();
+    }
+    // 雪の結晶
+    for (n = 0; n < 12; n++) snowflake(g, 20 + rnd() * (W - 40), 20 + rnd() * (H - 40), 6 + rnd() * 8);
+    // 柱の影（左右）
+    g.fillStyle = 'rgba(60,120,190,.14)'; g.fillRect(0, 0, 26, H); g.fillRect(W - 26, 0, 26, H);
+    emblem(g, W, H, 'rgba(255,255,255,.5)');
+  }
+  function snowflake(g, x, y, r) {
+    g.strokeStyle = 'rgba(255,255,255,.85)'; g.lineWidth = 2; g.lineCap = 'round';
+    for (var i = 0; i < 6; i++) {
+      var a = i * Math.PI / 3, cx = Math.cos(a), cy = Math.sin(a);
+      g.beginPath(); g.moveTo(x, y); g.lineTo(x + cx * r, y + cy * r); g.stroke();
+      g.beginPath(); g.moveTo(x + cx * r * 0.6, y + cy * r * 0.6);
+      g.lineTo(x + Math.cos(a + 0.6) * r * 0.85, y + Math.sin(a + 0.6) * r * 0.85); g.stroke();
+    }
+  }
+
+  /** やみの古城: 明るめの紫の石畳・青い炎の燭台・月の光 */
+  function drawCastleFloor(g, W, H, rnd) {
+    var bg = g.createLinearGradient(0, 0, 0, H);
+    bg.addColorStop(0, '#c6a8f0'); bg.addColorStop(1, '#8a64d0');
+    g.fillStyle = bg; g.fillRect(0, 0, W, H);
+    var tw = 54, th = 36;
+    for (var ty = 0; ty * th < H; ty++) {
+      for (var x = (ty % 2) * -tw / 2; x < W; x += tw) {
+        var shade = 0.88 + rnd() * 0.12;
+        g.fillStyle = 'rgba(' + Math.round(215 * shade) + ',' + Math.round(195 * shade) + ',255,.35)';
+        roundRect(g, x + 2, ty * th + 2, tw - 4, th - 4, 4); g.fill();
+      }
+    }
+    // 赤紫の絨毯
+    g.fillStyle = 'rgba(190,30,110,.45)'; g.fillRect(W / 2 - 44, 0, 88, H);
+    g.fillStyle = 'rgba(255,215,90,.8)'; g.fillRect(W / 2 - 44, 0, 4, H); g.fillRect(W / 2 + 40, 0, 4, H);
+    // 青い炎の燭台
+    [[40, 150], [W - 40, 150], [40, H - 250], [W - 40, H - 250]].forEach(function (p) {
+      var fg = g.createRadialGradient(p[0], p[1], 2, p[0], p[1], 34);
+      fg.addColorStop(0, 'rgba(160,230,255,.9)'); fg.addColorStop(1, 'rgba(160,230,255,0)');
+      g.fillStyle = fg; dot(g, p[0], p[1], 34);
+      g.fillStyle = '#5a3a8a'; g.fillRect(p[0] - 4, p[1] + 6, 8, 18);
+    });
+    // 月の光
+    var light = g.createRadialGradient(W * 0.8, -20, 10, W * 0.8, 0, H * 0.8);
+    light.addColorStop(0, 'rgba(255,255,230,.4)'); light.addColorStop(1, 'rgba(255,255,230,0)');
+    g.fillStyle = light; g.fillRect(0, 0, W, H);
+    emblem(g, W, H, 'rgba(255,255,255,.3)');
+  }
+
+  function gear(g, x, y, r, col) {
+    g.fillStyle = col;
+    g.beginPath();
+    for (var i = 0; i < 16; i++) {
+      var a = i * Math.PI / 8, rr = i % 2 ? r : r * 1.22;
+      g.lineTo(x + Math.cos(a) * rr, y + Math.sin(a) * rr);
+    }
+    g.closePath(); g.fill();
+    g.fillStyle = 'rgba(255,255,255,.35)'; dot(g, x, y, r * 0.35);
+  }
+
+  /** 真ん中の紋章（星と二重の輪） */
+  function emblem(g, W, H, col) {
+    g.strokeStyle = col; g.lineWidth = 4;
     g.beginPath(); g.arc(W / 2, H / 2, 150, 0, Math.PI * 2); g.stroke();
+    g.lineWidth = 2;
     g.beginPath(); g.arc(W / 2, H / 2, 118, 0, Math.PI * 2); g.stroke();
     g.beginPath();
-    for (var s = 0; s <= 6; s++) {
+    for (var s = 0; s <= 5; s++) {
       var a = -Math.PI / 2 + s * Math.PI * 4 / 5;
       var px = W / 2 + Math.cos(a) * 118, py = H / 2 + Math.sin(a) * 118;
       if (s === 0) g.moveTo(px, py); else g.lineTo(px, py);
     }
     g.stroke();
-    var vig = g.createRadialGradient(W / 2, H / 2, H * 0.25, W / 2, H / 2, H * 0.75);
-    vig.addColorStop(0, 'rgba(0,0,0,0)'); vig.addColorStop(1, 'rgba(0,0,0,.45)');
-    g.fillStyle = vig; g.fillRect(0, 0, W, H);
-    g.strokeStyle = 'rgba(110,200,255,.55)'; g.lineWidth = 2;
-    g.strokeRect(1, 1, W - 2, H - 2);
-    g.strokeStyle = 'rgba(110,200,255,.15)'; g.lineWidth = 8;
-    g.strokeRect(4, 4, W - 8, H - 8);
-    g.restore();
-    return c;
   }
 
   function roundRect(g, x, y, w, h, r) {
@@ -3019,6 +4051,7 @@
     drawCombos();
     if (game.attack) drawAttack(game.attack);
     if (pull) drawPullOrigin(pull);
+    if (pull && game.phase === 'pulling') drawGauge(activeUnit(), now);
     drawFx();
     drawBossBar(alive);
     drawCombo();
@@ -3089,7 +4122,8 @@
     ctx.fillStyle = 'rgba(0,0,0,.35)';
     ctx.beginPath(); ctx.ellipse(4, h * 0.6, w * 0.52, h * 0.3, 0, 0, Math.PI * 2); ctx.fill();
     var g = ctx.createLinearGradient(0, -h / 2, 0, h / 2);
-    g.addColorStop(0, '#aab3c6'); g.addColorStop(0.5, '#6b7488'); g.addColorStop(1, '#3a4152');
+    var gc = d.colors || ['#aab3c6', '#6b7488', '#3a4152'];
+    g.addColorStop(0, gc[0]); g.addColorStop(0.5, gc[1]); g.addColorStop(1, gc[2]);
     ctx.fillStyle = g;
     roundRect(ctx, -w / 2, -h / 2, w, h, 10); ctx.fill();
     ctx.strokeStyle = 'rgba(0,0,0,.45)'; ctx.lineWidth = 2; ctx.stroke();
@@ -3124,7 +4158,7 @@
       ctx.scale(side, 1);
       ctx.rotate(-flap);
       var wg = ctx.createLinearGradient(r * 0.5, 0, r * 1.7, 0);
-      wg.addColorStop(0, '#7a1420'); wg.addColorStop(1, '#3a0810');
+      wg.addColorStop(0, d.colors ? d.colors[2] : '#7a1420'); wg.addColorStop(1, d.colors ? '#1a0610' : '#3a0810');
       ctx.fillStyle = wg;
       ctx.beginPath();
       ctx.moveTo(r * 0.55, -r * 0.35);
@@ -3150,7 +4184,8 @@
     });
     // 体
     var g = ctx.createRadialGradient(-r * 0.3, -r * 0.4, r * 0.1, 0, 0, r);
-    g.addColorStop(0, '#ff9a7a'); g.addColorStop(0.55, '#c0262d'); g.addColorStop(1, '#5a0c12');
+    var dc = d.colors || ['#ff9a7a', '#c0262d', '#5a0c12'];
+    g.addColorStop(0, dc[0]); g.addColorStop(0.55, dc[1]); g.addColorStop(1, dc[2]);
     ctx.fillStyle = g;
     ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2); ctx.fill();
     ctx.strokeStyle = 'rgba(0,0,0,.45)'; ctx.lineWidth = 3; ctx.stroke();
@@ -3426,7 +4461,7 @@
 
   function drawGuide(u, aim, t) {
     var v = aim.v, pts = aim.pred.points, b = u.body;
-    var col = u.def.shot === 'pierce' ? '255,122,69' : '120,220,255';
+    var col = u.def.shot === 'pierce' ? '255,110,40' : '40,150,255';
 
     var total = 0, lens = [0];
     // ワープで飛んだ区間（jump）は長さ0として点を打たない
@@ -3438,7 +4473,10 @@
       var f = (d - lens[seg - 1]) / L;
       var x = p0.x + (p1.x - p0.x) * f, y = p0.y + (p1.y - p0.y) * f;
       var a = 1 - d / total;
-      ctx.fillStyle = 'rgba(' + col + ',' + (0.15 + 0.75 * a).toFixed(3) + ')';
+      // 明るい床でも見えるように、白い縁取りの点
+      ctx.fillStyle = 'rgba(255,255,255,' + (0.3 + 0.7 * a).toFixed(3) + ')';
+      ctx.beginPath(); ctx.arc(x, y, 5 + 2 * a, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = 'rgba(' + col + ',' + (0.35 + 0.65 * a).toFixed(3) + ')';
       ctx.beginPath(); ctx.arc(x, y, 3 + 2 * a, 0, Math.PI * 2); ctx.fill();
     }
     for (var j = 0; j < aim.pred.contacts.length; j++) {
@@ -3504,7 +4542,8 @@
       ctx.globalAlpha = Math.min(1, ta * 2.5);
       var pop = tx.life < 0.12 ? 1 + (0.12 - tx.life) * 4 : 1;
       ctx.font = '900 ' + Math.round(tx.size * pop) + 'px "Hiragino Sans","Noto Sans JP",system-ui,sans-serif';
-      ctx.lineWidth = Math.max(4, tx.size / 6); ctx.strokeStyle = 'rgba(6,10,24,.85)';
+      ctx.lineJoin = 'round';
+      ctx.lineWidth = Math.max(5, tx.size / 4.5); ctx.strokeStyle = 'rgba(40,20,0,.9)';
       var y = tx.still ? tx.y : tx.y - (1 - ta) * 24;
       ctx.strokeText(tx.text, tx.x, y);
       ctx.fillStyle = tx.color;
@@ -3595,7 +4634,15 @@
     el.party.hidden = true;
     el.title.hidden = false;
     el.gems.textContent = save.gems;
+    var dl = document.getElementById('daily');
+    if (dailyGot) { dl.hidden = false; dl.textContent = 'ログインボーナス ◆' + dailyGot + ' ゲット！'; dailyGot = 0; }
+    else dl.hidden = true;
+    D.stages.forEach(function (st, i) {
+      var b = document.getElementById('stage-' + i);
+      if (b) b.classList.toggle('cleared', !!save.cleared['s' + i]);
+    });
     game.phase = 'title';
+    sound.music('title');
     updateHud();
   }
 
@@ -3648,6 +4695,40 @@
   document.getElementById('btn-pull10').addEventListener('click', function () { doPull(10); });
   document.getElementById('btn-gacha-back').addEventListener('click', showTitle);
 
+  // ---------------------------------------------------------------- 能力の画面
+  /** このステージのギミックと、それを無効にできる編成中のキャラ（ゲージ込み） */
+  function gimmickInfoHtml() {
+    var kinds = [];
+    curStage().waves.forEach(function (w) {
+      for (var k in (w.gimmicks || {})) if (GIMMICK[k] && w.gimmicks[k].length && kinds.indexOf(k) < 0) kinds.push(k);
+    });
+    if (!kinds.length) return '<div class="info-gim">ギミックはありません</div>';
+    var team = M.partyUnits(save, D);
+    return kinds.map(function (k) {
+      var g = GIMMICK[k], who = [];
+      team.forEach(function (u) {
+        var a = g.counter.filter(function (c) { return (u.abilities || []).indexOf(c) >= 0; });
+        var ga = g.counter.filter(function (c) { return (u.gauge || []).indexOf(c) >= 0; });
+        if (a.length) who.push(u.title);
+        else if (ga.length) who.push(u.title + '（ゲージ）');
+      });
+      return '<div class="info-gim"><b>' + g.name + '</b> ' + g.desc + '<br>無効: '
+        + g.counter.map(function (c) { return chipHtml(ABILITY[c]) + ABILITY[c].name; }).join('・')
+        + '<br>' + (who.length ? '<span class="ok">✓ 対策できるキャラ: ' + who.join('・') + '</span>' : '<span class="ng">対策できるキャラがいません</span>')
+        + '</div>';
+    }).join('');
+  }
+  function showInfo() {
+    el.info.hidden = false;
+    el.info.scrollTop = 0;
+    document.getElementById('info-gimmicks').innerHTML = gimmickInfoHtml();
+    document.getElementById('info-units').innerHTML = save.party.map(function (id) {
+      return unitInfoHtml(M.byId(D, id), save.owned[id] ? save.owned[id].luck : 0);
+    }).join('');
+  }
+  document.getElementById('btn-info').addEventListener('click', function () { sound.unlock(); sound.tick(); showInfo(); });
+  document.getElementById('btn-info-back').addEventListener('click', function () { el.info.hidden = true; });
+
   // ---------------------------------------------------------------- 編成
   var partySel = 0, partyDraft = null;
   function showParty() {
@@ -3656,15 +4737,6 @@
     partyDraft = save.party.slice();
     partySel = 0;
     renderParty();
-  }
-  function unitDetail(u) {
-    var marks = unitMarks(u).map(function (m) { return m.name; });
-    var e = ELEMENT[u.element];
-    var lk = save.owned[u.id] ? save.owned[u.id].luck : 0;
-    return '<b>' + u.title + '</b> ' + starsHtml(u.rarity) + '　' + (e ? e.label + '属性・' : '') + SHOT_LABEL[u.shot]
-      + '　攻撃 ' + Math.round(u.atk * M.luckRate(D, lk)) + '・HP ' + Math.round(u.hp * M.luckRate(D, lk)) + (lk ? '（ラック ' + lk + '）' : '')
-      + '<br>友情: <b>' + u.combo.name + '</b>　SS: <b>' + u.ss.name + '</b>（' + u.ss.turns + 'ターン）'
-      + (marks.length ? '<br>' + marks.join('・') : '');
   }
   function renderParty() {
     el.partySlots.innerHTML = partyDraft.map(function (id, i) {
@@ -3679,7 +4751,8 @@
         + (have ? faceHtml(u) + '<b>' + u.title + '</b>' : '<div class="uface" style="background:#1a2238">?</div><b>？？？</b>')
         + starsHtml(u.rarity) + (partyDraft.indexOf(u.id) >= 0 ? '<span class="tag">編成中</span>' : '') + '</button>';
     }).join('');
-    el.partyDetail.innerHTML = unitDetail(M.byId(D, partyDraft[partySel]));
+    var sel = partyDraft[partySel];
+    el.partyDetail.innerHTML = unitInfoHtml(M.byId(D, sel), save.owned[sel] ? save.owned[sel].luck : 0);
   }
   el.partySlots.addEventListener('click', function (e) {
     var b = e.target.closest('[data-slot]');
@@ -3710,21 +4783,351 @@
     var btn = document.createElement('button');
     btn.type = 'button';
     btn.id = 'stage-' + i;
-    btn.innerHTML = st.name + '<small>' + (STAGE_NOTE[i] || '') + '</small>';
+    btn.innerHTML = '<span class="nm">' + st.name + '</span><small>' + (STAGE_NOTE[i] || '') + '</small>';
     btn.addEventListener('click', function () { sound.unlock(); selectStage(i); });
     el.stageList.appendChild(btn);
   });
   document.getElementById('btn-stages').addEventListener('click', showTitle);
   el.sound.addEventListener('click', function () {
     var on = sound.toggle();
-    el.sound.textContent = on ? '音 ON' : '音 OFF';
+    el.sound.textContent = on ? '🔊' : '🔇';
     el.sound.setAttribute('aria-pressed', String(on));
   });
+
+  // ---------------------------------------------------------------- ミニゲーム「ドロップパズル」
+  // 盤面のルール・ダメージ計算は ms-puzzle（純粋）。ここは描画・操作・演出だけ。
+  var Z = window.MSPuzzle;
+  var PZ = { W: 540, H: 790, TOP: 250, BOARD: 340, CELL: 90 };
+  var DROP = {
+    fire: { c: ['#ffd0b8', '#ff5a3c', '#a81f08'], label: '火' }, water: { c: ['#d4efff', '#3aa7ff', '#0b4f9e'], label: '水' },
+    wood: { c: ['#d6ffd0', '#3fca5b', '#12692a'], label: '木' }, light: { c: ['#fffbd0', '#ffd23f', '#a87400'], label: '光' },
+    dark: { c: ['#ecd8ff', '#9a5cf0', '#3a1670'], label: '闇' }, heart: { c: ['#ffe0f2', '#ff7ac8', '#a3135f'], label: '♥' }
+  };
+  var pzCanvas = document.getElementById('pz-canvas');
+  var pzCtx = pzCanvas.getContext('2d');
+  var pz = { open: false };
+  var FONT = '"Hiragino Maru Gothic ProN","Hiragino Sans","Noto Sans JP",system-ui,sans-serif';
+
+  function startPuzzle() {
+    el.title.hidden = true;
+    el.puzzle.hidden = false;
+    document.getElementById('pz-result').hidden = true;
+    var team = M.partyUnits(save, D);
+    pz = { open: true, battle: new Z.PuzzleBattle({ team: team, floors: D.puzzle.floors }), team: team,
+      board: Z.newBoard(Math.random), phase: 'input', hold: null, started: false, timeLeft: Z.MOVE_TIME,
+      t: 0, floats: [], flash: {}, shake: 0, comboCount: 0, view: null, spawn: 0 };
+    sound.music('battle');
+    pzResize();
+    pzHelp();
+  }
+  function closePuzzle() {
+    pz.open = false;
+    el.puzzle.hidden = true;
+    showTitle();
+  }
+  function pzResize() {
+    if (!pz.open) return;
+    var box = el.puzzle.getBoundingClientRect();
+    var head = el.puzzle.querySelector('.head').getBoundingClientRect().height;
+    var availW = box.width - 32, availH = box.height - head - 90;
+    var k = Math.max(0.2, Math.min(availW / PZ.W, availH / PZ.H));
+    var dpr = window.devicePixelRatio || 1;
+    pzCanvas.style.width = Math.floor(PZ.W * k) + 'px';
+    pzCanvas.style.height = Math.floor(PZ.H * k) + 'px';
+    pzCanvas.width = Math.round(PZ.W * k * dpr);
+    pzCanvas.height = Math.round(PZ.H * k * dpr);
+    pz.k = k * dpr;
+  }
+  function pzHelp() {
+    var h = document.getElementById('pz-help');
+    if (pz.phase === 'input') h.innerHTML = 'ドロップを<b>押したまま動かす</b>と、通った所と入れ替わります（斜めもOK）。<b>3つ以上</b>そろえると消えて、'
+      + '同じ属性のキャラが攻撃。<b>♥</b>で回復。最初に動かしてから<b>' + Z.MOVE_TIME + '秒</b>。';
+    else h.innerHTML = '<b>コンボ</b>が多いほど攻撃が強くなります。<b>5個以上</b>つなげると全体攻撃。先頭のキャラ（リーダー）と同じ属性は1.5倍。';
+  }
+
+  /** ページの座標 → 盤面のマス（盤の外なら端に寄せる） */
+  function pzCell(e) {
+    var r = pzCanvas.getBoundingClientRect();
+    var x = (e.clientX - r.left) / r.width * PZ.W, y = (e.clientY - r.top) / r.height * PZ.H;
+    return { x: x, y: y, c: Math.max(0, Math.min(Z.COLS - 1, Math.floor(x / PZ.CELL))), r: Math.max(0, Math.min(Z.ROWS - 1, Math.floor((y - PZ.BOARD) / PZ.CELL))), inBoard: y >= PZ.BOARD };
+  }
+  pzCanvas.addEventListener('pointerdown', function (e) {
+    if (!pz.open || pz.phase !== 'input' || pz.hold) return;
+    var p = pzCell(e);
+    if (!p.inBoard) return;
+    sound.unlock();
+    pz.hold = { r: p.r, c: p.c, x: p.x, y: p.y, id: e.pointerId };
+    try { pzCanvas.setPointerCapture(e.pointerId); } catch (err) { /* 無くても動く */ }
+    e.preventDefault();
+  });
+  pzCanvas.addEventListener('pointermove', function (e) {
+    if (!pz.hold || e.pointerId !== pz.hold.id) return;
+    var p = pzCell(e);
+    pz.hold.x = Math.max(0, Math.min(PZ.W, p.x));
+    pz.hold.y = Math.max(PZ.BOARD, Math.min(PZ.H, p.y));
+    // 速く動かしても1マスずつ入れ替える（斜めも）
+    while (pz.hold && (p.r !== pz.hold.r || p.c !== pz.hold.c)) {
+      var dr = Math.sign(p.r - pz.hold.r), dc = Math.sign(p.c - pz.hold.c);
+      Z.swap(pz.board, pz.hold.r, pz.hold.c, pz.hold.r + dr, pz.hold.c + dc);
+      pz.hold.r += dr; pz.hold.c += dc;
+      sound.tick();
+      if (!pz.started) { pz.started = true; pz.timeLeft = Z.MOVE_TIME; }
+    }
+  });
+  function pzUp(e) {
+    if (!pz.hold || e.pointerId !== pz.hold.id) return;
+    pzEndMove();
+  }
+  pzCanvas.addEventListener('pointerup', pzUp);
+  pzCanvas.addEventListener('pointercancel', pzUp);
+
+  /** 指を離した・時間切れ: 消して落ちる演出へ。入れ替えていなければ何もしない */
+  function pzEndMove() {
+    pz.hold = null;
+    if (!pz.started) return;
+    pz.started = false;
+    pz.res = Z.resolve(pz.board, Math.random);
+    pz.step = 0; pz.sub = 'clear'; pz.ci = 0; pz.t = 0; pz.comboCount = 0;
+    pz.view = pz.battle.enemies.map(function (en) { return { id: en.id, def: en.def, hp: en.hp, hpMax: en.hpMax, cd: en.cd }; });
+    pz.phase = 'resolve';
+    pzHelp();
+  }
+
+  function pzUpdate(dt) {
+    pz.shake = Math.max(0, pz.shake - dt * 30);
+    for (var k in pz.flash) pz.flash[k] = Math.max(0, pz.flash[k] - dt * 2.5);
+    pz.floats = pz.floats.filter(function (f) { f.t += dt; return f.t < f.life; });
+    pz.spawn = Math.min(1, pz.spawn + dt * 2.5);
+    if (pz.phase === 'input' && pz.started) {
+      pz.timeLeft -= dt;
+      if (pz.timeLeft <= 0) pzEndMove();
+      return;
+    }
+    pz.t += dt;
+    if (pz.phase === 'resolve') {
+      var st = pz.res.steps[pz.step];
+      if (!st) { pzAttack(); return; }
+      if (pz.sub === 'clear' && pz.t >= 0.24) {
+        var cb = st.combos[pz.ci];
+        cb.cells.forEach(function (p) { pz.board[p[0]][p[1]] = null; });
+        pz.comboCount++;
+        pzComboSound(pz.comboCount);
+        pz.ci++; pz.t = 0;
+        if (pz.ci >= st.combos.length) pz.sub = 'fall';
+      } else if (pz.sub === 'fall' && pz.t >= 0.26) {
+        pz.board = Z.copy(st.board);
+        pz.step++; pz.sub = 'clear'; pz.ci = 0; pz.t = 0;
+      }
+    } else if (pz.phase === 'attack' && pz.t >= 0.8) {
+      pz.t = 0;
+      if (pz.last.enemyAttacks.length) {
+        pz.phase = 'enemy';
+        var total = pz.last.enemyAttacks.reduce(function (a, x) { return a + x.damage; }, 0);
+        pzFloat(PZ.W / 2, PZ.TOP + 30, '-' + total, '#ff5a5a', 30);
+        pz.shake = 10;
+        sound.enemy(pz.last.enemyAttacks.length > 1);
+      } else pzNext();
+    } else if (pz.phase === 'enemy' && pz.t >= 0.7) {
+      pz.t = 0; pzNext();
+    }
+  }
+  function pzComboSound(n) { sound.combo(); if (n > 1) sound.shot(); }
+  function pzFloat(x, y, text, color, size) { pz.floats.push({ x: x, y: y, text: text, color: color, size: size || 22, t: 0, life: 1.1 }); }
+
+  /** 消し終わったら攻撃と回復（計算は MSPuzzle.PuzzleBattle.play） */
+  function pzAttack() {
+    var r = pz.battle.play(pz.res.combos);
+    pz.last = r;
+    pz.phase = 'attack'; pz.t = 0;
+    var pos = pzEnemyPos(pz.view);
+    r.attacks.forEach(function (a, i) {
+      pz.flash[a.unit] = 1;
+      a.hits.forEach(function (h) {
+        var v = null, j;
+        for (j = 0; j < pz.view.length; j++) if (pz.view[j].id === h.enemy) v = pz.view[j];
+        if (!v) return;
+        v.hp = Math.max(0, v.hp - h.damage);
+        var p = pos[h.enemy];
+        pzFloat(p.x + (i - 1.5) * 16, p.y - 20 - i * 18, String(h.damage) + (h.rate > 1 ? '!' : ''), DROP[a.element].c[1], h.rate > 1 ? 28 : 22);
+      });
+    });
+    if (r.attacks.length) sound.hit(3000);
+    if (r.heal > 0) { pzFloat(PZ.W / 2, PZ.TOP + 60, '+' + r.heal, '#3fdc6b', 24); sound.heal(); }
+    if (!r.combos) pzFloat(PZ.W / 2, PZ.BOARD - 30, 'そろわなかった…', '#9fb0d6', 18);
+  }
+  function pzNext() {
+    var r = pz.last;
+    if (r.state === 'won' || r.state === 'lost') { pzFinish(r.state === 'won'); return; }
+    if (r.floorCleared) { pz.spawn = 0; sound.wave(); }
+    pz.view = null;
+    pz.phase = 'input';
+    pzHelp();
+  }
+  function pzFinish(won) {
+    pz.phase = won ? 'won' : 'lost';
+    var rw = M.puzzleReward(save, D, won);
+    persist();
+    if (won) sound.win(); else sound.lose();
+    document.getElementById('pz-result-title').textContent = won ? 'クリア！' : 'やられた…';
+    document.getElementById('pz-result-title').className = won ? 'won' : 'lost';
+    document.getElementById('pz-result-text').innerHTML = (won ? '全部のフロアの敵を倒しました。' : 'チームのHPが0になりました。')
+      + '<br>最大 ' + pz.battle.stats.maxCombo + ' コンボ・' + (pz.battle.turn - 1) + 'ターン<br>'
+      + '<span class="gems">+' + rw.gems + '</span>' + (rw.first ? '（初回クリア）' : '') + '　持っているジェム ' + rw.total;
+    document.getElementById('pz-result').hidden = false;
+  }
+
+  function pzEnemyPos(list) {
+    var pos = {}, n = list.length;
+    list.forEach(function (e, i) { pos[e.id] = { x: PZ.W * (i + 1) / (n + 1), y: 130 }; });
+    return pos;
+  }
+
+  function pzRender(now) {
+    var g = pzCtx, t = now / 1000;
+    g.setTransform(pz.k, 0, 0, pz.k, 0, 0);
+    var sx = pz.shake ? (Math.random() - 0.5) * pz.shake : 0;
+    g.save();
+    g.translate(sx, 0);
+    // 敵の場所: 明るい空と草原
+    var sky = g.createLinearGradient(0, 0, 0, PZ.TOP);
+    sky.addColorStop(0, '#8fdcff'); sky.addColorStop(1, '#c9f0a6');
+    g.fillStyle = sky; g.fillRect(0, 0, PZ.W, PZ.TOP);
+    g.fillStyle = '#7fd35a'; g.fillRect(0, PZ.TOP - 50, PZ.W, 50);
+    g.fillStyle = 'rgba(255,255,255,.8)';
+    g.font = '900 16px ' + FONT;
+    g.textAlign = 'left'; g.textBaseline = 'top';
+    g.fillText('FLOOR ' + (pz.battle.floor + 1) + '/' + pz.battle.floors.length, 12, 10);
+    var list = pz.view || pz.battle.enemies;
+    var pos = pzEnemyPos(list);
+    var saved = ctx; ctx = g;   // 敵の絵はフィールドと同じ関数で描く
+    list.forEach(function (e) {
+      var p = pos[e.id], d = e.def;
+      var alpha = e.hp > 0 ? 1 : Math.max(0, 1 - (pz.phase === 'attack' ? pz.t * 2 : 1));
+      if (alpha <= 0) return;
+      var s = pz.view ? 1 : easeOutBack(pz.spawn);
+      g.save();
+      g.globalAlpha = alpha;
+      g.translate(p.x, p.y);
+      var fit = d.look === 'dragon' ? 0.9 : 1;
+      g.scale(s * fit, s * fit);
+      var dd = { x: p.x, r: d.r, w: d.w, h: d.h, colors: d.colors };
+      if (d.look === 'golem') drawGolem(dd, t); else if (d.look === 'dragon') drawDragon(dd, t); else drawSlime(dd, t);
+      g.restore();
+      if (e.hp <= 0) return;
+      var half = (d.look === 'golem' ? d.w / 2 : d.r);
+      // HP・攻撃までのターン・属性
+      var bw = Math.min(150, half * 2 + 20), by = p.y + (d.look === 'golem' ? d.h / 2 : d.r) + 12;
+      g.fillStyle = 'rgba(29,43,83,.85)'; roundRect(g, p.x - bw / 2 - 2, by - 2, bw + 4, 12, 6); g.fill();
+      g.fillStyle = e.hp / e.hpMax > 0.5 ? '#4fe36b' : e.hp / e.hpMax > 0.25 ? '#ffd23f' : '#ff5a5a';
+      roundRect(g, p.x - bw / 2, by, Math.max(2, bw * e.hp / e.hpMax), 8, 4); g.fill();
+      drawElement(p.x + half - 4, p.y - (d.look === 'golem' ? d.h / 2 : d.r) + 4, d.element, 11);
+      g.fillStyle = e.cd <= 1 ? '#ff5a5a' : '#1d2b53';
+      dot(g, p.x - half + 4, p.y - (d.look === 'golem' ? d.h / 2 : d.r) + 4, 13);
+      g.fillStyle = '#fff'; g.font = '900 14px ' + FONT; g.textAlign = 'center'; g.textBaseline = 'middle';
+      g.fillText(String(e.cd), p.x - half + 4, p.y - (d.look === 'golem' ? d.h / 2 : d.r) + 5);
+    });
+    ctx = saved;
+    // チーム: HP と4体
+    g.fillStyle = '#fff'; g.fillRect(0, PZ.TOP, PZ.W, PZ.BOARD - PZ.TOP);
+    var ratio = pz.battle.hp / pz.battle.hpMax;
+    g.fillStyle = '#1d2b53'; roundRect(g, 10, PZ.TOP + 8, PZ.W - 20, 16, 8); g.fill();
+    g.fillStyle = ratio > 0.5 ? '#4fe36b' : ratio > 0.25 ? '#ffd23f' : '#ff5a5a';
+    roundRect(g, 12, PZ.TOP + 10, Math.max(4, (PZ.W - 24) * ratio), 12, 6); g.fill();
+    g.fillStyle = '#fff'; g.font = '900 11px ' + FONT; g.textAlign = 'center'; g.textBaseline = 'middle';
+    g.fillText(pz.battle.hp + ' / ' + pz.battle.hpMax, PZ.W / 2, PZ.TOP + 16);
+    pz.team.forEach(function (u, i) {
+      var x = 70 + i * 100, y = PZ.TOP + 56, f = pz.flash[u.id] || 0, c = u.colors;
+      var gr = g.createRadialGradient(x - 8, y - 10, 3, x, y, 26);
+      gr.addColorStop(0, c[0]); gr.addColorStop(0.6, c[1]); gr.addColorStop(1, c[2]);
+      g.fillStyle = gr; dot(g, x, y - f * 8, 25);
+      g.strokeStyle = i === 0 ? '#ffc629' : '#fff'; g.lineWidth = 3;
+      g.beginPath(); g.arc(x, y - f * 8, 25, 0, Math.PI * 2); g.stroke();
+      g.fillStyle = '#fff'; g.font = '900 18px ' + FONT; g.fillText(u.name, x, y - f * 8 + 1);
+      drawElementOn(g, x + 19, y - 19 - f * 8, u.element, 9);
+      if (i === 0) { g.fillStyle = '#a35a00'; g.font = '900 10px ' + FONT; g.fillText('リーダー', x + 44, y + 16); }
+    });
+    // 盤面
+    for (var r = 0; r < Z.ROWS; r++) for (var c2 = 0; c2 < Z.COLS; c2++) {
+      g.fillStyle = (r + c2) % 2 ? '#7a4a22' : '#8f5a2c';
+      g.fillRect(c2 * PZ.CELL, PZ.BOARD + r * PZ.CELL, PZ.CELL, PZ.CELL);
+    }
+    g.save();
+    g.beginPath(); g.rect(0, PZ.BOARD, PZ.W, Z.ROWS * PZ.CELL); g.clip();
+    var st = pz.phase === 'resolve' ? pz.res.steps[pz.step] : null;
+    if (st && pz.sub === 'fall') {
+      var k = Math.min(1, pz.t / 0.26), ease = k * k;
+      var moved = {};
+      st.moves.forEach(function (m) { moved[m.r + ',' + m.c] = m.from; });
+      for (r = 0; r < Z.ROWS; r++) for (c2 = 0; c2 < Z.COLS; c2++) {
+        var from = moved[r + ',' + c2], yy = r;
+        if (from !== undefined) yy = from + (r - from) * ease;
+        drawDrop(g, st.board[r][c2], c2, yy, 1);
+      }
+    } else {
+      var glow = st && st.combos[pz.ci] ? st.combos[pz.ci] : null, gset = {};
+      if (glow) glow.cells.forEach(function (p) { gset[p[0] + ',' + p[1]] = true; });
+      for (r = 0; r < Z.ROWS; r++) for (c2 = 0; c2 < Z.COLS; c2++) {
+        if (pz.hold && pz.hold.r === r && pz.hold.c === c2) { drawDrop(g, pz.board[r][c2], c2, r, 0.3); continue; }
+        var gl = gset[r + ',' + c2] ? pz.t / 0.24 : 0;
+        drawDrop(g, pz.board[r][c2], c2, r, 1, gl);
+      }
+    }
+    g.restore();
+    if (pz.hold) drawDropAt(g, pz.board[pz.hold.r][pz.hold.c], pz.hold.x, pz.hold.y - 10, PZ.CELL * 0.5, 1, 0);
+    // 操作時間
+    if (pz.phase === 'input' && pz.started) {
+      var tr = Math.max(0, pz.timeLeft / Z.MOVE_TIME);
+      g.fillStyle = 'rgba(29,43,83,.85)'; roundRect(g, 10, PZ.BOARD - 14, PZ.W - 20, 10, 5); g.fill();
+      g.fillStyle = tr > 0.3 ? '#3cc8ff' : '#ff5a5a'; roundRect(g, 12, PZ.BOARD - 12, (PZ.W - 24) * tr, 6, 3); g.fill();
+    }
+    // コンボの数
+    if (pz.comboCount && (pz.phase === 'resolve' || pz.phase === 'attack')) {
+      g.font = '900 44px ' + FONT; g.textAlign = 'center'; g.textBaseline = 'middle';
+      g.lineWidth = 8; g.strokeStyle = '#8a3b00'; g.fillStyle = '#ffd23f';
+      g.strokeText(pz.comboCount + ' COMBO', PZ.W / 2, PZ.BOARD + Z.ROWS * PZ.CELL / 2);
+      g.fillText(pz.comboCount + ' COMBO', PZ.W / 2, PZ.BOARD + Z.ROWS * PZ.CELL / 2);
+    }
+    pz.floats.forEach(function (f) {
+      var a = 1 - Math.max(0, f.t - 0.6) / 0.5;
+      g.globalAlpha = Math.max(0, a);
+      g.font = '900 ' + f.size + 'px ' + FONT; g.textAlign = 'center'; g.textBaseline = 'middle';
+      g.lineWidth = 5; g.strokeStyle = 'rgba(29,43,83,.9)'; g.fillStyle = f.color;
+      g.strokeText(f.text, f.x, f.y - f.t * 30); g.fillText(f.text, f.x, f.y - f.t * 30);
+      g.globalAlpha = 1;
+    });
+    g.restore();
+  }
+  function drawDrop(g, color, c, r, alpha, glow) {
+    if (!color) return;
+    drawDropAt(g, color, (c + 0.5) * PZ.CELL, PZ.BOARD + (r + 0.5) * PZ.CELL, PZ.CELL * 0.42, alpha, glow || 0);
+  }
+  function drawDropAt(g, color, x, y, rad, alpha, glow) {
+    var d = DROP[color];
+    if (!d) return;
+    g.globalAlpha = alpha;
+    if (glow) { g.fillStyle = 'rgba(255,255,255,' + (0.7 * glow).toFixed(3) + ')'; dot(g, x, y, rad * (1.15 + 0.2 * glow)); }
+    var gr = g.createRadialGradient(x - rad * 0.35, y - rad * 0.4, rad * 0.1, x, y, rad);
+    gr.addColorStop(0, d.c[0]); gr.addColorStop(0.6, d.c[1]); gr.addColorStop(1, d.c[2]);
+    g.fillStyle = gr; dot(g, x, y, rad);
+    g.fillStyle = 'rgba(255,255,255,.55)';
+    g.beginPath(); g.ellipse(x - rad * 0.3, y - rad * 0.45, rad * 0.35, rad * 0.16, -0.5, 0, Math.PI * 2); g.fill();
+    g.fillStyle = '#fff'; g.font = '900 ' + Math.round(rad * 0.8) + 'px ' + FONT; g.textAlign = 'center'; g.textBaseline = 'middle';
+    g.lineWidth = 3; g.strokeStyle = d.c[2];
+    g.strokeText(d.label, x, y + 2); g.fillText(d.label, x, y + 2);
+    g.globalAlpha = 1;
+  }
+  function drawElementOn(g, x, y, element, size) { var s = ctx; ctx = g; drawElement(x, y, element, size); ctx = s; }
+
+  document.getElementById('btn-puzzle').addEventListener('click', function () { sound.unlock(); startPuzzle(); });
+  document.getElementById('btn-puzzle-back').addEventListener('click', closePuzzle);
+  document.getElementById('btn-pz-back').addEventListener('click', closePuzzle);
+  document.getElementById('btn-pz-retry').addEventListener('click', startPuzzle);
+  window.addEventListener('resize', pzResize);
 
   // ---------------------------------------------------------------- 起動
   buildWorld();
   buildTune();
-  el.sound.textContent = sound.on ? '音 ON' : '音 OFF';
+  el.sound.textContent = sound.on ? '🔊' : '🔇';
   el.sound.setAttribute('aria-pressed', String(sound.on));
   resize();
   showTitle();
@@ -3737,6 +5140,7 @@
     last = now;
     update(dt);
     render(now);
+    if (pz.open) { pzUpdate(dt); pzRender(now); }
     requestAnimationFrame(frame);
   }
   requestAnimationFrame(frame);
@@ -3750,8 +5154,24 @@
     get active() { return activeUnit().def.id; },
     get shownHp() { return shownHp; },
     get ssArmed() { return game.ssArmed; },
+    /** 引っぱり中のゲージ（0〜1）と、成功の範囲にいるか */
+    get gauge() { return pull ? { value: gaugeValue(performance.now()), ok: pull.gaugeOk } : null; },
     get stage() { return stageIndex; },
+    get music() { return sound.track; },
     get save() { return save; },
+    /** ドロップパズル: 状態と、盤面を決めてテストするための窓口 */
+    puzzle: {
+      get open() { return pz.open; },
+      get phase() { return pz.phase; },
+      get battle() { return pz.battle; },
+      get board() { return pz.board && Z.copy(pz.board); },
+      setBoard: function (b) { pz.board = Z.copy(b); },
+      /** マスの中心のページ座標 */
+      cell: function (r, c) {
+        var rc = pzCanvas.getBoundingClientRect();
+        return { x: rc.left + (c + 0.5) * PZ.CELL / PZ.W * rc.width, y: rc.top + (PZ.BOARD + (r + 0.5) * PZ.CELL) / PZ.H * rc.height };
+      }
+    },
     selectStage: selectStage,
     /** テストで状態を直接変えたあと、表示を合わせる */
     refresh: function () { updateHud(); },
