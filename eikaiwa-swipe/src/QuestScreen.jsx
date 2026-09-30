@@ -34,6 +34,8 @@ import {
   retreat,
   startFloors,
   isBossFloor,
+  idiomChance,
+  IDIOM_FLOOR,
   effectText,
 } from "./quest.js";
 
@@ -285,7 +287,7 @@ function EnhanceSheet({ state, cards, targetId, onEnhance, onClose }) {
 }
 
 /** 準備画面: 主人公と装備 */
-function QuestHome({ state, cards, stats, header, onEquip, onAutoEquip, onSavePreset, onLoadPreset, onEnhance, onToggleFavorite, onStart }) {
+function QuestHome({ state, cards, stats, header, onEquip, onAutoEquip, onSavePreset, onLoadPreset, onEnhance, onToggleFavorite, idioms = false, onIdioms, onStart }) {
   const [picking, setPicking] = useState(null);
   const [enhancing, setEnhancing] = useState(null);
   const q = state.quest;
@@ -483,6 +485,17 @@ function QuestHome({ state, cards, stats, header, onEquip, onAutoEquip, onSavePr
         ))}
       </div>
       <p className="mt-2 text-[11px] text-slate-500">5階ごとにボスがいます。ボスを倒すと、次からはその次の階から始められます。</p>
+      {onIdioms && (
+        <label className="mt-2 flex items-center gap-2 rounded-2xl bg-white p-3 text-sm font-bold text-slate-700 shadow-sm ring-1 ring-slate-200">
+          <input id="quest-idioms" type="checkbox" checked={idioms} onChange={(e) => onIdioms(e.target.checked)} className="h-4 w-4 accent-indigo-600" />
+          <span className="flex-1">
+            熟語も出す
+            <span className="block text-[11px] font-normal text-slate-500">
+              {IDIOM_FLOOR}階から「wake up」「take a shower」などの熟語が混ざります（最初は2割、深い階ほど増えて最大5割）。オフなら単語だけ
+            </span>
+          </span>
+        </label>
+      )}
 
       {enhancing && <EnhanceSheet state={state} cards={cards} targetId={enhancing} onEnhance={onEnhance} onClose={() => setEnhancing(null)} />}
       {picking && (
@@ -530,6 +543,8 @@ function messagesOf(events, enemyName, answerText) {
         return `${enemyName}は うごけない！`;
       case "defend":
         return "みを まもっている。MPが すこし かいふくした";
+      case "defendMiss":
+        return `ぼうぎょに しっぱい！ みを まもれない…（正解は「${answerText}」）`;
       case "herb":
         return `やくそうを つかった！ HPが ${e.heal} かいふくした`;
       case "win":
@@ -558,7 +573,7 @@ const ELEMENT_COLOR = { none: "#e2e8f0", fire: "#f97316", ice: "#38bdf8", thunde
 const FX_MS = 1300;
 
 /** 冒険中の画面 */
-function QuestRun({ stats, pool, chestWords, cards, speech, sound, dopamine, onEnd, active }) {
+function QuestRun({ stats, pool, idiomPool = [], idioms = false, chestWords, cards, speech, sound, dopamine, onEnd, active }) {
   const [run, setRun] = useState(() => createRun(stats, stats.startFloor));
   const [log, setLog] = useState(() => [`${stats.startFloor}階。${run.enemy.name}が あらわれた！`]);
   const [question, setQuestion] = useState(null); // { action, skillId, item, choices }
@@ -614,8 +629,10 @@ function QuestRun({ stats, pool, chestWords, cards, speech, sound, dopamine, onE
       setLog(["MPが たりない！"]);
       return;
     }
-    const item = pool[Math.floor(Math.random() * pool.length)];
-    setQuestion({ action, skillId, item, choices: makeChoices(item, pool, Math.random, 4, "japanese") });
+    // 深い階では熟語も混ざる（「熟語も出す」がオンのとき）。選択肢は同じ種類から
+    const from = idioms && idiomPool.length > 4 && Math.random() < idiomChance(run.floor) ? idiomPool : pool;
+    const item = from[Math.floor(Math.random() * from.length)];
+    setQuestion({ action, skillId, item, idiom: from !== pool, choices: makeChoices(item, from, Math.random, 4, "japanese") });
     // 単語は問題が出たときに読む（答えたあとに読むと、効果音や合いの手のあとになって遅れるため）
     speech.speak(item.english, null, item.id);
   };
@@ -716,6 +733,9 @@ function QuestRun({ stats, pool, chestWords, cards, speech, sound, dopamine, onE
       } else if (e.type === "defend") {
         sound.play("block", 0, { cheer: false });
         addFx([{ kind: "shield" }]);
+      } else if (e.type === "defendMiss") {
+        sound.play("wrong", 0, { cheer: false });
+        addFx([{ kind: "text", text: "ガード失敗", color: "#cbd5e1" }]);
       } else if (e.type === "herb" || e.type === "heal" || e.type === "drain" || e.type === "regen") {
         const at = e.type === "regen" ? 700 : 0;
         later(at, () => {
@@ -830,9 +850,9 @@ function QuestRun({ stats, pool, chestWords, cards, speech, sound, dopamine, onE
         {question ? (
           <div className="shrink-0 rounded-xl border-2 border-amber-300 bg-slate-900 p-3" data-testid="quest-question">
             <p className="text-center text-[11px] font-bold text-amber-300">
-              {question.skillId ? SKILLS[question.skillId].name : "こうげき"}: 意味をえらべ！
+              {question.skillId ? SKILLS[question.skillId].name : question.action === "defend" ? "ぼうぎょ" : "こうげき"}: {question.idiom ? "熟語の" : ""}意味をえらべ！
             </p>
-            <p className="mt-1 flex items-center justify-center gap-2 text-2xl font-black">
+            <p className={`mt-1 flex items-center justify-center gap-2 text-center font-black ${question.item.english.length > 14 ? "text-xl" : "text-2xl"}`}>
               {question.item.english}
               <button type="button" aria-label="読み上げる" onClick={() => speech.speak(question.item.english, null, question.item.id)} className="text-amber-300">
                 <Volume2 size={20} />
@@ -896,7 +916,7 @@ function QuestRun({ stats, pool, chestWords, cards, speech, sound, dopamine, onE
                 <MultBadge mult={elementMultiplier(sk.element, e.element)} />
               </button>
             ))}
-            <button type="button" disabled={busy} onClick={() => doAct("defend")} className={`${cmd} ${e.charging ? "qs-defend-hint border-sky-300 bg-sky-800" : ""}`}>
+            <button type="button" disabled={busy} onClick={() => ask("defend")} className={`${cmd} ${e.charging ? "qs-defend-hint border-sky-300 bg-sky-800" : ""}`}>
               <Shield size={16} /> ぼうぎょ
             </button>
             <button type="button" onClick={() => doAct("herb")} disabled={busy || run.herbs <= 0} className={cmd}>
@@ -1101,7 +1121,7 @@ function QuestResult({ run, reward, cards, onBack }) {
  * 冒険の画面。
  * @param onFinish (run, seconds) → reward（経験値・ポイントの記録は App 側で行う）
  */
-export default function QuestScreen({ state, cards, pool, chestWords = [], speech, sound, dopamine, header, onEquip, onAutoEquip, onSavePreset, onLoadPreset, onEnhance, onToggleFavorite, onFinish, active = true }) {
+export default function QuestScreen({ state, cards, pool, chestWords = [], speech, sound, dopamine, header, onEquip, onAutoEquip, onSavePreset, onLoadPreset, onEnhance, onToggleFavorite, onFinish, idiomPool = [], idioms = false, onIdioms, active = true }) {
   const stats = useMemo(() => statsOf(state.quest, cards, state.gacha.cards || {}), [state.quest, state.gacha.cards, cards]);
   const [running, setRunning] = useState(null); // { start, id }
   const [result, setResult] = useState(null);
@@ -1112,6 +1132,8 @@ export default function QuestScreen({ state, cards, pool, chestWords = [], speec
         key={running.id}
         stats={{ ...stats, startFloor: running.start }}
         pool={pool}
+        idiomPool={idiomPool}
+        idioms={idioms}
         chestWords={chestWords}
         cards={cards}
         speech={speech}
@@ -1139,6 +1161,8 @@ export default function QuestScreen({ state, cards, pool, chestWords = [], speec
       onLoadPreset={onLoadPreset}
       onEnhance={onEnhance}
       onToggleFavorite={onToggleFavorite}
+      idioms={idioms}
+      onIdioms={onIdioms}
       onStart={(start) => setRunning({ start, id: Date.now() })}
     />
   );

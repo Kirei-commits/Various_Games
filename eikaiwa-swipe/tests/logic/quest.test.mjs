@@ -32,6 +32,8 @@ import {
   skillCost,
   defendMp,
   mpRegen,
+  idiomChance,
+  IDIOM_FLOOR,
   ENEMY,
   PLUS_EXP,
   enhanceCost,
@@ -380,4 +382,27 @@ test("強化: +1 ごとに強くなり、+5 でアルティメット（効果1.5
   // 保存と統合
   assert.deepEqual(restoreQuest({ enhance: { blaze: 99999, x: -1 } }).enhance, { blaze: 1200 });
   assert.equal(mergeQuest({ enhance: { a: 10 } }, { enhance: { a: 30, b: 5 } }).enhance.a, 30);
+});
+
+test("ぼうぎょも4択に答える。正解なら身をまもり、間違えると大こうげきもそのまま受ける（苦手の記録にも入る）", () => {
+  const stats = { ...statsOf(initialQuest(), cards, {}), evade: 0 };
+  const base = { ...createRun(stats, 3, fixed(0.5)), enemy: { ...enemyFor(3, fixed(0)), charging: true } };
+  const ok = act(base, stats, "defend", { id: "w1", correct: true }, fixed(0.5));
+  assert.ok(ok.events.some((e) => e.type === "defend"));
+  assert.ok(ok.events.some((e) => e.type === "hurt" && e.guarded && e.smash));
+  const ng = act(base, stats, "defend", { id: "w2", correct: false }, fixed(0.5));
+  assert.ok(ng.events.some((e) => e.type === "defendMiss"));
+  const hurtOk = ok.events.find((e) => e.type === "hurt").dmg;
+  const hurtNg = ng.events.find((e) => e.type === "hurt").dmg;
+  assert.ok(hurtNg > hurtOk * 2, `${hurtNg} > ${hurtOk} × 2`);
+  assert.ok(!ng.events.some((e) => e.type === "counter"), "はんげきしない");
+  assert.deepEqual([ok.results.w1, ng.results.w2], [true, false]);
+});
+
+test("熟語は IDIOM_FLOOR 階から混ざり、深い階ほど増える（最大5割）", () => {
+  assert.equal(idiomChance(1), 0);
+  assert.equal(idiomChance(IDIOM_FLOOR - 1), 0);
+  assert.equal(idiomChance(IDIOM_FLOOR), 0.2);
+  assert.ok(idiomChance(IDIOM_FLOOR + 5) > idiomChance(IDIOM_FLOOR));
+  assert.equal(idiomChance(200), 0.5);
 });

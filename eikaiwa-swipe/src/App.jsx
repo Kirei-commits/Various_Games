@@ -367,6 +367,11 @@ const KIND_ITEMS = {
   phrase: PART_GROUPS.filter((p) => p.kind === "phrase").flatMap((p) => p.chapters.flatMap((c) => c.items)),
   word: PART_GROUPS.filter((p) => p.kind === "word").flatMap((p) => p.chapters.flatMap((c) => c.items)),
 };
+/** 冒険の深い階で混ざる熟語: フレーズの章の2〜4語の句（文ではないもの。wake up・take a shower など） */
+const IDIOM_POOL = KIND_ITEMS.phrase.filter((p) => {
+  const n = p.english.split(" ").length;
+  return n >= 2 && n <= 4 && !/[?.!]$/.test(p.english);
+});
 
 // ---------------------------------------------------------------------------
 // 永続化
@@ -426,6 +431,7 @@ const DEFAULT_SETTINGS = {
   theme: "", // 着せかえ（空なら以前ログインボーナスで選んだもの、なければスタンダード）
   test: { scope: "ch01", count: 10, direction: "en-ja", prompt: "text", answer: "type" },
   play: "test", // テスト画面で「テスト」「バトル」「冒険」のどれを開くか
+  questIdioms: true, // 冒険で、深い階から熟語（2〜4語のフレーズ）も出す
   battle: { mode: "stage", chapter: "ch51", scope: "word", direction: "en-ja", answer: "choice", order: "random" },
 };
 
@@ -3213,6 +3219,9 @@ function TestScreen({ active, state, settings, setSettings, speech, onFinishTest
         state={state}
         cards={CATALOG.cards}
         pool={QUEST_POOL}
+        idiomPool={IDIOM_POOL}
+        idioms={settings.questIdioms}
+        onIdioms={(on) => setSettings((s) => ({ ...s, questIdioms: on }))}
         chestWords={CHEST_WORDS}
         speech={speech}
         sound={sound}
