@@ -46,8 +46,8 @@ import {
   Castle,
 } from "lucide-react";
 import { BattleBackdrop, Monster, Dragon, Hero, monsterKindOf } from "./battle-art.jsx";
-import QuestScreen from "./QuestScreen.jsx";
-import { equip as questEquip, autoEquip as questAutoEquip, applyQuest, runResults, savePreset as questSavePreset, loadPreset as questLoadPreset, enhance as questEnhance } from "./quest.js";
+import QuestScreen, { EnhancePanel } from "./QuestScreen.jsx";
+import { equip as questEquip, autoEquip as questAutoEquip, applyQuest, runResults, savePreset as questSavePreset, loadPreset as questLoadPreset, enhance as questEnhance, plusOf, ULTIMATE_PLUS } from "./quest.js";
 import { loadRecordedIndex, playRecorded, recordedCount, recordedUrls, stopRecorded } from "./recorded.js";
 import { cheersAvailable, loadCheers, noteSpeech } from "./cheers.js";
 import { Art, CARD_BACK_ART, CHEST_ART, GACHA_PANEL_ART, MACHINE_ART, SHOP_ART, WALLET_ICON } from "./gacha-art.jsx";
@@ -90,6 +90,7 @@ import {
   PULL_COST,
   PITY_SSR,
   EXCHANGE_COST,
+  OVERFLOW_EX,
   LOGIN_POINTS,
   GOAL_POINTS,
   STARTER,
@@ -190,7 +191,7 @@ const DopamineContext = createContext({ on: false, hit() {} });
 const useDopamine = () => useContext(DopamineContext);
 
 const DP_COLORS = ["#f43f5e", "#f59e0b", "#22c55e", "#3b82f6", "#a855f7", "#ec4899", "#facc15"];
-const DP_EMOJI = ["🔥", "✨", "💥", "⭐", "🎉", "💎", "⚡", "🌈"];
+const DP_EMOJI = ["✨", "⭐", "🎉", "💎", "🌈"];
 const dpLabel = (n) =>
   n >= 30 ? "🌈 GODLIKE 🌈" : n >= 20 ? "🔥 FEVER 🔥" : n >= 15 ? "UNSTOPPABLE!!" : n >= 10 ? "PERFECT!!!" : n >= 6 ? "EXCELLENT!!" : n >= 3 ? "GREAT!" : "NICE!";
 /** 5連続ごとの節目（大きな演出と音） */
@@ -208,19 +209,20 @@ function DopamineLayer({ fx, streak }) {
   const big = fx && dpMilestone(n);
   const color = DP_COLORS[n % DP_COLORS.length];
   const confetti = Math.min(18 + n * 3, big ? 90 : 60);
-  const emoji = Math.min(Math.floor(n / 2) * 2 + (big ? 12 : 0), 28);
+  // 絵文字の雨は5連続ごとの節目だけ（毎回降ると問題が見えにくい。2026-09-30）
+  const emoji = big ? Math.min(6 + n, 14) : 0;
   return (
     <div className="pointer-events-none absolute inset-0 z-40 overflow-hidden" data-testid="dopamine">
       {streak >= 10 && <span className="dp-fever absolute inset-0 block" data-testid="dopamine-fever" />}
       {streak > 0 && (
         <p
           key={`m${streak}`}
-          className={`dp-meter absolute bottom-[84px] right-3 rounded-full px-2.5 py-1 text-xs font-black text-white shadow-lg ${
-            streak >= 10 ? "dp-rainbow-bg" : streak >= 5 ? "bg-gradient-to-r from-orange-500 to-rose-600" : "bg-slate-900/80"
+          className={`dp-meter absolute left-1/2 top-1 -translate-x-1/2 rounded-full px-2 py-0.5 text-[10px] font-black text-white opacity-80 shadow ${
+            streak >= 10 ? "dp-rainbow-bg" : streak >= 5 ? "bg-gradient-to-r from-orange-500 to-rose-600" : "bg-slate-900/70"
           }`}
           data-testid="dopamine-streak"
         >
-          🔥 ×{streak}
+          連続 ×{streak}
         </p>
       )}
       {fx && (
@@ -2880,7 +2882,7 @@ function BattleRun({ session, speech, recognition, onFinish, active = true, tool
             style={{ zIndex: 300, textShadow: "0 0 8px rgba(251,191,36,0.9), 0 2px 0 rgba(0,0,0,0.6)" }}
             data-testid="battle-combo"
           >
-            🔥 {b.combo} COMBO
+            {b.combo} COMBO
           </p>
         )}
       </div>
@@ -3226,6 +3228,7 @@ function TestScreen({ active, state, settings, setSettings, speech, onFinishTest
         onSavePreset={quest.onSavePreset}
         onLoadPreset={quest.onLoadPreset}
         onEnhance={quest.onEnhance}
+        onToggleFavorite={onToggleFavorite}
         onFinish={quest.onFinish}
       />
     );
@@ -4097,7 +4100,7 @@ function Wallet({ g, onUseBoost }) {
   );
 }
 
-function WordTile({ card, copies, onOpen }) {
+function WordTile({ card, copies, fav = false, plus = 0, onOpen }) {
   const owned = copies > 0;
   const level = levelOf(copies);
   const style = RARITY_STYLE[card.rarity];
@@ -4114,6 +4117,10 @@ function WordTile({ card, copies, onOpen }) {
       <span className="absolute left-1.5 top-1.5">
         <RarityChip rarity={card.rarity} secret={card.secret} />
       </span>
+      {fav && <Star size={13} aria-label="お気に入り" className="absolute right-1.5 top-1.5 fill-amber-400 text-amber-400" />}
+      {owned && plus > 0 && (
+        <span className={`absolute bottom-1 right-1.5 text-[10px] font-black ${plus >= ULTIMATE_PLUS ? "text-pink-500" : "text-amber-600"}`}>+{plus}</span>
+      )}
       {owned ? (
         <>
           <span className="mt-3 break-all text-sm font-extrabold leading-tight text-slate-900">{card.english}</span>
@@ -4131,7 +4138,7 @@ function WordTile({ card, copies, onOpen }) {
 }
 
 /** 単語カードの詳細（獲得済みはすべて、未獲得はチラ見せ）と交換所 */
-function WordSheet({ card, gacha, speech, onClose, onExchange }) {
+function WordSheet({ card, gacha, speech, favorites = {}, enhanceExp = 0, onToggleFavorite, onEnhance, onClose, onExchange }) {
   const [message, setMessage] = useState("");
   const copies = gacha.cards[card.id] || 0;
   const owned = copies > 0;
@@ -4163,7 +4170,11 @@ function WordSheet({ card, gacha, speech, onClose, onExchange }) {
           <RarityChip rarity={card.rarity} secret={card.secret} />
           <span className="text-xs font-bold text-slate-400">{POS_LABELS[card.pos]}</span>
           {owned && <span className="text-xs tracking-tighter text-amber-500">{levelStars(level)} Lv.{level}</span>}
-          <button type="button" onClick={onClose} aria-label="閉じる" className="ml-auto rounded-full p-2 text-slate-400 hover:bg-slate-100">
+          {owned && plusOf(enhanceExp) > 0 && <span className="text-xs font-black text-amber-600">+{plusOf(enhanceExp)}</span>}
+          {onToggleFavorite && !card.secret && (
+            <FavButton id={card.id} favorites={favorites} onToggle={onToggleFavorite} size={20} className="ml-auto" />
+          )}
+          <button type="button" onClick={onClose} aria-label="閉じる" className={`${onToggleFavorite && !card.secret ? "" : "ml-auto "}rounded-full p-2 text-slate-400 hover:bg-slate-100`}>
             <X size={20} />
           </button>
         </div>
@@ -4215,6 +4226,11 @@ function WordSheet({ card, gacha, speech, onClose, onExchange }) {
           )}
         </div>
 
+        {owned && onEnhance && (
+          <div className="mt-4">
+            <EnhancePanel card={card} exp={enhanceExp} exPoints={gacha.exPoints || 0} onEnhance={onEnhance} />
+          </div>
+        )}
         {card.questOnly && owned && <p className="mt-3 text-center text-[11px] font-bold text-emerald-700">冒険限定の単語（宝箱でまた手に入ると Lv が上がります）</p>}
         {!card.secret && !card.questOnly && level < MAX_LEVEL && (
           <div className="mt-4 space-y-2">
@@ -4239,7 +4255,9 @@ function WordSheet({ card, gacha, speech, onClose, onExchange }) {
           </div>
         )}
         {owned && level >= MAX_LEVEL && (
-          <p className="mt-4 rounded-2xl bg-amber-50 px-3 py-2 text-center text-xs font-bold text-amber-700">MAX！この単語はもうガチャから出ません</p>
+          <p className="mt-4 rounded-2xl bg-amber-50 px-3 py-2 text-center text-xs font-bold text-amber-700">
+            MAX！この単語がまたガチャで出ると、交換ポイントになります（{card.rarity} は {OVERFLOW_EX[card.rarity] || 1}）
+          </p>
         )}
         {message && <p className="mt-2 text-center text-xs font-bold text-rose-500">{message}</p>}
         {unlocks.length > 0 && (
@@ -4288,7 +4306,8 @@ function GachaSummary({ cards, onOpen }) {
         ))}
       </div>
       <p className="mt-2 text-center text-xs font-bold text-slate-600 tabular-nums">
-        {cards.length.toLocaleString()} 回引いて、新しい単語 <span className="text-rose-500">{count((x) => x.result === "new")}</span> 枚・Lv アップ {count((x) => x.result !== "new")} 枚
+        {cards.length.toLocaleString()} 回引いて、新しい単語 <span className="text-rose-500">{count((x) => x.result === "new")}</span> 枚・Lv アップ {count((x) => x.result === "levelup")} 枚
+        {count((x) => x.result === "overflow") > 0 && <>・MAX で交換ポイントに {count((x) => x.result === "overflow")} 枚</>}
       </p>
       <div className="mt-2 grid grid-cols-2 gap-1.5">
         {unique.slice(0, SHOW).map((r) => {
@@ -4483,7 +4502,7 @@ function GachaResult({ result, onClose, onOpen }) {
                     <div className="flex items-center gap-1">
                       <RarityChip rarity={r.rarity} />
                       <span className={`ml-auto text-[10px] font-black ${r.result === "new" ? "text-rose-500" : "text-emerald-600"}`}>
-                        {r.result === "new" ? "NEW!" : r.level >= MAX_LEVEL ? "MAX!" : `Lv.${r.level}↑`}
+                        {r.result === "new" ? "NEW!" : r.result === "overflow" ? `交換pt+${r.exGain}` : r.level >= MAX_LEVEL ? "MAX!" : `Lv.${r.level}↑`}
                       </span>
                     </div>
                     <p className={`break-all font-extrabold text-slate-900 ${multi ? "mt-0.5 text-sm leading-tight" : "mt-1 text-base"}`}>{card.english}</p>
@@ -4690,8 +4709,8 @@ function GachaPanel({ g, onPull, onUpgrade }) {
         <p>・今日の目標（{DAILY_GOAL}問）達成で {GOAL_POINTS.toLocaleString()}pt</p>
         <p>・「コード」タブで英単語を入れると、その単語と、難しい単語ほどたくさんのポイント（最大 5,000pt・1日 {CODE_DAILY_LIMIT} 回）</p>
         <p>・天井: 通常ガチャは {PITY_SSR.points}回で SSR 確定。チケットは、そのランクの単語だけが出ます（レア=R・SR=SR・SSR=SSR）</p>
-        <p>・同じ単語が出ると Lv が上がり、フレームが銅→銀→キラキラに（Lv.4 で MAX、以降は出なくなります）</p>
-        <p>・引くたびに交換ポイントが1つ貯まり、図鑑から好きな単語と交換できます</p>
+        <p>・同じ単語が出ると Lv が上がり、フレームが銅→銀→キラキラに（Lv.4 で MAX）。MAX の単語もまた出て、そのときは交換ポイントに（N {OVERFLOW_EX.N}・R {OVERFLOW_EX.R}・SR {OVERFLOW_EX.SR}・SSR {OVERFLOW_EX.SSR}）</p>
+        <p>・引くたびに交換ポイントが1つ貯まり、図鑑から好きな単語と交換したり、単語を強化（+10 まで。段が上がるほど必要な数が増える）したりできます</p>
         <p>
           ・ダブるとメダル（N {DUP_MEDALS.N}・R {DUP_MEDALS.R}・SR {DUP_MEDALS.SR}・SSR {DUP_MEDALS.SSR}枚）。「ショップ」で道具と交換
         </p>
@@ -4701,7 +4720,7 @@ function GachaPanel({ g, onPull, onUpgrade }) {
 }
 
 /** 図鑑: 「単語」と「実績」を切り替える */
-function ZukanView({ g, onOpen }) {
+function ZukanView({ g, favorites = {}, enhance = {}, onOpen }) {
   const [mode, setMode] = useState("words");
   return (
     <div className="space-y-2">
@@ -4714,7 +4733,7 @@ function ZukanView({ g, onOpen }) {
           { value: "achievements", label: "実績" },
         ]}
       />
-      {mode === "words" ? <Zukan g={g} onOpen={onOpen} /> : <AchievementList g={g} />}
+      {mode === "words" ? <Zukan g={g} favorites={favorites} enhance={enhance} onOpen={onOpen} /> : <AchievementList g={g} />}
     </div>
   );
 }
@@ -4881,17 +4900,21 @@ function MyTitlePanel({ g, onMake, onEquip, onDelete }) {
   );
 }
 
-function Zukan({ g, onOpen }) {
+function Zukan({ g, favorites = {}, enhance = {}, onOpen }) {
   const [query, setQuery] = useState("");
   const [pos, setPos] = useState("all");
   const [rarity, setRarity] = useState("all");
   const [owned, setOwned] = useState("all");
+  const [favOnly, setFavOnly] = useState(false);
+  const [sort, setSort] = useState("book");
   const [limit, setLimit] = useState(60);
+  const favCount = CATALOG.order.filter((id) => favorites[id]).length;
   const list = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return CATALOG.order.filter((id) => {
+    const out = CATALOG.order.filter((id) => {
       const c = CATALOG.cards[id];
       const has = (g.cards[id] || 0) > 0;
+      if (favOnly && !favorites[id]) return false;
       if (pos !== "all" && c.pos !== pos) return false;
       if (rarity === "secret" ? !c.secret : rarity !== "all" && (c.secret || c.rarity !== rarity)) return false;
       if (owned === "owned" && !has) return false;
@@ -4901,8 +4924,14 @@ function Zukan({ g, onOpen }) {
       if (!has) return !!c.trivia && c.trivia.teaser.toLowerCase().includes(q);
       return c.english.toLowerCase().includes(q) || c.japanese.includes(q) || (c.trivia && (c.trivia.etymology + c.trivia.reveal).includes(q));
     });
-  }, [g.cards, query, rarity, owned, pos]);
-  useEffect(() => setLimit(60), [query, rarity, owned, pos]);
+    // 並び: 図鑑の順／お気に入りを先に／強化の高い順／ABC 順
+    const rank = { N: 0, R: 1, SR: 2, SSR: 3 };
+    if (sort === "fav") return out.sort((a, b) => !!favorites[b] - !!favorites[a]);
+    if (sort === "plus") return out.sort((a, b) => (enhance[b] || 0) - (enhance[a] || 0) || (rank[CATALOG.cards[b].rarity] || 0) - (rank[CATALOG.cards[a].rarity] || 0));
+    if (sort === "abc") return out.sort((a, b) => CATALOG.cards[a].english.localeCompare(CATALOG.cards[b].english));
+    return out;
+  }, [g.cards, query, rarity, owned, pos, favOnly, favorites, sort, enhance]);
+  useEffect(() => setLimit(60), [query, rarity, owned, pos, favOnly, sort]);
   const ownedCount = CATALOG.order.filter((id) => (g.cards[id] || 0) > 0).length;
   return (
     <div className="space-y-2">
@@ -4950,12 +4979,41 @@ function Zukan({ g, onOpen }) {
           { value: "unowned", label: "未獲得" },
         ]}
       />
+      <div className="flex items-center gap-2">
+        <button
+          type="button"
+          aria-pressed={favOnly}
+          onClick={() => setFavOnly((v) => !v)}
+          data-testid="zukan-fav"
+          className={`flex items-center gap-1 rounded-full px-3 py-1 text-xs font-bold ${favOnly ? "bg-amber-400 text-amber-950" : "bg-white text-slate-500 ring-1 ring-slate-200"}`}
+        >
+          <Star size={13} className={favOnly ? "fill-current" : ""} /> お気に入りだけ（{favCount}）
+        </button>
+        <label className="ml-auto flex items-center gap-1 text-[11px] font-bold text-slate-500">
+          並び
+          <select
+            id="zukan-sort"
+            value={sort}
+            onChange={(e) => setSort(e.target.value)}
+            className="rounded-full bg-white px-2 py-1 text-[11px] font-bold text-slate-700 ring-1 ring-slate-200 focus:outline-none"
+          >
+            <option value="book">図鑑の順</option>
+            <option value="fav">お気に入りを先に</option>
+            <option value="plus">強化の高い順</option>
+            <option value="abc">ABC 順</option>
+          </select>
+        </label>
+      </div>
       <div className="grid grid-cols-3 gap-2">
         {list.slice(0, limit).map((id) => (
-          <WordTile key={id} card={CATALOG.cards[id]} copies={g.cards[id] || 0} onOpen={onOpen} />
+          <WordTile key={id} card={CATALOG.cards[id]} copies={g.cards[id] || 0} fav={!!favorites[id]} plus={plusOf(enhance[id])} onOpen={onOpen} />
         ))}
       </div>
-      {list.length === 0 && <p className="py-10 text-center text-sm text-slate-400">該当する単語がありません</p>}
+      {list.length === 0 && (
+        <p className="py-10 text-center text-sm text-slate-400">
+          {favOnly && favCount === 0 ? "お気に入りはまだありません。単語カードの ⭐ で登録できます" : "該当する単語がありません"}
+        </p>
+      )}
       {list.length > limit && (
         <button
           type="button"
@@ -5155,8 +5213,12 @@ function GachaScreen({
   onMakeTitle,
   onEquipTitle,
   onDeleteTitle,
+  onEnhance,
+  onToggleFavorite,
 }) {
   const g = state.gacha;
+  const favorites = state.favorites || {};
+  const enhanceOf = state.quest?.enhance || {};
   const [view, setView] = useState("gacha");
   const [result, setResult] = useState(null);
   const [openId, setOpenId] = useState(null);
@@ -5200,13 +5262,23 @@ function GachaScreen({
       <div className="mt-3 min-h-0 flex-1 overflow-y-auto pb-4">
         {view === "gacha" && <GachaPanel g={g} onPull={pull} onUpgrade={onUpgrade} />}
         {view === "shop" && <ShopPanel g={g} onBuy={onBuy} />}
-        {view === "zukan" && <ZukanView g={g} onOpen={setOpenId} />}
+        {view === "zukan" && <ZukanView g={g} favorites={favorites} enhance={enhanceOf} onOpen={setOpenId} />}
         {view === "titles" && <MyTitlePanel g={g} onMake={onMakeTitle} onEquip={onEquipTitle} onDelete={onDeleteTitle} />}
         {view === "code" && <CodePanel g={g} onRedeem={onRedeem} onEndUnlimited={onEndUnlimited} />}
       </div>
       {result && <GachaResult result={result} onClose={() => setResult(null)} onOpen={setOpenId} />}
       {openId && (
-        <WordSheet card={CATALOG.cards[openId]} gacha={g} speech={speech} onClose={() => setOpenId(null)} onExchange={onExchange} />
+        <WordSheet
+          card={CATALOG.cards[openId]}
+          gacha={g}
+          speech={speech}
+          favorites={favorites}
+          enhanceExp={enhanceOf[openId] || 0}
+          onToggleFavorite={onToggleFavorite}
+          onEnhance={onEnhance}
+          onClose={() => setOpenId(null)}
+          onExchange={onExchange}
+        />
       )}
     </div>
   );
@@ -6098,12 +6170,12 @@ export default function App() {
         update(() => next);
         sound.play("tap");
       },
-      onEnhance(targetId, materials) {
-        const r = questEnhance(stateRef.current, CATALOG.cards, targetId, materials);
+      onEnhance(targetId) {
+        const r = questEnhance(stateRef.current, CATALOG.cards, targetId);
         if (r.error) return r;
         stateRef.current = r.state;
         update(() => r.state);
-        sound.play(r.to > r.from ? "levelup" : "heal", 0, { cheer: false });
+        sound.play("levelup", 0, { cheer: false });
         return r;
       },
       onLoadPreset(i) {
@@ -6445,6 +6517,8 @@ export default function App() {
               onMakeTitle={onMakeTitle}
               onEquipTitle={onEquipTitle}
               onDeleteTitle={onDeleteTitle}
+              onEnhance={questActions.onEnhance}
+              onToggleFavorite={onToggleFavorite}
             />
           )}
           {tab === "diary" && <DiaryScreen state={state} speech={speech} onSave={onSaveDiary} onSettings={openSettings} />}

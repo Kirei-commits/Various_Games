@@ -32,6 +32,7 @@ import {
   RATES,
   PITY_SSR,
   MAX_LEVEL,
+  OVERFLOW_EX,
   EXCHANGE_COST,
   STARTER,
   POINTS_PER_MINUTE,
@@ -145,36 +146,47 @@ test("天井: 通常ガチャの1000回目は SSR 確定で、未所持を優先
   assert.equal(t.results[0].rarity, "R");
 });
 
-test("ダブりで Lv が上がり、MAX（Lv.4）になった単語は出なくなる", () => {
-  const nouns = catalog.pools.all.N;
-  // N を1語だけ残してすべて MAX にする
-  const cards = Object.fromEntries(nouns.slice(1).map((id) => [id, MAX_LEVEL]));
+test("ダブりで Lv が上がり MAX（Lv.4）で止まる。MAX の単語もまた出て、そのときは交換ポイントが上乗せされる", () => {
+  const first = catalog.pools.all.N[0];
   let s = withPoints(100 * 10);
-  s = { ...s, gacha: { ...s.gacha, cards } };
-  const rng = () => 0; // 常に N を引く
-  const levels = [];
-  for (let i = 0; i < 4; i++) {
+  const rng = () => 0; // 常に N の先頭を引く
+  const got = [];
+  for (let i = 0; i < 6; i++) {
     const r = pull(s, catalog, { times: 1 }, rng);
     s = r.state;
-    assert.equal(r.results[0].id, nouns[0]);
-    levels.push(r.results[0].level);
+    assert.equal(r.results[0].id, first);
+    got.push([r.results[0].result, r.results[0].level, r.results[0].exGain]);
   }
-  assert.deepEqual(levels, [1, 2, 3, 4]);
-  // N がすべて MAX → N の確率は1つ下がないので上（R）に回る
-  const w = effectiveWeights(s.gacha, catalog, "all", "points");
-  assert.equal(w.weights.N, 0);
-  assert.equal(w.weights.R, RATES.points.N + RATES.points.R);
-  assert.notEqual(pull(s, catalog, { times: 1 }, rng).results[0].rarity, "N");
+  assert.deepEqual(got, [
+    ["new", 1, 1],
+    ["levelup", 2, 1],
+    ["levelup", 3, 1],
+    ["levelup", 4, 1],
+    ["overflow", 4, 1 + OVERFLOW_EX.N],
+    ["overflow", 4, 1 + OVERFLOW_EX.N],
+  ]);
+  assert.equal(s.gacha.cards[first], MAX_LEVEL, "枚数は MAX で止まる");
+  assert.equal(s.gacha.exPoints, 6 + 2 * OVERFLOW_EX.N);
+  // すべて MAX でも確率は変わらない（出なくならない）
+  const allMax = Object.fromEntries(catalog.order.map((id) => [id, MAX_LEVEL]));
+  const w = effectiveWeights({ cards: allMax }, catalog, "all", "points");
+  assert.deepEqual(w.weights, RATES.points);
+  assert.equal(effectiveWeights({ cards: allMax }, catalog, "all", "ticket").weights.R, RATES.ticket.R);
 });
 
-test("再分配: SSR がすべて MAX なら SR へ。レアチケットは R がすべて MAX なら引けない（ほかのランクに流さない）", () => {
-  const ssrMax = Object.fromEntries(catalog.pools.all.SSR.map((id) => [id, MAX_LEVEL]));
-  const w = effectiveWeights({ cards: ssrMax }, catalog, "all", "points");
-  assert.equal(w.weights.SSR, 0);
-  assert.equal(w.weights.SR, RATES.points.SR + RATES.points.SSR);
-  const rMax = Object.fromEntries(catalog.pools.all.R.map((id) => [id, MAX_LEVEL]));
-  const t = effectiveWeights({ cards: rMax }, catalog, "all", "ticket");
-  assert.equal(t.total, 0);
+test("天井の SSR は未所持 → MAX でないもの の順に選ぶ（全部 MAX でも出る）", () => {
+  const ssr = catalog.pools.all.SSR;
+  const cards = Object.fromEntries(ssr.map((id) => [id, MAX_LEVEL]));
+  cards[ssr[1]] = 2;
+  let s = withPoints(100);
+  s = { ...s, gacha: { ...s.gacha, cards, pity: { ...s.gacha.pity, points: PITY_SSR.points - 1 } } };
+  const r = pull(s, catalog, { times: 1 }, () => 0.5);
+  assert.equal(r.results[0].id, ssr[1]);
+  assert.equal(r.results[0].byPity, "SSR");
+  const all = { ...cards, [ssr[1]]: MAX_LEVEL };
+  const r2 = pull({ ...s, gacha: { ...s.gacha, cards: all } }, catalog, { times: 1 }, () => 0.5);
+  assert.equal(r2.results[0].result, "overflow");
+  assert.equal(r2.results[0].exGain, 1 + OVERFLOW_EX.SSR);
 });
 
 test("品詞別ガチャは、その品詞の単語だけが出る", () => {
@@ -381,13 +393,11 @@ test("図鑑の交換は高め（やり込み向け）: SSR は交換ポイン�
 
 test("ダブるとメダルが貯まり、ショップで5倍ブースト・時止め・必殺技と交換できる", () => {
   let s = { ...freshState(), gacha: { ...freshState().gacha, cards: { go: 1 } } };
-  // go（N）しか出ないように、ほかの N を全部 MAX にする代わりに、同じ単語をもう一度引く状況を作る
-  const nIds = catalog.pools.all.N.filter((id) => id !== "go");
-  const cards = { go: 1 };
-  for (const id of nIds) cards[id] = MAX_LEVEL;
-  s = { ...s, gacha: { ...s.gacha, cards, points: 100 } };
-  const r = pull(s, catalog, { times: 1 }, () => 0.01);
-  assert.equal(r.results[0].id, "go");
+  // 乱数 0 で N の先頭の単語を引く。それを1枚持っている状況で、ダブりを作る
+  const first = catalog.pools.all.N[0];
+  s = { ...s, gacha: { ...s.gacha, cards: { [first]: 1 }, points: 100 } };
+  const r = pull(s, catalog, { times: 1 }, () => 0);
+  assert.equal(r.results[0].id, first);
   assert.equal(r.results[0].medals, DUP_MEDALS.N);
   assert.equal(r.state.gacha.medals, DUP_MEDALS.N);
   assert.equal(r.results[0].exGain, 1);

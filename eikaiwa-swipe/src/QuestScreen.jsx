@@ -7,7 +7,7 @@
  * - 結果: 経験値・Lv・ガチャのポイント
  */
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { Volume2, Swords, Shield, Heart, Castle, X } from "lucide-react";
+import { Volume2, Swords, Shield, Heart, Castle, X, Star } from "lucide-react";
 import { Monster, Dragon } from "./battle-art.jsx";
 import { Art, CHEST_ART } from "./gacha-art.jsx";
 import { SLOT_ART, SKILL_ART, FX_ART, QUEST_BACKDROP, QUEST_HERO, QuestIcon, ElementIcon } from "./quest-art.jsx";
@@ -20,11 +20,10 @@ import {
   openChest,
   PRESETS,
   plusOf,
-  PLUS_EXP,
   MAX_PLUS,
   ULTIMATE_PLUS,
-  materialExp,
-  spareCopies,
+  enhanceCost,
+  enhanceTotal,
   gearOf,
   slotBonus,
   statsOf,
@@ -93,8 +92,9 @@ function RarityBadge({ rarity }) {
 }
 
 /** 装備を選ぶシート（持っている単語を強い順に） */
-function GearPicker({ slot, owned, cards, enhance = {}, current, onPick, onClose }) {
+function GearPicker({ slot, owned, cards, enhance = {}, favorites = {}, onToggleFavorite, current, onPick, onClose }) {
   const [query, setQuery] = useState("");
+  const [favOnly, setFavOnly] = useState(false);
   const info = SLOTS.find((s) => s.id === slot);
   const list = useMemo(
     () =>
@@ -105,7 +105,12 @@ function GearPicker({ slot, owned, cards, enhance = {}, current, onPick, onClose
     [owned, cards, enhance]
   );
   const q = query.trim().toLowerCase();
-  const shown = list.filter((g) => !q || g.english.toLowerCase().includes(q) || (g.japanese || "").includes(q)).slice(0, 120);
+  const favCount = list.filter((g) => favorites[g.id]).length;
+  // お気に入りは上に（その中は強い順）
+  const shown = list
+    .filter((g) => (!favOnly || favorites[g.id]) && (!q || g.english.toLowerCase().includes(q) || (g.japanese || "").includes(q)))
+    .sort((a, b) => !!favorites[b.id] - !!favorites[a.id])
+    .slice(0, 120);
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-900/50" onClick={onClose}>
       <div
@@ -131,6 +136,15 @@ function GearPicker({ slot, owned, cards, enhance = {}, current, onPick, onClose
           placeholder={`${list.length}語から検索（英語・日本語）`}
           className="mt-2 w-full rounded-xl bg-slate-50 px-3 py-2 text-sm ring-1 ring-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-400"
         />
+        <button
+          type="button"
+          aria-pressed={favOnly}
+          onClick={() => setFavOnly((v) => !v)}
+          data-testid="gear-fav-only"
+          className={`mt-2 flex w-fit items-center gap-1 rounded-full px-3 py-1 text-xs font-bold ${favOnly ? "bg-amber-400 text-amber-950" : "bg-slate-50 text-slate-500 ring-1 ring-slate-200"}`}
+        >
+          <Star size={13} className={favOnly ? "fill-current" : ""} /> お気に入りだけ（{favCount}）
+        </button>
         <ul className="mt-2 min-h-0 flex-1 space-y-1.5 overflow-y-auto">
           {current && (
             <li>
@@ -140,11 +154,11 @@ function GearPicker({ slot, owned, cards, enhance = {}, current, onPick, onClose
             </li>
           )}
           {shown.map((g) => (
-            <li key={g.id}>
+            <li key={g.id} className="flex items-stretch gap-1">
               <button
                 type="button"
                 onClick={() => onPick(g.id)}
-                className={`w-full rounded-xl p-2.5 text-left ring-1 ${g.id === current ? "bg-indigo-50 ring-indigo-400" : "bg-white ring-slate-200"}`}
+                className={`min-w-0 flex-1 rounded-xl p-2.5 text-left ring-1 ${g.id === current ? "bg-indigo-50 ring-indigo-400" : "bg-white ring-slate-200"}`}
               >
                 <span className="flex items-center gap-1.5">
                   <RarityBadge rarity={g.rarity} />
@@ -160,8 +174,20 @@ function GearPicker({ slot, owned, cards, enhance = {}, current, onPick, onClose
                   {g.japanese} ／ {g.effects.map(effectText).join("・")}
                 </span>
               </button>
+              {onToggleFavorite && (
+                <button
+                  type="button"
+                  aria-label={favorites[g.id] ? `${g.english}をお気に入りから外す` : `${g.english}をお気に入りに追加`}
+                  aria-pressed={!!favorites[g.id]}
+                  onClick={() => onToggleFavorite(g.id)}
+                  className={`shrink-0 rounded-xl px-2 ${favorites[g.id] ? "text-amber-400" : "text-slate-300"}`}
+                >
+                  <Star size={18} className={favorites[g.id] ? "fill-amber-400" : ""} />
+                </button>
+              )}
             </li>
           ))}
+          {favOnly && favCount === 0 && <li className="p-4 text-center text-xs text-slate-500">お気に入りはまだありません。右の ☆ で登録できます。</li>}
           {list.length === 0 && <li className="p-4 text-center text-xs text-slate-500">まだ単語を持っていません。ガチャで集めると装備にできます。</li>}
         </ul>
       </div>
@@ -170,131 +196,96 @@ function GearPicker({ slot, owned, cards, enhance = {}, current, onPick, onClose
 }
 
 /** 装備の強化（集めた単語のあまりを素材にする） */
-function EnhanceSheet({ state, cards, targetId, onEnhance, onClose }) {
-  const [picked, setPicked] = useState({});
-  const [query, setQuery] = useState("");
-  const [message, setMessage] = useState("");
-  const target = cards[targetId];
-  const exp = state.quest.enhance?.[targetId] || 0;
+/**
+ * 単語（装備）の強化: 交換ポイントで1段ずつ +10 まで。冒険の装備と、ガチャの図鑑の単語カードの両方で使う。
+ * onEnhance(id) は quest.js の enhance の結果（{ cost, from, to } か { error }）を返す
+ */
+export function EnhancePanel({ card, exp = 0, exPoints = 0, onEnhance }) {
+  const [message, setMessage] = useState(null);
   const plus = plusOf(exp);
   const maxed = plus >= MAX_PLUS;
-  const next = PLUS_EXP[Math.min(MAX_PLUS, plus + 1)];
-  const list = useMemo(
-    () =>
-      Object.keys(state.gacha.cards || {})
-        .filter((id) => cards[id] && spareCopies(state, id) > 0)
-        .map((id) => ({ id, card: cards[id], spare: spareCopies(state, id), value: materialExp(cards[id], targetId) }))
-        .sort((a, b) => (b.id === targetId) - (a.id === targetId) || b.value - a.value || a.card.english.localeCompare(b.card.english)),
-    [state, cards, targetId]
+  const cost = maxed ? 0 : enhanceCost(card, plus + 1);
+  const rest = enhanceTotal(card, plus, MAX_PLUS);
+  return (
+    <div className="rounded-2xl bg-slate-50 p-3 ring-1 ring-slate-200" data-testid="enhance-panel">
+      <p className="flex items-center gap-1.5 text-sm font-extrabold text-slate-800">
+        強化
+        <span className={`text-base font-black ${plus >= ULTIMATE_PLUS ? "text-pink-500" : "text-amber-500"}`} data-testid="enhance-plus">
+          +{plus}
+        </span>
+        {plus >= ULTIMATE_PLUS && <span className="rounded bg-pink-500 px-1.5 text-[10px] font-black text-white">ULTIMATE</span>}
+        <span className="ml-auto text-[11px] font-bold text-slate-500 tabular-nums">交換ポイント {exPoints.toLocaleString()}</span>
+      </p>
+      <div className="mt-1.5 flex gap-0.5" aria-hidden="true">
+        {Array.from({ length: MAX_PLUS }, (_, i) => (
+          <span
+            key={i}
+            className={`h-1.5 flex-1 rounded-full ${i < plus ? (i + 1 >= ULTIMATE_PLUS ? "bg-pink-500" : "bg-amber-400") : i + 1 === ULTIMATE_PLUS ? "bg-pink-200" : "bg-slate-200"}`}
+          />
+        ))}
+      </div>
+      {maxed ? (
+        <p className="mt-2 text-center text-sm font-black text-amber-600">+{MAX_PLUS}（最大）！ やり込みの証です</p>
+      ) : (
+        <>
+          <button
+            type="button"
+            disabled={exPoints < cost}
+            onClick={() => {
+              const r = onEnhance(card.id);
+              if (r?.error) setMessage({ ok: false, text: r.error });
+              else setMessage({ ok: true, text: `+${r.from} → +${r.to} に強化した！${r.to === ULTIMATE_PLUS ? "　アルティメット解放！" : ""}` });
+            }}
+            className="mt-2 w-full rounded-2xl bg-gradient-to-r from-amber-500 to-pink-500 py-2.5 text-sm font-extrabold text-white shadow transition active:scale-95 disabled:opacity-40"
+          >
+            +{plus + 1} に強化する（交換ポイント {cost.toLocaleString()}）
+          </button>
+          <p className="mt-1 text-[10px] text-slate-400 tabular-nums">
+            +{MAX_PLUS} まで あと合計 {rest.toLocaleString()}（段が上がるほど必要な数が増えます）
+          </p>
+        </>
+      )}
+      <p className="mt-1 text-[11px] leading-relaxed text-slate-500">
+        1段ごとに冒険での強さ +10%・効果 +8%。+{ULTIMATE_PLUS} から<b>アルティメット</b>（効果さらに1.5倍・SSR の呪文は「極」）。
+        交換ポイントはガチャ1回で1つ、MAX の単語がまた出るともっともらえます。
+      </p>
+      {message && (
+        <p className={`mt-1 text-center text-sm font-black ${message.ok ? "text-amber-600" : "text-rose-500"}`} data-testid="enhance-message">
+          {message.text}
+        </p>
+      )}
+    </div>
   );
-  const q = query.trim().toLowerCase();
-  const shown = list.filter((m) => !q || m.card.english.toLowerCase().includes(q) || (m.card.japanese || "").includes(q)).slice(0, 150);
-  const gain = list.reduce((n, m) => n + (picked[m.id] || 0) * m.value, 0);
-  const after = plusOf(Math.min(PLUS_EXP[MAX_PLUS], exp + gain));
-  const set = (id, n, max) => setPicked((p) => ({ ...p, [id]: Math.max(0, Math.min(max, n)) }));
+}
+
+function EnhanceSheet({ state, cards, targetId, onEnhance, onClose }) {
+  const target = cards[targetId];
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-900/50" onClick={onClose}>
       <div
         role="dialog"
         aria-label="装備を強化"
         data-testid="enhance-sheet"
-        className="flex max-h-[85dvh] w-full max-w-md flex-col rounded-t-3xl bg-white p-4 shadow-2xl"
+        className="w-full max-w-md rounded-t-3xl bg-white p-4 shadow-2xl"
         style={{ paddingBottom: "calc(1rem + env(safe-area-inset-bottom))" }}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between">
-          <p className="text-base font-extrabold text-slate-900">
-            「{target.english}」を強化 <span className="text-amber-500">+{plus}</span>
-            {plus >= ULTIMATE_PLUS && <span className="ml-1 text-xs font-black text-pink-500">ULTIMATE</span>}
+        <div className="mb-2 flex items-center justify-between">
+          <p className="flex items-center gap-1.5 text-base font-extrabold text-slate-900">
+            <RarityBadge rarity={target.rarity} />「{target.english}」を強化
           </p>
           <button type="button" onClick={onClose} aria-label="閉じる" className="rounded-full p-1 text-slate-400">
             <X size={20} />
           </button>
         </div>
-        <div className="mt-2 rounded-xl bg-slate-50 p-2 text-xs ring-1 ring-slate-200">
-          {maxed ? (
-            <p className="font-bold text-amber-600">+10（最大）です！</p>
-          ) : (
-            <>
-              <p className="flex justify-between font-bold text-slate-600">
-                <span>強化ポイント</span>
-                <span className="tabular-nums">
-                  {exp} / {next}（+{plus + 1} まで あと {next - exp}）
-                </span>
-              </p>
-              <div className="mt-1 h-2 overflow-hidden rounded-full bg-slate-200">
-                <div className="h-full rounded-full bg-amber-400" style={{ width: `${((exp - PLUS_EXP[plus]) / (next - PLUS_EXP[plus])) * 100}%` }} />
-              </div>
-            </>
-          )}
-          <p className="mt-1 text-[11px] leading-relaxed text-slate-500">
-            素材1枚: N 1・R 4・SR 12・SSR 40pt、同じ単語は3倍。1つ強化するごとに強さ +10%・効果 +8%。+{ULTIMATE_PLUS} から
-            <b>アルティメット</b>（効果さらに1.5倍・SSR の呪文は「極」）。素材は2枚目以降だけ使います（図鑑から消えません）。
-          </p>
-        </div>
-        {!maxed && (
-          <>
-            <input
-              type="search"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder={`素材 ${list.length}語から検索`}
-              className="mt-2 w-full rounded-xl bg-slate-50 px-3 py-2 text-sm ring-1 ring-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-400"
-            />
-            <ul className="mt-2 min-h-0 flex-1 space-y-1 overflow-y-auto" data-testid="enhance-materials">
-              {shown.map((m) => (
-                <li key={m.id} className="flex items-center gap-2 rounded-xl bg-white px-2 py-1.5 ring-1 ring-slate-200">
-                  <RarityBadge rarity={m.card.rarity} />
-                  <span className="min-w-0 flex-1 truncate text-sm font-bold text-slate-800">
-                    {m.card.english}
-                    {m.id === targetId && <span className="ml-1 text-[10px] text-pink-500">同じ単語 ×3</span>}
-                    <span className="block text-[10px] font-normal text-slate-400">
-                      あまり {m.spare}枚・1枚 {m.value}pt
-                    </span>
-                  </span>
-                  <button type="button" aria-label={`${m.card.english}を減らす`} onClick={() => set(m.id, (picked[m.id] || 0) - 1, m.spare)} className="h-7 w-7 rounded-full bg-slate-100 font-black">
-                    −
-                  </button>
-                  <span className="w-5 text-center text-sm font-black tabular-nums">{picked[m.id] || 0}</span>
-                  <button type="button" aria-label={`${m.card.english}を足す`} onClick={() => set(m.id, (picked[m.id] || 0) + 1, m.spare)} className="h-7 w-7 rounded-full bg-indigo-600 font-black text-white">
-                    ＋
-                  </button>
-                  <button type="button" onClick={() => set(m.id, m.spare, m.spare)} className="rounded-full px-1.5 text-[10px] font-bold text-indigo-600">
-                    全部
-                  </button>
-                </li>
-              ))}
-              {list.length === 0 && <li className="p-4 text-center text-xs text-slate-500">素材にできる単語がありません。ガチャで同じ単語が2枚以上になると素材にできます。</li>}
-            </ul>
-            <button
-              type="button"
-              disabled={!gain}
-              onClick={() => {
-                const r = onEnhance(targetId, picked);
-                if (r?.error) setMessage(r.error);
-                else {
-                  setMessage(r.to > r.from ? `+${r.from} → +${r.to} に強化した！${r.to >= ULTIMATE_PLUS && r.from < ULTIMATE_PLUS ? "　アルティメット解放！" : ""}` : `強化ポイント +${r.gained}`);
-                  setPicked({});
-                }
-              }}
-              className="mt-2 w-full rounded-2xl bg-gradient-to-r from-amber-500 to-pink-500 py-3 text-sm font-extrabold text-white shadow disabled:opacity-40"
-            >
-              強化する（+{gain}pt{gain ? ` → +${after}` : ""}）
-            </button>
-          </>
-        )}
-        {message && (
-          <p className="mt-2 text-center text-sm font-black text-amber-600" data-testid="enhance-message">
-            {message}
-          </p>
-        )}
+        <EnhancePanel card={target} exp={state.quest.enhance?.[targetId] || 0} exPoints={state.gacha.exPoints || 0} onEnhance={onEnhance} />
       </div>
     </div>
   );
 }
 
 /** 準備画面: 主人公と装備 */
-function QuestHome({ state, cards, stats, header, onEquip, onAutoEquip, onSavePreset, onLoadPreset, onEnhance, onStart }) {
+function QuestHome({ state, cards, stats, header, onEquip, onAutoEquip, onSavePreset, onLoadPreset, onEnhance, onToggleFavorite, onStart }) {
   const [picking, setPicking] = useState(null);
   const [enhancing, setEnhancing] = useState(null);
   const q = state.quest;
@@ -500,6 +491,8 @@ function QuestHome({ state, cards, stats, header, onEquip, onAutoEquip, onSavePr
           owned={owned}
           cards={cards}
           enhance={q.enhance}
+          favorites={state.favorites || {}}
+          onToggleFavorite={onToggleFavorite}
           current={q.equip[picking]}
           onClose={() => setPicking(null)}
           onPick={(id) => {
@@ -1108,7 +1101,7 @@ function QuestResult({ run, reward, cards, onBack }) {
  * 冒険の画面。
  * @param onFinish (run, seconds) → reward（経験値・ポイントの記録は App 側で行う）
  */
-export default function QuestScreen({ state, cards, pool, chestWords = [], speech, sound, dopamine, header, onEquip, onAutoEquip, onSavePreset, onLoadPreset, onEnhance, onFinish, active = true }) {
+export default function QuestScreen({ state, cards, pool, chestWords = [], speech, sound, dopamine, header, onEquip, onAutoEquip, onSavePreset, onLoadPreset, onEnhance, onToggleFavorite, onFinish, active = true }) {
   const stats = useMemo(() => statsOf(state.quest, cards, state.gacha.cards || {}), [state.quest, state.gacha.cards, cards]);
   const [running, setRunning] = useState(null); // { start, id }
   const [result, setResult] = useState(null);
@@ -1145,6 +1138,7 @@ export default function QuestScreen({ state, cards, pool, chestWords = [], speec
       onSavePreset={onSavePreset}
       onLoadPreset={onLoadPreset}
       onEnhance={onEnhance}
+      onToggleFavorite={onToggleFavorite}
       onStart={(start) => setRunning({ start, id: Date.now() })}
     />
   );
