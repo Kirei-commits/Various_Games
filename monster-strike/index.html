@@ -167,6 +167,23 @@
   .detail { min-height: 5.2em; margin-top: 10px; font-size: 11px; line-height: 1.6; color: var(--muted);
     padding: 8px 10px; border-radius: 12px; border: 3px solid #b9d6f5; background: #fff; }
   .detail b { color: var(--ink); }
+  .screen h3 { margin: 14px 0 6px; font-size: 14px; color: var(--ink); font-weight: 900; }
+  .info-unit, .info-gim { background: #fff; border: 3px solid #b9d6f5; border-radius: 14px; padding: 8px 10px; margin-bottom: 8px;
+    font-size: 11.5px; line-height: 1.6; color: var(--muted); }
+  .info-unit b, .info-gim b { color: var(--ink); }
+  .info-head { display: flex; gap: 10px; align-items: center; }
+  .info-head .uface { flex: none; }
+  .info-head .nm { font-size: 14px; }
+  .info-unit dl { display: grid; grid-template-columns: auto 1fr; gap: 3px 8px; margin: 6px 0 0; }
+  .info-unit dt { font-weight: 900; color: #fff; background: var(--line); border-radius: 6px; padding: 0 6px; font-size: 10px;
+    align-self: start; margin-top: 2px; text-align: center; }
+  .info-unit dd { margin: 0; }
+  .abil { display: inline-block; font-weight: 900; font-size: 10px; padding: 0 5px; margin-right: 4px; border-radius: 6px;
+    background: #1d2b53; color: var(--c); }
+  .info-gim .ok { color: #1f9d3a; font-weight: 800; }
+  .info-gim .ng { color: #d9480f; font-weight: 800; }
+  #party .detail { font-size: 11px; }
+  #party .detail .info-unit { border: 0; padding: 0; margin: 0; }
 
   /* ---------------- 調整パネル */
   #tune { position: absolute; top: 8px; right: 8px; width: min(300px, calc(100% - 16px)); max-height: calc(100% - 16px);
@@ -186,6 +203,7 @@
     <div class="chip wave"><span class="label">BATTLE</span><span id="wave">1/2</span></div>
     <div class="chip"><span class="label">TURN</span><span id="turn">1</span></div>
     <div class="spacer"></div>
+    <button id="btn-info" class="icon-btn" type="button" aria-label="能力">📖</button>
     <button id="btn-sound" class="icon-btn" type="button" aria-pressed="true" aria-label="音">🔊</button>
     <button id="btn-tune" class="icon-btn" type="button" aria-expanded="false" aria-label="調整">⚙</button>
     <button id="btn-reset" class="icon-btn" type="button" aria-label="リセット">↺</button>
@@ -224,6 +242,15 @@
         <button id="btn-pull10" type="button">10連<small id="cost10"></small></button>
       </div>
       <div class="cards" id="pull-results"></div>
+    </section>
+    <section id="info" class="screen" hidden>
+      <div class="head"><h2>能力</h2><button id="btn-info-back" type="button">もどる</button></div>
+      <p class="note">いま編成しているキャラの能力と、このステージのギミックです。<b>ゲージ</b>のアビリティは、引っぱっている間に動く
+        ゲージが金色の所で離したとき（ゲージショット）だけ付きます。</p>
+      <h3>このステージのギミック</h3>
+      <div id="info-gimmicks"></div>
+      <h3>キャラの能力</h3>
+      <div id="info-units"></div>
     </section>
     <section id="party" class="screen" hidden>
       <div class="head"><h2>編成</h2><button id="btn-party-back" type="button">もどる</button></div>
@@ -2137,18 +2164,18 @@
   var WALL = 22;                    // 画面上の壁の厚み（論理px）。フィールドの外側に描く
   var SHOT_LABEL = { reflect: '反射', pierce: '貫通' };
   var ABILITY = {
-    antiDamageWall: { short: 'ADW', name: 'アンチダメージウォール', color: '#ffe066' },
-    antiGravity: { short: 'AGB', name: 'アンチ重力バリア', color: '#c79bff' },
-    superAntiDamageWall: { short: '超ADW', name: '超アンチダメージウォール', color: '#ffe066' },
-    superAntiGravity: { short: '超AGB', name: '超アンチ重力バリア', color: '#c79bff' },
-    antiWarp: { short: 'AW', name: 'アンチワープ', color: '#7df0ff' },
-    antiBlock: { short: 'AB', name: 'アンチブロック', color: '#c9d2e3' },
-    antiMagic: { short: 'AM', name: 'アンチ魔法陣', color: '#ff9ad5' },
-    antiSlow: { short: 'AS', name: 'アンチ減速壁', color: '#8fd3ff' },
-    flying: { short: '飛行', name: '飛行', color: '#b8f3ff' },
-    mineSweeper: { short: 'MS', name: 'マインスイーパー', color: '#ff9a6b' },
-    ssAccel: { short: 'SS短縮', name: 'SSターン短縮', color: '#ffd166' },
-    lastStand: { short: '底力', name: '底力', color: '#ff8a65' }
+    antiDamageWall: { short: 'ADW', name: 'アンチダメージウォール', color: '#ffe066', desc: '電気の壁（ダメージウォール）に触れてもHPが減らない' },
+    antiGravity: { short: 'AGB', name: 'アンチ重力バリア', color: '#c79bff', desc: '重力バリアに入っても減速しない' },
+    superAntiDamageWall: { short: '超ADW', name: '超アンチダメージウォール', color: '#ffe066', desc: '電気の壁を無効にし、触れたショットの攻撃力が1.3倍' },
+    superAntiGravity: { short: '超AGB', name: '超アンチ重力バリア', color: '#c79bff', desc: '重力バリアを無効にし、最初に触れたバリアで1度だけ加速' },
+    antiWarp: { short: 'AW', name: 'アンチワープ', color: '#7df0ff', desc: 'ワープに吸い込まれない' },
+    antiBlock: { short: 'AB', name: 'アンチブロック', color: '#c9d2e3', desc: 'ブロックを通り抜ける' },
+    antiMagic: { short: 'AM', name: 'アンチ魔法陣', color: '#ff9ad5', desc: '魔法陣を踏んでもひよこにならない' },
+    antiSlow: { short: 'AS', name: 'アンチ減速壁', color: '#8fd3ff', desc: '減速壁に触れても遅くならない' },
+    flying: { short: '飛行', name: '飛行', color: '#b8f3ff', desc: '地雷を踏まない' },
+    mineSweeper: { short: 'MS', name: 'マインスイーパー', color: '#ff9a6b', desc: '地雷を回収してダメージを受けず、次に当てた1回が1.5倍' },
+    ssAccel: { short: 'SS短縮', name: 'SSターン短縮', color: '#ffd166', desc: '触れた味方1体につき、自分のSSが1ターン早く溜まる' },
+    lastStand: { short: '底力', name: '底力', color: '#ff8a65', desc: 'チームのHPが半分未満のとき、直殴りが1.5倍' }
   };
   var STAGE_NOTE = ['2ウェーブ・電気の壁と重力バリア', '3ウェーブ・地雷・ワープ・魔法陣・アイテム・減速壁',
     '火の敵ばかり（水が有利）・地雷と重力バリア', '水の敵ばかり（木が有利）・減速壁と魔法陣', '闇と光の敵・いちばん難しい'];
@@ -2157,6 +2184,16 @@
     light: { label: '光', color: '#ffe45c' }, dark: { label: '闇', color: '#b07cff' }
   };
   var RACE = { dragon: '竜', slime: 'スライム', golem: 'ゴーレム', beast: '魔獣' };
+  /** ギミックの説明と、無効にできるアビリティ（能力の画面で使う） */
+  var GIMMICK = {
+    damageWalls: { name: '電気の壁', desc: '壁の光っている所に触れるたびにチームのHPが減る', counter: ['antiDamageWall', 'superAntiDamageWall'] },
+    gravity: { name: '重力バリア', desc: '紫の円に入ると大きく減速する', counter: ['antiGravity', 'superAntiGravity'] },
+    mines: { name: '地雷', desc: '触れるとチームのHPが減る', counter: ['flying', 'mineSweeper'] },
+    warps: { name: 'ワープ', desc: '入ると対になったワープへ飛ばされる', counter: ['antiWarp'] },
+    magic: { name: '魔法陣', desc: '踏むとひよこになり、攻撃力と友情が半分・SSが使えない', counter: ['antiMagic'] },
+    blocks: { name: 'ブロック', desc: '貫通タイプでも跳ね返される', counter: ['antiBlock'] },
+    slowWalls: { name: '減速壁', desc: '壁の青い所に触れると遅くなる', counter: ['antiSlow'] }
+  };
   var RATE_TAG = { adv: { text: '有利', color: '#9dffb0' }, dis: { text: '不利', color: '#9aa7c7' },
     killer: { text: 'キラー', color: '#ff9ad5' }, lastStand: { text: '底力', color: '#ff8a65' },
     gauge: { text: 'ゲージ', color: '#ffd23f' },
@@ -2173,6 +2210,48 @@
       m.push({ short: ELEMENT[r.element].label + '耐', name: ELEMENT[r.element].label + '属性耐性', color: '#9dd8ff' });
     });
     return m;
+  }
+
+  /** 友情コンボと SS の説明（能力の画面・編成で使う） */
+  function comboDesc(c) {
+    var el = c.element ? ELEMENT[c.element].label + '属性の' : '';
+    if (c.kind === 'homing') return el + '弾が' + c.count + '発、近い敵へ飛ぶ（1発 ' + c.power + '）';
+    if (c.kind === 'laser') return el + 'ビームが縦と横に走る（' + c.power + '）';
+    if (c.kind === 'blast') return '周りの敵を' + el + '爆発で巻き込む（' + c.power + '）';
+    return el + '弾を' + c.count + '方向へ撃つ（1発 ' + c.power + '）';
+  }
+  function ssDesc(ss) {
+    var d = [];
+    if (ss.launch && ss.launch.speed) d.push('スピード' + ss.launch.speed + '倍' + (ss.launch.friction ? 'でよく滑る' : ''));
+    if (ss.atk) d.push('攻撃力' + ss.atk + '倍');
+    if (ss.onStop) d.push('止まった所で大爆発（' + ss.onStop.power + '）');
+    if (ss.comboTwice) d.push('触れた味方の友情が2回出る');
+    return d.join('・');
+  }
+  function chipHtml(m) {
+    return '<span class="abil" style="--c:' + m.color + '">' + m.short + '</span>';
+  }
+  /** キャラの能力をすべて説明する（能力の画面と編成の画面） */
+  function unitInfoHtml(u, luck) {
+    var e = ELEMENT[u.element], lr = M.luckRate(D, luck || 0);
+    var rows = [];
+    (u.abilities || []).forEach(function (a) { rows.push(['アビリティ', chipHtml(ABILITY[a]) + '<b>' + ABILITY[a].name + '</b> ' + ABILITY[a].desc]); });
+    (u.gauge || []).forEach(function (a) {
+      rows.push(['ゲージ', chipHtml(ABILITY[a]) + '<b>' + ABILITY[a].name + '</b> ' + ABILITY[a].desc + '（ゲージショット成功時だけ・攻撃力も1.2倍）']);
+    });
+    (u.killers || []).forEach(function (k) {
+      var who = k.race ? RACE[k.race] : ELEMENT[k.element].label + '属性';
+      rows.push(['キラー', '<b>' + who + 'キラー</b> ' + who + 'の敵への攻撃が' + BT.Battle.KILLER[k.rank] + '倍']);
+    });
+    (u.resist || []).forEach(function (r) {
+      rows.push(['耐性', '<b>' + ELEMENT[r.element].label + '属性耐性</b> ' + ELEMENT[r.element].label + '属性の敵の攻撃を' + Math.round(BT.Battle.RESIST[r.rank] * 100) + '%軽くする']);
+    });
+    rows.push(['友情', '<b>' + u.combo.name + '</b> ' + comboDesc(u.combo) + '。動いている味方がこのキャラに触れると出る']);
+    rows.push(['SS', '<b>' + u.ss.name + '</b>（' + u.ss.turns + 'ターン） ' + ssDesc(u.ss)]);
+    return '<div class="info-unit"><div class="info-head">' + faceHtml(u) + '<div><b class="nm">' + u.title + '</b> ' + starsHtml(u.rarity)
+      + '<br>' + (e ? e.label + '属性・' : '') + SHOT_LABEL[u.shot] + 'タイプ　攻撃 ' + Math.round(u.atk * lr) + '・HP ' + Math.round(u.hp * lr)
+      + (luck ? '（ラック ' + luck + '）' : '') + '</div></div>'
+      + '<dl>' + rows.map(function (r) { return '<dt>' + r[0] + '</dt><dd>' + r[1] + '</dd>'; }).join('') + '</dl></div>';
   }
 
   /** 属性の丸い印 */
@@ -2217,6 +2296,7 @@
     rates: document.getElementById('rates'),
     pullResults: document.getElementById('pull-results'),
     party: document.getElementById('party'),
+    info: document.getElementById('info'),
     partySlots: document.getElementById('party-slots'),
     partyOwned: document.getElementById('party-owned'),
     partyDetail: document.getElementById('party-detail')
@@ -3414,10 +3494,13 @@
     else if (game.phase === 'wave') help = '次のウェーブ！';
     else if (game.phase === 'won' || game.phase === 'lost' || game.phase === 'ending') help = '';
     else {
-      var ab = unitMarks(u.def).map(function (a) { return a.name; });
+      var ab = unitMarks(u.def).map(function (a) { return a.short; });
       var elx = ELEMENT[u.def.element];
+      var gm = curStage().waves[battle.wave].gimmicks || {}, gn = [];
+      for (var gk in gm) if (GIMMICK[gk] && gm[gk].length) gn.push(GIMMICK[gk].name);
       help = '<b>' + u.def.name + '（' + (elx ? elx.label + '・' : '') + SHOT_LABEL[u.def.shot] + (ab.length ? '・' + ab.join('・') : '') + '）</b>の番。'
-        + '<b>味方に当てると友情コンボ</b>。<b>火→木→水→火・光⇔闇</b>が有利。<b>電気の壁</b>はHPが減り、紫の<b>バリア</b>は減速。';
+        + '<b>味方に当てると友情コンボ</b>。<b>火→木→水→火・光⇔闇</b>が有利。'
+        + (gn.length ? 'ギミック: <b>' + gn.join('・') + '</b>。' : '') + '<b>📖</b>で能力の説明。';
     }
     el.help.innerHTML = help;
     canvas.dataset.phase = game.phase;
@@ -4354,6 +4437,40 @@
   document.getElementById('btn-pull10').addEventListener('click', function () { doPull(10); });
   document.getElementById('btn-gacha-back').addEventListener('click', showTitle);
 
+  // ---------------------------------------------------------------- 能力の画面
+  /** このステージのギミックと、それを無効にできる編成中のキャラ（ゲージ込み） */
+  function gimmickInfoHtml() {
+    var kinds = [];
+    curStage().waves.forEach(function (w) {
+      for (var k in (w.gimmicks || {})) if (GIMMICK[k] && w.gimmicks[k].length && kinds.indexOf(k) < 0) kinds.push(k);
+    });
+    if (!kinds.length) return '<div class="info-gim">ギミックはありません</div>';
+    var team = M.partyUnits(save, D);
+    return kinds.map(function (k) {
+      var g = GIMMICK[k], who = [];
+      team.forEach(function (u) {
+        var a = g.counter.filter(function (c) { return (u.abilities || []).indexOf(c) >= 0; });
+        var ga = g.counter.filter(function (c) { return (u.gauge || []).indexOf(c) >= 0; });
+        if (a.length) who.push(u.title);
+        else if (ga.length) who.push(u.title + '（ゲージ）');
+      });
+      return '<div class="info-gim"><b>' + g.name + '</b> ' + g.desc + '<br>無効: '
+        + g.counter.map(function (c) { return chipHtml(ABILITY[c]) + ABILITY[c].name; }).join('・')
+        + '<br>' + (who.length ? '<span class="ok">✓ 対策できるキャラ: ' + who.join('・') + '</span>' : '<span class="ng">対策できるキャラがいません</span>')
+        + '</div>';
+    }).join('');
+  }
+  function showInfo() {
+    el.info.hidden = false;
+    el.info.scrollTop = 0;
+    document.getElementById('info-gimmicks').innerHTML = gimmickInfoHtml();
+    document.getElementById('info-units').innerHTML = save.party.map(function (id) {
+      return unitInfoHtml(M.byId(D, id), save.owned[id] ? save.owned[id].luck : 0);
+    }).join('');
+  }
+  document.getElementById('btn-info').addEventListener('click', function () { sound.unlock(); sound.tick(); showInfo(); });
+  document.getElementById('btn-info-back').addEventListener('click', function () { el.info.hidden = true; });
+
   // ---------------------------------------------------------------- 編成
   var partySel = 0, partyDraft = null;
   function showParty() {
@@ -4362,15 +4479,6 @@
     partyDraft = save.party.slice();
     partySel = 0;
     renderParty();
-  }
-  function unitDetail(u) {
-    var marks = unitMarks(u).map(function (m) { return m.name; });
-    var e = ELEMENT[u.element];
-    var lk = save.owned[u.id] ? save.owned[u.id].luck : 0;
-    return '<b>' + u.title + '</b> ' + starsHtml(u.rarity) + '　' + (e ? e.label + '属性・' : '') + SHOT_LABEL[u.shot]
-      + '　攻撃 ' + Math.round(u.atk * M.luckRate(D, lk)) + '・HP ' + Math.round(u.hp * M.luckRate(D, lk)) + (lk ? '（ラック ' + lk + '）' : '')
-      + '<br>友情: <b>' + u.combo.name + '</b>　SS: <b>' + u.ss.name + '</b>（' + u.ss.turns + 'ターン）'
-      + (marks.length ? '<br>' + marks.join('・') : '');
   }
   function renderParty() {
     el.partySlots.innerHTML = partyDraft.map(function (id, i) {
@@ -4385,7 +4493,8 @@
         + (have ? faceHtml(u) + '<b>' + u.title + '</b>' : '<div class="uface" style="background:#1a2238">?</div><b>？？？</b>')
         + starsHtml(u.rarity) + (partyDraft.indexOf(u.id) >= 0 ? '<span class="tag">編成中</span>' : '') + '</button>';
     }).join('');
-    el.partyDetail.innerHTML = unitDetail(M.byId(D, partyDraft[partySel]));
+    var sel = partyDraft[partySel];
+    el.partyDetail.innerHTML = unitInfoHtml(M.byId(D, sel), save.owned[sel] ? save.owned[sel].luck : 0);
   }
   el.partySlots.addEventListener('click', function (e) {
     var b = e.target.closest('[data-slot]');
