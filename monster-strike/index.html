@@ -3,152 +3,189 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
-<meta name="color-scheme" content="dark" />
+<meta name="color-scheme" content="light" />
 <meta name="description" content="引っぱって離すだけのひっぱりアクション。反射と貫通、2種類の撃ち方で敵を倒す。" />
 <title>ひっぱりストライク</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23101a33'/%3E%3Ccircle cx='13' cy='19' r='8' fill='%2334b4ff' stroke='%23fff' stroke-width='2'/%3E%3Cpath d='M19 13l8-8' stroke='%23ffd166' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E" />
 <style>
   [hidden] { display: none !important; }
+  /* 明るいポップな配色: 空色の背景・白いパネル・青い縁取り・金色のアクセント */
   :root {
-    --bg: #070b18; --panel: rgba(18, 28, 56, .82); --line: rgba(140, 180, 255, .22);
-    --text: #eef3ff; --muted: #9fb0d6; --gold: #ffd166;
-    --reflect: #3cc8ff; --pierce: #ff7a45;
+    --sky1: #3ec2ff; --sky2: #bdf0ff; --ink: #1d2b53; --muted: #5a6f99; --line: #2b7de9; --line-dark: #1a4fa8;
+    --panel: #ffffff; --panel2: #eaf6ff; --gold: #ffc629; --gold-dark: #d9801a; --green: #3ccf4e;
+    --reflect: #2fa8ff; --pierce: #ff7a2e; --text: var(--ink);
+    --round: "Hiragino Maru Gothic ProN", "Hiragino Maru Gothic Pro", "M PLUS Rounded 1c", "Rounded Mplus 1c", "Kosugi Maru",
+      "Arial Rounded MT Bold", "Hiragino Sans", "Noto Sans JP", "Yu Gothic", system-ui, sans-serif;
   }
   * { box-sizing: border-box; }
-  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text);
-    font-family: "Hiragino Sans", "Noto Sans JP", "Yu Gothic", system-ui, sans-serif;
+  html, body { margin: 0; height: 100%; color: var(--ink); font-family: var(--round);
     -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent; }
-  body { overflow: hidden;
-    background-image: radial-gradient(80% 50% at 50% -10%, rgba(60, 110, 230, .35), transparent 70%); }
-  #app { height: 100vh; height: 100dvh; display: grid; grid-template-rows: auto auto minmax(0, 1fr) auto;
-    max-width: 720px; margin: 0 auto; padding: max(8px, env(safe-area-inset-top)) 10px max(8px, env(safe-area-inset-bottom)); gap: 8px; }
+  body { overflow: hidden; background: var(--sky1);
+    background-image:
+      radial-gradient(60px 26px at 12% 14%, rgba(255,255,255,.9), transparent 70%),
+      radial-gradient(90px 34px at 20% 16%, rgba(255,255,255,.8), transparent 70%),
+      radial-gradient(80px 30px at 82% 9%, rgba(255,255,255,.85), transparent 70%),
+      radial-gradient(120px 40px at 90% 12%, rgba(255,255,255,.7), transparent 70%),
+      linear-gradient(180deg, var(--sky1) 0%, #7fd9ff 45%, var(--sky2) 100%); }
+  #app { height: 100vh; height: 100dvh; display: grid; grid-template-rows: auto minmax(0, 1fr) auto auto;
+    max-width: 720px; margin: 0 auto; padding: max(6px, env(safe-area-inset-top)) 8px max(6px, env(safe-area-inset-bottom)); gap: 6px; }
 
-  .hud { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-  .brand { font-weight: 900; letter-spacing: .08em; font-size: 15px; white-space: nowrap; }
-  .brand b { color: var(--gold); }
-  .chip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px;
-    background: var(--panel); border: 1px solid var(--line); font-size: 13px; white-space: nowrap; }
-  .chip .label { color: var(--muted); font-size: 11px; letter-spacing: .08em; }
-  #turn { font-weight: 800; font-variant-numeric: tabular-nums; }
-  .type { font-size: 11px; font-weight: 800; padding: 1px 7px; border-radius: 6px; color: #06101f; }
-  .type.reflect { background: var(--reflect); }
-  .type.pierce { background: var(--pierce); }
+  /* 白い縁取りの太い文字（タイトル・リボン） */
+  .outline { color: #fff; -webkit-text-stroke: 5px var(--line-dark); paint-order: stroke fill; }
+  .outline-gold { color: var(--gold); -webkit-text-stroke: 5px #8a3b00; paint-order: stroke fill; }
+
+  button { font: inherit; font-weight: 800; font-size: 13px; color: var(--ink); cursor: pointer;
+    background: linear-gradient(180deg, #ffffff 0%, #ffffff 45%, #dcefff 100%);
+    border: 3px solid var(--line); border-radius: 14px; padding: 6px 10px;
+    box-shadow: 0 3px 0 var(--line-dark), 0 5px 8px rgba(20, 60, 140, .25); transition: transform .06s; }
+  button:active:not(:disabled) { transform: translateY(2px); box-shadow: 0 1px 0 var(--line-dark); }
+  button:disabled { opacity: .55; cursor: default; }
+  button.primary, .pull-row button, #result button, #stage-list button {
+    background: linear-gradient(180deg, #fff6b8 0%, #ffd23f 50%, #ffae1a 100%); border-color: #e07a00;
+    box-shadow: 0 3px 0 #a14f00, 0 5px 10px rgba(160, 80, 0, .3); }
+
+  /* ---------------- ヘッダー（1段） */
+  .hud { display: flex; align-items: center; gap: 6px; }
+  .brand { font-weight: 900; font-size: 16px; letter-spacing: .04em; white-space: nowrap; }
+  .chip { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 999px; white-space: nowrap;
+    background: linear-gradient(180deg, #2f8cff, #1a5fd0); color: #fff; font-weight: 900; font-size: 15px;
+    border: 2px solid #fff; box-shadow: 0 2px 0 var(--line-dark), 0 3px 6px rgba(0, 40, 120, .3); }
+  .chip .label { font-size: 10px; letter-spacing: .08em; opacity: .9; }
+  .chip.wave { background: linear-gradient(180deg, #ff8a3d, #e5480f); box-shadow: 0 2px 0 #9a2a00, 0 3px 6px rgba(120, 30, 0, .3); }
   .spacer { flex: 1; }
-  button { font: inherit; font-size: 12px; color: var(--text); background: var(--panel);
-    border: 1px solid var(--line); border-radius: 10px; padding: 6px 10px; cursor: pointer; }
-  button:hover { border-color: var(--gold); }
-  button[aria-pressed="false"] { color: var(--muted); }
+  .icon-btn { width: 38px; height: 34px; padding: 0; font-size: 17px; line-height: 1; border-radius: 12px; }
+  @media (max-width: 520px) { .brand { display: none; } }
 
+  /* ---------------- フィールド */
   #stage { position: relative; display: flex; align-items: center; justify-content: center; min-height: 0; }
-  #field { display: block; touch-action: none; border-radius: 14px; cursor: grab;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, .55), 0 0 0 1px rgba(255, 255, 255, .05); }
+  #field { display: block; touch-action: none; border-radius: 18px; cursor: grab;
+    box-shadow: 0 6px 0 #9a5a0c, 0 10px 24px rgba(40, 70, 130, .35); }
   #field.pulling { cursor: grabbing; }
 
-  .teamhp { display: flex; align-items: center; gap: 8px; font-size: 12px; }
-  .teamhp .label { color: var(--muted); font-size: 11px; letter-spacing: .08em; font-weight: 800; }
-  .teamhp .bar { position: relative; flex: 1; height: 12px; border-radius: 999px; overflow: hidden;
-    background: rgba(255, 255, 255, .08); border: 1px solid var(--line); }
+  /* ---------------- 下の段: HP・キャラのアイコン・次のキャラ・SS */
+  .bottom { background: linear-gradient(180deg, #ffffff, var(--panel2)); border: 3px solid var(--line); border-radius: 16px;
+    padding: 6px 8px 8px; box-shadow: 0 3px 0 var(--line-dark), 0 6px 12px rgba(20, 60, 140, .25); }
+  .teamhp { display: flex; align-items: center; gap: 6px; font-size: 12px; margin-bottom: 6px; }
+  .teamhp .label { color: #fff; background: var(--green); font-size: 11px; font-weight: 900; padding: 1px 7px; border-radius: 6px;
+    border: 2px solid #1f8a2c; }
+  .teamhp .bar { position: relative; flex: 1; height: 16px; border-radius: 999px; overflow: hidden;
+    background: #40485e; border: 2px solid #1d2b53; box-shadow: inset 0 2px 3px rgba(0,0,0,.4); }
   #hp-fill { position: absolute; inset: 0 auto 0 0; width: 100%; border-radius: inherit;
-    background: linear-gradient(90deg, #3ddc84, #b6f36b); transition: width .35s ease-out; }
-  #hp-fill.mid { background: linear-gradient(90deg, #f0b429, #ffd166); }
-  #hp-fill.low { background: linear-gradient(90deg, #ff4d4d, #ff8a65); }
-  #hp-text { font-weight: 800; font-variant-numeric: tabular-nums; min-width: 8.5em; text-align: right; }
+    background: linear-gradient(180deg, #b6ff7a 0%, #46d64a 55%, #23a02c 100%); transition: width .35s ease-out; }
+  #hp-fill.mid { background: linear-gradient(180deg, #fff08a, #ffc629 55%, #e08a00); }
+  #hp-fill.low { background: linear-gradient(180deg, #ffb0a0, #ff4d3c 55%, #c01f10); }
+  #hp-text { font-weight: 900; font-size: 13px; font-variant-numeric: tabular-nums; min-width: 8.2em; text-align: right; color: var(--ink); }
+  .lineup { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)) 7.8em; gap: 5px; align-items: stretch; }
+  .ucard { position: relative; display: grid; justify-items: center; gap: 1px; padding: 4px 0 3px; border-radius: 12px;
+    background: #fff; border: 3px solid #b9d6f5; box-shadow: none; font-size: 10px; min-width: 0; }
+  .ucard .uface { width: 38px; height: 38px; font-size: 16px; }
+  .ucard .ss { font-weight: 900; font-size: 10px; color: var(--muted); white-space: nowrap; }
+  .ucard.active { border-color: var(--gold); background: #fffbe6; box-shadow: 0 0 0 2px #fff, 0 0 12px rgba(255, 180, 0, .8); transform: translateY(-3px); }
+  .ucard.ready .ss { color: #e5480f; }
+  .ucard.ready .uface { animation: ssglow 1s ease-in-out infinite alternate; }
+  .ucard.chick .uface { filter: grayscale(.6); }
+  @keyframes ssglow { from { box-shadow: 0 0 0 2px #ffd23f, 0 0 6px #ffd23f; } to { box-shadow: 0 0 0 3px #ff7a2e, 0 0 16px #ffd23f; } }
+  .side { display: grid; gap: 4px; align-content: stretch; }
+  .next { display: flex; align-items: center; justify-content: center; gap: 4px; font-size: 11px; font-weight: 900; color: var(--muted); }
+  #active-name { color: var(--ink); font-size: 14px; }
+  .type { font-size: 10px; font-weight: 900; padding: 1px 6px; border-radius: 6px; color: #fff; }
+  .type.reflect { background: var(--reflect); }
+  .type.pierce { background: var(--pierce); }
+  #btn-ss { width: 100%; white-space: nowrap; overflow: hidden; font-weight: 900; font-size: 12px; padding: 6px 2px; }
+  #btn-ss.ready { background: linear-gradient(180deg, #fff6b8, #ffd23f 50%, #ff9a1a); border-color: #e07a00;
+    box-shadow: 0 3px 0 #a14f00, 0 0 14px rgba(255, 170, 0, .9); animation: sspulse .8s ease-in-out infinite alternate; }
+  #btn-ss[aria-pressed="true"] { background: linear-gradient(180deg, #ff9a6b, #ff4d3c); color: #fff; border-color: #b01f10; animation: none; }
+  /* 光だけを脈打たせる（大きさを変えると押す位置がずれる） */
+  @keyframes sspulse { from { box-shadow: 0 3px 0 #a14f00, 0 0 6px rgba(255, 170, 0, .6); } to { box-shadow: 0 3px 0 #a14f00, 0 0 18px rgba(255, 150, 0, 1); } }
 
-  #result { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 3;
-    background: rgba(4, 7, 16, .6); backdrop-filter: blur(2px); }
-  #result .card { text-align: center; padding: 24px 28px; border-radius: 18px; background: rgba(12, 20, 44, .95);
-    border: 1px solid var(--line); box-shadow: 0 20px 50px rgba(0, 0, 0, .6); min-width: 240px; }
-  #result h2 { margin: 0 0 8px; font-size: 28px; letter-spacing: .08em; }
-  #result h2.won { color: var(--gold); }
-  #result h2.lost { color: #ff6b6b; }
-  #result p { margin: 0 0 16px; color: var(--muted); font-size: 13px; line-height: 1.8; }
-  #result button { font-size: 14px; padding: 10px 22px; border-color: var(--gold); }
+  /* 説明文: 高さ3行で固定（行数が変わるとフィールドが伸び縮みして、指の位置がずれる） */
+  .help { margin: 0; text-align: center; color: var(--muted); font-size: 12px; line-height: 1.6; height: 4.8em; overflow: hidden;
+    background: rgba(255,255,255,.85); border-radius: 12px; padding: 0 8px; }
+  .help b { color: var(--ink); }
+
+  /* ---------------- 結果・タイトル・ガチャ・編成 */
+  #result, #title { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 3;
+    background: rgba(40, 110, 200, .35); backdrop-filter: blur(2px); padding: 16px; }
+  #title { z-index: 4; }
+  #result .card, #title .card { text-align: center; padding: 20px 18px; border-radius: 22px; width: min(360px, 100%);
+    background: linear-gradient(180deg, #ffffff, #e3f3ff); border: 4px solid var(--line);
+    box-shadow: 0 5px 0 var(--line-dark), 0 16px 30px rgba(10, 40, 110, .35); }
+  #result h2 { margin: 0 0 8px; font-size: 32px; letter-spacing: .06em; }
+  #result h2.won { color: var(--gold); -webkit-text-stroke: 6px #8a3b00; paint-order: stroke fill; }
+  #result h2.lost { color: #8fa6d6; -webkit-text-stroke: 6px #1d2b53; paint-order: stroke fill; }
+  #result p { margin: 0 0 16px; color: var(--ink); font-size: 13px; line-height: 1.8; }
   #result .row { display: flex; gap: 10px; justify-content: center; }
-  #title { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 4;
-    background: rgba(4, 7, 16, .72); backdrop-filter: blur(3px); padding: 16px; }
-  #title .card { width: min(360px, 100%); text-align: center; padding: 22px 20px; border-radius: 18px; background: rgba(12, 20, 44, .96);
-    border: 1px solid var(--line); box-shadow: 0 20px 50px rgba(0, 0, 0, .6); }
-  #title h2 { margin: 0 0 4px; font-size: clamp(18px, 6vw, 26px); letter-spacing: .08em; white-space: nowrap; }
-  #title h2 b { color: var(--gold); }
-  #title p { margin: 0 0 14px; color: var(--muted); font-size: 12px; }
+  #result button { font-size: 14px; padding: 10px 16px; }
+  #title h2 { margin: 0 0 2px; font-size: clamp(24px, 8vw, 34px); line-height: 1.1; letter-spacing: .04em; white-space: nowrap; font-weight: 900; }
+  #title h2 span { display: block; }
+  #title p { margin: 6px 0 12px; color: var(--muted); font-size: 12px; font-weight: 800; }
   #stage-list { display: grid; gap: 10px; }
-  #stage-list button { display: grid; gap: 2px; text-align: left; padding: 12px 14px; font-size: 15px; font-weight: 800; }
-  #stage-list button small { color: var(--muted); font-size: 11px; font-weight: 500; }
+  #stage-list button { display: grid; gap: 2px; text-align: left; padding: 11px 14px; font-size: 16px; font-weight: 900; }
+  #stage-list button small { color: #7a3d00; font-size: 11px; font-weight: 700; }
   .meta-row { display: flex; gap: 8px; align-items: center; margin-top: 14px; }
-  .meta-row button { flex: 1; font-size: 14px; font-weight: 800; padding: 10px; }
-  .gems { font-weight: 900; color: #7df0ff; font-variant-numeric: tabular-nums; white-space: nowrap; }
-  .gems::before { content: '◆ '; color: #7df0ff; }
-  .screen { position: absolute; inset: 0; z-index: 5; overflow: auto; padding: 12px;
-    background: rgba(6, 10, 24, .97); }
+  .meta-row button { flex: 1; font-size: 15px; padding: 10px; }
+  .gems { font-weight: 900; color: #0a7fd6; font-variant-numeric: tabular-nums; white-space: nowrap; font-size: 15px; }
+  .gems::before { content: '◆ '; color: #19b8ff; }
+  .screen { position: absolute; inset: 0; z-index: 5; overflow: auto; padding: 12px; border-radius: 18px;
+    background: linear-gradient(180deg, #ffffff, #e3f3ff); border: 4px solid var(--line); }
   .screen .head { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
-  .screen h2 { margin: 0; font-size: 20px; letter-spacing: .06em; flex: 1; }
+  .screen h2 { margin: 0; font-size: 24px; flex: 1; font-weight: 900; color: #fff; -webkit-text-stroke: 5px var(--line-dark); paint-order: stroke fill; }
   .screen .note { color: var(--muted); font-size: 11px; line-height: 1.6; margin: 6px 0 10px; }
-  .rates { width: 100%; border-collapse: collapse; font-size: 12px; margin-bottom: 10px; }
-  .rates td { padding: 4px 6px; border-bottom: 1px solid var(--line); }
-  .rates td:nth-child(2) { font-weight: 800; font-variant-numeric: tabular-nums; white-space: nowrap; }
-  .stars { color: var(--gold); letter-spacing: -1px; white-space: nowrap; }
+  .rates { width: 100%; border-collapse: collapse; font-size: 12px; margin-bottom: 8px; background: #fff; border-radius: 10px; }
+  .rates td { padding: 5px 6px; border-bottom: 2px solid #d6e8fb; }
+  .rates td:nth-child(2) { font-weight: 900; font-variant-numeric: tabular-nums; white-space: nowrap; color: #e5480f; }
+  .stars { color: #ffb300; letter-spacing: -1px; white-space: nowrap; text-shadow: 0 1px 0 #8a4b00; }
   .pull-row { display: flex; gap: 10px; }
-  .pull-row button { flex: 1; padding: 12px; font-size: 15px; font-weight: 900; border-color: var(--gold); }
-  .pull-row button small { display: block; font-size: 11px; font-weight: 600; color: #7df0ff; }
+  .pull-row button { flex: 1; padding: 12px; font-size: 17px; }
+  .pull-row button small { display: block; font-size: 12px; font-weight: 800; color: #0a5fb0; }
   .cards { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-top: 12px; }
-  .card { position: relative; border-radius: 10px; padding: 6px 2px 5px; text-align: center; font-size: 10px;
-    background: rgba(18, 28, 56, .9); border: 1px solid var(--line); opacity: 0; transform: rotateY(90deg) scale(.8);
-    animation: flip .35s ease-out forwards; }
-  .card.r4 { border-color: #c79bff; box-shadow: 0 0 10px rgba(199, 155, 255, .45); }
-  .card.r5 { border-color: var(--gold); box-shadow: 0 0 16px rgba(255, 209, 102, .8); background: linear-gradient(160deg, #3a2a08, #12183a); }
-  .card .new { position: absolute; top: 2px; right: 3px; color: #7dffa8; font-weight: 900; font-size: 9px; }
+  .card { position: relative; border-radius: 12px; padding: 6px 2px 5px; text-align: center; font-size: 10px;
+    background: #fff; border: 3px solid #b9d6f5; opacity: 0; transform: rotateY(90deg) scale(.8); animation: flip .35s ease-out forwards; }
+  .card.r4 { border-color: #b36bff; box-shadow: 0 0 10px rgba(179, 107, 255, .6); background: #f7efff; }
+  .card.r5 { border-color: var(--gold); box-shadow: 0 0 16px rgba(255, 190, 0, .95); background: linear-gradient(160deg, #fff7c2, #ffe07a); }
+  .card .new { position: absolute; top: 2px; right: 3px; color: #e5480f; font-weight: 900; font-size: 9px; }
   .card b { display: block; font-size: 11px; margin-top: 3px; white-space: nowrap; overflow: hidden; }
   @keyframes flip { to { opacity: 1; transform: none; } }
   .uface { position: relative; width: 44px; height: 44px; margin: 0 auto; border-radius: 50%; display: grid; place-items: center;
-    font-weight: 900; font-size: 18px; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,.7); border: 2px solid rgba(255,255,255,.85); }
-  .uface .el { position: absolute; left: -4px; top: -4px; width: 17px; height: 17px; border-radius: 50%; font-size: 10px;
-    display: grid; place-items: center; background: #0a1022; border: 1.5px solid currentColor; text-shadow: none; }
+    font-weight: 900; font-size: 18px; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,.6); border: 3px solid #fff;
+    box-shadow: 0 0 0 2px rgba(29, 43, 83, .35); }
+  .uface .el { position: absolute; left: -5px; top: -5px; width: 17px; height: 17px; border-radius: 50%; font-size: 10px;
+    display: grid; place-items: center; background: #fff; border: 2px solid currentColor; text-shadow: none; }
   .slots { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
-  .slot, .owned-unit { border-radius: 10px; padding: 6px 2px; text-align: center; font-size: 10px; cursor: pointer;
-    background: rgba(18, 28, 56, .9); border: 1px solid var(--line); color: var(--text); }
-  .slot.sel { border-color: var(--gold); box-shadow: 0 0 10px rgba(255, 209, 102, .5); }
+  .slot, .owned-unit { border-radius: 12px; padding: 6px 2px; text-align: center; font-size: 10px; cursor: pointer;
+    background: #fff; border: 3px solid #b9d6f5; color: var(--ink); box-shadow: 0 2px 0 #8fb5e0; font-weight: 800; }
+  .slot.sel { border-color: var(--gold); box-shadow: 0 0 0 2px #fff, 0 0 12px rgba(255, 180, 0, .8); }
   .slot small { display: block; color: var(--muted); }
   .owned { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 10px; }
-  .owned-unit.in { opacity: .5; }
-  .owned-unit .tag { display: block; font-size: 9px; color: var(--gold); }
-  .owned-unit.locked { opacity: .25; cursor: default; }
+  .owned-unit.in { opacity: .55; }
+  .owned-unit.locked { opacity: .35; cursor: default; }
+  .owned-unit .tag { display: block; font-size: 9px; color: #e5480f; }
   .detail { min-height: 5.2em; margin-top: 10px; font-size: 11px; line-height: 1.6; color: var(--muted);
-    padding: 8px 10px; border-radius: 10px; border: 1px solid var(--line); }
-  .detail b { color: var(--text); }
-  /* 文字が変わっても幅を変えない（ヘッダーの折り返しが変わるとフィールドがずれる） */
-  #btn-ss { width: 7.6em; flex: none; white-space: nowrap; overflow: hidden; font-weight: 800; padding: 4px 8px; }
-  #btn-ss:disabled { opacity: .55; cursor: default; }
-  #btn-ss.ready { border-color: var(--gold); color: var(--gold); box-shadow: 0 0 12px rgba(255, 209, 102, .45); }
-  #btn-ss[aria-pressed="true"] { background: var(--gold); color: #1a1200; }
+    padding: 8px 10px; border-radius: 12px; border: 3px solid #b9d6f5; background: #fff; }
+  .detail b { color: var(--ink); }
 
-  .help { margin: 0; text-align: center; color: var(--muted); font-size: 12px; line-height: 1.6; height: 4.8em; overflow: hidden; }
-  /* 説明文の高さは3行で固定。押した瞬間に文が変わって行数が変わると、フィールドが伸び縮みして指の位置がずれる */
-  .help b { color: var(--text); }
-
+  /* ---------------- 調整パネル */
   #tune { position: absolute; top: 8px; right: 8px; width: min(300px, calc(100% - 16px)); max-height: calc(100% - 16px);
-    overflow: auto; padding: 12px 14px; border-radius: 14px; background: rgba(10, 16, 34, .94);
-    border: 1px solid var(--line); box-shadow: 0 10px 30px rgba(0, 0, 0, .5); font-size: 12px; z-index: 2; }
-  #tune h2 { margin: 0 0 8px; font-size: 13px; letter-spacing: .06em; }
+    overflow: auto; padding: 12px 14px; border-radius: 16px; background: #fff; border: 3px solid var(--line);
+    box-shadow: 0 4px 0 var(--line-dark), 0 10px 20px rgba(0, 40, 120, .3); font-size: 12px; z-index: 2; }
+  #tune h2 { margin: 0 0 8px; font-size: 14px; }
   #tune label { display: grid; grid-template-columns: 1fr auto; gap: 2px 8px; margin: 8px 0; color: var(--muted); }
-  #tune label output { color: var(--text); font-variant-numeric: tabular-nums; }
-  #tune input[type=range] { grid-column: 1 / -1; width: 100%; accent-color: var(--gold); }
+  #tune label output { color: var(--ink); font-variant-numeric: tabular-nums; font-weight: 800; }
+  #tune input[type=range] { grid-column: 1 / -1; width: 100%; accent-color: var(--line); }
   #tune .row { display: flex; gap: 8px; margin-top: 10px; }
 </style>
 </head>
 <body>
 <div id="app">
   <header class="hud">
-    <div class="brand">HIPPARI <b>STRIKE</b></div>
+    <div class="brand"><span class="outline">HIPPARI</span> <span class="outline-gold">STRIKE</span></div>
+    <div class="chip wave"><span class="label">BATTLE</span><span id="wave">1/2</span></div>
     <div class="chip"><span class="label">TURN</span><span id="turn">1</span></div>
-    <div class="chip"><span class="label">WAVE</span><span id="wave">1/2</span></div>
-    <div class="chip"><span class="label">NEXT</span><span id="active-name">A</span><span id="active-type" class="type reflect">反射</span></div>
     <div class="spacer"></div>
-    <button id="btn-sound" type="button" aria-pressed="true">音 ON</button>
-    <button id="btn-tune" type="button" aria-expanded="false">調整</button>
-    <button id="btn-reset" type="button">リセット</button>
+    <button id="btn-sound" class="icon-btn" type="button" aria-pressed="true" aria-label="音">🔊</button>
+    <button id="btn-tune" class="icon-btn" type="button" aria-expanded="false" aria-label="調整">⚙</button>
+    <button id="btn-reset" class="icon-btn" type="button" aria-label="リセット">↺</button>
   </header>
-
-  <div class="teamhp"><span class="label">HP</span><div class="bar"><div id="hp-fill"></div></div><span id="hp-text"></span><button id="btn-ss" type="button" aria-pressed="false" disabled>SS</button></div>
 
   <main id="stage">
     <canvas id="field" aria-label="フィールド。キャラを引っぱって離すと発射します"></canvas>
@@ -166,7 +203,7 @@
     </div>
     <div id="title" hidden>
       <div class="card">
-        <h2>HIPPARI <b>STRIKE</b></h2>
+        <h2><span class="outline">HIPPARI</span><span class="outline-gold">STRIKE</span></h2>
         <p>ステージを選んでください</p>
         <div id="stage-list"></div>
         <div class="meta-row"><span class="gems" id="gems">0</span><button id="btn-gacha" type="button">ガチャ</button><button id="btn-party" type="button">編成</button></div>
@@ -192,6 +229,16 @@
     </section>
   </main>
 
+  <section class="bottom">
+    <div class="teamhp"><span class="label">HP</span><div class="bar"><div id="hp-fill"></div></div><span id="hp-text"></span></div>
+    <div class="lineup">
+      <div id="lineup" style="display: contents"></div>
+      <div class="side">
+        <div class="next">NEXT <span id="active-name">A</span><span id="active-type" class="type reflect">反射</span></div>
+        <button id="btn-ss" type="button" aria-pressed="false" disabled>SS</button>
+      </div>
+    </div>
+  </section>
   <p class="help" id="help"></p>
 </div>
 
@@ -1583,7 +1630,8 @@
    * items（ウェーブごと）: [{ id, item: 'heart' | 'sword', x, y, turn }]。ウェーブの turn ターン目に出る
    */
   var stage = {
-    name: 'はじまりの洞窟',
+    name: 'はじまりの草原',
+    theme: 'meadow',
     waves: [
       { enemies: [
         { id: 'w1-slime-l', name: 'スライム', element: 'wood', race: 'slime', look: 'slime', colors: SLIME, shape: 'circle', x: 120, y: 220, r: 40,
@@ -1622,6 +1670,7 @@
   /** 2つ目のステージ: 地雷・ブロック → ワープ・魔法陣・アイテム → 減速壁のボス戦 */
   var tower = {
     name: 'からくりの塔',
+    theme: 'tower',
     waves: [
       { enemies: [
         { id: 't1-bomb-l', name: 'ボムスライム', element: 'fire', race: 'slime', look: 'slime', colors: BOMB, shape: 'circle', x: 130, y: 200, r: 38,
@@ -1904,6 +1953,7 @@
     ss: document.getElementById('btn-ss'),
     title: document.getElementById('title'),
     stageList: document.getElementById('stage-list'),
+    lineup: document.getElementById('lineup'),
     gems: document.getElementById('gems'),
     gacha: document.getElementById('gacha'),
     gachaGems: document.getElementById('gacha-gems'),
@@ -1950,10 +2000,12 @@
       return { def: u, body: b, facing: -Math.PI / 2, squash: 0, trail: [], glow: 0 };
     });
     battle = new BT.Battle({ units: team, stage: curStage() });
+    buildLineup();
     battle.spawnWave(world);
     initFoes();
     game.phase = 'ready';
     game.ssArmed = false;
+    sound.music('battle');
     game.active = 0;
     game.mover = null;
     game.attacks = []; game.attack = null; game.ending = null;
@@ -1989,6 +2041,7 @@
         try { ac = new AC(); } catch (e) { return; }
       }
       if (ac.state === 'suspended') ac.resume();
+      bgm.start();
     }
     function tone(freq, to, dur, type, vol, delay) {
       if (!on || !ac) return;
@@ -2012,13 +2065,140 @@
       src.start(t);
     }
     function throttle(last, ms) { var now = performance.now(); return now - last < ms ? -1 : now; }
+
+    // ------------------------------------------------------------ BGM（オリジナル曲。音はすべてその場で合成）
+    /**
+     * 曲は8小節のループ。1小節 = 8分音符8つ。
+     *  chord: 和音（アルペジオと白玉） / bass: ベースの根音 / mel: メロディ（'.' は休み、'-' は前の音を伸ばす）
+     *  drums: 'calm'（タイトル） / 'pop'（戦闘） / 'drive'（ボス）
+     */
+    var SONGS = {
+      title: { bpm: 116, drums: 'calm', lead: 'triangle', bars: [
+        { chord: ['F4', 'A4', 'C5'], bass: 'F2', mel: 'C5 . F5 . A5 . G5 F5' },
+        { chord: ['D4', 'F4', 'A4'], bass: 'D2', mel: 'D5 . F5 . A5 . C6 -' },
+        { chord: ['Bb3', 'D4', 'F4'], bass: 'Bb1', mel: 'D6 . C6 Bb5 A5 . F5 .' },
+        { chord: ['C4', 'E4', 'G4'], bass: 'C2', mel: 'G5 . A5 . Bb5 . C6 .' },
+        { chord: ['F4', 'A4', 'C5'], bass: 'F2', mel: 'A5 . C6 . F6 . E6 D6' },
+        { chord: ['D4', 'F4', 'A4'], bass: 'D2', mel: 'C6 . A5 . F5 . D5 .' },
+        { chord: ['Bb3', 'D4', 'F4'], bass: 'Bb1', mel: 'F5 G5 A5 Bb5 C6 . D6 .' },
+        { chord: ['C4', 'E4', 'G4'], bass: 'C2', mel: 'C6 - - - E5 . . .' }
+      ] },
+      battle: { bpm: 152, drums: 'pop', lead: 'square', bars: [
+        { chord: ['C4', 'E4', 'G4'], bass: 'C2', mel: 'E5 G5 C6 G5 E5 G5 A5 G5' },
+        { chord: ['B3', 'D4', 'G4'], bass: 'G1', mel: 'D5 G5 B5 G5 D6 B5 A5 G5' },
+        { chord: ['A3', 'C4', 'E4'], bass: 'A1', mel: 'C5 E5 A5 E5 C6 B5 A5 E5' },
+        { chord: ['A3', 'C4', 'F4'], bass: 'F1', mel: 'F5 A5 C6 A5 F5 G5 A5 C6' },
+        { chord: ['C4', 'E4', 'G4'], bass: 'C2', mel: 'E6 - D6 C6 - G5 E5 G5' },
+        { chord: ['B3', 'D4', 'G4'], bass: 'G1', mel: 'D6 - B5 G5 - D5 G5 B5' },
+        { chord: ['A3', 'C4', 'F4'], bass: 'F1', mel: 'C6 A5 F5 A5 C6 D6 E6 F6' },
+        { chord: ['B3', 'D4', 'G4'], bass: 'G1', mel: 'G6 - F6 E6 D6 - B5 G5' }
+      ] },
+      boss: { bpm: 168, drums: 'drive', lead: 'sawtooth', bars: [
+        { chord: ['A3', 'C4', 'E4'], bass: 'A1', mel: 'A4 C5 E5 A5 G5 E5 C5 E5' },
+        { chord: ['A3', 'C4', 'F4'], bass: 'F1', mel: 'F5 A5 C6 A5 G5 F5 E5 C5' },
+        { chord: ['B3', 'D4', 'G4'], bass: 'G1', mel: 'D5 G5 B5 D6 C6 B5 G5 D5' },
+        { chord: ['B3', 'E4', 'G4'], bass: 'E1', mel: 'E5 G5 B5 E6 D6 B5 G5 B5' },
+        { chord: ['A3', 'C4', 'E4'], bass: 'A1', mel: 'A5 . A5 C6 B5 A5 E5 .' },
+        { chord: ['A3', 'C4', 'F4'], bass: 'F1', mel: 'F5 . F5 A5 G5 F5 C5 .' },
+        { chord: ['B3', 'D4', 'G4'], bass: 'G1', mel: 'G5 B5 D6 G6 F6 D6 B5 G5' },
+        { chord: ['G#3', 'B3', 'E4'], bass: 'E1', mel: 'G#5 B5 E6 G#5 B5 D6 E6 -' }
+      ] }
+    };
+    var NOTE = { C: 0, 'C#': 1, Db: 1, D: 2, 'D#': 3, Eb: 3, E: 4, F: 5, 'F#': 6, Gb: 6, G: 7, 'G#': 8, Ab: 8, A: 9, 'A#': 10, Bb: 10, B: 11 };
+    function freqOf(n) {
+      var m = /^([A-G][#b]?)(-?\d)$/.exec(n);
+      return 440 * Math.pow(2, (NOTE[m[1]] + (Number(m[2]) + 1) * 12 - 69) / 12);
+    }
+
+    var bgm = (function () {
+      var name = null, timer = null, gain = null, step = 0, next = 0;
+      function out() {
+        if (!gain) { gain = ac.createGain(); gain.gain.value = 0.55; gain.connect(ac.destination); }
+        return gain;
+      }
+      function voice(type, f, t, dur, vol, attack) {
+        var o = ac.createOscillator(), g = ac.createGain();
+        o.type = type; o.frequency.setValueAtTime(f, t);
+        g.gain.setValueAtTime(0.0001, t);
+        g.gain.linearRampToValueAtTime(vol, t + (attack || 0.01));
+        g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+        o.connect(g).connect(out());
+        o.start(t); o.stop(t + dur + 0.05);
+      }
+      function hit(kind, t) {
+        if (kind === 'kick') {
+          var o = ac.createOscillator(), g = ac.createGain();
+          o.frequency.setValueAtTime(150, t); o.frequency.exponentialRampToValueAtTime(45, t + 0.12);
+          g.gain.setValueAtTime(0.5, t); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.16);
+          o.connect(g).connect(out()); o.start(t); o.stop(t + 0.2);
+          return;
+        }
+        var dur = kind === 'snare' ? 0.12 : 0.04, n = Math.floor(ac.sampleRate * dur);
+        var buf = ac.createBuffer(1, n, ac.sampleRate), d = buf.getChannelData(0);
+        for (var i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / n);
+        var src = ac.createBufferSource(), f = ac.createBiquadFilter(), g2 = ac.createGain();
+        src.buffer = buf; f.type = kind === 'snare' ? 'bandpass' : 'highpass'; f.frequency.value = kind === 'snare' ? 1800 : 7000;
+        g2.gain.value = kind === 'snare' ? 0.28 : 0.09;
+        src.connect(f).connect(g2).connect(out()); src.start(t);
+      }
+      /** 8分音符1つぶんを鳴らす */
+      function play(song, i, t) {
+        var e8 = 60 / song.bpm / 2, bar = song.bars[Math.floor(i / 8) % song.bars.length], k = i % 8;
+        var mel = bar.mel.split(' '), tok = mel[k];
+        if (tok !== '.' && tok !== '-') {
+          var len = 1;
+          while (k + len < 8 && mel[k + len] === '-') len++;
+          voice(song.lead, freqOf(tok), t, e8 * len * 0.95, song.lead === 'sawtooth' ? 0.05 : 0.07);
+          voice('sine', freqOf(tok) * 2, t, e8 * len * 0.6, 0.015);
+        }
+        // ベース: 根音と1オクターブ上を交互に
+        var bf = freqOf(bar.bass) * (k % 2 ? 2 : 1);
+        voice('triangle', bf, t, e8 * 0.9, song.drums === 'calm' && k % 2 ? 0 : 0.16);
+        // アルペジオ（和音を順に）
+        voice('sine', freqOf(bar.chord[k % 3]) * 2, t, e8 * 0.8, 0.035);
+        if (k === 0) bar.chord.forEach(function (n) { voice('triangle', freqOf(n), t, e8 * 8, 0.025, 0.08); });
+        // ドラム
+        if (song.drums === 'calm') { if (k === 0 || k === 4) hit('kick', t); if (k % 2) hit('hat', t); }
+        else if (song.drums === 'pop') { if (k === 0 || k === 4 || k === 5) hit('kick', t); if (k === 2 || k === 6) hit('snare', t); hit('hat', t); }
+        else { if (k % 2 === 0) hit('kick', t); if (k === 2 || k === 6) hit('snare', t); hit('hat', t); hit('hat', t + e8 / 2); }
+      }
+      function tick() {
+        if (!ac || !on || !name) return;
+        var song = SONGS[name];
+        while (next < ac.currentTime + 0.25) {
+          play(song, step, next);
+          next += 60 / song.bpm / 2;
+          step = (step + 1) % (song.bars.length * 8);
+        }
+      }
+      return {
+        /** 曲を替える（null で止める）。同じ曲なら続きから */
+        set: function (n) {
+          if (n === name) return;
+          name = n; step = 0;
+          if (ac) next = ac.currentTime + 0.08;
+          this.start();
+        },
+        start: function () {
+          if (!ac || !on || !name || timer) return;
+          next = Math.max(next, ac.currentTime + 0.08);
+          timer = setInterval(tick, 40);
+          tick();
+        },
+        stop: function () { if (timer) { clearInterval(timer); timer = null; } },
+        get name() { return name; }
+      };
+    })();
+
     return {
       unlock: unlock,
+      music: function (n) { bgm.set(n); if (!n) bgm.stop(); },
+      get track() { return bgm.name; },
       get on() { return on; },
       toggle: function () {
         on = !on;
         try { localStorage.setItem('ms.sound', on ? 'on' : 'off'); } catch (e) { /* 保存できなくても続ける */ }
-        if (on) unlock();
+        if (on) unlock(); else bgm.stop();
         return on;
       },
       launch: function (p) { tone(220 + 260 * p, 900 + 500 * p, 0.16, 'triangle', 0.18); noise(0.12, 0.12, 1800); },
@@ -2256,13 +2436,13 @@
     game.shotDamage += r.damage;
     var jx = (Math.random() - 0.5) * 24;
     if (r.weak) {
-      floatText(r.x + jx, r.y - 18, String(r.damage), '#ffd166', 26, 1.1);
+      floatText(r.x + jx, r.y - 18, String(r.damage), '#ffe23a', 32, 1.1);
       floatText(r.x, r.y - 48, 'WEAK!', '#ffe08a', 18, 0.9);
       fx.hitStop = Math.max(fx.hitStop, 0.07);
       fx.shake = Math.max(fx.shake, 9);
       sound.weak();
     } else {
-      floatText(r.x + jx, r.y - 14, String(r.damage), r.combo ? '#b8f3ff' : '#ffffff', r.combo ? 16 : 18, 0.8);
+      floatText(r.x + jx, r.y - 14, String(r.damage), r.combo ? '#9ff0ff' : '#ffffff', r.combo ? 18 : 22, 0.8);
     }
     // 倍率の内訳（弱点は WEAK! で出しているので除く）。友情はたくさん出るので1つ目の印だけ
     var tags = (r.rates || []).filter(function (x) { return RATE_TAG[x.kind]; });
@@ -2420,13 +2600,14 @@
         else pts.push([along, H - off]);
       }
       // 帯（どこが危ないか、止まっていても分かるように）
-      ctx.fillStyle = 'rgba(255,210,60,' + (0.16 + 0.3 * flash).toFixed(3) + ')';
+      ctx.fillStyle = 'rgba(255,150,0,' + (0.45 + 0.35 * flash).toFixed(3) + ')';
       if (dw.side === 'left') ctx.fillRect(0, dw.from, 8, dw.to - dw.from);
       else if (dw.side === 'right') ctx.fillRect(W - 8, dw.from, 8, dw.to - dw.from);
       else if (dw.side === 'top') ctx.fillRect(dw.from, 0, dw.to - dw.from, 8);
       else ctx.fillRect(dw.from, H - 8, dw.to - dw.from, 8);
       ctx.lineJoin = 'round';
-      [[8 + 6 * flash, 'rgba(255,200,40,.35)'], [3, '#ffe066'], [1.2, '#fffbe0']].forEach(function (st) {
+      // 明るい床でも見えるように、濃い縁取りの上に電気を描く
+      [[8 + 6 * flash, 'rgba(255,200,40,.45)'], [6, 'rgba(110,40,0,.85)'], [3.2, '#ffe066'], [1.2, '#ffffff']].forEach(function (st) {
         ctx.strokeStyle = st[1]; ctx.lineWidth = st[0];
         ctx.beginPath();
         pts.forEach(function (p, idx) { if (idx) ctx.lineTo(p[0], p[1]); else ctx.moveTo(p[0], p[1]); });
@@ -2764,6 +2945,7 @@
       initFoes();
       var boss = battle.enemies.some(function (e) { return e.def.boss; });
       banner(boss ? 'BOSS BATTLE' : 'WAVE ' + (res.wave + 1), boss ? '#ff6b6b' : '#ffd166');
+      if (boss) sound.music('boss');
       game.phase = 'wave';
       game.timer = 1.4;
       sound.wave();
@@ -2847,9 +3029,36 @@
         + (s.ss ? '<br>SS ' + s.ss + '回' : '')
       : 'チームのHPが0になった…<br>WAVE ' + (battle.wave + 1) + ' / ' + curStage().waves.length + '・与ダメージ ' + s.damage;
     el.resultText.innerHTML += '<br><span class="gems">+' + rw.gems + '</span>' + (rw.first ? '（初回クリア）' : '') + '　所持 ' + rw.total;
+    sound.music(null);
     if (kind === 'won') sound.win(); else sound.lose();
     updateHud();
   }
+
+  // ---------------------------------------------------------------- 下の段のキャラのアイコン（押すとそのキャラに持ちかえる）
+  function buildLineup() {
+    el.lineup.innerHTML = units.map(function (u, i) {
+      return '<button type="button" class="ucard" data-idx="' + i + '" aria-label="' + u.def.title + '">' + faceHtml(u.def)
+        + '<span class="ss"></span></button>';
+    }).join('');
+  }
+  function updateLineup() {
+    var cards = el.lineup.children;
+    for (var i = 0; i < cards.length; i++) {
+      var u = units[i], st = battle.us[u.def.id], c = cards[i];
+      c.classList.toggle('active', i === game.active);
+      c.classList.toggle('ready', !!u.def.ss && st.ssLeft === 0 && !st.chick);
+      c.classList.toggle('chick', st.chick > 0);
+      c.querySelector('.ss').textContent = !u.def.ss ? '' : st.ssLeft === 0 ? 'SS OK!' : 'SS ' + st.ssLeft;
+    }
+  }
+  el.lineup.addEventListener('click', function (e) {
+    var b = e.target.closest('[data-idx]');
+    if (!b || game.phase !== 'ready') return;
+    var i = Number(b.dataset.idx);
+    sound.unlock();
+    if (i === game.active && battle.ssReady(units[i].def.id)) { el.ss.click(); return; }   // 選んでいるキャラをもう一度押すと SS
+    if (i !== game.active) { game.active = i; game.ssArmed = false; sound.tick(); updateHud(); }
+  });
 
   /** SS ボタン: 残りターン / 使える / 発動待ち。幅は CSS で固定 */
   function updateSSButton(u) {
@@ -2870,6 +3079,7 @@
     el.turn.textContent = String(battle.turn);
     el.wave.textContent = (battle.wave + 1) + '/' + curStage().waves.length;
     updateSSButton(u);
+    updateLineup();
     el.activeName.textContent = u.def.name;
     el.activeType.textContent = SHOT_LABEL[u.def.shot];
     el.activeType.className = 'type ' + u.def.shot;
@@ -2938,55 +3148,129 @@
     var k = view.scale * view.dpr;
     g.setTransform(k, 0, 0, k, 0, 0);
     var W = world.cfg.field.w, H = world.cfg.field.h;
+    var theme = (curStage() && curStage().theme) || 'meadow';
+    var seed = 7;
+    function rnd() { seed = (seed * 16807) % 2147483647; return seed / 2147483647; }
 
-    // 壁（金属の枠）
-    var frame = g.createLinearGradient(0, 0, L.w, L.h);
-    frame.addColorStop(0, '#3a4a78'); frame.addColorStop(0.5, '#1b2446'); frame.addColorStop(1, '#2f3d6a');
+    // 枠: 金色の額縁（外側が濃く、内側に明るい縁）
+    var frame = g.createLinearGradient(0, 0, 0, L.h);
+    frame.addColorStop(0, '#ffe27a'); frame.addColorStop(0.5, '#f0a820'); frame.addColorStop(1, '#c9700c');
     g.fillStyle = frame;
     roundRect(g, 0, 0, L.w, L.h, 18); g.fill();
-    g.strokeStyle = 'rgba(255,255,255,.18)'; g.lineWidth = 2;
-    roundRect(g, 3, 3, L.w - 6, L.h - 6, 15); g.stroke();
-    g.fillStyle = 'rgba(200,220,255,.35)';
-    for (var sx = WALL + 30; sx < L.w - WALL; sx += 60) { dot(g, sx, WALL / 2, 2.2); dot(g, sx, L.h - WALL / 2, 2.2); }
-    for (var sy = WALL + 30; sy < L.h - WALL; sy += 60) { dot(g, WALL / 2, sy, 2.2); dot(g, L.w - WALL / 2, sy, 2.2); }
+    g.strokeStyle = '#8a4a06'; g.lineWidth = 3;
+    roundRect(g, 1.5, 1.5, L.w - 3, L.h - 3, 17); g.stroke();
+    g.strokeStyle = 'rgba(255,255,255,.75)'; g.lineWidth = 2;
+    roundRect(g, 5, 5, L.w - 10, L.h - 10, 14); g.stroke();
+    // 鋲
+    for (var sx = WALL + 30; sx < L.w - WALL; sx += 60) { gem(sx, WALL / 2); gem(sx, L.h - WALL / 2); }
+    for (var sy = WALL + 30; sy < L.h - WALL; sy += 60) { gem(WALL / 2, sy); gem(L.w - WALL / 2, sy); }
+    function gem(x, y) {
+      g.fillStyle = '#8a4a06'; dot(g, x, y + 1, 3.6);
+      g.fillStyle = '#fff6c8'; dot(g, x, y, 3);
+    }
 
     g.save();
     g.translate(WALL, WALL);
-    var floor = g.createLinearGradient(0, 0, 0, H);
-    floor.addColorStop(0, '#16284e'); floor.addColorStop(1, '#0d1832');
-    g.fillStyle = floor; g.fillRect(0, 0, W, H);
-    // 端に半端な列が出ないよう、フィールドを割り切れる枚数で敷く
-    var cols = Math.round(W / 60), rows = Math.round(H / 60);
-    var tw = W / cols, th = H / rows, seed = 7;
-    function rnd() { seed = (seed * 16807) % 2147483647; return seed / 2147483647; }
+    g.beginPath(); g.rect(0, 0, W, H); g.clip();   // 床の模様を枠にはみ出させない
+    if (theme === 'tower') drawTowerFloor(g, W, H, rnd);
+    else drawMeadowFloor(g, W, H, rnd);
+    // 内側の縁（床と枠のあいだの影）
+    g.strokeStyle = 'rgba(90,50,0,.55)'; g.lineWidth = 3;
+    g.strokeRect(1.5, 1.5, W - 3, H - 3);
+    g.strokeStyle = 'rgba(0,0,0,.12)'; g.lineWidth = 10;
+    g.strokeRect(6, 6, W - 12, H - 12);
+    g.restore();
+    return c;
+  }
+
+  /** はじまりの草原: 刈り込みの縞・花・小石・真ん中の紋章 */
+  function drawMeadowFloor(g, W, H, rnd) {
+    var sky = g.createLinearGradient(0, 0, 0, H);
+    sky.addColorStop(0, '#8ee86a'); sky.addColorStop(1, '#4cbf3c');
+    g.fillStyle = sky; g.fillRect(0, 0, W, H);
+    var stripes = 10, sw = W / stripes;
+    for (var i = 0; i < stripes; i++) {
+      if (i % 2) continue;
+      g.fillStyle = 'rgba(255,255,255,.10)';
+      g.fillRect(i * sw, 0, sw, H);
+    }
+    // 草のふさ
+    for (var n = 0; n < 140; n++) {
+      var x = rnd() * W, y = rnd() * H;
+      g.strokeStyle = 'rgba(30,110,30,' + (0.25 + rnd() * 0.3).toFixed(2) + ')'; g.lineWidth = 1.5;
+      g.beginPath(); g.moveTo(x, y); g.lineTo(x - 2, y - 6); g.moveTo(x, y); g.lineTo(x + 2, y - 7); g.stroke();
+    }
+    // 花
+    var petals = ['#ffffff', '#fff27a', '#ffb3d9', '#ff9a6b'];
+    for (n = 0; n < 34; n++) {
+      var fx0 = 12 + rnd() * (W - 24), fy0 = 12 + rnd() * (H - 24), col = petals[Math.floor(rnd() * petals.length)];
+      g.fillStyle = col;
+      for (var p = 0; p < 5; p++) { var a = p * Math.PI * 2 / 5; dot(g, fx0 + Math.cos(a) * 3.2, fy0 + Math.sin(a) * 3.2, 2.6); }
+      g.fillStyle = '#ffb300'; dot(g, fx0, fy0, 2);
+    }
+    // 小石
+    for (n = 0; n < 10; n++) {
+      var rx = rnd() * W, ry = rnd() * H, rr = 4 + rnd() * 5;
+      g.fillStyle = 'rgba(80,90,70,.35)'; g.beginPath(); g.ellipse(rx + 1, ry + 2, rr, rr * 0.6, 0, 0, Math.PI * 2); g.fill();
+      g.fillStyle = '#d9dccd'; g.beginPath(); g.ellipse(rx, ry, rr, rr * 0.6, 0, 0, Math.PI * 2); g.fill();
+    }
+    emblem(g, W, H, 'rgba(255,255,255,.28)');
+    // 上から差す光
+    var light = g.createRadialGradient(W / 2, -H * 0.1, 10, W / 2, 0, H * 0.9);
+    light.addColorStop(0, 'rgba(255,255,220,.35)'); light.addColorStop(1, 'rgba(255,255,220,0)');
+    g.fillStyle = light; g.fillRect(0, 0, W, H);
+  }
+
+  /** からくりの塔: 明るい砂岩のタイル・歯車の模様・赤い絨毯 */
+  function drawTowerFloor(g, W, H, rnd) {
+    g.fillStyle = '#f3dca8'; g.fillRect(0, 0, W, H);
+    var cols = 9, rows = 13, tw = W / cols, th = H / rows;
     for (var ty = 0; ty < rows; ty++) {
       for (var tx = 0; tx < cols; tx++) {
-        g.fillStyle = 'rgba(120,160,255,' + (0.03 + rnd() * 0.05).toFixed(3) + ')';
-        g.fillRect(tx * tw + 1.5, ty * th + 1.5, tw - 3, th - 3);
+        var off = ty % 2 ? tw / 2 : 0, x = tx * tw + off - (ty % 2 ? tw : 0);
+        for (var rep = 0; rep < (ty % 2 ? 2 : 1); rep++, x += tw) {
+          var shade = 0.9 + rnd() * 0.1;
+          g.fillStyle = 'rgb(' + Math.round(246 * shade) + ',' + Math.round(222 * shade) + ',' + Math.round(170 * shade) + ')';
+          g.fillRect(x + 2, ty * th + 2, tw - 4, th - 4);
+        }
       }
     }
-    g.strokeStyle = 'rgba(0,0,0,.35)'; g.lineWidth = 1;
-    for (var gx = 0; gx <= cols; gx++) { g.beginPath(); g.moveTo(gx * tw, 0); g.lineTo(gx * tw, H); g.stroke(); }
+    g.strokeStyle = 'rgba(150,100,40,.35)'; g.lineWidth = 2;
     for (var gy = 0; gy <= rows; gy++) { g.beginPath(); g.moveTo(0, gy * th); g.lineTo(W, gy * th); g.stroke(); }
-    g.strokeStyle = 'rgba(140,200,255,.10)'; g.lineWidth = 2;
+    // 絨毯
+    g.fillStyle = 'rgba(215,40,50,.55)'; g.fillRect(W / 2 - 46, 0, 92, H);
+    g.fillStyle = 'rgba(255,210,80,.8)'; g.fillRect(W / 2 - 46, 0, 5, H); g.fillRect(W / 2 + 41, 0, 5, H);
+    // 歯車
+    gear(g, 70, 90, 38, 'rgba(160,110,40,.25)');
+    gear(g, W - 60, 300, 30, 'rgba(160,110,40,.22)');
+    gear(g, 80, H - 170, 26, 'rgba(160,110,40,.22)');
+    emblem(g, W, H, 'rgba(255,255,255,.35)');
+  }
+
+  function gear(g, x, y, r, col) {
+    g.fillStyle = col;
+    g.beginPath();
+    for (var i = 0; i < 16; i++) {
+      var a = i * Math.PI / 8, rr = i % 2 ? r : r * 1.22;
+      g.lineTo(x + Math.cos(a) * rr, y + Math.sin(a) * rr);
+    }
+    g.closePath(); g.fill();
+    g.fillStyle = 'rgba(255,255,255,.35)'; dot(g, x, y, r * 0.35);
+  }
+
+  /** 真ん中の紋章（星と二重の輪） */
+  function emblem(g, W, H, col) {
+    g.strokeStyle = col; g.lineWidth = 4;
     g.beginPath(); g.arc(W / 2, H / 2, 150, 0, Math.PI * 2); g.stroke();
+    g.lineWidth = 2;
     g.beginPath(); g.arc(W / 2, H / 2, 118, 0, Math.PI * 2); g.stroke();
     g.beginPath();
-    for (var s = 0; s <= 6; s++) {
+    for (var s = 0; s <= 5; s++) {
       var a = -Math.PI / 2 + s * Math.PI * 4 / 5;
       var px = W / 2 + Math.cos(a) * 118, py = H / 2 + Math.sin(a) * 118;
       if (s === 0) g.moveTo(px, py); else g.lineTo(px, py);
     }
     g.stroke();
-    var vig = g.createRadialGradient(W / 2, H / 2, H * 0.25, W / 2, H / 2, H * 0.75);
-    vig.addColorStop(0, 'rgba(0,0,0,0)'); vig.addColorStop(1, 'rgba(0,0,0,.45)');
-    g.fillStyle = vig; g.fillRect(0, 0, W, H);
-    g.strokeStyle = 'rgba(110,200,255,.55)'; g.lineWidth = 2;
-    g.strokeRect(1, 1, W - 2, H - 2);
-    g.strokeStyle = 'rgba(110,200,255,.15)'; g.lineWidth = 8;
-    g.strokeRect(4, 4, W - 8, H - 8);
-    g.restore();
-    return c;
   }
 
   function roundRect(g, x, y, w, h, r) {
@@ -3426,7 +3710,7 @@
 
   function drawGuide(u, aim, t) {
     var v = aim.v, pts = aim.pred.points, b = u.body;
-    var col = u.def.shot === 'pierce' ? '255,122,69' : '120,220,255';
+    var col = u.def.shot === 'pierce' ? '255,110,40' : '40,150,255';
 
     var total = 0, lens = [0];
     // ワープで飛んだ区間（jump）は長さ0として点を打たない
@@ -3438,7 +3722,10 @@
       var f = (d - lens[seg - 1]) / L;
       var x = p0.x + (p1.x - p0.x) * f, y = p0.y + (p1.y - p0.y) * f;
       var a = 1 - d / total;
-      ctx.fillStyle = 'rgba(' + col + ',' + (0.15 + 0.75 * a).toFixed(3) + ')';
+      // 明るい床でも見えるように、白い縁取りの点
+      ctx.fillStyle = 'rgba(255,255,255,' + (0.3 + 0.7 * a).toFixed(3) + ')';
+      ctx.beginPath(); ctx.arc(x, y, 5 + 2 * a, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = 'rgba(' + col + ',' + (0.35 + 0.65 * a).toFixed(3) + ')';
       ctx.beginPath(); ctx.arc(x, y, 3 + 2 * a, 0, Math.PI * 2); ctx.fill();
     }
     for (var j = 0; j < aim.pred.contacts.length; j++) {
@@ -3504,7 +3791,8 @@
       ctx.globalAlpha = Math.min(1, ta * 2.5);
       var pop = tx.life < 0.12 ? 1 + (0.12 - tx.life) * 4 : 1;
       ctx.font = '900 ' + Math.round(tx.size * pop) + 'px "Hiragino Sans","Noto Sans JP",system-ui,sans-serif';
-      ctx.lineWidth = Math.max(4, tx.size / 6); ctx.strokeStyle = 'rgba(6,10,24,.85)';
+      ctx.lineJoin = 'round';
+      ctx.lineWidth = Math.max(5, tx.size / 4.5); ctx.strokeStyle = 'rgba(40,20,0,.9)';
       var y = tx.still ? tx.y : tx.y - (1 - ta) * 24;
       ctx.strokeText(tx.text, tx.x, y);
       ctx.fillStyle = tx.color;
@@ -3596,6 +3884,7 @@
     el.title.hidden = false;
     el.gems.textContent = save.gems;
     game.phase = 'title';
+    sound.music('title');
     updateHud();
   }
 
@@ -3717,14 +4006,14 @@
   document.getElementById('btn-stages').addEventListener('click', showTitle);
   el.sound.addEventListener('click', function () {
     var on = sound.toggle();
-    el.sound.textContent = on ? '音 ON' : '音 OFF';
+    el.sound.textContent = on ? '🔊' : '🔇';
     el.sound.setAttribute('aria-pressed', String(on));
   });
 
   // ---------------------------------------------------------------- 起動
   buildWorld();
   buildTune();
-  el.sound.textContent = sound.on ? '音 ON' : '音 OFF';
+  el.sound.textContent = sound.on ? '🔊' : '🔇';
   el.sound.setAttribute('aria-pressed', String(sound.on));
   resize();
   showTitle();
@@ -3751,6 +4040,7 @@
     get shownHp() { return shownHp; },
     get ssArmed() { return game.ssArmed; },
     get stage() { return stageIndex; },
+    get music() { return sound.track; },
     get save() { return save; },
     selectStage: selectStage,
     /** テストで状態を直接変えたあと、表示を合わせる */

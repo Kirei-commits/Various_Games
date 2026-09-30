@@ -193,7 +193,7 @@ const withParty = (ids) => {
   return { ...mods, D: { ...D, units: M.partyUnits(s, D) } };
 };
 
-test('★3 だけの編成でも、上手なプレイヤーならはじまりの洞窟をクリアできる', () => {
+test('★3 だけの編成でも、上手なプレイヤーならはじまりの草原をクリアできる', () => {
   const r = play(withParty(['E', 'F', 'G', 'H']), { policy: 'greedy' });
   assert.equal(r.state, 'won', `${r.state} wave ${r.wave}`);
 });
