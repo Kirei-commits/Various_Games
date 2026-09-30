@@ -29,6 +29,9 @@ import {
   loadPreset,
   enhance,
   plusOf,
+  skillCost,
+  defendMp,
+  ENEMY,
   PLUS_EXP,
   MATERIAL_EXP,
   spareCopies,
@@ -293,13 +296,39 @@ test("SSR の装備には属性ごとの特製の呪文が付く（ブリザー�
   assert.equal(statsOf(q, cards2, { blaze: 1, flame: 1 }).skills.length, 1, "SR には呪文がない");
   const stats = { ...s, evade: 0 };
   let run = createRun(stats, 1, fixed(0.5));
-  run = { ...run, enemy: { ...run.enemy, hp: 9999, maxHp: 9999 } };
+  run = { ...run, mp: 999, enemy: { ...run.enemy, hp: 9999, maxHp: 9999 } };
   const frozen = act(run, stats, "skill", { id: "w", correct: true }, fixed(0.5), "ice");
-  assert.equal(frozen.mp, stats.mp - SKILLS.ice.mp);
+  assert.equal(frozen.mp, 999 - skillCost(SKILLS.ice, stats.mp));
   assert.ok(frozen.events.some((e) => e.type === "freeze"));
   assert.ok(frozen.events.some((e) => e.type === "frozen"), "凍った敵はそのターン動けない");
   assert.equal(frozen.hp, run.hp, "ダメージを受けない");
   assert.equal(act(run, stats, "skill", { id: "w", correct: true }, fixed(0.5), "dark").error, "その呪文は使えない！");
+});
+
+test("呪文の MP は最大 MP に比例して重く、満タンから連発できない。ぼうぎょで最大 MP の1割がたまる", () => {
+  for (const maxMp of [12, 50, 150, 400]) {
+    const cost = skillCost(SKILLS.fire, maxMp);
+    assert.ok(cost >= SKILLS.fire.mp && cost >= maxMp * 0.3, `${maxMp}: ${cost}`);
+    assert.ok(Math.floor(maxMp / cost) <= 3, `最大 MP ${maxMp} でも満タンから3回まで`);
+  }
+  assert.ok(skillCost({ ...SKILLS.fire, ultimate: true }, 100) > skillCost(SKILLS.fire, 100), "極の呪文はさらに重い");
+  assert.equal(defendMp(10), 3);
+  assert.equal(defendMp(200), 20);
+  // statsOf の呪文の mp は最大 MP から計算した値
+  const q = { ...initialQuest(), equip: { ...initialQuest().equip, weapon: "blaze" } };
+  const s = statsOf(q, cards, { blaze: 1 });
+  assert.equal(s.skills[0].mp, skillCost(SKILLS[s.skills[0].id], s.mp));
+  // 足りなければ撃てない
+  const run = { ...createRun(s, 1, fixed(0.5)), mp: s.skills[0].mp - 1 };
+  assert.equal(act(run, s, "skill", { id: "w", correct: true }, fixed(0.5), s.skills[0].id).error, "MPがたりない！");
+});
+
+test("敵は深い階ほど一気に強くなる（HP・攻撃・守備とも2乗で伸びる）", () => {
+  const e = (f) => enemyFor(f, fixed(0));
+  assert.ok(e(1).hp < 50 && e(1).atk < 10, "1階はやさしい");
+  assert.ok(e(40).hp - e(30).hp > e(20).hp - e(10).hp, "深いほど伸びが大きい");
+  assert.ok(e(30).hp > 1000 && e(30).def > 70);
+  assert.equal(e(10).hp, Math.round((ENEMY.hp[0] + 10 * ENEMY.hp[1] + 100 * ENEMY.hp[2]) * ENEMY.bossHp), "10階はボス");
 });
 
 test("強化: 集めた単語のあまりを素材に強化ポイントを貯める。同じ単語は3倍。1枚は残す", () => {

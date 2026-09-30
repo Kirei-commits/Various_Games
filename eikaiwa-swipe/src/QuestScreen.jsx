@@ -616,7 +616,7 @@ function QuestRun({ stats, pool, chestWords, cards, speech, sound, dopamine, onE
   };
 
   const ask = (action, skillId = null) => {
-    const cost = skillId ? SKILLS[skillId].mp : 0;
+    const cost = skillId ? stats.skills.find((x) => x.id === skillId)?.mp || 0 : 0;
     if (cost && run.mp < cost) {
       setLog(["MPが たりない！"]);
       return;

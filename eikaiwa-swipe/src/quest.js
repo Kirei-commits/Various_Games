@@ -307,8 +307,16 @@ export function statsOf(quest, cards, owned = {}) {
   s.evade = Math.min(s.evade, 40);
   s.drain = Math.min(s.drain, 40);
   s.block = Math.min(s.block, 60);
-  return { ...s, gear, skills: skillsOf(gear) };
+  // 呪文の MP は最大 MP に比例して重くする（MP を上げても連発できないように）
+  return { ...s, gear, skills: skillsOf(gear).map((sk) => ({ ...sk, mp: skillCost(sk, s.mp) })) };
 }
+
+/**
+ * 呪文の消費 MP: 呪文ごとの基本（SKILLS の mp）＋ 最大 MP の SKILL_MP_SHARE。極の呪文は1.2倍。
+ * 最大 MP が多くても、満タンから2〜3回しか撃てない。ぼうぎょ（最大 MP の DEFEND_MP_SHARE）や階の移動で少しずつためる。
+ */
+export const SKILL_MP_SHARE = 0.3;
+export const skillCost = (sk, maxMp) => Math.round((sk.mp + maxMp * SKILL_MP_SHARE) * (sk.ultimate ? 1.2 : 1));
 
 // ---------------------------------------------------------------------------
 // 敵
@@ -330,19 +338,30 @@ export const ENEMY_KINDS = [
 export const BOSS_EVERY = 5;
 export const isBossFloor = (floor) => floor % BOSS_EVERY === 0;
 
+/** 敵の強さ: [定数, 階×, 階²×]。2026-09-29 に強化（以前は HP 22+10階・攻撃 6+2.4階・守備 2+1.3階） */
+export const ENEMY = {
+  hp: [22, 14, 0.6],
+  atk: [4, 3.2, 0.05],
+  def: [0, 1.8, 0.03],
+  bossHp: 3.2,
+  bossAtk: 1.3,
+};
+
 export function enemyFor(floor, rng = Math.random) {
   const boss = isBossFloor(floor);
   const base = boss
     ? { kind: "dragon", name: floor % 10 === 0 ? "やみのドラゴン" : "ほのおのドラゴン", element: floor % 10 === 0 ? "dark" : "fire" }
     : ENEMY_KINDS[(Math.min(floor - 1, 6) + Math.floor(rng() * 4)) % ENEMY_KINDS.length];
-  const hp = Math.round((22 + floor * 10) * (boss ? 3 : 1));
+  // 深い階ほど一気に強くなる（2乗の項）。強い装備でも30階を超えると何回も殴らないと倒せない
+  const f2 = floor * floor;
+  const hp = Math.round((ENEMY.hp[0] + floor * ENEMY.hp[1] + f2 * ENEMY.hp[2]) * (boss ? ENEMY.bossHp : 1));
   return {
     ...base,
     boss,
     hp,
     maxHp: hp,
-    atk: Math.round((6 + floor * 2.4) * (boss ? 1.3 : 1)),
-    def: Math.round(2 + floor * 1.3),
+    atk: Math.round((ENEMY.atk[0] + floor * ENEMY.atk[1] + f2 * ENEMY.atk[2]) * (boss ? ENEMY.bossAtk : 1)),
+    def: Math.round(ENEMY.def[0] + floor * ENEMY.def[1] + f2 * ENEMY.def[2]),
     exp: Math.round((5 + floor * 3) * (boss ? 4 : 1)),
   };
 }
@@ -353,7 +372,10 @@ export function enemyFor(floor, rng = Math.random) {
 
 export const START_HERBS = 3;
 export const HERB_HEAL = 0.5; // 最大 HP の割合
+/** ぼうぎょで回復する MP（最大 MP の割合。最低 DEFEND_MP） */
 export const DEFEND_MP = 3;
+export const DEFEND_MP_SHARE = 0.1;
+export const defendMp = (maxMp) => Math.max(DEFEND_MP, Math.round(maxMp * DEFEND_MP_SHARE));
 export const CRIT_RATE = 1.8;
 /** ちからをためたあとの大こうげきの倍率（ボスはブレスでもっと強い） */
 export const SMASH_RATE = 2.6;
@@ -453,7 +475,7 @@ export function act(run, stats, action, answer = null, rng = Math.random, skillI
     }
   } else if (action === "defend") {
     r.defending = true;
-    r.mp = Math.min(stats.mp, r.mp + DEFEND_MP);
+    r.mp = Math.min(stats.mp, r.mp + defendMp(stats.mp));
     ev({ type: "defend" });
   } else if (action === "herb") {
     r.herbs -= 1;
