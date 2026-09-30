@@ -21,7 +21,7 @@ const RANK = { N: 0, R: 1, SR: 2, SSR: 3 };
  * 2026-09-29 ユーザーの指示: 通常は R 5%・SR 0.5%・SSR 0.005%（すぐにコンプリートしないように）。チケットは対象のランクの単語だけ
  */
 export const RATES = {
-  points: { N: 94495, R: 5000, SR: 500, SSR: 5 },
+  points: { N: 92900, R: 6000, SR: 1000, SSR: 100 }, // 2026-09-30: R 6%・SR 1%・SSR 0.1%（以前は R 5%・SR 0.5%・SSR 0.005%）
   ticket: { N: 0, R: 100000, SR: 0, SSR: 0 },
   sr: { N: 0, R: 0, SR: 100000, SSR: 0 },
   ssr: { N: 0, R: 0, SR: 0, SSR: 100000 },
@@ -54,9 +54,9 @@ export const POS_KEYS = ["all", "noun", "verb", "adj", "other"];
 
 // ポイントのもらい方
 // 2026-09-29 ユーザーの指示: ポイントが貯まりすぎるので、もらえるポイントを以前の 1/10 に（ふつうに遊んで 100連くらいまで）
-export const LOGIN_POINTS = 100; // 毎日のログインボーナス（1回分。以前は 1000）
-export const GOAL_POINTS = 300; // 今日の目標達成（以前は 3000）
-export const POINTS_PER_MINUTE = 60; // 学習・テスト・バトル・冒険で、1分あたりにもらえるポイント（以前は 600）
+export const LOGIN_POINTS = 300; // 毎日のログインボーナス（1回分。2026-09-29 に 100、09-30 に3倍の 300）
+export const GOAL_POINTS = 900; // 今日の目標達成（2026-09-30 に3倍）
+export const POINTS_PER_MINUTE = 180; // 学習・テスト・バトル・冒険で、1分あたりにもらえるポイント（600 → 60 → 2026-09-30 に3倍の 180）
 export const BOOST_RATE = 5; // 5倍ブースト
 export const BOOST_MS = 60 * 60 * 1000; // ブーストが続く時間（1時間）
 export const STARTER = { points: 1000, tickets: 1 }; // はじめてボーナス（1回だけ。最初の10連ぶん）

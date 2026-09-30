@@ -317,9 +317,9 @@ export function statsOf(quest, cards, owned = {}) {
 
 /**
  * 呪文の消費 MP: 呪文ごとの基本（SKILLS の mp）＋ 最大 MP の SKILL_MP_SHARE。極の呪文は1.2倍。
- * 最大 MP が多くても、満タンから2〜3回しか撃てない。ぼうぎょ（最大 MP の DEFEND_MP_SHARE）や階の移動で少しずつためる。
+ * 最大 MP が多くても、満タンから3〜4回まで。毎ターン（MP_REGEN_SHARE）・ぼうぎょ（DEFEND_MP_SHARE）・階の移動で少しずつ戻る。
  */
-export const SKILL_MP_SHARE = 0.3;
+export const SKILL_MP_SHARE = 0.2;
 export const skillCost = (sk, maxMp) => Math.round((sk.mp + maxMp * SKILL_MP_SHARE) * (sk.ultimate ? 1.2 : 1));
 
 // ---------------------------------------------------------------------------
@@ -380,6 +380,9 @@ export const HERB_HEAL = 0.5; // 最大 HP の割合
 export const DEFEND_MP = 3;
 export const DEFEND_MP_SHARE = 0.1;
 export const defendMp = (maxMp) => Math.max(DEFEND_MP, Math.round(maxMp * DEFEND_MP_SHARE));
+/** 毎ターン（敵の番のあと）戻る MP: 最大 MP の4%（最低1） */
+export const MP_REGEN_SHARE = 0.04;
+export const mpRegen = (maxMp) => Math.max(1, Math.round(maxMp * MP_REGEN_SHARE));
 export const CRIT_RATE = 1.8;
 /** ちからをためたあとの大こうげきの倍率（ボスはブレスでもっと強い） */
 export const SMASH_RATE = 2.6;
@@ -510,6 +513,8 @@ export function act(run, stats, action, answer = null, rng = Math.random, skillI
     r.hp += heal;
     ev({ type: "regen", heal });
   }
+  // 毎ターン MP が少しずつ戻る（最大 MP の MP_REGEN_SHARE。2026-09-30）
+  if (r.mp < stats.mp) r.mp = Math.min(stats.mp, r.mp + mpRegen(stats.mp));
   return r;
 }
 
@@ -675,7 +680,7 @@ const pickWeighted = (weights, rng) => {
  */
 export function rollChest(floor, words, rng = Math.random) {
   const tier = Math.max(1, Math.floor(floor / BOSS_EVERY));
-  const items = [{ kind: "points", amount: 30 * tier }]; // ポイントは控えめ（2026-09-29 に 1/10 に）
+  const items = [{ kind: "points", amount: 90 * tier }]; // 2026-09-29 に 1/10、09-30 に3倍
   const kind = pickWeighted({ word: 45, tickets: 25, medals: 20, srTickets: 10 }, rng);
   if (kind === "word" && words.length) {
     const odds = chestRarity(floor);
@@ -713,7 +718,7 @@ const accuracyOf = (run) => {
 
 /**
  * 冒険の報酬（ブースト前）。バトルのエンドレスと同じ水準にそろえる:
- * - ポイント: 遊んだ時間ぶん × (1 + 0.5 × 正解率 + ボスを倒した 0.5 + 最高記録 0.3) を 100〜300 に収め、
+ * - ポイント: 遊んだ時間ぶん × (1 + 0.5 × 正解率 + ボスを倒した 0.5 + 最高記録 0.3) を 300〜900 に収め、
  *   さらに到達レベルのボーナス（endlessLevelBonus。3階倒すごとに1レベル。バトルは10体ごと＝1階あたり約3問のため）
  * - レアチケット: 1 + (レベル-1)/2 枚（1〜8）
  * - 倒した階が REWARD_MIN_KILLS 未満なら、時間ぶんのポイントだけ

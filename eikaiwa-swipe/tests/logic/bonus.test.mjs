@@ -17,12 +17,12 @@ import {
 const lib = buildLibrary(rawChapters);
 const days = (n) => `2026-10-${String(n).padStart(2, "0")}`;
 
-test("ログインボーナスは1日1回。ガチャポイント100と5倍ブースト1つ、7日ごとにレアチケット。コインはもうない", () => {
+test("ログインボーナスは1日1回。ガチャポイント300と5倍ブースト1つ、7日ごとにレアチケット。コインはもうない", () => {
   let s = freshState();
   const r1 = claimDailyBonus(s, days(1), days(0));
   assert.equal(r1.reward.day, 1);
   assert.equal(r1.reward.coins, undefined);
-  assert.deepEqual([r1.reward.gacha.points, r1.reward.gacha.boosts], [100, 1]);
+  assert.deepEqual([r1.reward.gacha.points, r1.reward.gacha.boosts], [300, 1]);
   s = r1.state;
   assert.equal(s.gacha.boosts, 1);
   assert.equal(claimDailyBonus(s, days(1), days(0)).reward, null); // 同じ日は受け取れない
@@ -47,7 +47,7 @@ test("今日の目標を達成すると、1日1回ガチャポイントのボー
   s = { ...s, stats: recordActivity(s.stats, days(1), days(0), { swipes: 1 }) };
   assert.equal(canClaimGoal(s, days(1)), true);
   s = claimGoalBonus(s, days(1));
-  assert.equal(s.gacha.points, 300);
+  assert.equal(s.gacha.points, 900);
   assert.equal(canClaimGoal(s, days(1)), false);
 });
 

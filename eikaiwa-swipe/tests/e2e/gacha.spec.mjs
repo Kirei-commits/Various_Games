@@ -35,7 +35,7 @@ test("はじめてボーナスで10連を引ける。結果が出て、ポイン
   await expect(page.getByTestId("gacha-starter")).toBeVisible();
   await expect(page.getByTestId("wallet-points")).toHaveText("1,000");
   await expect(page.getByTestId("wallet-tickets")).toHaveText(/^1/);
-  await expect(page.getByTestId("gacha-rates")).toContainText("SSR 0.005%");
+  await expect(page.getByTestId("gacha-rates")).toContainText("SSR 0.1%");
 
   await page.getByRole("button", { name: /10連/ }).click();
   const result = page.getByTestId("gacha-result");
@@ -150,7 +150,7 @@ test("マイ称号: 集めた単語を組み合わせて称号を作り、付け
 test("学習すると、かかった時間に応じてガチャポイントがもらえる（「まだ」でも）", async ({ page }) => {
   await seedGacha(page, { points: 0 });
   await page.getByRole("button", { name: "覚えた", exact: true }).click();
-  await expect(page.getByTestId("earn-toast")).toContainText("+5pt"); // 最初の1枚は5秒ぶん
+  await expect(page.getByTestId("earn-toast")).toContainText("+15pt"); // 最初の1枚は5秒ぶん（1秒 3pt）
   await expect(page.getByTestId("remaining")).toHaveText(/^49/);
   await page.waitForTimeout(1500);
   await page.getByRole("button", { name: "覚えてない", exact: true }).click();

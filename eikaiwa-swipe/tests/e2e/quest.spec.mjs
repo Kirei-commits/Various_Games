@@ -87,7 +87,7 @@ test("冒険: ふつうのじゅもんはなく、相性が表示される。5�
     if (f < 5) await page.getByRole("button", { name: "つぎの階へ" }).click();
   }
   await expect(page.getByTestId("quest-chest")).toContainText("5階の たからばこを あけた！");
-  await expect(page.getByTestId("quest-chest")).toContainText("ガチャのポイント +30");
+  await expect(page.getByTestId("quest-chest")).toContainText("ガチャのポイント +90");
   await page.getByTestId("quest-chest").click();
   await page.getByRole("button", { name: "街に帰る" }).click();
   await expect(page.getByTestId("quest-loot")).toContainText("たからばこ（1こ）");
