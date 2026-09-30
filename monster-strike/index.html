@@ -133,6 +133,11 @@
     box-shadow: 0 3px 0 #5a0414, 0 5px 10px rgba(140, 0, 30, .35); }
   #stage-list button.hard small { color: #fff0c0; }
   .meta-row { display: flex; gap: 8px; align-items: center; margin-top: 10px; }
+  .mode-row { display: flex; gap: 6px; margin-bottom: 8px; }
+  .mode-row button { flex: 1; font-size: 14px; padding: 6px; display: grid; }
+  .mode-row button small { font-size: 9px; font-weight: 700; }
+  .mode-row button.on { background: linear-gradient(180deg, #fff6b8 0%, #ffd23f 50%, #ffae1a 100%); border-color: #e07a00; box-shadow: 0 3px 0 #a14f00; }
+  .mode-row #mode-hard.on { background: linear-gradient(180deg, #ffb0c8 0%, #ff4d6d 55%, #c0102e 100%); border-color: #8a0620; color: #fff; box-shadow: 0 3px 0 #5a0414; }
   .meta-row button { flex: 1; font-size: 15px; padding: 10px; }
   .gems { font-weight: 900; color: #0a7fd6; font-variant-numeric: tabular-nums; white-space: nowrap; font-size: 15px; }
   .gems::before { content: '◆ '; color: #19b8ff; }
@@ -252,6 +257,15 @@
   #party .detail.fused { animation: fused .6s ease-out; }
   @keyframes fused { 0% { box-shadow: 0 0 0 0 rgba(255, 122, 200, .9); } 100% { box-shadow: 0 0 0 16px rgba(255, 122, 200, 0); } }
   .slot.swap { border-color: #3cc8ff; border-style: dashed; }
+  /* 枠は上に貼りつけて、下の手持ちをスクロールしても見えるようにする（ドラッグで入れられるように） */
+  #party .slots { position: sticky; top: -12px; z-index: 3; background: linear-gradient(180deg, #ffffff, #eef7ff); padding: 6px 0; margin: 0 -2px; }
+  .slot.drop { border-color: #ff7a2e; box-shadow: 0 0 0 3px #ffd23f; transform: scale(1.05); }
+  .drag-ghost { position: fixed; z-index: 50; pointer-events: none; width: 54px; height: 54px; transform: translate(-50%, -60%) scale(1.15);
+    filter: drop-shadow(0 6px 8px rgba(0, 0, 0, .35)); }
+  .drag-ghost .uface { width: 54px; height: 54px; }
+  #party .slot { touch-action: none; }
+  #party .slot, #party .owned-unit { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+  #party .owned-unit.hold { transform: scale(1.08); border-color: #ff7a2e; }
 
   /* ---------------- 調整パネル */
   #tune { position: absolute; top: 8px; right: 8px; width: min(300px, calc(100% - 16px)); max-height: calc(100% - 16px);
@@ -298,6 +312,7 @@
         <div class="meta-row"><span class="gems" id="gems">0</span><button id="btn-gacha" type="button">ガチャ</button><button id="btn-party" type="button">編成</button><button id="btn-puzzle" type="button">パズル</button></div>
         <p class="daily" id="daily" hidden></p>
         <p>ステージを選んでください</p>
+        <div class="mode-row" role="group" aria-label="難しさ"><button id="mode-normal" type="button">ノーマル</button><button id="mode-hard" type="button">ハード<small>敵のHP大・アイテム多め・報酬2倍</small></button></div>
         <div id="stage-list"></div>
       </div>
     </div>
@@ -1901,9 +1916,9 @@
     { id: 'E', name: 'E', title: 'ホムラ', rarity: 3, shot: 'reflect', element: 'fire', atk: 1250, hp: 7800, x: 482, y: 735, r: 30,
       colors: ['#ffd9c2', '#ff6a3c', '#7a1a08'], accent: '#ff8a5c', gauge: ['antiDamageWall'], abilities: ['antiGravity'],
       combos: [
-        {"kind": "homing", "name": "ホーミング8", "element": "fire", "count": 8, "power": 260},
-        {"kind": "blast", "name": "爆発", "element": "fire", "power": 1900, "radius": 150},
-        {"kind": "lightning", "name": "誘導雷", "element": "fire", "count": 4, "power": 900}
+        {"kind": "homing", "name": "ホーミング8", "element": "fire", "count": 8, "power": 390},
+        {"kind": "blast", "name": "爆発", "element": "fire", "power": 2850, "radius": 150},
+        {"kind": "lightning", "name": "誘導雷", "element": "fire", "count": 4, "power": 1350}
       ],
       ss: { name: '火走り', turns: 12, atk: 1.5 } }
   ];
@@ -1916,25 +1931,25 @@
     { id: 'F', name: 'F', title: 'シズク', rarity: 3, shot: 'pierce', element: 'water', atk: 1350, hp: 7600, r: 30,
       colors: ['#d6f4ff', '#3aa8e8', '#0a3a66'], accent: '#5cc4ff', gauge: ['antiGravity'], abilities: ['antiDamageWall'],
       combos: [
-        {"kind": "laser", "name": "レーザーM", "element": "water", "power": 1700, "width": 40},
-        {"kind": "spread", "name": "拡散弾8", "element": "water", "count": 8, "power": 420, "range": 420},
-        {"kind": "pierceHoming", "name": "貫通ホーミング4", "element": "water", "count": 4, "power": 520, "width": 22}
+        {"kind": "laser", "name": "レーザーM", "element": "water", "power": 2550, "width": 40},
+        {"kind": "spread", "name": "拡散弾8", "element": "water", "count": 8, "power": 630, "range": 420},
+        {"kind": "pierceHoming", "name": "貫通ホーミング4", "element": "water", "count": 4, "power": 780, "width": 22}
       ],
       ss: { name: '水鉄砲', turns: 13, atk: 1.6 } },
     { id: 'G', name: 'G', title: 'コダマ', rarity: 3, shot: 'pierce', element: 'wood', atk: 1200, hp: 8200, r: 30,
       colors: ['#e2ffd0', '#4fbf4a', '#15500f'], accent: '#7ee06a', gauge: ['antiMagic'], abilities: ['flying'],
       combos: [
-        {"kind": "spread", "name": "拡散弾8", "element": "wood", "count": 8, "power": 420, "range": 420},
-        {"kind": "xlaser", "name": "斜めクロスレーザー", "element": "wood", "power": 1500, "width": 44},
-        {"kind": "homing", "name": "ホーミング8", "element": "wood", "count": 8, "power": 260}
+        {"kind": "spread", "name": "拡散弾8", "element": "wood", "count": 8, "power": 630, "range": 420},
+        {"kind": "xlaser", "name": "斜めクロスレーザー", "element": "wood", "power": 2250, "width": 44},
+        {"kind": "homing", "name": "ホーミング8", "element": "wood", "count": 8, "power": 390}
       ],
       ss: { name: '木霊', turns: 14, onStop: { kind: 'blast', power: 2500, radius: 180 } } },
     { id: 'H', name: 'H', title: 'ヒカリ', rarity: 3, shot: 'reflect', element: 'light', atk: 1200, hp: 7900, r: 30,
       colors: ['#fffbe8', '#ffe27a', '#8a7206'], accent: '#fff08a', gauge: ['antiBlock'], abilities: ['antiWarp'],
       combos: [
-        {"kind": "blast", "name": "爆発", "element": "light", "power": 1900, "radius": 150},
-        {"kind": "lockon", "name": "ロックオン衝撃波", "element": "light", "count": 1, "power": 700},
-        {"kind": "laser", "name": "レーザーM", "element": "light", "power": 1700, "width": 40}
+        {"kind": "blast", "name": "爆発", "element": "light", "power": 2850, "radius": 150},
+        {"kind": "lockon", "name": "ロックオン衝撃波", "element": "light", "count": 1, "power": 1050},
+        {"kind": "laser", "name": "レーザーM", "element": "light", "power": 2550, "width": 40}
       ],
       ss: { name: '閃光', turns: 11, launch: { speed: 1.3 } } },
     { id: 'I', name: 'I', title: 'ヨル', rarity: 4, shot: 'reflect', element: 'dark', atk: 1450, hp: 8400, r: 30,
@@ -1973,17 +1988,17 @@
         {"kind": "pierceHoming", "name": "貫通ホーミング8", "element": "light", "count": 8, "power": 1352, "width": 22}
       ],
       ss: { name: '日輪', turns: 15, launch: { speed: 1.4, friction: 0.5 }, atk: 1.3 } },
-    {"id": "M", "name": "M", "title": "ヒバナ", "rarity": 3, "shot": "reflect", "element": "fire", "atk": 1250, "hp": 7800, "r": 30, "colors": ["#ffddc0", "#ff6d41", "#831c0b"], "accent": "#ff6d41", "abilities": ["counter"], "gauge": ["antiDamageWall"], "combos": [{"kind": "meteor", "name": "メテオ", "element": "fire", "count": 3, "power": 1100}, {"kind": "blast", "name": "爆発", "element": "fire", "power": 1900, "radius": 150}, {"kind": "spread", "name": "拡散弾8", "element": "fire", "count": 8, "power": 420, "range": 420}], "ss": {"launch": {"speed": 1.4, "friction": 0.55}, "name": "疾風", "turns": 14}},
-    {"id": "N", "name": "N", "title": "ミナモ", "rarity": 3, "shot": "reflect", "element": "water", "atk": 1200, "hp": 7700, "r": 30, "colors": ["#d5edf8", "#389bda", "#09325d"], "accent": "#389bda", "abilities": ["counter"], "gauge": ["antiMagic"], "combos": [{"kind": "pierceHoming", "name": "貫通ホーミング4", "element": "water", "count": 4, "power": 520, "width": 22}, {"kind": "shotgun", "name": "短距離拡散弾", "element": "water", "count": 8, "power": 900, "range": 200}, {"kind": "lockon", "name": "ロックオン衝撃波", "element": "water", "count": 1, "power": 700}], "ss": {"atk": 1.4, "name": "渾身", "turns": 13}},
-    {"id": "O", "name": "O", "title": "コノハ", "rarity": 3, "shot": "reflect", "element": "wood", "atk": 1330, "hp": 7700, "r": 30, "colors": ["#e8f9ca", "#5cb33f", "#1d4908"], "accent": "#5cb33f", "abilities": ["antiSlow"], "gauge": ["antiWarp"], "combos": [{"kind": "lightning", "name": "誘導雷", "element": "wood", "count": 4, "power": 900}, {"kind": "lockon", "name": "ロックオン衝撃波", "element": "wood", "count": 1, "power": 700}, {"kind": "star", "name": "全方位レーザー", "element": "wood", "power": 1300, "width": 40}], "ss": {"launch": {"speed": 1.4, "friction": 0.55}, "name": "疾風", "turns": 13}},
-    {"id": "P", "name": "P", "title": "キラリ", "rarity": 3, "shot": "pierce", "element": "light", "atk": 1290, "hp": 8100, "r": 30, "colors": ["#fef2e3", "#fec04d", "#895f0a"], "accent": "#fec04d", "abilities": ["antiSlow"], "gauge": ["weakKiller"], "combos": [{"kind": "blast", "name": "爆発", "element": "light", "power": 1900, "radius": 150}, {"kind": "lockon", "name": "ロックオン衝撃波", "element": "light", "count": 1, "power": 700}, {"kind": "circle", "name": "エナジーサークル", "element": "light", "power": 1800, "radius": 260, "inner": 90}], "ss": {"atk": 1.4, "name": "渾身", "turns": 14}},
-    {"id": "Q", "name": "Q", "title": "カゲロウ", "rarity": 3, "shot": "pierce", "element": "dark", "atk": 1200, "hp": 7900, "r": 30, "colors": ["#eae6ff", "#875ef1", "#2a1b61"], "accent": "#875ef1", "abilities": ["antiBlock"], "gauge": ["bossKiller"], "combos": [{"kind": "xlaser", "name": "斜めクロスレーザー", "element": "dark", "power": 1500, "width": 44}, {"kind": "meteor", "name": "メテオ", "element": "dark", "count": 3, "power": 1100}, {"kind": "star", "name": "全方位レーザー", "element": "dark", "power": 1300, "width": 40}], "ss": {"atk": 1.4, "name": "渾身", "turns": 13}},
-    {"id": "R", "name": "R", "title": "ホタル", "rarity": 3, "shot": "pierce", "element": "light", "atk": 1290, "hp": 7700, "r": 30, "colors": ["#f9f4d9", "#f3c439", "#836100"], "accent": "#f3c439", "abilities": ["drain"], "gauge": ["antiSlow"], "combos": [{"kind": "sword", "name": "ソード", "element": "light", "power": 2200, "range": 90, "count": 1}, {"kind": "spread", "name": "拡散弾8", "element": "light", "count": 8, "power": 420, "range": 420}, {"kind": "xlaser", "name": "斜めクロスレーザー", "element": "light", "power": 1500, "width": 44}], "ss": {"launch": {"speed": 1.4, "friction": 0.55}, "name": "疾風", "turns": 13}},
-    {"id": "S", "name": "S", "title": "アワ", "rarity": 3, "shot": "pierce", "element": "water", "atk": 1290, "hp": 8100, "r": 30, "colors": ["#ccfdff", "#27bbf6", "#00456e"], "accent": "#27bbf6", "abilities": ["antiSlow"], "gauge": ["bossKiller"], "combos": [{"kind": "star", "name": "全方位レーザー", "element": "water", "power": 1300, "width": 40}, {"kind": "lightning", "name": "誘導雷", "element": "water", "count": 4, "power": 900}, {"kind": "xlaser", "name": "斜めクロスレーザー", "element": "water", "power": 1500, "width": 44}], "ss": {"onStop": {"kind": "blast", "power": 3000, "radius": 180}, "name": "メテオ", "turns": 14}},
-    {"id": "T", "name": "T", "title": "ツタ", "rarity": 3, "shot": "reflect", "element": "wood", "atk": 1230, "hp": 8100, "r": 30, "colors": ["#e5fbd9", "#56b85d", "#194c1a"], "accent": "#56b85d", "abilities": ["antiSlow"], "gauge": ["antiBlock"], "combos": [{"kind": "spread", "name": "拡散弾8", "element": "wood", "count": 8, "power": 420, "range": 420}, {"kind": "star", "name": "全方位レーザー", "element": "wood", "power": 1300, "width": 40}, {"kind": "homing", "name": "ホーミング8", "element": "wood", "count": 8, "power": 260}], "ss": {"comboTwice": true, "launch": {"speed": 1.15}, "name": "仲間呼び", "turns": 13}},
-    {"id": "U", "name": "U", "title": "ヒナタ", "rarity": 3, "shot": "reflect", "element": "light", "atk": 1210, "hp": 7700, "r": 30, "colors": ["#fffaea", "#ffd05b", "#926912"], "accent": "#ffd05b", "abilities": ["critical"], "gauge": ["antiMagic"], "combos": [{"kind": "spread", "name": "拡散弾8", "element": "light", "count": 8, "power": 420, "range": 420}, {"kind": "blast", "name": "爆発", "element": "light", "power": 1900, "radius": 150}, {"kind": "bigHoming", "name": "超強ホーミング", "element": "light", "count": 3, "power": 1500}], "ss": {"onStop": {"kind": "blast", "power": 3000, "radius": 180}, "name": "メテオ", "turns": 13}},
-    {"id": "V", "name": "V", "title": "ヨイ", "rarity": 3, "shot": "reflect", "element": "dark", "atk": 1280, "hp": 7700, "r": 30, "colors": ["#f0d4ff", "#923bf8", "#310665"], "accent": "#923bf8", "abilities": ["antiSlow"], "gauge": ["antiWarp"], "combos": [{"kind": "sword", "name": "ソード", "element": "dark", "power": 2200, "range": 90, "count": 1}, {"kind": "blast", "name": "爆発", "element": "dark", "power": 1900, "radius": 150}, {"kind": "spread", "name": "拡散弾8", "element": "dark", "count": 8, "power": 420, "range": 420}], "ss": {"atk": 1.4, "name": "渾身", "turns": 14}},
-    {"id": "W", "name": "W", "title": "カエン", "rarity": 3, "shot": "pierce", "element": "fire", "atk": 1340, "hp": 7900, "r": 30, "colors": ["#f9d1c0", "#f45540", "#730d0a"], "accent": "#f45540", "abilities": ["antiBlock"], "gauge": ["antiMagic"], "combos": [{"kind": "homing", "name": "ホーミング8", "element": "fire", "count": 8, "power": 260}, {"kind": "meteor", "name": "メテオ", "element": "fire", "count": 3, "power": 1100}, {"kind": "lockon", "name": "ロックオン衝撃波", "element": "fire", "count": 1, "power": 700}], "ss": {"launch": {"speed": 1.4, "friction": 0.55}, "name": "疾風", "turns": 14}},
+    {"id": "M", "name": "M", "title": "ヒバナ", "rarity": 3, "shot": "reflect", "element": "fire", "atk": 1250, "hp": 7800, "r": 30, "colors": ["#ffddc0", "#ff6d41", "#831c0b"], "accent": "#ff6d41", "abilities": ["counter"], "gauge": ["antiDamageWall"], "combos": [{"kind": "meteor", "name": "メテオ", "element": "fire", "count": 3, "power": 1650}, {"kind": "blast", "name": "爆発", "element": "fire", "power": 2850, "radius": 150}, {"kind": "spread", "name": "拡散弾8", "element": "fire", "count": 8, "power": 630, "range": 420}], "ss": {"launch": {"speed": 1.4, "friction": 0.55}, "name": "疾風", "turns": 14}},
+    {"id": "N", "name": "N", "title": "ミナモ", "rarity": 3, "shot": "reflect", "element": "water", "atk": 1200, "hp": 7700, "r": 30, "colors": ["#d5edf8", "#389bda", "#09325d"], "accent": "#389bda", "abilities": ["counter"], "gauge": ["antiMagic"], "combos": [{"kind": "pierceHoming", "name": "貫通ホーミング4", "element": "water", "count": 4, "power": 780, "width": 22}, {"kind": "shotgun", "name": "短距離拡散弾", "element": "water", "count": 8, "power": 1350, "range": 200}, {"kind": "lockon", "name": "ロックオン衝撃波", "element": "water", "count": 1, "power": 1050}], "ss": {"atk": 1.4, "name": "渾身", "turns": 13}},
+    {"id": "O", "name": "O", "title": "コノハ", "rarity": 3, "shot": "reflect", "element": "wood", "atk": 1330, "hp": 7700, "r": 30, "colors": ["#e8f9ca", "#5cb33f", "#1d4908"], "accent": "#5cb33f", "abilities": ["antiSlow"], "gauge": ["antiWarp"], "combos": [{"kind": "lightning", "name": "誘導雷", "element": "wood", "count": 4, "power": 1350}, {"kind": "lockon", "name": "ロックオン衝撃波", "element": "wood", "count": 1, "power": 1050}, {"kind": "star", "name": "全方位レーザー", "element": "wood", "power": 1950, "width": 40}], "ss": {"launch": {"speed": 1.4, "friction": 0.55}, "name": "疾風", "turns": 13}},
+    {"id": "P", "name": "P", "title": "キラリ", "rarity": 3, "shot": "pierce", "element": "light", "atk": 1290, "hp": 8100, "r": 30, "colors": ["#fef2e3", "#fec04d", "#895f0a"], "accent": "#fec04d", "abilities": ["antiSlow"], "gauge": ["weakKiller"], "combos": [{"kind": "blast", "name": "爆発", "element": "light", "power": 2850, "radius": 150}, {"kind": "lockon", "name": "ロックオン衝撃波", "element": "light", "count": 1, "power": 1050}, {"kind": "circle", "name": "エナジーサークル", "element": "light", "power": 2700, "radius": 260, "inner": 90}], "ss": {"atk": 1.4, "name": "渾身", "turns": 14}},
+    {"id": "Q", "name": "Q", "title": "カゲロウ", "rarity": 3, "shot": "pierce", "element": "dark", "atk": 1200, "hp": 7900, "r": 30, "colors": ["#eae6ff", "#875ef1", "#2a1b61"], "accent": "#875ef1", "abilities": ["antiBlock"], "gauge": ["bossKiller"], "combos": [{"kind": "xlaser", "name": "斜めクロスレーザー", "element": "dark", "power": 2250, "width": 44}, {"kind": "meteor", "name": "メテオ", "element": "dark", "count": 3, "power": 1650}, {"kind": "star", "name": "全方位レーザー", "element": "dark", "power": 1950, "width": 40}], "ss": {"atk": 1.4, "name": "渾身", "turns": 13}},
+    {"id": "R", "name": "R", "title": "ホタル", "rarity": 3, "shot": "pierce", "element": "light", "atk": 1290, "hp": 7700, "r": 30, "colors": ["#f9f4d9", "#f3c439", "#836100"], "accent": "#f3c439", "abilities": ["drain"], "gauge": ["antiSlow"], "combos": [{"kind": "sword", "name": "ソード", "element": "light", "power": 3300, "range": 90, "count": 1}, {"kind": "spread", "name": "拡散弾8", "element": "light", "count": 8, "power": 630, "range": 420}, {"kind": "xlaser", "name": "斜めクロスレーザー", "element": "light", "power": 2250, "width": 44}], "ss": {"launch": {"speed": 1.4, "friction": 0.55}, "name": "疾風", "turns": 13}},
+    {"id": "S", "name": "S", "title": "アワ", "rarity": 3, "shot": "pierce", "element": "water", "atk": 1290, "hp": 8100, "r": 30, "colors": ["#ccfdff", "#27bbf6", "#00456e"], "accent": "#27bbf6", "abilities": ["antiSlow"], "gauge": ["bossKiller"], "combos": [{"kind": "star", "name": "全方位レーザー", "element": "water", "power": 1950, "width": 40}, {"kind": "lightning", "name": "誘導雷", "element": "water", "count": 4, "power": 1350}, {"kind": "xlaser", "name": "斜めクロスレーザー", "element": "water", "power": 2250, "width": 44}], "ss": {"onStop": {"kind": "blast", "power": 3000, "radius": 180}, "name": "メテオ", "turns": 14}},
+    {"id": "T", "name": "T", "title": "ツタ", "rarity": 3, "shot": "reflect", "element": "wood", "atk": 1230, "hp": 8100, "r": 30, "colors": ["#e5fbd9", "#56b85d", "#194c1a"], "accent": "#56b85d", "abilities": ["antiSlow"], "gauge": ["antiBlock"], "combos": [{"kind": "spread", "name": "拡散弾8", "element": "wood", "count": 8, "power": 630, "range": 420}, {"kind": "star", "name": "全方位レーザー", "element": "wood", "power": 1950, "width": 40}, {"kind": "homing", "name": "ホーミング8", "element": "wood", "count": 8, "power": 390}], "ss": {"comboTwice": true, "launch": {"speed": 1.15}, "name": "仲間呼び", "turns": 13}},
+    {"id": "U", "name": "U", "title": "ヒナタ", "rarity": 3, "shot": "reflect", "element": "light", "atk": 1210, "hp": 7700, "r": 30, "colors": ["#fffaea", "#ffd05b", "#926912"], "accent": "#ffd05b", "abilities": ["critical"], "gauge": ["antiMagic"], "combos": [{"kind": "spread", "name": "拡散弾8", "element": "light", "count": 8, "power": 630, "range": 420}, {"kind": "blast", "name": "爆発", "element": "light", "power": 2850, "radius": 150}, {"kind": "bigHoming", "name": "超強ホーミング", "element": "light", "count": 3, "power": 2250}], "ss": {"onStop": {"kind": "blast", "power": 3000, "radius": 180}, "name": "メテオ", "turns": 13}},
+    {"id": "V", "name": "V", "title": "ヨイ", "rarity": 3, "shot": "reflect", "element": "dark", "atk": 1280, "hp": 7700, "r": 30, "colors": ["#f0d4ff", "#923bf8", "#310665"], "accent": "#923bf8", "abilities": ["antiSlow"], "gauge": ["antiWarp"], "combos": [{"kind": "sword", "name": "ソード", "element": "dark", "power": 3300, "range": 90, "count": 1}, {"kind": "blast", "name": "爆発", "element": "dark", "power": 2850, "radius": 150}, {"kind": "spread", "name": "拡散弾8", "element": "dark", "count": 8, "power": 630, "range": 420}], "ss": {"atk": 1.4, "name": "渾身", "turns": 14}},
+    {"id": "W", "name": "W", "title": "カエン", "rarity": 3, "shot": "pierce", "element": "fire", "atk": 1340, "hp": 7900, "r": 30, "colors": ["#f9d1c0", "#f45540", "#730d0a"], "accent": "#f45540", "abilities": ["antiBlock"], "gauge": ["antiMagic"], "combos": [{"kind": "homing", "name": "ホーミング8", "element": "fire", "count": 8, "power": 390}, {"kind": "meteor", "name": "メテオ", "element": "fire", "count": 3, "power": 1650}, {"kind": "lockon", "name": "ロックオン衝撃波", "element": "fire", "count": 1, "power": 1050}], "ss": {"launch": {"speed": 1.4, "friction": 0.55}, "name": "疾風", "turns": 14}},
     {"id": "X", "name": "X", "title": "フレア", "rarity": 4, "shot": "reflect", "element": "fire", "atk": 1620, "hp": 8800, "r": 30, "colors": ["#ffd4c2", "#ff5a44", "#7c100d"], "accent": "#ff5a44", "abilities": ["bossKiller", "antiBlock"], "gauge": ["wallBoost"], "killers": [{"race": "golem", "rank": "N"}], "combos": [{"kind": "lightning", "name": "誘導雷L", "element": "fire", "count": 6, "power": 1440}, {"kind": "xlaser", "name": "斜めクロスレーザーL", "element": "fire", "power": 2400, "width": 56}, {"kind": "pierceHoming", "name": "貫通ホーミング6", "element": "fire", "count": 6, "power": 832, "width": 22}], "ss": {"onStop": {"kind": "blast", "power": 6000, "radius": 200}, "name": "大メテオ", "turns": 16}},
     {"id": "Y", "name": "Y", "title": "マリン", "rarity": 4, "shot": "pierce", "element": "water", "atk": 1460, "hp": 8400, "r": 30, "colors": ["#d9fdfb", "#40bbe0", "#0d4561"], "accent": "#40bbe0", "abilities": ["critical", "mineSweeper"], "gauge": ["bossKiller"], "killers": [{"element": "fire", "rank": "N"}], "combos": [{"kind": "heal", "name": "ヒーリングL", "power": 900}, {"kind": "sword", "name": "ソードL", "element": "water", "power": 3520, "range": 110, "count": 2}, {"kind": "lockon", "name": "全敵ロックオン衝撃波", "element": "water", "count": 2, "power": 1120}], "ss": {"comboTwice": true, "launch": {"speed": 1.15}, "name": "絆の号令", "turns": 14}},
     {"id": "Z", "name": "Z", "title": "リーフ", "rarity": 4, "shot": "pierce", "element": "wood", "atk": 1510, "hp": 8600, "r": 30, "colors": ["#d9f7ca", "#3eaf3f", "#0b4608"], "accent": "#3eaf3f", "abilities": ["antiSlow", "superAntiDamageWall"], "gauge": ["bossKiller"], "killers": [{"element": "water", "rank": "N"}], "combos": [{"kind": "laser", "name": "レーザーL", "element": "wood", "power": 2720, "width": 56}, {"kind": "meteor", "name": "メテオL", "element": "wood", "count": 4, "power": 1760}, {"kind": "blast", "name": "大爆発", "element": "wood", "power": 3040, "radius": 190}], "ss": {"onStop": {"kind": "blast", "power": 6000, "radius": 200}, "name": "大メテオ", "turns": 15}},
@@ -2635,7 +2650,16 @@
     mines: ['flying', 'mineSweeper'], warps: ['antiWarp'], magic: ['antiMagic'], blocks: ['antiBlock'], slowWalls: ['antiSlow']
   };
 
-  root.MSData = { counters: counters, units: units, puzzle: puzzle, puzzleSize: puzzleSize, roster: units.concat(recruits), slots: slots, gacha: gacha, meta: meta, stage: stage, stages: [stage, tower, volcano, temple, castle, sky, abyss] };
+  /**
+   * 難しさのモード。hp / atk: 敵の HP と攻撃力の倍率 / items: ウェーブごとに足すサポートアイテムの組の数
+   * reward: 報酬の倍率（ハードはクリアの記録も別）
+   */
+  var modes = {
+    normal: { name: 'ノーマル', hp: 1.3, atk: 1, items: 0, reward: 1 },
+    hard: { name: 'ハード', hp: 12, atk: 1.5, items: 2, reward: 2 }
+  };
+
+  root.MSData = { modes: modes, counters: counters, units: units, puzzle: puzzle, puzzleSize: puzzleSize, roster: units.concat(recruits), slots: slots, gacha: gacha, meta: meta, stage: stage, stages: [stage, tower, volcano, temple, castle, sky, abyss] };
 })(typeof window !== 'undefined' ? window : globalThis);
 </script>
 
@@ -2656,7 +2680,7 @@
     var owned = {};
     data.meta.starter.forEach(function (id) { owned[id] = { luck: 0, plus: 0, stock: 0 }; });
     return { v: SAVE_VERSION, gems: data.meta.startGems, owned: owned, party: data.meta.starter.slice(0, data.slots.length),
-      pzParty: data.meta.starter.slice(0, data.puzzleSize), cleared: {}, pulls: 0, daily: '', infinite: false };
+      pzParty: data.meta.starter.slice(0, data.puzzleSize), cleared: {}, pulls: 0, daily: '', infinite: false, mode: 'normal' };
   }
 
   /**
@@ -2678,6 +2702,7 @@
     for (var k in (s.cleared || {})) if (s.cleared[k]) out.cleared[k] = true;
     if (typeof s.daily === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(s.daily)) out.daily = s.daily;
     out.infinite = s.infinite === true;
+    out.mode = s.mode === 'hard' ? 'hard' : 'normal';
     out.party = fixParty(s.party, out, data, data.slots.length);
     out.pzParty = fixParty(s.pzParty, out, data, data.puzzleSize);
     return out;
@@ -2743,9 +2768,58 @@
     return { results: results, cost: cost, gems: save.gems };
   }
 
-  /** ステージが終わったときの報酬。初回クリアは多く、2回目からは少し。負けても少しもらえる */
-  function reward(save, data, stageIndex, won) {
-    return give(save, 's' + stageIndex, data.meta.rewards[stageIndex] || { first: 0, again: 0, lose: 0 }, won);
+  /** ステージが終わったときの報酬（勝つたびに同じだけ）。mode がハードなら倍率を掛け、クリアの記録も別（'s0h'） */
+  function reward(save, data, stageIndex, won, mode) {
+    var md = (data.modes || {})[mode], rw = data.meta.rewards[stageIndex] || { first: 0, lose: 0 };
+    var k = md ? md.reward : 1;
+    return give(save, 's' + stageIndex + (mode === 'hard' ? 'h' : ''), { first: Math.round(rw.first * k), lose: Math.round(rw.lose * k) }, won);
+  }
+
+  // ------------------------------------------------------------ 難しさのモード
+  var ITEM_SPOTS = [[270, 560], [150, 600], [390, 600], [270, 470], [90, 480], [450, 480], [180, 380], [360, 380], [270, 640], [120, 280], [420, 280]];
+  /** 点 (x, y) の半径 r の円が、敵・ギミック・アイテム・味方の枠と重ならないか */
+  function freeSpot(data, wave, x, y, r) {
+    var i, e, g = wave.gimmicks || {};
+    for (i = 0; i < wave.enemies.length; i++) {
+      e = wave.enemies[i];
+      var ex = e.shape === 'rect' ? e.w / 2 : e.shape === 'compound' ? e.r * 1.9 : e.r, ey = e.shape === 'rect' ? e.h / 2 : e.r;
+      if (Math.abs(x - e.x) < ex + r + 8 && Math.abs(y - e.y) < ey + r + 8) return false;
+    }
+    var circles = [].concat(g.gravity || [], g.mines || [], g.warps || [], g.magic || [], wave.items || []);
+    for (i = 0; i < circles.length; i++) if (Math.hypot(x - circles[i].x, y - circles[i].y) < (circles[i].r || 18) + r + 8) return false;
+    for (i = 0; i < (g.blocks || []).length; i++) {
+      var b = g.blocks[i];
+      if (Math.abs(x - b.x) < b.w / 2 + r + 8 && Math.abs(y - b.y) < b.h / 2 + r + 8) return false;
+    }
+    for (i = 0; i < data.slots.length; i++) if (Math.hypot(x - data.slots[i].x, y - data.slots[i].y) < 30 + r + 12) return false;
+    return true;
+  }
+  /**
+   * モードに合わせたステージの写し（元の定義は書き換えない）。敵の HP・攻撃力を掛け、
+   * ハードはウェーブごとにハートと剣を items 組足す（空いている場所に、ターンをずらして出す）。
+   */
+  function stageFor(data, index, mode) {
+    var base = data.stages[index], md = (data.modes || {})[mode];
+    if (!md) return base;
+    var st = JSON.parse(JSON.stringify(base));
+    st.mode = mode;
+    st.waves.forEach(function (w, wi) {
+      w.enemies.forEach(function (e) { e.hp = Math.round(e.hp * md.hp / 100) * 100; e.atk = Math.round(e.atk * md.atk / 10) * 10; });
+      w.items = w.items || [];
+      var n = 0;
+      for (var k = 0; k < md.items; k++) {
+        ['heart', 'sword'].forEach(function (kind) {
+          for (var j = 0; j < ITEM_SPOTS.length; j++) {
+            var sp = ITEM_SPOTS[(j + n * 3 + wi) % ITEM_SPOTS.length];
+            if (!freeSpot(data, w, sp[0], sp[1], 18)) continue;
+            w.items.push({ id: 'm' + wi + '-' + kind + '-' + k, item: kind, x: sp[0], y: sp[1], turn: k * 2 + (kind === 'sword' ? 1 : 0) });
+            n++;
+            break;
+          }
+        });
+      }
+    });
+    return st;
   }
   /** ミニゲーム「ドロップパズル」の報酬。dungeon はダンジョンの番号（0 の記録は 'puzzle'、ほかは 'puzzle1' など） */
   function puzzleReward(save, data, won, dungeon) {
@@ -2903,7 +2977,7 @@
     return { ids: list.slice(0, size).map(function (x) { return x.id; }), scores: list.slice(0, size) };
   }
 
-  root.MSMeta = { newSave: newSave, recommend: recommend, stageProfile: stageProfile, load: load, rateTable: rateTable, pull: pull, reward: reward,
+  root.MSMeta = { newSave: newSave, recommend: recommend, stageFor: stageFor, stageProfile: stageProfile, load: load, rateTable: rateTable, pull: pull, reward: reward,
     puzzleReward: puzzleReward, claimDaily: claimDaily, fuse: fuse, redeemCode: redeemCode, plusRate: plusRate, powerRate: powerRate,
     setParty: setParty, partyUnits: partyUnits, luckRate: luckRate, byId: byId, SAVE_VERSION: SAVE_VERSION };
 })(typeof window !== 'undefined' ? window : globalThis);
@@ -3333,7 +3407,14 @@ window.MSArt = {
   var cfgOverrides = {};
   var world, battle, units, foes = {};
   var stageIndex = 0;
-  function curStage() { return D.stages[stageIndex]; }
+  var stageCache = null;
+  /** いまのステージ（モードの倍率とアイテムを入れた写し） */
+  function curStage() {
+    if (!stageCache || stageCache.i !== stageIndex || stageCache.mode !== save.mode) {
+      stageCache = { i: stageIndex, mode: save.mode, st: M.stageFor(D, stageIndex, save.mode) };
+    }
+    return stageCache.st;
+  }
   /**
    * phase: ready → pulling → moving → settling → (enemy | wave) → ready
    *        勝ち負けが決まったら ending → won / lost
@@ -4547,10 +4628,10 @@ window.MSArt = {
     el.resultTitle.textContent = kind === 'won' ? 'STAGE CLEAR' : 'GAME OVER';
     el.resultTitle.className = kind;
     var s = battle.stats;
-    var rw = M.reward(save, D, stageIndex, kind === 'won');
+    var rw = M.reward(save, D, stageIndex, kind === 'won', save.mode);
     persist();
     el.resultText.innerHTML = kind === 'won'
-      ? curStage().name + ' を <b>' + (battle.turn - 1) + 'ターン</b>でクリア！<br>ヒット ' + s.hits + '回（弱点 ' + s.weak + '回）・与ダメージ ' + s.damage
+      ? curStage().name + (save.mode === 'hard' ? '（ハード）' : '') + ' を <b>' + (battle.turn - 1) + 'ターン</b>でクリア！<br>ヒット ' + s.hits + '回（弱点 ' + s.weak + '回）・与ダメージ ' + s.damage
         + (s.ss ? '<br>SS ' + s.ss + '回' : '')
       : 'チームのHPが0になった…<br>WAVE ' + (battle.wave + 1) + ' / ' + curStage().waves.length + '・与ダメージ ' + s.damage;
     el.resultText.innerHTML += '<br><span class="gems">+' + rw.gems + '</span>' + (rw.first ? '（初回クリア）' : '') + '　所持 ' + rw.total;
@@ -5611,8 +5692,10 @@ window.MSArt = {
     else dl.hidden = true;
     D.stages.forEach(function (st, i) {
       var b = document.getElementById('stage-' + i);
-      if (b) b.classList.toggle('cleared', !!save.cleared['s' + i]);
+      if (b) b.classList.toggle('cleared', !!save.cleared['s' + i + (save.mode === 'hard' ? 'h' : '')]);
     });
+    document.getElementById('mode-normal').classList.toggle('on', save.mode !== 'hard');
+    document.getElementById('mode-hard').classList.toggle('on', save.mode === 'hard');
     game.phase = 'title';
     sound.music('title');
     updateHud();
@@ -5754,8 +5837,8 @@ window.MSArt = {
     document.getElementById('tab-strike').classList.toggle('on', kind === 'strike');
     document.getElementById('tab-puzzle').classList.toggle('on', kind === 'puzzle');
     document.getElementById('party-note').textContent = kind === 'puzzle'
-      ? 'パズルに出る6体です。左はしがリーダー（同じ属性の攻撃が1.5倍）。枠を選んでから、下の手持ちのキャラを選んでください。'
-      : 'モンストに出る5体です。左から撃つ順。枠を選んでから、下の手持ちのキャラを選んでください。';
+      ? 'パズルに出る6体です。左はしがリーダー（同じ属性の攻撃が1.5倍）。キャラを枠へドラッグすると入れられます。'
+      : 'モンストに出る5体です。左から撃つ順。キャラを枠へドラッグすると入れられます（枠どうしのドラッグで入れ替え）。';
     renderParty();
   }
   document.getElementById('tab-strike').addEventListener('click', function () { sound.tick(); setPartyKind('strike'); });
@@ -5808,6 +5891,75 @@ window.MSArt = {
       + (o.plus || 0) + (o.plus >= D.gacha.plusMax ? '（最大）' : ' → +' + ((o.plus || 0) + 1)) + '<small>（ストック ' + (o.stock || 0) + '）</small></button>');
     el.partyActions.innerHTML = acts.join('');
   }
+  // ---- ドラッグで入れ替え: 手持ち → 枠 に置くと入れる、枠 → 枠 で入れ替え（押しただけならいつものタップ）
+  var drag = null;
+  function dragStart(e) {
+    var src = e.target.closest('[data-slot], [data-unit]');
+    if (!src || src.disabled || (e.button !== undefined && e.button > 0)) return;
+    var fromSlot = src.dataset.slot != null;
+    drag = { id: src.dataset.unit || partyDraft[Number(src.dataset.slot)], from: fromSlot ? Number(src.dataset.slot) : null,
+      x: e.clientX, y: e.clientY, moved: false, ghost: null, over: null, pointer: e.pointerId, el: src,
+      // 指で手持ちを動かすときは長押し（0.25秒）してから。すぐ動かしたときは一覧のスクロール
+      ready: !(e.pointerType === 'touch' && !fromSlot) };
+    if (!drag.ready) {
+      var d0 = drag;
+      d0.timer = setTimeout(function () { if (drag === d0) { d0.ready = true; src.classList.add('hold'); if (navigator.vibrate) navigator.vibrate(15); } }, 250);
+    }
+  }
+  function dragMove(e) {
+    if (!drag || e.pointerId !== drag.pointer) return;
+    if (!drag.moved && Math.hypot(e.clientX - drag.x, e.clientY - drag.y) < 10) return;
+    if (!drag.ready) { clearTimeout(drag.timer); drag = null; return; }   // 長押しの前に動いた = スクロール
+    if (!drag.moved) {
+      drag.moved = true;
+      drag.ghost = document.createElement('div');
+      drag.ghost.className = 'drag-ghost';
+      drag.ghost.innerHTML = faceHtml(M.byId(D, drag.id));
+      document.body.appendChild(drag.ghost);
+    }
+    e.preventDefault();
+    drag.ghost.style.left = e.clientX + 'px';
+    drag.ghost.style.top = e.clientY + 'px';
+    var under = document.elementFromPoint(e.clientX, e.clientY), slot = under && under.closest('#party-slots [data-slot]');
+    if (drag.over && drag.over !== slot) drag.over.classList.remove('drop');
+    drag.over = slot;
+    if (slot) slot.classList.add('drop');
+  }
+  function dragEnd(e) {
+    if (!drag || e.pointerId !== drag.pointer) return;
+    var d = drag;
+    drag = null;
+    clearTimeout(d.timer);
+    if (d.el) d.el.classList.remove('hold');
+    if (!d.moved) return;   // 動かしていなければタップ（click が続く）
+    if (d.ghost) d.ghost.remove();
+    suppressClick = true;
+    setTimeout(function () { suppressClick = false; }, 0);
+    if (!d.over) { renderParty(); return; }
+    var to = Number(d.over.dataset.slot);
+    if (d.from !== null) {
+      var t = partyDraft[to]; partyDraft[to] = partyDraft[d.from]; partyDraft[d.from] = t;
+    } else {
+      var at = partyDraft.indexOf(d.id);
+      if (at >= 0) partyDraft[at] = partyDraft[to];
+      partyDraft[to] = d.id;
+    }
+    partySel = to; partyPreview = null; partySwap = false;
+    commitParty();
+    sound.tick();
+    renderParty();
+  }
+  var suppressClick = false;
+  el.party.addEventListener('pointerdown', dragStart);
+  window.addEventListener('pointermove', dragMove, { passive: false });
+  // ドラッグ中は画面がスクロールしないようにする（長押しで始めたあと）
+  document.addEventListener('touchmove', function (e) { if (drag && drag.ready) e.preventDefault(); }, { passive: false });
+  window.addEventListener('pointerup', dragEnd);
+  window.addEventListener('pointercancel', function (e) {
+    if (drag && e.pointerId === drag.pointer) { if (drag.ghost) drag.ghost.remove(); drag = null; renderParty(); }
+  });
+  el.party.addEventListener('click', function (e) { if (suppressClick) { e.stopPropagation(); e.preventDefault(); } }, true);
+
   function commitParty() {
     if (M.setParty(save, D, partyDraft, partyKind)) persist();
   }
@@ -5914,6 +6066,11 @@ window.MSArt = {
     el.stageList.appendChild(btn);
   });
   document.getElementById('btn-stages').addEventListener('click', showTitle);
+  ['normal', 'hard'].forEach(function (m) {
+    document.getElementById('mode-' + m).addEventListener('click', function () {
+      save.mode = m; persist(); sound.tick(); showTitle();
+    });
+  });
   el.sound.addEventListener('click', function () {
     var on = sound.toggle();
     el.sound.textContent = on ? '🔊' : '🔇';

@@ -157,3 +157,44 @@ test('ガチャ: コードは「開発者」だけジェムが無限になる', 
   await expect(page.locator('#pull-results .card')).toHaveCount(10);
   expect(errors).toEqual([]);
 });
+
+test('編成: 手持ちのキャラを枠へドラッグで入れる。枠どうしのドラッグで入れ替え', async ({ page }) => {
+  const errors = await boot(page);
+  await page.evaluate(() => { window.__ms.save.owned.K = { luck: 0, plus: 0, stock: 0 }; });
+  await page.locator('#btn-party').click();
+  const center = async (sel) => { const b = await page.locator(sel).boundingBox(); return { x: b.x + b.width / 2, y: b.y + b.height / 2 }; };
+  const dragTo = async (from, to) => {
+    await page.locator(from).scrollIntoViewIfNeeded();   // 下の手持ちへスクロールしても、枠は上に貼りついて見えている
+    const a = await center(from), b = await center(to);
+    await page.mouse.move(a.x, a.y); await page.mouse.down();
+    await page.mouse.move(b.x, b.y, { steps: 8 }); await page.mouse.up();
+  };
+  await dragTo('#party-owned [data-unit="K"]', '[data-slot="1"]');
+  await expect(page.locator('[data-slot="1"]')).toContainText('ルナ');
+  expect(await page.evaluate(() => window.__ms.save.party.join())).toBe('A,K,C,D,E');
+  await dragTo('[data-slot="0"]', '[data-slot="4"]');
+  expect(await page.evaluate(() => window.__ms.save.party.join())).toBe('E,K,C,D,A');
+  // 押しただけ（動かさない）はいつものタップ: 詳しい能力が出るだけ
+  await page.locator('#party-owned [data-unit="B"]').click();
+  await expect(page.locator('#party-detail')).toContainText('ブレイズ');
+  expect(await page.evaluate(() => window.__ms.save.party.join())).toBe('E,K,C,D,A');
+  expect(errors).toEqual([]);
+});
+
+test('モード: ハードを選ぶと敵の HP が大きく、報酬が2倍で、選んだモードは残る', async ({ page }) => {
+  const errors = await boot(page);
+  await page.locator('#mode-hard').click();
+  await expect(page.locator('#mode-hard')).toHaveClass(/on/);
+  await page.locator('#stage-0').click();
+  await page.waitForFunction(() => window.__ms.phase === 'ready');
+  const hp = await page.evaluate(() => window.__ms.battle.enemies[0].maxHp);
+  const base = await page.evaluate(() => window.MSData.stages[0].waves[0].enemies[0].hp);
+  expect(hp).toBeGreaterThan(base * 5);
+  expect(await page.evaluate(() => window.__ms.battle.stage.waves[0].items.length)).toBeGreaterThanOrEqual(2);
+  await page.reload();
+  await page.waitForFunction(() => window.__ms && window.__ms.phase === 'title');
+  await expect(page.locator('#mode-hard')).toHaveClass(/on/);
+  await page.locator('#mode-normal').click();
+  await expect(page.locator('#mode-normal')).toHaveClass(/on/);
+  expect(errors).toEqual([]);
+});
