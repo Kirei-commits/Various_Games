@@ -324,6 +324,7 @@
     this.sensing = {};    // 通過中の弱点（'相手id#弱点id'）
     this.fieldsIn = {};   // 中にいる重力バリアの id
     this.abilities = o.abilities || {};
+    this.baseAbilities = this.abilities;   // ゲージショットで足したぶんは止まったら元に戻す
     this.data = o.data || {};
   }
 
@@ -468,6 +469,14 @@
     b.traveled = 0;
     b.mods = mods || null;
     b.boosted = false;
+    // ゲージショット成功: このショットの間だけアビリティを足す
+    b.abilities = b.baseAbilities;
+    if (mods && mods.abilities) {
+      var merged = {}, k;
+      for (k in b.baseAbilities) merged[k] = b.baseAbilities[k];
+      for (k in mods.abilities) merged[k] = mods.abilities[k];
+      b.abilities = merged;
+    }
     b.overlaps = {};
     b.sensing = {};
     b.fieldsIn = {};
@@ -478,6 +487,7 @@
   /**
    * 引っぱり量で弾く。引きが足りなければ null（ターンを消費しない）。
    * mods: { speed: 初速の倍率, friction: このショットの摩擦の倍率 }（SS）
+   *       abilities: このショットの間だけ足すアビリティ（ゲージショット）
    */
   World.prototype.launch = function (id, pullDx, pullDy, mods) {
     var v = launchVelocity(this.cfg, pullDx, pullDy);
@@ -727,6 +737,7 @@
     b.sensing = {};
     b.fieldsIn = {};
     b.mods = null;
+    b.abilities = b.baseAbilities;
     this._resolve(b);
     this._emit('stop', b, { traveled: b.traveled });
   };
@@ -740,7 +751,8 @@
     w.slowWalls = this.slowWalls;
     for (var i = 0; i < this.bodies.length; i++) {
       var s = this.bodies[i];
-      var b = new Body({ id: s.id, kind: s.kind, shot: s.shot, shape: s.shape, x: s.x, y: s.y, r: s.r, w: s.w, h: s.h, sensors: s.sensors, parts: s.parts, abilities: s.abilities });
+      var b = new Body({ id: s.id, kind: s.kind, shot: s.shot, shape: s.shape, x: s.x, y: s.y, r: s.r, w: s.w, h: s.h, sensors: s.sensors, parts: s.parts, abilities: s.baseAbilities });
+      b.abilities = s.abilities;
       b.vx = s.vx; b.vy = s.vy; b.moving = s.moving; b.traveled = s.traveled;
       b.mods = s.mods; b.boosted = s.boosted;
       for (var k in s.overlaps) b.overlaps[k] = true;
@@ -818,6 +830,7 @@
   var MINE_SWEEP = 1.5;      // マインスイーパー: 地雷をまとって最初に当てた1回
   var MINE_MAX = 4;          // まとえる地雷の数
   var DW_BOOST = 1.3;        // 超アンチダメージウォール: 触れたショットの攻撃力
+  var GAUGE = 1.2;           // ゲージショット成功: そのショットの直殴り
   var STATUS_SHOTS = 2;      // ひよこ・剣が続く長さ（そのキャラの endTurn の回数。踏んだショット＋次の1ショット）
   var HEART_GROW = 2;        // ハートが育つターン数（小 → 大 → 金）
 
@@ -856,7 +869,8 @@
     this.us = {};             // キャラごとの状態（SSの残り・ひよこ・剣・まとった地雷）
     data.units.forEach(function (u) {
       self.units[u.id] = { id: u.id, atk: u.atk, shot: u.shot, combo: u.combo || null, abilities: abilityMap(u.abilities),
-        element: u.element || null, killers: u.killers || [], resist: u.resist || [], hp: u.hp || 0, ss: u.ss || null };
+        element: u.element || null, killers: u.killers || [], resist: u.resist || [], hp: u.hp || 0, ss: u.ss || null,
+        gauge: abilityMap(u.gauge) };
       self.us[u.id] = { ssLeft: u.ss ? u.ss.turns : 0, chick: 0, sword: 0, mines: 0 };
     });
     this.shot = null;         // いまのショット { unit, ss, touched, dwBoost, stopped }（beginShot で始まり endTurn で終わる）
@@ -873,7 +887,7 @@
     this.enemies = [];
     this.state = 'playing';   // playing | won | lost
     this.stats = { damage: 0, hits: 0, weak: 0, kills: 0, combos: 0, dwHits: 0, dwBlocked: 0, gravity: 0, gravityBlocked: 0,
-      ss: 0, mines: 0, minesCollected: 0, minesBlocked: 0, warps: 0, magic: 0, slow: 0, items: 0, healed: 0 };
+      ss: 0, gauge: 0, mines: 0, minesCollected: 0, minesBlocked: 0, warps: 0, magic: 0, slow: 0, items: 0, healed: 0 };
     this.comboFired = {};     // このターンに友情コンボを出した味方（1ショット1回）
     this.combos = [];         // 発動した友情コンボ（演出用。drainCombos() で受け取る）
     this.hazards = [];        // ギミックに触れた記録（演出用。drainHazards() で受け取る）
@@ -891,6 +905,7 @@
   Battle.MINE_SWEEP = MINE_SWEEP;
   Battle.MINE_MAX = MINE_MAX;
   Battle.DW_BOOST = DW_BOOST;
+  Battle.GAUGE = GAUGE;
   Battle.elementRate = elementRate;
 
   /** ['antiDamageWall'] → { antiDamageWall: true } */
@@ -980,13 +995,28 @@
    * ショットの始まり。useSS なら SS を使い、残りターンを元に戻す。
    * 返り値は物理に渡す補正（World.launch の mods）。SS でなければ null。
    */
-  Battle.prototype.beginShot = function (id, useSS) {
+  Battle.prototype.beginShot = function (id, useSS, gauge) {
     var ss = useSS && this.ssReady(id) ? this.units[id].ss : null;
-    this.shot = { unit: id, ss: ss, touched: {}, dwBoost: false, stopped: false };
-    if (!ss) return null;
-    this.us[id].ssLeft = ss.turns;
-    this.stats.ss++;
-    return ss.launch || null;
+    var u = this.units[id], gaugeOk = !!gauge;
+    this.shot = { unit: id, ss: ss, gauge: gaugeOk, touched: {}, dwBoost: false, stopped: false };
+    if (gaugeOk) this.stats.gauge++;
+    if (ss) { this.us[id].ssLeft = ss.turns; this.stats.ss++; }
+    var mods = null, k;
+    if (ss && ss.launch) { mods = {}; for (k in ss.launch) mods[k] = ss.launch[k]; }
+    // ゲージアビリティのうち、動きに効くもの（物理が見るもの）を物理にも渡す
+    if (gaugeOk && u && Object.keys(u.gauge).length) {
+      mods = mods || {};
+      mods.abilities = {};
+      for (k in u.gauge) mods.abilities[k] = true;
+    }
+    return mods;
+  };
+
+  /** アビリティを持っているか（ゲージショットに成功したショットの間は、ゲージアビリティも持っている） */
+  Battle.prototype.has = function (u, name) {
+    if (u.abilities[name]) return true;
+    var sh = this.shot;
+    return !!(sh && sh.unit === u.id && sh.gauge && u.gauge[name]);
   };
 
   Battle.prototype.enemy = function (id) {
@@ -1025,7 +1055,7 @@
       var u = this.units[ev.id];
       if (!u) continue;
       // beginShot を呼ばずに撃った（テストの小さな戦場など）ときは、最初に動いたキャラをショットの主にする
-      if (!this.shot) this.shot = { unit: ev.id, ss: null, touched: {}, dwBoost: false, stopped: false };
+      if (!this.shot) this.shot = { unit: ev.id, ss: null, gauge: false, touched: {}, dwBoost: false, stopped: false };
       if ((ev.type === 'hit' || ev.type === 'pierce') && this.units[ev.other]) {
         this._touchAlly(u, ev.other);
         this._combo(ev.other, ev.id, world, out);
@@ -1086,9 +1116,9 @@
     for (var i = 0; i < this.damageWalls.length; i++) {
       var dw = this.damageWalls[i];
       if (dw.side !== ws.side || ws.at < dw.from || ws.at > dw.to) continue;
-      var sup = !!u.abilities.superAntiDamageWall;
+      var sup = this.has(u, 'superAntiDamageWall');
       var h = { kind: 'dw', unit: u.id, x: ev.x - ev.nx * 30, y: ev.y - ev.ny * 30, nx: ev.nx, ny: ev.ny,
-        blocked: !!u.abilities.antiDamageWall || sup, boost: false, damage: 0 };
+        blocked: this.has(u, 'antiDamageWall') || sup, boost: false, damage: 0 };
       if (h.blocked) {
         this.stats.dwBlocked++;
         // 超アンチダメージウォール: 触れたショットの間、攻撃力アップ（1ショット1回）
@@ -1110,7 +1140,7 @@
     var sh = this.shot;
     if (!sh || sh.unit !== u.id || sh.touched[otherId]) return;
     sh.touched[otherId] = true;
-    if (u.abilities.ssAccel && u.ss) {
+    if (this.has(u, 'ssAccel') && u.ss) {
       var st = this.us[u.id];
       if (st.ssLeft > 0) { st.ssLeft--; this.hazards.push({ kind: 'ssAccel', unit: u.id, left: st.ssLeft }); }
     }
@@ -1190,8 +1220,9 @@
     if (el !== 1) rates.push({ kind: el > 1 ? 'adv' : 'dis', rate: el });
     var k = killerRate(u.killers, e.def);
     if (k !== 1) rates.push({ kind: 'killer', rate: k });
-    if (u.abilities.lastStand && this.teamHp * 2 < this.teamHpMax) rates.push({ kind: 'lastStand', rate: LAST_STAND });
+    if (this.has(u, 'lastStand') && this.teamHp * 2 < this.teamHpMax) rates.push({ kind: 'lastStand', rate: LAST_STAND });
     var sh = this.shot && this.shot.unit === u.id ? this.shot : null;
+    if (sh && sh.gauge) rates.push({ kind: 'gauge', rate: GAUGE });
     if (sh && sh.ss && sh.ss.atk && sh.ss.atk !== 1) rates.push({ kind: 'ss', rate: sh.ss.atk });
     if (sh && sh.dwBoost) rates.push({ kind: 'dwBoost', rate: DW_BOOST });
     var st = this.us[u.id];
@@ -1469,7 +1500,7 @@
       var st = this.us[uid];
       b.us[uid] = { ssLeft: st.ssLeft, chick: st.chick, sword: st.sword, mines: st.mines };
     }
-    b.shot = this.shot ? { unit: this.shot.unit, ss: this.shot.ss, dwBoost: this.shot.dwBoost, stopped: this.shot.stopped, touched: {} } : null;
+    b.shot = this.shot ? { unit: this.shot.unit, ss: this.shot.ss, gauge: this.shot.gauge, dwBoost: this.shot.dwBoost, stopped: this.shot.stopped, touched: {} } : null;
     if (this.shot) for (var tk in this.shot.touched) b.shot.touched[tk] = true;
     b.items = this.items.slice();
     b.blocks = this.blocks;
@@ -1518,6 +1549,7 @@
    *            'antiWarp' / 'antiBlock' / 'antiMagic' / 'antiSlow'（それぞれのギミックを無効）
    *            'flying'（地雷を避ける） / 'mineSweeper'（地雷を回収し、次に当てた1回が1.5倍）
    *            'ssAccel'（SSターン短縮: 触れた味方1体につき自分のSSが1ターン縮む）
+   * gauge    : ゲージアビリティ。ゲージショットに成功したショットの間だけ付く（攻撃力も1.2倍）
    * killers  : [{ race | element, rank }]。rank は S / N（無印）/ M / L / EL
    * resist   : [{ element, rank }]。その属性の敵の攻撃を N 25% / M 50% 減らす
    * title    : ガチャや編成で見せる名前 / rarity: レア度（★3〜★5）
@@ -1528,20 +1560,20 @@
    */
   var units = [
     { id: 'A', name: 'A', title: 'アクア', rarity: 4, shot: 'reflect', element: 'water', atk: 1500, hp: 8800, x: 90, y: 690, r: 30,
-      colors: ['#c9fbff', '#39b8ff', '#0b3f8a'], accent: '#3cc8ff', abilities: ['superAntiDamageWall', 'antiWarp'],
+      colors: ['#c9fbff', '#39b8ff', '#0b3f8a'], accent: '#3cc8ff', gauge: ['antiGravity'], abilities: ['superAntiDamageWall', 'antiWarp'],
       combo: { kind: 'homing', name: 'ホーミング', count: 6, power: 500 },
       ss: { name: 'ブースト', turns: 8, launch: { speed: 1.35, friction: 0.55 } } },
     { id: 'B', name: 'B', title: 'ブレイズ', rarity: 5, shot: 'pierce', element: 'fire', atk: 1800, hp: 8200, x: 210, y: 715, r: 30,
-      colors: ['#ffe7b8', '#ff7a45', '#8a1f14'], accent: '#ff7a45', abilities: ['superAntiGravity'],
+      colors: ['#ffe7b8', '#ff7a45', '#8a1f14'], accent: '#ff7a45', gauge: ['antiDamageWall'], abilities: ['superAntiGravity'],
       killers: [{ race: 'dragon', rank: 'N' }],
       combo: { kind: 'laser', name: 'クロスレーザー', element: 'fire', power: 1800, width: 34 },
       ss: { name: '全力貫通', turns: 13, atk: 1.9 } },
     { id: 'C', name: 'C', title: 'シルバ', rarity: 4, shot: 'reflect', element: 'wood', atk: 1300, hp: 9400, x: 330, y: 690, r: 30,
-      colors: ['#e6ffc2', '#62c83a', '#1f5a0c'], accent: '#8ee05a', abilities: ['lastStand', 'ssAccel', 'antiBlock'],
+      colors: ['#e6ffc2', '#62c83a', '#1f5a0c'], accent: '#8ee05a', gauge: ['antiWarp'], abilities: ['lastStand', 'ssAccel', 'antiBlock'],
       combo: { kind: 'blast', name: '爆発', power: 2500, radius: 150 },
       ss: { name: 'メテオ', turns: 14, onStop: { kind: 'blast', power: 3600, radius: 210 } } },
     { id: 'D', name: 'D', title: 'ルクス', rarity: 4, shot: 'pierce', element: 'light', atk: 1400, hp: 7600, x: 450, y: 715, r: 30,
-      colors: ['#fffbe0', '#f5d63e', '#8a6a06'], accent: '#ffe066', abilities: ['mineSweeper', 'antiMagic'],
+      colors: ['#fffbe0', '#f5d63e', '#8a6a06'], accent: '#ffe066', gauge: ['antiBlock'], abilities: ['mineSweeper', 'antiMagic'],
       resist: [{ element: 'dark', rank: 'N' }],
       combo: { kind: 'spread', name: '拡散弾', count: 8, power: 700, range: 420 },
       ss: { name: '仲間呼び', turns: 11, launch: { speed: 1.15 }, comboTwice: true } }
@@ -1553,38 +1585,38 @@
    */
   var recruits = [
     { id: 'E', name: 'E', title: 'ホムラ', rarity: 3, shot: 'reflect', element: 'fire', atk: 1250, hp: 7800, r: 30,
-      colors: ['#ffd9c2', '#ff6a3c', '#7a1a08'], accent: '#ff8a5c', abilities: ['antiGravity'],
+      colors: ['#ffd9c2', '#ff6a3c', '#7a1a08'], accent: '#ff8a5c', gauge: ['antiDamageWall'], abilities: ['antiGravity'],
       combo: { kind: 'homing', name: 'ホーミング', element: 'fire', count: 4, power: 450 },
       ss: { name: '火走り', turns: 12, atk: 1.5 } },
     { id: 'F', name: 'F', title: 'シズク', rarity: 3, shot: 'pierce', element: 'water', atk: 1350, hp: 7600, r: 30,
-      colors: ['#d6f4ff', '#3aa8e8', '#0a3a66'], accent: '#5cc4ff', abilities: ['antiDamageWall'],
+      colors: ['#d6f4ff', '#3aa8e8', '#0a3a66'], accent: '#5cc4ff', gauge: ['antiGravity'], abilities: ['antiDamageWall'],
       combo: { kind: 'laser', name: 'クロスレーザー', element: 'water', power: 1400, width: 30 },
       ss: { name: '水鉄砲', turns: 13, atk: 1.6 } },
     { id: 'G', name: 'G', title: 'コダマ', rarity: 3, shot: 'pierce', element: 'wood', atk: 1200, hp: 8200, r: 30,
-      colors: ['#e2ffd0', '#4fbf4a', '#15500f'], accent: '#7ee06a', abilities: ['flying'],
+      colors: ['#e2ffd0', '#4fbf4a', '#15500f'], accent: '#7ee06a', gauge: ['antiMagic'], abilities: ['flying'],
       combo: { kind: 'spread', name: '拡散弾', count: 6, power: 600, range: 380 },
       ss: { name: '木霊', turns: 14, onStop: { kind: 'blast', power: 2500, radius: 180 } } },
     { id: 'H', name: 'H', title: 'ヒカリ', rarity: 3, shot: 'reflect', element: 'light', atk: 1200, hp: 7900, r: 30,
-      colors: ['#fffbe8', '#ffe27a', '#8a7206'], accent: '#fff08a', abilities: ['antiWarp'],
+      colors: ['#fffbe8', '#ffe27a', '#8a7206'], accent: '#fff08a', gauge: ['antiBlock'], abilities: ['antiWarp'],
       combo: { kind: 'blast', name: '爆発', power: 2000, radius: 130 },
       ss: { name: '閃光', turns: 11, launch: { speed: 1.3 } } },
     { id: 'I', name: 'I', title: 'ヨル', rarity: 4, shot: 'reflect', element: 'dark', atk: 1450, hp: 8400, r: 30,
-      colors: ['#eadcff', '#8a4ae8', '#2c0f5c'], accent: '#b58cff', abilities: ['mineSweeper', 'antiSlow'],
+      colors: ['#eadcff', '#8a4ae8', '#2c0f5c'], accent: '#b58cff', gauge: ['antiWarp'], abilities: ['mineSweeper', 'antiSlow'],
       killers: [{ element: 'light', rank: 'N' }],
       combo: { kind: 'homing', name: 'ホーミング', element: 'dark', count: 6, power: 550 },
       ss: { name: '影呼び', turns: 12, comboTwice: true } },
     { id: 'J', name: 'J', title: 'グレン', rarity: 4, shot: 'pierce', element: 'fire', atk: 1650, hp: 8300, r: 30,
-      colors: ['#ffe0c8', '#e8481c', '#6a1204'], accent: '#ff6a3c', abilities: ['superAntiGravity', 'antiBlock'],
+      colors: ['#ffe0c8', '#e8481c', '#6a1204'], accent: '#ff6a3c', gauge: ['antiMagic'], abilities: ['superAntiGravity', 'antiBlock'],
       killers: [{ race: 'golem', rank: 'M' }],
       combo: { kind: 'laser', name: 'クロスレーザー', element: 'fire', power: 2000, width: 40 },
       ss: { name: '紅蓮突き', turns: 14, atk: 2.0 } },
     { id: 'K', name: 'K', title: 'ルナ', rarity: 5, shot: 'pierce', element: 'dark', atk: 1750, hp: 9000, r: 30,
-      colors: ['#f0e0ff', '#6a2ad0', '#1e0648'], accent: '#c49cff', abilities: ['superAntiDamageWall', 'antiMagic', 'mineSweeper'],
+      colors: ['#f0e0ff', '#6a2ad0', '#1e0648'], accent: '#c49cff', gauge: ['antiWarp'], abilities: ['superAntiDamageWall', 'antiMagic', 'mineSweeper'],
       killers: [{ race: 'beast', rank: 'M' }],
       combo: { kind: 'spread', name: '拡散弾', element: 'dark', count: 10, power: 800, range: 460 },
       ss: { name: '月落とし', turns: 16, onStop: { kind: 'blast', power: 4500, radius: 230 } } },
     { id: 'L', name: 'L', title: 'ソレイユ', rarity: 5, shot: 'reflect', element: 'light', atk: 1700, hp: 9300, r: 30,
-      colors: ['#fffce0', '#ffc83c', '#8a5a06'], accent: '#ffd65c', abilities: ['superAntiGravity', 'antiWarp', 'lastStand'],
+      colors: ['#fffce0', '#ffc83c', '#8a5a06'], accent: '#ffd65c', gauge: ['antiMagic'], abilities: ['superAntiGravity', 'antiWarp', 'lastStand'],
       killers: [{ element: 'dark', rank: 'N' }],
       combo: { kind: 'blast', name: '大爆発', element: 'light', power: 3200, radius: 170 },
       ss: { name: '日輪', turns: 15, launch: { speed: 1.4, friction: 0.5 }, atk: 1.3 } }
@@ -1650,7 +1682,7 @@
         // 翼にも当たり判定がある（本体の円＋左右2つずつの円）
         { id: 'w2-dragon', name: 'レッドドラゴン', element: 'fire', race: 'dragon', boss: true, look: 'dragon', shape: 'compound', x: 270, y: 250, r: 84,
           parts: [{ dx: 0, dy: 0, r: 84 }, { dx: -112, dy: -12, r: 34 }, { dx: 112, dy: -12, r: 34 }, { dx: -138, dy: -56, r: 22 }, { dx: 138, dy: -56, r: 22 }],
-          hp: 75000, atk: 6900, turns: 3, attack: 'all', weak: [{ id: 'belly', dx: 0, dy: 84, r: 22 }] },
+          hp: 88000, atk: 6900, turns: 3, attack: 'all', weak: [{ id: 'belly', dx: 0, dy: 84, r: 22 }] },
         { id: 'w2-bat-l', name: 'コウモリ', element: 'dark', race: 'beast', look: 'slime', colors: BAT, shape: 'circle', x: 100, y: 470, r: 32,
           hp: 5000, atk: 1725, turns: 2, attack: 'single' },
         { id: 'w2-bat-r', name: 'コウモリ', element: 'dark', race: 'beast', look: 'slime', colors: BAT, shape: 'circle', x: 440, y: 470, r: 32,
@@ -1903,6 +1935,7 @@
   var RACE = { dragon: '竜', slime: 'スライム', golem: 'ゴーレム', beast: '魔獣' };
   var RATE_TAG = { adv: { text: '有利', color: '#9dffb0' }, dis: { text: '不利', color: '#9aa7c7' },
     killer: { text: 'キラー', color: '#ff9ad5' }, lastStand: { text: '底力', color: '#ff8a65' },
+    gauge: { text: 'ゲージ', color: '#ffd23f' },
     ss: { text: 'SS', color: '#ffd166' }, dwBoost: { text: '攻撃UP', color: '#ffe066' }, sword: { text: '剣', color: '#e0e8ff' },
     mine: { text: 'MS', color: '#ff9a6b' }, chick: { text: 'ひよこ', color: '#fff27a' } };
 
@@ -2237,6 +2270,7 @@
       heal: function () { [880, 1175, 1568].forEach(function (f, i) { tone(f, f, 0.14, 'triangle', 0.08, i * 0.06); }); },
       chick: function () { tone(1800, 2400, 0.06, 'square', 0.05); tone(1800, 2400, 0.06, 'square', 0.05, 0.1); },
       tick: function () { tone(1200, 1000, 0.03, 'sine', 0.04); },
+      gauge: function () { tone(988, 1976, 0.12, 'square', 0.06); tone(1319, 2637, 0.14, 'triangle', 0.06, 0.06); },
       stop: function () { tone(330, 300, 0.1, 'sine', 0.05); }
     };
   })();
@@ -2286,7 +2320,7 @@
     var p = toWorld(e);
     var hit = unitAt(p);
     if (hit >= 0 && hit !== game.active) { game.active = hit; game.ssArmed = false; updateHud(); sound.tick(); }
-    pull = { pointerId: e.pointerId, sx: p.x, sy: p.y, dx: 0, dy: 0, aim: null };
+    pull = { pointerId: e.pointerId, sx: p.x, sy: p.y, dx: 0, dy: 0, aim: null, t0: performance.now(), gaugeOk: false };
     try { canvas.setPointerCapture(e.pointerId); } catch (err) { /* 合成イベントでは失敗することがある */ }
     game.phase = 'pulling';
     canvas.classList.add('pulling');
@@ -2313,8 +2347,51 @@
 
   /** SS ボタンが押されていれば、その SS の物理の補正（予測軌道と本番で同じものを使う） */
   function armedMods() {
-    var u = activeUnit();
-    return game.ssArmed && u.def.ss ? u.def.ss.launch || null : null;
+    var u = activeUnit(), m = null, k;
+    if (game.ssArmed && u.def.ss && u.def.ss.launch) { m = {}; for (k in u.def.ss.launch) m[k] = u.def.ss.launch[k]; }
+    // ゲージが成功の範囲にあるときは、ゲージアビリティも足した動きを予測する（離した瞬間と同じ）
+    if (pull && pull.gaugeOk && u.def.gauge && u.def.gauge.length) {
+      m = m || {};
+      m.abilities = {};
+      u.def.gauge.forEach(function (a) { m.abilities[a] = true; });
+    }
+    return m;
+  }
+
+  // ---------------------------------------------------------------- ゲージショット
+  //（引っぱっている間ゲージが行き来し、右端の金色の範囲で離すと成功）
+  var GAUGE_PERIOD = 1100, GAUGE_OK = 0.85;
+  function gaugeValue(now) {
+    if (!pull) return 0;
+    var f = ((now - pull.t0) % GAUGE_PERIOD) / GAUGE_PERIOD;
+    return 1 - Math.abs(f * 2 - 1);   // 0 → 1 → 0
+  }
+  /** 毎フレーム: 成功の範囲に出入りしたら予測軌道を引き直す */
+  function updateGauge(now) {
+    if (!pull) return;
+    var ok = gaugeValue(now) >= GAUGE_OK;
+    if (ok !== pull.gaugeOk) { pull.gaugeOk = ok; if (pull.aim) updateAim(); }
+  }
+  function drawGauge(u, now) {
+    var v = gaugeValue(now), ok = v >= GAUGE_OK, b = u.body;
+    var w = 76, h = 11, x = b.x - w / 2, y = b.y - b.r - 36;
+    ctx.fillStyle = 'rgba(29,43,83,.85)';
+    roundRect(ctx, x - 3, y - 3, w + 6, h + 6, 8); ctx.fill();
+    ctx.fillStyle = 'rgba(255,198,41,.45)';
+    ctx.fillRect(x + w * GAUGE_OK, y, w * (1 - GAUGE_OK), h);
+    var g = ctx.createLinearGradient(x, 0, x + w, 0);
+    g.addColorStop(0, '#7df0ff'); g.addColorStop(0.7, '#3cc8ff'); g.addColorStop(1, '#ffd23f');
+    ctx.fillStyle = ok ? '#ffd23f' : g;
+    roundRect(ctx, x, y, Math.max(4, w * v), h, 5); ctx.fill();
+    ctx.strokeStyle = ok ? '#fff' : 'rgba(255,255,255,.6)'; ctx.lineWidth = ok ? 2.5 : 1.5;
+    roundRect(ctx, x, y, w, h, 5); ctx.stroke();
+    ctx.font = '900 10px ' + '"Hiragino Maru Gothic ProN","Hiragino Sans","Noto Sans JP",system-ui,sans-serif';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
+    ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(29,43,83,.9)';
+    var label = ok ? 'GAUGE OK!' : 'GAUGE';
+    ctx.strokeText(label, b.x, y - 4);
+    ctx.fillStyle = ok ? '#ffd23f' : '#ffffff';
+    ctx.fillText(label, b.x, y - 4);
   }
 
   function updateAim() {
@@ -2331,14 +2408,21 @@
   function release() {
     var u = activeUnit();
     var v = null, useSS = false;
+    var gaugeOk = gaugeValue(performance.now()) >= GAUGE_OK;
     if (P.launchVelocity(world.cfg, pull.dx, pull.dy)) {
       useSS = game.ssArmed && battle.ssReady(u.def.id);
-      v = world.launch(u.def.id, pull.dx, pull.dy, battle.beginShot(u.def.id, useSS));
+      v = world.launch(u.def.id, pull.dx, pull.dy, battle.beginShot(u.def.id, useSS, gaugeOk));
       game.ssArmed = false;
     }
     try { canvas.releasePointerCapture(pull.pointerId); } catch (err) { /* 既に外れている */ }
     pull = null;
     canvas.classList.remove('pulling');
+    if (v && gaugeOk) {
+      var gnames = (u.def.gauge || []).map(function (a) { return ABILITY[a].short; }).join(' ');
+      floatText(u.body.x, u.body.y - u.body.r - 20, 'GAUGE OK!' + (gnames ? ' ' + gnames : ''), '#ffd23f', 17, 1.1);
+      ring(u.body.x, u.body.y, 56, '#ffd23f');
+      sound.gauge();
+    }
     if (useSS) {
       floatText(u.body.x, u.body.y - u.body.r - 40, 'SS ' + u.def.ss.name + '!', '#ffd166', 24, 1.2);
       ring(u.body.x, u.body.y, 70, '#ffd166');
@@ -2869,6 +2953,7 @@
 
   // ---------------------------------------------------------------- 進行
   function update(dt) {
+    updateGauge(performance.now());
     var sdt = dt * game.timeScale;
     if (game.phase === 'moving') {
       if (fx.hitStop > 0) {
@@ -3090,7 +3175,7 @@
     var help;
     if (game.phase === 'pulling') help = game.ssArmed && u.def.ss
       ? '<b>SS「' + u.def.ss.name + '」</b>で撃ちます。<b>離すと発射</b>、引きを戻すとキャンセル。'
-      : '<b>離すと発射</b>。遠くまで引くほど強く、引きを戻すとキャンセル。';
+      : '<b>離すと発射</b>。ゲージが<b>金色の所</b>で離すと攻撃力UP＋ゲージアビリティ。引きを戻すとキャンセル。';
     else if (game.phase === 'moving' || game.phase === 'settling') help = game.mover && game.mover.def.shot === 'pierce'
       ? '貫通タイプは敵を<b>すり抜けて</b>、そのたびに大きく減速します。'
       : '反射タイプは敵と壁の間で<b>何度も跳ね返る</b>と大ダメージ。';
@@ -3303,6 +3388,7 @@
     drawCombos();
     if (game.attack) drawAttack(game.attack);
     if (pull) drawPullOrigin(pull);
+    if (pull && game.phase === 'pulling') drawGauge(activeUnit(), now);
     drawFx();
     drawBossBar(alive);
     drawCombo();
@@ -4039,6 +4125,8 @@
     get active() { return activeUnit().def.id; },
     get shownHp() { return shownHp; },
     get ssArmed() { return game.ssArmed; },
+    /** 引っぱり中のゲージ（0〜1）と、成功の範囲にいるか */
+    get gauge() { return pull ? { value: gaugeValue(performance.now()), ok: pull.gaugeOk } : null; },
     get stage() { return stageIndex; },
     get music() { return sound.track; },
     get save() { return save; },

@@ -143,6 +143,15 @@ HTML コメントの中にスクリプトの開始タグをそのまま書かな
    それ以降の `apply()` は何もしない。`endTurn()` は `{ type: 'lost', attacks: [] }` を返す。
 6. 自動プレイの評価は、ダメージウォールで失ったHPを減点する（しないと上手なプレイヤーが壁を踏み続ける）。
 
+## ゲージショットの約束ごと
+
+1. 引っぱっている間ゲージが 0→1→0 と行き来する（`GAUGE_PERIOD` 1.1秒）。`GAUGE_OK`（0.85）以上で離すと成功。
+   **時間は画面（ms-game）だけが測る。** 戦闘は `beginShot(id, useSS, gaugeOk)` で結果だけ受け取る。
+2. 成功したショットの間だけ、直殴りが `GAUGE`（1.2倍、倍率の種類は `gauge`）になり、キャラの `gauge` の
+   アビリティが付く。戦闘のアビリティは `Battle.has(u, name)` で見る（`u.abilities[name]` を直接見ない）。
+   物理のアビリティは `mods.abilities` で渡し、止まったら `Body.baseAbilities` に戻る。
+3. 自動プレイの bot は greedy が毎回、casual が半分、random が2割成功する想定（`gaugeRate`）。
+
 ## テスト
 
 ```bash
