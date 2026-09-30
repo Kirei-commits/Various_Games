@@ -31,6 +31,7 @@ import {
   plusOf,
   skillCost,
   defendMp,
+  mpRegen,
   ENEMY,
   PLUS_EXP,
   enhanceCost,
@@ -180,16 +181,16 @@ test("装備: 持っていない単語は付けられない。同じ単語はほ
   assert.equal(Object.keys(auto.quest.equip).length, 7);
 });
 
-test("冒険の報酬はバトル（エンドレス）と同じ水準: 100〜300pt ＋ 3階ごとのレベルボーナス、レアチケット", () => {
+test("冒険の報酬はバトル（エンドレス）と同じ水準: 300〜900pt ＋ 3階ごとのレベルボーナス、レアチケット", () => {
   const s = freshState();
   const run = { ...createRun(statsOf(s.quest, cards, {}), 1, fixed(0.5)), expGained: 100, bestFloor: 6, cleared: 6, over: true };
-  // 2分 = 120pt × (1 + 最高記録 0.3) = 156 → 160、レベル3（6階）のボーナス 150、チケット2枚
-  assert.deepEqual(questReward(run, 120, s.quest), { points: 310, tickets: 2, levelBonus: 150, newBest: true });
+  // 2分 = 360pt × (1 + 最高記録 0.3) = 468 → 470、レベル3（6階）のボーナス 450、チケット2枚
+  assert.deepEqual(questReward(run, 120, s.quest), { points: 920, tickets: 2, levelBonus: 450, newBest: true });
   const { state, reward } = applyQuest(s, run, 120, 0);
   assert.equal(state.quest.best, 6);
   assert.ok(state.quest.level > 1);
-  assert.equal(reward.points, 310);
-  assert.equal(state.gacha.points, s.gacha.points + 310);
+  assert.equal(reward.points, 920);
+  assert.equal(state.gacha.points, s.gacha.points + 920);
   assert.equal(state.gacha.tickets, s.gacha.tickets + 2);
   // 2階しか倒さなければ時間ぶんだけ
   assert.deepEqual(questReward({ ...run, cleared: 2 }, 30, s.quest).tickets, 0);
@@ -214,13 +215,13 @@ test("宝箱: ボスの階ごとに中身が決まり、序盤は強い単語が
   assert.ok(deep.has("SSR") && !deep.has("N"), [...deep].join(","));
   // 乱数 0 → 単語（45% の枠）・N
   const items = rollChest(5, words, () => 0);
-  assert.deepEqual(items, [{ kind: "points", amount: 30 }, { kind: "word", id: "w-n", rarity: "N" }]);
+  assert.deepEqual(items, [{ kind: "points", amount: 90 }, { kind: "word", id: "w-n", rarity: "N" }]);
   // 持ち帰り
   const s = freshState();
   const run = openChest({ ...createRun(statsOf(s.quest, cards, {}), 5, fixed(0.5)), bestFloor: 5, cleared: 1 }, words, () => 0);
   const { state, reward } = applyQuest(s, run, 10, 0);
   assert.equal(state.gacha.cards["w-n"], 1);
-  assert.equal(reward.loot.points, 30);
+  assert.equal(reward.loot.points, 90);
   assert.deepEqual(reward.words.map((w) => w.id), ["w-n"]);
 });
 
@@ -305,15 +306,17 @@ test("SSR の装備には属性ごとの特製の呪文が付く（ブリザー�
   assert.equal(act(run, stats, "skill", { id: "w", correct: true }, fixed(0.5), "dark").error, "その呪文は使えない！");
 });
 
-test("呪文の MP は最大 MP に比例して重く、満タンから連発できない。ぼうぎょで最大 MP の1割がたまる", () => {
+test("呪文の MP は最大 MP に比例して重く、満タンから連発できない。毎ターン少しずつ戻り、ぼうぎょで最大 MP の1割がたまる", () => {
   for (const maxMp of [12, 50, 150, 400]) {
     const cost = skillCost(SKILLS.fire, maxMp);
-    assert.ok(cost >= SKILLS.fire.mp && cost >= maxMp * 0.3, `${maxMp}: ${cost}`);
-    assert.ok(Math.floor(maxMp / cost) <= 3, `最大 MP ${maxMp} でも満タンから3回まで`);
+    assert.ok(cost >= SKILLS.fire.mp && cost >= maxMp * 0.2, `${maxMp}: ${cost}`);
+    assert.ok(Math.floor(maxMp / cost) <= 4, `最大 MP ${maxMp} でも満タンから4回まで`);
   }
   assert.ok(skillCost({ ...SKILLS.fire, ultimate: true }, 100) > skillCost(SKILLS.fire, 100), "極の呪文はさらに重い");
   assert.equal(defendMp(10), 3);
   assert.equal(defendMp(200), 20);
+  assert.equal(mpRegen(10), 1);
+  assert.equal(mpRegen(200), 8);
   // statsOf の呪文の mp は最大 MP から計算した値
   const q = { ...initialQuest(), equip: { ...initialQuest().equip, weapon: "blaze" } };
   const s = statsOf(q, cards, { blaze: 1 });
@@ -321,6 +324,11 @@ test("呪文の MP は最大 MP に比例して重く、満タンから連発で
   // 足りなければ撃てない
   const run = { ...createRun(s, 1, fixed(0.5)), mp: s.skills[0].mp - 1 };
   assert.equal(act(run, s, "skill", { id: "w", correct: true }, fixed(0.5), s.skills[0].id).error, "MPがたりない！");
+  // こうげきしたターンの終わりに MP が戻る（最大は超えない）
+  const tough = { ...run, enemy: { ...run.enemy, hp: 9999, maxHp: 9999 } };
+  const after = act(tough, { ...s, evade: 100 }, "attack", { id: "w", correct: true }, fixed(0.5));
+  assert.equal(after.mp, Math.min(s.mp, run.mp + mpRegen(s.mp)));
+  assert.equal(act({ ...tough, mp: s.mp }, { ...s, evade: 100 }, "attack", { id: "w", correct: true }, fixed(0.5)).mp, s.mp);
 });
 
 test("敵は深い階ほど一気に強くなる（HP・攻撃・守備とも2乗で伸びる）", () => {

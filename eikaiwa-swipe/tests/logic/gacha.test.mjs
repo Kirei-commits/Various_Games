@@ -87,9 +87,9 @@ test("品詞の推定: 〜る は動詞、〜い・〜な は形容詞、それ�
   assert.equal(catalog.cards.go.pos, "verb");
 });
 
-test("排出確率は通常 R 5%・SR 0.5%・SSR 0.005%。チケットは対象のランクだけ（レア=R・SR=SR・SSR=SSR）", () => {
+test("排出確率は通常 R 6%・SR 1%・SSR 0.1%。チケットは対象のランクだけ（レア=R・SR=SR・SSR=SSR）", () => {
   const r = currentRates(freshState().gacha, catalog, "all", "points");
-  assert.deepEqual([r.N, r.R, r.SR, r.SSR].map((x) => Math.round(x * 1000) / 1000), [94.495, 5, 0.5, 0.005]);
+  assert.deepEqual([r.N, r.R, r.SR, r.SSR].map((x) => Math.round(x * 1000) / 1000), [92.9, 6, 1, 0.1]);
   assert.deepEqual(Object.values(currentRates(freshState().gacha, catalog, "all", "ticket")), [0, 100, 0, 0]);
   assert.deepEqual(Object.values(currentRates(freshState().gacha, catalog, "all", "sr")), [0, 0, 100, 0]);
   assert.deepEqual(Object.values(currentRates(freshState().gacha, catalog, "all", "ssr")), [0, 0, 0, 100]);
@@ -113,10 +113,10 @@ test("たくさん引くと、出たレア度の割合が表示確率に近い",
     for (const x of r.results) count[x.rarity]++;
   }
   const n = 6000;
-  assert.ok(Math.abs(count.N / n - 0.945) < 0.02, JSON.stringify(count));
-  // SSR は 0.005% ＋1000回天井で、6000回ならほぼ天井の6回
-  assert.ok(count.SSR >= 5 && count.SSR <= 8, JSON.stringify(count));
-  assert.ok(Math.abs(count.SR / n - 0.005) < 0.004, JSON.stringify(count));
+  assert.ok(Math.abs(count.N / n - 0.929) < 0.02, JSON.stringify(count));
+  // SSR は 0.1% ＋1000回天井で、6000回なら6回前後（天井ぶんを含めて多くても十数回）
+  assert.ok(count.SSR >= 3 && count.SSR <= 16, JSON.stringify(count));
+  assert.ok(Math.abs(count.SR / n - 0.01) < 0.005, JSON.stringify(count));
 });
 
 test("ポイントを使い、足りなければ引けない", () => {
@@ -247,8 +247,8 @@ test("ポイントのもらい方: はじめてボーナス・ログイン・今
   assert.equal(claimStarter(s).gacha.points, STARTER.points); // 2回目はもらえない
 
   const { state, reward } = claimDailyBonus(freshState(), "2026-01-07", "2026-01-06");
-  assert.equal(state.gacha.points, 100);
-  assert.equal(reward.gacha.points, 100);
+  assert.equal(state.gacha.points, 300);
+  assert.equal(reward.gacha.points, 300);
   // 7日連続でレアチケット
   let w = freshState();
   for (let d = 1; d <= 7; d++) {
@@ -264,17 +264,17 @@ test("ポイントのもらい方: はじめてボーナス・ログイン・今
 
   let g = { ...freshState(), stats: { ...freshState().stats, todayDate: "2026-01-01", todayCount: 20 } };
   g = claimGoalBonus(g, "2026-01-01");
-  assert.equal(g.gacha.points, 300);
+  assert.equal(g.gacha.points, 900);
 });
 
-test("学習・テストのポイントは時間に比例（1分 60pt。以前の 1/10）。上限はない", () => {
-  assert.equal(POINTS_PER_MINUTE, 60);
+test("学習・テストのポイントは時間に比例（1分 180pt）。上限はない", () => {
+  assert.equal(POINTS_PER_MINUTE, 180);
   assert.equal(pointsForTime(60), POINTS_PER_MINUTE);
-  assert.equal(pointsForTime(10), 10);
+  assert.equal(pointsForTime(10), 30);
   assert.equal(pointsForTime(-3), 0);
   let st = freshState();
   for (let i = 0; i < 200; i++) st = earnTimePoints(st, 10, 0).state;
-  assert.equal(st.gacha.points, 200 * 10);
+  assert.equal(st.gacha.points, 200 * 30);
 });
 
 test("5倍ブースト: 使うと1時間ポイント5倍。使用中にもう1つ使うと延長。持っていなければ使えない", () => {

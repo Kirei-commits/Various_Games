@@ -135,7 +135,7 @@ test("報酬: ポイントは 100〜300（時間と成績）、レアチケッ�
   assert.equal(s.battle.earned, 22 * BATTLE_POINTS.min);
 });
 
-test("報酬: 長く遊ぶほどポイントが増える（時間ぶんは 300 まで＋エンドレスはレベルボーナス）。すぐやめたら時間ぶんだけでチケットなし", () => {
+test("報酬: 長く遊ぶほどポイントが増える（時間ぶんは 900 まで＋エンドレスはレベルボーナス）。すぐやめたら時間ぶんだけでチケットなし", () => {
   const rng = mulberry32(9);
   const b = createBattle({ mode: "endless", items: chapter.items, rng });
   for (let i = 0; i < 25; i++) killNext(b, rng);
@@ -153,7 +153,7 @@ test("報酬: 長く遊ぶほどポイントが増える（時間ぶんは 300 �
   killNext(early, rng);
   early.elapsed = 6000;
   quit(early);
-  assert.deepEqual([battleReward(early).points, battleReward(early).tickets], [6, 0]);
+  assert.deepEqual([battleReward(early).points, battleReward(early).tickets], [18, 0]);
 });
 
 test("5倍ブースト中はバトルのポイントも5倍（チケットはそのまま）", () => {
@@ -225,7 +225,7 @@ test("エンドレスの速さはゆっくり上がる（レベル10でも1.63�
 });
 
 test("エンドレスのレベルボーナスは、後半ほど大きく増える", () => {
-  assert.deepEqual([1, 2, 5, 10, 15].map(endlessLevelBonus), [0, 50, 500, 2250, 5250]);
+  assert.deepEqual([1, 2, 5, 10, 15].map(endlessLevelBonus), [0, 150, 1500, 6750, 15750]);
 });
 
 test("難易度5段階: 単語をやさしい順に均等に5つに分ける", () => {
