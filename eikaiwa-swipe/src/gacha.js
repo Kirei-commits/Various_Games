@@ -2,9 +2,9 @@
  * 単語ガチャ（純粋関数。乱数は引数で受け取るので Node でテストできる）。
  *
  * - 対象は単語の章（3000語）とシークレット単語。レア度は N / R / SR / SSR。
- * - 抽選は2段階: レア度を確率で決め、そのレア度の「まだ MAX でない単語」から等確率で1語。
- *   MAX（Lv.4）の単語は出なくなり、その分の確率は同じレア度の残りに均等に回る。
- *   同じレア度がすべて MAX なら、その確率は1つ下のレア度へ（レアチケットは N を出さないので上へ）。
+ * - 抽選は2段階: レア度を確率で決め、そのレア度の単語から等確率で1語。
+ *   MAX（Lv.4）の単語も出続け、出たら交換ポイント（OVERFLOW_EX）になる（2026-09-30 まではガチャから外していた）。
+ *   品詞ガチャでそのレア度の単語がないときは、その確率を1つ下のレア度へ回す。
  * - ダブると Lv が上がる（見た目だけ。意味・例文・語源は1枚目から全部見られる）。
  * - 救済: 天井（通常ガチャ1000回で SSR 確定。チケットは対象のランクだけが出る。10連などの確定枠はない）、
  *   交換ポイント（引くたびに貯まり、好きな単語と交換）、選択チケット（ログイン日数でもらえる）。
@@ -37,6 +37,11 @@ export const MAX_LEVEL = 4;
 export const EXCHANGE_COST = { N: 200, R: 800, SR: 3000, SSR: 10000 };
 /** ダブったときにもらえるメダル（ショップで道具と交換） */
 export const DUP_MEDALS = { N: 1, R: 3, SR: 10, SSR: 30 };
+/**
+ * MAX の単語がまた出たときにもらえる交換ポイント（いつもの1つに上乗せ）。2026-09-30 から MAX の単語もガチャに出続け、
+ * 引きまくった分は交換ポイント（単語の強化に使う）として残る
+ */
+export const OVERFLOW_EX = { N: 2, R: 5, SR: 20, SSR: 100 };
 /** チケットの交換: 下のチケット100枚で上のチケット1枚 */
 export const TICKET_UPGRADE = 100;
 /** メダルショップ */
@@ -196,7 +201,6 @@ const normalize = (g) => ({
   myTitles: [...(g?.myTitles || [])],
 });
 
-const notMax = (g) => (id) => (g.cards[id] || 0) < MAX_LEVEL;
 
 /** 空になったレア度の確率の行き先: 1つ下（保証・チケットの下限より下には行かない）→ なければ上 */
 function redistributeTarget(r, avail, currency, guarantee) {
@@ -208,7 +212,7 @@ function redistributeTarget(r, avail, currency, guarantee) {
 }
 
 /**
- * いまの排出の重み（MAX の除外と再分配を反映）。
+ * いまの排出の重み（その品詞に単語がないレア度の再分配を反映。MAX の単語も出る）。
  * @param guarantee "SR" | "SSR" | null  天井で、このレア度以上に限る
  * @returns {{ weights: Record<string, number>, total: number, avail: Record<string, number> }}
  */
@@ -216,7 +220,7 @@ export function effectiveWeights(gacha, catalog, pos, currency, guarantee = null
   const g = normalize(gacha);
   const pool = catalog.pools[pos] || catalog.pools.all;
   const avail = {};
-  for (const r of RARITIES) avail[r] = pool[r].filter(notMax(g)).length;
+  for (const r of RARITIES) avail[r] = pool[r].length;
   const weights = { ...RATES[currency] };
   if (guarantee) for (const r of RARITIES) if (RANK[r] < RANK[guarantee]) weights[r] = 0;
   for (const r of [...RARITIES].reverse()) {
@@ -255,7 +259,8 @@ function pickRarity(weights, total, rng) {
  * @param opts { pos: "all"|"noun"|..., currency: "points"|"ticket", times: 1|10 }
  * @param rng () => [0, 1) の乱数
  * @returns {{ state, results?, newTitles?, newSecrets?, error? }}
- *   results[i] = { id, rarity, result: "new"|"levelup", level, byPity, exGain }
+ *   results[i] = { id, rarity, result: "new"|"levelup"|"overflow", level, byPity, exGain }
+ *   overflow = MAX の単語がまた出た（枚数は増えず、交換ポイントが OVERFLOW_EX だけ多い）
  */
 export function pull(state, catalog, { pos = "all", currency = "points", times = 1 } = {}, rng = Math.random) {
   const g = normalize(state.gacha);
@@ -269,7 +274,7 @@ export function pull(state, catalog, { pos = "all", currency = "points", times =
     return { state, error: currency === "points" ? `ポイントが ${cost - balance} 足りません` : `${names[currency]}が足りません` };
   }
   if (effectiveWeights(g, catalog, pos, currency).total === 0) {
-    return { state, error: "この種類の単語は、すべて MAX です" };
+    return { state, error: "この種類の単語はありません" };
   }
   const pool = catalog.pools[pos] || catalog.pools.all;
   const results = [];
@@ -279,18 +284,20 @@ export function pull(state, catalog, { pos = "all", currency = "points", times =
     if ((g.pity[currency] || 0) + 1 >= PITY_SSR[currency]) guarantee = "SSR";
     let { weights, total } = effectiveWeights(g, catalog, pos, currency, guarantee);
     if (total === 0) {
-      // 保証のレア度がすべて MAX → 保証なしで引く
+      // この品詞に保証のレア度の単語がない → 保証なしで引く
       guarantee = null;
       ({ weights, total } = effectiveWeights(g, catalog, pos, currency));
     }
-    if (total === 0) break; // 途中ですべて MAX になった（残りの回数分は下で返す）
     const rarity = pickRarity(weights, total, rng);
-    const candidates = pool[rarity].filter(notMax(g));
+    const candidates = pool[rarity];
+    // 天井の SSR は未所持 → MAX でないもの の順に優先
     const unowned = guarantee === "SSR" ? candidates.filter((id) => !g.cards[id]) : [];
-    const id = pickFrom(unowned.length ? unowned : candidates, rng);
+    const notMax = guarantee === "SSR" ? candidates.filter((id) => (g.cards[id] || 0) < MAX_LEVEL) : [];
+    const id = pickFrom(unowned.length ? unowned : notMax.length ? notMax : candidates, rng);
     const before = g.cards[id] || 0;
-    g.cards[id] = before + 1;
-    const exGain = 1;
+    const overflow = before >= MAX_LEVEL;
+    g.cards[id] = Math.min(MAX_LEVEL, before + 1);
+    const exGain = 1 + (overflow ? OVERFLOW_EX[rarity] || 0 : 0);
     const medals = before > 0 ? DUP_MEDALS[rarity] : 0;
     g.exPoints += exGain;
     g.medals += medals;
@@ -298,7 +305,7 @@ export function pull(state, catalog, { pos = "all", currency = "points", times =
     results.push({
       id,
       rarity,
-      result: before === 0 ? "new" : "levelup",
+      result: before === 0 ? "new" : overflow ? "overflow" : "levelup",
       level: levelOf(before + 1),
       byPity: guarantee && RANK[rarity] >= RANK[guarantee] ? guarantee : null,
       exGain,

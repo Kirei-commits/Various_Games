@@ -167,8 +167,32 @@ test("ダブると Lv が上がり、MAX になると表示が変わる", async 
   await page.getByRole("button", { name: "獲得済み", exact: true }).click();
   await expect(page.getByTestId("zukan-tile")).toHaveCount(2);
   await page.getByTestId("zukan-tile").filter({ hasText: "robot" }).click();
-  await expect(page.getByTestId("word-sheet")).toContainText("MAX！この単語はもうガチャから出ません");
+  await expect(page.getByTestId("word-sheet")).toContainText("MAX！この単語がまたガチャで出ると、交換ポイントになります");
   await expect(page.getByTestId("word-sheet")).toContainText("強制労働");
+});
+
+test("図鑑: 単語カードでお気に入り・強化ができ、お気に入りだけに絞ったり並べ替えたりできる", async ({ page }) => {
+  await seedGacha(page, { cards: { robot: 1, go: 1, apple: 1 }, exPoints: 50 });
+  await openGacha(page);
+  await page.getByRole("button", { name: "図鑑" }).click();
+  await page.getByRole("button", { name: "獲得済み", exact: true }).click();
+  await page.getByTestId("zukan-tile").filter({ hasText: "robot" }).click();
+  const sheet = page.getByTestId("word-sheet");
+  await sheet.getByRole("button", { name: "お気に入りに追加" }).click();
+  // robot は SSR: +1 は 40（交換ポイント 50 → 10）
+  await sheet.getByRole("button", { name: /\+1 に強化する（交換ポイント 40）/ }).click();
+  await expect(sheet.getByTestId("enhance-plus")).toHaveText("+1");
+  await expect(sheet).toContainText("交換ポイント 10");
+  await sheet.getByRole("button", { name: "閉じる" }).click();
+  // お気に入りだけ
+  await page.getByTestId("zukan-fav").click();
+  await expect(page.getByTestId("zukan-tile")).toHaveCount(1);
+  await expect(page.getByTestId("zukan-tile")).toContainText("robot");
+  await expect(page.getByTestId("zukan-tile")).toContainText("+1");
+  await page.getByTestId("zukan-fav").click();
+  // 強化の高い順で robot が先頭
+  await page.locator("#zukan-sort").selectOption("plus");
+  await expect(page.getByTestId("zukan-tile").first()).toContainText("robot");
 });
 
 test("引くと光の玉の演出が出て、スキップするとすぐに全部のカードが見られる", async ({ page }) => {

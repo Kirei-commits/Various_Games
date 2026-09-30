@@ -153,11 +153,11 @@ export function gearOf(card, copies = 1, plus = 0) {
 export const MAX_PLUS = 10;
 /** +5 から「アルティメット」: 効果がさらに 1.5倍、SSR の呪文は「極」になる */
 export const ULTIMATE_PLUS = 5;
-/** +N に必要な強化ポイント（累計）。+10 は 1200（N のあまり1枚 = 1pt なので、相当やり込まないと届かない） */
+/**
+ * 強化の段の記録。quest.enhance[id] には「累計の強化ポイント」を持つ（v8 の形のまま）。+N ちょうどの値は PLUS_EXP[N]。
+ * 2026-09-30 から強化は交換ポイントで1段ずつ行う（ENHANCE_COST）ので、強化すると PLUS_EXP[次の段] になる。
+ */
 export const PLUS_EXP = [0, 10, 25, 50, 90, 150, 240, 370, 550, 800, 1200];
-/** 素材1枚の強化ポイント（レア度ごと）。強化する単語と同じ単語は 3倍 */
-export const MATERIAL_EXP = { N: 1, R: 4, SR: 12, SSR: 40 };
-export const SAME_BONUS = 3;
 
 export const plusOf = (exp) => {
   let k = 0;
@@ -165,39 +165,43 @@ export const plusOf = (exp) => {
   return k;
 };
 
-/** 素材にできる枚数（図鑑から消えないよう、1枚は残す） */
-export const spareCopies = (state, id) => Math.max(0, (state.gacha?.cards?.[id] || 0) - 1);
-
-/** 素材1枚の強化ポイント */
-export const materialExp = (card, targetId) => (MATERIAL_EXP[rarityOf(card)] || 1) * (card.id === targetId ? SAME_BONUS : 1);
+/**
+ * +N に上げるのに使う交換ポイント（1段ずつ）: レア度の基本 × 段の倍率。段が上がるほど重くなる。
+ * 交換ポイントはガチャ1回で1つ（MAX の単語がまた出たらもっと）なので、+10 はかなりのやり込み
+ * （SSR は +1〜+10 の合計 6,720、+5 まで 760。N は合計 504）。
+ */
+export const ENHANCE_BASE = { N: 3, R: 6, SR: 15, SSR: 40 };
+export const ENHANCE_STEP = [0, 1, 2, 3, 5, 8, 12, 18, 26, 38, 55];
+export const enhanceCost = (card, toPlus) => (ENHANCE_BASE[rarityOf(card)] || ENHANCE_BASE.N) * (ENHANCE_STEP[toPlus] || 0);
+/** +from から +to まで上げるのに使う交換ポイントの合計 */
+export const enhanceTotal = (card, from, to) => {
+  let n = 0;
+  for (let k = from + 1; k <= to; k++) n += enhanceCost(card, k);
+  return n;
+};
 
 /**
- * 装備（単語）を強化する。素材は集めた単語のあまり（2枚目以降）を使い、その分ガチャの記録の枚数が減る。
- * @param materials { 単語ID: 枚数 }
- * @returns {{ state, gained, from, to, error? }}
+ * 単語（装備）を1段強化する。ガチャの交換ポイントを使う。
+ * @returns {{ state, cost, from, to, error? }}
  */
-export function enhance(state, cards, targetId, materials) {
-  if (!cards[targetId] || !(state.gacha?.cards?.[targetId] > 0)) return { state, error: "持っていない単語は強化できません" };
+export function enhance(state, cards, targetId) {
+  const card = cards[targetId];
+  if (!card || !(state.gacha?.cards?.[targetId] > 0)) return { state, error: "持っていない単語は強化できません" };
   const q = { ...initialQuest(), ...state.quest };
-  const before = q.enhance[targetId] || 0;
-  if (plusOf(before) >= MAX_PLUS) return { state, error: "もう +10（最大）です" };
-  const gachaCards = { ...state.gacha.cards };
-  let gained = 0;
-  for (const [id, n] of Object.entries(materials || {})) {
-    const count = Math.floor(n);
-    if (!count) continue;
-    if (!cards[id]) return { state, error: "ない単語です" };
-    if (count > spareCopies(state, id)) return { state, error: `「${cards[id].english}」のあまりが足りません（1枚は残します）` };
-    gachaCards[id] -= count;
-    gained += materialExp(cards[id], targetId) * count;
-  }
-  if (!gained) return { state, error: "素材を選んでください" };
-  const exp = Math.min(PLUS_EXP[MAX_PLUS], before + gained);
+  const from = plusOf(q.enhance[targetId]);
+  if (from >= MAX_PLUS) return { state, error: `もう +${MAX_PLUS}（最大）です` };
+  const cost = enhanceCost(card, from + 1);
+  const have = state.gacha.exPoints || 0;
+  if (have < cost) return { state, error: `交換ポイントが ${cost - have} 足りません` };
   return {
-    state: { ...state, gacha: { ...state.gacha, cards: gachaCards, rev: (state.gacha.rev || 0) + 1 }, quest: { ...q, enhance: { ...q.enhance, [targetId]: exp } } },
-    gained,
-    from: plusOf(before),
-    to: plusOf(exp),
+    state: {
+      ...state,
+      gacha: { ...state.gacha, exPoints: have - cost, rev: (state.gacha.rev || 0) + 1 },
+      quest: { ...q, enhance: { ...q.enhance, [targetId]: PLUS_EXP[from + 1] } },
+    },
+    cost,
+    from,
+    to: from + 1,
   };
 }
 

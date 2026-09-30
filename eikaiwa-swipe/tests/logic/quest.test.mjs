@@ -33,8 +33,8 @@ import {
   defendMp,
   ENEMY,
   PLUS_EXP,
-  MATERIAL_EXP,
-  spareCopies,
+  enhanceCost,
+  enhanceTotal,
   START_HERBS,
   SKILLS,
   guardRate,
@@ -331,18 +331,26 @@ test("敵は深い階ほど一気に強くなる（HP・攻撃・守備とも2�
   assert.equal(e(10).hp, Math.round((ENEMY.hp[0] + 10 * ENEMY.hp[1] + 100 * ENEMY.hp[2]) * ENEMY.bossHp), "10階はボス");
 });
 
-test("強化: 集めた単語のあまりを素材に強化ポイントを貯める。同じ単語は3倍。1枚は残す", () => {
-  let s = { ...freshState(), gacha: { ...freshState().gacha, cards: { fire: 3, sword: 4, blaze: 1 } } };
-  assert.equal(spareCopies(s, "sword"), 3);
-  // N の sword 3枚 = 3pt、同じ fire（R）2枚 = 4 × 3 × 2 = 24pt → 27pt で +2
-  const r = enhance(s, cards, "fire", { sword: 3, fire: 2 });
-  assert.equal(r.gained, 3 * MATERIAL_EXP.N + 2 * MATERIAL_EXP.R * 3);
-  assert.deepEqual([r.from, r.to], [0, 2]);
-  assert.equal(r.state.gacha.cards.sword, 1, "1枚は残る");
-  assert.equal(r.state.gacha.cards.fire, 1);
-  assert.match(enhance(s, cards, "fire", { blaze: 1 }).error, /あまりが足りません/);
-  assert.match(enhance(s, cards, "flame", { sword: 1 }).error, /持っていない/);
-  assert.match(enhance(s, cards, "fire", {}).error, /素材を選んで/);
+test("強化: 交換ポイントで1段ずつ +10 まで。段が上がるほど必要な数が増え、+10 はかなりのやり込み", () => {
+  let s = { ...freshState(), gacha: { ...freshState().gacha, cards: { fire: 1, blaze: 1 }, exPoints: 100 } };
+  // 必要な数は段ごとに増える
+  for (let k = 2; k <= 10; k++) assert.ok(enhanceCost(cards.blaze, k) > enhanceCost(cards.blaze, k - 1));
+  assert.ok(enhanceCost(cards.blaze, 1) > enhanceCost(cards.fire, 1), "レア度が高いほど重い");
+  assert.ok(enhanceTotal(cards.blaze, 0, 10) >= 5000, "SSR の +10 は交換ポイント 5000 以上");
+  const r = enhance(s, cards, "fire");
+  assert.deepEqual([r.from, r.to, r.cost], [0, 1, enhanceCost(cards.fire, 1)]);
+  assert.equal(r.state.gacha.exPoints, 100 - r.cost);
+  assert.equal(plusOf(r.state.quest.enhance.fire), 1);
+  assert.equal(r.state.gacha.cards.fire, 1, "単語は減らない");
+  // 足りなければ強化できない
+  assert.match(enhance({ ...s, gacha: { ...s.gacha, exPoints: 0 } }, cards, "fire").error, /交換ポイントが \d+ 足りません/);
+  assert.match(enhance(s, cards, "flame").error, /持っていない/);
+  // +10 で止まる
+  let m = { ...s, gacha: { ...s.gacha, exPoints: 1e6 } };
+  for (let i = 0; i < 10; i++) m = enhance(m, cards, "blaze").state;
+  assert.equal(plusOf(m.quest.enhance.blaze), 10);
+  assert.equal(m.gacha.exPoints, 1e6 - enhanceTotal(cards.blaze, 0, 10));
+  assert.match(enhance(m, cards, "blaze").error, /最大/);
 });
 
 test("強化: +1 ごとに強くなり、+5 でアルティメット（効果1.5倍・SSR の呪文は「極」）。+10 は 1200pt", () => {

@@ -54,7 +54,7 @@ test("冒険: 集めた単語をおまかせで装備すると能力値が上が
 test("冒険: 間違えるとミスになり、正解がメッセージに出る。装備は枠ごとに付け替えられる", async ({ page }) => {
   await openQuest(page, { breakfast: 1, park: 1 });
   await page.getByRole("button", { name: "武器を変える" }).click();
-  await page.getByTestId("gear-picker").getByRole("button", { name: /park/ }).click();
+  await page.getByTestId("gear-picker").getByRole("button", { name: /park Lv/ }).click();
   await expect(page.getByTestId("quest-equip")).toContainText("park");
   await page.getByRole("button", { name: "1階から" }).click();
   await page.getByRole("button", { name: "たたかう" }).click();
@@ -106,21 +106,38 @@ test("冒険: 装備をプリセットに保存して、あとで付け替えら
   await expect(page.getByTestId("quest-equip")).toContainText("breakfast");
 });
 
-test("冒険: 装備を強化できる（あまりの単語を素材に。同じ単語は3倍）", async ({ page }) => {
-  await openQuest(page, { breakfast: 1, park: 4, go: 3 });
+test("冒険: 装備を交換ポイントで強化できる（段が上がるほど必要な数が増える）。お気に入りだけ表示もできる", async ({ page }) => {
+  await page.evaluate(() => {
+    localStorage.setItem(
+      "swipetalk:v2",
+      JSON.stringify({ version: 8, learned: {}, favorites: { go: true }, gacha: { starter: true, cards: { breakfast: 1, park: 1, go: 1 }, exPoints: 10 } })
+    );
+  });
+  await page.reload();
+  await page.getByRole("button", { name: "テスト", exact: true }).click();
+  await page.getByRole("button", { name: "冒険" }).click();
   await page.getByRole("button", { name: "武器を変える" }).click();
-  await page.getByTestId("gear-picker").getByRole("button", { name: /park/ }).click();
+  const picker = page.getByTestId("gear-picker");
+  // お気に入りは上に出て、「お気に入りだけ」で絞れる
+  await picker.getByTestId("gear-fav-only").click();
+  await expect(picker.getByRole("listitem")).toHaveCount(1);
+  await expect(picker.getByRole("listitem")).toContainText("go");
+  await picker.getByTestId("gear-fav-only").click();
+  await picker.getByRole("button", { name: "parkをお気に入りに追加" }).click();
+  await picker.getByTestId("gear-fav-only").click();
+  await expect(picker.getByRole("listitem")).toHaveCount(2);
+  await picker.getByRole("button", { name: /park Lv/ }).click();
+
   await page.getByRole("button", { name: "武器を強化" }).click();
   const sheet = page.getByTestId("enhance-sheet");
-  await expect(sheet).toContainText("「park」を強化 +0");
-  // 同じ単語 park（N）のあまり3枚 = 1 × 3 × 3 = 9pt、go のあまり2枚 = 2pt → 11pt で +1
-  await sheet.getByRole("button", { name: "全部" }).first().click();
-  await sheet.getByRole("button", { name: "goを足す" }).click();
-  await sheet.getByRole("button", { name: "goを足す" }).click();
-  await expect(sheet.getByRole("button", { name: /強化する/ })).toContainText("+11pt → +1");
-  await sheet.getByRole("button", { name: /強化する/ }).click();
+  await expect(sheet.getByTestId("enhance-plus")).toHaveText("+0");
+  // park は N: +1 は 3、+2 は 6（交換ポイント 10 → 7 → 1）
+  await sheet.getByRole("button", { name: /\+1 に強化する（交換ポイント 3）/ }).click();
   await expect(page.getByTestId("enhance-message")).toContainText("+0 → +1");
-  await expect(sheet).toContainText("+1");
+  await expect(sheet.getByTestId("enhance-plus")).toHaveText("+1");
+  await sheet.getByRole("button", { name: /\+2 に強化する（交換ポイント 6）/ }).click();
+  await expect(sheet.getByTestId("enhance-plus")).toHaveText("+2");
+  await expect(sheet.getByRole("button", { name: /\+3 に強化する（交換ポイント 9）/ })).toBeDisabled();
   await sheet.getByRole("button", { name: "閉じる" }).click();
-  await expect(page.getByTestId("quest-equip")).toContainText("+1");
+  await expect(page.getByTestId("quest-equip")).toContainText("+2");
 });
