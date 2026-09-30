@@ -39,7 +39,7 @@ const used = new Set([...html.matchAll(/getElementById\('([^']+)'\)/g)].map((m) 
 for (const id of used) if (!declared.has(id)) problems.push(`#${id} が HTML に無い`);
 
 // 4. 純粋なモジュール（物理・戦闘・データ）
-for (const id of ['ms-physics', 'ms-battle', 'ms-data', 'ms-meta']) {
+for (const id of ['ms-physics', 'ms-battle', 'ms-data', 'ms-meta', 'ms-puzzle']) {
   const src = scripts.find((m) => m[1] === id)?.[2];
   if (src == null) { problems.push(`<script id="${id}"> が無い`); continue; }
   if (ids.indexOf(id) > ids.indexOf('ms-game')) problems.push(`${id} は ms-game より前に必要`);

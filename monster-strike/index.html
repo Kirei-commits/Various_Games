@@ -183,6 +183,22 @@
   .info-gim .ok { color: #1f9d3a; font-weight: 800; }
   .info-gim .ng { color: #d9480f; font-weight: 800; }
   #party .detail { font-size: 11px; }
+  #puzzle { position: fixed; inset: 0; z-index: 20; border-radius: 0; border: 0; display: flex; flex-direction: column; align-items: center;
+    padding: max(8px, env(safe-area-inset-top)) 12px 8px; }
+  #puzzle .head { flex: none; margin-bottom: 6px; }
+  #pz-canvas { flex: none; }
+  #puzzle .head { align-self: stretch; }
+  #pz-canvas { display: block; border-radius: 14px; border: 4px solid var(--line); touch-action: none; background: #8f5a2c;
+    box-shadow: 0 4px 0 var(--line-dark); }
+  #pz-help { flex: none; height: 4.8em; overflow: hidden; text-align: center; margin: 6px 0 0; max-width: 540px; }
+  #pz-help b { color: var(--ink); }
+  #pz-result { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: rgba(40, 110, 200, .35); padding: 16px; }
+  #pz-result .card { text-align: center; padding: 20px 18px; border-radius: 22px; width: min(340px, 100%);
+    background: linear-gradient(180deg, #ffffff, #e3f3ff); border: 4px solid var(--line); box-shadow: 0 5px 0 var(--line-dark); }
+  #pz-result h2 { margin: 0 0 8px; font-size: 30px; -webkit-text-stroke: 0; color: var(--gold); }
+  #pz-result h2.lost { color: #8fa6d6; }
+  #pz-result p { color: var(--ink); font-size: 13px; line-height: 1.8; }
+  #pz-result .row { display: flex; gap: 10px; justify-content: center; }
   #party .detail .info-unit { border: 0; padding: 0; margin: 0; }
 
   /* ---------------- 調整パネル */
@@ -226,7 +242,7 @@
     <div id="title" hidden>
       <div class="card">
         <h2><span class="outline">HIPPARI</span><span class="outline-gold">STRIKE</span></h2>
-        <div class="meta-row"><span class="gems" id="gems">0</span><button id="btn-gacha" type="button">ガチャ</button><button id="btn-party" type="button">編成</button></div>
+        <div class="meta-row"><span class="gems" id="gems">0</span><button id="btn-gacha" type="button">ガチャ</button><button id="btn-party" type="button">編成</button><button id="btn-puzzle" type="button">パズル</button></div>
         <p class="daily" id="daily" hidden></p>
         <p>ステージを選んでください</p>
         <div id="stage-list"></div>
@@ -251,6 +267,18 @@
       <div id="info-gimmicks"></div>
       <h3>キャラの能力</h3>
       <div id="info-units"></div>
+    </section>
+    <section id="puzzle" class="screen" hidden>
+      <div class="head"><h2>ドロップパズル</h2><button id="btn-puzzle-back" type="button">やめる</button></div>
+      <canvas id="pz-canvas" aria-label="パズルの盤面。ドロップを押したまま動かして、3つ以上そろえると消えます"></canvas>
+      <p class="note" id="pz-help"></p>
+      <div id="pz-result" hidden>
+        <div class="card">
+          <h2 id="pz-result-title"></h2>
+          <p id="pz-result-text"></p>
+          <div class="row"><button id="btn-pz-retry" type="button">もう一度</button><button id="btn-pz-back" type="button">もどる</button></div>
+        </div>
+      </div>
     </section>
     <section id="party" class="screen" hidden>
       <div class="head"><h2>編成</h2><button id="btn-party-back" type="button">もどる</button></div>
@@ -1999,7 +2027,26 @@
     ]
   };
 
-  root.MSData = { units: units, roster: units.concat(recruits), slots: slots, gacha: gacha, meta: meta, stage: stage, stages: [stage, tower, volcano, temple, castle] };
+  /**
+   * ミニゲーム「ドロップパズル」の敵（3フロア）。見た目は look / colors / r（ゴーレムは w, h）。
+   * turns ターンごとに atk でチームを攻撃する。
+   */
+  var puzzle = { floors: [
+    [
+      { id: 'p1-slime', name: 'スライム', element: 'wood', look: 'slime', colors: SLIME, r: 44, hp: 6300, atk: 4800, turns: 2 },
+      { id: 'p1-bat', name: 'コウモリ', element: 'dark', look: 'slime', colors: BAT, r: 38, hp: 4900, atk: 3600, turns: 1 },
+      { id: 'p1-slime2', name: 'こおりスライム', element: 'water', look: 'slime', colors: ICE, r: 44, hp: 6300, atk: 4800, turns: 3 }
+    ],
+    [
+      { id: 'p2-golem', name: 'ブロックゴーレム', element: 'water', look: 'golem', w: 150, h: 56, r: 60, hp: 15400, atk: 8400, turns: 3 },
+      { id: 'p2-mage', name: 'まどうし', element: 'light', look: 'slime', colors: GHOST, r: 46, hp: 9800, atk: 6000, turns: 2 }
+    ],
+    [
+      { id: 'p3-dragon', name: 'レッドドラゴン', element: 'fire', boss: true, look: 'dragon', r: 70, hp: 42000, atk: 15000, turns: 3 }
+    ]
+  ] };
+
+  root.MSData = { units: units, puzzle: puzzle, roster: units.concat(recruits), slots: slots, gacha: gacha, meta: meta, stage: stage, stages: [stage, tower, volcano, temple, castle] };
 })(typeof window !== 'undefined' ? window : globalThis);
 </script>
 
@@ -2155,6 +2202,216 @@
 })(typeof window !== 'undefined' ? window : globalThis);
 </script>
 
+<!--
+  ミニゲーム「ドロップパズル」（パズドラの仕組みを参考にしたもの。docs/puzzle-research.md）。
+  DOM・乱数・時計に触れない純粋なモジュール。乱数は引数でもらう。
+-->
+<script id="ms-puzzle">
+(function (root) {
+  'use strict';
+
+  var COLS = 6, ROWS = 5;
+  var COLORS = ['fire', 'water', 'wood', 'light', 'dark', 'heart'];
+  var MOVE_TIME = 5;           // 最初に入れ替えてから動かせる秒数
+  var LEADER = 1.5;            // リーダー（先頭）と同じ属性の攻撃
+  var ALL_AT = 5;              // この数以上つなげて消すと全体攻撃
+  var ADV = { fire: 'wood', wood: 'water', water: 'fire' };
+
+  function pick(rng) { return COLORS[Math.min(COLORS.length - 1, Math.floor(rng() * COLORS.length))]; }
+
+  /** 最初の盤面。横にも縦にも3つそろった所を作らない */
+  function newBoard(rng) {
+    var b = [];
+    for (var r = 0; r < ROWS; r++) {
+      b.push([]);
+      for (var c = 0; c < COLS; c++) {
+        var col;
+        do { col = pick(rng); } while (
+          (c >= 2 && b[r][c - 1] === col && b[r][c - 2] === col) ||
+          (r >= 2 && b[r - 1][c] === col && b[r - 2][c] === col));
+        b[r].push(col);
+      }
+    }
+    return b;
+  }
+
+  function copy(b) { return b.map(function (row) { return row.slice(); }); }
+
+  /** 隣（斜めも含む）なら入れ替えて true。盤面はその場で書き換える */
+  function swap(b, r1, c1, r2, c2) {
+    if (Math.max(Math.abs(r1 - r2), Math.abs(c1 - c2)) !== 1) return false;
+    if (r2 < 0 || r2 >= ROWS || c2 < 0 || c2 >= COLS) return false;
+    var t = b[r1][c1]; b[r1][c1] = b[r2][c2]; b[r2][c2] = t;
+    return true;
+  }
+
+  /**
+   * そろった所を探す。縦か横に3個以上並んだドロップに印を付け、
+   * 印の付いた同じ色のドロップで上下左右につながったものを1コンボにまとめる。
+   * 返り値: [{ color, cells: [[r, c]...] }]（上の行・左の列から見つかった順）
+   */
+  function findMatches(b) {
+    var mark = [], r, c, k;
+    for (r = 0; r < ROWS; r++) { mark.push([]); for (c = 0; c < COLS; c++) mark[r].push(false); }
+    for (r = 0; r < ROWS; r++) {
+      for (c = 0; c < COLS; c++) {
+        var col = b[r][c];
+        if (!col) continue;
+        if (c + 2 < COLS && b[r][c + 1] === col && b[r][c + 2] === col) for (k = c; k < COLS && b[r][k] === col; k++) mark[r][k] = true;
+        if (r + 2 < ROWS && b[r + 1][c] === col && b[r + 2][c] === col) for (k = r; k < ROWS && b[k][c] === col; k++) mark[k][c] = true;
+      }
+    }
+    var seen = [], combos = [];
+    for (r = 0; r < ROWS; r++) { seen.push([]); for (c = 0; c < COLS; c++) seen[r].push(false); }
+    for (r = 0; r < ROWS; r++) {
+      for (c = 0; c < COLS; c++) {
+        if (!mark[r][c] || seen[r][c]) continue;
+        var color = b[r][c], cells = [], stack = [[r, c]];
+        seen[r][c] = true;
+        while (stack.length) {
+          var p = stack.pop();
+          cells.push(p);
+          [[1, 0], [-1, 0], [0, 1], [0, -1]].forEach(function (d) {
+            var y = p[0] + d[0], x = p[1] + d[1];
+            if (y >= 0 && y < ROWS && x >= 0 && x < COLS && mark[y][x] && !seen[y][x] && b[y][x] === color) { seen[y][x] = true; stack.push([y, x]); }
+          });
+        }
+        cells.sort(function (a, z) { return a[0] - z[0] || a[1] - z[1]; });
+        combos.push({ color: color, cells: cells });
+      }
+    }
+    return combos;
+  }
+
+  /**
+   * 消えた所（null）に上のドロップが落ち、空いた所に新しいドロップが降る。
+   * 返り値: { board, moves: [{ r, c, from }] }。from は元の行（新しいドロップは -1, -2 …）
+   */
+  function fall(b, rng) {
+    var out = copy(b), moves = [];
+    for (var c = 0; c < COLS; c++) {
+      var r = ROWS - 1;
+      for (var y = ROWS - 1; y >= 0; y--) {
+        if (b[y][c] === null) continue;
+        out[r][c] = b[y][c];
+        if (r !== y) moves.push({ r: r, c: c, from: y });
+        r--;
+      }
+      for (var n = 1; r >= 0; r--, n++) { out[r][c] = pick(rng); moves.push({ r: r, c: c, from: -n }); }
+    }
+    return { board: out, moves: moves };
+  }
+
+  /**
+   * そろわなくなるまで「消す → 落ちる」を繰り返す（落ちコン）。
+   * 返り値: { board, combos, steps: [{ combos, cleared, board, moves }] }
+   */
+  function resolve(b, rng) {
+    var steps = [], all = [];
+    for (var guard = 0; guard < 50; guard++) {
+      var combos = findMatches(b);
+      if (!combos.length) break;
+      var cleared = copy(b);
+      combos.forEach(function (cb) { cb.cells.forEach(function (p) { cleared[p[0]][p[1]] = null; }); });
+      var f = fall(cleared, rng);
+      steps.push({ combos: combos, cleared: cleared, board: f.board, moves: f.moves });
+      all = all.concat(combos);
+      b = f.board;
+    }
+    return { board: b, combos: all, steps: steps };
+  }
+
+  /** 属性の倍率（パズドラと同じ: 有利2倍・不利0.5倍、光と闇はお互いに2倍） */
+  function elementRate(a, d) {
+    if (!a || !d) return 1;
+    if (ADV[a] === d) return 2;
+    if (ADV[d] === a) return 0.5;
+    if ((a === 'light' && d === 'dark') || (a === 'dark' && d === 'light')) return 2;
+    return 1;
+  }
+  function comboRate(n) { return 1 + 0.25 * Math.max(0, n - 1); }
+  function sizeRate(n) { return 1 + 0.25 * (n - 3); }
+
+  /**
+   * パズルのバトル。team: 編成の4体（先頭がリーダー）/ floors: [[敵の定義]]
+   * 敵の定義: { id, name, element, hp, atk, turns }。turns ターンごとに atk で攻撃する。
+   */
+  function PuzzleBattle(opts) {
+    this.team = opts.team;
+    this.floors = opts.floors;
+    this.hpMax = this.team.reduce(function (a, u) { return a + u.hp; }, 0);
+    this.hp = this.hpMax;
+    this.rcv = this.team.reduce(function (a, u) { return a + Math.round(u.hp / 20); }, 0);
+    this.floor = 0;
+    this.turn = 1;
+    this.state = 'playing';
+    this.stats = { maxCombo: 0, combos: 0, damage: 0, healed: 0 };
+    this.spawn();
+  }
+  PuzzleBattle.prototype.spawn = function () {
+    this.enemies = this.floors[this.floor].map(function (d) { return { id: d.id, def: d, hp: d.hp, hpMax: d.hp, cd: d.turns }; });
+  };
+  PuzzleBattle.prototype.alive = function () { return this.enemies.filter(function (e) { return e.hp > 0; }); };
+
+  /**
+   * 1ターン: 消したコンボで攻撃と回復 → 敵が残っていれば敵のターン。
+   * 返り値: { attacks: [{ unit, element, all, hits: [{ enemy, damage }] }], heal, enemyAttacks: [{ enemy, damage }], floorCleared, state }
+   */
+  PuzzleBattle.prototype.play = function (combos) {
+    if (this.state !== 'playing') return null;
+    var self = this, n = combos.length, cr = comboRate(n);
+    var leader = this.team[0].element;
+    var res = { attacks: [], heal: 0, enemyAttacks: [], floorCleared: false, combos: n };
+    this.stats.combos += n;
+    this.stats.maxCombo = Math.max(this.stats.maxCombo, n);
+    this.team.forEach(function (u) {
+      var mine = combos.filter(function (cb) { return cb.color === u.element; });
+      if (!mine.length) return;
+      var base = mine.reduce(function (a, cb) { return a + u.atk * sizeRate(cb.cells.length); }, 0);
+      var power = base * cr * (u.element === leader ? LEADER : 1);
+      var all = mine.some(function (cb) { return cb.cells.length >= ALL_AT; });
+      var targets = all ? self.alive() : self.alive().slice(0, 1);
+      if (!targets.length) return;
+      var hits = targets.map(function (e) {
+        var dmg = Math.round(power * elementRate(u.element, e.def.element));
+        e.hp = Math.max(0, e.hp - dmg);
+        self.stats.damage += dmg;
+        return { enemy: e.id, damage: dmg, rate: elementRate(u.element, e.def.element) };
+      });
+      res.attacks.push({ unit: u.id, element: u.element, all: all, hits: hits });
+    });
+    var hearts = combos.filter(function (cb) { return cb.color === 'heart'; });
+    if (hearts.length) {
+      var heal = Math.round(hearts.reduce(function (a, cb) { return a + self.rcv * sizeRate(cb.cells.length); }, 0) * cr);
+      res.heal = Math.min(heal, this.hpMax - this.hp);
+      this.hp += res.heal;
+      this.stats.healed += res.heal;
+    }
+    if (!this.alive().length) {
+      res.floorCleared = true;
+      if (this.floor + 1 >= this.floors.length) this.state = 'won';
+      else { this.floor++; this.spawn(); }
+    } else {
+      this.alive().forEach(function (e) {
+        e.cd--;
+        if (e.cd > 0) return;
+        e.cd = e.def.turns;
+        self.hp = Math.max(0, self.hp - e.def.atk);
+        res.enemyAttacks.push({ enemy: e.id, damage: e.def.atk });
+      });
+      if (this.hp <= 0) this.state = 'lost';
+    }
+    this.turn++;
+    res.state = this.state;
+    return res;
+  };
+
+  root.MSPuzzle = { COLS: COLS, ROWS: ROWS, COLORS: COLORS, MOVE_TIME: MOVE_TIME, LEADER: LEADER, ALL_AT: ALL_AT,
+    newBoard: newBoard, copy: copy, swap: swap, findMatches: findMatches, fall: fall, resolve: resolve,
+    elementRate: elementRate, comboRate: comboRate, sizeRate: sizeRate, PuzzleBattle: PuzzleBattle };
+})(typeof window !== 'undefined' ? window : globalThis);
+</script>
+
 <!-- ゲーム本体: 入力・進行・演出・描画 -->
 <script id="ms-game">
 (function () {
@@ -2297,6 +2554,7 @@
     pullResults: document.getElementById('pull-results'),
     party: document.getElementById('party'),
     info: document.getElementById('info'),
+    puzzle: document.getElementById('puzzle'),
     partySlots: document.getElementById('party-slots'),
     partyOwned: document.getElementById('party-owned'),
     partyDetail: document.getElementById('party-detail')
@@ -4536,6 +4794,336 @@
     el.sound.setAttribute('aria-pressed', String(on));
   });
 
+  // ---------------------------------------------------------------- ミニゲーム「ドロップパズル」
+  // 盤面のルール・ダメージ計算は ms-puzzle（純粋）。ここは描画・操作・演出だけ。
+  var Z = window.MSPuzzle;
+  var PZ = { W: 540, H: 790, TOP: 250, BOARD: 340, CELL: 90 };
+  var DROP = {
+    fire: { c: ['#ffd0b8', '#ff5a3c', '#a81f08'], label: '火' }, water: { c: ['#d4efff', '#3aa7ff', '#0b4f9e'], label: '水' },
+    wood: { c: ['#d6ffd0', '#3fca5b', '#12692a'], label: '木' }, light: { c: ['#fffbd0', '#ffd23f', '#a87400'], label: '光' },
+    dark: { c: ['#ecd8ff', '#9a5cf0', '#3a1670'], label: '闇' }, heart: { c: ['#ffe0f2', '#ff7ac8', '#a3135f'], label: '♥' }
+  };
+  var pzCanvas = document.getElementById('pz-canvas');
+  var pzCtx = pzCanvas.getContext('2d');
+  var pz = { open: false };
+  var FONT = '"Hiragino Maru Gothic ProN","Hiragino Sans","Noto Sans JP",system-ui,sans-serif';
+
+  function startPuzzle() {
+    el.title.hidden = true;
+    el.puzzle.hidden = false;
+    document.getElementById('pz-result').hidden = true;
+    var team = M.partyUnits(save, D);
+    pz = { open: true, battle: new Z.PuzzleBattle({ team: team, floors: D.puzzle.floors }), team: team,
+      board: Z.newBoard(Math.random), phase: 'input', hold: null, started: false, timeLeft: Z.MOVE_TIME,
+      t: 0, floats: [], flash: {}, shake: 0, comboCount: 0, view: null, spawn: 0 };
+    sound.music('battle');
+    pzResize();
+    pzHelp();
+  }
+  function closePuzzle() {
+    pz.open = false;
+    el.puzzle.hidden = true;
+    showTitle();
+  }
+  function pzResize() {
+    if (!pz.open) return;
+    var box = el.puzzle.getBoundingClientRect();
+    var head = el.puzzle.querySelector('.head').getBoundingClientRect().height;
+    var availW = box.width - 32, availH = box.height - head - 90;
+    var k = Math.max(0.2, Math.min(availW / PZ.W, availH / PZ.H));
+    var dpr = window.devicePixelRatio || 1;
+    pzCanvas.style.width = Math.floor(PZ.W * k) + 'px';
+    pzCanvas.style.height = Math.floor(PZ.H * k) + 'px';
+    pzCanvas.width = Math.round(PZ.W * k * dpr);
+    pzCanvas.height = Math.round(PZ.H * k * dpr);
+    pz.k = k * dpr;
+  }
+  function pzHelp() {
+    var h = document.getElementById('pz-help');
+    if (pz.phase === 'input') h.innerHTML = 'ドロップを<b>押したまま動かす</b>と、通った所と入れ替わります（斜めもOK）。<b>3つ以上</b>そろえると消えて、'
+      + '同じ属性のキャラが攻撃。<b>♥</b>で回復。最初に動かしてから<b>' + Z.MOVE_TIME + '秒</b>。';
+    else h.innerHTML = '<b>コンボ</b>が多いほど攻撃が強くなります。<b>5個以上</b>つなげると全体攻撃。先頭のキャラ（リーダー）と同じ属性は1.5倍。';
+  }
+
+  /** ページの座標 → 盤面のマス（盤の外なら端に寄せる） */
+  function pzCell(e) {
+    var r = pzCanvas.getBoundingClientRect();
+    var x = (e.clientX - r.left) / r.width * PZ.W, y = (e.clientY - r.top) / r.height * PZ.H;
+    return { x: x, y: y, c: Math.max(0, Math.min(Z.COLS - 1, Math.floor(x / PZ.CELL))), r: Math.max(0, Math.min(Z.ROWS - 1, Math.floor((y - PZ.BOARD) / PZ.CELL))), inBoard: y >= PZ.BOARD };
+  }
+  pzCanvas.addEventListener('pointerdown', function (e) {
+    if (!pz.open || pz.phase !== 'input' || pz.hold) return;
+    var p = pzCell(e);
+    if (!p.inBoard) return;
+    sound.unlock();
+    pz.hold = { r: p.r, c: p.c, x: p.x, y: p.y, id: e.pointerId };
+    try { pzCanvas.setPointerCapture(e.pointerId); } catch (err) { /* 無くても動く */ }
+    e.preventDefault();
+  });
+  pzCanvas.addEventListener('pointermove', function (e) {
+    if (!pz.hold || e.pointerId !== pz.hold.id) return;
+    var p = pzCell(e);
+    pz.hold.x = Math.max(0, Math.min(PZ.W, p.x));
+    pz.hold.y = Math.max(PZ.BOARD, Math.min(PZ.H, p.y));
+    // 速く動かしても1マスずつ入れ替える（斜めも）
+    while (pz.hold && (p.r !== pz.hold.r || p.c !== pz.hold.c)) {
+      var dr = Math.sign(p.r - pz.hold.r), dc = Math.sign(p.c - pz.hold.c);
+      Z.swap(pz.board, pz.hold.r, pz.hold.c, pz.hold.r + dr, pz.hold.c + dc);
+      pz.hold.r += dr; pz.hold.c += dc;
+      sound.tick();
+      if (!pz.started) { pz.started = true; pz.timeLeft = Z.MOVE_TIME; }
+    }
+  });
+  function pzUp(e) {
+    if (!pz.hold || e.pointerId !== pz.hold.id) return;
+    pzEndMove();
+  }
+  pzCanvas.addEventListener('pointerup', pzUp);
+  pzCanvas.addEventListener('pointercancel', pzUp);
+
+  /** 指を離した・時間切れ: 消して落ちる演出へ。入れ替えていなければ何もしない */
+  function pzEndMove() {
+    pz.hold = null;
+    if (!pz.started) return;
+    pz.started = false;
+    pz.res = Z.resolve(pz.board, Math.random);
+    pz.step = 0; pz.sub = 'clear'; pz.ci = 0; pz.t = 0; pz.comboCount = 0;
+    pz.view = pz.battle.enemies.map(function (en) { return { id: en.id, def: en.def, hp: en.hp, hpMax: en.hpMax, cd: en.cd }; });
+    pz.phase = 'resolve';
+    pzHelp();
+  }
+
+  function pzUpdate(dt) {
+    pz.shake = Math.max(0, pz.shake - dt * 30);
+    for (var k in pz.flash) pz.flash[k] = Math.max(0, pz.flash[k] - dt * 2.5);
+    pz.floats = pz.floats.filter(function (f) { f.t += dt; return f.t < f.life; });
+    pz.spawn = Math.min(1, pz.spawn + dt * 2.5);
+    if (pz.phase === 'input' && pz.started) {
+      pz.timeLeft -= dt;
+      if (pz.timeLeft <= 0) pzEndMove();
+      return;
+    }
+    pz.t += dt;
+    if (pz.phase === 'resolve') {
+      var st = pz.res.steps[pz.step];
+      if (!st) { pzAttack(); return; }
+      if (pz.sub === 'clear' && pz.t >= 0.24) {
+        var cb = st.combos[pz.ci];
+        cb.cells.forEach(function (p) { pz.board[p[0]][p[1]] = null; });
+        pz.comboCount++;
+        pzComboSound(pz.comboCount);
+        pz.ci++; pz.t = 0;
+        if (pz.ci >= st.combos.length) pz.sub = 'fall';
+      } else if (pz.sub === 'fall' && pz.t >= 0.26) {
+        pz.board = Z.copy(st.board);
+        pz.step++; pz.sub = 'clear'; pz.ci = 0; pz.t = 0;
+      }
+    } else if (pz.phase === 'attack' && pz.t >= 0.8) {
+      pz.t = 0;
+      if (pz.last.enemyAttacks.length) {
+        pz.phase = 'enemy';
+        var total = pz.last.enemyAttacks.reduce(function (a, x) { return a + x.damage; }, 0);
+        pzFloat(PZ.W / 2, PZ.TOP + 30, '-' + total, '#ff5a5a', 30);
+        pz.shake = 10;
+        sound.enemy(pz.last.enemyAttacks.length > 1);
+      } else pzNext();
+    } else if (pz.phase === 'enemy' && pz.t >= 0.7) {
+      pz.t = 0; pzNext();
+    }
+  }
+  function pzComboSound(n) { sound.combo(); if (n > 1) sound.shot(); }
+  function pzFloat(x, y, text, color, size) { pz.floats.push({ x: x, y: y, text: text, color: color, size: size || 22, t: 0, life: 1.1 }); }
+
+  /** 消し終わったら攻撃と回復（計算は MSPuzzle.PuzzleBattle.play） */
+  function pzAttack() {
+    var r = pz.battle.play(pz.res.combos);
+    pz.last = r;
+    pz.phase = 'attack'; pz.t = 0;
+    var pos = pzEnemyPos(pz.view);
+    r.attacks.forEach(function (a, i) {
+      pz.flash[a.unit] = 1;
+      a.hits.forEach(function (h) {
+        var v = null, j;
+        for (j = 0; j < pz.view.length; j++) if (pz.view[j].id === h.enemy) v = pz.view[j];
+        if (!v) return;
+        v.hp = Math.max(0, v.hp - h.damage);
+        var p = pos[h.enemy];
+        pzFloat(p.x + (i - 1.5) * 16, p.y - 20 - i * 18, String(h.damage) + (h.rate > 1 ? '!' : ''), DROP[a.element].c[1], h.rate > 1 ? 28 : 22);
+      });
+    });
+    if (r.attacks.length) sound.hit(3000);
+    if (r.heal > 0) { pzFloat(PZ.W / 2, PZ.TOP + 60, '+' + r.heal, '#3fdc6b', 24); sound.heal(); }
+    if (!r.combos) pzFloat(PZ.W / 2, PZ.BOARD - 30, 'そろわなかった…', '#9fb0d6', 18);
+  }
+  function pzNext() {
+    var r = pz.last;
+    if (r.state === 'won' || r.state === 'lost') { pzFinish(r.state === 'won'); return; }
+    if (r.floorCleared) { pz.spawn = 0; sound.wave(); }
+    pz.view = null;
+    pz.phase = 'input';
+    pzHelp();
+  }
+  function pzFinish(won) {
+    pz.phase = won ? 'won' : 'lost';
+    var rw = M.puzzleReward(save, D, won);
+    persist();
+    if (won) sound.win(); else sound.lose();
+    document.getElementById('pz-result-title').textContent = won ? 'クリア！' : 'やられた…';
+    document.getElementById('pz-result-title').className = won ? 'won' : 'lost';
+    document.getElementById('pz-result-text').innerHTML = (won ? '全部のフロアの敵を倒しました。' : 'チームのHPが0になりました。')
+      + '<br>最大 ' + pz.battle.stats.maxCombo + ' コンボ・' + (pz.battle.turn - 1) + 'ターン<br>'
+      + '<span class="gems">+' + rw.gems + '</span>' + (rw.first ? '（初回クリア）' : '') + '　持っているジェム ' + rw.total;
+    document.getElementById('pz-result').hidden = false;
+  }
+
+  function pzEnemyPos(list) {
+    var pos = {}, n = list.length;
+    list.forEach(function (e, i) { pos[e.id] = { x: PZ.W * (i + 1) / (n + 1), y: 130 }; });
+    return pos;
+  }
+
+  function pzRender(now) {
+    var g = pzCtx, t = now / 1000;
+    g.setTransform(pz.k, 0, 0, pz.k, 0, 0);
+    var sx = pz.shake ? (Math.random() - 0.5) * pz.shake : 0;
+    g.save();
+    g.translate(sx, 0);
+    // 敵の場所: 明るい空と草原
+    var sky = g.createLinearGradient(0, 0, 0, PZ.TOP);
+    sky.addColorStop(0, '#8fdcff'); sky.addColorStop(1, '#c9f0a6');
+    g.fillStyle = sky; g.fillRect(0, 0, PZ.W, PZ.TOP);
+    g.fillStyle = '#7fd35a'; g.fillRect(0, PZ.TOP - 50, PZ.W, 50);
+    g.fillStyle = 'rgba(255,255,255,.8)';
+    g.font = '900 16px ' + FONT;
+    g.textAlign = 'left'; g.textBaseline = 'top';
+    g.fillText('FLOOR ' + (pz.battle.floor + 1) + '/' + pz.battle.floors.length, 12, 10);
+    var list = pz.view || pz.battle.enemies;
+    var pos = pzEnemyPos(list);
+    var saved = ctx; ctx = g;   // 敵の絵はフィールドと同じ関数で描く
+    list.forEach(function (e) {
+      var p = pos[e.id], d = e.def;
+      var alpha = e.hp > 0 ? 1 : Math.max(0, 1 - (pz.phase === 'attack' ? pz.t * 2 : 1));
+      if (alpha <= 0) return;
+      var s = pz.view ? 1 : easeOutBack(pz.spawn);
+      g.save();
+      g.globalAlpha = alpha;
+      g.translate(p.x, p.y);
+      var fit = d.look === 'dragon' ? 0.9 : 1;
+      g.scale(s * fit, s * fit);
+      var dd = { x: p.x, r: d.r, w: d.w, h: d.h, colors: d.colors };
+      if (d.look === 'golem') drawGolem(dd, t); else if (d.look === 'dragon') drawDragon(dd, t); else drawSlime(dd, t);
+      g.restore();
+      if (e.hp <= 0) return;
+      var half = (d.look === 'golem' ? d.w / 2 : d.r);
+      // HP・攻撃までのターン・属性
+      var bw = Math.min(150, half * 2 + 20), by = p.y + (d.look === 'golem' ? d.h / 2 : d.r) + 12;
+      g.fillStyle = 'rgba(29,43,83,.85)'; roundRect(g, p.x - bw / 2 - 2, by - 2, bw + 4, 12, 6); g.fill();
+      g.fillStyle = e.hp / e.hpMax > 0.5 ? '#4fe36b' : e.hp / e.hpMax > 0.25 ? '#ffd23f' : '#ff5a5a';
+      roundRect(g, p.x - bw / 2, by, Math.max(2, bw * e.hp / e.hpMax), 8, 4); g.fill();
+      drawElement(p.x + half - 4, p.y - (d.look === 'golem' ? d.h / 2 : d.r) + 4, d.element, 11);
+      g.fillStyle = e.cd <= 1 ? '#ff5a5a' : '#1d2b53';
+      dot(g, p.x - half + 4, p.y - (d.look === 'golem' ? d.h / 2 : d.r) + 4, 13);
+      g.fillStyle = '#fff'; g.font = '900 14px ' + FONT; g.textAlign = 'center'; g.textBaseline = 'middle';
+      g.fillText(String(e.cd), p.x - half + 4, p.y - (d.look === 'golem' ? d.h / 2 : d.r) + 5);
+    });
+    ctx = saved;
+    // チーム: HP と4体
+    g.fillStyle = '#fff'; g.fillRect(0, PZ.TOP, PZ.W, PZ.BOARD - PZ.TOP);
+    var ratio = pz.battle.hp / pz.battle.hpMax;
+    g.fillStyle = '#1d2b53'; roundRect(g, 10, PZ.TOP + 8, PZ.W - 20, 16, 8); g.fill();
+    g.fillStyle = ratio > 0.5 ? '#4fe36b' : ratio > 0.25 ? '#ffd23f' : '#ff5a5a';
+    roundRect(g, 12, PZ.TOP + 10, Math.max(4, (PZ.W - 24) * ratio), 12, 6); g.fill();
+    g.fillStyle = '#fff'; g.font = '900 11px ' + FONT; g.textAlign = 'center'; g.textBaseline = 'middle';
+    g.fillText(pz.battle.hp + ' / ' + pz.battle.hpMax, PZ.W / 2, PZ.TOP + 16);
+    pz.team.forEach(function (u, i) {
+      var x = 70 + i * 100, y = PZ.TOP + 56, f = pz.flash[u.id] || 0, c = u.colors;
+      var gr = g.createRadialGradient(x - 8, y - 10, 3, x, y, 26);
+      gr.addColorStop(0, c[0]); gr.addColorStop(0.6, c[1]); gr.addColorStop(1, c[2]);
+      g.fillStyle = gr; dot(g, x, y - f * 8, 25);
+      g.strokeStyle = i === 0 ? '#ffc629' : '#fff'; g.lineWidth = 3;
+      g.beginPath(); g.arc(x, y - f * 8, 25, 0, Math.PI * 2); g.stroke();
+      g.fillStyle = '#fff'; g.font = '900 18px ' + FONT; g.fillText(u.name, x, y - f * 8 + 1);
+      drawElementOn(g, x + 19, y - 19 - f * 8, u.element, 9);
+      if (i === 0) { g.fillStyle = '#a35a00'; g.font = '900 10px ' + FONT; g.fillText('リーダー', x + 44, y + 16); }
+    });
+    // 盤面
+    for (var r = 0; r < Z.ROWS; r++) for (var c2 = 0; c2 < Z.COLS; c2++) {
+      g.fillStyle = (r + c2) % 2 ? '#7a4a22' : '#8f5a2c';
+      g.fillRect(c2 * PZ.CELL, PZ.BOARD + r * PZ.CELL, PZ.CELL, PZ.CELL);
+    }
+    g.save();
+    g.beginPath(); g.rect(0, PZ.BOARD, PZ.W, Z.ROWS * PZ.CELL); g.clip();
+    var st = pz.phase === 'resolve' ? pz.res.steps[pz.step] : null;
+    if (st && pz.sub === 'fall') {
+      var k = Math.min(1, pz.t / 0.26), ease = k * k;
+      var moved = {};
+      st.moves.forEach(function (m) { moved[m.r + ',' + m.c] = m.from; });
+      for (r = 0; r < Z.ROWS; r++) for (c2 = 0; c2 < Z.COLS; c2++) {
+        var from = moved[r + ',' + c2], yy = r;
+        if (from !== undefined) yy = from + (r - from) * ease;
+        drawDrop(g, st.board[r][c2], c2, yy, 1);
+      }
+    } else {
+      var glow = st && st.combos[pz.ci] ? st.combos[pz.ci] : null, gset = {};
+      if (glow) glow.cells.forEach(function (p) { gset[p[0] + ',' + p[1]] = true; });
+      for (r = 0; r < Z.ROWS; r++) for (c2 = 0; c2 < Z.COLS; c2++) {
+        if (pz.hold && pz.hold.r === r && pz.hold.c === c2) { drawDrop(g, pz.board[r][c2], c2, r, 0.3); continue; }
+        var gl = gset[r + ',' + c2] ? pz.t / 0.24 : 0;
+        drawDrop(g, pz.board[r][c2], c2, r, 1, gl);
+      }
+    }
+    g.restore();
+    if (pz.hold) drawDropAt(g, pz.board[pz.hold.r][pz.hold.c], pz.hold.x, pz.hold.y - 10, PZ.CELL * 0.5, 1, 0);
+    // 操作時間
+    if (pz.phase === 'input' && pz.started) {
+      var tr = Math.max(0, pz.timeLeft / Z.MOVE_TIME);
+      g.fillStyle = 'rgba(29,43,83,.85)'; roundRect(g, 10, PZ.BOARD - 14, PZ.W - 20, 10, 5); g.fill();
+      g.fillStyle = tr > 0.3 ? '#3cc8ff' : '#ff5a5a'; roundRect(g, 12, PZ.BOARD - 12, (PZ.W - 24) * tr, 6, 3); g.fill();
+    }
+    // コンボの数
+    if (pz.comboCount && (pz.phase === 'resolve' || pz.phase === 'attack')) {
+      g.font = '900 44px ' + FONT; g.textAlign = 'center'; g.textBaseline = 'middle';
+      g.lineWidth = 8; g.strokeStyle = '#8a3b00'; g.fillStyle = '#ffd23f';
+      g.strokeText(pz.comboCount + ' COMBO', PZ.W / 2, PZ.BOARD + Z.ROWS * PZ.CELL / 2);
+      g.fillText(pz.comboCount + ' COMBO', PZ.W / 2, PZ.BOARD + Z.ROWS * PZ.CELL / 2);
+    }
+    pz.floats.forEach(function (f) {
+      var a = 1 - Math.max(0, f.t - 0.6) / 0.5;
+      g.globalAlpha = Math.max(0, a);
+      g.font = '900 ' + f.size + 'px ' + FONT; g.textAlign = 'center'; g.textBaseline = 'middle';
+      g.lineWidth = 5; g.strokeStyle = 'rgba(29,43,83,.9)'; g.fillStyle = f.color;
+      g.strokeText(f.text, f.x, f.y - f.t * 30); g.fillText(f.text, f.x, f.y - f.t * 30);
+      g.globalAlpha = 1;
+    });
+    g.restore();
+  }
+  function drawDrop(g, color, c, r, alpha, glow) {
+    if (!color) return;
+    drawDropAt(g, color, (c + 0.5) * PZ.CELL, PZ.BOARD + (r + 0.5) * PZ.CELL, PZ.CELL * 0.42, alpha, glow || 0);
+  }
+  function drawDropAt(g, color, x, y, rad, alpha, glow) {
+    var d = DROP[color];
+    if (!d) return;
+    g.globalAlpha = alpha;
+    if (glow) { g.fillStyle = 'rgba(255,255,255,' + (0.7 * glow).toFixed(3) + ')'; dot(g, x, y, rad * (1.15 + 0.2 * glow)); }
+    var gr = g.createRadialGradient(x - rad * 0.35, y - rad * 0.4, rad * 0.1, x, y, rad);
+    gr.addColorStop(0, d.c[0]); gr.addColorStop(0.6, d.c[1]); gr.addColorStop(1, d.c[2]);
+    g.fillStyle = gr; dot(g, x, y, rad);
+    g.fillStyle = 'rgba(255,255,255,.55)';
+    g.beginPath(); g.ellipse(x - rad * 0.3, y - rad * 0.45, rad * 0.35, rad * 0.16, -0.5, 0, Math.PI * 2); g.fill();
+    g.fillStyle = '#fff'; g.font = '900 ' + Math.round(rad * 0.8) + 'px ' + FONT; g.textAlign = 'center'; g.textBaseline = 'middle';
+    g.lineWidth = 3; g.strokeStyle = d.c[2];
+    g.strokeText(d.label, x, y + 2); g.fillText(d.label, x, y + 2);
+    g.globalAlpha = 1;
+  }
+  function drawElementOn(g, x, y, element, size) { var s = ctx; ctx = g; drawElement(x, y, element, size); ctx = s; }
+
+  document.getElementById('btn-puzzle').addEventListener('click', function () { sound.unlock(); startPuzzle(); });
+  document.getElementById('btn-puzzle-back').addEventListener('click', closePuzzle);
+  document.getElementById('btn-pz-back').addEventListener('click', closePuzzle);
+  document.getElementById('btn-pz-retry').addEventListener('click', startPuzzle);
+  window.addEventListener('resize', pzResize);
+
   // ---------------------------------------------------------------- 起動
   buildWorld();
   buildTune();
@@ -4552,6 +5140,7 @@
     last = now;
     update(dt);
     render(now);
+    if (pz.open) { pzUpdate(dt); pzRender(now); }
     requestAnimationFrame(frame);
   }
   requestAnimationFrame(frame);
@@ -4570,6 +5159,19 @@
     get stage() { return stageIndex; },
     get music() { return sound.track; },
     get save() { return save; },
+    /** ドロップパズル: 状態と、盤面を決めてテストするための窓口 */
+    puzzle: {
+      get open() { return pz.open; },
+      get phase() { return pz.phase; },
+      get battle() { return pz.battle; },
+      get board() { return pz.board && Z.copy(pz.board); },
+      setBoard: function (b) { pz.board = Z.copy(b); },
+      /** マスの中心のページ座標 */
+      cell: function (r, c) {
+        var rc = pzCanvas.getBoundingClientRect();
+        return { x: rc.left + (c + 0.5) * PZ.CELL / PZ.W * rc.width, y: rc.top + (PZ.BOARD + (r + 0.5) * PZ.CELL) / PZ.H * rc.height };
+      }
+    },
     selectStage: selectStage,
     /** テストで状態を直接変えたあと、表示を合わせる */
     refresh: function () { updateHud(); },

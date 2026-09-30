@@ -21,10 +21,10 @@ export function loadAll() {
   const sandbox = { Math, JSON, Object, Array, Number, Infinity, NaN };
   sandbox.globalThis = sandbox;
   vm.createContext(sandbox);
-  for (const id of ['ms-physics', 'ms-battle', 'ms-data', 'ms-meta']) {
+  for (const id of ['ms-physics', 'ms-battle', 'ms-data', 'ms-meta', 'ms-puzzle']) {
     vm.runInContext(extract(html, id), sandbox, { filename: `index.html#${id}` });
   }
-  return { P: sandbox.MSPhysics, B: sandbox.MSBattle, D: sandbox.MSData, M: sandbox.MSMeta };
+  return { P: sandbox.MSPhysics, B: sandbox.MSBattle, D: sandbox.MSData, M: sandbox.MSMeta, Z: sandbox.MSPuzzle };
 }
 
 export function loadPhysics() {

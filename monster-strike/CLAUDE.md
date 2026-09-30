@@ -152,6 +152,23 @@ HTML コメントの中にスクリプトの開始タグをそのまま書かな
    物理のアビリティは `mods.abilities` で渡し、止まったら `Body.baseAbilities` に戻る。
 3. 自動プレイの bot は greedy が毎回、casual が半分、random が2割成功する想定（`gaugeRate`）。
 
+## ステージ・ジェム・能力の画面の約束ごと
+
+1. ステージは `D.stages`（草原・塔・火山・神殿・古城）。足したら `STAGE_NOTE`・`meta.rewards`（同じ数）・
+   `renderBackground` の `theme` を足し、`balance.test.mjs` で最初の4体の難しさを測る（後のステージほど難しく）。
+   ギミックはキャラの置き場所（y 690〜715）と重ねない。敵に隠れる所にも置かない。
+2. ジェムはクリア報酬・1日1回のログインボーナス（`MSMeta.claimDaily(save, data, 'YYYY-MM-DD')`、日付は画面が決める）・
+   ミニゲームの報酬（`MSMeta.puzzleReward`）だけで増える。本物のお金は使わない。
+3. 能力の画面（📖）はアビリティ・ゲージ・キラー・耐性・友情・SS を説明付きで出し、ギミックには対策できるキャラを出す。
+   新しいアビリティを足したら `ABILITY` に `desc`、新しいギミックを足したら `GIMMICK` に説明と `counter` を書く。
+
+## ミニゲーム「ドロップパズル」の約束ごと
+
+1. 仕様と出典は `docs/puzzle-research.md`。パズドラの名前・絵・音は使わず、仕組みだけ参考にする。
+2. **ルールと計算は `ms-puzzle`（純粋。乱数は引数）**。盤面は `board[行][列]`（5×6）。
+   `resolve()` が消す→落ちるの段（`steps`）を返し、画面はそれを順に見せるだけ。ダメージは `PuzzleBattle.play(combos)`。
+3. 画面は `#puzzle`（全画面）。E2E は `__ms.puzzle.setBoard()` で盤面を決め、`cell(r, c)` の座標を実際にドラッグする。
+
 ## テスト
 
 ```bash
