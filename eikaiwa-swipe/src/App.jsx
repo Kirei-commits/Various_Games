@@ -44,9 +44,11 @@ import {
   Flame as FlameIcon,
   Feather as NotebookPen,
   Castle,
+  Users,
 } from "lucide-react";
 import { BattleBackdrop, Monster, Dragon, Hero, monsterKindOf } from "./battle-art.jsx";
 import QuestScreen, { EnhancePanel } from "./QuestScreen.jsx";
+import VersusScreen from "./VersusScreen.jsx";
 import { equip as questEquip, autoEquip as questAutoEquip, applyQuest, runResults, savePreset as questSavePreset, loadPreset as questLoadPreset, enhance as questEnhance, plusOf, ULTIMATE_PLUS } from "./quest.js";
 import { loadRecordedIndex, playRecorded, recordedCount, recordedUrls, stopRecorded } from "./recorded.js";
 import { cheersAvailable, loadCheers, noteSpeech } from "./cheers.js";
@@ -453,7 +455,8 @@ const DEFAULT_SETTINGS = {
   ignoreSilent: false, // iPhone のマナーモード中も BGM・効果音を鳴らす（ふつうは鳴らさない）
   theme: "", // 着せかえ（空なら以前ログインボーナスで選んだもの、なければスタンダード）
   test: { scope: "ch01", count: 10, direction: "en-ja", prompt: "text", answer: "type" },
-  play: "test", // テスト画面で「テスト」「バトル」「冒険」のどれを開くか
+  play: "test", // テスト画面で「テスト」「バトル」「冒険」「対戦」のどれを開くか
+  versus: { scope: "word", count: 10 }, // 対戦（早押しクイズ）の出題範囲と問題数
   questIdioms: true, // 冒険で、深い階から熟語（2〜4語のフレーズ）も出す
   battle: { mode: "stage", chapter: "ch51", scope: "word", direction: "en-ja", answer: "choice", order: "random", count: 10 },
 };
@@ -464,6 +467,7 @@ function loadSettings() {
     ...DEFAULT_SETTINGS,
     ...s,
     test: { ...DEFAULT_SETTINGS.test, ...(s.test || {}) },
+    versus: { ...DEFAULT_SETTINGS.versus, ...(s.versus || {}) },
     // バトルの音声入力は 2026-09-30 になくした（テンポが悪くなるため）。選んでいた人は4択に
     battle: { ...DEFAULT_SETTINGS.battle, ...(s.battle || {}), ...(s.battle?.answer === "voice" ? { answer: "choice" } : {}) },
   };
@@ -1749,6 +1753,14 @@ const tierOf = (scope) => {
 
 /** コース（部）まるごとの出題範囲: "part1"〜（基本編・アメリカ生活編などの 1000問） */
 const partOf = (scope) => (/^part\d+$/.test(scope || "") ? PART_GROUPS[Number(scope.slice(4)) - 1] || null : null);
+/** 対戦の出題範囲（全員が同じ問題になるよう、苦手・お気に入りのような人ごとの範囲は使わない） */
+const VERSUS_SCOPES = () => [
+  ["word", `${tr("単語全部", "All words")}${qn(KIND_ITEMS.word.length)}`],
+  ["phrase", `${tr("フレーズ全部", "All phrases")}${qn(KIND_ITEMS.phrase.length)}`],
+  ["all", `${tr("全章から", "All chapters")}${qn(TOTAL)}`],
+  ...TIER_LABELS().map((label, i) => [`lv${i + 1}`, `${tr("単語の難易度", "Word level")} ${label}${qn(WORD_TIERS()[i].length)}`]),
+  ...PART_SCOPES(),
+];
 const PART_SCOPES = () => PART_GROUPS.map((part, i) => [`part${i + 1}`, tr(`${part.title} 全部（${part.count}問）`, `All of ${partTitle(part)} (${part.count})`)]);
 
 function scopeItems(scope, misses, favorites = {}) {
@@ -2499,6 +2511,7 @@ function TestKindSwitch({ value, onChange }) {
           { value: "test", label: tr("テスト", "Test"), icon: PenLine },
           { value: "battle", label: tr("バトル", "Battle"), icon: Swords },
           { value: "quest", label: tr("冒険", "Quest"), icon: Castle },
+          { value: "versus", label: tr("対戦", "Versus"), icon: Users },
         ]}
       />
     </div>
@@ -3411,7 +3424,7 @@ function BattleResult({ battle, reward, speech, onRetry, onNext, onBack, favorit
   );
 }
 
-function TestScreen({ active, state, settings, setSettings, speech, onFinishTest, onFinishBattle, onSettings, onUseItem, onToggleFavorite, quest }) {
+function TestScreen({ active, state, settings, setSettings, speech, onFinishTest, onFinishBattle, onSettings, onUseItem, onToggleFavorite, quest, account }) {
   const sound = useSound();
   const dopamine = useDopamine();
   const recognition = useRecognition();
@@ -3505,6 +3518,30 @@ function TestScreen({ active, state, settings, setSettings, speech, onFinishTest
         onEnhance={quest.onEnhance}
         onToggleFavorite={onToggleFavorite}
         onFinish={quest.onFinish}
+      />
+    );
+  }
+  if (settings.play === "versus" && !session && !result) {
+    return (
+      <VersusScreen
+        active={active}
+        header={
+          <>
+            <ScreenHeader title={tr("対戦", "Versus")} sub={tr("4択の早押しクイズ", "Quick-fire 4-choice quiz")} onSettings={onSettings} />
+            {switcher}
+          </>
+        }
+        user={account?.user}
+        rooms={cloud.available ? cloud.rooms : null}
+        onSignIn={account?.signIn}
+        config={settings.versus}
+        setConfig={(versus) => setSettings((s) => ({ ...s, versus }))}
+        scopeOptions={VERSUS_SCOPES()}
+        itemsFor={(scope) => scopeItems(scope, {}, {})}
+        byId={LIBRARY.byId}
+        triviaOf={(id) => CATALOG.cards[id]?.trivia || null}
+        speech={speech}
+        sound={sound}
       />
     );
   }
@@ -6839,6 +6876,7 @@ export default function App() {
               onUseItem={onConsumeItem}
               onToggleFavorite={onToggleFavorite}
               onSettings={openSettings}
+              account={account}
             />
           </div>
           {tab === "shadow" && (

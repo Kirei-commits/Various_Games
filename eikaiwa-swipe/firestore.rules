@@ -4,6 +4,8 @@ rules_version = '2';
 // Firebase コンソール → Firestore Database → ルール に、このファイルの内容を貼り付けて「公開」する。
 //
 // - users/{uid} は、ログインしている本人（uid が一致する人）だけが読み書きできる
+// - rooms/{4けたの番号} は対戦（早押しクイズ）の部屋。ログインした人が読め、参加者が書き換えられる。
+//   参加していない人は「自分を名簿に足す」（入室）か、古い・終わった部屋を作り直すことだけできる
 // - 他の場所はすべて読み書き禁止
 // - 1ドキュメントの大きさを制限して、いたずらで巨大なデータを書き込まれないようにする
 service cloud.firestore {
@@ -16,6 +18,24 @@ service cloud.firestore {
         && request.resource.data.state is string
         && request.resource.data.state.size() < 500000
         && request.resource.data.updatedAt is number;
+    }
+    match /rooms/{code} {
+      function okRoom() {
+        let r = request.resource.data;
+        return r.players is map && r.players.size() >= 1 && r.players.size() <= 4
+          && request.auth.uid in r.players
+          && r.questions is list && r.questions.size() <= 20
+          && r.answers is map && r.answers.size() <= 20;
+      }
+      allow read: if request.auth != null;
+      allow create: if request.auth != null && code.matches('^[0-9]{4}$') && okRoom()
+        && request.resource.data.players.keys().hasOnly([request.auth.uid]);
+      allow update: if request.auth != null && okRoom() && (
+        request.auth.uid in resource.data.players
+        || request.resource.data.players.keys().hasAll(resource.data.players.keys())
+        || resource.data.status == 'done'
+        || request.time.toMillis() - resource.data.createdAt > 7200000
+      );
     }
     match /{document=**} {
       allow read, write: if false;

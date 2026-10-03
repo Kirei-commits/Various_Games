@@ -2,6 +2,7 @@
  * Firebase（Google ログイン + Firestore）でのクラウド保存。
  * データは users/{uid} の1ドキュメントに、進捗全体を JSON 文字列で保存する。
  * 他人のデータを読み書きできないことは Firestore のセキュリティルールで保証する（README 参照）。
+ * 対戦（早押しクイズ）の部屋は rooms/{番号} の1ドキュメント。変更はリアルタイムに届く（onSnapshot）。
  */
 import { initializeApp } from "firebase/app";
 import {
@@ -12,7 +13,7 @@ import {
   signOut,
   onAuthStateChanged,
 } from "firebase/auth";
-import { getFirestore, doc, getDoc, setDoc } from "firebase/firestore/lite";
+import { getFirestore, doc, getDoc, setDoc, onSnapshot, runTransaction } from "firebase/firestore";
 
 export function createFirebaseCloud(config) {
   const app = initializeApp(config);
@@ -46,6 +47,26 @@ export function createFirebaseCloud(config) {
     },
     async save(uid, state, updatedAt) {
       await setDoc(doc(db, "users", uid), { state: JSON.stringify(state), updatedAt, version: state.version });
+    },
+    rooms: {
+      /** 部屋の変化を見張る。cb(部屋 | null)。戻り値で見張りをやめる */
+      watch(code, cb, onError) {
+        return onSnapshot(
+          doc(db, "rooms", code),
+          (snap) => cb(snap.exists() ? snap.data() : null),
+          (e) => onError?.(e)
+        );
+      },
+      /** 部屋をトランザクションで書き換える。fn(今の部屋 | null) → { room?, error? }。room があれば保存する */
+      async transact(code, fn) {
+        return runTransaction(db, async (tx) => {
+          const ref = doc(db, "rooms", code);
+          const snap = await tx.get(ref);
+          const out = fn(snap.exists() ? snap.data() : null) || {};
+          if (out.room && !out.error) tx.set(ref, out.room);
+          return out;
+        });
+      },
     },
   };
 }

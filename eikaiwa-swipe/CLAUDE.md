@@ -25,6 +25,7 @@ CI はリポジトリ直下の `.github/workflows/ci.yml`（`changes` ジョブ�
 6. **クラウド保存は `src/cloud.js` の窓口だけを通す。** 画面から Firebase を直接呼ばない。
    `cloud-config.js` が null のときと Artifact 用ビルドでは、`tools/build.mjs` が Firebase SDK をスタブに差し替える。
    ログイン時の統合ルールは `logic.js` の `resolveLogin` / `mergeStates`（テストあり）。
+   対戦の部屋は `cloud.rooms`（watch / transact）だけを使い、部屋の書き換えは `src/versus.js` の純粋関数を通す。`firestore.rules` を変えたら、Firebase コンソールで貼り直してもらう必要がある（ユーザーに伝える）。
 
 7. **画面に出す文字は `tr("日本語", "English")`（`src/i18n.js`）で両方書く。** 設定の「表示の言語」で切り替わる。モジュールの定数に置く名前は getter（`get name() { return tr(...) }`）にする。章を足したら `src/data/titles-en.js` に英語の章名も足す。
 

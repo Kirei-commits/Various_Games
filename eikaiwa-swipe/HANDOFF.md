@@ -91,6 +91,7 @@
   以前はいつも playback にしていたので「マナーモードなのに音が出る」と言われた（2026-09-30 に設定へ）。マイクを使うあいだは `setMicActive` で play-and-record に切り替える
 - バトル: 狙う敵に切り替わったとき（ボスの単語が変わったときも）に英単語を読み上げる（英語→意味のときだけ。2026-10-03 に「出たとき」から変更）。狙う敵に攻撃までの秒数（`msUntilReach`）
 - 冒険（2026-10-03）: 答えの速さ（`speedRate`）と問題の難しさ（`levelRate`、単語のレア度）でダメージ・守りの倍率。コマンドは答えるまで変えられない。倒したあとに解説（`run.asked`）。宝箱の画面は OK で閉じる
+- 対戦（早押しクイズ、2026-10-03）: `src/versus.js`・`src/VersusScreen.jsx`。部屋は Firestore の rooms/{4けた}（`cloud.rooms.watch` / `transact`）。Firestore は lite をやめて通常版（リアルタイムのため。index.html が約 170KB 増えた）。**firestore.rules に rooms を足したので、Firebase コンソールで貼り直して公開が必要**。E2E は localStorage の偽クラウドで2ページ対戦
 - 表示の言語（2026-10-03）: `src/i18n.js` の `tr(ja, en)`。設定 `lang`（"ja" | "en"、保存は設定のほう）。App の描画の最初に `setLang`。モジュールの定数の名前（quest.js の SLOTS・ELEMENTS・SKILLS・敵、gacha.js の SHOP、テーマ、linking/pronounce の説明）は getter で tr を通す。章・実績の英語名は `src/data/titles-en.js`。教材（英文・訳・単語の意味・語源）は訳さない
 - バトル: 敵が出てくる間隔を短く（4択 4.5秒→2.4秒）、倒したらすぐ次が出る（`RESPAWN_EMPTY` 0.25秒・`RESPAWN_AFTER_KILL` 0.9秒）。近づく速さは変えていない
 - ドーパミンモード: 画面のゆれ・光の輪・放射の光・絵文字の雨・虹色の文字。5連続ごとに節目の大きな演出と音、10連続からフィーバー（画面のふちが虹色）
