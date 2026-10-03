@@ -69,6 +69,9 @@
   .bottom { background: linear-gradient(180deg, #ffffff, var(--panel2)); border: 3px solid var(--line); border-radius: 16px;
     padding: 6px 8px 8px; box-shadow: 0 3px 0 var(--line-dark), 0 6px 12px rgba(20, 60, 140, .25); }
   .teamhp { display: flex; align-items: center; gap: 6px; font-size: 12px; margin-bottom: 6px; }
+  /* 倍速ボタン: 幅を固定（×1 ⇔ ×2 で HP の行の長さが変わらないように） */
+  #btn-speed { flex: none; width: 48px; padding: 2px 0; font-size: 11px; font-weight: 900; border-radius: 8px; white-space: nowrap; }
+  #btn-speed[aria-pressed="true"] { background: linear-gradient(180deg, #fff6b8, #ffd23f 50%, #ff9a1a); border-color: #e07a00; }
   .teamhp .label { color: #fff; background: var(--green); font-size: 11px; font-weight: 900; padding: 1px 7px; border-radius: 6px;
     border: 2px solid #1f8a2c; }
   .teamhp .bar { position: relative; flex: 1; height: 16px; border-radius: 999px; overflow: hidden;
@@ -376,7 +379,7 @@
   </main>
 
   <section class="bottom">
-    <div class="teamhp"><span class="label">HP</span><div class="bar"><div id="hp-fill"></div></div><span id="hp-text"></span></div>
+    <div class="teamhp"><span class="label">HP</span><div class="bar"><div id="hp-fill"></div></div><span id="hp-text"></span><button id="btn-speed" type="button" aria-pressed="false" aria-label="倍速">▶×1</button></div>
     <div class="lineup">
       <div id="lineup" style="display: contents"></div>
       <div class="side">
@@ -3422,11 +3425,23 @@ window.MSArt = {
   var game = {
     phase: 'ready', active: 0, mover: null, timer: 0, timeScale: 1, acc: 0,
     shotHits: 0, shotDamage: 0, attacks: [], attack: null, ending: null,
+    ff: 1,          // 自動の早送り（失速したとき・ウェーブの敵を全部倒したとき）。物理の刻みは同じなので結果は変わらない
+    speed: 1,       // ⏩ 倍速ボタン（1 / 2）
+    cleared: false, // このショットでウェーブの敵を全部倒した
+    hitPop: 0,      // HIT カウンターの弾み
+    pullTier: 0,    // 引っぱりの強さの段（0〜4）。上がるたびにカチッ
     ssArmed: false   // SS ボタンが押されていて、次の一発が SS になる
   };
   var shownHp = 0;    // 画面に出しているチームHP（敵の攻撃が当たった瞬間に減らす）
   var pull = null;    // { pointerId, sx, sy, dx, dy, aim }
-  var fx = { particles: [], rings: [], texts: [], bullets: [], beams: [], blasts: [], bolts: [], meteors: [], slashes: [], shake: 0, hitStop: 0, hurt: 0, wallFlash: {}, slowFlash: {} };
+  var fx = { particles: [], rings: [], texts: [], bullets: [], beams: [], blasts: [], bolts: [], meteors: [], slashes: [], shards: [], shake: 0, hitStop: 0, hurt: 0, flash: 0, slowmo: 0, wallFlash: {}, slowFlash: {} };
+  // サクサク爽快（docs/kaikan-plan.md）
+  var FF_SPEED = 380, FF_MAX = 2.4, FF_CLEARED = 3.5;   // この速さを下回ったら早送り / 早送りの最大 / 敵を全部倒した後
+  var SLOWMO = 0.5, SLOWMO_RATE = 0.3;                  // ラストヒットのスロー（秒・速さ）
+  var RATING = [[40, 'AMAZING!!', '#ff7ad9'], [25, 'EXCELLENT!', '#ffd166'], [12, 'GREAT!', '#7df0ff'], [5, 'GOOD!', '#9dffb0']];
+  try { game.speed = localStorage.getItem('ms.speed') === '2' ? 2 : 1; } catch (e) { /* 読めなくても ×1 で遊べる */ }
+  /** スマホを短く震わせる（対応している端末だけ・音が OFF なら震えない） */
+  function buzz(ms) { try { if (sound.on && navigator.vibrate) navigator.vibrate(ms); } catch (e) { /* 震えなくても続ける */ } }
 
   function buildWorld() {
     world = new P.World(cfgOverrides);
@@ -3450,6 +3465,7 @@ window.MSArt = {
     fx.particles.length = 0; fx.rings.length = 0; fx.texts.length = 0;
     fx.bullets.length = 0; fx.beams.length = 0; fx.blasts.length = 0;
     fx.shake = 0; fx.hitStop = 0; fx.hurt = 0; fx.wallFlash = {}; fx.slowFlash = {};
+    fx.shards.length = 0; fx.flash = 0; fx.slowmo = 0; game.ff = 1; game.cleared = false; game.hitPop = 0;
     canvas.classList.remove('pulling');
     el.result.hidden = true;
     updateHud();
@@ -3643,11 +3659,28 @@ window.MSArt = {
         var k = Math.min(1, s / 2000);
         tone(160 + 140 * k, 90, 0.09, 'square', 0.05 + 0.1 * k);
       },
-      hit: function (s) {
+      // n: このショットで何発目か。当たるほど音が高くなる（最大で約2倍）
+      hit: function (s, n) {
         var now = throttle(lastHit, 30); if (now < 0) return; lastHit = now;
-        var k = Math.min(1, s / 2000); tone(520 + 400 * k, 260, 0.12, 'sawtooth', 0.07 + 0.08 * k); noise(0.08, 0.2 * k, 3000);
+        var k = Math.min(1, s / 2000), up = 1 + Math.min(n || 0, 25) * 0.04;
+        tone((520 + 400 * k) * up, 260 * up, 0.12, 'sawtooth', 0.07 + 0.08 * k); noise(0.08, 0.2 * k, 3000);
       },
-      pierce: function (s) { var k = Math.min(1, s / 2000); noise(0.22, 0.12 + 0.2 * k, 900); tone(700, 1400, 0.12, 'sine', 0.06); },
+      pierce: function (s, n) {
+        var k = Math.min(1, s / 2000), up = 1 + Math.min(n || 0, 25) * 0.04;
+        noise(0.22, 0.12 + 0.2 * k, 900); tone(700 * up, 1400 * up, 0.12, 'sine', 0.06);
+      },
+      /** 引っぱりの強さの段（1〜4）。段が上がるほど高い */
+      pullTick: function (tier) { var f = 600 * Math.pow(1.26, tier); tone(f, f * 1.05, 0.04, tier >= 4 ? 'square' : 'triangle', tier >= 4 ? 0.07 : 0.05); },
+      /** 10 HIT ごとの節目 */
+      milestone: function (n) {
+        var b = 660 * Math.pow(1.12, Math.min(6, n / 10 - 1));
+        [1, 1.26, 1.5, 2].forEach(function (m, i) { tone(b * m, b * m, 0.09, 'square', 0.05, i * 0.05); });
+      },
+      /** ショットの評価（0〜3） */
+      rating: function (lv) {
+        [523, 659, 784, 1047, 1319].slice(0, 2 + lv).forEach(function (f, i) { tone(f, f, 0.14, 'triangle', 0.08, i * 0.07); });
+      },
+      clear: function () { noise(0.3, 0.25, 6000); tone(1047, 2093, 0.3, 'triangle', 0.1); tone(1568, 3136, 0.35, 'sine', 0.06, 0.08); },
       weak: function () { tone(1400, 2600, 0.12, 'square', 0.08); tone(2000, 3200, 0.14, 'sine', 0.08, 0.05); },
       kill: function () { noise(0.4, 0.3, 500); tone(300, 60, 0.4, 'sawtooth', 0.12); },
       charge: function () { tone(200, 500, 0.3, 'sawtooth', 0.05); },
@@ -3724,6 +3757,7 @@ window.MSArt = {
     var hit = unitAt(p);
     if (hit >= 0 && hit !== game.active) { game.active = hit; game.ssArmed = false; updateHud(); sound.tick(); }
     pull = { pointerId: e.pointerId, sx: p.x, sy: p.y, dx: 0, dy: 0, aim: null, t0: performance.now(), gaugeOk: false };
+    game.pullTier = 0;
     try { canvas.setPointerCapture(e.pointerId); } catch (err) { /* 合成イベントでは失敗することがある */ }
     game.phase = 'pulling';
     canvas.classList.add('pulling');
@@ -3800,12 +3834,15 @@ window.MSArt = {
   function updateAim() {
     var u = activeUnit();
     var v = P.launchVelocity(world.cfg, pull.dx, pull.dy);
-    if (!v) { pull.aim = null; return; }
+    if (!v) { pull.aim = null; game.pullTier = 0; return; }
     var mods = armedMods();
     v = P.applyMods(v, mods);
     u.facing = Math.atan2(v.vy, v.vx);
     var pred = world.predict(u.def.id, v.vx, v.vy, { maxLen: 170 + 230 * v.power, maxBounces: 2, mods: mods });
     pull.aim = { v: v, pred: pred };
+    var tier = v.power > 0.98 ? 4 : Math.floor(v.power * 4);
+    if (tier > game.pullTier) { sound.pullTick(tier); buzz(tier >= 4 ? 12 : 5); }
+    game.pullTier = tier;
   }
 
   function release() {
@@ -3831,6 +3868,8 @@ window.MSArt = {
       ring(u.body.x, u.body.y, 70, '#ffd166');
       u.glow = 1;
       fx.shake = Math.max(fx.shake, 8);
+      fx.flash = Math.max(fx.flash, 0.5);
+      buzz(40);
       sound.ss();
     }
     if (!v) {
@@ -3847,8 +3886,11 @@ window.MSArt = {
     game.shotHits = 0;
     game.shotDamage = 0;
     game.acc = 0;
+    game.ff = 1;
+    game.cleared = false;
     world.drainEvents();
     sound.launch(v.power);
+    buzz(8 + 12 * v.power);
     burst(u.body.x, u.body.y, -v.vx / v.speed, -v.vy / v.speed, 10 + 12 * v.power, u.def.accent, 260);
     updateHud();
   }
@@ -3896,7 +3938,7 @@ window.MSArt = {
         fx.hitStop = Math.max(fx.hitStop, 0.02 + 0.03 * kh);
         u.squash = 1;
         bump(e.other);
-        sound.hit(e.impact);
+        sound.hit(e.impact, game.shotHits);
       } else if (e.type === 'pierce') {
         var kp = Math.min(1, e.speed / 1600);
         burst(e.x, e.y, -e.nx, -e.ny, 10 + 12 * kp, '#ffb070', 240 + 320 * kp);
@@ -3904,7 +3946,7 @@ window.MSArt = {
         fx.shake = Math.max(fx.shake, 2 + 5 * kp);
         fx.hitStop = Math.max(fx.hitStop, 0.015 + 0.02 * kp);
         bump(e.other);
-        sound.pierce(e.speed);
+        sound.pierce(e.speed, game.shotHits);
       } else if (e.type === 'weak') {
         ring(e.x, e.y, 40, '#ffd166');
         burst(e.x, e.y, 0, -1, 16, '#ffd166', 420);
@@ -3926,12 +3968,21 @@ window.MSArt = {
   function showDamage(r) {
     game.shotHits++;
     game.shotDamage += r.damage;
+    game.hitPop = 1;
+    if (game.shotHits % 10 === 0) {
+      // 10 HIT ごとの節目: ファンファーレと光の輪（右上の HIT カウンターから）
+      var W0 = world.cfg.field.w;
+      ring(W0 - 70, 40, 60, game.shotHits >= 20 ? '#ff7ad9' : '#ffd166');
+      sound.milestone(game.shotHits);
+    }
     var jx = (Math.random() - 0.5) * 24;
     if (r.weak) {
       floatText(r.x + jx, r.y - 18, String(r.damage), '#ffe23a', 32, 1.1);
       floatText(r.x, r.y - 48, 'WEAK!', '#ffe08a', 18, 0.9);
       fx.hitStop = Math.max(fx.hitStop, 0.07);
       fx.shake = Math.max(fx.shake, 9);
+      fx.flash = Math.max(fx.flash, 0.25);
+      buzz(15);
       sound.weak();
     } else {
       floatText(r.x + jx, r.y - 14, String(r.damage), r.combo ? '#9ff0ff' : '#ffffff', r.combo ? 18 : 22, 0.8);
@@ -3950,6 +4001,9 @@ window.MSArt = {
       burst(d.x, d.y, 0, 1, 30, '#ffffff', 420);
       ring(d.x, d.y, size * 1.6, '#ffd166');
       ring(d.x, d.y, size * 1.1, '#ffffff');
+      shatter(d, size);
+      fx.flash = Math.max(fx.flash, d.boss ? 0.9 : 0.4);
+      buzz(d.boss ? 90 : 25);
       var flees = d.boss && d.phases && d.phase < d.phases;
       if (flees) {
         // ゲージを1本削った: ボスは次のバトルへ逃げる
@@ -4466,13 +4520,15 @@ window.MSArt = {
   // ---------------------------------------------------------------- 進行
   function update(dt) {
     updateGauge(performance.now());
-    var sdt = dt * game.timeScale;
+    // ⏩ 倍速は引っぱっている間には掛けない（ゲージの速さが変わらないように）
+    var sdt = dt * game.timeScale * (game.phase === 'pulling' ? 1 : game.speed);
     if (game.phase === 'moving') {
       if (fx.hitStop > 0) {
         fx.hitStop -= dt;
       } else {
         var step = world.cfg.step;
-        game.acc += sdt;
+        // 早送り・スローは「1フレームに進める時間」を変えるだけ。刻み（step）は同じなので当たり方は変わらない
+        game.acc += sdt * game.ff * (fx.slowmo > 0 ? SLOWMO_RATE : 1);
         var n = 0;
         while (game.acc >= step && n < 400) {
           world.step(step);
@@ -4484,21 +4540,27 @@ window.MSArt = {
             handleDamage(battle.apply(evs, world));
             startCombos(battle.drainCombos());
             handleHazards(battle.drainHazards());
+            if (!game.cleared && battle.waveCleared()) waveClearFx();
             if (fx.hitStop > 0) { game.acc = 0; break; }
           }
         }
       }
+      fx.slowmo = Math.max(0, fx.slowmo - dt);
+      updateFastForward(dt);
       var m = game.mover;
       if (m) {
         if (m.body.moving) m.facing = Math.atan2(m.body.vy, m.body.vx);
         m.trail.push({ x: m.body.x, y: m.body.y });
-        if (m.trail.length > 16) m.trail.shift();
+        // 速いほど残像を長く（10〜24）
+        while (m.trail.length > 10 + Math.round(14 * Math.min(1, m.body.speed() / 2000))) m.trail.shift();
       }
       if (world.isSettled()) {
         game.phase = 'settling';
         document.getElementById('btn-stop').hidden = true;
-        game.timer = 0.35;
+        game.timer = 0.2;
         game.acc = 0;
+        game.ff = 1;
+        shotRating();
       }
     } else if (game.phase === 'settling') {
       // 友情コンボの弾が飛んでいる間はターンを締めない
@@ -4519,9 +4581,17 @@ window.MSArt = {
       units[i].squash = Math.max(0, units[i].squash - dt * 5);
       units[i].glow = Math.max(0, units[i].glow - dt * 1.6);
     }
-    updateCombos(dt);
+    updateCombos(dt * game.speed);
+    game.hitPop = Math.max(0, game.hitPop - dt * 5);
+    fx.flash = Math.max(0, fx.flash - dt * 3);
     for (var id in foes) {
       var f = foes[id];
+      // HP バーの「遅れて減る白いバー」: 0.25秒待ってから追いつく
+      var fe = battle.enemy(id);
+      var fr = fe ? Math.max(0, fe.hp / fe.maxHp) : 0;
+      if (f.lag === undefined || fr >= f.lag) { f.lag = fr; f.lagWait = 0.25; }
+      else if (f.lagWait > 0) f.lagWait -= dt;
+      else f.lag = Math.max(fr, f.lag - dt * 0.9);
       f.flash = Math.max(0, f.flash - dt * 6);
       f.wobble = Math.max(0, f.wobble - dt * 3);
       f.spawn = Math.min(1, f.spawn + sdt * 2);
@@ -4533,6 +4603,41 @@ window.MSArt = {
     for (var side in fx.wallFlash) fx.wallFlash[side] = Math.max(0, fx.wallFlash[side] - dt * 3);
     for (var sside in fx.slowFlash) fx.slowFlash[sside] = Math.max(0, fx.slowFlash[sside] - dt * 3);
     updateFx(dt);
+  }
+
+  /** 動いているキャラが遅くなったら早送り。ウェーブの敵を全部倒した後はもっと速く。友情の弾・スローの間はしない */
+  function updateFastForward(dt) {
+    var m = game.mover, target = 1;
+    if (m && m.body.moving && !fx.bullets.length && fx.slowmo <= 0) {
+      if (game.cleared) target = FF_CLEARED;
+      else if (m.body.speed() < FF_SPEED) target = FF_MAX;
+    }
+    // 速くなるときはゆっくり、戻るときはすぐ
+    game.ff += (target - game.ff) * Math.min(1, dt * (target > game.ff ? 4 : 14));
+  }
+
+  /** ウェーブの最後の1体を倒した: スロー＋CLEAR!（ボスは自分の演出があるので出さない） */
+  function waveClearFx() {
+    game.cleared = true;
+    if (fx.bossDown || fx.flee) return;
+    fx.slowmo = SLOWMO;
+    fx.flash = Math.max(fx.flash, 0.7);
+    fx.shake = Math.max(fx.shake, 12);
+    floatText(world.cfg.field.w / 2, world.cfg.field.h * 0.42, 'CLEAR!', '#ffffff', 48, 1.3);
+    buzz(40);
+    sound.clear();
+  }
+
+  /** 止まったとき: 1ショットの結果（HIT 数・ダメージ・評価） */
+  function shotRating() {
+    if (game.shotHits < 1) return;
+    var W = world.cfg.field.w, y = world.cfg.field.h * 0.3, lv = -1, word = null;
+    for (var i = 0; i < RATING.length; i++) if (game.shotHits >= RATING[i][0]) { word = RATING[i]; lv = RATING.length - 1 - i; break; }
+    fx.texts.push({ x: W / 2, y: y + 34, text: game.shotHits + ' HIT  ' + game.shotDamage.toLocaleString('ja-JP'), color: '#ffffff', size: 22, life: 0, max: 1.3, still: true, kind: 'result' });
+    if (word) {
+      fx.texts.push({ x: W / 2, y: y, text: word[1], color: word[2], size: 30 + 6 * lv, life: 0, max: 1.3, still: true, kind: 'result' });
+      sound.rating(lv);
+    }
   }
 
   /** 止まった後: ウェーブ進行 / 敵の攻撃 / 勝敗 */
@@ -4553,7 +4658,7 @@ window.MSArt = {
       banner(bdef && bdef.phases > 1 ? 'BOSS BATTLE ' + bdef.phase + '/' + bdef.phases : boss ? 'BOSS BATTLE' : 'WAVE ' + (res.wave + 1), boss ? '#ff6b6b' : '#ffd166');
       if (boss) sound.music('boss');
       game.phase = 'wave';
-      game.timer = 1.4;
+      game.timer = 1.1;
       sound.wave();
     } else if (res.type === 'won') {
       game.phase = 'ending';
@@ -4568,7 +4673,7 @@ window.MSArt = {
       game.phase = 'enemy';
       game.attacks = res.attacks.slice();
       game.attack = null;
-      game.timer = 0.2;
+      game.timer = 0.15;
     } else {
       toReady();
     }
@@ -4582,7 +4687,8 @@ window.MSArt = {
     updateHud();
   }
 
-  /** 敵の攻撃を1体ずつ: ためる(0.35秒) → 撃つ → 余韻 */
+  /** 敵の攻撃を1体ずつ: ためる(ATK_CHARGE 秒) → 撃つ → 余韻（ATK_END 秒まで） */
+  var ATK_CHARGE = 0.28, ATK_END = 0.75;
   function updateAttack(sdt) {
     if (!game.attack) {
       game.timer -= sdt;
@@ -4598,8 +4704,8 @@ window.MSArt = {
     }
     var at = game.attack;
     at.t += sdt;
-    if (!at.fired && at.t >= 0.35) { fireAttack(at.a); at.fired = true; }
-    if (at.t >= 0.95) { game.attack = null; game.timer = 0.12; }
+    if (!at.fired && at.t >= ATK_CHARGE) { fireAttack(at.a); at.fired = true; }
+    if (at.t >= ATK_END) { game.attack = null; game.timer = 0.08; }
   }
 
   function fireAttack(a) {
@@ -4728,6 +4834,17 @@ window.MSArt = {
         life: 0, max: 0.25 + Math.random() * 0.3, size: 2 + Math.random() * 3, color: color });
     }
   }
+  /** 撃破: 敵の色の破片が回りながら飛び散って落ちる */
+  function shatter(d, size) {
+    var cols = [Array.isArray(d.colors) ? d.colors[1] : '#ff8a5c', '#ffffff'];
+    var n = d.boss ? 22 : 12;
+    for (var i = 0; i < n; i++) {
+      var a = Math.PI * 2 * i / n + Math.random() * 0.5, s = 260 + Math.random() * 360 * (d.boss ? 1.6 : 1);
+      fx.shards.push({ x: d.x + Math.cos(a) * size * 0.4, y: d.y + Math.sin(a) * size * 0.4, vx: Math.cos(a) * s, vy: Math.sin(a) * s - 160,
+        rot: Math.random() * 6, vr: (Math.random() - 0.5) * 18, size: (d.boss ? 10 : 6) + Math.random() * 8,
+        color: cols[i % 2], life: 0, max: 0.7 + Math.random() * 0.4 });
+    }
+  }
   function ring(x, y, r, color) { fx.rings.push({ x: x, y: y, r: r, life: 0, max: 0.35, color: color }); }
   function floatText(x, y, text, color, size, max) {
     fx.texts.push({ x: x, y: y, text: text, color: color, size: size, life: 0, max: max || 0.9 });
@@ -4744,6 +4861,12 @@ window.MSArt = {
       if (p.life >= p.max) { fx.particles.splice(i, 1); continue; }
       p.x += p.vx * dt; p.y += p.vy * dt;
       p.vx *= 1 - 5 * dt; p.vy *= 1 - 5 * dt;
+    }
+    for (i = fx.shards.length - 1; i >= 0; i--) {
+      var sh = fx.shards[i];
+      sh.life += dt;
+      if (sh.life >= sh.max) { fx.shards.splice(i, 1); continue; }
+      sh.x += sh.vx * dt; sh.y += sh.vy * dt; sh.vy += 900 * dt; sh.vx *= 1 - 1.5 * dt; sh.rot += sh.vr * dt;
     }
     for (i = fx.rings.length - 1; i >= 0; i--) { fx.rings[i].life += dt; if (fx.rings[i].life >= fx.rings[i].max) fx.rings.splice(i, 1); }
     for (i = fx.texts.length - 1; i >= 0; i--) { fx.texts[i].life += dt; if (fx.texts[i].life >= fx.texts[i].max) fx.texts.splice(i, 1); }
@@ -5061,6 +5184,25 @@ window.MSArt = {
       ctx.fillStyle = 'rgba(255,40,60,' + (0.28 * fx.hurt).toFixed(3) + ')';
       ctx.fillRect(0, 0, world.cfg.field.w, world.cfg.field.h);
     }
+    if (fx.flash > 0) {
+      ctx.fillStyle = 'rgba(255,255,255,' + (0.45 * fx.flash).toFixed(3) + ')';
+      ctx.fillRect(0, 0, world.cfg.field.w, world.cfg.field.h);
+    }
+    drawFastForward(alive);
+  }
+
+  /** 早送り中は左上に ▶▶ */
+  function drawFastForward(alive) {
+    if (game.phase !== 'moving' || game.ff < 1.3) return;
+    var y = alive.some(function (e) { return e.def.boss; }) ? 50 : 26;
+    ctx.globalAlpha = Math.min(1, (game.ff - 1.3) * 2);
+    ctx.font = '900 18px "Hiragino Sans","Noto Sans JP",system-ui,sans-serif';
+    ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+    ctx.lineWidth = 4; ctx.strokeStyle = 'rgba(6,10,24,.8)';
+    ctx.strokeText('▶▶', 14, y);
+    ctx.fillStyle = '#ffffff';
+    ctx.fillText('▶▶', 14, y);
+    ctx.globalAlpha = 1;
   }
 
   // --- 敵
@@ -5074,7 +5216,7 @@ window.MSArt = {
     // 攻撃をためている敵は赤く光る
     if (game.attack && game.attack.a.enemy === e.id && !game.attack.fired) {
       var size = d.shape === 'rect' ? Math.max(d.w, d.h) / 2 : d.r;
-      var ch = game.attack.t / 0.35;
+      var ch = Math.min(1, game.attack.t / ATK_CHARGE);
       var aura = ctx.createRadialGradient(0, 0, size * 0.5, 0, 0, size * (1.3 + ch * 0.6));
       aura.addColorStop(0, 'rgba(255,60,60,0)'); aura.addColorStop(0.6, 'rgba(255,60,60,' + (0.5 * ch).toFixed(3) + ')'); aura.addColorStop(1, 'rgba(255,60,60,0)');
       ctx.fillStyle = aura;
@@ -5250,6 +5392,7 @@ window.MSArt = {
       ctx.fillStyle = 'rgba(6,10,24,.8)';
       roundRect(ctx, bx - 2, by - 2, bw + 4, 10, 5); ctx.fill();
       var ratio = e.hp / e.maxHp;
+      if (f && f.lag > ratio) { ctx.fillStyle = '#ffffff'; roundRect(ctx, bx, by, Math.max(6, bw * f.lag), 6, 3); ctx.fill(); }
       ctx.fillStyle = ratio > 0.5 ? '#6ee07a' : ratio > 0.25 ? '#ffd166' : '#ff5e5e';
       if (ratio > 0) { roundRect(ctx, bx, by, Math.max(6, bw * ratio), 6, 3); ctx.fill(); }
     }
@@ -5305,6 +5448,8 @@ window.MSArt = {
     ctx.fillStyle = 'rgba(6,10,24,.8)';
     roundRect(ctx, x - 3, y - 3, w + 6, h + 6, 8); ctx.fill();
     var ratio = boss.hp / boss.maxHp;
+    var bf = foes[boss.id];
+    if (bf && bf.lag > ratio) { ctx.fillStyle = '#fff7d6'; roundRect(ctx, x, y, Math.max(8, w * bf.lag), h, 7); ctx.fill(); }
     var g = ctx.createLinearGradient(x, 0, x + w, 0);
     g.addColorStop(0, '#ff4d6d'); g.addColorStop(1, '#ff9f5a');
     ctx.fillStyle = g;
@@ -5335,9 +5480,17 @@ window.MSArt = {
     ctx.lineWidth = 4; ctx.strokeStyle = 'rgba(6,10,24,.85)';
     ctx.font = '900 30px "Hiragino Sans","Noto Sans JP",system-ui,sans-serif';
     var y = battle.alive().some(function (e) { return e.def.boss; }) ? 70 : 48;
-    ctx.strokeText(game.shotHits + ' HIT', W - 16, y);
-    ctx.fillStyle = '#ffd166';
-    ctx.fillText(game.shotHits + ' HIT', W - 16, y);
+    // 当たるたびに弾む。10 HIT で金、20 HIT で虹色
+    var n = game.shotHits, pop = 1 + 0.4 * game.hitPop;
+    var col = n >= 20 ? 'hsl(' + Math.round(performance.now() / 4 % 360) + ',100%,68%)' : n >= 10 ? '#ffd166' : '#ffffff';
+    ctx.save();
+    ctx.translate(W - 16, y);
+    ctx.scale(pop, pop);
+    ctx.strokeText(n + ' HIT', 0, 0);
+    ctx.fillStyle = col;
+    ctx.fillText(n + ' HIT', 0, 0);
+    ctx.restore();
+    ctx.lineWidth = 4;
     ctx.font = '800 13px "Hiragino Sans","Noto Sans JP",system-ui,sans-serif';
     ctx.strokeText(game.shotDamage + ' DAMAGE', W - 16, y + 20);
     ctx.fillStyle = '#fff';
@@ -5349,7 +5502,7 @@ window.MSArt = {
     if (!at.fired) return;
     var e = battle.enemy(at.a.enemy);
     if (!e) return;
-    var f = Math.min(1, (at.t - 0.35) / 0.6), a = 1 - f;
+    var f = Math.min(1, (at.t - ATK_CHARGE) / (ATK_END - ATK_CHARGE)), a = 1 - f;
     if (at.a.kind === 'single') {
       var u = unitById(at.a.target);
       if (!u) return;
@@ -5373,9 +5526,10 @@ window.MSArt = {
     var tr = u.trail;
     if (tr.length < 2) return;
     var col = u.def.shot === 'pierce' ? '255,122,69' : '60,200,255';
+    var fast = Math.min(1, u.body.speed() / 2000);   // 速いほど濃く
     for (var i = 0; i < tr.length; i++) {
       var a = (i + 1) / tr.length;
-      ctx.fillStyle = 'rgba(' + col + ',' + (0.28 * a).toFixed(3) + ')';
+      ctx.fillStyle = 'rgba(' + col + ',' + ((0.22 + 0.25 * fast) * a).toFixed(3) + ')';
       ctx.beginPath(); ctx.arc(tr[i].x, tr[i].y, u.body.r * (0.45 + 0.55 * a), 0, Math.PI * 2); ctx.fill();
     }
   }
@@ -5549,6 +5703,12 @@ window.MSArt = {
     ctx.strokeStyle = 'rgba(255,255,255,.8)'; ctx.lineWidth = 1.5; ctx.stroke();
     ctx.restore();
 
+    if (v.power > 0.98) {
+      // 最大まで引いた: 金色に脈打つ
+      ctx.strokeStyle = 'rgba(255,209,102,' + (0.35 + 0.3 * Math.sin(t * 14)).toFixed(3) + ')';
+      ctx.lineWidth = 10;
+      ctx.beginPath(); ctx.arc(b.x, b.y, b.r + 14, 0, Math.PI * 2); ctx.stroke();
+    }
     ctx.strokeStyle = v.power > 0.98 ? '#ffd166' : 'rgba(' + col + ',.9)';
     ctx.lineWidth = 4;
     ctx.beginPath(); ctx.arc(b.x, b.y, b.r + 14, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * Math.max(0.02, v.power)); ctx.stroke();
@@ -5571,6 +5731,16 @@ window.MSArt = {
       ctx.globalAlpha = a;
       ctx.strokeStyle = r.color; ctx.lineWidth = 3 * a + 1;
       ctx.beginPath(); ctx.arc(r.x, r.y, r.r * (0.4 + (1 - a)), 0, Math.PI * 2); ctx.stroke();
+    }
+    for (i = 0; i < fx.shards.length; i++) {
+      var sh = fx.shards[i];
+      ctx.globalAlpha = Math.min(1, (1 - sh.life / sh.max) * 2);
+      ctx.save();
+      ctx.translate(sh.x, sh.y); ctx.rotate(sh.rot);
+      ctx.fillStyle = sh.color; ctx.strokeStyle = 'rgba(40,20,0,.6)'; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.moveTo(0, -sh.size); ctx.lineTo(sh.size * 0.8, sh.size * 0.6); ctx.lineTo(-sh.size * 0.7, sh.size * 0.5); ctx.closePath();
+      ctx.fill(); ctx.stroke();
+      ctx.restore();
     }
     for (i = 0; i < fx.particles.length; i++) {
       var p = fx.particles[i], pa = 1 - p.life / p.max;
@@ -5655,6 +5825,20 @@ window.MSArt = {
     resize();
   }
   document.getElementById('btn-reset').addEventListener('click', restart);
+
+  // ---------------------------------------------------------------- ⏩ 倍速（×1 ⇔ ×2。ブラウザに覚える）
+  var speedBtn = document.getElementById('btn-speed');
+  function showSpeed() {
+    speedBtn.textContent = game.speed === 2 ? '▶▶×2' : '▶×1';
+    speedBtn.setAttribute('aria-pressed', String(game.speed === 2));
+  }
+  speedBtn.addEventListener('click', function () {
+    sound.unlock(); sound.tick();
+    game.speed = game.speed === 2 ? 1 : 2;
+    try { localStorage.setItem('ms.speed', String(game.speed)); } catch (e) { /* 保存できなくても続ける */ }
+    showSpeed();
+  });
+  showSpeed();
   document.getElementById('btn-retry').addEventListener('click', restart);
 
   // ---------------------------------------------------------------- SS ボタン
@@ -6490,7 +6674,11 @@ window.MSArt = {
       return { x: r.left + (x + WALL) * view.scale, y: r.top + (y + WALL) * view.scale };
     },
     get scale() { return view.scale; },
-    setTimeScale: function (s) { game.timeScale = s; }
+    setTimeScale: function (s) { game.timeScale = s; },
+    /** 早送りの倍率・倍速・このショットで敵を全部倒したか（サクサク爽快のテスト用） */
+    get tempo() { return { ff: game.ff, speed: game.speed, cleared: game.cleared, hits: game.shotHits, slowmo: fx.slowmo }; },
+    /** いま画面に浮かんでいる文字（演出のテスト用） */
+    get texts() { return fx.texts.map(function (x) { return x.text; }); }
   };
 })();
 </script>

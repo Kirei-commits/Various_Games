@@ -203,6 +203,18 @@ HTML コメントの中にスクリプトの開始タグをそのまま書かな
    `resolve()` が消す→落ちるの段（`steps`）を返し、画面はそれを順に見せるだけ。ダメージは `PuzzleBattle.play(combos)`。
 3. 画面は `#puzzle`（全画面）。E2E は `__ms.puzzle.setBoard()` で盤面を決め、`cell(r, c)` の座標を実際にドラッグする。
 
+## サクサク爽快（テンポと手応え）の約束ごと
+
+1. 企画と測った値は `docs/kaikan-plan.md`。**戦闘の計算は変えず、見せ方と待ち時間だけ**を変えた。
+2. 早送り（`game.ff`）・スロー（`fx.slowmo`）・倍速（`game.speed`）は「1フレームに進める時間」を変えるだけ。
+   物理は同じ `step` で同じ回数進むので、速さを変えても当たり方・ダメージは同じ（テストもこの前提）。
+3. 自動の早送り: 動いているキャラが `FF_SPEED` 未満で最大 `FF_MAX` 倍、ウェーブの敵を全部倒した後は `FF_CLEARED` 倍。
+   友情の弾が飛んでいる間・スローの間はしない（`updateFastForward()`）。
+4. ウェーブの最後の1体を倒したら `waveClearFx()`（スロー＋CLEAR!）。ボスは自分の演出があるので出さない。
+5. ⏩ 倍速ボタン（`#btn-speed`、HP の行の右端・幅固定）は `localStorage['ms.speed']`。**引っぱっている間には掛けない**（ゲージの速さが変わる）。
+6. 振動は `buzz(ms)` を通す（対応端末だけ・音が OFF なら震えない）。
+7. E2E は `__ms.tempo`（`ff / speed / cleared / hits / slowmo`）と `__ms.texts`（浮かんでいる文字）で確かめる（`tests/e2e/tempo.spec.mjs`）。
+
 ## テスト
 
 ```bash
