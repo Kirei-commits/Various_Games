@@ -207,3 +207,19 @@ test('ボスのドロップ: 宝箱は ★4 以上のキャラ。拾ったジェ
   assert.equal(b.bonus, 25);
   assert.equal(M.reward(fresh(), D, 0, false, 'normal', 25).gems, D.meta.rewards[0].lose, '負けたらボーナスなし');
 });
+
+test('友情は途中で敵が全滅しても全部出る（LR は7つ、ウルトラ進化した LR は10個）', () => {
+  const s = fresh();
+  for (const id of ['A', 'BD', 'BE']) s.owned[id] = { luck: 0, plus: 5, stock: 0, ultra: id === 'BE' };
+  const units = M.partyUnits({ ...s, party: ['A', 'BD', 'BE', 'B', 'C'] }, D);
+  const stage = { name: 't', waves: [{ enemies: [{ id: 'e1', shape: 'circle', x: 270, y: 150, r: 30, hp: 1, atk: 0, turns: 9, attack: 'single' }] }] };
+  for (const [ally, want] of [['BD', 7], ['BE', 10]]) {
+    const world = new P.World();
+    for (const u of units) world.add({ id: u.id, kind: 'unit', shot: u.shot, x: u.x, y: u.y, r: 30 });
+    const battle = new BT({ units, stage });
+    battle.spawnWave(world);
+    battle._combo(ally, 'A', world, []);   // A が触れた: 最初の友情で HP 1 の敵は倒れる
+    assert.equal(battle.waveCleared(), true);
+    assert.equal(battle.drainCombos().filter((c) => c.ally === ally).length, want, ally);
+  }
+});
