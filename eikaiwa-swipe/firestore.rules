@@ -20,10 +20,10 @@ service cloud.firestore {
         && request.resource.data.updatedAt is number;
     }
     match /rooms/{code} {
+      // 部屋の大きさの上限（参加者4人・問題20問まで）
       function okRoom() {
         let r = request.resource.data;
-        return r.players is map && r.players.size() >= 1 && r.players.size() <= 4
-          && request.auth.uid in r.players
+        return r.players is map && r.players.size() <= 4
           && r.questions is list && r.questions.size() <= 20
           && r.answers is map && r.answers.size() <= 20;
       }
@@ -31,10 +31,14 @@ service cloud.firestore {
       allow create: if request.auth != null && code.matches('^[0-9]{4}$') && okRoom()
         && request.resource.data.players.keys().hasOnly([request.auth.uid]);
       allow update: if request.auth != null && okRoom() && (
+        // 参加者（部屋を出るときも含む）
         request.auth.uid in resource.data.players
-        || request.resource.data.players.keys().hasAll(resource.data.players.keys())
-        || resource.data.status == 'done'
-        || request.time.toMillis() - resource.data.createdAt > 7200000
+        // 入室: 今の名簿を残したまま自分を足す
+        || (request.auth.uid in request.resource.data.players
+            && request.resource.data.players.keys().hasAll(resource.data.players.keys()))
+        // 終わった部屋・2時間より古い部屋は、自分の部屋として作り直せる
+        || ((resource.data.status == 'done' || request.time.toMillis() - resource.data.createdAt > 7200000)
+            && request.resource.data.players.keys().hasOnly([request.auth.uid]))
       );
     }
     match /{document=**} {
