@@ -11,6 +11,7 @@
 #   デフォルトブランチに push すると、プレビューは消えて本番だけになる。
 #   Settings → Environments → github-pages の「Deployment branches」がデフォルトブランチだけに
 #   なっていると、プレビューの公開は断られる（その場合は claude/monster-strike-* を足す）。
+#   ブランチを許したら、Settings → Secrets and variables → Actions → Variables に PAGES_PREVIEW = true を作る。
 name: Pages
 
 on:
@@ -35,6 +36,9 @@ concurrency:
 jobs:
   deploy:
     name: 公開
+    # プレビューのブランチは、リポジトリの変数 PAGES_PREVIEW が 'true' のときだけ公開する
+    # （github-pages の環境の保護でブランチが許されていないと失敗するので、設定するまでは走らせない）
+    if: github.ref_name == github.event.repository.default_branch || github.ref_name == 'main' || vars.PAGES_PREVIEW == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     environment:
