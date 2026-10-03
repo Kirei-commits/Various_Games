@@ -126,3 +126,21 @@ test("もう一度遊ぶと round が増え、答えはリセット。古い部�
   assert.equal(isStale(again, 3 * 60 * 60 * 1000), true);
   assert.equal(isStale(null, 0), true);
 });
+
+test("報酬: 正解1問30pt、対戦では早押し1回+30pt・勝ち+200pt。1人の練習は正解だけ。終わる前は0", async () => {
+  const { versusReward, VERSUS_POINTS } = await import("../../src/versus.js");
+  let room = playing(2);
+  for (let q = 0; q < 2; q++) {
+    const c = correctOf(room, q);
+    room = submitAnswer(room, "a", q, c, 500).room;
+    room = submitAnswer(room, "b", q, c, 900).room;
+    assert.equal(versusReward(room, "a").points, 0);
+    room = nextQuestion(reveal(room, q).room, q).room;
+  }
+  assert.deepEqual(versusReward(room, "a"), { points: 2 * VERSUS_POINTS.correct + 2 * VERSUS_POINTS.fastest + VERSUS_POINTS.win, won: true });
+  assert.deepEqual(versusReward(room, "b"), { points: 2 * VERSUS_POINTS.correct, won: false });
+  let solo = startRoom(newRoom({ code: "solo", uid: "me", name: "Me", solo: true }), makeQuestions(items, items, 1)).room;
+  solo = submitAnswer(solo, "me", 0, correctOf(solo, 0), 300).room;
+  solo = nextQuestion(reveal(solo, 0).room, 0).room;
+  assert.deepEqual(versusReward(solo, "me"), { points: VERSUS_POINTS.correct, won: false });
+});

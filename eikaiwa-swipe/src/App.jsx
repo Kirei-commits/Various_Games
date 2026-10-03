@@ -3424,7 +3424,7 @@ function BattleResult({ battle, reward, speech, onRetry, onNext, onBack, favorit
   );
 }
 
-function TestScreen({ active, state, settings, setSettings, speech, onFinishTest, onFinishBattle, onSettings, onUseItem, onToggleFavorite, quest, account }) {
+function TestScreen({ active, state, settings, setSettings, speech, onFinishTest, onFinishBattle, onFinishVersus, onSettings, onUseItem, onToggleFavorite, quest, account }) {
   const sound = useSound();
   const dopamine = useDopamine();
   const recognition = useRecognition();
@@ -3542,6 +3542,7 @@ function TestScreen({ active, state, settings, setSettings, speech, onFinishTest
         triviaOf={(id) => CATALOG.cards[id]?.trivia || null}
         speech={speech}
         sound={sound}
+        onReward={onFinishVersus}
       />
     );
   }
@@ -6537,6 +6538,21 @@ export default function App() {
     [update]
   );
 
+  // ---- 対戦（早押しクイズ）の報酬: ガチャのポイント（ブースト中は5倍）
+  const onFinishVersus = useCallback(
+    (base) => {
+      if (!(base > 0)) return { points: 0, boosted: false };
+      const rate = boostRate(stateRef.current.gacha, Date.now());
+      const points = base * rate;
+      const next = grant(stateRef.current, { points });
+      lastActivity.current = Date.now();
+      stateRef.current = next;
+      update(() => next);
+      return { points, boosted: rate > 1 };
+    },
+    [update]
+  );
+
   // ---- 冒険（ガチャの単語を装備にするドラクエ風モード）
   const questActions = useMemo(
     () => ({
@@ -6872,6 +6888,7 @@ export default function App() {
               speech={speech}
               onFinishTest={onFinishTest}
               onFinishBattle={onFinishBattle}
+              onFinishVersus={onFinishVersus}
               quest={questActions}
               onUseItem={onConsumeItem}
               onToggleFavorite={onToggleFavorite}

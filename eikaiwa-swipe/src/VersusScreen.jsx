@@ -24,6 +24,8 @@ import {
   nextQuestion,
   standings,
   isStale,
+  versusReward,
+  VERSUS_POINTS,
 } from "./versus.js";
 
 const SOLO_UID = "me";
@@ -45,7 +47,20 @@ const firstName = (user) => (user?.name || "").split(/\s+/)[0] || tr("プレイ�
 /** 共通: ボタンの見た目 */
 const btn = "flex w-full items-center justify-center gap-2 rounded-2xl py-3.5 text-sm font-extrabold shadow transition active:scale-95 disabled:opacity-40";
 
-export default function VersusScreen({ header, user, rooms, onSignIn, scopeOptions, itemsFor, byId, triviaOf, speech, sound, active = true, config, setConfig }) {
+export default function VersusScreen({ header, user, rooms, onSignIn, scopeOptions, itemsFor, byId, triviaOf, speech, sound, active = true, config, setConfig, onReward = () => null }) {
+  // 報酬は1ゲームに1回だけ（部屋・作った時刻・何回目のゲームか で見分ける）
+  const rewarded = useRef({});
+  const claim = useCallback(
+    (room, uid) => {
+      const key = `${room.code}:${room.createdAt}:${room.round}`;
+      if (!rewarded.current[key]) {
+        const { points, won } = versusReward(room, uid);
+        rewarded.current[key] = { ...(onReward(points) || { points: 0 }), won };
+      }
+      return rewarded.current[key];
+    },
+    [onReward]
+  );
   const [mode, setMode] = useState("home"); // home | solo | room
   const [solo, setSolo] = useState(null);
   const [code, setCode] = useState("");
@@ -56,7 +71,10 @@ export default function VersusScreen({ header, user, rooms, onSignIn, scopeOptio
   const items = itemsFor(config.scope);
 
   const startSolo = () => {
-    const room = startRoom(newRoom({ code: "solo", uid: SOLO_UID, name: tr("あなた", "You"), solo: true, scope: config.scope, count: config.count }), makeQuestions(items, items, config.count)).room;
+    const room = startRoom(
+      newRoom({ code: "solo", uid: SOLO_UID, name: tr("あなた", "You"), solo: true, scope: config.scope, count: config.count, now: Date.now() }),
+      makeQuestions(items, items, config.count)
+    ).room;
     setSolo(room);
     setMode("solo");
   };
@@ -115,6 +133,7 @@ export default function VersusScreen({ header, user, rooms, onSignIn, scopeOptio
         active={active}
         onRestart={startSolo}
         onExit={() => setMode("home")}
+        claim={claim}
       />
     );
   }
@@ -130,6 +149,7 @@ export default function VersusScreen({ header, user, rooms, onSignIn, scopeOptio
         speech={speech}
         sound={sound}
         active={active}
+        claim={claim}
         onExit={() => {
           setCode("");
           setMode("home");
@@ -147,6 +167,12 @@ export default function VersusScreen({ header, user, rooms, onSignIn, scopeOptio
             `英語の意味を4択で早押し！ 問題と選択肢が同時に出るので、わかったらすぐ押そう。${TIME_MS / 1000}秒で答えになり、解説を${REVEAL_MS / 1000}秒見せて次の問題へ。いちばん早く正解した人が1ポイント。`,
             `A quick-fire 4-choice quiz on English meanings! The question and choices appear together — tap as soon as you know. After ${TIME_MS / 1000} seconds the answer is shown, with an explanation for ${REVEAL_MS / 1000} seconds before the next question. The fastest correct answer scores 1 point.`
           )}
+          <span className="mt-1 block font-bold text-indigo-600" data-testid="versus-reward-rule">
+            {tr(
+              `🎁 ガチャポイント: 正解1問 ${VERSUS_POINTS.correct}pt、対戦では早押し1回 +${VERSUS_POINTS.fastest}pt・勝つと +${VERSUS_POINTS.win}pt`,
+              `🎁 Gacha points: ${VERSUS_POINTS.correct}pt per correct answer; in versus, +${VERSUS_POINTS.fastest}pt per fastest answer and +${VERSUS_POINTS.win}pt for a win`
+            )}
+          </span>
         </p>
         <div>
           <label htmlFor="versus-scope" className="text-xs font-bold text-slate-500">
@@ -236,7 +262,7 @@ export default function VersusScreen({ header, user, rooms, onSignIn, scopeOptio
 }
 
 /** オンラインの部屋: 部屋を見張って、待合室 → ゲーム → 結果 */
-function OnlineRoom({ code, user, rooms, itemsFor, byId, triviaOf, speech, sound, active, onExit }) {
+function OnlineRoom({ code, user, rooms, itemsFor, byId, triviaOf, speech, sound, active, onExit, claim }) {
   const [room, setRoom] = useState(undefined); // undefined = 読み込み中、null = 部屋がない
   const [error, setError] = useState("");
   useEffect(() => rooms.watch(code, setRoom, () => setError(errorText("network"))), [rooms, code]);
@@ -311,7 +337,7 @@ function OnlineRoom({ code, user, rooms, itemsFor, byId, triviaOf, speech, sound
   }
   return (
     <>
-      <Game room={room} me={user.uid} act={act} byId={byId} triviaOf={triviaOf} speech={speech} sound={sound} active={active} onRestart={restart} onExit={exit} />
+      <Game room={room} me={user.uid} act={act} byId={byId} triviaOf={triviaOf} speech={speech} sound={sound} active={active} onRestart={restart} onExit={exit} claim={claim} />
       {error && <p className="fixed inset-x-4 top-4 z-50 rounded-xl bg-rose-600 px-3 py-2 text-center text-xs font-bold text-white">{error}</p>}
     </>
   );
@@ -321,7 +347,7 @@ function OnlineRoom({ code, user, rooms, itemsFor, byId, triviaOf, speech, sound
  * ゲームの画面（1人でも対戦でも同じ）。時間はこの端末で計る:
  * 問題が出てから TIME_MS で締め切り、解説を REVEAL_MS 見せたら次へ（どの端末が進めてもよい。二重には進まない）
  */
-function Game({ room, me, act, byId, triviaOf, speech, sound, active, onRestart, onExit }) {
+function Game({ room, me, act, byId, triviaOf, speech, sound, active, onRestart, onExit, claim }) {
   const q = room.q;
   const key = `${room.round}:${q}:${room.phase}:${room.status}`;
   const [now, setNow] = useState(() => performance.now());
@@ -379,7 +405,7 @@ function Game({ room, me, act, byId, triviaOf, speech, sound, active, onRestart,
     act((r) => submitAnswer(r, me, q, i, ms));
   };
 
-  if (room.status === "done") return <Results room={room} me={me} onRestart={onRestart} onExit={onExit} />;
+  if (room.status === "done") return <Results room={room} me={me} claim={claim} onRestart={onRestart} onExit={onExit} />;
   if (!question) return null;
 
   const timeLeft = Math.max(0, TIME_MS - elapsed);
@@ -535,7 +561,13 @@ function Explanation({ item, trivia, speech }) {
 }
 
 /** 結果 */
-function Results({ room, me, onRestart, onExit }) {
+function Results({ room, me, claim, onRestart, onExit }) {
+  // 報酬を受け取る（同じゲームでは1回だけ。claim が覚えている）
+  const [reward, setReward] = useState(null);
+  useEffect(() => {
+    setReward(claim(room, me));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [room.code, room.createdAt, room.round]);
   const rows = standings(room);
   const solo = !!room.solo;
   const top = rows[0];
@@ -554,6 +586,12 @@ function Results({ room, me, onRestart, onExit }) {
       </p>
       {solo && meRow.correct > 0 && (
         <p className="mt-1 text-center text-xs text-white/60">{tr(`正解の平均 ${(meRow.ms / meRow.correct / 1000).toFixed(2)}秒`, `Average ${(meRow.ms / meRow.correct / 1000).toFixed(2)}s per correct answer`)}</p>
+      )}
+      {reward?.points > 0 && (
+        <p className="mx-auto mt-3 w-fit rounded-full bg-amber-400 px-4 py-1.5 text-sm font-black text-amber-950" data-testid="versus-reward">
+          {tr("ガチャポイント", "Gacha points")} +{reward.points.toLocaleString()}
+          {reward.boosted ? tr("（ブースト中）", " (boosted)") : ""}
+        </p>
       )}
       {!solo && (
         <ol className="mt-5 space-y-2">

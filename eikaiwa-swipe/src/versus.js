@@ -164,3 +164,19 @@ export function standings(room) {
 
 /** 空いている（古い・終わった）部屋なら、その番号で新しく作ってよい */
 export const isStale = (room, now) => !room || room.status === "done" || now - (room.createdAt || 0) > ROOM_TTL_MS;
+
+/** 対戦の報酬（ガチャのポイント。ブースト前）: 正解1問ごと・早押しのポイントごと・勝ち（2人以上で単独1位）のボーナス */
+export const VERSUS_POINTS = { correct: 30, fastest: 30, win: 200 };
+
+/** その人の報酬 { points, won }。1人の練習は正解の数だけ */
+export function versusReward(room, uid) {
+  const rows = standings(room);
+  const me = rows.find((r) => r.uid === uid);
+  if (!me || room.status !== "done") return { points: 0, won: false };
+  const multi = !room.solo && rows.length >= 2;
+  const [a, b] = rows;
+  const tie = multi && b && a.points === b.points && a.correct === b.correct && a.ms === b.ms;
+  const won = multi && !tie && a.uid === uid;
+  const points = me.correct * VERSUS_POINTS.correct + (multi ? me.points * VERSUS_POINTS.fastest : 0) + (won ? VERSUS_POINTS.win : 0);
+  return { points, won };
+}

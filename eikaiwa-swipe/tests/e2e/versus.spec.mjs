@@ -39,6 +39,8 @@ test("1人で練習: 問題と4択が同時に出て、押すとすぐ解説。�
     await page.getByTestId("versus-next").click();
   }
   await expect(page.getByTestId("versus-results")).toContainText("5問中 3問 正解");
+  // 報酬: 正解1問 30pt
+  await expect(page.getByTestId("versus-reward")).toHaveText("ガチャポイント +90");
   await page.getByRole("button", { name: "もどる" }).click();
   await expect(page.getByTestId("versus-home")).toBeVisible();
 });
@@ -157,6 +159,9 @@ base("2人で対戦: 部屋を作って番号で入り、早押しで先に正�
   }
   for (const p of [aki, ben]) await expect(p.getByTestId("versus-results")).toBeVisible({ timeout: 8000 });
   await expect(ben.getByTestId("versus-results")).toContainText("あなたの勝ち！");
+  // 報酬: Ben は正解5問・早押し4回・勝ち = 150 + 120 + 200。Aki は正解1問・早押し1回 = 60
+  await expect(ben.getByTestId("versus-reward")).toHaveText("ガチャポイント +470");
+  await expect(aki.getByTestId("versus-reward")).toHaveText("ガチャポイント +60");
   await expect(aki.getByTestId("versus-results")).toContainText("Benさんの勝ち");
   await expect(aki.getByTestId("versus-rank").first()).toContainText("Ben");
 });
