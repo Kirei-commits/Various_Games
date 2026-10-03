@@ -2681,7 +2681,7 @@
     }
     return { name: o.name, theme: o.theme, hard: true, endgame: true, waves: waves };
   }
-  var inferno = endgame({ id: 'x', name: '煉獄の火口', theme: 'inferno', hp: 20, atk: 12, phases: 3,
+  var inferno = endgame({ id: 'x', name: '煉獄の火口', theme: 'inferno', hp: 16, atk: 9, phases: 3,
     el: ['fire', 'fire', 'fire', 'wood', 'fire'], minion: ['れんごくのあくま', 'ひのとり'], golem: 'れんごくゴーレム', dragon: ['ほむらりゅう', 'ほむらりゅう'],
     boss: '煉獄龍 イグニス', colors: [DEMON, EMBER, LAVA, ['#ffb08a', '#d82020', '#4a0606'], ['#ffd27a', '#ff6a1a', '#7a1a04'], ['#ffe0a0', '#ff4a10', '#3a0800']],
     g1: { damageWalls: [{ side: 'left', from: 80, to: 700, damage: 3200 }, { side: 'right', from: 80, to: 700, damage: 3200 }],
@@ -2689,7 +2689,7 @@
     g2: { gravity: [{ id: 'x2-grav-l', x: 130, y: 450, r: 50 }, { id: 'x2-grav-r', x: 410, y: 450, r: 50 }], blocks: [{ id: 'x2-block', x: 270, y: 380, w: 90, h: 26 }] },
     g3: { damageWalls: [{ side: 'top', from: 60, to: 480, damage: 3600 }], mines: [{ id: 'mine-l', x: 180, y: 380, r: 16, damage: 3200 }, { id: 'mine-r', x: 360, y: 380, r: 16, damage: 3200 }],
       gravity: [{ id: 'grav', x: 270, y: 450, r: 56 }] } });
-  var cosmos = endgame({ id: 'y', name: '星海の回廊', theme: 'cosmos', hp: 16, atk: 10, phases: 3,
+  var cosmos = endgame({ id: 'y', name: '星海の回廊', theme: 'cosmos', hp: 16, atk: 8, phases: 3,
     el: ['light', 'dark', 'water', 'light', 'light'], minion: ['ほしのせい', 'やみのせい'], golem: 'せいうんゴーレム', dragon: ['せいりゅう', 'こくりゅう'],
     boss: '星帝 アストラル', colors: [ANGEL, SHADOW, GHOST, ['#fffbe0', '#ffc83c', '#8a5a06'], ['#e0ccff', '#6a2ad0', '#1a0640'], ['#ffffff', '#9ad8ff', '#1a2a6a']],
     g1: { warps: [{ id: 'y1-warp-a', pair: 'y1-warp-b', x: 120, y: 560, r: 26 }, { id: 'y1-warp-b', pair: 'y1-warp-a', x: 420, y: 90, r: 26 }],
@@ -2697,7 +2697,7 @@
     g2: { damageWalls: [{ side: 'top', from: 40, to: 500, damage: 3600 }], warps: [{ id: 'y2-warp-a', pair: 'y2-warp-b', x: 270, y: 600, r: 26 }, { id: 'y2-warp-b', pair: 'y2-warp-a', x: 270, y: 90, r: 26 }] },
     g3: { magic: [{ id: 'magic', x: 270, y: 590, r: 32 }], blocks: [{ id: 'block-l', x: 170, y: 400, w: 70, h: 24 }, { id: 'block-r', x: 370, y: 400, w: 70, h: 24 }],
       damageWalls: [{ side: 'left', from: 380, to: 700, damage: 3400 }, { side: 'right', from: 380, to: 700, damage: 3400 }] } });
-  var chaos = endgame({ id: 'z', name: '混沌の玉座', theme: 'chaos', hp: 22, atk: 8.5, phases: 4,
+  var chaos = endgame({ id: 'z', name: '混沌の玉座', theme: 'chaos', hp: 22, atk: 10, phases: 4,
     el: ['dark', 'fire', 'wood', 'water', 'dark'], minion: ['こんとんのあくま', 'こんとんのせい'], golem: 'こんとんゴーレム', dragon: ['こんとんりゅう', 'こんとんりゅう'],
     boss: '混沌神 カオス', colors: [ABYSS, DEMON, SHADOW, ['#e0b8ff', '#5a1ab0', '#12022e'], ['#ffb08a', '#d82020', '#4a0606'], ['#ffd0f0', '#b0106a', '#2a0018']],
     g1: { damageWalls: [{ side: 'left', from: 80, to: 700, damage: 4000 }, { side: 'right', from: 80, to: 700, damage: 4000 }],
