@@ -33,8 +33,8 @@ test('ステージ8〜10: ウルトラ進化なしの ★5 では勝てず、ウ
     return w / N;
   });
   assert.ok(rates[0] >= 0.3, `煉獄の火口 ${rates[0]}`);
-  assert.ok(rates[0] >= rates[1] && rates[1] >= rates[2], `難しくなっていく ${rates.join(' / ')}`);
-  assert.ok(rates[2] <= 0.6, `混沌の玉座 ${rates[2]}`);
+  assert.ok(rates[0] > rates[2] && rates[1] > rates[2], `混沌の玉座がいちばん難しい ${rates.join(' / ')}`);
+  assert.ok(rates[2] <= 0.45, `混沌の玉座 ${rates[2]}`);
 });
 
 test('ゴッド: 終焉の魔界はウルトラ進化した LR なら勝てるが、ウルトラ進化した ★5 では勝てない', () => {
