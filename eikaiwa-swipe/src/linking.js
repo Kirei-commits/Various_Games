@@ -15,29 +15,31 @@
  * 綴りからの推定なので、例外はある（学習の目安）。
  */
 
+import { tr } from "./i18n.js";
+
 /** 決まった音の変化（左から順に長いものを優先して探す） */
 const REDUCTIONS = [
-  { words: ["what", "are", "you"], sound: "whatcha（ワッチャ）", tip: "What are you は「ワッチャ」とひとかたまりで言う。" },
-  { words: ["what", "do", "you"], sound: "whaddaya（ワダヤ）", tip: "What do you は「ワダヤ」と短くつぶれる。" },
-  { words: ["a", "lot", "of"], sound: "a lotta（アラーラ）", tip: "lot of の t がやわらかくなり、of は「ア」だけになる。" },
-  { words: ["going", "to"], sound: "gonna（ガナ）", tip: "「〜するつもり」の going to は会話では gonna になる。", needsVerb: true },
-  { words: ["want", "to"], sound: "wanna（ワナ）", tip: "want to は t が消えて wanna になる。" },
-  { words: ["got", "to"], sound: "gotta（ガラ）", tip: "「〜しなきゃ」の got to は gotta になる。", needsVerb: true },
-  { words: ["have", "to"], sound: "hafta（ハフタ）", tip: "「〜しなければならない」の have to は v が f になって「ハフタ」。", needsVerb: true },
-  { words: ["has", "to"], sound: "hasta（ハスタ）", tip: "has to は s の音のまま「ハスタ」。", needsVerb: true },
-  { words: ["kind", "of"], sound: "kinda（カインダ）", tip: "kind of は of が「ア」になって kinda。" },
-  { words: ["sort", "of"], sound: "sorta（ソーラ）", tip: "sort of は t がやわらかくなって sorta。" },
-  { words: ["out", "of"], sound: "outta（アウラ）", tip: "out of は t がやわらかくなって outta。" },
-  { words: ["lots", "of"], sound: "lotsa（ラッツァ）", tip: "lots of は of が「ア」だけになる。" },
-  { words: ["let", "me"], sound: "lemme（レミ）", tip: "let me は t が消えて lemme。" },
-  { words: ["give", "me"], sound: "gimme（ギミ）", tip: "give me は v が消えて gimme。" },
-  { words: ["don't", "know"], sound: "dunno（ダノウ）", tip: "I don't know はくだけると「アイダノウ」。" },
-  { words: ["did", "you"], sound: "didja（ディジャ）", tip: "d ＋ you が混ざって「ジャ」になる。" },
-  { words: ["would", "you"], sound: "wouldja（ウッジャ）", tip: "d ＋ you が混ざって「ジャ」になる。" },
-  { words: ["could", "you"], sound: "couldja（クッジャ）", tip: "d ＋ you が混ざって「ジャ」になる。" },
-  { words: ["don't", "you"], sound: "doncha（ドンチャ）", tip: "t ＋ you が混ざって「チャ」になる。" },
-  { words: ["got", "you"], sound: "gotcha（ガッチャ）", tip: "t ＋ you が混ざって「チャ」になる。" },
-  { words: ["bet", "you"], sound: "betcha（ベッチャ）", tip: "t ＋ you が混ざって「チャ」になる。" },
+  { words: ["what", "are", "you"], sound: "whatcha（ワッチャ）", get tip() { return tr("What are you は「ワッチャ」とひとかたまりで言う。", "“What are you” is said as one chunk: “whatcha.”"); } },
+  { words: ["what", "do", "you"], sound: "whaddaya（ワダヤ）", get tip() { return tr("What do you は「ワダヤ」と短くつぶれる。", "“What do you” squashes down to “whaddaya.”"); } },
+  { words: ["a", "lot", "of"], sound: "a lotta（アラーラ）", get tip() { return tr("lot of の t がやわらかくなり、of は「ア」だけになる。", "The t in “lot of” softens and “of” becomes just “a.”"); } },
+  { words: ["going", "to"], sound: "gonna（ガナ）", get tip() { return tr("「〜するつもり」の going to は会話では gonna になる。", "“Going to” meaning “will” becomes “gonna” in conversation."); }, needsVerb: true },
+  { words: ["want", "to"], sound: "wanna（ワナ）", get tip() { return tr("want to は t が消えて wanna になる。", "“Want to” drops the t and becomes “wanna.”"); } },
+  { words: ["got", "to"], sound: "gotta（ガラ）", get tip() { return tr("「〜しなきゃ」の got to は gotta になる。", "“Got to” (must) becomes “gotta.”"); }, needsVerb: true },
+  { words: ["have", "to"], sound: "hafta（ハフタ）", get tip() { return tr("「〜しなければならない」の have to は v が f になって「ハフタ」。", "“Have to” (must) turns the v into f: “hafta.”"); }, needsVerb: true },
+  { words: ["has", "to"], sound: "hasta（ハスタ）", get tip() { return tr("has to は s の音のまま「ハスタ」。", "“Has to” keeps the s sound: “hasta.”"); }, needsVerb: true },
+  { words: ["kind", "of"], sound: "kinda（カインダ）", get tip() { return tr("kind of は of が「ア」になって kinda。", "In “kind of,” “of” becomes “a”: “kinda.”"); } },
+  { words: ["sort", "of"], sound: "sorta（ソーラ）", get tip() { return tr("sort of は t がやわらかくなって sorta。", "“Sort of” softens the t: “sorta.”"); } },
+  { words: ["out", "of"], sound: "outta（アウラ）", get tip() { return tr("out of は t がやわらかくなって outta。", "“Out of” softens the t: “outta.”"); } },
+  { words: ["lots", "of"], sound: "lotsa（ラッツァ）", get tip() { return tr("lots of は of が「ア」だけになる。", "In “lots of,” “of” becomes just “a.”"); } },
+  { words: ["let", "me"], sound: "lemme（レミ）", get tip() { return tr("let me は t が消えて lemme。", "“Let me” drops the t: “lemme.”"); } },
+  { words: ["give", "me"], sound: "gimme（ギミ）", get tip() { return tr("give me は v が消えて gimme。", "“Give me” drops the v: “gimme.”"); } },
+  { words: ["don't", "know"], sound: "dunno（ダノウ）", get tip() { return tr("I don't know はくだけると「アイダノウ」。", "Casually, “I don't know” becomes “I dunno.”"); } },
+  { words: ["did", "you"], sound: "didja（ディジャ）", get tip() { return tr("d ＋ you が混ざって「ジャ」になる。", "d + you blend into “ja.”"); } },
+  { words: ["would", "you"], sound: "wouldja（ウッジャ）", get tip() { return tr("d ＋ you が混ざって「ジャ」になる。", "d + you blend into “ja.”"); } },
+  { words: ["could", "you"], sound: "couldja（クッジャ）", get tip() { return tr("d ＋ you が混ざって「ジャ」になる。", "d + you blend into “ja.”"); } },
+  { words: ["don't", "you"], sound: "doncha（ドンチャ）", get tip() { return tr("t ＋ you が混ざって「チャ」になる。", "t + you blend into “cha.”"); } },
+  { words: ["got", "you"], sound: "gotcha（ガッチャ）", get tip() { return tr("t ＋ you が混ざって「チャ」になる。", "t + you blend into “cha.”"); } },
+  { words: ["bet", "you"], sound: "betcha（ベッチャ）", get tip() { return tr("t ＋ you が混ざって「チャ」になる。", "t + you blend into “cha.”"); } },
 ];
 
 /** going to の次がこれなら「場所へ行く」の意味なので gonna にしない */
@@ -62,27 +64,27 @@ const CONSONANT_SOUND_START = /^(one|once|uni|use|usu|uti|eu|ewe|you|yea)/;
 const SILENT_H = /^(hour|honest|honor|heir)/;
 
 export const LINK_TIPS = {
-  link: "子音で終わる語と母音で始まる語は、1語のようにつなげて読む（check it out → チェキラウ）。",
-  glide: "母音と母音が続くときは、間に軽い「w」や「y」の音をはさんでなめらかにつなぐ（go on → ゴウウォン）。",
-  same: "同じ（似た）子音が続くときは、前の音はためるだけで、1回だけ発音する（bad day → バッデイ）。",
-  blend: "t / d ＋ you は音が混ざって「チュ」「ジュ」になる（meet you → ミーチュー）。",
-  flap: "母音にはさまれた t は、アメリカ英語ではラ行に近いやわらかい音になる（water → ワラー、get it → ゲリッ）。",
-  nt: "n のあとの t が消えて、n だけになりやすい（twenty → トゥエニー、internet → イナネット）。",
-  hdrop: "文の中の him / her / his / have の h は弱くなって消え、前の語とつながる（tell him → テリム）。",
-  stop: "語末の t は息を止めるだけで、はっきり発音しない（right now → ライッナウ）。",
-  reduction: "決まった言い方は、つぶれて短くなる。",
+  get link() { return tr("子音で終わる語と母音で始まる語は、1語のようにつなげて読む（check it out → チェキラウ）。", "A word ending in a consonant runs into a word starting with a vowel, like one word (check it out → “che-ki-dout”)."); },
+  get glide() { return tr("母音と母音が続くときは、間に軽い「w」や「y」の音をはさんでなめらかにつなぐ（go on → ゴウウォン）。", "Between two vowels, slip in a light “w” or “y” to connect smoothly (go on → “go-won”)."); },
+  get same() { return tr("同じ（似た）子音が続くときは、前の音はためるだけで、1回だけ発音する（bad day → バッデイ）。", "When the same (or a similar) consonant repeats, hold the first and say it only once (bad day → “ba-day”)."); },
+  get blend() { return tr("t / d ＋ you は音が混ざって「チュ」「ジュ」になる（meet you → ミーチュー）。", "t / d + you blend into “chu” / “ju” (meet you → “mee-chu”)."); },
+  get flap() { return tr("母音にはさまれた t は、アメリカ英語ではラ行に近いやわらかい音になる（water → ワラー、get it → ゲリッ）。", "In American English, a t between vowels becomes a soft, quick d/r-like sound (water → “wah-der,” get it → “ge-dit”)."); },
+  get nt() { return tr("n のあとの t が消えて、n だけになりやすい（twenty → トゥエニー、internet → イナネット）。", "A t after n often disappears, leaving just the n (twenty → “twenny,” internet → “innernet”)."); },
+  get hdrop() { return tr("文の中の him / her / his / have の h は弱くなって消え、前の語とつながる（tell him → テリム）。", "Mid-sentence, the h in him / her / his / have fades and links to the word before (tell him → “tell-im”)."); },
+  get stop() { return tr("語末の t は息を止めるだけで、はっきり発音しない（right now → ライッナウ）。", "A final t is just a brief stop of the breath, not clearly released (right now → “righ' now”)."); },
+  get reduction() { return tr("決まった言い方は、つぶれて短くなる。", "Set phrases get squashed and shortened."); },
 };
 
 export const LINK_LABELS = {
-  link: "つながる音",
-  glide: "母音のつなぎ",
-  same: "同じ子音",
-  blend: "混ざる音",
-  flap: "やわらかい t",
-  nt: "消える t",
-  hdrop: "消える h",
-  stop: "止める t",
-  reduction: "短くなる言い方",
+  get link() { return tr("つながる音", "Linked sounds"); },
+  get glide() { return tr("母音のつなぎ", "Vowel glide"); },
+  get same() { return tr("同じ子音", "Same consonant"); },
+  get blend() { return tr("混ざる音", "Blended sounds"); },
+  get flap() { return tr("やわらかい t", "Soft t"); },
+  get nt() { return tr("消える t", "Dropped t"); },
+  get hdrop() { return tr("消える h", "Dropped h"); },
+  get stop() { return tr("止める t", "Stopped t"); },
+  get reduction() { return tr("短くなる言い方", "Reductions"); },
 };
 
 const clean = (w) =>

@@ -5,6 +5,7 @@
  */
 import config from "./cloud-config.js";
 import { createFirebaseCloud } from "./cloud-firebase.js";
+import { tr } from "./i18n.js";
 
 const injected = typeof window !== "undefined" ? window.__swipetalkCloud : null;
 
@@ -15,8 +16,11 @@ export function authErrorMessage(e) {
   const code = e?.code || "";
   if (code === "auth/popup-closed-by-user" || code === "auth/cancelled-popup-request") return "";
   if (code === "auth/unauthorized-domain") {
-    return "このサイトのドメインが Firebase で許可されていません（Authentication → 設定 → 承認済みドメインに追加してください）。";
+    return tr(
+      "このサイトのドメインが Firebase で許可されていません（Authentication → 設定 → 承認済みドメインに追加してください）。",
+      "This site's domain isn't allowed in Firebase (add it under Authentication → Settings → Authorized domains)."
+    );
   }
-  if (code === "auth/network-request-failed") return "通信できませんでした。インターネット接続を確認してください。";
-  return `ログインできませんでした（${code || e?.message || "不明なエラー"}）。`;
+  if (code === "auth/network-request-failed") return tr("通信できませんでした。インターネット接続を確認してください。", "Couldn't connect. Check your internet connection.");
+  return tr(`ログインできませんでした（${code || e?.message || "不明なエラー"}）。`, `Couldn't sign in (${code || e?.message || "unknown error"}).`);
 }

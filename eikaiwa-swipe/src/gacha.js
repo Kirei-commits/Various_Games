@@ -12,6 +12,7 @@
  * - 学習・テスト・バトルのポイントは「かかった時間」に比例させる（どれで遊んでも1分あたりほぼ同じ）。
  * - 5倍ブースト（ログインボーナスでもらえる）を使うと、1時間は学習・テスト・バトルのポイントが5倍。
  */
+import { tr } from "./i18n.js";
 import { CHAPTER_POS, POS_OVERRIDES, TRIVIA, SECRETS, TITLES, QUEST_WORDS, SSR_WORDS } from "./data/gacha-data.js";
 
 const SSR_SET = new Set(SSR_WORDS);
@@ -48,9 +49,9 @@ export const OVERFLOW_EX = { N: 2, R: 5, SR: 20, SSR: 100 };
 export const TICKET_UPGRADE = 100;
 /** メダルショップ */
 export const SHOP = [
-  { id: "boost", name: "5倍ブースト", price: 150, desc: "1時間、学習・テスト・バトルのポイントが5倍" },
-  { id: "freeze", name: "時止めの砂時計", price: 40, desc: "バトル中、敵の動きを5秒止める" },
-  { id: "special", name: "必殺技の巻物", price: 60, desc: "バトル中、わからない単語の敵を一撃で倒す（苦手に入ります）" },
+  { id: "boost", get name() { return tr("5倍ブースト", "5× boost"); }, price: 150, get desc() { return tr("1時間、学習・テスト・バトルのポイントが5倍", "Points from studying, tests and battles ×5 for 1 hour"); } },
+  { id: "freeze", get name() { return tr("時止めの砂時計", "Time-stop hourglass"); }, price: 40, get desc() { return tr("バトル中、敵の動きを5秒止める", "Stops enemies for 5 seconds in battle"); } },
+  { id: "special", get name() { return tr("必殺技の巻物", "Special-move scroll"); }, price: 60, get desc() { return tr("バトル中、わからない単語の敵を一撃で倒す（苦手に入ります）", "Defeats an enemy whose word you don't know in one hit (it goes to your weak spots)"); } },
 ];
 export const POS_KEYS = ["all", "noun", "verb", "adj", "other"];
 
@@ -267,17 +268,20 @@ function pickRarity(weights, total, rng) {
  */
 export function pull(state, catalog, { pos = "all", currency = "points", times = 1 } = {}, rng = Math.random) {
   const g = normalize(state.gacha);
-  if (!RATES[currency]) return { state, error: "ない種類のガチャです" };
+  if (!RATES[currency]) return { state, error: tr("ない種類のガチャです", "That gacha type doesn't exist") };
   const key = BALANCE_KEY[currency];
   const free = currency === "points" && g.unlimited;
   const cost = free ? 0 : currency === "points" ? PULL_COST * times : times;
   const balance = g[key];
   if (balance < cost) {
-    const names = { ticket: "レアチケット", sr: "SR ガチャチケット", ssr: "SSR ガチャチケット" };
-    return { state, error: currency === "points" ? `ポイントが ${cost - balance} 足りません` : `${names[currency]}が足りません` };
+    const names = { ticket: tr("レアチケット", "rare tickets"), sr: tr("SR ガチャチケット", "SR gacha tickets"), ssr: tr("SSR ガチャチケット", "SSR gacha tickets") };
+    return {
+      state,
+      error: currency === "points" ? tr(`ポイントが ${cost - balance} 足りません`, `You need ${cost - balance} more points`) : tr(`${names[currency]}が足りません`, `Not enough ${names[currency]}`),
+    };
   }
   if (effectiveWeights(g, catalog, pos, currency).total === 0) {
-    return { state, error: "この種類の単語はありません" };
+    return { state, error: tr("この種類の単語はありません", "There are no words of this type") };
   }
   const pool = catalog.pools[pos] || catalog.pools.all;
   const results = [];
@@ -330,19 +334,19 @@ export function pull(state, catalog, { pos = "all", currency = "points", times =
 export function exchange(state, catalog, id, payWith = "exPoints") {
   const g = normalize(state.gacha);
   const card = catalog.cards[id];
-  if (!card || card.secret) return { state, error: "この単語は交換できません" };
-  if (card.questOnly) return { state, error: "この単語は冒険の宝箱でだけ手に入ります" };
+  if (!card || card.secret) return { state, error: tr("この単語は交換できません", "This word can't be exchanged") };
+  if (card.questOnly) return { state, error: tr("この単語は冒険の宝箱でだけ手に入ります", "This word only comes from quest chests") };
   const copies = g.cards[id] || 0;
-  if (copies >= MAX_LEVEL) return { state, error: "すでに MAX です" };
+  if (copies >= MAX_LEVEL) return { state, error: tr("すでに MAX です", "Already MAX") };
   if (payWith === "exPoints") {
     const cost = EXCHANGE_COST[card.rarity];
-    if (g.exPoints < cost) return { state, error: `交換ポイントが ${cost - g.exPoints} 足りません` };
+    if (g.exPoints < cost) return { state, error: tr(`交換ポイントが ${cost - g.exPoints} 足りません`, `You need ${cost - g.exPoints} more exchange points`) };
     g.exPoints -= cost;
   } else {
     const need = payWith === "selSR" ? "SR" : "SSR";
-    if (card.rarity !== need) return { state, error: `${need} 選択チケットは ${need} の単語にだけ使えます` };
-    if (copies > 0) return { state, error: "選択チケットは、まだ持っていない単語にだけ使えます" };
-    if (g[payWith] < 1) return { state, error: "選択チケットがありません" };
+    if (card.rarity !== need) return { state, error: tr(`${need} 選択チケットは ${need} の単語にだけ使えます`, `${need} pick tickets only work on ${need} words`) };
+    if (copies > 0) return { state, error: tr("選択チケットは、まだ持っていない単語にだけ使えます", "Pick tickets only work on words you don't have yet") };
+    if (g[payWith] < 1) return { state, error: tr("選択チケットがありません", "You have no pick tickets") };
     g[payWith] -= 1;
   }
   g.cards[id] = copies + 1;
@@ -475,9 +479,9 @@ export function earnTimePoints(state, seconds, now) {
  */
 export function upgradeTickets(state, to) {
   const from = to === "sr" ? "tickets" : to === "ssr" ? "srTickets" : null;
-  if (!from) return { state, error: "交換できないチケットです" };
+  if (!from) return { state, error: tr("交換できないチケットです", "That ticket can't be exchanged") };
   const g0 = normalize(state.gacha);
-  if (g0[from] < TICKET_UPGRADE) return { state, error: `あと ${TICKET_UPGRADE - g0[from]} 枚で交換できます` };
+  if (g0[from] < TICKET_UPGRADE) return { state, error: tr(`あと ${TICKET_UPGRADE - g0[from]} 枚で交換できます`, `${TICKET_UPGRADE - g0[from]} more to exchange`) };
   return {
     state: withGacha(state, (g) => {
       g[from] -= TICKET_UPGRADE;
@@ -489,9 +493,9 @@ export function upgradeTickets(state, to) {
 /** メダルショップで買う（ブーストはブーストの所持数、ほかはバトルの道具に入る） */
 export function buyItem(state, id) {
   const item = SHOP.find((x) => x.id === id);
-  if (!item) return { state, error: "ない商品です" };
+  if (!item) return { state, error: tr("ない商品です", "That item doesn't exist") };
   const g0 = normalize(state.gacha);
-  if (g0.medals < item.price) return { state, error: `メダルが ${item.price - g0.medals} 枚足りません` };
+  if (g0.medals < item.price) return { state, error: tr(`メダルが ${item.price - g0.medals} 枚足りません`, `You need ${item.price - g0.medals} more medals`) };
   return {
     state: withGacha(state, (g) => {
       g.medals -= item.price;
@@ -504,7 +508,7 @@ export function buyItem(state, id) {
 /** バトルの道具を1つ使う（なければ error） */
 export function consumeItem(state, id) {
   const g0 = normalize(state.gacha);
-  if (!(g0.items[id] > 0)) return { state, error: "持っていません" };
+  if (!(g0.items[id] > 0)) return { state, error: tr("持っていません", "You don't have any") };
   return { state: withGacha(state, (g) => (g.items[id] -= 1)) };
 }
 
@@ -533,10 +537,10 @@ export function myTitleText(catalog, title) {
 export function makeMyTitle(state, catalog, parts, now) {
   const g0 = normalize(state.gacha);
   const ids = [...new Set(parts || [])];
-  if (!ids.length || ids.length > MY_TITLE_PARTS) return { state, error: `単語を1〜${MY_TITLE_PARTS}個えらんでください` };
-  if (ids.some((id) => !catalog.cards[id] || !(g0.cards[id] > 0))) return { state, error: "持っている単語だけ使えます" };
-  if (g0.myTitles.some((t) => t.parts.join(" ") === ids.join(" "))) return { state, error: "同じ称号がもうあります" };
-  if (g0.myTitles.length >= MY_TITLES_MAX) return { state, error: `称号は ${MY_TITLES_MAX} 個までです。いらない称号を消してください` };
+  if (!ids.length || ids.length > MY_TITLE_PARTS) return { state, error: tr(`単語を1〜${MY_TITLE_PARTS}個えらんでください`, `Pick 1–${MY_TITLE_PARTS} words`) };
+  if (ids.some((id) => !catalog.cards[id] || !(g0.cards[id] > 0))) return { state, error: tr("持っている単語だけ使えます", "You can only use words you have") };
+  if (g0.myTitles.some((t) => t.parts.join(" ") === ids.join(" "))) return { state, error: tr("同じ称号がもうあります", "You already have that title") };
+  if (g0.myTitles.length >= MY_TITLES_MAX) return { state, error: tr(`称号は ${MY_TITLES_MAX} 個までです。いらない称号を消してください`, `You can have up to ${MY_TITLES_MAX} titles. Delete one you don't need`) };
   const id = `t${now}`;
   return {
     state: withGacha(state, (g) => {
@@ -564,7 +568,7 @@ export const equippedMyTitle = (gacha) => (gacha?.myTitles || []).find((t) => t.
 /** 5倍ブーストを1つ使う（使用中なら1時間延長） */
 export function activateBoost(state, now) {
   const g0 = normalize(state.gacha);
-  if (g0.boosts < 1) return { state, error: "5倍ブーストを持っていません" };
+  if (g0.boosts < 1) return { state, error: tr("5倍ブーストを持っていません", "You don't have a 5× boost") };
   return {
     state: withGacha(state, (g) => {
       g.boosts -= 1;
@@ -615,15 +619,15 @@ export const codesLeft = (gacha, today) => (gacha?.codeDay === today ? Math.max(
  */
 export function redeemCode(state, catalog, code, today) {
   const text = String(code || "").trim().toLowerCase().replace(/\s+/g, " ");
-  if (!text) return { state, error: "コードを入れてください" };
+  if (!text) return { state, error: tr("コードを入れてください", "Enter a code") };
   if (text === DEV_CODE) {
     return { state: withGacha(state, (g) => (g.unlimited = true)), unlimited: true };
   }
   const g0 = normalize(state.gacha);
-  if (codesLeft(g0, today) <= 0) return { state, error: `今日はもう ${CODE_DAILY_LIMIT} 回入れました。また明日！` };
+  if (codesLeft(g0, today) <= 0) return { state, error: tr(`今日はもう ${CODE_DAILY_LIMIT} 回入れました。また明日！`, `You've already entered ${CODE_DAILY_LIMIT} codes today. See you tomorrow!`) };
   const card = findCard(catalog, text);
-  if (!card) return { state, error: "その単語は単語帳にありません（スペルを確かめてください）" };
-  if (g0.codesUsed.includes(card.id)) return { state, error: `「${card.english}」はもう使いました。別の単語を入れてください` };
+  if (!card) return { state, error: tr("その単語は単語帳にありません（スペルを確かめてください）", "That word isn't in the word list (check the spelling)") };
+  if (g0.codesUsed.includes(card.id)) return { state, error: tr(`「${card.english}」はもう使いました。別の単語を入れてください`, `“${card.english}” was already used. Try another word`) };
   const points = Math.min(CODE_POINTS_MAX, codeValue(card));
   // 入れた単語も手に入る（MAX の単語・シークレット・冒険限定の単語はポイントだけ）
   const gets = !card.secret && !card.questOnly && (g0.cards[card.id] || 0) < MAX_LEVEL;

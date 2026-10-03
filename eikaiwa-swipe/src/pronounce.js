@@ -7,6 +7,7 @@
  * 音声認識の聞き取り結果に基づく目安であって、音声そのものを分析しているわけではない。
  */
 import { normalizeEn } from "./logic.js";
+import { tr } from "./i18n.js";
 
 /** 文の中で弱く短く発音されやすい語（機能語） */
 const FUNCTION_WORDS = new Set([
@@ -17,29 +18,29 @@ const FUNCTION_WORDS = new Set([
 ]);
 
 export const ISSUE_TIPS = {
-  th: "th は、舌先を上の歯に軽く当てて息を出す音です。s・z・d・t に聞こえやすいので、舌を少し前に出して言ってみましょう。",
-  rl: "R と L の区別です。R は舌をどこにも付けずに奥へ引き、L は舌先を上の歯ぐきに付けて出します。",
-  vb: "V は上の歯を下唇に軽く当てて出す音です（B は両唇を閉じる音）。唇をかむように当てて言ってみましょう。",
-  fh: "F は上の歯を下唇に当てて息を出す音です。日本語の「フ」より摩擦を強くしてみましょう。",
-  sh: "S と SH の区別です。SH は唇を少し丸めて「シュ」、S は歯の裏で「ス」と出します。",
-  final: "語尾の子音が弱く、聞き取られませんでした。最後の音まで息を止めずに言い切りましょう（母音を足して「〜ト」「〜ク」にしない）。",
-  vowel: "母音が違って聞こえました。お手本の母音（口の開き方・長さ）をよく聞いてまねしましょう。",
-  weak: "文の中で弱く短く発音される語です。消えてしまわないよう、前後の語につなげて軽く・速く添えましょう。",
-  missing: "聞き取られませんでした。この語をはっきり発音してみましょう。",
-  other: "違う語に聞こえました。お手本をもう一度聞いて、どこが違うか比べてみましょう。",
+  get th() { return tr("th は、舌先を上の歯に軽く当てて息を出す音です。s・z・d・t に聞こえやすいので、舌を少し前に出して言ってみましょう。", "For th, touch your tongue tip lightly to your upper teeth and push air out. It's easily heard as s, z, d or t, so try putting your tongue a little further forward."); },
+  get rl() { return tr("R と L の区別です。R は舌をどこにも付けずに奥へ引き、L は舌先を上の歯ぐきに付けて出します。", "R vs L: for R, pull your tongue back without touching anything; for L, touch your tongue tip to the ridge behind your upper teeth."); },
+  get vb() { return tr("V は上の歯を下唇に軽く当てて出す音です（B は両唇を閉じる音）。唇をかむように当てて言ってみましょう。", "V is made with your upper teeth lightly on your lower lip (B closes both lips). Try it as if gently biting your lip."); },
+  get fh() { return tr("F は上の歯を下唇に当てて息を出す音です。日本語の「フ」より摩擦を強くしてみましょう。", "F is made by putting your upper teeth on your lower lip and blowing. Make more friction than the Japanese “fu.”"); },
+  get sh() { return tr("S と SH の区別です。SH は唇を少し丸めて「シュ」、S は歯の裏で「ス」と出します。", "S vs SH: for SH round your lips a little (“sh”); for S, make the sound behind your teeth (“s”)."); },
+  get final() { return tr("語尾の子音が弱く、聞き取られませんでした。最後の音まで息を止めずに言い切りましょう（母音を足して「〜ト」「〜ク」にしない）。", "The final consonant was too weak to be heard. Say it all the way to the last sound (without adding a vowel like “-to” or “-ku”)."); },
+  get vowel() { return tr("母音が違って聞こえました。お手本の母音（口の開き方・長さ）をよく聞いてまねしましょう。", "The vowel sounded different. Listen closely to the model's vowel (mouth shape and length) and copy it."); },
+  get weak() { return tr("文の中で弱く短く発音される語です。消えてしまわないよう、前後の語につなげて軽く・速く添えましょう。", "This word is said weakly and quickly in a sentence. Link it lightly to the words around it so it doesn't disappear."); },
+  get missing() { return tr("聞き取られませんでした。この語をはっきり発音してみましょう。", "This wasn't heard. Try saying the word clearly."); },
+  get other() { return tr("違う語に聞こえました。お手本をもう一度聞いて、どこが違うか比べてみましょう。", "It sounded like a different word. Listen to the model again and compare."); },
 };
 
 export const ISSUE_LABELS = {
-  th: "th の音",
-  rl: "R と L",
-  vb: "V と B",
-  fh: "F と H",
-  sh: "S と SH",
-  final: "語尾の子音",
-  vowel: "母音",
-  weak: "弱く読む語",
-  missing: "抜けた語",
-  other: "違う語",
+  get th() { return tr("th の音", "th sound"); },
+  get rl() { return tr("R と L", "R and L"); },
+  get vb() { return tr("V と B", "V and B"); },
+  get fh() { return tr("F と H", "F and H"); },
+  get sh() { return tr("S と SH", "S and SH"); },
+  get final() { return tr("語尾の子音", "Final consonant"); },
+  get vowel() { return tr("母音", "Vowel"); },
+  get weak() { return tr("弱く読む語", "Weak word"); },
+  get missing() { return tr("抜けた語", "Missing word"); },
+  get other() { return tr("違う語", "Different word"); },
 };
 
 const swapOneOf = (a, b, x, y) => {
@@ -158,10 +159,10 @@ export function analyzePronunciation(said, target) {
 
 /** 一言の講評 */
 export function verdictText(ratio) {
-  if (ratio >= 0.95) return "完璧！ネイティブに通じる発音です";
-  if (ratio >= 0.8) return "とても良い！あと少し";
-  if (ratio >= 0.6) return "おしい！赤い語を意識してもう一度";
-  return "お手本をもう一度聞いて、ゆっくりまねしてみよう";
+  if (ratio >= 0.95) return tr("完璧！ネイティブに通じる発音です", "Perfect! A native speaker would understand you");
+  if (ratio >= 0.8) return tr("とても良い！あと少し", "Very good! Almost there");
+  if (ratio >= 0.6) return tr("おしい！赤い語を意識してもう一度", "So close! Focus on the red words and try again");
+  return tr("お手本をもう一度聞いて、ゆっくりまねしてみよう", "Listen to the model again and copy it slowly");
 }
 
 /** 振り返り用: これまでの結果から、よく出るつまずきを多い順に数える */

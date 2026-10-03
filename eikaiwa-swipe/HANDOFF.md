@@ -89,7 +89,9 @@
 - 冒険: 装備7か所（`SLOTS`。古い保存の armor/charm は body/accessory へ）、SSR の特製の呪文（`SKILLS`）、敵のため→大こうげき（ぼうぎょで受けとめてはんげき）、演出と効果音（styles.css の qs-*、audio.js の warn/smash/block/heal/spell/appear）
 - iPhone のマナーモード: ふつうは Safari のきまりどおり BGM・効果音を鳴らさない（`navigator.audioSession.type = "auto"`）。設定「マナーモード中も BGM・効果音を鳴らす」（`ignoreSilent`）をオンにしたときだけ `"playback"`（古い iOS は無音の <audio> をループ）。
   以前はいつも playback にしていたので「マナーモードなのに音が出る」と言われた（2026-09-30 に設定へ）。マイクを使うあいだは `setMicActive` で play-and-record に切り替える
-- バトル: 敵が出たとき（ボスの単語が変わったときも）に英単語を読み上げる（英語→意味のときだけ）
+- バトル: 狙う敵に切り替わったとき（ボスの単語が変わったときも）に英単語を読み上げる（英語→意味のときだけ。2026-10-03 に「出たとき」から変更）。狙う敵に攻撃までの秒数（`msUntilReach`）
+- 冒険（2026-10-03）: 答えの速さ（`speedRate`）と問題の難しさ（`levelRate`、単語のレア度）でダメージ・守りの倍率。コマンドは答えるまで変えられない。倒したあとに解説（`run.asked`）。宝箱の画面は OK で閉じる
+- 表示の言語（2026-10-03）: `src/i18n.js` の `tr(ja, en)`。設定 `lang`（"ja" | "en"、保存は設定のほう）。App の描画の最初に `setLang`。モジュールの定数の名前（quest.js の SLOTS・ELEMENTS・SKILLS・敵、gacha.js の SHOP、テーマ、linking/pronounce の説明）は getter で tr を通す。章・実績の英語名は `src/data/titles-en.js`。教材（英文・訳・単語の意味・語源）は訳さない
 - バトル: 敵が出てくる間隔を短く（4択 4.5秒→2.4秒）、倒したらすぐ次が出る（`RESPAWN_EMPTY` 0.25秒・`RESPAWN_AFTER_KILL` 0.9秒）。近づく速さは変えていない
 - ドーパミンモード: 画面のゆれ・光の輪・放射の光・絵文字の雨・虹色の文字。5連続ごとに節目の大きな演出と音、10連続からフィーバー（画面のふちが虹色）
 - 日記: ガチャの単語を使う形をやめて、自由に書く日記に（英語でも日本語でも・気分・今日のお題）。保存の形は同じ（mood を足しただけ）
