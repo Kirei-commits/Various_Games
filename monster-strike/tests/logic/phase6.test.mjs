@@ -302,26 +302,6 @@ test('アンチ魔法陣はひよこにならない', () => {
 });
 
 // ------------------------------------------------------------ 減速壁・超アンチ
-test('減速壁に触れると速さが factor 倍（アンチ減速壁は無効）', () => {
-  const run = (abilities) => {
-    const w = new P.World();
-    w.add({ id: 'A', kind: 'unit', shot: 'reflect', x: 270, y: 400, r: 30, abilities });
-    w.setSlowWalls([{ side: 'left', from: 0, to: 800, factor: 0.5 }]);
-    w.setVelocity('A', -1500, 0);
-    for (let n = 0; n < 400; n++) {
-      w.step();
-      const ev = w.drainEvents();
-      const wall = ev.find((e) => e.type === 'wall');
-      if (wall) return { wall, slow: ev.find((e) => e.type === 'slow') };
-    }
-    return null;
-  };
-  const a = run({}), b = run({ antiSlow: true });
-  assert.ok(a.slow && !a.slow.blocked);
-  assert.ok(Math.abs(a.slow.speed - a.wall.speed * 0.5) < 1e-6);
-  assert.ok(b.slow.blocked);
-  assert.ok(Math.abs(b.slow.speed - b.wall.speed) < 1e-9);
-});
 
 test('超アンチ重力バリアは減速せず、最初のバリアで1度だけ加速する', () => {
   const w = new P.World();
@@ -436,8 +416,8 @@ test('複製で地雷・アイテム・SS・状態が変わっても、元の戦
 });
 
 // ------------------------------------------------------------ 2つ目のステージ
-test('ステージは7つ。からくりの塔は3ウェーブで、地雷・ワープ・ブロック・魔法陣・減速壁・アイテムを全部使う', () => {
-  assert.equal(D.stages.length, 7);
+test('ステージは10。からくりの塔は3ウェーブで、地雷・ワープ・ブロック・魔法陣・アイテムを全部使う', () => {
+  assert.equal(D.stages.length, 10);
   assert.equal(D.stages[0], D.stage);
   const tw = D.stages[1];
   assert.equal(tw.waves.length, 3);
@@ -446,7 +426,7 @@ test('ステージは7つ。からくりの塔は3ウェーブで、地雷・ワ
     for (const k of Object.keys(w.gimmicks || {})) kinds.add(k);
     if (w.items && w.items.length) kinds.add('items');
   }
-  for (const k of ['mines', 'warps', 'blocks', 'magic', 'slowWalls', 'items']) assert.ok(kinds.has(k), k);
+  for (const k of ['mines', 'warps', 'blocks', 'magic', 'items']) assert.ok(kinds.has(k), k);
   assert.equal(tw.waves.filter((w) => w.enemies.some((e) => e.boss)).length, 1);
 });
 
@@ -475,7 +455,6 @@ test('全ステージの定義: ギミックとアイテムはフィールドの
           assert.equal(P.contact(probe, world.get(b.id)), null, `${b.id} が ${u.id} に近すぎる`);
         }
       }
-      for (const sw of g.slowWalls || []) assert.ok(sw.from < sw.to && sw.factor > 0 && sw.factor < 1);
     }
   }
 });

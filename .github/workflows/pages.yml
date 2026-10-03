@@ -5,6 +5,13 @@
 #   リポジトリの Settings → Pages → Build and deployment → Source を
 #   「GitHub Actions」にする。それまでこのワークフローは失敗する
 #   （CIとは別のワークフローなので、CIの緑には影響しない）。
+#
+# プレビュー: claude/monster-strike-* のブランチに push すると、マージ前の版を
+#   https://<owner>.github.io/<repo>/preview/monster-strike/ で遊べる（ほかはデフォルトブランチの中身）。
+#   デフォルトブランチに push すると、プレビューは消えて本番だけになる。
+#   Settings → Environments → github-pages の「Deployment branches」がデフォルトブランチだけに
+#   なっていると、プレビューの公開は断られる（その場合は claude/monster-strike-* を足す）。
+#   ブランチを許したら、Settings → Secrets and variables → Actions → Variables に PAGES_PREVIEW = true を作る。
 name: Pages
 
 on:
@@ -13,7 +20,7 @@ on:
     # claude/cyberpunk-gomoku-game-70crr8 になっている（作られた経緯のまま）。
     # main しか書かないと永久に発火しないので、実際のデフォルトブランチを書く。
     # main へ改名したらこの行を main だけにする。
-    branches: [main, claude/cyberpunk-gomoku-game-70crr8]
+    branches: [main, claude/cyberpunk-gomoku-game-70crr8, 'claude/monster-strike-*']
   workflow_dispatch:
 
 permissions:
@@ -29,13 +36,25 @@ concurrency:
 jobs:
   deploy:
     name: 公開
+    # プレビューのブランチは、リポジトリの変数 PAGES_PREVIEW が 'true' のときだけ公開する
+    # （github-pages の環境の保護でブランチが許されていないと失敗するので、設定するまでは走らせない）
+    if: github.ref_name == github.event.repository.default_branch || github.ref_name == 'main' || vars.PAGES_PREVIEW == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     environment:
       name: github-pages
       url: ${{ steps.deploy.outputs.page_url }}
     steps:
+      # 本番はいつもデフォルトブランチの中身
       - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+
+      # プレビューのブランチなら、そのブランチも取ってくる
+      - if: github.ref_name != github.event.repository.default_branch && github.ref_name != 'main'
+        uses: actions/checkout@v7
+        with:
+          path: _preview
 
       # 配信物に開発用のものを混ぜない（node_modules やテスト結果）
       - name: 配信するファイルだけを集める
@@ -47,6 +66,11 @@ jobs:
             mkdir -p "_site/$game"
             cp -r "$game/index.html" "$game/css" "$game/js" "$game/audio" "_site/$game/" 2>/dev/null || true
           done
+          if [ -f _preview/monster-strike/index.html ]; then
+            mkdir -p _site/preview/monster-strike
+            cp _preview/monster-strike/index.html _site/preview/monster-strike/
+            echo "プレビュー: ${GITHUB_REF_NAME}"
+          fi
           ls -R _site | head -40
 
       - uses: actions/configure-pages@v6

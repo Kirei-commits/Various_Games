@@ -13,7 +13,7 @@ const clone = (x) => JSON.parse(JSON.stringify(x));
 const fresh = () => clone(M.newSave(D));
 
 const ABILITIES = ['antiDamageWall', 'antiGravity', 'superAntiDamageWall', 'superAntiGravity', 'antiWarp', 'antiBlock',
-  'antiMagic', 'antiSlow', 'flying', 'mineSweeper', 'ssAccel', 'lastStand',
+  'antiMagic', 'flying', 'mineSweeper', 'ssAccel', 'lastStand',
   'critical', 'drain', 'wallBoost', 'comboBoost', 'weakKiller', 'bossKiller', 'guard', 'speedUp', 'healTouch', 'counter'];
 
 // ------------------------------------------------------------ キャラの定義
@@ -336,16 +336,20 @@ test('パズルのダンジョンは5つ。後ほどフロアが多く報酬も�
   assert.equal(M.puzzleReward(s, D, false, 4).gems, dg[4].lose);
 });
 
-// ------------------------------------------------------------ ノーマル・ハード
-test('モード: ノーマルとハードは敵の HP が増え、ハードはサポートアイテムも増える（元の定義は変えない）', () => {
+// ------------------------------------------------------------ 難しさ（イージー・ノーマル・ディフィカルト・ゴッド）
+test('モード: 4段階。上の段ほど敵の HP と攻撃力が増え、ディフィカルト以上はサポートアイテムも増える（元の定義は変えない）', () => {
+  assert.deepEqual(Object.keys(D.modes), ['easy', 'normal', 'difficult', 'god']);
   for (let i = 0; i < D.stages.length; i++) {
-    const base = D.stages[i], n = M.stageFor(D, i, 'normal'), h = M.stageFor(D, i, 'hard');
+    const base = D.stages[i];
+    const st = Object.fromEntries(Object.keys(D.modes).map((m) => [m, M.stageFor(D, i, m)]));
     base.waves.forEach((w, wi) => w.enemies.forEach((e, ei) => {
-      assert.ok(n.waves[wi].enemies[ei].hp > e.hp && h.waves[wi].enemies[ei].hp > n.waves[wi].enemies[ei].hp, `${e.id}`);
-      assert.ok(h.waves[wi].enemies[ei].atk >= e.atk);
+      const hp = (m) => st[m].waves[wi].enemies[ei].hp, atk = (m) => st[m].waves[wi].enemies[ei].atk;
+      assert.ok(hp('easy') < hp('normal') && hp('normal') < hp('difficult') && hp('difficult') < hp('god'), `${e.id}`);
+      assert.ok(atk('easy') <= atk('normal') && atk('normal') <= atk('difficult') && atk('difficult') < atk('god'), `${e.id}`);
     }));
-    const items = (st) => st.waves.reduce((a, w) => a + (w.items || []).length, 0);
-    assert.ok(items(h) >= items(base) + base.waves.length * 2, `${base.name}: ハードはアイテムが多い`);
+    const items = (x) => x.waves.reduce((a, w) => a + (w.items || []).length, 0);
+    const h = st.difficult;
+    assert.ok(items(h) >= items(base) + base.waves.length * 2, `${base.name}: ディフィカルトはアイテムが多い`);
     // 足したアイテムは味方の枠・敵・ギミックと重ならず、id が重ならない
     const ids = new Set();
     for (const w of h.waves) for (const it of w.items) {
@@ -353,16 +357,21 @@ test('モード: ノーマルとハードは敵の HP が増え、ハードは�
       for (const s of D.slots) assert.ok(Math.hypot(s.x - it.x, s.y - it.y) > 48, `${it.id} が枠に近い`);
     }
   }
-  assert.equal(D.stages[0].waves[0].enemies[0].hp, M.stageFor(D, 0, 'hard').waves[0].enemies[0].hp / D.modes.hard.hp, '元の定義はそのまま');
+  assert.equal(D.stages[0].waves[0].enemies[0].hp, M.stageFor(D, 0, 'difficult').waves[0].enemies[0].hp / D.modes.difficult.hp, '元の定義はそのまま');
 });
 
-test('モード: ハードの報酬は2倍で、クリアの記録はノーマルと別', () => {
+test('モード: 報酬の倍率とクリアの記録はモードごと。前の版のハードはディフィカルトとして読む', () => {
   const s = fresh();
   const n = M.reward(s, D, 1, true, 'normal');
-  const h = M.reward(s, D, 1, true, 'hard');
+  const h = M.reward(s, D, 1, true, 'difficult');
+  const g = M.reward(s, D, 1, true, 'god');
+  const e = M.reward(s, D, 1, true, 'easy');
   assert.equal(h.gems, n.gems * 2);
-  assert.ok(s.cleared.s1 && s.cleared.s1h);
-  assert.ok(h.first, 'ハードの初クリア');
-  assert.equal(M.load(JSON.stringify({ ...s, mode: 'hard' }), D).mode, 'hard');
+  assert.equal(g.gems, n.gems * 5);
+  assert.equal(e.gems, Math.round(n.gems * 0.5));
+  assert.ok(s.cleared.s1 && s.cleared.s1h && s.cleared.s1g && s.cleared.s1e);
+  assert.ok(h.first, 'ディフィカルトの初クリア');
+  assert.equal(M.load(JSON.stringify({ ...s, mode: 'hard' }), D).mode, 'difficult');
+  assert.equal(M.load(JSON.stringify({ ...s, mode: 'god' }), D).mode, 'god');
   assert.equal(M.load(JSON.stringify({ ...s, mode: 'x' }), D).mode, 'normal');
 });

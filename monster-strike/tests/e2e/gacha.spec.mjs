@@ -181,10 +181,10 @@ test('編成: 手持ちのキャラを枠へドラッグで入れる。枠どう
   expect(errors).toEqual([]);
 });
 
-test('モード: ハードを選ぶと敵の HP が大きく、報酬が2倍で、選んだモードは残る', async ({ page }) => {
+test('モード: ディフィカルトを選ぶと敵の HP が大きく、アイテムが増え、選んだモードは残る', async ({ page }) => {
   const errors = await boot(page);
-  await page.locator('#mode-hard').click();
-  await expect(page.locator('#mode-hard')).toHaveClass(/on/);
+  await page.locator('#mode-difficult').click();
+  await expect(page.locator('#mode-difficult')).toHaveClass(/on/);
   await page.locator('#stage-0').click();
   await page.waitForFunction(() => window.__ms.phase === 'ready');
   const hp = await page.evaluate(() => window.__ms.battle.enemies[0].maxHp);
@@ -193,7 +193,7 @@ test('モード: ハードを選ぶと敵の HP が大きく、報酬が2倍で�
   expect(await page.evaluate(() => window.__ms.battle.stage.waves[0].items.length)).toBeGreaterThanOrEqual(2);
   await page.reload();
   await page.waitForFunction(() => window.__ms && window.__ms.phase === 'title');
-  await expect(page.locator('#mode-hard')).toHaveClass(/on/);
+  await expect(page.locator('#mode-difficult')).toHaveClass(/on/);
   await page.locator('#mode-normal').click();
   await expect(page.locator('#mode-normal')).toHaveClass(/on/);
   expect(errors).toEqual([]);
