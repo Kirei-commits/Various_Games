@@ -2810,12 +2810,12 @@
   };
 
   /**
-   * v7: 減速壁を無くしたら、減速壁のあった塔と神殿が簡単になった（ふつう 0.56→0.84・0.39→0.70）ので、敵の HP を上げて戻す。
+   * v7: 減速壁を無くしたら、減速壁のあった塔と神殿が簡単になった（ふつう 0.56→0.84・0.39→0.70）ので、敵の HP を上げて戻す（塔 ×1.25、神殿 ×1.2。×1.4 だと 0.18 で難しすぎた）。
    * balance.test.mjs / balance-stages.test.mjs で測る
    */
   function scaleHp(st, k) { st.waves.forEach(function (w) { w.enemies.forEach(function (e) { e.hp = Math.round(e.hp * k / 1000) * 1000; }); }); }
   scaleHp(tower, 1.25);
-  scaleHp(temple, 1.4);
+  scaleHp(temple, 1.2);
 
   root.MSData = { modes: modes, abilities: abilities, ultra: ultra, counters: counters, units: units, puzzle: puzzle, puzzleSize: puzzleSize, roster: units.concat(recruits), slots: slots, gacha: gacha, meta: meta, stage: stage, stages: [stage, tower, volcano, temple, castle, sky, abyss, inferno, cosmos, chaos] };
 })(typeof window !== 'undefined' ? window : globalThis);
