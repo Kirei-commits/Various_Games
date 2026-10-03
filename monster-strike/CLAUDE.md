@@ -234,6 +234,15 @@ HTML コメントの中にスクリプトの開始タグをそのまま書かな
     手触りの値は `localStorage['ms.tune']`、プリセットは `localStorage['ms.presets']`（組み込みは `BUILTIN_PRESETS`）。
 11. マージ前の版は GitHub Pages の `/preview/monster-strike/` で遊べる（`claude/monster-strike-*` のブランチに push したとき。`.github/workflows/pages.yml`）。
 
+## 軽量化の約束ごと
+
+1. **毎フレームの処理（`frame()`）は、次のフレームを先に頼んでから try で囲む**（途中の例外でゲームが止まったままにならないように）。
+2. 演出の数は `FX_MAX` が上限（粒・文字・輪・破片・ビーム・爆発・稲妻）。足すときは `burst / floatText / ring / shatter` を通し、`fx.*.push` を直接増やさない。
+3. 縁取りの文字は重いので、**浮かぶ文字（`textImage()`）とキャラの名札（`unitLabel()`）は一度だけ画像に描いて貼る**。中身か画面の倍率が変わったときだけ描き直す。
+4. ⚙ の「演出」: 自動 / 全部 / 軽量（`localStorage['ms.fx']`）。自動は遅いフレームが1.5秒続くと軽量にする（`watchLoad()`）。
+   軽量: 粒 3割・残像と光を出さない・友情のダメージの数字を減らす・解像度 1.5倍まで（ふだんは 2倍まで）。
+5. 効果音は音ごとに最短の間隔（`GAP`）を置き、ノイズの音は長さごとに使い回す。
+
 ## テスト
 
 ```bash

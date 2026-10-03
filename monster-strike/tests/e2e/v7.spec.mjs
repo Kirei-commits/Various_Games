@@ -132,3 +132,30 @@ test('最後のボスを倒すとジェムと宝箱がドロップし、なぞ�
   expect(gems).toBeGreaterThan(0);
   expect(errors).toEqual([]);
 });
+
+test('軽量化: ⚙ の「演出」で軽量にすると解像度と粒が減り、覚えている。演出の数には上限がある', async ({ page }) => {
+  const errors = await boot(page);
+  await page.locator('#stage-0').click();
+  await page.waitForFunction(() => window.__ms.phase === 'ready');
+  expect((await page.evaluate(() => window.__ms.fxMode)).dpr).toBeLessThanOrEqual(2);
+  await page.locator('#btn-tune').click();
+  await page.locator('#fx-mode').selectOption('low');
+  const m = await page.evaluate(() => window.__ms.fxMode);
+  expect(m.low).toBe(true);
+  expect(m.dpr).toBeLessThanOrEqual(1.5);
+  await page.reload();
+  await page.waitForFunction(() => window.__ms && window.__ms.phase === 'title');
+  expect((await page.evaluate(() => window.__ms.fxMode)).mode).toBe('low');
+  // 何発撃っても演出の数は上限を超えない
+  await page.locator('#stage-0').click();
+  await page.waitForFunction(() => window.__ms.phase === 'ready');
+  await page.evaluate(() => window.__ms.setTimeScale(3));
+  for (let i = 0; i < 3; i++) {
+    await pullUnit(page, await page.evaluate(() => window.__ms.active), 40 - i * 40, 150);
+    await waitPhase(page, 'ready');
+  }
+  const peak = (await page.evaluate(() => window.__ms.fxCount)).peak;
+  expect(peak.particles).toBeLessThanOrEqual(260);
+  expect(peak.texts).toBeLessThanOrEqual(41);
+  expect(errors).toEqual([]);
+});
