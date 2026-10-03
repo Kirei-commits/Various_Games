@@ -166,7 +166,7 @@ export function standings(room) {
 export const isStale = (room, now) => !room || room.status === "done" || now - (room.createdAt || 0) > ROOM_TTL_MS;
 
 /** 対戦の報酬（ガチャのポイント。ブースト前）: 正解1問ごと・早押しのポイントごと・勝ち（2人以上で単独1位）のボーナス */
-export const VERSUS_POINTS = { correct: 30, fastest: 30, win: 200 };
+export const VERSUS_POINTS = { correct: 1500, fastest: 1500, win: 30000 }; // 2026-10-03 ユーザーの指定
 
 /** その人の報酬 { points, won }。1人の練習は正解の数だけ */
 export function versusReward(room, uid) {

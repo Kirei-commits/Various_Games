@@ -349,6 +349,8 @@ const TOTAL = ALL_ITEMS.length;
 const STATE_KEY = "swipetalk:v2";
 const LEGACY_KEY = "swipetalk:v1";
 const SETTINGS_KEY = "swipetalk:settings";
+/** クラウドに保存していない変更があっても、この時間（ms）までは保存を待つ（閉じる・切り替えるときにまとめて保存） */
+const SAVE_INTERVAL = typeof window !== "undefined" && window.__swipetalkSaveInterval ? window.__swipetalkSaveInterval : 5 * 60 * 1000;
 /** 端末に保存している進捗が誰のものか（owner = ログイン中のユーザーID）と、最後に変更した時刻 */
 const META_KEY = "swipetalk:meta";
 
@@ -5791,7 +5793,7 @@ function BonusCard({ state, onClaimGoal }) {
 const hhmm = (t) => new Date(t).toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" });
 
 function AccountCard({ account }) {
-  const { user, sync, authError, signIn, signOut, retry } = account;
+  const { user, sync, authError, signIn, signOut, retry, saveNow } = account;
   const [confirming, setConfirming] = useState(false);
   useEffect(() => {
     if (!confirming) return undefined;
@@ -5833,6 +5835,7 @@ function AccountCard({ account }) {
   const status = {
     loading: { text: tr("クラウドから読み込み中…", "Loading from the cloud…"), cls: "text-slate-500" },
     saving: { text: tr("保存中…", "Saving…"), cls: "text-slate-500" },
+    pending: { text: tr("クラウドに保存していない変更があります（アプリを閉じる・切り替えると保存）", "Unsaved changes (saved to the cloud when you close or switch away from the app)"), cls: "text-amber-600" },
     saved: { text: tr(`クラウドに保存済み${sync.at ? `（${hhmm(sync.at)}）` : ""}`, `Saved to the cloud${sync.at ? ` (${hhmm(sync.at)})` : ""}`), cls: "text-emerald-600" },
     error: { text: sync.message || tr("保存できませんでした。", "Couldn't save."), cls: "text-rose-600" },
   }[sync.status] || { text: "", cls: "" };
@@ -5856,6 +5859,11 @@ function AccountCard({ account }) {
       <p className={`mt-2 text-xs font-semibold ${status.cls}`} data-testid="sync-status">
         {status.text}
       </p>
+      {sync.status === "pending" && (
+        <button type="button" onClick={saveNow} className="mt-2 rounded-full bg-indigo-600 px-3 py-1.5 text-xs font-bold text-white" data-testid="save-now">
+          {tr("今すぐ保存", "Save now")}
+        </button>
+      )}
       {sync.status === "error" && (
         <button type="button" onClick={retry} className="mt-2 rounded-full bg-slate-900 px-3 py-1.5 text-xs font-bold text-white">
           {tr("もう一度試す", "Try again")}
@@ -6717,9 +6725,11 @@ export default function App() {
     });
   }, [connect]);
 
+  const lastFlush = useRef(Date.now()); // 最後にクラウドへ保存しにいった時刻
   const flush = useCallback(async () => {
     if (!user || !ready.current || meta.current.updatedAt <= syncedAt.current) return;
     const at = meta.current.updatedAt;
+    lastFlush.current = Date.now();
     setSync({ status: "saving" });
     try {
       await cloud.save(user.uid, stateRef.current, at);
@@ -6730,20 +6740,29 @@ export default function App() {
     }
   }, [user]);
 
-  // 操作のたびに書き込まないよう、少し待ってまとめて保存する
+  /*
+   * クラウドへの保存は、アプリを閉じる・ほかのアプリに切り替える（画面が隠れる）ときにまとめて行う（2026-10-03。
+   * 以前は操作のたびに1.5秒後に保存していて、Firestore の無料枠の書き込みを多く使っていた）。
+   * 念のため、保存していない変更が SAVE_INTERVAL 以上たまったら、遊んでいる途中でも保存する。
+   * 閉じたときの保存が間に合わなくても、端末には保存済みで、次に開いたとき（端末のほうが新しければ）クラウドに上げる。
+   */
+  const unsaved = !!user && ready.current && meta.current.updatedAt > syncedAt.current;
   useEffect(() => {
-    if (!user || !ready.current || meta.current.updatedAt <= syncedAt.current) return undefined;
-    const t = setTimeout(flush, 1500);
+    if (!unsaved) return undefined;
+    if (sync.status === "saved") setSync({ status: "pending" });
+    const t = setTimeout(flush, Math.max(0, lastFlush.current + SAVE_INTERVAL - Date.now()));
     return () => clearTimeout(t);
-  }, [state, user, flush]);
+  }, [state, unsaved, sync.status, flush]);
 
-  // アプリを閉じる・切り替えるときと、通信が戻ったときはすぐ保存する
+  // アプリを閉じる・切り替えるときと、通信が戻ったときに保存する
   useEffect(() => {
     const onHide = () => document.visibilityState === "hidden" && flush();
     document.addEventListener("visibilitychange", onHide);
+    window.addEventListener("pagehide", flush);
     window.addEventListener("online", flush);
     return () => {
       document.removeEventListener("visibilitychange", onHide);
+      window.removeEventListener("pagehide", flush);
       window.removeEventListener("online", flush);
     };
   }, [flush]);
@@ -6793,6 +6812,7 @@ export default function App() {
       await cloud.signOut();
     },
     retry: () => (ready.current ? flush() : user && connect(user)),
+    saveNow: flush,
   };
 
   // ログインしていなければ、起動時にログイン画面を出す（「ログインせずに使う」でこの起動中は出さない）
