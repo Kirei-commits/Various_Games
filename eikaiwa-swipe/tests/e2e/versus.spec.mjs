@@ -91,8 +91,22 @@ function installFakeRooms(uid) {
           window.removeEventListener("__roomchange", onLocal);
         };
       },
+      async update(code, patch) {
+        const room = read(code);
+        if (!room) throw new Error("not-found");
+        for (const [path, value] of Object.entries(patch)) {
+          const keys = path.split(".");
+          let o = room;
+          for (const k of keys.slice(0, -1)) o = o[k] = o[k] || {};
+          o[keys[keys.length - 1]] = value;
+        }
+        localStorage.setItem(keyOf(code), JSON.stringify(room));
+        window.dispatchEvent(new CustomEvent("__roomchange", { detail: code }));
+        window.__roomWrites = (window.__roomWrites || 0) + 1;
+      },
       async transact(code, fn) {
         const out = fn(read(code)) || {};
+        window.__roomTransactions = (window.__roomTransactions || 0) + 1;
         if (out.room && !out.error) {
           localStorage.setItem(keyOf(code), JSON.stringify(out.room));
           window.dispatchEvent(new CustomEvent("__roomchange", { detail: code }));
@@ -164,4 +178,13 @@ base("2人で対戦: 部屋を作って番号で入り、早押しで先に正�
   await expect(aki.getByTestId("versus-reward")).toHaveText("ガチャポイント +3,000");
   await expect(aki.getByTestId("versus-results")).toContainText("Benさんの勝ち");
   await expect(aki.getByTestId("versus-rank").first()).toContainText("Ben");
+  // ゲーム中にクラウドへ書くのは答えだけ（5問 × 2人 = 10回）。部屋を読み直すトランザクションは 作る・入る・始める・終わり だけ
+  const writes = (await aki.evaluate(() => window.__roomWrites || 0)) + (await ben.evaluate(() => window.__roomWrites || 0));
+  expect(writes).toBe(10);
+  const tx = (await aki.evaluate(() => window.__roomTransactions || 0)) + (await ben.evaluate(() => window.__roomTransactions || 0));
+  expect(tx).toBeLessThanOrEqual(6);
+
+  // 「もう一度」で、2人とも新しいゲームの1問目から
+  await aki.getByRole("button", { name: "もう一度" }).click();
+  for (const p of [aki, ben]) await expect(p.getByTestId("versus-progress")).toHaveText("第1問 / 5");
 });

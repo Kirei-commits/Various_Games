@@ -135,6 +135,20 @@ test("ログイン中の操作は、アプリを閉じる・切り替えると�
   await expect(page.getByText(/^1 \/ 5500 覚えた$/)).toBeVisible();
 });
 
+test("閉じたときの保存が間に合わなくても（強制終了）、次に開くと続きから遊べて、そのときクラウドに上がる", async ({ page }) => {
+  await skipWelcome(page);
+  await login(page);
+  await page.getByRole("button", { name: "学習", exact: true }).click();
+  await swipe(page, 220);
+  await expect(page.getByTestId("remaining")).toHaveText(/^49/);
+  expect(await cloudLearned(page)).toBe(0);
+  // 保存せずにページを開き直す（強制終了と同じ）
+  await page.evaluate(() => (window.__swipetalkCloud.save = async () => {}));
+  await page.reload();
+  await expect(page.getByTestId("remaining")).toHaveText(/^49/);
+  await expect.poll(() => cloudLearned(page), { timeout: 5000 }).toBe(1);
+});
+
 test("「今すぐ保存」でもクラウドに保存できる", async ({ page }) => {
   await skipWelcome(page);
   await login(page);

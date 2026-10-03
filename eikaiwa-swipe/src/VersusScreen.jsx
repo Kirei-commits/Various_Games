@@ -20,8 +20,8 @@ import {
   submitAnswer,
   questionResult,
   canReveal,
-  reveal,
-  nextQuestion,
+  answerPatch,
+  finishRoom,
   standings,
   isStale,
   versusReward,
@@ -120,12 +120,15 @@ export default function VersusScreen({ header, user, rooms, onSignIn, scopeOptio
   };
 
   if (mode === "solo" && solo) {
-    const act = async (fn) => setSolo((r) => fn(r).room || r);
+    // 1人のときは端末の中だけで答えを記録する
+    const sendAnswer = (q, i, ms) => setSolo((r) => submitAnswer(r, SOLO_UID, q, i, ms).room || r);
     return (
       <Game
+        key={solo.createdAt}
         room={solo}
         me={SOLO_UID}
-        act={act}
+        sendAnswer={sendAnswer}
+        onFinished={() => {}}
         byId={byId}
         triviaOf={triviaOf}
         speech={speech}
@@ -283,12 +286,18 @@ function OnlineRoom({ code, user, rooms, itemsFor, byId, triviaOf, speech, sound
     act((r) => leaveRoom(r, user.uid));
     onExit();
   };
-  const restart = () => {
+  /** 始める（待合室）・もう一度（結果の画面。fromRound のゲームのあと、まだ誰も始めていなければ） */
+  const restart = (fromRound = null) => {
     setError("");
     act((r) => {
       const items = itemsFor(r.scope);
-      return startRoom(r.status === "done" ? { ...r, status: "lobby" } : r, makeQuestions(items, items, r.count));
+      return startRoom(r, makeQuestions(items, items, r.count), fromRound);
     });
+  };
+  // 答えは自分の欄だけを書く（部屋を読み直さないので、通信の回数が少ない）
+  const sendAnswer = (q, i, ms) => {
+    if (submitAnswer(room, user.uid, q, i, ms).error) return;
+    rooms.update(code, answerPatch(user.uid, q, i, ms)).catch(() => setError(errorText("network")));
   };
 
   if (room === undefined) return <p className="p-8 text-center text-sm text-slate-500">{tr("読み込み中…", "Loading…")}</p>;
@@ -325,7 +334,7 @@ function OnlineRoom({ code, user, rooms, itemsFor, byId, triviaOf, speech, sound
           </ul>
           {players.length < 2 && <p className="mt-2 text-xs text-slate-500">{tr("相手が入るのを待っています…", "Waiting for others to join…")}</p>}
         </div>
-        <button type="button" disabled={players.length < 2} onClick={restart} className={`${btn} mt-4 bg-gradient-to-r from-rose-500 to-orange-500 text-white`}>
+        <button type="button" disabled={players.length < 2} onClick={() => restart()} className={`${btn} mt-4 bg-gradient-to-r from-rose-500 to-orange-500 text-white`}>
           <Zap size={18} /> {tr("スタート", "Start")}
         </button>
         <button type="button" onClick={exit} className={`${btn} mt-2 bg-white text-slate-600 ring-1 ring-slate-200`}>
@@ -337,31 +346,47 @@ function OnlineRoom({ code, user, rooms, itemsFor, byId, triviaOf, speech, sound
   }
   return (
     <>
-      <Game room={room} me={user.uid} act={act} byId={byId} triviaOf={triviaOf} speech={speech} sound={sound} active={active} onRestart={restart} onExit={exit} claim={claim} />
+      <Game
+        room={room}
+        me={user.uid}
+        sendAnswer={sendAnswer}
+        onFinished={(round) => act((r) => finishRoom(r, round))}
+        byId={byId}
+        triviaOf={triviaOf}
+        speech={speech}
+        sound={sound}
+        active={active}
+        onRestart={(round) => restart(round)}
+        onExit={exit}
+        claim={claim}
+      />
       {error && <p className="fixed inset-x-4 top-4 z-50 rounded-xl bg-rose-600 px-3 py-2 text-center text-xs font-bold text-white">{error}</p>}
     </>
   );
 }
 
 /**
- * ゲームの画面（1人でも対戦でも同じ）。時間はこの端末で計る:
- * 問題が出てから TIME_MS で締め切り、解説を REVEAL_MS 見せたら次へ（どの端末が進めてもよい。二重には進まない）
+ * ゲームの画面（1人でも対戦でも同じ）。何問目か・締め切り・次の問題へ は、この端末の時計で進める:
+ * 問題が出てから TIME_MS（全員が答えたら・誰かの正解から GRACE_MS たったら、それより早く）で答えと解説、REVEAL_MS 見せたら次へ。
+ * クラウドに書くのは自分の答え（sendAnswer）と、最後まで行ったこと（onFinished）だけ
  */
-function Game({ room, me, act, byId, triviaOf, speech, sound, active, onRestart, onExit, claim }) {
-  const q = room.q;
-  const key = `${room.round}:${q}:${room.phase}:${room.status}`;
+function Game({ room, me, sendAnswer, onFinished, byId, triviaOf, speech, sound, active, onRestart, onExit, claim }) {
+  const fresh = () => ({ round: room.round, q: 0, phase: "question", at: performance.now(), correctAt: null, pressed: null, finished: false });
+  const [prog, setProg] = useState(fresh);
+  // 誰かが「もう一度」を押したら、新しいゲームを最初から
+  if (prog.round !== room.round) setProg(fresh());
+  const { q, phase } = prog;
+  const key = `${prog.round}:${q}:${phase}`;
   const [now, setNow] = useState(() => performance.now());
-  const started = useRef({ key: null, at: 0, correctAt: null, tried: 0 });
-  if (started.current.key !== key) started.current = { key, at: performance.now(), correctAt: null, tried: 0, pressed: null };
-  const elapsed = now - started.current.at;
+  const elapsed = Math.max(0, now - prog.at);
   const question = room.questions[q];
   const item = question && byId[question.id];
   const result = questionResult(room, q);
   // 自分の答え（クラウドに届くまでは、押した選択肢をその場で使う）
-  const pressed = started.current.pressed;
-  const mine = result.results[me] || (pressed != null && room.phase === "question" ? { c: pressed, ms: 0, ok: pressed === result.correct, pending: true } : null);
-  const playing = room.status === "playing";
+  const mine = result.results[me] || (prog.pressed != null ? { c: prog.pressed, ms: 0, ok: prog.pressed === result.correct, pending: true } : null);
+  const playing = !prog.finished;
   const solo = !!room.solo;
+  const revealing = phase === "reveal";
 
   // 時計（0.1秒ごと）
   useEffect(() => {
@@ -372,46 +397,49 @@ function Game({ room, me, act, byId, triviaOf, speech, sound, active, onRestart,
 
   // 問題が出たら英語を読み上げる
   useEffect(() => {
-    if (playing && room.phase === "question" && item && active) speech.speak(item.english, null, item.id);
+    if (playing && phase === "question" && item && active) speech.speak(item.english, null, item.id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [key]);
 
-  // 誰かが正解したことに気づいた時刻（締め切りの猶予に使う）
-  if (playing && room.phase === "question" && result.winner && started.current.correctAt == null) started.current.correctAt = performance.now();
+  /** 次の問題へ（最後なら終わり） */
+  const advance = useCallback(() => {
+    setProg((p) => {
+      if (p.phase !== "reveal") return p;
+      if (p.q + 1 >= room.questions.length) {
+        onFinished(p.round);
+        return { ...p, finished: true };
+      }
+      return { ...p, q: p.q + 1, phase: "question", at: performance.now(), correctAt: null, pressed: null };
+    });
+  }, [room.questions.length, onFinished]);
 
-  // 締め切り・次の問題（条件がそろった端末が進める。失敗しても1秒ごとにやり直す）
+  // 締め切り・次の問題
   useEffect(() => {
     if (!playing) return;
-    const s = started.current;
-    if (now - s.tried < 1000) return;
-    if (room.phase === "question") {
-      const since = s.correctAt == null ? null : now - s.correctAt;
-      if (canReveal(room, q, elapsed, since)) {
-        s.tried = now;
-        act((r) => reveal(r, q));
-      }
-    } else if (room.phase === "reveal" && elapsed >= REVEAL_MS) {
-      s.tried = now;
-      act((r) => nextQuestion(r, q));
-    }
+    const t = performance.now();
+    if (phase === "question") {
+      // 誰かが正解したことに気づいた時刻（締め切りの猶予に使う）
+      if (result.winner && prog.correctAt == null) return setProg((p) => ({ ...p, correctAt: t }));
+      const since = prog.correctAt == null ? null : t - prog.correctAt;
+      if (canReveal(room, q, elapsed, since)) setProg((p) => (p.q === q && p.phase === "question" ? { ...p, phase: "reveal", at: t } : p));
+    } else if (elapsed >= REVEAL_MS) advance();
   });
 
   const answer = (i) => {
-    if (mine || room.phase !== "question" || elapsed >= TIME_MS) return;
-    const ms = performance.now() - started.current.at;
-    started.current.pressed = i;
+    if (mine || phase !== "question" || elapsed >= TIME_MS) return;
+    const ms = performance.now() - prog.at;
     sound.play(i === result.correct ? "correct" : "wrong", 0, { cheer: false });
-    setNow(performance.now());
-    act((r) => submitAnswer(r, me, q, i, ms));
+    setProg((p) => ({ ...p, pressed: i }));
+    sendAnswer(q, i, ms);
   };
 
-  if (room.status === "done") return <Results room={room} me={me} claim={claim} onRestart={onRestart} onExit={onExit} />;
+  if (prog.finished) return <Results room={room} me={me} claim={claim} onRestart={() => onRestart(prog.round)} onExit={onExit} />;
   if (!question) return null;
 
   const timeLeft = Math.max(0, TIME_MS - elapsed);
   const revealLeft = Math.max(0, REVEAL_MS - elapsed);
-  const revealing = room.phase === "reveal";
-  const players = standings(room);
+  // 得点は答えが出た問題まで（答える時間のあいだは、今の問題の結果を見せない）
+  const players = standings(room, revealing ? q + 1 : q);
   const label = (id) => byId[id]?.japanese.split("／")[0] || id;
 
   return (
@@ -521,7 +549,7 @@ function Game({ room, me, act, byId, triviaOf, speech, sound, active, onRestart,
           <div className="mt-3 flex items-center gap-2">
             <p className="flex-1 text-[11px] text-white/50 tabular-nums">{tr(`${Math.ceil(revealLeft / 1000)}秒後に次の問題`, `Next question in ${Math.ceil(revealLeft / 1000)}s`)}</p>
             {solo && (
-              <button type="button" onClick={() => act((r) => nextQuestion(r, q))} className="flex items-center gap-1 rounded-xl bg-indigo-500 px-4 py-2 text-sm font-extrabold" data-testid="versus-next">
+              <button type="button" onClick={advance} className="flex items-center gap-1 rounded-xl bg-indigo-500 px-4 py-2 text-sm font-extrabold" data-testid="versus-next">
                 {q + 1 >= room.questions.length ? tr("結果を見る", "See results") : tr("次の問題へ", "Next question")} <ArrowRight size={16} />
               </button>
             )}

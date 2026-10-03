@@ -12,8 +12,8 @@ import {
   submitAnswer,
   questionResult,
   canReveal,
-  reveal,
-  nextQuestion,
+  answerPatch,
+  finishRoom,
   standings,
   isStale,
   roomCode,
@@ -80,7 +80,7 @@ test("早押し: いちばん早く正解した人が1ポイント。間違え�
   assert.equal(questionResult(room2, 0).winner, "b");
 });
 
-test("締め切り: 5秒・全員が答えた・誰かの正解から少したったとき。解説のあと次の問題、最後は終わり", () => {
+test("締め切り: 5秒・全員が答えた・誰かの正解から少したったとき（各端末が判定）。終わりは1回だけ、もう一度は1回だけ", () => {
   let room = playing(2);
   assert.equal(canReveal(room, 0, 1000), false);
   assert.equal(canReveal(room, 0, TIME_MS), true, "5秒で答えに移る");
@@ -90,18 +90,26 @@ test("締め切り: 5秒・全員が答えた・誰かの正解から少した�
   assert.equal(canReveal(room, 0, 1600, GRACE_MS), true);
   room = submitAnswer(room, "b", 0, (c + 1) % 4, 1200).room;
   assert.equal(canReveal(room, 0, 1300), true, "全員答えたらすぐ");
-  room = reveal(room, 0).room;
-  assert.equal(room.phase, "reveal");
-  assert.equal(submitAnswer(room, "b", 0, c, 100).error, "closed", "解説中は答えられない");
-  assert.equal(reveal(room, 0).room, room, "二重に進まない");
-  room = nextQuestion(room, 0).room;
-  assert.deepEqual([room.q, room.phase], [1, "question"]);
-  assert.equal(nextQuestion(room, 0).room, room, "古い問題からは進めない");
-  room = nextQuestion(reveal(room, 1).room, 1).room;
-  assert.equal(room.status, "done");
-  const [first, second] = standings(room);
+  assert.equal(submitAnswer(room, "b", 1, c, TIME_MS + 1000).error, "closed", "時間切れのあとは答えられない");
+  // 終わりは今のゲームだけ。もう一度は、同じゲームのあとに1回だけ
+  const done = finishRoom(room, room.round).room;
+  assert.equal(done.status, "done");
+  assert.equal(finishRoom(done, room.round - 1).room, done);
+  const again = startRoom(done, makeQuestions(items, items, 2), done.round).room;
+  assert.equal(again.round, done.round + 1);
+  assert.equal(startRoom(again, makeQuestions(items, items, 2), done.round).room, again, "2人が同時に押しても1回だけ");
+  assert.equal(finishRoom(again, done.round).room, again, "前のゲームの終わりで、新しいゲームを終わらせない");
+  const [first] = standings(room, 1);
   assert.deepEqual([first.uid, first.points, first.correct], ["a", 1, 1]);
-  assert.equal(second.points, 0);
+});
+
+test("答えの書き込みは自分の欄だけ。時間切れより遅い答えは数えない", () => {
+  assert.deepEqual(answerPatch("u1", 3, 2, 1234.4), { "answers.3.u1": { c: 2, ms: 1234 } });
+  let room = playing(1);
+  const c = correctOf(room, 0);
+  room = { ...room, answers: { 0: { a: { c, ms: TIME_MS + 2000 }, b: { c, ms: 900 } } } };
+  assert.equal(questionResult(room, 0).winner, "b");
+  assert.equal(questionResult(room, 0).results.a, undefined);
 });
 
 test("1人モード: 答えるとすぐ解説へ（待たない）。得点は正解数", () => {
@@ -109,7 +117,6 @@ test("1人モード: 答えるとすぐ解説へ（待たない）。得点は�
   assert.equal(room.status, "playing");
   room = submitAnswer(room, "me", 0, correctOf(room, 0), 700).room;
   assert.equal(canReveal(room, 0, 800), true);
-  room = nextQuestion(reveal(room, 0).room, 0).room;
   assert.equal(canReveal(room, 1, 4000), false);
   assert.equal(standings(room)[0].correct, 1);
 });
@@ -117,8 +124,8 @@ test("1人モード: 答えるとすぐ解説へ（待たない）。得点は�
 test("もう一度遊ぶと round が増え、答えはリセット。古い部屋・終わった部屋は作り直せる", () => {
   let room = playing(1);
   room = submitAnswer(room, "a", 0, 0, 500).room;
-  room = nextQuestion(reveal(room, 0).room, 0).room;
-  const again = startRoom({ ...room, status: "lobby" }, makeQuestions(items, items, 1)).room;
+  room = finishRoom(room, room.round).room;
+  const again = startRoom(room, makeQuestions(items, items, 1), room.round).room;
   assert.equal(again.round, room.round + 1);
   assert.deepEqual(again.answers, {});
   assert.equal(isStale(room, 10), true);
@@ -134,13 +141,11 @@ test("報酬: 正解1問30pt、対戦では早押し1回+30pt・勝ち+200pt。1
     const c = correctOf(room, q);
     room = submitAnswer(room, "a", q, c, 500).room;
     room = submitAnswer(room, "b", q, c, 900).room;
-    assert.equal(versusReward(room, "a").points, 0);
-    room = nextQuestion(reveal(room, q).room, q).room;
   }
+  room = finishRoom(room, room.round).room;
   assert.deepEqual(versusReward(room, "a"), { points: 2 * VERSUS_POINTS.correct + 2 * VERSUS_POINTS.fastest + VERSUS_POINTS.win, won: true });
   assert.deepEqual(versusReward(room, "b"), { points: 2 * VERSUS_POINTS.correct, won: false });
   let solo = startRoom(newRoom({ code: "solo", uid: "me", name: "Me", solo: true }), makeQuestions(items, items, 1)).room;
   solo = submitAnswer(solo, "me", 0, correctOf(solo, 0), 300).room;
-  solo = nextQuestion(reveal(solo, 0).room, 0).room;
   assert.deepEqual(versusReward(solo, "me"), { points: VERSUS_POINTS.correct, won: false });
 });

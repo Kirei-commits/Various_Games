@@ -9,7 +9,9 @@
  * - 1人モードも同じ部屋の形で動かす（プレイヤーが1人の部屋。答えたらすぐ解説へ、「次の問題へ」で進める）。
  *
  * 部屋（room）はクラウドの1ドキュメント（rooms/{code}）にそのまま保存する形。
- * 書き換えはクラウドのトランザクションの中で、これらの関数を通して行う（同時に押しても壊れない）。
+ * 通信の回数を減らすため（2026-10-03）、ゲーム中にクラウドへ書くのは「答え」だけ（answerPatch。読み込みなしの部分書き換え）。
+ * 何問目か・締め切り・次の問題へ は各端末が自分の時計で進める（速さは端末ごとの ms で比べるので、端末どうしが少しずれても公平）。
+ * 始める・入る・出る・終わりは、クラウドのトランザクションの中でこれらの関数を通して行う。
  */
 import { makeChoices } from "./logic.js";
 
@@ -50,8 +52,6 @@ export function newRoom({ code, uid, name, now = 0, scope = "word", count = 10, 
     createdAt: now,
     players: { [uid]: { name: String(name || "").slice(0, 20), joined: now } },
     questions: [],
-    q: 0,
-    phase: "question", // question（答える時間）| reveal（答えと解説）
     round: 0, // 「もう一度」のたびに増える（画面が新しいゲームだと気づくため）
     answers: {}, // 問題の番号 → { uid: { c: 選んだ選択肢の番号, ms: 押すまでの時間 } }
   };
@@ -77,29 +77,46 @@ export function leaveRoom(room, uid) {
   return { room: { ...room, players } };
 }
 
-/** 始める（待合室か、終わったあとの「もう一度」）。questions は makeQuestions で作ったもの */
-export function startRoom(room, questions) {
+/**
+ * 始める（待合室から）・もう一度（終わったあと）。questions は makeQuestions で作ったもの。
+ * fromRound を渡すと、そのゲームのあとに誰かがもう始めていたら何もしない（2人が同時に「もう一度」を押しても1回だけ）
+ */
+export function startRoom(room, questions, fromRound = null) {
   if (!room) return err("not-found");
-  if (room.status === "playing") return { room };
+  if (fromRound != null ? room.round !== fromRound : room.status === "playing") return { room };
   if (!room.solo && Object.keys(room.players).length < 2) return err("alone");
   if (!questions.length) return err("no-questions");
-  return { room: { ...room, status: "playing", questions, q: 0, phase: "question", answers: {}, round: (room.round || 0) + 1 } };
+  return { room: { ...room, status: "playing", questions, answers: {}, round: (room.round || 0) + 1 } };
 }
 
+/** 終わり（そのゲームが終わった端末が書く。もう次のゲームが始まっていれば何もしない） */
+export function finishRoom(room, round) {
+  if (!room || room.round !== round || room.status !== "playing") return { room };
+  return { room: { ...room, status: "done" } };
+}
+
+/** 時間切れのあとに届いた答えは数えない（少しの余裕を見る） */
+const LATE_MS = TIME_MS + 300;
 const answersOf = (room, q) => room.answers?.[q] || {};
 const correctIndex = (room, q) => {
   const qu = room.questions[q];
   return qu ? qu.choices.indexOf(qu.id) : -1;
 };
 
-/** 答える（答える時間のあいだに1回だけ） */
+/** 答える（その問題に1回だけ・制限時間のうちに） */
 export function submitAnswer(room, uid, q, choice, ms) {
-  if (!room || room.status !== "playing" || room.q !== q || room.phase !== "question") return err("closed");
+  if (!room || room.status !== "playing" || !room.questions[q] || ms > LATE_MS) return err("closed");
   if (!room.players[uid]) return err("not-member");
   if (answersOf(room, q)[uid]) return err("answered");
   const a = { c: choice, ms: Math.max(0, Math.round(ms)) };
   return { room: { ...room, answers: { ...room.answers, [q]: { ...answersOf(room, q), [uid]: a } } } };
 }
+
+/**
+ * クラウドに書く答え（部屋全体を読まずに、自分の答えの欄だけ書き換える）: { "answers.3.uid": { c, ms } }。
+ * 書いてよいかは、手元の部屋で submitAnswer が通るかで先に確かめる
+ */
+export const answerPatch = (uid, q, choice, ms) => ({ [`answers.${q}.${uid}`]: { c: choice, ms: Math.max(0, Math.round(ms)) } });
 
 /**
  * 1問の結果: { correct: 正解の選択肢の番号, results: { uid: { c, ms, ok } }, winner: いちばん早く正解した uid | null }
@@ -109,6 +126,7 @@ export function questionResult(room, q) {
   const results = {};
   let winner = null;
   for (const [uid, a] of Object.entries(answersOf(room, q))) {
+    if (!(a?.ms <= LATE_MS)) continue;
     const ok = a.c === correct;
     results[uid] = { ...a, ok };
     if (ok && (!winner || a.ms < results[winner].ms)) winner = uid;
@@ -117,39 +135,25 @@ export function questionResult(room, q) {
 }
 
 /**
- * 答えの時間を締め切ってよいか（どの端末からでも判定できる）。
+ * 答えの時間を締め切ってよいか（各端末が自分の時計で判定する）。
  * @param elapsed この端末で問題が出てからの時間（ms）
  * @param sinceCorrect この端末で最初の正解に気づいてからの時間（ms。まだなら null）
  */
 export function canReveal(room, q, elapsed, sinceCorrect = null) {
-  if (!room || room.status !== "playing" || room.q !== q || room.phase !== "question") return false;
+  if (!room || room.status === "lobby" || !room.questions[q]) return false;
   if (elapsed >= TIME_MS) return true;
   const n = Object.keys(room.players).length;
   if (Object.keys(answersOf(room, q)).length >= n) return true;
   return !room.solo && sinceCorrect != null && sinceCorrect >= GRACE_MS;
 }
 
-/** 答えと解説へ（すでに進んでいれば何もしない） */
-export function reveal(room, q) {
-  if (!room || room.status !== "playing" || room.q !== q || room.phase !== "question") return { room };
-  return { room: { ...room, phase: "reveal" } };
-}
-
-/** 次の問題へ（最後の問題なら終わり）。すでに進んでいれば何もしない */
-export function nextQuestion(room, q) {
-  if (!room || room.status !== "playing" || room.q !== q || room.phase !== "reveal") return { room };
-  if (q + 1 >= room.questions.length) return { room: { ...room, status: "done" } };
-  return { room: { ...room, q: q + 1, phase: "question" } };
-}
-
 /**
  * 得点: 早押しで取ったポイント（points）、正解の数（correct）、正解したときの時間の合計（ms）。
  * 並びは ポイント → 正解数 → 時間の短い順
  */
-export function standings(room) {
+export function standings(room, upto = room.questions.length) {
   const rows = Object.entries(room.players).map(([uid, p]) => ({ uid, name: p.name, points: 0, correct: 0, ms: 0 }));
   const by = Object.fromEntries(rows.map((r) => [r.uid, r]));
-  const upto = room.status === "done" ? room.questions.length : room.phase === "reveal" ? room.q + 1 : room.q;
   for (let q = 0; q < upto; q++) {
     const { results, winner } = questionResult(room, q);
     for (const [uid, r] of Object.entries(results)) {
@@ -168,11 +172,11 @@ export const isStale = (room, now) => !room || room.status === "done" || now - (
 /** 対戦の報酬（ガチャのポイント。ブースト前）: 正解1問ごと・早押しのポイントごと・勝ち（2人以上で単独1位）のボーナス */
 export const VERSUS_POINTS = { correct: 1500, fastest: 1500, win: 30000 }; // 2026-10-03 ユーザーの指定
 
-/** その人の報酬 { points, won }。1人の練習は正解の数だけ */
+/** その人の報酬 { points, won }（全部の問題が終わったあとに呼ぶ）。1人の練習は正解の数だけ */
 export function versusReward(room, uid) {
   const rows = standings(room);
   const me = rows.find((r) => r.uid === uid);
-  if (!me || room.status !== "done") return { points: 0, won: false };
+  if (!me || room.status === "lobby") return { points: 0, won: false };
   const multi = !room.solo && rows.length >= 2;
   const [a, b] = rows;
   const tie = multi && b && a.points === b.points && a.correct === b.correct && a.ms === b.ms;
