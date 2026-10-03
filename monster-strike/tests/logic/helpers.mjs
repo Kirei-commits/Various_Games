@@ -32,11 +32,11 @@ export function loadPhysics() {
 }
 
 /** 本番と同じ始まり方: 味方を置いて、ウェーブ1を出す。stage はステージの番号（D.stages） */
-export function newGame(mods, stage = 0) {
+export function newGame(mods, stage = 0, { stageDef, ssFree = false } = {}) {
   const { P, B, D } = mods;
   const world = new P.World();
   for (const u of D.units) world.add({ id: u.id, kind: 'unit', shot: u.shot, x: u.x, y: u.y, r: u.r, abilities: B.Battle.abilityMap(u.abilities) });
-  const battle = new B.Battle({ units: D.units, stage: D.stages ? D.stages[stage] : D.stage });
+  const battle = new B.Battle({ units: D.units, stage: stageDef || (D.stages ? D.stages[stage] : D.stage), ssFree });
   battle.spawnWave(world);
   return { world, battle };
 }
@@ -51,6 +51,7 @@ export function shoot(world, battle, id, vx, vy, useSS = false, gauge = false) {
   world.setVelocity(id, vx * k, vy * k, mods);
   world.drainEvents();
   const records = [];
+  if (useSS && battle.ssLaunch) records.push(...battle.ssLaunch(world));   // 大号令・ビームなど発射の瞬間の SS
   for (let n = 0; n < 240 * 30 && !world.isSettled(); n++) {
     world.step();
     const ev = world.drainEvents();

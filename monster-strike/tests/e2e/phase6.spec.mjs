@@ -12,7 +12,7 @@ test('起動するとタイトルが出て、ステージを選ぶと始まる�
   page.on('pageerror', (e) => errors.push(e.message));
   await page.goto('/');
   await expect(page.locator('#title')).toBeVisible();
-  await expect(page.locator('#stage-list button')).toHaveCount(7);
+  await expect(page.locator('#stage-list button')).toHaveCount(10);
   await expect(page.locator('#stage-1')).toContainText('からくりの塔');
   await page.locator('#stage-1').click();
   await expect(page.locator('#title')).toBeHidden();

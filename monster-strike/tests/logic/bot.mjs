@@ -49,10 +49,15 @@ function score(battle, records, hpBefore) {
 /**
  * gauge: ゲージショットの成功率（省略時は greedy 1 / casual 0.5 / random 0.2）
  */
-export function play(mods, { policy = 'greedy', random = Math.random, maxTurns = 80, stage = 0, ss = true, gauge } = {}) {
+/**
+ * mode: 難しさ（'easy' / 'normal' / 'difficult' / 'god'。省略すると D.stages の元の定義のまま）
+ * ssFree: SS を何回でも撃てるモード
+ */
+export function play(mods, { policy = 'greedy', random = Math.random, maxTurns = 80, stage = 0, ss = true, gauge, mode, ssFree = false } = {}) {
   const gaugeRate = gauge ?? { greedy: 1, casual: 0.5, random: 0.2 }[policy];
   const { P, D } = mods;
-  const { world, battle } = newGame(mods, stage);
+  const stageDef = mode ? mods.M.stageFor(D, stage, mode) : undefined;
+  const { world, battle } = newGame(mods, stage, { stageDef, ssFree });
   const order = D.units.map((u) => u.id);
   const cands = candidates(P, world.cfg);
   let active = 0;

@@ -147,7 +147,7 @@ HTML コメントの中にスクリプトの開始タグをそのまま書かな
 
 1. ステージの定義（`D.stages`）はそのまま（テストと難しさの測定の基準）。遊ぶときは `MSMeta.stageFor(D, i, save.mode)` の写しを使う。
    `D.modes`: ノーマルは敵の HP ×1.3、ハードは HP ×12・攻撃 ×1.5・ウェーブごとにハートと剣を2組足す（空いている場所だけ）・報酬2倍。
-   ハードのクリアの記録は `'s0h'` のように別。
+   クリアの記録は `MSMeta.clearKey()`（v7 で4段階に。下の「v7」を参照）。
 2. 編成画面は枠が上に貼りつく（sticky）。手持ち → 枠のドラッグで入れる、枠 → 枠で入れ替え。指の場合、手持ちは長押し（0.25秒）してから
    （すぐ動かすと一覧のスクロール）。動かさずに離したらいつものタップ（詳しい能力を見る）。
 
@@ -157,7 +157,7 @@ HTML コメントの中にスクリプトの開始タグをそのまま書かな
    触れられた味方は `cfg.allyNudge` だけずれる（ずらした先で何かに重なるならずらさない）。友情は `touch` で出る。
 2. 動き続けても `cfg.maxMove` 秒で止まる。画面のストップボタンは `World.stop(id)`。
 3. **HP の回復は `Battle._heal()` を通す**（最大HPを超えない）。画面も `updateHud()` で `shownHp` を最大HPに収める。
-4. 特性は22種（`ABILITY` に desc）、友情は15種（`_burst()`・`startCombos()`・`comboDesc()` の3か所）。LR（rarity 6）は特性7つ・友情7つ。
+4. 特性は21種（`ABILITY` に desc。減速壁とアンチ減速壁は v7 で無くした）、友情は15種（`_burst()`・`startCombos()`・`comboDesc()` の3か所）。LR（rarity 6）は特性7つ・友情7つ。
 5. 同じキャラは何体でも持てる（`owned[id] = { luck, plus, stock }`）。合成 `MSMeta.fuse()` はストック1体で +1（最大 +5、1回 +15%）。
    強さの倍率は `MSMeta.powerRate()`（ラック × 合成）。報酬は勝つたびに同じだけ（減らない）。
 6. ガチャのコード `MSMeta.redeemCode()`: 「開発者」だけ `save.infinite`（ジェム無限）。ほかは何も起こらない。
@@ -214,6 +214,25 @@ HTML コメントの中にスクリプトの開始タグをそのまま書かな
 5. ⏩ 倍速ボタン（`#btn-speed`、HP の行の右端・幅固定）は `localStorage['ms.speed']`。**引っぱっている間には掛けない**（ゲージの速さが変わる）。
 6. 振動は `buzz(ms)` を通す（対応端末だけ・音が OFF なら震えない）。
 7. E2E は `__ms.tempo`（`ff / speed / cleared / hits / slowmo`）と `__ms.texts`（浮かんでいる文字）で確かめる（`tests/e2e/tempo.spec.mjs`）。
+
+## v7 の約束ごと（改修のまとめ）
+
+1. **ヒットストップは無し。減速壁・アンチ減速壁は無し**（データ・物理・画面から外した。持っていたキャラは別の特性に置き換え）。
+2. **ウェーブの敵を全部倒したら、残りの動きではギミックが効かない**（`Battle.clearGimmicks()`。`kill()` の中で呼ぶ。アイテムは残す）。
+3. 難しさは4段階 `D.modes`: easy / normal / difficult（前の版の hard。`load()` が読み替える）/ god。クリアの記録は `MSMeta.clearKey()`（'s0' + key）。
+4. **SS 何回でも**: `save.ssFree` → `new Battle({ ..., ssFree })`。SS を使っても `ssLeft` を戻さない。
+5. LR の SS は5種類（`ss` のキー）: 既存（launch/atk/onStop/comboTwice）・`rally`（大号令）・`beam` + `onStop.percent`（割合の大爆発）・
+   `shot: 'pierce'` + `delay`（遅延）・`chase`（追撃）。発射の瞬間の効果は `battle.ssLaunch(world)`（画面と `helpers.shoot` の両方で呼ぶ）。
+   撃ち方の変更は物理の `mods.shot`（止まったら `Body.baseShot` に戻る）。大号令ではほかの味方も動く（物理は動く物体が何体でもよい。動いている同士は当たらない）。
+6. ガチャは 1・10・50・100 回（`MSMeta.PULLS` / `pullCost`）。10回ごとのまとまりの最後は ★4 以上を確定。
+7. **まとめて強化** `MSMeta.fuseAll()`、**ウルトラ進化** `MSMeta.ultraEvolve()`（+5・同じキャラ `D.ultra.cost` 体）。進化したキャラの定義は
+   `MSMeta.ultraDef()`（友情 +3・友情の威力 ×2・特性すべて `D.abilities`）で、攻撃力と HP は `powerRate()` の中で ×2。
+   飛行とマインスイーパーを両方持つと、地雷はマインスイーパー（回収）が優先（物理の `_enterField`）。
+8. ステージ 8〜10（`endgame()` で作る。煉獄の火口・星海の回廊・混沌の玉座）はウルトラ進化向け。数値は `balance-stages.test.mjs` の自動プレイで決めた。
+9. **最後のボスを倒すとドロップ**（画面だけ: `phase: 'loot'`）。ジェムと宝箱をなぞって回収。ジェムは `MSMeta.reward(..., bonus)` に足し、宝箱は `MSMeta.dropUnit()`。
+10. ⚙ の設定: 音量は項目別（`sound.setVolume('master' | 'bgm' | 'se' | 'ui', 0〜100)`、`localStorage['ms.volume']`）。
+    手触りの値は `localStorage['ms.tune']`、プリセットは `localStorage['ms.presets']`（組み込みは `BUILTIN_PRESETS`）。
+11. マージ前の版は GitHub Pages の `/preview/monster-strike/` で遊べる（`claude/monster-strike-*` のブランチに push したとき。`.github/workflows/pages.yml`）。
 
 ## テスト
 
