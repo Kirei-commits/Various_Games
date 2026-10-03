@@ -401,6 +401,22 @@ export const comboRate = (combo) => 1 + Math.min(combo, 5) * 0.1;
 /** ぼうぎょしたときに受けるダメージの割合（ふつうのこうげき・大こうげき）。盾の block で大こうげきはさらに減る */
 export const guardRate = (smash, block = 0) => (smash ? Math.max(0.1, 0.25 - block / 400) : 0.5);
 
+/**
+ * 答えの速さの倍率: 問題が出てから答えるまでが短いほど、こうげき（ぼうぎょなら守り）が強くなる。
+ * 1.5 秒以内で ×1.3、そこから 8 秒で ×1.0 まで下がる（遅くても下がりすぎない）
+ */
+export const SPEED_FAST = 1.5;
+export const SPEED_SLOW = 8;
+export const SPEED_MAX = 1.3;
+export function speedRate(seconds) {
+  if (!Number.isFinite(seconds)) return 1;
+  const t = Math.min(1, Math.max(0, (seconds - SPEED_FAST) / (SPEED_SLOW - SPEED_FAST)));
+  return Math.round((SPEED_MAX - (SPEED_MAX - 1) * t) * 100) / 100;
+}
+/** 問題の難しさ（単語のレア度。熟語は SR と同じ）によるダメージの倍率（差は小さめ） */
+export const LEVEL_RATE = { N: 0.95, R: 1, SR: 1.07, SSR: 1.15 };
+export const levelRate = (level) => LEVEL_RATE[level] || 1;
+
 export const damageOf = (atk, def, rng) => Math.max(1, Math.round((atk - def / 2) * (0.9 + rng() * 0.2)));
 
 /** 冒険を始める（start 階から） */
@@ -423,6 +439,7 @@ export function createRun(stats, start = 1, rng = Math.random) {
     over: false, // 負けた・帰った
     lost: false,
     results: {}, // 問題ID → 最後まで間違えずに答えられたか（苦手の記録に使う）
+    asked: [], // この階で答えた問題 [{ id, correct }]（倒したあとの解説用）
     events: [], // 直前の行動で起きたこと（画面の演出とメッセージ用）
   };
 }
@@ -430,7 +447,8 @@ export function createRun(stats, start = 1, rng = Math.random) {
 /**
  * 1ターン進める。
  * @param action "attack" | "skill" | "defend" | "herb"
- * @param answer { id, correct }（attack・skill・defend のときの4択の答え。defend で間違えると身をまもれない）
+ * @param answer { id, correct, seconds, level }（attack・skill・defend のときの4択の答え。defend で間違えると身をまもれない）
+ *   seconds は答えるまでの秒数（速いほど強い。speedRate）、level は問題の難しさ（"N"〜"SSR"。levelRate）
  * @param skillId skill のときの呪文（SKILLS のキー。装備している SSR のものだけ）
  * @returns 新しい run（error があれば行動できなかった）
  */
@@ -449,6 +467,10 @@ export function act(run, stats, action, answer = null, rng = Math.random, skillI
   // 答えた問題の記録（こうげき・呪文・ぼうぎょ。苦手の記録に使う）
   if (answer?.id && !(answer.id in r.results)) r.results[answer.id] = !!answer.correct;
   else if (answer?.id && !answer.correct) r.results[answer.id] = false;
+  // この階で答えた問題（倒したあとの解説に使う）
+  if (answer?.id) r.asked = [...(r.asked || []), { id: answer.id, correct: !!answer.correct }];
+  const speed = answer?.correct ? speedRate(answer.seconds) : 1;
+  r.guardBoost = 1;
 
   if (action === "attack" || skill) {
     r.mp -= cost;
@@ -463,11 +485,12 @@ export function act(run, stats, action, answer = null, rng = Math.random, skillI
       const elemBoost = element !== "none" ? 1 + stats.elemUp / 100 : 1;
       const crit = rng() * 100 < stats.crit;
       const mult = skill ? skill.mult : 1;
-      const power = stats.atk * comboRate(r.combo - 1) * mult * elem * elemBoost * (crit ? CRIT_RATE : 1);
+      const level = levelRate(answer.level);
+      const power = stats.atk * comboRate(r.combo - 1) * mult * elem * elemBoost * (crit ? CRIT_RATE : 1) * speed * level;
       const def = skill?.effect === "pierce" ? 0 : magic ? e.def / 2 : e.def;
       const dmg = damageOf(power, def, rng);
       e.hp = Math.max(0, e.hp - dmg);
-      ev({ type: "hit", dmg, crit, magic, skill: skill?.name, element, weak: elem > 1, resist: elem < 1, combo: r.combo });
+      ev({ type: "hit", dmg, crit, magic, skill: skill?.name, element, weak: elem > 1, resist: elem < 1, combo: r.combo, speed, level });
       const drain = skill?.effect === "drain" ? skill.value : stats.drain;
       if (drain > 0) {
         const heal = Math.min(stats.hp - r.hp, Math.round((dmg * drain) / 100));
@@ -496,8 +519,9 @@ export function act(run, stats, action, answer = null, rng = Math.random, skillI
       ev({ type: "defendMiss" });
     } else {
       r.defending = true;
+      r.guardBoost = speed; // 速く答えるほど、受けるダメージが減る
       r.mp = Math.min(stats.mp, r.mp + defendMp(stats.mp));
-      ev({ type: "defend" });
+      ev({ type: "defend", speed });
     }
   } else if (action === "herb") {
     r.herbs -= 1;
@@ -560,13 +584,13 @@ function enemyTurn(r, stats, rng) {
   const resist = stats.guard !== "none" && stats.guard === e.element;
   const rate = smash ? (e.boss ? BOSS_SMASH_RATE : SMASH_RATE) : 1;
   const raw = damageOf(e.atk * rate, stats.def, rng);
-  const guarded = r.defending ? guardRate(smash, stats.block) : 1;
+  const guarded = r.defending ? guardRate(smash, stats.block) / (r.guardBoost || 1) : 1;
   const dmg = Math.max(1, Math.round(raw * guarded * (resist ? 0.5 : 1)));
   r.hp = Math.max(0, r.hp - dmg);
   ev({ type: "hurt", dmg, smash, boss: e.boss, guarded: r.defending, resist });
   // 大こうげきをぼうぎょで受けとめたら、はんげき（守備力と盾で決まる）
   if (smash && r.defending && r.hp > 0) {
-    const counter = Math.max(1, Math.round((stats.def + stats.block * 2) * (0.9 + rng() * 0.2)));
+    const counter = Math.max(1, Math.round((stats.def + stats.block * 2) * (r.guardBoost || 1) * (0.9 + rng() * 0.2)));
     e.hp = Math.max(0, e.hp - counter);
     ev({ type: "counter", dmg: counter });
     if (e.hp <= 0) {
@@ -592,6 +616,7 @@ export function nextFloor(run, stats, rng = Math.random) {
     mp: Math.min(stats.mp, run.mp + Math.round(stats.mp * 0.2)),
     herbs: run.herbs + (run.enemy.boss ? 1 : 0),
     won: false,
+    asked: [],
     combo: run.combo,
     events: [],
   };

@@ -271,15 +271,29 @@ test("長いフレーズでも、敵の札と問題文が見切れない（折�
   await expect(target.getByTestId("enemy-label")).toHaveText(LIB.byId[id].english);
 });
 
-test("敵が出ると、表示している英単語を読み上げる（英語→意味のとき）", async ({ page }) => {
-  await page.addInitScript(() => (window.__swipetalkBattleSpeed = 0));
+test("狙う敵に切り替わったときに英単語を読み上げる（出てきただけでは読まない）。狙う敵には攻撃までの秒数が出る", async ({ page }) => {
+  await page.addInitScript(() => {
+    window.__swipetalkBattleTime = 10; // 敵がすぐ出てくる
+    window.__swipetalkBattleSpeed = 0; // 敵は近づかない
+  });
   await page.reload();
   await openBattle(page);
   await page.getByRole("button", { name: /バトル開始/ }).click();
-  const enemy = page.getByTestId("enemy").first();
-  await expect(enemy).toBeVisible();
-  const word = LIB.byId[await enemy.getAttribute("data-phrase-id")].english;
-  await expect.poll(() => page.evaluate(() => window.__spoken.map((u) => u.text).join(" "))).toContain(word);
+  await expect(page.getByTestId("enemy")).toHaveCount(3);
+  const spoken = () => page.evaluate(() => window.__spoken.map((u) => u.text));
+  const target = page.locator('[data-testid="enemy"][data-target="1"]');
+  const word = LIB.byId[await target.getAttribute("data-phrase-id")].english;
+  await expect.poll(spoken).toContain(word);
+  // 狙っていない敵の単語はまだ読まない
+  const other = page.locator('[data-testid="enemy"][data-target="0"]').first();
+  const otherWord = LIB.byId[await other.getAttribute("data-phrase-id")].english;
+  expect(await spoken()).not.toContain(otherWord);
+  // 狙う敵の下に、攻撃してくるまでの秒数
+  await expect(page.getByTestId("enemy-countdown")).toHaveCount(1);
+  await expect(target.getByTestId("enemy-countdown")).toHaveText(/攻撃まで \d+秒/);
+  // タップで狙いを変えると、その単語を読む
+  await other.dispatchEvent("pointerdown");
+  await expect.poll(spoken).toContain(otherWord);
 });
 
 test("ステージの敵の数を 10・50・100 から選べる。複数いるときはタップした敵を狙える", async ({ page }) => {

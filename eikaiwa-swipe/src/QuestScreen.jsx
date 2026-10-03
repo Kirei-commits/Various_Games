@@ -37,7 +37,11 @@ import {
   idiomChance,
   IDIOM_FLOOR,
   effectText,
+  speedRate,
+  levelRate,
+  SPEED_SLOW,
 } from "./quest.js";
+import { tr } from "./i18n.js";
 
 const RARITY_STYLE = {
   N: "bg-slate-200 text-slate-700",
@@ -527,6 +531,7 @@ function messagesOf(events, enemyName, answerText) {
           e.skill ? `${e.skill}！` : e.magic ? "じゅもんを となえた！" : "こうげき！",
           e.crit ? "かいしんの いちげき！" : "",
           e.weak ? "こうかは ばつぐんだ！" : e.resist ? "あまり きいていない…" : "",
+          e.speed > 1 ? `はやわざ ×${e.speed.toFixed(2)}！` : "",
           `${enemyName}に ${e.dmg}の ダメージ！`,
         ]
           .filter(Boolean)
@@ -542,7 +547,7 @@ function messagesOf(events, enemyName, answerText) {
       case "frozen":
         return `${enemyName}は うごけない！`;
       case "defend":
-        return "みを まもっている。MPが すこし かいふくした";
+        return `みを まもっている。MPが すこし かいふくした${e.speed > 1 ? `（はやわざで まもり ×${e.speed.toFixed(2)}）` : ""}`;
       case "defendMiss":
         return `ぼうぎょに しっぱい！ みを まもれない…（正解は「${answerText}」）`;
       case "herb":
@@ -581,6 +586,7 @@ function QuestRun({ stats, pool, idiomPool = [], idioms = false, chestWords, car
   const [busy, setBusy] = useState(false); // 演出中はコマンドを受け付けない
   const [dying, setDying] = useState(null); // 倒した敵（消える演出）
   const [chestOpen, setChestOpen] = useState(false); // 宝箱の中身を見せている
+  const askedItems = useRef({}); // 答えた問題（ID → 問題。倒したあとの解説用）
   const enemyRef = useRef(null);
   const arenaRef = useRef(null);
   const fxId = useRef(0);
@@ -632,7 +638,8 @@ function QuestRun({ stats, pool, idiomPool = [], idioms = false, chestWords, car
     // 深い階では熟語も混ざる（「熟語も出す」がオンのとき）。選択肢は同じ種類から
     const from = idioms && idiomPool.length > 4 && Math.random() < idiomChance(run.floor) ? idiomPool : pool;
     const item = from[Math.floor(Math.random() * from.length)];
-    setQuestion({ action, skillId, item, idiom: from !== pool, choices: makeChoices(item, from, Math.random, 4, "japanese") });
+    const idiom = from !== pool;
+    setQuestion({ action, skillId, item, idiom, level: idiom ? "SR" : item.rarity || "N", at: performance.now(), choices: makeChoices(item, from, Math.random, 4, "japanese") });
     // 単語は問題が出たときに読む（答えたあとに読むと、効果音や合いの手のあとになって遅れるため）
     speech.speak(item.english, null, item.id);
   };
@@ -764,16 +771,19 @@ function QuestRun({ stats, pool, idiomPool = [], idioms = false, chestWords, car
   };
 
   const answerWith = (choice) => {
-    const { action, item, skillId } = question;
+    const { action, item, skillId, level, at } = question;
     const correct = choice.id === item.id;
+    const seconds = (performance.now() - at) / 1000;
     dopamine.hit(correct);
-    doAct(action, { id: item.id, correct }, item, skillId);
+    // 解説用に、答えた問題を覚えておく（同じ階のあいだ）
+    askedItems.current[item.id] = item;
+    doAct(action, { id: item.id, correct, seconds, level }, item, skillId);
   };
 
   const e = run.enemy;
   const cmd = "flex items-center justify-center gap-1.5 rounded-xl border-2 border-white bg-slate-800 py-3 text-sm font-black active:scale-95 disabled:opacity-40";
   return (
-    <div className="flex h-full flex-col bg-slate-950 text-white" data-testid="quest-run">
+    <div className="relative flex h-full flex-col bg-slate-950 text-white" data-testid="quest-run">
       <div ref={arenaRef} className="relative h-[42%] min-h-[220px] overflow-hidden">
         <img src={QUEST_BACKDROP} alt="" draggable={false} aria-hidden="true" className="pointer-events-none absolute inset-0 h-full w-full select-none object-cover object-bottom" />
         <img
@@ -830,10 +840,10 @@ function QuestRun({ stats, pool, idiomPool = [], idioms = false, chestWords, car
           </div>
         </div>
         <FxLayer fx={fx} />
-        {chestOpen && run.chests?.length > 0 && (
-          <ChestModal chest={run.chests[run.chests.length - 1]} cards={cards} onClose={() => setChestOpen(false)} />
-        )}
       </div>
+      {chestOpen && run.chests?.length > 0 && (
+        <ChestModal chest={run.chests[run.chests.length - 1]} cards={cards} onClose={() => setChestOpen(false)} />
+      )}
 
       <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto p-3">
         <div className="grid shrink-0 grid-cols-2 gap-3 rounded-xl border-2 border-white bg-slate-900 px-3 py-2" data-testid="quest-status">
@@ -850,8 +860,16 @@ function QuestRun({ stats, pool, idiomPool = [], idioms = false, chestWords, car
         {question ? (
           <div className="shrink-0 rounded-xl border-2 border-amber-300 bg-slate-900 p-3" data-testid="quest-question">
             <p className="text-center text-[11px] font-bold text-amber-300">
-              {question.skillId ? SKILLS[question.skillId].name : question.action === "defend" ? "ぼうぎょ" : "こうげき"}: {question.idiom ? "熟語の" : ""}意味をえらべ！
+              {question.skillId ? SKILLS[question.skillId].name : question.action === "defend" ? tr("ぼうぎょ", "Defend") : tr("こうげき", "Attack")}:{" "}
+              {question.idiom ? tr("熟語の意味をえらべ！", "Pick the idiom's meaning!") : tr("意味をえらべ！", "Pick the meaning!")}
             </p>
+            <div className="mt-1 flex items-center justify-between gap-2 text-[10px] font-bold">
+              <span className="flex items-center gap-1 text-white/70" data-testid="quest-level">
+                {tr("むずかしさ", "Difficulty")} <RarityBadge rarity={question.level} />
+                {question.action !== "defend" && <span className="tabular-nums">×{levelRate(question.level).toFixed(2)}</span>}
+              </span>
+              <SpeedMeter key={question.at} at={question.at} defend={question.action === "defend"} />
+            </div>
             <p className={`mt-1 flex items-center justify-center gap-2 text-center font-black ${question.item.english.length > 14 ? "text-xl" : "text-2xl"}`}>
               {question.item.english}
               <button type="button" aria-label="読み上げる" onClick={() => speech.speak(question.item.english, null, question.item.id)} className="text-amber-300">
@@ -872,19 +890,21 @@ function QuestRun({ stats, pool, idiomPool = [], idioms = false, chestWords, car
                 </button>
               ))}
             </div>
-            <button type="button" onClick={() => setQuestion(null)} className="mt-2 w-full text-center text-[11px] font-bold text-white/50">
-              もどる
-            </button>
+            <p className="mt-2 text-center text-[10px] font-bold text-white/40">{tr("答えるまで、ほかのコマンドには変えられない", "You can't switch commands until you answer")}</p>
           </div>
         ) : run.over ? (
           <p className="text-center text-sm font-bold text-white/70">…</p>
         ) : run.won ? (
-          <div className="grid grid-cols-2 gap-2">
+          <>
+          <Explanations asked={run.asked} items={askedItems.current} speech={speech} />
+          <div className="grid shrink-0 grid-cols-2 gap-2">
             <button
               type="button"
               disabled={busy}
               onClick={() => {
                 const next = nextFloor(run, stats);
+                askedItems.current = {};
+                setChestOpen(false);
                 setDying(null);
                 setRun(next);
                 setLog([`${next.floor}階へ すすんだ。${next.enemy.name}が あらわれた！`]);
@@ -898,6 +918,7 @@ function QuestRun({ stats, pool, idiomPool = [], idioms = false, chestWords, car
               街に帰る
             </button>
           </div>
+          </>
         ) : (
           <div className="grid shrink-0 grid-cols-2 gap-2" data-testid="quest-commands">
             <button type="button" disabled={busy} onClick={() => ask("attack")} className={cmd}>
@@ -934,10 +955,76 @@ function QuestRun({ stats, pool, idiomPool = [], idioms = false, chestWords, car
 
 const LOOT_LABEL = { points: "ガチャのポイント", tickets: "レアチケット", srTickets: "SR チケット", medals: "メダル" };
 
-/** 宝箱をあけた演出（ボスを倒したあと） */
+/** 答えの速さのメーター（問題が出てからの時間で倍率が下がっていく） */
+function SpeedMeter({ at, defend }) {
+  const [now, setNow] = useState(() => performance.now());
+  useEffect(() => {
+    const id = setInterval(() => setNow(performance.now()), 100);
+    return () => clearInterval(id);
+  }, []);
+  const seconds = (now - at) / 1000;
+  const rate = speedRate(seconds);
+  const left = Math.max(0, 1 - seconds / SPEED_SLOW);
+  return (
+    <span className="flex items-center gap-1" data-testid="quest-speed" data-rate={rate}>
+      <span className="text-white/70">{defend ? tr("まもり", "Guard") : tr("はやさ", "Speed")}</span>
+      <span className="h-1.5 w-14 overflow-hidden rounded-full bg-white/15">
+        <span className={`block h-full rounded-full ${rate > 1.15 ? "bg-emerald-400" : rate > 1 ? "bg-amber-400" : "bg-slate-500"}`} style={{ width: `${left * 100}%` }} />
+      </span>
+      <span className={`w-9 text-right tabular-nums ${rate > 1 ? "text-emerald-300" : "text-white/50"}`}>×{rate.toFixed(2)}</span>
+    </span>
+  );
+}
+
+/** 例文（単語は example、熟語は会話例の1行目） */
+const exampleOf = (item) => ({
+  en: item.example || String(item.exampleContext || "").split("\n")[0],
+  ja: item.exampleJa || String(item.exampleJapanese || "").split("\n")[0],
+});
+
+/** 倒したあとの解説: この階で答えた問題の意味・例文・語源 */
+function Explanations({ asked = [], items, speech }) {
+  const seen = new Set();
+  const list = [];
+  for (const a of asked) {
+    if (seen.has(a.id) || !items[a.id]) continue;
+    seen.add(a.id);
+    list.push({ item: items[a.id], correct: !asked.some((x) => x.id === a.id && !x.correct) });
+  }
+  if (!list.length) return null;
+  return (
+    <div className="shrink-0 rounded-xl border-2 border-white/60 bg-slate-900 p-3" data-testid="quest-explain">
+      <p className="text-[11px] font-black text-amber-300">{tr("今の戦いの問題の解説", "Review of this fight's questions")}</p>
+      <ul className="mt-1 space-y-2">
+        {list.map(({ item, correct }) => (
+          <li key={item.id} className="border-t border-white/10 pt-2 first:border-t-0 first:pt-0" data-testid="quest-explain-item">
+            <p className="flex items-center gap-1.5 font-black">
+              <span className={correct ? "text-emerald-300" : "text-rose-300"}>{correct ? "○" : "×"}</span>
+              {item.english}
+              <button type="button" aria-label={tr("読み上げる", "Read aloud")} onClick={() => speech.speak(item.english, null, item.id)} className="text-amber-300">
+                <Volume2 size={16} />
+              </button>
+              {item.rarity && <RarityBadge rarity={item.rarity} />}
+            </p>
+            <p className="text-sm font-bold text-white/90">{item.japanese}</p>
+            {exampleOf(item).en && (
+              <p className="mt-0.5 text-xs leading-relaxed text-white/70">
+                {exampleOf(item).en}
+                {exampleOf(item).ja && <span className="block text-white/50">{exampleOf(item).ja}</span>}
+              </p>
+            )}
+            {item.trivia?.etymology && <p className="mt-0.5 text-xs leading-relaxed text-amber-200/80">{tr("語源", "Origin")}: {item.trivia.etymology}</p>}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+/** 宝箱をあけた演出（ボスを倒したあと。OK を押すまで閉じない） */
 function ChestModal({ chest, cards, onClose }) {
   return (
-    <div className="absolute inset-0 z-30 flex items-center justify-center bg-black/60" data-testid="quest-chest" onClick={onClose}>
+    <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/70 p-4" data-testid="quest-chest" role="dialog" aria-modal="true">
       <div className="qs-appear flex flex-col items-center rounded-2xl border-2 border-amber-300 bg-slate-900/95 px-6 py-4 text-center shadow-2xl">
         <div className="qs-chest">
           <Art src={CHEST_ART} size={96} />
@@ -957,7 +1044,15 @@ function ChestModal({ chest, cards, onClose }) {
             )
           )}
         </ul>
-        <p className="mt-2 text-[10px] text-white/50">街に帰ると受け取れます（負けても受け取れます）・タップで閉じる</p>
+        <p className="mt-2 text-[10px] text-white/50">{tr("街に帰ると受け取れます（負けても受け取れます）", "You get these when you return to town (even if you lose)")}</p>
+        <button
+          type="button"
+          onClick={onClose}
+          data-testid="quest-chest-close"
+          className="mt-3 w-full rounded-xl border-2 border-white bg-amber-500 py-2.5 text-sm font-black text-slate-900 active:scale-95"
+        >
+          {tr("OK", "OK")}
+        </button>
       </div>
     </div>
   );

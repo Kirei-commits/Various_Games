@@ -43,6 +43,8 @@ import {
   guardRate,
   RARITY_POWER,
   EFFECTS,
+  speedRate,
+  levelRate,
 } from "../../src/quest.js";
 import { freshState, restoreState, buildLibrary, STATE_VERSION } from "../../src/logic.js";
 import rawChapters from "../../src/data/index.js";
@@ -405,4 +407,35 @@ test("熟語は IDIOM_FLOOR 階から混ざり、深い階ほど増える（最�
   assert.equal(idiomChance(IDIOM_FLOOR), 0.2);
   assert.ok(idiomChance(IDIOM_FLOOR + 5) > idiomChance(IDIOM_FLOOR));
   assert.equal(idiomChance(200), 0.5);
+});
+
+test("答えが速いほど強い（1.5秒以内で ×1.3、8秒で ×1.0。遅くても下がらない）。ぼうぎょも速いほど受けるダメージが減る", () => {
+  assert.equal(speedRate(0.5), 1.3);
+  assert.equal(speedRate(1.5), 1.3);
+  assert.equal(speedRate(8), 1);
+  assert.equal(speedRate(30), 1);
+  assert.ok(speedRate(4) < 1.3 && speedRate(4) > 1);
+  assert.equal(speedRate(undefined), 1);
+  const stats = statsOf(initialQuest(), cards, {});
+  const base = createRun(stats, 3, fixed(0.5));
+  const fast = act(base, stats, "attack", { id: "w1", correct: true, seconds: 1 }, fixed(0.5));
+  const slow = act(base, stats, "attack", { id: "w1", correct: true, seconds: 10 }, fixed(0.5));
+  assert.ok(fast.events[0].dmg > slow.events[0].dmg);
+  assert.equal(fast.events[0].speed, 1.3);
+  const quick = act(base, stats, "defend", { id: "w1", correct: true, seconds: 1 }, fixed(0.5));
+  const late = act(base, stats, "defend", { id: "w1", correct: true, seconds: 10 }, fixed(0.5));
+  assert.ok(quick.hp >= late.hp, "速く答えたぼうぎょのほうがダメージが少ない");
+  // 答えた問題は、その階の解説用に記録され、次の階で空になる
+  assert.deepEqual(fast.asked, [{ id: "w1", correct: true }]);
+  assert.deepEqual(nextFloor({ ...fast, won: true }, stats).asked, []);
+});
+
+test("問題がむずかしい（レア度が高い）ほどダメージが少し上がる（N ×0.95 〜 SSR ×1.15）", () => {
+  assert.deepEqual(["N", "R", "SR", "SSR"].map(levelRate), [0.95, 1, 1.07, 1.15]);
+  assert.equal(levelRate(undefined), 1);
+  const stats = statsOf({ ...initialQuest(), level: 30 }, cards, {});
+  const base = createRun(stats, 1, fixed(0.5));
+  const easy = act(base, stats, "attack", { id: "w1", correct: true, seconds: 10, level: "N" }, fixed(0.5));
+  const hard = act(base, stats, "attack", { id: "w1", correct: true, seconds: 10, level: "SSR" }, fixed(0.5));
+  assert.ok(hard.events[0].dmg > easy.events[0].dmg);
 });

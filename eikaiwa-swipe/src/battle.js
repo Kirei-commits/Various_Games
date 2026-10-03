@@ -190,6 +190,14 @@ export function tick(b, dt, rng = Math.random, moveScale = 1) {
   return b;
 }
 
+/** 敵が自分のところまで届く（攻撃してくる）までの時間（ms）。時止め中は止まっている分だけ遅れる */
+export function msUntilReach(b, e) {
+  const pace = PACE[b.answer] || PACE.choice;
+  const perMs = (speedOf(b) * (e.boss ? 0.6 : 1)) / pace.reach;
+  const frozen = Math.max(0, (b.frozenUntil || 0) - b.elapsed);
+  return Math.max(0, (1 - e.y) / perMs) + frozen;
+}
+
 /** 狙う敵（タップで選んだ敵。いなければ一番近い敵） */
 export function target(b) {
   const picked = b.targetUid != null && b.enemies.find((e) => e.uid === b.targetUid);

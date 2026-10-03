@@ -88,7 +88,15 @@ test("冒険: ふつうのじゅもんはなく、相性が表示される。5�
   }
   await expect(page.getByTestId("quest-chest")).toContainText("5階の たからばこを あけた！");
   await expect(page.getByTestId("quest-chest")).toContainText("ガチャのポイント +90");
-  await page.getByTestId("quest-chest").click();
+  // 報酬の画面は OK を押すまで消えない（背景をタップしても閉じない）
+  await page.waitForTimeout(3500);
+  await page.getByTestId("quest-chest").click({ position: { x: 5, y: 5 } });
+  await expect(page.getByTestId("quest-chest")).toBeVisible();
+  // 倒したあとは、答えた問題の解説が出る
+  await expect(page.getByTestId("quest-explain")).toBeAttached();
+  await page.getByTestId("quest-chest-close").click();
+  await expect(page.getByTestId("quest-chest")).toHaveCount(0);
+  await expect(page.getByTestId("quest-explain")).toBeVisible();
   await page.getByRole("button", { name: "街に帰る" }).click();
   await expect(page.getByTestId("quest-loot")).toContainText("たからばこ（1こ）");
   await expect(page.getByTestId("quest-result")).toContainText("レアチケット: +");
@@ -143,41 +151,69 @@ test("冒険: 装備を交換ポイントで強化できる（段が上がるほ
 });
 
 test("冒険: ぼうぎょも問題に答える。深い階では熟語も出て、「熟語も出す」をオフにすると単語だけ", async ({ page }) => {
+  test.setTimeout(120000);
+  // Lv を最大にして、深い階でも倒れずにぼうぎょを続けられるようにする
   await page.evaluate(() => {
-    localStorage.setItem("swipetalk:v2", JSON.stringify({ version: 8, learned: {}, quest: { best: 10 }, gacha: { starter: true, cards: { breakfast: 1 } } }));
+    localStorage.setItem("swipetalk:v2", JSON.stringify({ version: 8, learned: {}, quest: { best: 10, level: 99 }, gacha: { starter: true, cards: { breakfast: 1 } } }));
   });
   await page.reload();
   await page.getByRole("button", { name: "テスト", exact: true }).click();
   await page.getByRole("button", { name: "冒険" }).click();
   await expect(page.locator("#quest-idioms")).toBeChecked();
 
-  // 11階（熟語が 26% 混ざる）: 問題を出しては「もどる」を繰り返すと、熟語の問題が出てくる
+  // 11階（熟語が 26% 混ざる）: ぼうぎょで問題に正解し続けると、熟語の問題が出てくる
   await page.getByRole("button", { name: "11階から" }).click();
   const question = page.getByTestId("quest-question");
+  const defend = page.getByRole("button", { name: "ぼうぎょ" });
+  const nextFloorButton = page.getByRole("button", { name: "つぎの階へ" });
+  // はんげきで倒してしまったら次の階へ
+  const pressDefend = async () => {
+    await expect(defend.or(nextFloorButton).first()).toBeEnabled();
+    if (await nextFloorButton.isVisible()) {
+      if (await page.getByTestId("quest-chest-close").isVisible()) await page.getByTestId("quest-chest-close").click();
+      await nextFloorButton.click();
+    }
+    await defend.click();
+  };
   let idiom = false;
   for (let i = 0; i < 40 && !idiom; i++) {
-    await page.getByRole("button", { name: "たたかう" }).click();
+    await pressDefend();
+    // 一度えらんだコマンドは、答えるまで変えられない（もどるボタンはない）
+    await expect(question.getByRole("button", { name: "もどる" })).toHaveCount(0);
+    await expect(page.getByTestId("quest-commands")).toHaveCount(0);
     idiom = (await question.innerText()).includes("熟語の意味をえらべ");
-    await question.getByRole("button", { name: "もどる" }).click();
+    await page.locator('[data-testid="quest-choice"][data-correct="1"]').click();
   }
   expect(idiom).toBe(true);
 
-  // ぼうぎょも問題が出る。間違えるとガード失敗
-  await page.getByRole("button", { name: "ぼうぎょ" }).click();
+  // ぼうぎょで間違えるとガード失敗
+  await pressDefend();
   await expect(question).toContainText("ぼうぎょ:");
   await page.locator('[data-testid="quest-choice"][data-correct="0"]').first().click();
   await expect(page.getByTestId("quest-log")).toContainText("ぼうぎょに しっぱい");
 
-  // オフにすると単語だけ（ガード失敗で倒れていれば、そのまま結果の画面）
+  // オフにすると単語だけ
   const flee = page.getByRole("button", { name: "にげる（街に帰る）" });
   await expect(page.getByTestId("quest-result").or(flee)).toBeVisible();
   if (await flee.isVisible()) await flee.click();
   await page.getByRole("button", { name: "準備にもどる" }).click();
   await page.locator("#quest-idioms").uncheck();
   await page.getByRole("button", { name: "11階から" }).click();
-  for (let i = 0; i < 25; i++) {
-    await page.getByRole("button", { name: "たたかう" }).click();
+  for (let i = 0; i < 12; i++) {
+    await pressDefend();
     await expect(question).not.toContainText("熟語");
-    await question.getByRole("button", { name: "もどる" }).click();
+    await page.locator('[data-testid="quest-choice"][data-correct="1"]').click();
   }
+});
+
+test("冒険: 問題のむずかしさと、答えの速さの倍率が出る（時間がたつと下がる）", async ({ page }) => {
+  await openQuest(page, { breakfast: 1 });
+  await page.getByRole("button", { name: "1階から" }).click();
+  await page.getByRole("button", { name: "たたかう" }).click();
+  await expect(page.getByTestId("quest-level")).toContainText("むずかしさ");
+  const speed = page.getByTestId("quest-speed");
+  await expect(speed).toHaveAttribute("data-rate", "1.3");
+  await expect.poll(async () => Number(await speed.getAttribute("data-rate")), { timeout: 8000 }).toBeLessThan(1.25);
+  await page.locator('[data-testid="quest-choice"][data-correct="1"]').click();
+  await expect(page.getByTestId("quest-log")).toContainText("ダメージ");
 });

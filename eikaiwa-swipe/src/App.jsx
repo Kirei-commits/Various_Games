@@ -124,7 +124,9 @@ import {
   isFrozen,
   FREEZE_MS,
   endlessLevelBonus,
+  msUntilReach,
 } from "./battle.js";
+import { tr, setLang, getLang } from "./i18n.js";
 import {
   buildLibrary,
   parseDialogue,
@@ -2660,10 +2662,10 @@ function BattleRun({ session, speech, recognition, onFinish, active = true, tool
   // ほかのタブを見ているあいだは一時停止（テスト画面は裏でも表示したままにしているため）
   const activeRef = useRef(active);
   activeRef.current = active;
-  // 敵が出たとき（ボスの単語が変わったときも）に、表示している英単語を読み上げる（英語→意味のときだけ。日本語→英語では答えになるので読まない）
+  // 狙う敵に切り替わったとき（ボスの単語が変わったときも）に、その英単語を読み上げる（英語→意味のときだけ。日本語→英語では答えになるので読まない）
   const speechRef = useRef(speech);
   speechRef.current = speech;
-  const announced = useRef(new Set());
+  const announced = useRef(null); // 読み上げた狙う敵（uid:問題ID）
   // ボス出現の演出は1回だけ（下のループの effect は作り直されることがあるので、ref で覚える）
   const bossSeen = useRef(false);
   const b = battle.current;
@@ -2724,15 +2726,13 @@ function BattleRun({ session, speech, recognition, onFinish, active = true, tool
       const clock = typeof window.__swipetalkBattleTime === "number" ? window.__swipetalkBattleTime : 1;
       const scale = typeof window.__swipetalkBattleSpeed === "number" ? window.__swipetalkBattleSpeed : 1;
       tick(bt, dt * clock, Math.random, scale);
-      let fresh = null;
-      for (const e of bt.enemies) {
-        const key = `${e.uid}:${e.item.id}`;
-        if (!announced.current.has(key)) {
-          announced.current.add(key);
-          fresh = e;
-        }
+      // 狙う敵が変わったとき（ボスの単語が変わったときも）に読み上げる
+      const cur = !bt.over && target(bt);
+      const key = cur ? `${cur.uid}:${cur.item.id}` : null;
+      if (key && key !== announced.current && activeRef.current) {
+        announced.current = key;
+        if (!jaEn) speechRef.current.speak(cur.item.english, null, cur.item.id);
       }
-      if (fresh && !jaEn && activeRef.current) speechRef.current.speak(fresh.item.english, null, fresh.item.id);
       if (bt.hp < hp) {
         sound.play("hurt");
         setFlash({ type: "damage", text: "ダメージ！", at: now });
@@ -2992,6 +2992,16 @@ function BattleRun({ session, speech, recognition, onFinish, active = true, tool
               >
                 {jaEn ? e.item.japanese.split("／")[0] : e.item.english}
               </span>
+              {isTarget && (
+                <span
+                  data-testid="enemy-countdown"
+                  className={`mt-0.5 block whitespace-nowrap rounded-full px-2 py-px text-[10px] font-black tabular-nums shadow ${
+                    frozen ? "bg-sky-500 text-white" : msUntilReach(b, e) < 3000 ? "bt-urgent bg-rose-600 text-white" : "bg-amber-400 text-slate-900"
+                  }`}
+                >
+                  {frozen ? tr("停止中", "Frozen") : tr(`攻撃まで ${Math.ceil(msUntilReach(b, e) / 1000)}秒`, `Attacks in ${Math.ceil(msUntilReach(b, e) / 1000)}s`)}
+                </span>
+              )}
             </div>
           );
         })}

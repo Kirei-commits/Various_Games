@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import raw from "../../src/data/index.js";
 import { buildLibrary, mulberry32, freshState, restoreState, mergeStates } from "../../src/logic.js";
 import {
+  msUntilReach,
   createBattle,
   tick,
   attack,
@@ -314,4 +315,14 @@ test("複数いるときはタップで狙う敵を切り替えられる。倒�
   attack(b, true, rng);
   assert.ok(!b.enemies.includes(far));
   assert.equal(target(b), b.enemies.reduce((a, e) => (e.y > a.y ? e : a)));
+});
+
+test("狙う敵が攻撃してくるまでの時間: 近いほど短く、ボスは遅い。時止め中はその分のびる", () => {
+  const b = createBattle({ items: chapter.items, rng: () => 0.1 });
+  const e = { y: 0, boss: false };
+  assert.equal(Math.round(msUntilReach(b, e)), PACE.choice.reach);
+  assert.equal(Math.round(msUntilReach(b, { y: 0.5, boss: false })), PACE.choice.reach / 2);
+  assert.ok(msUntilReach(b, { y: 0, boss: true }) > PACE.choice.reach);
+  freeze(b, 5000);
+  assert.equal(Math.round(msUntilReach(b, e)), PACE.choice.reach + 5000);
 });
