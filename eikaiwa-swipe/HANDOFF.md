@@ -93,6 +93,7 @@
 - 冒険（2026-10-03）: 答えの速さ（`speedRate`）と問題の難しさ（`levelRate`、単語のレア度）でダメージ・守りの倍率。コマンドは答えるまで変えられない。倒したあとに解説（`run.asked`）。宝箱の画面は OK で閉じる
 - クラウド保存（2026-10-03）: 1.5秒ごとの自動保存をやめ、画面が隠れる（visibilitychange / pagehide）・通信が戻る・`SAVE_INTERVAL`（5分）・「今すぐ保存」のときだけ保存。未保存は sync.status "pending"。E2E は `window.__swipetalkSaveInterval` で間隔を変えられる
 - 対戦の報酬（2026-10-03 ユーザー指定）: 正解 1500pt・早押し +1500pt・勝ち +30000pt（`VERSUS_POINTS`）
+- 対戦を本当の早押しに（2026-10-04）: 答えはトランザクション（`submitAnswer`）で、最初に届いた正解が `room.wins[q]`。あとの答えは "taken"。誰かが勝ったら各端末がすぐ締め切る。問題中も相手の × を表示。端末ごとの ms で比べる形と GRACE_MS はやめた
 - 対戦の通信を減らした（2026-10-03）: 部屋に q / phase を持たず、各端末の Game が自分の時計で進める。答えは `cloud.rooms.update`（updateDoc の部分書き換え、`answerPatch`）。最後まで行った端末が `finishRoom`（トランザクション）。「もう一度」は `startRoom(r, qs, fromRound)` で二重に始めない
 - 対戦（早押しクイズ、2026-10-03）: `src/versus.js`・`src/VersusScreen.jsx`。部屋は Firestore の rooms/{4けた}（`cloud.rooms.watch` / `transact`）。Firestore は lite をやめて通常版（リアルタイムのため。index.html が約 170KB 増えた）。**firestore.rules に rooms を足したので、Firebase コンソールで貼り直して公開が必要**。E2E は localStorage の偽クラウドで2ページ対戦
 - 表示の言語（2026-10-03）: `src/i18n.js` の `tr(ja, en)`。設定 `lang`（"ja" | "en"、保存は設定のほう）。App の描画の最初に `setLang`。モジュールの定数の名前（quest.js の SLOTS・ELEMENTS・SKILLS・敵、gacha.js の SHOP、テーマ、linking/pronounce の説明）は getter で tr を通す。章・実績の英語名は `src/data/titles-en.js`。教材（英文・訳・単語の意味・語源）は訳さない

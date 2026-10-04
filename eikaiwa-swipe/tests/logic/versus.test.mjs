@@ -2,7 +2,6 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
   TIME_MS,
-  GRACE_MS,
   MAX_PLAYERS,
   makeQuestions,
   newRoom,
@@ -12,7 +11,6 @@ import {
   submitAnswer,
   questionResult,
   canReveal,
-  answerPatch,
   finishRoom,
   standings,
   isStale,
@@ -63,52 +61,52 @@ test("部屋: 待合室で入れる（最大4人・同じ人は1回）。始ま�
   assert.equal(joinRoom(started, "e", "E").error, "started");
 });
 
-test("早押し: いちばん早く正解した人が1ポイント。間違えたらその問題はもう押せない", () => {
+test("早押し: クラウドに最初に届いた正解が1ポイント。そのあとの答えは「先を越された」。間違えたらその問題はもう押せない", () => {
   let room = playing();
   const c = correctOf(room, 0);
-  room = submitAnswer(room, "a", 0, (c + 1) % 4, 900).room; // a は間違い
+  room = submitAnswer(room, "a", 0, (c + 1) % 4, 900).room; // a は間違い（b はまだ答えられる）
   assert.equal(submitAnswer(room, "a", 0, c, 1000).error, "answered");
-  room = submitAnswer(room, "b", 0, c, 1500).room;
-  const r = questionResult(room, 0);
-  assert.equal(r.winner, "b");
-  assert.equal(r.results.a.ok, false);
-  // 2人とも正解なら、押すまでの時間が短いほうが勝ち（届いた順ではない）
+  const out = submitAnswer(room, "b", 0, c, 1500);
+  assert.equal(out.won, true);
+  room = out.room;
+  assert.equal(questionResult(room, 0).winner, "b");
+  assert.equal(questionResult(room, 0).results.a.ok, false);
+  // 届いた順で決まる（押すまでの時間が短くても、あとから届いた正解は負け）
   let room2 = playing();
   const c2 = correctOf(room2, 0);
   room2 = submitAnswer(room2, "a", 0, c2, 2100).room;
-  room2 = submitAnswer(room2, "b", 0, c2, 1800).room;
-  assert.equal(questionResult(room2, 0).winner, "b");
+  assert.equal(submitAnswer(room2, "b", 0, c2, 1800).error, "taken");
+  assert.equal(questionResult(room2, 0).winner, "a");
 });
 
-test("締め切り: 5秒・全員が答えた・誰かの正解から少したったとき（各端末が判定）。終わりは1回だけ、もう一度は1回だけ", () => {
+test("締め切り: 誰かが正解した・全員が答えた・5秒たったとき（各端末が判定）。終わりは1回だけ、もう一度は1回だけ", () => {
   let room = playing(2);
   assert.equal(canReveal(room, 0, 1000), false);
   assert.equal(canReveal(room, 0, TIME_MS), true, "5秒で答えに移る");
   const c = correctOf(room, 0);
-  room = submitAnswer(room, "a", 0, c, 800).room;
-  assert.equal(canReveal(room, 0, 1000, 100), false, "正解のすぐあとは少し待つ");
-  assert.equal(canReveal(room, 0, 1600, GRACE_MS), true);
-  room = submitAnswer(room, "b", 0, (c + 1) % 4, 1200).room;
-  assert.equal(canReveal(room, 0, 1300), true, "全員答えたらすぐ");
+  room = submitAnswer(room, "a", 0, (c + 1) % 4, 800).room;
+  assert.equal(canReveal(room, 0, 1000), false, "間違いだけなら、ほかの人がまだ答えられる");
+  const won = submitAnswer(room, "b", 0, c, 1200).room;
+  assert.equal(canReveal(won, 0, 1300), true, "誰かが正解したらすぐ");
+  const both = submitAnswer(room, "b", 0, (c + 2) % 4, 1200).room;
+  assert.equal(canReveal(both, 0, 1300), true, "全員答えたらすぐ");
   assert.equal(submitAnswer(room, "b", 1, c, TIME_MS + 1000).error, "closed", "時間切れのあとは答えられない");
-  // 終わりは今のゲームだけ。もう一度は、同じゲームのあとに1回だけ
-  const done = finishRoom(room, room.round).room;
+  const done = finishRoom(won, won.round).room;
   assert.equal(done.status, "done");
-  assert.equal(finishRoom(done, room.round - 1).room, done);
+  assert.equal(finishRoom(done, won.round - 1).room, done);
   const again = startRoom(done, makeQuestions(items, items, 2), done.round).room;
   assert.equal(again.round, done.round + 1);
+  assert.deepEqual([again.answers, again.wins], [{}, {}]);
   assert.equal(startRoom(again, makeQuestions(items, items, 2), done.round).room, again, "2人が同時に押しても1回だけ");
   assert.equal(finishRoom(again, done.round).room, again, "前のゲームの終わりで、新しいゲームを終わらせない");
-  const [first] = standings(room, 1);
-  assert.deepEqual([first.uid, first.points, first.correct], ["a", 1, 1]);
+  const [first] = standings(won, 1);
+  assert.deepEqual([first.uid, first.points, first.correct], ["b", 1, 1]);
 });
 
-test("答えの書き込みは自分の欄だけ。時間切れより遅い答えは数えない", () => {
-  assert.deepEqual(answerPatch("u1", 3, 2, 1234.4), { "answers.3.u1": { c: 2, ms: 1234 } });
+test("時間切れより遅い答えは数えない", () => {
   let room = playing(1);
   const c = correctOf(room, 0);
-  room = { ...room, answers: { 0: { a: { c, ms: TIME_MS + 2000 }, b: { c, ms: 900 } } } };
-  assert.equal(questionResult(room, 0).winner, "b");
+  room = { ...room, answers: { 0: { a: { c, ms: TIME_MS + 2000 } } } };
   assert.equal(questionResult(room, 0).results.a, undefined);
 });
 
@@ -139,12 +137,12 @@ test("報酬: 正解1問30pt、対戦では早押し1回+30pt・勝ち+200pt。1
   let room = playing(2);
   for (let q = 0; q < 2; q++) {
     const c = correctOf(room, q);
+    room = submitAnswer(room, "b", q, (c + 1) % 4, 400).room;
     room = submitAnswer(room, "a", q, c, 500).room;
-    room = submitAnswer(room, "b", q, c, 900).room;
   }
   room = finishRoom(room, room.round).room;
   assert.deepEqual(versusReward(room, "a"), { points: 2 * VERSUS_POINTS.correct + 2 * VERSUS_POINTS.fastest + VERSUS_POINTS.win, won: true });
-  assert.deepEqual(versusReward(room, "b"), { points: 2 * VERSUS_POINTS.correct, won: false });
+  assert.deepEqual(versusReward(room, "b"), { points: 0, won: false });
   let solo = startRoom(newRoom({ code: "solo", uid: "me", name: "Me", solo: true }), makeQuestions(items, items, 1)).room;
   solo = submitAnswer(solo, "me", 0, correctOf(solo, 0), 300).room;
   assert.deepEqual(versusReward(solo, "me"), { points: VERSUS_POINTS.correct, won: false });

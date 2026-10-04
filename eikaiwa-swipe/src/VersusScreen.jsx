@@ -20,7 +20,6 @@ import {
   submitAnswer,
   questionResult,
   canReveal,
-  answerPatch,
   finishRoom,
   standings,
   isStale,
@@ -121,7 +120,11 @@ export default function VersusScreen({ header, user, rooms, onSignIn, scopeOptio
 
   if (mode === "solo" && solo) {
     // 1人のときは端末の中だけで答えを記録する
-    const sendAnswer = (q, i, ms) => setSolo((r) => submitAnswer(r, SOLO_UID, q, i, ms).room || r);
+    const sendAnswer = async (q, i, ms) => {
+      const out = submitAnswer(solo, SOLO_UID, q, i, ms);
+      if (out.room) setSolo(out.room);
+      return out;
+    };
     return (
       <Game
         key={solo.createdAt}
@@ -273,7 +276,7 @@ function OnlineRoom({ code, user, rooms, itemsFor, byId, triviaOf, speech, sound
     async (fn) => {
       try {
         const out = await rooms.transact(code, fn);
-        if (out?.error && !["closed", "answered"].includes(out.error)) setError(errorText(out.error));
+        if (out?.error && !["closed", "answered", "taken"].includes(out.error)) setError(errorText(out.error));
         return out;
       } catch {
         setError(errorText("network"));
@@ -294,11 +297,8 @@ function OnlineRoom({ code, user, rooms, itemsFor, byId, triviaOf, speech, sound
       return startRoom(r, makeQuestions(items, items, r.count), fromRound);
     });
   };
-  // 答えは自分の欄だけを書く（部屋を読み直さないので、通信の回数が少ない）
-  const sendAnswer = (q, i, ms) => {
-    if (submitAnswer(room, user.uid, q, i, ms).error) return;
-    rooms.update(code, answerPatch(user.uid, q, i, ms)).catch(() => setError(errorText("network")));
-  };
+  // 答えはトランザクションで書く（クラウドに届いた順に処理され、最初に届いた正解が早押し成功。先を越されたら "taken"）
+  const sendAnswer = (q, i, ms) => act((r) => submitAnswer(r, user.uid, q, i, ms));
 
   if (room === undefined) return <p className="p-8 text-center text-sm text-slate-500">{tr("読み込み中…", "Loading…")}</p>;
   if (room === null || !room.players?.[user.uid]) {
@@ -366,12 +366,12 @@ function OnlineRoom({ code, user, rooms, itemsFor, byId, triviaOf, speech, sound
 }
 
 /**
- * ゲームの画面（1人でも対戦でも同じ）。何問目か・締め切り・次の問題へ は、この端末の時計で進める:
- * 問題が出てから TIME_MS（全員が答えたら・誰かの正解から GRACE_MS たったら、それより早く）で答えと解説、REVEAL_MS 見せたら次へ。
+ * ゲームの画面（1人でも対戦でも同じ）。何問目か・締め切り・次の問題へ は、この端末で進める:
+ * 誰かが正解した（早押し成功がクラウドから届いた）・全員が答えた・TIME_MS たった で答えと解説、REVEAL_MS 見せたら次へ。
  * クラウドに書くのは自分の答え（sendAnswer）と、最後まで行ったこと（onFinished）だけ
  */
 function Game({ room, me, sendAnswer, onFinished, byId, triviaOf, speech, sound, active, onRestart, onExit, claim }) {
-  const fresh = () => ({ round: room.round, q: 0, phase: "question", at: performance.now(), correctAt: null, pressed: null, finished: false });
+  const fresh = () => ({ round: room.round, q: 0, phase: "question", at: performance.now(), pressed: null, late: false, finished: false });
   const [prog, setProg] = useState(fresh);
   // 誰かが「もう一度」を押したら、新しいゲームを最初から
   if (prog.round !== room.round) setProg(fresh());
@@ -409,7 +409,7 @@ function Game({ room, me, sendAnswer, onFinished, byId, triviaOf, speech, sound,
         onFinished(p.round);
         return { ...p, finished: true };
       }
-      return { ...p, q: p.q + 1, phase: "question", at: performance.now(), correctAt: null, pressed: null };
+      return { ...p, q: p.q + 1, phase: "question", at: performance.now(), pressed: null, late: false };
     });
   }, [room.questions.length, onFinished]);
 
@@ -418,10 +418,11 @@ function Game({ room, me, sendAnswer, onFinished, byId, triviaOf, speech, sound,
     if (!playing) return;
     const t = performance.now();
     if (phase === "question") {
-      // 誰かが正解したことに気づいた時刻（締め切りの猶予に使う）
-      if (result.winner && prog.correctAt == null) return setProg((p) => ({ ...p, correctAt: t }));
-      const since = prog.correctAt == null ? null : t - prog.correctAt;
-      if (canReveal(room, q, elapsed, since)) setProg((p) => (p.q === q && p.phase === "question" ? { ...p, phase: "reveal", at: t } : p));
+      if (canReveal(room, q, elapsed)) {
+        // ほかの人に先に正解されたら、残念の音
+        if (result.winner && result.winner !== me) sound.play("wrong", 0, { cheer: false });
+        setProg((p) => (p.q === q && p.phase === "question" ? { ...p, phase: "reveal", at: t } : p));
+      }
     } else if (elapsed >= REVEAL_MS) advance();
   });
 
@@ -430,7 +431,10 @@ function Game({ room, me, sendAnswer, onFinished, byId, triviaOf, speech, sound,
     const ms = performance.now() - prog.at;
     sound.play(i === result.correct ? "correct" : "wrong", 0, { cheer: false });
     setProg((p) => ({ ...p, pressed: i }));
-    sendAnswer(q, i, ms);
+    Promise.resolve(sendAnswer(q, i, ms)).then((out) => {
+      // 正解だったけれど、ほかの人の正解が先にクラウドに届いていた
+      if (out?.error === "taken") setProg((p) => (p.q === q ? { ...p, late: true } : p));
+    });
   };
 
   if (prog.finished) return <Results room={room} me={me} claim={claim} onRestart={() => onRestart(prog.round)} onExit={onExit} />;
@@ -438,8 +442,10 @@ function Game({ room, me, sendAnswer, onFinished, byId, triviaOf, speech, sound,
 
   const timeLeft = Math.max(0, TIME_MS - elapsed);
   const revealLeft = Math.max(0, REVEAL_MS - elapsed);
-  // 得点は答えが出た問題まで（答える時間のあいだは、今の問題の結果を見せない）
+  // 得点は答えが出た問題まで。今の問題で誰が答えたか（×）は、答える時間のあいだも見せる
   const players = standings(room, revealing ? q + 1 : q);
+  const nameOf = (uid) => room.players[uid]?.name || "?";
+  const winner = result.winner;
   const label = (id) => byId[id]?.japanese.split("／")[0] || id;
 
   return (
@@ -452,11 +458,22 @@ function Game({ room, me, sendAnswer, onFinished, byId, triviaOf, speech, sound,
           {tr(`第${q + 1}問 / ${room.questions.length}`, `Q${q + 1} / ${room.questions.length}`)}
         </span>
         <span className="ml-auto flex gap-1.5">
-          {players.map((p) => (
-            <span key={p.uid} className={`rounded-full px-2 py-0.5 tabular-nums ${p.uid === me ? "bg-indigo-500" : "bg-white/15"}`} data-testid="versus-score">
-              {solo ? tr(`正解 ${p.correct}`, `Correct ${p.correct}`) : `${p.name} ${p.points}`}
-            </span>
-          ))}
+          {players.map((p) => {
+            const r = result.results[p.uid];
+            const mark = solo || !r ? "" : winner === p.uid ? " ○" : !r.ok ? " ×" : "";
+            return (
+              <span
+                key={p.uid}
+                className={`rounded-full px-2 py-0.5 tabular-nums transition ${p.uid === me ? "bg-indigo-500" : "bg-white/15"} ${
+                  mark === " ×" ? "ring-2 ring-rose-400" : mark === " ○" ? "ring-2 ring-emerald-300" : ""
+                }`}
+                data-testid="versus-score"
+              >
+                {solo ? tr(`正解 ${p.correct}`, `Correct ${p.correct}`) : `${p.name} ${p.points}`}
+                {mark && <span data-testid="versus-live">{mark}</span>}
+              </span>
+            );
+          })}
         </span>
       </div>
 
@@ -515,7 +532,9 @@ function Game({ room, me, sendAnswer, onFinished, byId, triviaOf, speech, sound,
       {!revealing && (
         <p className="mt-2 text-center text-xs font-bold text-white/60" data-testid="versus-status">
           {mine
-            ? mine.ok
+            ? prog.late
+              ? tr("先を越された…", "Too slow…")
+              : mine.ok
               ? mine.pending
                 ? tr("正解！", "Correct!")
                 : tr(`正解！ ${(mine.ms / 1000).toFixed(2)}秒`, `Correct! ${(mine.ms / 1000).toFixed(2)}s`)
@@ -544,7 +563,18 @@ function Game({ room, me, sendAnswer, onFinished, byId, triviaOf, speech, sound,
               })}
             </ul>
           )}
-          {result.winner === me && !solo && <p className="mb-2 text-center text-sm font-black text-amber-300">{tr("早押し成功！ +1ポイント", "Fastest! +1 point")}</p>}
+          {!solo && winner === me && (
+            <p className="vs-pop mb-2 text-center text-xl font-black text-amber-300" data-testid="versus-banner">
+              {tr("早押し成功！ +1ポイント", "Fastest! +1 point")}
+            </p>
+          )}
+          {!solo && winner && winner !== me && (
+            <p className="vs-pop mb-2 text-center text-xl font-black text-rose-300" data-testid="versus-banner">
+              {tr(`${nameOf(winner)}さんが正解！`, `${nameOf(winner)} got it!`)}
+              {prog.late && <span className="block text-xs font-bold text-white/70">{tr("あなたも正解でしたが、先を越されました", "You were right too, but they were faster")}</span>}
+            </p>
+          )}
+          {!solo && !winner && <p className="mb-2 text-center text-sm font-black text-white/70" data-testid="versus-banner">{tr("だれも正解できませんでした", "Nobody got it")}</p>}
           {item && <Explanation item={item} trivia={triviaOf(item.id)} speech={speech} />}
           <div className="mt-3 flex items-center gap-2">
             <p className="flex-1 text-[11px] text-white/50 tabular-nums">{tr(`${Math.ceil(revealLeft / 1000)}秒後に次の問題`, `Next question in ${Math.ceil(revealLeft / 1000)}s`)}</p>

@@ -91,19 +91,6 @@ function installFakeRooms(uid) {
           window.removeEventListener("__roomchange", onLocal);
         };
       },
-      async update(code, patch) {
-        const room = read(code);
-        if (!room) throw new Error("not-found");
-        for (const [path, value] of Object.entries(patch)) {
-          const keys = path.split(".");
-          let o = room;
-          for (const k of keys.slice(0, -1)) o = o[k] = o[k] || {};
-          o[keys[keys.length - 1]] = value;
-        }
-        localStorage.setItem(keyOf(code), JSON.stringify(room));
-        window.dispatchEvent(new CustomEvent("__roomchange", { detail: code }));
-        window.__roomWrites = (window.__roomWrites || 0) + 1;
-      },
       async transact(code, fn) {
         const out = fn(read(code)) || {};
         window.__roomTransactions = (window.__roomTransactions || 0) + 1;
@@ -150,39 +137,38 @@ base("2人で対戦: 部屋を作って番号で入り、早押しで先に正�
   expect(await aki.getByTestId("versus-question").innerText()).toBe(await ben.getByTestId("versus-question").innerText());
   expect(await aki.getByTestId("versus-choice").allInnerTexts()).toEqual(await ben.getByTestId("versus-choice").allInnerTexts());
 
-  // 1問目: Aki が先に正解 → Aki に1ポイント（全員答えたので、すぐ解説）
+  // 1問目: Aki が正解 → その瞬間に2人とも締め切り。Ben の画面には「Akiさんが正解！」
   await aki.locator('[data-testid="versus-choice"][data-correct="1"]').click();
-  await ben.waitForTimeout(300);
-  await ben.locator('[data-testid="versus-choice"][data-correct="1"]').click();
   for (const p of [aki, ben]) {
     await expect(p.getByTestId("versus-reveal")).toBeVisible();
     await expect(p.getByTestId("versus-explain")).toBeVisible();
   }
-  await expect(aki.getByTestId("versus-reveal")).toContainText("早押し成功");
-  await expect(ben.getByTestId("versus-score").filter({ hasText: "Aki" })).toHaveText("Aki 1");
+  await expect(aki.getByTestId("versus-banner")).toContainText("早押し成功");
+  await expect(ben.getByTestId("versus-banner")).toContainText("Akiさんが正解！");
+  await expect(ben.getByTestId("versus-choice").first()).toBeDisabled();
+  await expect(ben.getByTestId("versus-score").filter({ hasText: "Aki" })).toContainText("Aki 1");
   // 1人モードにある「次の問題へ」ボタンはなく、解説の5秒後に自動で次へ
   await expect(aki.getByTestId("versus-next")).toHaveCount(0);
-  for (const p of [aki, ben]) await expect(p.getByTestId("versus-progress")).toHaveText("第2問 / 5", { timeout: 8000 });
 
-  // 残り4問: Ben だけが正解し、Aki は間違える
+  // 残り4問: Aki が先に間違える（Ben の画面に Aki の × が出て、Ben はまだ答えられる）→ Ben が正解
   for (let q = 2; q <= 5; q++) {
     for (const p of [aki, ben]) await expect(p.getByTestId("versus-progress")).toHaveText(`第${q}問 / 5`, { timeout: 8000 });
     await aki.locator('[data-testid="versus-choice"][data-correct="0"]').first().click();
+    await expect(ben.getByTestId("versus-score").filter({ hasText: "Aki" }).getByTestId("versus-live")).toHaveText("×");
+    await expect(ben.getByTestId("versus-reveal")).toHaveCount(0);
     await ben.locator('[data-testid="versus-choice"][data-correct="1"]').click();
-    await expect(ben.getByTestId("versus-reveal")).toBeVisible();
+    await expect(aki.getByTestId("versus-banner")).toContainText("Benさんが正解！");
   }
   for (const p of [aki, ben]) await expect(p.getByTestId("versus-results")).toBeVisible({ timeout: 8000 });
   await expect(ben.getByTestId("versus-results")).toContainText("あなたの勝ち！");
-  // 報酬: Ben は正解5問・早押し4回・勝ち = 7,500 + 6,000 + 30,000。Aki は正解1問・早押し1回 = 3,000
-  await expect(ben.getByTestId("versus-reward")).toHaveText("ガチャポイント +43,500");
-  await expect(aki.getByTestId("versus-reward")).toHaveText("ガチャポイント +3,000");
   await expect(aki.getByTestId("versus-results")).toContainText("Benさんの勝ち");
+  // 報酬: Ben は正解4問・早押し4回・勝ち = 6,000 + 6,000 + 30,000。Aki は正解1問・早押し1回 = 3,000
+  await expect(ben.getByTestId("versus-reward")).toHaveText("ガチャポイント +42,000");
+  await expect(aki.getByTestId("versus-reward")).toHaveText("ガチャポイント +3,000");
   await expect(aki.getByTestId("versus-rank").first()).toContainText("Ben");
-  // ゲーム中にクラウドへ書くのは答えだけ（5問 × 2人 = 10回）。部屋を読み直すトランザクションは 作る・入る・始める・終わり だけ
-  const writes = (await aki.evaluate(() => window.__roomWrites || 0)) + (await ben.evaluate(() => window.__roomWrites || 0));
-  expect(writes).toBe(10);
+  // クラウドの書き換えは 作る・入る・始める・答え（9回）・終わり だけ
   const tx = (await aki.evaluate(() => window.__roomTransactions || 0)) + (await ben.evaluate(() => window.__roomTransactions || 0));
-  expect(tx).toBeLessThanOrEqual(6);
+  expect(tx).toBeLessThanOrEqual(15);
 
   // 「もう一度」で、2人とも新しいゲームの1問目から
   await aki.getByRole("button", { name: "もう一度" }).click();

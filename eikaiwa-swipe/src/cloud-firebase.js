@@ -13,7 +13,7 @@ import {
   signOut,
   onAuthStateChanged,
 } from "firebase/auth";
-import { getFirestore, doc, getDoc, setDoc, updateDoc, onSnapshot, runTransaction } from "firebase/firestore";
+import { getFirestore, doc, getDoc, setDoc, onSnapshot, runTransaction } from "firebase/firestore";
 
 export function createFirebaseCloud(config) {
   const app = initializeApp(config);
@@ -57,8 +57,6 @@ export function createFirebaseCloud(config) {
           (e) => onError?.(e)
         );
       },
-      /** 部屋の一部だけを書き換える（読み込みなし。答えの書き込みに使う）。patch は { "answers.3.uid": 値 } の形 */
-      update: (code, patch) => updateDoc(doc(db, "rooms", code), patch),
       /** 部屋をトランザクションで書き換える。fn(今の部屋 | null) → { room?, error? }。room があれば保存する */
       async transact(code, fn) {
         return runTransaction(db, async (tx) => {
