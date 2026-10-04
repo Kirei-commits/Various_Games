@@ -40,7 +40,7 @@ jobs:
           BASE: ${{ github.event.pull_request.base.sha }}
           DEFAULT: ${{ github.event.repository.default_branch }}
         run: |
-          ALL="god-arena gomoku-narabe tsuri-quest eikaiwa-swipe monster-strike"
+          ALL="god-arena gomoku-narabe tsuri-quest eikaiwa-swipe monster-strike pachinko-gokugoku"
           from=""
           if [ "$EVENT" = pull_request ]; then
             from="$BASE"

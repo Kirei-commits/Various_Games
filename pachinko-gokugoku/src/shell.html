@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#000000">
+<meta name="description" content="極極FEVER — 単一HTMLで遊べる超・極限完全無欠爆発パチンコシミュレーター。1/319.6・RUSH継続率81%・ALL1500個。">
+<title>極極FEVER — 超・極限完全無欠爆発パチンコ</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='15' fill='%23b00000' stroke='%23ffd700' stroke-width='2'/%3E%3Ctext x='16' y='22' font-size='16' text-anchor='middle' fill='%23ffd700' font-weight='bold'%3E7%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Yuji+Boku&display=swap" rel="stylesheet">
+<!-- @SOURCE_HASH -->
+<style>
+/* @STYLE */
+</style>
+</head>
+<body>
+<div id="stage">
+  <canvas id="cv"></canvas>
+  <button id="push" aria-label="デカボタン PUSH">PUSH</button>
+  <div id="lever" aria-label="Vコンレバー" role="button"><div class="base"></div><div class="stick"><div class="knob"></div></div><div class="lab">Vコン</div></div>
+  <div id="bar">
+    <button id="bAuto" class="bb">AUTO<br>OFF</button>
+    <button id="bAim" class="bb">左打ち</button>
+    <div id="info"><div>持ち玉 <b id="iBalls">0</b>玉</div><div>投資 <b id="iInv">0</b>円</div><div>収支 <b id="iBal">0</b>円</div></div>
+    <button id="bMenu" class="bb">MENU</button>
+    <button id="bDbg" class="bb">設定</button>
+  </div>
+  <div id="start"><div class="t1">TAP TO START</div><div class="t2">タップでサウンドON＆オート打ち開始<br>デカボタン=Space / レバー=Enter / A=オート / R=右打ち</div></div>
+  <div id="menu" class="panel hidden">
+    <h2>カスタムメニュー</h2>
+    <div class="row"><span class="lb">音量</span><span data-set="vol" data-vals="1,2,3,4,5"></span></div>
+    <div class="row"><span class="lb">光量（輝度）</span><span data-set="bright" data-vals="1,2,3"></span></div>
+    <div class="row"><span class="lb">先バレモード</span><span data-set="sakibare" data-vals="@sakibare"></span><div class="note">大当り時にヘソ入賞の瞬間「ポキュン！」で保留が即赤へ変化する確率</div></div>
+    <div class="row"><span class="lb">先読み信頼度UP</span><span data-set="preread" data-vals="false,true" data-labels="OFF,ON"></span><div class="note">ONで保留変化の出現が当り寄りになる（ハズレ時の変化が減る）</div></div>
+    <div class="row"><span class="lb">オート右打ち切替</span><span data-set="autoAim" data-vals="true,false" data-labels="ON,OFF"></span><div class="note">大当り中・RUSH中は自動で右打ちに切り替えます</div></div>
+    <div class="row"><span class="lb">RUSHモード</span><span data-set="rushMode" data-vals="quick,battle" data-labels="爆速即当り,バトル告知"></span></div>
+    <h3>遊技データ</h3>
+    <div class="stat" id="statBox"></div>
+    <button class="close" data-close="menu">閉じる</button>
+  </div>
+  <div id="dbg" class="panel hidden">
+    <h2>設定モード（デバッグ）</h2>
+    <div class="row"><span class="lb">大当り確率</span><span data-set="prob" data-vals="@prob"></span></div>
+    <div class="row"><span class="lb">先バレ率</span><span data-set="sakibare" data-vals="@sakibare"></span></div>
+    <h3>テスト</h3>
+    <div class="row">
+      <button class="act" data-force="hit">一発大当り</button>
+      <button class="act" data-force="sakibare">先バレ強制</button>
+      <button class="act" data-cmd="rush">RUSH直行</button>
+    </div>
+    <h3>演出チェック（次の入賞を強制）</h3>
+    <div class="row">
+      <button class="act sub" data-force="battle">バトルSP</button>
+      <button class="act sub" data-force="story">ストーリーSP</button>
+      <button class="act sub" data-force="zenkaiten">全回転</button>
+      <button class="act sub" data-force="ippatsu">一発告知</button>
+      <button class="act sub" data-force="scoop">昇格スクープ</button>
+      <button class="act sub" data-force="lever">一撃レバー</button>
+      <button class="act sub" data-force="regular">3R通常</button>
+      <button class="act sub" data-force="iwakan">RUSH違和感</button>
+      <button class="act sub" data-force="miss">ハズレSP</button>
+    </div>
+    <h3>理論値と実測値</h3>
+    <div class="stat" id="specBox"></div>
+    <h3>その他</h3>
+    <div class="row">
+      <button class="act sub" data-cmd="fps">FPS表示</button>
+      <button class="act sub" data-cmd="addballs">持ち玉+1000</button>
+      <button class="act" data-cmd="reset">データ全消去</button>
+    </div>
+    <div class="stat" id="dbgState"></div>
+    <button class="close" data-close="dbg">閉じる</button>
+  </div>
+  <div id="modesel" class="panel hidden">
+    <h2>RUSHモード選択</h2>
+    <button class="mode m1" data-mode="quick"><b>① 爆速即当りモード</b>0.5秒でズバズバ揃う超高速モード。違和感（BGM停止・ランプ消灯・カウント777）が出たら当り！</button>
+    <button class="mode m2" data-mode="battle"><b>② バトル告知モード</b>敵キャラとのスピードバトルで決着！勝てば大当り！</button>
+    <div class="cd" id="modeCd"></div>
+  </div>
+  <div id="fps" class="hidden"></div>
+</div>
+<!-- @SCRIPTS -->
+</body>
+</html>

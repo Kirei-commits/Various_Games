@@ -11,6 +11,7 @@
 | [tsuri-quest](./tsuri-quest/) | つりクエスト（釣り／レベルアップ） | 魚30種。名前とパスワードでセーブ、ログインボーナス、ブースト、パーツ、2種類のレベル。 |
 | [monster-strike](./monster-strike/) | ひっぱりストライク（モンスト風） | 引っぱって離すひっぱりアクション。反射・貫通の撃ち分け、友情コンボ、ボスの弱点、ダメージウォール・重力バリアとアビリティ。 |
 | [eikaiwa-swipe](./eikaiwa-swipe/) | SwipeTalk（英会話フレーズ学習） | 全40章・2000フレーズ（基本編＋アメリカ生活編）。スワイプで仕分け、英→日／日→英テスト、シャドーイング、抑揚つき音声。Google ログインでクラウド保存。 |
+| [pachinko-gokugoku](./pachinko-gokugoku/) | 極極FEVER（パチンコシミュレーター） | 単一HTML。釘・風車の物理、ヘソ入賞時抽選（1/319.6）、RUSH継続率81%、SPリーチ・一撃レバー・全回転・先バレ、Web Audio のBGM、スランプグラフ、デバッグ設定。 |
 
 ## 遊び方
 
@@ -30,7 +31,8 @@ https://kirei-commits.github.io/Various_Games/eikaiwa-swipe/   ← SwipeTalk
 
 各ゲームのディレクトリで `npm ci && npm test`。
 god-arena には実ブラウザで通しプレイする `npm run playtest` もあります。
-eikaiwa-swipe は `src/` から `index.html` を生成するので、変更後は `npm run build` して `index.html` もコミットします。
+eikaiwa-swipe と pachinko-gokugoku は `src/` から `index.html` を生成するので、変更後は `npm run build` して `index.html` もコミットします（古いままだと lint が落ちます）。
+pachinko-gokugoku の調整値は `src/pure/config.js` に集めてあり、`npm run measure` で理論値と実測値を並べて確かめられます。
 
 CI はリポジトリ直下の `.github/workflows/ci.yml` だけです（GitHub Actions はリポジトリ直下しか読みません）。
 **ゲームを追加したら、CI（`ci.yml` の `changes` ジョブの `ALL`）と Pages の対象にディレクトリ名を足してください。** CI は変わったゲームの検査だけを走らせます（`ci.yml` 自体を変えたときと手動実行は全部）。

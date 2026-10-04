@@ -62,7 +62,7 @@ jobs:
           mkdir -p _site
           cp index.html _site/ 2>/dev/null || true
           # eikaiwa-swipe は index.html に CSS/JS・絵をすべて埋め込んである。録音（audio/）だけは大きいので別ファイルで配る
-          for game in god-arena gomoku-narabe tsuri-quest eikaiwa-swipe monster-strike; do
+          for game in god-arena gomoku-narabe tsuri-quest eikaiwa-swipe monster-strike pachinko-gokugoku; do
             mkdir -p "_site/$game"
             cp -r "$game/index.html" "$game/css" "$game/js" "$game/audio" "_site/$game/" 2>/dev/null || true
           done
