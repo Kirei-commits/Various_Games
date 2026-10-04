@@ -31,7 +31,8 @@ https://kirei-commits.github.io/Various_Games/eikaiwa-swipe/   ← SwipeTalk
 
 各ゲームのディレクトリで `npm ci && npm test`。
 god-arena には実ブラウザで通しプレイする `npm run playtest` もあります。
-eikaiwa-swipe は `src/` から `index.html` を生成するので、変更後は `npm run build` して `index.html` もコミットします。
+eikaiwa-swipe と pachinko-gokugoku は `src/` から `index.html` を生成するので、変更後は `npm run build` して `index.html` もコミットします（古いままだと lint が落ちます）。
+pachinko-gokugoku の調整値は `src/pure/config.js` に集めてあり、`npm run measure` で理論値と実測値を並べて確かめられます。
 
 CI はリポジトリ直下の `.github/workflows/ci.yml` だけです（GitHub Actions はリポジトリ直下しか読みません）。
 **ゲームを追加したら、CI（`ci.yml` の `changes` ジョブの `ALL`）と Pages の対象にディレクトリ名を足してください。** CI は変わったゲームの検査だけを走らせます（`ci.yml` 自体を変えたときと手動実行は全部）。

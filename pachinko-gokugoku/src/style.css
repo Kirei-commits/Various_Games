@@ -1,0 +1,55 @@
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;overflow:hidden;background:#000;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;font-family:"Hiragino Kaku Gothic ProN","Noto Sans JP","Yu Gothic",sans-serif;color:#fff}
+body{background:radial-gradient(ellipse at 50% 40%,#3a2400 0%,#120800 45%,#000 80%)}
+#stage{position:absolute;left:0;top:0;width:720px;height:1320px;transform-origin:0 0;overflow:hidden}
+#cv{position:absolute;left:0;top:0;width:720px;height:1320px;display:block}
+button{font-family:inherit;-webkit-tap-highlight-color:transparent}
+#push{position:absolute;left:286px;top:1016px;width:148px;height:148px;border-radius:50%;border:6px solid #ffd700;background:radial-gradient(circle at 40% 28%,#ffb0b0 0%,#ff2020 30%,#b00000 62%,#4a0000 100%);box-shadow:0 9px 0 #5a3a00,0 0 22px rgba(255,200,0,.55),inset 0 -12px 22px rgba(0,0,0,.55);color:#fff;font:400 30px "Dela Gothic One","Arial Black",sans-serif;text-shadow:0 3px 0 #000,0 0 10px #ff0;cursor:pointer;transition:transform .08s;touch-action:none;z-index:3}
+#push.down{transform:translateY(7px) scale(.97);box-shadow:0 2px 0 #5a3a00,0 0 30px rgba(255,220,0,.9),inset 0 -6px 14px rgba(0,0,0,.6)}
+#push.hot{animation:pushHot .3s infinite alternate}
+#push.hot.down{animation:none;transform:translateY(7px) scale(1.1)}
+@keyframes pushHot{from{transform:scale(1.06);filter:brightness(1.2) drop-shadow(0 0 16px #ff0)}to{transform:scale(1.2);filter:brightness(1.7) drop-shadow(0 0 40px #fff)}}
+#lever{position:absolute;left:478px;top:1018px;width:104px;height:146px;cursor:grab;touch-action:none;z-index:3}
+#lever .base{position:absolute;left:18px;bottom:2px;width:68px;height:36px;border-radius:12px;background:linear-gradient(#fff2a8,#c08a00 55%,#5a3a00);border:3px solid #2a1600}
+#lever .stick{position:absolute;left:46px;bottom:26px;width:13px;height:100px;background:linear-gradient(90deg,#666,#fff 45%,#888);border-radius:7px;transform-origin:50% 100%;transform:rotate(-14deg);transition:transform .14s}
+#lever .knob{position:absolute;left:-15px;top:-24px;width:43px;height:43px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff,#ffd700 40%,#9a5a00);border:3px solid #2a1600}
+#lever.pulled .stick{transform:rotate(48deg) scaleY(.82)}
+#lever.hot .knob{animation:knob .25s infinite alternate}
+#lever.hot{filter:drop-shadow(0 0 18px #ffea00)}
+#lever .lab{position:absolute;left:0;right:0;bottom:8px;text-align:center;font:900 14px sans-serif;color:#2a1600;pointer-events:none}
+@keyframes knob{from{background:radial-gradient(circle at 35% 30%,#fff,#ffd700 40%,#9a5a00)}to{background:radial-gradient(circle at 35% 30%,#fff,#ff3030 40%,#700000)}}
+#bar{position:absolute;left:0;top:1172px;width:720px;height:148px;display:flex;gap:8px;align-items:center;padding:12px 10px;background:linear-gradient(#2a1a00,#080400);border-top:3px solid #c9a227;z-index:3}
+.bb{height:104px;border-radius:14px;border:3px solid #c9a227;background:linear-gradient(#6a4400,#1a0f00);color:#ffe9a0;font:400 21px "Dela Gothic One",sans-serif;cursor:pointer;flex:0 0 auto;padding:0 6px;line-height:1.2}
+.bb.on{background:linear-gradient(#fff0a0,#ffcc33 40%,#b07000);color:#2a1400;box-shadow:0 0 20px #ffd700}
+.bb.blink{animation:bblink .4s infinite alternate}
+@keyframes bblink{from{box-shadow:0 0 4px #f00}to{box-shadow:0 0 26px #f00;border-color:#ff4040}}
+#bAuto{width:146px;font-size:25px}
+#bAim{width:112px}
+#bMenu,#bDbg{width:84px;font-size:18px}
+#info{flex:1;min-width:0;font-size:18px;line-height:1.5;color:#ffe9a0;background:rgba(0,0,0,.55);border:2px solid #6a5000;border-radius:12px;padding:6px 10px;height:104px;white-space:nowrap;overflow:hidden}
+#info b{color:#fff;font-family:"Dela Gothic One",sans-serif;font-weight:400}
+#info .neg{color:#7ab8ff}#info .pos{color:#ff7070}
+.panel{position:absolute;left:30px;top:220px;width:660px;max-height:930px;overflow:auto;background:linear-gradient(rgba(42,22,0,.97),rgba(10,5,0,.97));border:4px solid #ffd700;border-radius:20px;padding:18px 22px;box-shadow:0 0 50px rgba(255,200,0,.5);z-index:10;touch-action:pan-y}
+.hidden{display:none!important}
+.panel h2{margin:0 0 10px;font:400 38px "Yuji Boku",serif;color:#ffd700;text-align:center;text-shadow:0 0 12px #f80,0 3px 0 #3a1d00}
+.panel h3{margin:16px 0 4px;font-size:18px;color:#ffcc33;border-bottom:1px solid #6a5000;padding-bottom:4px}
+.row{display:flex;align-items:center;gap:8px;margin:10px 0;flex-wrap:wrap}
+.row .lb{width:190px;font-size:19px;font-weight:700;color:#ffe9a0}
+.row .note{width:100%;font-size:14px;color:#c9b070;margin-top:-4px}
+.opt{min-width:70px;height:52px;padding:0 10px;border-radius:10px;border:2px solid #8a6a00;background:#1a1000;color:#ffe9a0;font:700 19px sans-serif;cursor:pointer}
+.opt.on{background:linear-gradient(#fff0a0,#ffcc33 50%,#b07000);color:#2a1400;border-color:#fff3b0}
+.act{height:56px;padding:0 14px;border-radius:12px;border:2px solid #ff6060;background:linear-gradient(#b00000,#400000);color:#fff;font:700 18px sans-serif;cursor:pointer}
+.act.sub{border-color:#c9a227;background:linear-gradient(#5a3a00,#1a0f00);color:#ffe9a0}
+.close{display:block;margin:18px auto 4px;width:260px;height:64px;border-radius:14px;border:3px solid #ffd700;background:linear-gradient(#fff0a0,#ffcc33 50%,#b07000);color:#2a1400;font:400 24px "Dela Gothic One",sans-serif;cursor:pointer}
+.stat{font-size:16px;color:#ffe9a0;line-height:1.7;background:rgba(0,0,0,.4);border-radius:10px;padding:8px 12px}
+#modesel{top:300px}
+#modesel .mode{display:block;width:100%;margin:14px 0;padding:18px 20px;border-radius:16px;border:4px solid #ffd700;color:#fff;text-align:left;cursor:pointer;font:700 18px sans-serif;line-height:1.5}
+#modesel .mode b{display:block;font:400 34px "Yuji Boku",serif;color:#ffd700;text-shadow:0 0 10px #f80,0 2px 0 #000}
+#modesel .m1{background:linear-gradient(120deg,#5a0000,#c01010 60%,#ff6a00)}
+#modesel .m2{background:linear-gradient(120deg,#10003a,#3a10a0 60%,#a000c0)}
+#modesel .cd{text-align:center;font-size:18px;color:#ffcc33}
+#start{position:absolute;left:0;top:200px;width:720px;height:970px;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:20;background:rgba(0,0,0,.45);cursor:pointer}
+#start .t1{font:400 72px "Yuji Boku",serif;color:#ffd700;text-shadow:0 0 18px #f80,0 4px 0 #3a1d00;animation:blink 1s infinite alternate}
+#start .t2{margin-top:14px;font-size:20px;color:#ffe9a0;text-align:center;line-height:1.7}
+@keyframes blink{from{opacity:.55;transform:scale(.97)}to{opacity:1;transform:scale(1.03)}}
+#fps{position:absolute;right:10px;top:204px;font:13px monospace;color:#3f3;z-index:6;text-shadow:0 0 3px #000;pointer-events:none}

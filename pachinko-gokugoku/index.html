@@ -6,9 +6,12 @@
 <meta name="theme-color" content="#000000">
 <meta name="description" content="極極FEVER — 単一HTMLで遊べる超・極限完全無欠爆発パチンコシミュレーター。1/319.6・RUSH継続率81%・ALL1500個。">
 <title>極極FEVER — 超・極限完全無欠爆発パチンコ</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='15' fill='%23b00000' stroke='%23ffd700' stroke-width='2'/%3E%3Ctext x='16' y='22' font-size='16' text-anchor='middle' fill='%23ffd700' font-weight='bold'%3E7%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Yuji+Boku&display=swap" rel="stylesheet">
+<meta name="pg-source-hash" content="a013579c6ab02649">
+<!-- このファイルは tools/build.mjs が src/ から生成する。直接編集しないこと -->
 <style>
 *{box-sizing:border-box}
 html,body{margin:0;height:100%;overflow:hidden;background:#000;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;font-family:"Hiragino Kaku Gothic ProN","Noto Sans JP","Yu Gothic",sans-serif;color:#fff}
@@ -84,7 +87,7 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
     <h2>カスタムメニュー</h2>
     <div class="row"><span class="lb">音量</span><span data-set="vol" data-vals="1,2,3,4,5"></span></div>
     <div class="row"><span class="lb">光量（輝度）</span><span data-set="bright" data-vals="1,2,3"></span></div>
-    <div class="row"><span class="lb">先バレモード</span><span data-set="sakibare" data-vals="0,0.01,0.1" data-labels="OFF,1/100,1/10"></span><div class="note">大当り時にヘソ入賞の瞬間「ポキュン！」で保留が即赤へ変化する確率</div></div>
+    <div class="row"><span class="lb">先バレモード</span><span data-set="sakibare" data-vals="@sakibare"></span><div class="note">大当り時にヘソ入賞の瞬間「ポキュン！」で保留が即赤へ変化する確率</div></div>
     <div class="row"><span class="lb">先読み信頼度UP</span><span data-set="preread" data-vals="false,true" data-labels="OFF,ON"></span><div class="note">ONで保留変化の出現が当り寄りになる（ハズレ時の変化が減る）</div></div>
     <div class="row"><span class="lb">オート右打ち切替</span><span data-set="autoAim" data-vals="true,false" data-labels="ON,OFF"></span><div class="note">大当り中・RUSH中は自動で右打ちに切り替えます</div></div>
     <div class="row"><span class="lb">RUSHモード</span><span data-set="rushMode" data-vals="quick,battle" data-labels="爆速即当り,バトル告知"></span></div>
@@ -94,8 +97,8 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
   </div>
   <div id="dbg" class="panel hidden">
     <h2>設定モード（デバッグ）</h2>
-    <div class="row"><span class="lb">大当り確率</span><span data-set="prob" data-vals="319.6,199,99,1" data-labels="1/319.6,1/199,1/99,1/1"></span></div>
-    <div class="row"><span class="lb">先バレ率</span><span data-set="sakibare" data-vals="0,0.01,0.1" data-labels="OFF,1/100,1/10"></span></div>
+    <div class="row"><span class="lb">大当り確率</span><span data-set="prob" data-vals="@prob"></span></div>
+    <div class="row"><span class="lb">先バレ率</span><span data-set="sakibare" data-vals="@sakibare"></span></div>
     <h3>テスト</h3>
     <div class="row">
       <button class="act" data-force="hit">一発大当り</button>
@@ -114,6 +117,8 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
       <button class="act sub" data-force="iwakan">RUSH違和感</button>
       <button class="act sub" data-force="miss">ハズレSP</button>
     </div>
+    <h3>理論値と実測値</h3>
+    <div class="stat" id="specBox"></div>
     <h3>その他</h3>
     <div class="row">
       <button class="act sub" data-cmd="fps">FPS表示</button>
@@ -131,15 +136,583 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
   </div>
   <div id="fps" class="hidden"></div>
 </div>
-<script>
+<script id="pg-config">
+/**
+ * 調整値をすべてここに集める（データだけ。DOM・乱数・時計に触らない）→ globalThis.PG.CONFIG
+ *
+ * 数値を変えたら:
+ *   npm run measure   … 理論値（このファイルから計算）とシミュレーションの実測値を並べて表示
+ *   npm test          … targets の範囲に収まっているかをテストで確かめる
+ *
+ * 重みの表は [値, 重み] の配列。合計が 100 である必要はない（比で効く）。
+ */
+(function (G) {
+  'use strict';
+  const PG = G.PG || (G.PG = {});
+
+  // 激熱演出がハズレで出るときの重み（当りでの重みと比べて桁違いに小さくして信頼度99%以上にする）
+  const KM = 0.00005;
+
+  PG.CONFIG = {
+    // ------------------------------------------------------------------
+    // スペック
+    // ------------------------------------------------------------------
+    spec: {
+      randRange: 65536,                 // 乱数の範囲（0〜65535）。当りの個数 = round(範囲 / 分母)
+      probDenoms: [319.6, 199, 99, 1],  // 設定モードで選べる大当り確率（分母）
+      defaultProbDenom: 319.6,
+      feverRate: 0.6,                   // 初当りのうち FEVER（10R + RUSH）になる割合。残りは 3R
+      feverRoutes: [['7direct', 50], ['scoop', 30], ['lever', 20]], // FEVER の見せ方（7直揃い / スクープ昇格 / 一撃レバー昇格）
+      oddRate: { regular: 0.3, promote: 0.7 }, // 非7揃いで奇数図柄を使う割合（奇数＝チャンス）
+      rounds: { fever: 10, regular: 3 },
+      countPerRound: 10,                // 1ラウンドのカウント
+      rush: {
+        stSpins: 100,                   // RUSH の回転数（ST）
+        targetContinuation: 0.81,       // 狙う継続率。当りの個数はここから逆算する（spec.js の rushThreshold）
+        sevenRate: 0.5,                 // RUSH 当りで 7 揃いにする割合
+        iwakanRate: 0.85,               // 爆速モードで当りに違和感が付く割合
+        iwakanTypes: ['bgmStop', 'lampOff', 'count777'],
+        battleFakeRate: 0.1             // バトルモードでハズレでもバトルになる割合
+      }
+    },
+
+    // ------------------------------------------------------------------
+    // 出玉・発射
+    // ------------------------------------------------------------------
+    payout: { heso: 3, denchu: 1, general: 10, attacker: 15, lendBalls: 250, lendYen: 1000, yenPerBall: 4 },
+    fire: { normal: 0.6, rush: 0.42, bonus: 0.2 },  // 発射間隔（秒）。大当り中は爆速消化
+    denchu: { cycle: 1.8, open: 1.35 },             // RUSH 中の電チュー開閉（秒）
+    holdMax: 4,
+
+    // ------------------------------------------------------------------
+    // 演出の振り分け（当否はすでに決まっている前提での表）
+    // ------------------------------------------------------------------
+    scenario: {
+      KM,
+      hitReach: [['sp', 80], ['normal', 8], ['zenkaiten', 4], ['ippatsu', 8]],
+      // ハズレのリーチは保留の色で変わる（赤・金はSP確定）
+      missReachByColor: {
+        white: [['none', 84], ['normal', 12], ['sp', 4]],
+        blue: [['none', 60], ['normal', 28], ['sp', 12]],
+        green: [['none', 40], ['normal', 35], ['sp', 25]],
+        red: [['sp', 1]],
+        gold: [['sp', 1]]
+      },
+      spTypeBattle: 0.55,               // SP リーチがバトルになる割合（残りはストーリー）
+      judgeButton: 0.55,                // 当否判定がデカボタンになる割合（残りは Vコンレバー）
+      // テロップ色 0=白 1=赤 2=金 3=虹（リーチ時）
+      telopHit: [[0, 10], [1, 35], [2, 40], [3, 15]],
+      telopMiss: [[0, 65], [1, 35], [2, KM]],
+      telopNoReachHitGold: 0.5,         // リーチなし当り（全回転以外）で金テロップが出る割合
+      telopNoReachWhite: 0.1,           // リーチなしで白テロップが出る割合（ガセ）
+      telopUpgrade: 0.55,               // テロップが一段下の色で出てから昇格する割合
+      cutinHit: [[0, 30], [1, 40], [2, 30]], // 0=なし 1=赤 2=金
+      cutinMiss: [[0, 70], [1, 30], [2, KM]],
+      goldTitleHit: 0.45, goldTitleMiss: KM,
+      redTitleHit: 0.6, redTitleMiss: 0.25,
+      logoDropHit: 0.3, logoDropMiss: KM,
+      stepupHitRate: 0.5, stepupHit: [[3, 20], [4, 40], [5, 40]],
+      stepupMissRate: 0.1, stepupMiss: [[1, 40], [2, 35], [3, 22], [4, 3]],
+      stepupForcesReach: 3,             // ハズレでもこの段以上ならリーチにする
+      scoopFakeLever: 0.4,              // 一撃レバー当りでスクープ失敗演出が出る割合
+      scoopFakeRegular: 0.5,            // 3R 当りでスクープ失敗演出が出る割合
+      scoopPreRate: 0.5                 // スクープを揃い直前（SP の判定中）にする割合
+    },
+    holdColor: {
+      hit: [['white', 25], ['blue', 15], ['green', 15], ['red', 30], ['gold', 10], ['rainbow', 5]],
+      miss: [['white', 88], ['blue', 8], ['green', 3.5], ['red', 0.5], ['gold', 0.00001]],
+      hitPreread: [['white', 15], ['blue', 10], ['green', 15], ['red', 37], ['gold', 15], ['rainbow', 8]],
+      missPreread: [['white', 94], ['blue', 4.5], ['green', 1.4], ['red', 0.1]],
+      rushHit: [['white', 55], ['red', 25], ['gold', 12], ['rainbow', 8]],
+      rushMiss: [['white', 97], ['blue', 3]],
+      changeAtEntry: 0.45,              // 変化する保留のうち入賞時に変化する割合（残りは当該変動で変化）
+      sakibareOptions: [0, 0.01, 0.1]   // 先バレ（当りのうち入賞時に先バレする割合）
+    },
+
+    // ------------------------------------------------------------------
+    // 時間（秒）
+    // ------------------------------------------------------------------
+    timing: {
+      normalSpin: [2, 3], fullSpin: [0.8, 1.1], reachSpin: 2.3, // 通常 / 保留満タン / リーチ前
+      stopL: 0.45, stopR: 0.7,          // 変動時間に対する左・右の停止位置（左→右→中）
+      stepupInterval: 0.55,
+      normalReach: 3.6, spDevelop: 1.5, spEnter: 2.1,
+      sp: { title: 1.8, battleActs: [2.0, 2.9, 3.8, 4.7, 5.6], cutin: 3.4, telop: 4.6, logoDrop: 5.6, judge: 6.8 },
+      judge: 3.6,
+      scoop: { duration: 3.3, autoRate: 0.2, tapGain: 0.075, failCap: [0.5, 0.8] },
+      zenkaiten: { freeze: 1.7, stop: 5.6, align: 8.4 },
+      rushSpin: 0.5, rushIwakanSpin: 1.25,
+      rushBattle: { acts: [0.7, 1.3, 1.9, 2.5], final: 3.1, result: 3.6, winEnd: 5.0, loseEnd: 4.6 },
+      fanfare: 2.8,
+      bonus: { roundTimeout: 30, overWindow: 0.22, interval: 0.6, ending: 2.6, leverAfterRound: 4, leverAuto: 6 },
+      modeSelect: 12,
+      lastChance: { duration: 5.5, holdRate: 0.42, autoRate: 0.09, failCap: [0.62, 0.9] },
+      result: { closable: 1.6, auto: 12 }
+    },
+    result: { ranks: [[15000, '神', 'rainbow'], [5000, '一騎当千', 'gold'], [0, '凡人', 'silver']] },
+    input: { uraTaps: 5, uraWindow: 1.5, uraHold: 0.6, skipHold: 1.5, doubleTap: 0.32 },
+
+    // ------------------------------------------------------------------
+    // 盤面の形（論理座標 720×1320）と物理
+    // ------------------------------------------------------------------
+    layout: {
+      W: 720, H: 1320,
+      lcd: { x: 134, y: 372, w: 452, h: 324, r: 40 },
+      field: { top: 346, left: 30, right: 690, bottom: 992, arcR: 200, arcL: { x: 230, y: 546 }, arcRc: { x: 490, y: 546 }, rail: 4 },
+      heso: { x0: 349, x1: 371, y0: 844, y1: 858 },
+      general: { x0: 143, x1: 161, y0: 932, y1: 946 },
+      denchu: { x: 640, y: 826, zone: { x0: 612, x1: 668, y0: 808, y1: 838 } },
+      plate: { x1: 690, y1: 884, x2: 586, y2: 912 },
+      attacker: { x0: 592, x1: 682 },
+      innerWall: 586,
+      road: { x1: 104, y1: 777, x2: 312, y2: 816 },
+      mills: [{ x: 78, y: 738, r: 11, vr: 19, w: 3.2 }, { x: 640, y: 600, r: 11, vr: 19, w: -3.2 }],
+      warpZone: { x0: 118, x1: 146, y0: 520, y1: 610 },
+      stageDrop: { x: 344, w: 32, y: 704 }
+    },
+    physics: {
+      ballR: 6, pinR: 3.2, gravity: 1150, substeps: 3, maxSpeed: 1400,
+      pinGap: 19,                       // 横並びの釘の最小間隔（球が通れる幅）
+      pinMargin: 17,                    // 壁・液晶から釘を離す距離（挟まり防止）
+      restitution: { pin: 0.5, wall: 0.36, rail: 0.35, mill: 0.45, road: 0.25 },
+      friction: { pin: 0.9, wall: 0.94, rail: 0.95, road: 0.999 },
+      pinJitter: 0.3, millKick: 2.2,
+      railSpeed: 1500, releaseSpeed: [200, 340],
+      releaseLeft: [196, 226], releaseRight: [292, 318], // レールから離れる角度（度）
+      warpRate: 0.6, warpTime: 0.85,
+      stuckSpeed: 20, stuckTime: 2.5,
+      poolSize: 72
+    },
+
+    // ------------------------------------------------------------------
+    // 目標値（テストと npm run measure がこの範囲を確かめる）
+    // ------------------------------------------------------------------
+    targets: {
+      continuation: [0.805, 0.815],     // RUSH 継続率（理論値）
+      hesoRate: [1 / 9, 1 / 5],         // 左打ちの球がヘソに入る割合
+      attackerCatch: 0.9,               // アタッカー開放中に右打ちの球が入る割合（以上）
+      denchuCatch: 0.85,                // 電チュー開放中に右打ちの球が入る割合（以上）
+      hotReliability: 0.99,             // 激熱演出の大当り信頼度（以上、1/319.6 のとき）
+      feverRate: [0.58, 0.62]           // 初当りの FEVER 割合（実測）
+    }
+  };
+})(typeof globalThis !== 'undefined' ? globalThis : this);
+</script>
+<script id="pg-spec">
+/**
+ * 抽選と理論値（純粋。DOM・グローバルな乱数・時計に触らない）→ globalThis.PG.Spec
+ *
+ *  - createLottery(cfg, rng): ヘソ／電チュー入賞の瞬間に取った乱数 raw（0〜randRange-1）で当否を決め、
+ *    同時に演出（リーチ・テロップ・保留色・先バレ…）をすべて決める。rng は [0,1) を返す関数。
+ *  - theory(cfg, opts): 設定ファイルから理論値を計算する（実機と同じく「当りの個数 / 乱数の範囲」で離散化）。
+ *    テストはこの理論値と、createLottery を大量に回した実測値が一致することを確かめる。
+ */
+(function (G) {
+  'use strict';
+  const PG = G.PG || (G.PG = {});
+  const COLOR_RANK = { white: 0, blue: 1, green: 2, red: 3, gold: 4, rainbow: 5 };
+
+  function pickW(arr, rng) {
+    let s = 0; for (let i = 0; i < arr.length; i++) s += arr[i][1];
+    let r = rng() * s;
+    for (let i = 0; i < arr.length; i++) { r -= arr[i][1]; if (r < 0) return arr[i][0]; }
+    return arr[arr.length - 1][0];
+  }
+  /** 表の中で value の割合 */
+  function share(arr, pred) {
+    let s = 0, t = 0; for (let i = 0; i < arr.length; i++) { s += arr[i][1]; if (pred(arr[i][0])) t += arr[i][1]; }
+    return s ? t / s : 0;
+  }
+  /** 分母 denom の当りの個数（最低1個、最大で全部） */
+  function threshold(cfg, denom) {
+    const R = cfg.spec.randRange;
+    return Math.min(R, Math.max(1, Math.round(R / denom)));
+  }
+  /** 目標の継続率から RUSH の当りの個数を逆算する */
+  function rushThreshold(cfg) {
+    const { stSpins, targetContinuation } = cfg.spec.rush, R = cfg.spec.randRange;
+    const p = 1 - Math.pow(1 - targetContinuation, 1 / stSpins);
+    return Math.min(R, Math.max(1, Math.round(R * p)));
+  }
+  const hitProb = (cfg, denom) => threshold(cfg, denom) / cfg.spec.randRange;
+  const rushProb = cfg => rushThreshold(cfg) / cfg.spec.randRange;
+  const continuation = cfg => 1 - Math.pow(1 - rushProb(cfg), cfg.spec.rush.stSpins);
+
+  function createLottery(cfg, rng) {
+    const S = cfg.spec, SC = cfg.scenario, HC = cfg.holdColor;
+    const d9 = () => 1 + (rng() * 9 | 0);
+    const L = {
+      /**
+       * raw: 入賞の瞬間に取った乱数 / isRush: RUSH の表で判定するか / force: 演出チェック用の強制
+       * settings: { prob: 分母, preread: 先読み信頼度UP, sakibare: 先バレ率 }
+       */
+      draw(raw, isRush, force, settings) {
+        const thr = isRush ? rushThreshold(cfg) : threshold(cfg, settings.prob);
+        let hit = raw < thr;
+        if (force) hit = force !== 'miss';
+        const h = { raw, isRush, hit, kind: null, route: null, final: 0, nums: [1, 2, 3], reachNum: 0, sc: null, rs: null, color: 'white', dispColor: 'white', changeAt: null, fxType: 'sword', sakibare: false, fx: null, uraDone: false };
+        if (isRush) this.rush(h, force);
+        else this.normal(h, force, settings);
+        h.fxType = h.color === 'rainbow' ? 'thunder' : ['sword', 'bullet', 'thunder'][rng() * 3 | 0];
+        if (h.color !== 'white') h.changeAt = h.sakibare ? 'saki' : (rng() < HC.changeAtEntry ? 'entry' : 'spin');
+        return h;
+      },
+      rush(h, force) {
+        const R = S.rush;
+        h.kind = h.hit ? 'rush' : null; h.route = h.kind;
+        if (h.hit) { h.final = rng() < R.sevenRate ? 7 : d9(); h.nums = [h.final, h.final, h.final]; }
+        else h.nums = this.missNums();
+        const iw = R.iwakanTypes;
+        h.rs = { iwakan: h.hit ? ((force === 'iwakan' || rng() < R.iwakanRate) ? iw[rng() * iw.length | 0] : null) : null, battle: h.hit ? true : rng() < R.battleFakeRate };
+        h.color = pickW(h.hit ? HC.rushHit : HC.rushMiss, rng);
+      },
+      normal(h, force, settings) {
+        if (h.hit) {
+          const special = force && force !== 'hit' && force !== 'sakibare';
+          h.kind = force === 'regular' ? 'regular' : special ? 'fever' : (rng() < S.feverRate ? 'fever' : 'regular');
+          h.route = h.kind === 'regular' ? 'regular'
+            : force === 'scoop' ? 'scoop' : force === 'lever' ? 'lever'
+              : (force === 'battle' || force === 'story' || force === 'zenkaiten' || force === 'ippatsu') ? '7direct'
+                : pickW(S.feverRoutes, rng);
+          h.final = h.route === '7direct' ? 7 : this.nonSeven(h.route);
+        }
+        const pre = !!settings.preread;
+        h.color = pickW(h.hit ? (pre ? HC.hitPreread : HC.hit) : (pre ? HC.missPreread : HC.miss), rng);
+        h.sc = this.scenario(h, force);
+        this.numbers(h);
+        if (h.hit && (force === 'sakibare' || rng() < (settings.sakibare || 0))) { h.sakibare = true; if (COLOR_RANK[h.color] < 3) h.color = 'red'; }
+      },
+      nonSeven(route) {
+        const odd = [1, 3, 5, 9], even = [2, 4, 6, 8];
+        const a = rng() < (route === 'regular' ? S.oddRate.regular : S.oddRate.promote) ? odd : even;
+        return a[rng() * a.length | 0];
+      },
+      reach(h, force) {
+        if (h.hit) {
+          if (force === 'zenkaiten' || force === 'ippatsu') return force;
+          if (force === 'battle' || force === 'story' || force === 'scoop' || force === 'lever') return 'sp';
+          return pickW(SC.hitReach, rng);
+        }
+        if (force === 'miss') return 'sp';
+        return pickW(SC.missReachByColor[h.color] || SC.missReachByColor.white, rng);
+      },
+      scenario(h, force) {
+        const hit = h.hit, s = {};
+        // ステップアップを先に決める（ハズレでも高い段ならリーチにする）
+        s.stepup = hit ? (rng() < SC.stepupHitRate ? pickW(SC.stepupHit, rng) : 0) : (rng() < SC.stepupMissRate ? pickW(SC.stepupMiss, rng) : 0);
+        s.reach = this.reach(h, force);
+        if (s.reach === 'zenkaiten' || s.reach === 'ippatsu') s.stepup = 0;
+        if (!hit && s.stepup >= SC.stepupForcesReach && s.reach === 'none') s.reach = 'normal';
+        s.spType = force === 'battle' ? 'battle' : force === 'story' ? 'story' : (rng() < SC.spTypeBattle ? 'battle' : 'story');
+        s.judge = rng() < SC.judgeButton ? 'button' : 'lever';
+        const isReach = s.reach === 'normal' || s.reach === 'sp';
+        if (isReach) s.telop = pickW(hit ? SC.telopHit : SC.telopMiss, rng);
+        else s.telop = (hit && s.reach !== 'ippatsu' && rng() < SC.telopNoReachHitGold) ? 2 : (rng() < SC.telopNoReachWhite ? 0 : -1);
+        s.telopStart = s.telop > 0 && rng() < SC.telopUpgrade ? s.telop - 1 : s.telop;
+        const sp = s.reach === 'sp';
+        s.cutin = sp ? pickW(hit ? SC.cutinHit : SC.cutinMiss, rng) : 0;
+        s.goldTitle = sp && rng() < (hit ? SC.goldTitleHit : SC.goldTitleMiss);
+        s.titleColor = s.goldTitle ? 'gold' : (rng() < (hit ? SC.redTitleHit : SC.redTitleMiss) ? 'red' : 'white');
+        s.logoDrop = sp && rng() < (hit ? SC.logoDropHit : SC.logoDropMiss);
+        s.scoop = null;
+        if (hit) {
+          if (h.route === 'scoop') s.scoop = { ok: true };
+          else if (h.route === 'lever') s.scoop = rng() < SC.scoopFakeLever ? { ok: false } : null;
+          else if (h.route === 'regular') s.scoop = rng() < SC.scoopFakeRegular ? { ok: false } : null;
+          if (s.scoop) s.scoop.timing = (sp && rng() < SC.scoopPreRate) ? 'pre' : 'post';
+        }
+        return s;
+      },
+      missNums() { const l = d9(); let r = d9(); if (r === l) r = (r % 9) + 1; return [l, d9(), r]; },
+      numbers(h) {
+        if (h.hit) { h.reachNum = h.final; h.nums = [h.final, h.final, h.final]; return; }
+        if (h.sc.reach !== 'none') { const n = d9(); h.reachNum = n; const c = rng() < 0.65 ? (n % 9) + 1 : ((n + 7) % 9) + 1; h.nums = [n, c, n]; }
+        else h.nums = this.missNums();
+      }
+    };
+    return L;
+  }
+
+  /**
+   * 理論値。opts: { prob: 分母, preread }
+   * cues の各項目は { hit: 当りでの出現率, miss: ハズレでの出現率, reliability: 出たときの大当り信頼度 }
+   */
+  function theory(cfg, opts) {
+    opts = opts || {};
+    const SC = cfg.scenario, HC = cfg.holdColor, S = cfg.spec;
+    const denom = opts.prob || S.defaultProbDenom;
+    const p = hitProb(cfg, denom), q = 1 - p;
+    const colHit = opts.preread ? HC.hitPreread : HC.hit, colMiss = opts.preread ? HC.missPreread : HC.miss;
+    // リーチの分布
+    const hitR = r => share(SC.hitReach, v => v === r);
+    const missR = r => { let t = 0; for (const [c, w] of colMiss) { const tot = colMiss.reduce((a, b) => a + b[1], 0); t += (w / tot) * share(SC.missReachByColor[c] || SC.missReachByColor.white, v => v === r); } return t; };
+    const stepHigh = SC.stepupMissRate * share(SC.stepupMiss, v => v >= SC.stepupForcesReach);
+    const miss = { sp: missR('sp'), normal: missR('normal') + missR('none') * stepHigh };
+    miss.none = 1 - miss.sp - miss.normal;
+    const hit = { sp: hitR('sp'), normal: hitR('normal'), zenkaiten: hitR('zenkaiten'), ippatsu: hitR('ippatsu') };
+    const hitReach = hit.sp + hit.normal;
+    const missReach = miss.sp + miss.normal;
+    const goldTelop = v => v >= 2;
+    const cue = (h, m) => ({ hit: h, miss: m, reliability: p * h / (p * h + q * m || 1) });
+    const cues = {
+      '金テロップ以上': cue(hitReach * share(SC.telopHit, goldTelop) + (1 - hitReach - hit.ippatsu) * SC.telopNoReachHitGold, missReach * share(SC.telopMiss, goldTelop)),
+      '金カットイン': cue(hit.sp * share(SC.cutinHit, v => v === 2), miss.sp * share(SC.cutinMiss, v => v === 2)),
+      '金タイトル': cue(hit.sp * SC.goldTitleHit, miss.sp * SC.goldTitleMiss),
+      '役物落下': cue(hit.sp * SC.logoDropHit, miss.sp * SC.logoDropMiss),
+      '金保留以上': cue(share(colHit, c => COLOR_RANK[c] >= 4), share(colMiss, c => COLOR_RANK[c] >= 4)),
+      '赤保留': cue(share(colHit, c => c === 'red'), share(colMiss, c => c === 'red')),
+      // 全回転・一発告知ではステップアップを出さない
+      'ステップ5': cue(hitReach * SC.stepupHitRate * share(SC.stepupHit, v => v === 5), SC.stepupMissRate * share(SC.stepupMiss, v => v === 5)),
+      'SPリーチ': cue(hit.sp, miss.sp),
+      'リーチ': cue(hitReach, missReach)
+    };
+    const c = continuation(cfg);
+    const chains = 1 / (1 - c);
+    const per = cfg.spec.countPerRound * cfg.payout.attacker;
+    return {
+      hitThreshold: threshold(cfg, denom), hitProb: p, hitDenom: 1 / p,
+      rushThreshold: rushThreshold(cfg), rushProb: rushProb(cfg), rushDenom: 1 / rushProb(cfg),
+      continuation: c, expectedChains: chains,
+      feverRate: S.feverRate,
+      payoutFever: S.rounds.fever * per, payoutRegular: S.rounds.regular * per,
+      // 初当り1回あたりの期待出玉（オーバー入賞は含めない）
+      payoutPerFirstHit: S.feverRate * S.rounds.fever * per * chains + (1 - S.feverRate) * S.rounds.regular * per,
+      reach: { hit, miss }, cues
+    };
+  }
+
+  PG.Spec = { COLOR_RANK, pickW, share, threshold, rushThreshold, hitProb, rushProb, continuation, createLottery, theory };
+})(typeof globalThis !== 'undefined' ? globalThis : this);
+</script>
+<script id="pg-physics">
+/**
+ * 盤面の物理（純粋。DOM・グローバルな乱数・時計に触らない）→ globalThis.PG.createPhysics
+ *
+ *   const phys = PG.createPhysics(cfg, { rng, emit, gates })
+ *     rng   : [0,1) を返す関数（テストではシード付き）
+ *     emit  : 入賞イベント emit('heso' | 'denchu' | 'attacker' | 'general' | 'warp')
+ *     gates : { denchuOpen(): bool, attackerOpen(): bool }
+ *
+ * 約束ごと
+ *  - 1フレームを substeps 回に分けて解く（最高速でも1回の移動量が 釘半径+球半径 より小さい）
+ *  - 横並びの釘は pinGap 以上離す。壁・液晶からは pinMargin 以上離す。
+ *    すき間が「球より狭いが0ではない」と球が挟まって止まるため（テストで止まり球0を確かめている）
+ *  - 道釘は見た目だけ釘を並べ、当たりは摩擦の小さい1本のレール（釘の谷間で球が止まるため）
+ */
+(function (G) {
+  'use strict';
+  const PG = G.PG || (G.PG = {});
+  const D2R = Math.PI / 180;
+
+  PG.createPhysics = function (cfg, io) {
+    const rng = io.rng, emit = io.emit, gates = io.gates;
+    const P = cfg.physics, LY = cfg.layout, F = LY.field, LCD = LY.lcd;
+    const RB = P.ballR, RP = P.pinR, RR2 = (RB + RP) * (RB + RP);
+    const ACL = F.arcL, ACR = F.arcRc, AR = F.arcR, RAIL = F.rail;
+    const RRAIL = AR - RAIL - RB - 0; // レール上の球の中心が通る半径
+    const LA = F.bottom + 8 - ACL.y, LB = RRAIL * Math.PI / 2, LC = ACR.x - ACL.x;
+    const PLATE = LY.plate, ROAD = LY.road, DC = LY.denchu, W = LY.W, H = LY.H;
+    const plateY = x => PLATE.y1 + (PLATE.x1 - x) * (PLATE.y2 - PLATE.y1) / (PLATE.x1 - PLATE.x2);
+    const CELL = 24, GC = Math.ceil(W / CELL), GR = Math.ceil(H / CELL), grid = new Array(GC * GR);
+    const mills = LY.mills.map(m => ({ x: m.x, y: m.y, r: m.r, vr: m.vr, w: m.w, a: 0 }));
+    const balls = [];
+    for (let i = 0; i < P.poolSize; i++) balls.push({ on: false, x: 0, y: 0, vx: 0, vy: 0, rail: false, s: 0, sRel: 0, vRel: 0, warp: 0, wchk: false, still: 0 });
+    const RPOS = { x: 0, y: 0, tx: 0, ty: 0 };
+    let px, py, np = 0, sx1, sy1, sdx, sdy, sl2, ns = 0, roadSeg = -1;
+    let warpRate = P.warpRate;
+    const stats = { launched: 0, heso: 0, denchu: 0, attacker: 0, general: 0, warp: 0, out: 0, stuck: 0 };
+
+    function inField(x, y, m) {
+      if (x < F.left + m || x > F.right - m || y < F.top + m || y > F.bottom) return false;
+      if (y < ACL.y) {
+        if (x < ACL.x) { const dx = x - ACL.x, dy = y - ACL.y; if (dx * dx + dy * dy > (AR - m) * (AR - m)) return false; }
+        if (x > ACR.x) { const dx = x - ACR.x, dy = y - ACR.y; if (dx * dx + dy * dy > (AR - m) * (AR - m)) return false; }
+      }
+      return true;
+    }
+    const inLcd = (x, y, m) => x > LCD.x - m && x < LCD.x + LCD.w + m && y > LCD.y - m && y < LCD.y + LCD.h + m;
+
+    function build() {
+      const pts = [];
+      const add = (x, y) => {
+        if (!inField(x, y, RAIL + P.pinMargin) || inLcd(x, y, P.pinMargin)) return;
+        for (let i = 0; i < pts.length; i += 2) { const dx = pts[i] - x, dy = pts[i + 1] - y; if (dx * dx + dy * dy < P.pinGap * P.pinGap) return; }
+        pts.push(x, y);
+      };
+      // 左レーン（千鳥）
+      for (let row = 0; row < 12; row++) { const y = 418 + row * 24; (row % 2 ? [50, 72, 94, 116] : [61, 83, 105]).forEach(x => add(x, y)); }
+      // 天釘（左上）
+      for (let a = 198; a <= 226; a += 9) add(ACL.x + 172 * Math.cos(a * D2R), ACL.y + 172 * Math.sin(a * D2R));
+      // 風車まわり・液晶下左
+      [[38, 708], [112, 708], [130, 732], [38, 770], [56, 796], [150, 760], [176, 744], [204, 736], [232, 732], [262, 734], [292, 742]].forEach(p => add(p[0], p[1]));
+      // 命釘・寄り釘・ステージ落下口
+      [[345, 826], [375, 826], [330, 806], [390, 806], [318, 778], [402, 778], [338, 742], [382, 742]].forEach(p => add(p[0], p[1]));
+      // 液晶下右
+      for (let r = 0; r < 6; r++) for (let c = 0; c < 6; c++) { const x = 410 + c * 30 + (r % 2) * 15, y = 720 + r * 32; if (x < 566) add(x, y); }
+      // 下段
+      for (let c = 0; c < 9; c++) add(52 + c * 30, 860 + (c % 2) * 18);
+      for (let c = 0; c < 7; c++) add(60 + c * 34, 908 + (c % 2) * 14);
+      // 右レーン
+      for (let r = 0; r < 10; r++) {
+        const y = 418 + r * 36;
+        (r % 2 ? [623, 649] : [610, 636, 662]).forEach(x => { const m = mills[1], dx = x - m.x, dy = y - m.y; if (dx * dx + dy * dy < 28 * 28 || y > 780) return; add(x, y); });
+      }
+      // 天釘（右上）
+      for (let a = 296; a <= 330; a += 11) add(ACR.x + 172 * Math.cos(a * D2R), ACR.y + 172 * Math.sin(a * D2R));
+      np = pts.length / 2; px = new Float32Array(np); py = new Float32Array(np);
+      for (let i = 0; i < np; i++) { px[i] = pts[i * 2]; py[i] = pts[i * 2 + 1]; }
+      for (let i = 0; i < grid.length; i++) grid[i] = null;
+      const reach = RB + RP + 1;
+      for (let i = 0; i < np; i++) {
+        const c0 = Math.floor((px[i] - reach) / CELL), c1 = Math.floor((px[i] + reach) / CELL), r0 = Math.floor((py[i] - reach) / CELL), r1 = Math.floor((py[i] + reach) / CELL);
+        for (let r = r0; r <= r1; r++) for (let c = c0; c <= c1; c++) { if (c < 0 || r < 0 || c >= GC || r >= GR) continue; const k = c + r * GC; (grid[k] || (grid[k] = [])).push(i); }
+      }
+      // 壁
+      const S = [];
+      const seg = (a, b, c, d) => S.push(a, b, c, d);
+      const lp = [], cr = LCD.r;
+      const corner = (cx, cy, a0) => { for (let k = 0; k <= 4; k++) { const a = (a0 + k * 22.5) * D2R; lp.push(cx + cr * Math.cos(a), cy + cr * Math.sin(a)); } };
+      corner(LCD.x + cr, LCD.y + cr, 180); corner(LCD.x + LCD.w - cr, LCD.y + cr, 270); corner(LCD.x + LCD.w - cr, LCD.y + LCD.h - cr, 0); corner(LCD.x + cr, LCD.y + LCD.h - cr, 90);
+      for (let i = 0; i < lp.length / 2; i++) { const j = (i + 1) % (lp.length / 2); seg(lp[i * 2], lp[i * 2 + 1], lp[j * 2], lp[j * 2 + 1]); }
+      const IW = LY.innerWall;
+      seg(IW, LCD.y + LCD.h, IW, 908);                       // 右レーン内壁
+      seg(IW + 1, 764, 614, 800); seg(686, 764, 666, 800);    // 電チューへの誘導
+      seg(PLATE.x1, PLATE.y1, PLATE.x2, PLATE.y2);            // アタッカープレート
+      seg(348, 846, 348, 866); seg(372, 846, 372, 866); seg(334, 852, 348, 846); seg(372, 846, 386, 852); // ヘソ
+      seg(141, 934, 141, 950); seg(163, 934, 163, 950);       // 一般入賞口
+      roadSeg = S.length / 4; seg(ROAD.x1, ROAD.y1, ROAD.x2, ROAD.y2); // 道釘
+      ns = S.length / 4; sx1 = new Float32Array(ns); sy1 = new Float32Array(ns); sdx = new Float32Array(ns); sdy = new Float32Array(ns); sl2 = new Float32Array(ns);
+      for (let i = 0; i < ns; i++) { sx1[i] = S[i * 4]; sy1[i] = S[i * 4 + 1]; sdx[i] = S[i * 4 + 2] - sx1[i]; sdy[i] = S[i * 4 + 3] - sy1[i]; sl2[i] = sdx[i] * sdx[i] + sdy[i] * sdy[i] || 1; }
+    }
+
+    function railPos(s) {
+      if (s < LA) { RPOS.x = F.left + RAIL + RB; RPOS.y = F.bottom + 8 - s; RPOS.tx = 0; RPOS.ty = -1; return; }
+      s -= LA;
+      if (s < LB) { const a = Math.PI + s / RRAIL; RPOS.x = ACL.x + RRAIL * Math.cos(a); RPOS.y = ACL.y + RRAIL * Math.sin(a); RPOS.tx = -Math.sin(a); RPOS.ty = Math.cos(a); return; }
+      s -= LB;
+      if (s < LC) { RPOS.x = ACL.x + s; RPOS.y = ACL.y - RRAIL; RPOS.tx = 1; RPOS.ty = 0; return; }
+      s -= LC;
+      const a = 1.5 * Math.PI + s / RRAIL; RPOS.x = ACR.x + RRAIL * Math.cos(a); RPOS.y = ACR.y + RRAIL * Math.sin(a); RPOS.tx = -Math.sin(a); RPOS.ty = Math.cos(a);
+    }
+    function launch(strong) {
+      let b = null; for (let i = 0; i < balls.length; i++) if (!balls[i].on) { b = balls[i]; break; }
+      if (!b) return false;
+      b.on = true; b.rail = true; b.s = 0; b.warp = 0; b.wchk = false; b.still = 0;
+      const rg = strong ? P.releaseRight : P.releaseLeft;
+      const deg = rg[0] + rng() * (rg[1] - rg[0]);
+      b.sRel = strong ? LA + LB + LC + (deg - 270) * D2R * RRAIL : LA + (deg - 180) * D2R * RRAIL;
+      b.vRel = P.releaseSpeed[0] + rng() * (P.releaseSpeed[1] - P.releaseSpeed[0]);
+      railPos(0); b.x = RPOS.x; b.y = RPOS.y;
+      stats.launched++;
+      return true;
+    }
+    function bounce(b, nx, ny, pen, e, fr) {
+      b.x += nx * pen; b.y += ny * pen;
+      const vn = b.vx * nx + b.vy * ny;
+      if (vn < 0) { const tx = -ny, ty = nx, vt = b.vx * tx + b.vy * ty, nvn = -vn * e, nvt = vt * fr; b.vx = nx * nvn + tx * nvt; b.vy = ny * nvn + ty * nvt; }
+    }
+    function kill(b, ev) { b.on = false; if (ev) { stats[ev]++; emit(ev); } else stats.out++; return true; }
+    const Z = LY;
+    function zones(b) {
+      if (b.y > F.bottom) return kill(b, null);
+      const hz = Z.heso; if (b.y > hz.y0 && b.y < hz.y1 && b.x > hz.x0 && b.x < hz.x1) return kill(b, 'heso');
+      const gz = Z.general; if (b.y > gz.y0 && b.y < gz.y1 && b.x > gz.x0 && b.x < gz.x1) return kill(b, 'general');
+      if (b.x > Z.innerWall) {
+        const dz = DC.zone; if (gates.denchuOpen() && b.x > dz.x0 && b.x < dz.x1 && b.y > dz.y0 && b.y < dz.y1) return kill(b, 'denchu');
+        if (gates.attackerOpen() && b.x > Z.attacker.x0 && b.x < Z.attacker.x1) { const y = plateY(b.x); if (b.y > y - RB - 5 && b.y < y + 8) return kill(b, 'attacker'); }
+        if (b.x < Z.attacker.x0 + 2 && b.y > plateY(b.x) - RB - 3) return kill(b, null);
+      }
+      const wz = Z.warpZone;
+      if (!b.wchk && b.x < wz.x1 && b.x > wz.x0 && b.y > wz.y0 && b.y < wz.y1) { b.wchk = true; if (rng() < warpRate) { b.warp = P.warpTime; stats.warp++; emit('warp'); return false; } }
+      return false;
+    }
+    function step(b, h) {
+      b.vy += P.gravity * h; b.x += b.vx * h; b.y += b.vy * h;
+      const sp2 = b.vx * b.vx + b.vy * b.vy; if (sp2 > P.maxSpeed * P.maxSpeed) { const k = P.maxSpeed / Math.sqrt(sp2); b.vx *= k; b.vy *= k; }
+      if (zones(b)) return false;
+      if (b.warp > 0) return false;
+      const er = P.restitution.rail, fr = P.friction.rail;
+      if (b.y < ACL.y) {
+        if (b.x < ACL.x) { const dx = b.x - ACL.x, dy = b.y - ACL.y, d2 = dx * dx + dy * dy, lim = AR - RAIL - RB; if (d2 > lim * lim) { const d = Math.sqrt(d2); bounce(b, -dx / d, -dy / d, d - lim, er, fr); } }
+        else if (b.x > ACR.x) { const dx = b.x - ACR.x, dy = b.y - ACR.y, d2 = dx * dx + dy * dy, lim = AR - RAIL - RB; if (d2 > lim * lim) { const d = Math.sqrt(d2); bounce(b, -dx / d, -dy / d, d - lim, er, fr); } }
+        else if (b.y < F.top + RAIL + RB) bounce(b, 0, 1, F.top + RAIL + RB - b.y, er, fr);
+      }
+      if (b.x < F.left + RAIL + RB) bounce(b, 1, 0, F.left + RAIL + RB - b.x, er, fr);
+      else if (b.x > F.right - RAIL - RB) bounce(b, -1, 0, b.x - (F.right - RAIL - RB), er, fr);
+      // 釘
+      const cx = b.x / CELL | 0, cy = b.y / CELL | 0;
+      if (cx >= 0 && cy >= 0 && cx < GC && cy < GR) {
+        const cell = grid[cx + cy * GC];
+        if (cell) for (let j = 0; j < cell.length; j++) {
+          const p = cell[j], dx = b.x - px[p], dy = b.y - py[p], d2 = dx * dx + dy * dy;
+          if (d2 < RR2) {
+            const d = Math.sqrt(d2) || 0.01, jt = (rng() - 0.5) * P.pinJitter, c = Math.cos(jt), s = Math.sin(jt), nx = dx / d, ny = dy / d;
+            bounce(b, nx * c - ny * s, nx * s + ny * c, RB + RP - d, P.restitution.pin, P.friction.pin);
+          }
+        }
+      }
+      // 電チュー（閉じているときはフタ）
+      if (!gates.denchuOpen()) { const dx = b.x - DC.x, dy = b.y - (DC.y - 4), d2 = dx * dx + dy * dy, r = RB + 8; if (d2 < r * r) { const d = Math.sqrt(d2) || 0.01; bounce(b, dx / d, dy / d, r - d, 0.4, 0.9); } }
+      // 壁
+      for (let i = 0; i < ns; i++) {
+        let t = ((b.x - sx1[i]) * sdx[i] + (b.y - sy1[i]) * sdy[i]) / sl2[i]; t = t < 0 ? 0 : t > 1 ? 1 : t;
+        const ex = b.x - (sx1[i] + sdx[i] * t), ey = b.y - (sy1[i] + sdy[i] * t), d2 = ex * ex + ey * ey;
+        if (d2 < RB * RB) {
+          const d = Math.sqrt(d2) || 0.01;
+          if (i === roadSeg) bounce(b, ex / d, ey / d, RB - d, P.restitution.road, P.friction.road);
+          else bounce(b, ex / d, ey / d, RB - d, P.restitution.wall, P.friction.wall);
+        }
+      }
+      // 風車
+      for (let i = 0; i < mills.length; i++) {
+        const m = mills[i], dx = b.x - m.x, dy = b.y - m.y, d2 = dx * dx + dy * dy, r = RB + m.r;
+        if (d2 < r * r) { const d = Math.sqrt(d2) || 0.01, nx = dx / d, ny = dy / d; bounce(b, nx, ny, r - d, P.restitution.mill, 0.9); b.vx += -ny * m.w * m.r * P.millKick; b.vy += nx * m.w * m.r * P.millKick; }
+      }
+      return true;
+    }
+    function update(dt) {
+      for (let i = 0; i < mills.length; i++) mills[i].a += mills[i].w * dt;
+      const sub = P.substeps, h = dt / sub;
+      for (let k = 0; k < balls.length; k++) {
+        const b = balls[k]; if (!b.on) continue;
+        if (b.rail) {
+          b.s += P.railSpeed * dt;
+          if (b.s >= b.sRel) { railPos(b.sRel); b.x = RPOS.x; b.y = RPOS.y; b.vx = RPOS.tx * b.vRel; b.vy = RPOS.ty * b.vRel; b.rail = false; }
+          else { railPos(b.s); b.x = RPOS.x; b.y = RPOS.y; }
+          continue;
+        }
+        if (b.warp > 0) { b.warp -= dt; if (b.warp <= 0) { const sd = LY.stageDrop; b.warp = 0; b.x = sd.x + rng() * sd.w; b.y = sd.y; b.vx = (rng() - 0.5) * 50; b.vy = 40; } continue; }
+        for (let s = 0; s < sub; s++) if (!step(b, h)) break;
+        if (b.on && b.warp <= 0) {
+          if (b.vx * b.vx + b.vy * b.vy < P.stuckSpeed * P.stuckSpeed) { b.still += dt; if (b.still > P.stuckTime) { b.on = false; stats.stuck++; } }
+          else b.still = 0;
+        }
+      }
+    }
+    build();
+    return {
+      launch, update, balls, mills, plateY, inField, stats,
+      get np() { return np; }, get px() { return px; }, get py() { return py; },
+      setWarp(v) { warpRate = v; },
+      active() { let n = 0; for (let i = 0; i < balls.length; i++) if (balls[i].on) n++; return n; },
+      resetStats() { for (const k in stats) stats[k] = 0; }
+    };
+  };
+})(typeof globalThis !== 'undefined' ? globalThis : this);
+</script>
+<script id="pg-game">
 'use strict';
 (() => {
+// ---- src/game/00-util.js ----
 // =====================================================================
 //  定数・ユーティリティ
 // =====================================================================
-const W = 720, H = 1320;
+const PG = globalThis.PG;
+const CFG = PG.CONFIG;             // 調整値（src/pure/config.js）
+const TM = CFG.timing;
+const { W, H } = CFG.layout;
 const TAU = Math.PI * 2, D2R = Math.PI / 180;
-const LX = 134, LY = 372, LW = 452, LH = 324, LRAD = 40; // 液晶
+const { x: LX, y: LY, w: LW, h: LH, r: LRAD } = CFG.layout.lcd; // 液晶
 const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
 const lerp = (a, b, t) => a + (b - a) * t;
 const easeOut = t => 1 - (1 - t) * (1 - t);
@@ -148,9 +721,15 @@ const easeOutBack = t => { const c1 = 1.70158, c3 = c1 + 1; return 1 + c3 * Math
 const easeOutBounce = t => { const n = 7.5625, d = 2.75; if (t < 1 / d) return n * t * t; if (t < 2 / d) return n * (t -= 1.5 / d) * t + .75; if (t < 2.5 / d) return n * (t -= 2.25 / d) * t + .9375; return n * (t -= 2.625 / d) * t + .984375; };
 const rnd = Math.random;
 const u32 = new Uint32Array(1);
-// リアルタイム乱数取得（ヘソ入賞の瞬間に呼ぶ）: 0..65535
-function rand16() { if (window.crypto && crypto.getRandomValues) { crypto.getRandomValues(u32); return u32[0] & 0xffff; } return (rnd() * 65536) | 0; }
-function pickW(arr) { let s = 0; for (let i = 0; i < arr.length; i++) s += arr[i][1]; let r = rnd() * s; for (let i = 0; i < arr.length; i++) { r -= arr[i][1]; if (r < 0) return arr[i][0]; } return arr[arr.length - 1][0]; }
+// リアルタイム乱数取得（ヘソ入賞の瞬間に呼ぶ）: 0..randRange-1
+const RAND_RANGE = CFG.spec.randRange;
+function rand16() { if (window.crypto && crypto.getRandomValues) { crypto.getRandomValues(u32); return u32[0] % RAND_RANGE; } return (rnd() * RAND_RANGE) | 0; }
+const randIn = a => a[0] + rnd() * (a[1] - a[0]);
+// 抽選（src/pure/spec.js）。設定（確率・先読み・先バレ）は保存データから渡す
+const LOT = PG.Spec.createLottery(CFG, rnd);
+const Lottery = { draw: (raw, isRush, force) => LOT.draw(raw, isRush, force, D.settings) };
+// 物理（src/pure/physics.js）は boot() で作る（M の開閉状態を参照するため）
+let Phys = null;
 const fmt = n => Math.round(n).toLocaleString('ja-JP');
 // 毎フレームの文字列生成を避けるための色テーブル
 const HUE = [], HUE_D = [];
@@ -161,9 +740,10 @@ for (let i = 0; i <= 20; i++) { const a = (i / 20).toFixed(2); BLACK_A.push(`rgb
 const aIdx = a => clamp(Math.round(a * 20), 0, 20);
 const F_BRUSH = '"Yuji Boku","Dela Gothic One","Hiragino Mincho ProN","Yu Mincho",serif';
 const F_HEAVY = '"Dela Gothic One","Arial Black","Hiragino Kaku Gothic StdN",sans-serif';
-const COLOR_RANK = { white: 0, blue: 1, green: 2, red: 3, gold: 4, rainbow: 5 };
+const COLOR_RANK = PG.Spec.COLOR_RANK;
 const HOLD_FILL = { white: '#f2f2f2', blue: '#2f7bff', green: '#20d468', red: '#ff2323', gold: '#ffc61a' };
 
+// ---- src/game/01-bus.js ----
 // =====================================================================
 //  イベントバス（モジュール間の疎結合）
 // =====================================================================
@@ -173,6 +753,7 @@ const Bus = {
   emit(e, a, b) { const l = this.h[e]; if (l) for (let i = 0; i < l.length; i++) l[i](a, b); }
 };
 
+// ---- src/game/02-store.js ----
 // =====================================================================
 //  永続化（localStorage）
 // =====================================================================
@@ -183,7 +764,9 @@ const Store = {
     return {
       balls: 0, invest: 0, totalSpins: 0, spinsSinceHit: 0, hits: 0, firstHits: 0, rushEntries: 0,
       maxPayout: 0, maxChain: 0, lastChain: 0, slump: [0], history: [],
-      settings: { vol: 3, bright: 3, sakibare: 0, preread: false, autoAim: true, prob: 319.6, rushMode: 'quick' }
+      // 実測値（理論値と比べる）: 左打ちの発射数・ヘソ入賞数・RUSH中の当り数・RUSH終了数
+      meas: { leftShots: 0, hesoIn: 0, rushHits: 0, rushEnds: 0 },
+      settings: { vol: 3, bright: 3, sakibare: 0, preread: false, autoAim: true, prob: PG.CONFIG.spec.defaultProbDenom, rushMode: 'quick' }
     };
   },
   load() {
@@ -194,6 +777,7 @@ const Store = {
     if (!this.data) this.data = this.defaults();
     if (!Array.isArray(this.data.slump) || !this.data.slump.length) this.data.slump = [0];
     if (!Array.isArray(this.data.history)) this.data.history = [];
+    this.data.meas = Object.assign(this.defaults().meas, this.data.meas || {});
   },
   save() { try { localStorage.setItem(SAVE_KEY, JSON.stringify(this.data)); this.dirty = false; } catch (e) { } },
   mark() { this.dirty = true; },
@@ -202,6 +786,7 @@ const Store = {
 Store.load();
 let D = Store.data;
 
+// ---- src/game/03-audio.js ----
 // =====================================================================
 //  オーディオ（Web Audio API リアルタイム合成）
 // =====================================================================
@@ -419,6 +1004,7 @@ const BGM = {
 };
 const chainTrack = () => M.chain >= 10 ? 'premium' : M.chain >= 5 ? 'rock' : 'edm';
 
+// ---- src/game/04-canvas.js ----
 // =====================================================================
 //  Canvas ヘルパー・テキストスプライト（筆文字ゴールド）
 // =====================================================================
@@ -476,6 +1062,7 @@ function T(text, size, style, font) {
   return s;
 }
 
+// ---- src/game/05-digits.js ----
 // =====================================================================
 //  3D風立体ゴールド図柄スプライト
 // =====================================================================
@@ -512,194 +1099,7 @@ function buildDigits() {
   }
 }
 
-// =====================================================================
-//  物理（盤面・釘・風車・入賞口）
-// =====================================================================
-const Phys = (() => {
-  const RB = 6, RP = 3.2, G = 1150, RR2 = (RB + RP) * (RB + RP);
-  const ACL = { x: 230, y: 546 }, ACR = { x: 490, y: 546 }, AR = 200, TOP = 346, LWALL = 30, RWALL = 690, RAIL = 4;
-  const LA = 454, RRAIL = 190, LB = RRAIL * Math.PI / 2, LC = 260;
-  const PLATE = { x1: 690, y1: 884, x2: 586, y2: 912 };
-  const plateY = x => PLATE.y1 + (PLATE.x1 - x) * (PLATE.y2 - PLATE.y1) / (PLATE.x1 - PLATE.x2);
-  let px, py, np = 0;
-  const ROAD = { x1: 104, y1: 777, x2: 312, y2: 816 }; // 道釘（物理は滑らかなレール、見た目は釘列）
-  const segA = [];
-  let sx1, sy1, sdx, sdy, sl2, ns = 0;
-  const CELL = 24, GC = Math.ceil(W / CELL), GR = Math.ceil(H / CELL), grid = new Array(GC * GR);
-  const mills = [{ x: 78, y: 738, r: 11, vr: 19, a: 0, w: 3.2 }, { x: 640, y: 600, r: 11, vr: 19, a: 0, w: -3.2 }];
-  const DC = { x: 640, y: 826 };
-  const balls = [];
-  for (let i = 0; i < 72; i++) balls.push({ on: false, x: 0, y: 0, vx: 0, vy: 0, rail: false, s: 0, sRel: 0, vRel: 0, warp: 0, wchk: false, still: 0 });
-  const RPOS = { x: 0, y: 0, tx: 0, ty: 0 };
-  let warpRate = 0.6;
-
-  function inField(x, y, m) {
-    if (x < LWALL + m || x > RWALL - m || y < TOP + m || y > 1000) return false;
-    if (y < ACL.y) {
-      if (x < ACL.x) { const dx = x - ACL.x, dy = y - ACL.y; if (dx * dx + dy * dy > (AR - m) * (AR - m)) return false; }
-      if (x > ACR.x) { const dx = x - ACR.x, dy = y - ACR.y; if (dx * dx + dy * dy > (AR - m) * (AR - m)) return false; }
-    }
-    return true;
-  }
-  function inLcd(x, y, m) { return x > LX - m && x < LX + LW + m && y > LY - m && y < LY + LH + m; }
-  function build() {
-    const P = [];
-    // 球が挟まらないよう、横並びの釘どうしは玉が通れる間隔(19px)以上あける（道釘は転がす用なので例外）
-    const add = (x, y, road) => {
-      if (!inField(x, y, RAIL + 17) || inLcd(x, y, 17)) return;
-      if (!road) for (let i = 0; i < P.length; i += 2) { const dx = P[i] - x, dy = P[i + 1] - y; if (dx * dx + dy * dy < 19 * 19) return; }
-      P.push(x, y);
-    };
-    // 左レーン（千鳥配置）
-    for (let row = 0; row < 12; row++) { const y = 418 + row * 24; const xs = row % 2 ? [50, 72, 94, 116] : [61, 83, 105]; xs.forEach(x => add(x, y)); }
-    // 天釘（左上アーチ）
-    for (let a = 198; a <= 226; a += 9) add(ACL.x + 172 * Math.cos(a * D2R), ACL.y + 172 * Math.sin(a * D2R));
-    // 風車まわり・液晶下左
-    [[38, 708], [112, 708], [130, 732], [38, 770], [56, 796], [150, 760], [176, 744], [204, 736], [232, 732], [262, 734], [292, 742]].forEach(p => add(p[0], p[1]));
-    // 道釘（ヘソへ向かう）
-    // 命釘・寄り釘
-    add(345, 826); add(375, 826); add(330, 806); add(390, 806); add(318, 778); add(402, 778);
-    // ステージ落下口の誘導
-    add(338, 742); add(382, 742);
-    // 液晶下右側
-    for (let r = 0; r < 6; r++) for (let c = 0; c < 6; c++) { const x = 410 + c * 30 + (r % 2) * 15, y = 720 + r * 32; if (x < 566) add(x, y); }
-    // 下段
-    for (let c = 0; c < 9; c++) add(52 + c * 30, 860 + (c % 2) * 18);
-    for (let c = 0; c < 7; c++) add(60 + c * 34, 908 + (c % 2) * 14);
-    // 右レーン
-    for (let r = 0; r < 10; r++) {
-      const y = 418 + r * 36; const xs = r % 2 ? [623, 649] : [610, 636, 662];
-      xs.forEach(x => { const dx = x - mills[1].x, dy = y - mills[1].y; if (dx * dx + dy * dy < 28 * 28) return; if (y > 780) return; add(x, y); });
-    }
-    // 天釘（右上アーチ）
-    for (let a = 296; a <= 330; a += 11) add(ACR.x + 172 * Math.cos(a * D2R), ACR.y + 172 * Math.sin(a * D2R));
-    np = P.length / 2; px = new Float32Array(np); py = new Float32Array(np);
-    for (let i = 0; i < np; i++) { px[i] = P[i * 2]; py[i] = P[i * 2 + 1]; }
-    // グリッド登録（隣接セルにも登録して自セルのみ参照）
-    for (let i = 0; i < grid.length; i++) grid[i] = null;
-    const reach = RB + RP + 1;
-    for (let i = 0; i < np; i++) {
-      const c0 = Math.floor((px[i] - reach) / CELL), c1 = Math.floor((px[i] + reach) / CELL), r0 = Math.floor((py[i] - reach) / CELL), r1 = Math.floor((py[i] + reach) / CELL);
-      for (let r = r0; r <= r1; r++) for (let c = c0; c <= c1; c++) { if (c < 0 || r < 0 || c >= GC || r >= GR) continue; const k = c + r * GC; (grid[k] || (grid[k] = [])).push(i); }
-    }
-    // 壁セグメント
-    segA.length = 0;
-    const seg = (a, b, c, d) => segA.push(a, b, c, d);
-    // 液晶外周（角丸を折れ線近似）
-    const pts = []; const cr = LRAD;
-    const corner = (cx, cy, a0) => { for (let k = 0; k <= 4; k++) { const a = (a0 + k * 22.5) * D2R; pts.push(cx + cr * Math.cos(a), cy + cr * Math.sin(a)); } };
-    corner(LX + cr, LY + cr, 180); corner(LX + LW - cr, LY + cr, 270); corner(LX + LW - cr, LY + LH - cr, 0); corner(LX + cr, LY + LH - cr, 90);
-    for (let i = 0; i < pts.length / 2; i++) { const j = (i + 1) % (pts.length / 2); seg(pts[i * 2], pts[i * 2 + 1], pts[j * 2], pts[j * 2 + 1]); }
-    seg(586, 696, 586, 908);              // 右レーン内壁
-    seg(587, 764, 614, 800); seg(686, 764, 666, 800); // 電チュー誘導
-    seg(PLATE.x1, PLATE.y1, PLATE.x2, PLATE.y2); // アタッカープレート
-    seg(348, 846, 348, 866); seg(372, 846, 372, 866); seg(334, 852, 348, 846); seg(372, 846, 386, 852); // ヘソ
-    seg(141, 934, 141, 950); seg(163, 934, 163, 950); // 一般入賞口
-    seg(ROAD.x1, ROAD.y1, ROAD.x2, ROAD.y2); // 道釘
-    ns = segA.length / 4; sx1 = new Float32Array(ns); sy1 = new Float32Array(ns); sdx = new Float32Array(ns); sdy = new Float32Array(ns); sl2 = new Float32Array(ns);
-    for (let i = 0; i < ns; i++) { sx1[i] = segA[i * 4]; sy1[i] = segA[i * 4 + 1]; sdx[i] = segA[i * 4 + 2] - sx1[i]; sdy[i] = segA[i * 4 + 3] - sy1[i]; sl2[i] = sdx[i] * sdx[i] + sdy[i] * sdy[i] || 1; }
-  }
-  function railPos(s) {
-    if (s < LA) { RPOS.x = LWALL + RAIL + RB; RPOS.y = 1000 - s; RPOS.tx = 0; RPOS.ty = -1; return; }
-    s -= LA;
-    if (s < LB) { const a = Math.PI + s / RRAIL; RPOS.x = ACL.x + RRAIL * Math.cos(a); RPOS.y = ACL.y + RRAIL * Math.sin(a); RPOS.tx = -Math.sin(a); RPOS.ty = Math.cos(a); return; }
-    s -= LB;
-    if (s < LC) { RPOS.x = ACL.x + s; RPOS.y = ACL.y - RRAIL; RPOS.tx = 1; RPOS.ty = 0; return; }
-    s -= LC;
-    const a = 1.5 * Math.PI + s / RRAIL; RPOS.x = ACR.x + RRAIL * Math.cos(a); RPOS.y = ACR.y + RRAIL * Math.sin(a); RPOS.tx = -Math.sin(a); RPOS.ty = Math.cos(a);
-  }
-  function launch(strong) {
-    let b = null; for (let i = 0; i < balls.length; i++) if (!balls[i].on) { b = balls[i]; break; }
-    if (!b) return false;
-    b.on = true; b.rail = true; b.s = 0; b.warp = 0; b.wchk = false; b.still = 0;
-    const deg = strong ? 292 + rnd() * 26 : 196 + rnd() * 30;
-    b.sRel = strong ? LA + LB + LC + (deg - 270) * D2R * RRAIL : LA + (deg - 180) * D2R * RRAIL;
-    b.vRel = 200 + rnd() * 140;
-    railPos(0); b.x = RPOS.x; b.y = RPOS.y;
-    return true;
-  }
-  function bounce(b, nx, ny, pen, e, fr) {
-    b.x += nx * pen; b.y += ny * pen;
-    const vn = b.vx * nx + b.vy * ny;
-    if (vn < 0) { const tx = -ny, ty = nx, vt = b.vx * tx + b.vy * ty, nvn = -vn * e, nvt = vt * fr; b.vx = nx * nvn + tx * nvt; b.vy = ny * nvn + ty * nvt; }
-  }
-  function kill(b, ev) { b.on = false; if (ev) Bus.emit('entry', ev); return true; }
-  function zones(b) {
-    if (b.y > 992) return kill(b, null);
-    if (b.y > 844 && b.y < 858 && b.x > 349 && b.x < 371) return kill(b, 'heso');
-    if (b.y > 932 && b.y < 946 && b.x > 143 && b.x < 161) return kill(b, 'general');
-    if (b.x > 586) {
-      if (M.denchuOpen && b.x > 612 && b.x < 668 && b.y > 808 && b.y < 838) return kill(b, 'denchu');
-      if (M.attackerOpen && b.x > 598 && b.x < 682) { const y = plateY(b.x); if (b.y > y - RB - 5 && b.y < y + 8) return kill(b, 'attacker'); }
-      if (b.x < 600 && b.y > plateY(b.x) - RB - 3) return kill(b, null);
-    }
-    if (!b.wchk && b.x < 146 && b.x > 118 && b.y > 520 && b.y < 610) { b.wchk = true; if (rnd() < warpRate) { b.warp = 0.85; Bus.emit('warp'); return false; } }
-    return false;
-  }
-  function step(b, h) {
-    b.vy += G * h; b.x += b.vx * h; b.y += b.vy * h;
-    const sp2 = b.vx * b.vx + b.vy * b.vy; if (sp2 > 1400 * 1400) { const k = 1400 / Math.sqrt(sp2); b.vx *= k; b.vy *= k; }
-    if (zones(b)) return false;
-    if (b.warp > 0) return false;
-    // 外周
-    if (b.y < ACL.y) {
-      if (b.x < ACL.x) { const dx = b.x - ACL.x, dy = b.y - ACL.y, d2 = dx * dx + dy * dy, lim = AR - RAIL - RB; if (d2 > lim * lim) { const d = Math.sqrt(d2); bounce(b, -dx / d, -dy / d, d - lim, 0.35, 0.95); } }
-      else if (b.x > ACR.x) { const dx = b.x - ACR.x, dy = b.y - ACR.y, d2 = dx * dx + dy * dy, lim = AR - RAIL - RB; if (d2 > lim * lim) { const d = Math.sqrt(d2); bounce(b, -dx / d, -dy / d, d - lim, 0.35, 0.95); } }
-      else if (b.y < TOP + RAIL + RB) bounce(b, 0, 1, TOP + RAIL + RB - b.y, 0.35, 0.95);
-    }
-    if (b.x < LWALL + RAIL + RB) bounce(b, 1, 0, LWALL + RAIL + RB - b.x, 0.35, 0.95);
-    else if (b.x > RWALL - RAIL - RB) bounce(b, -1, 0, b.x - (RWALL - RAIL - RB), 0.35, 0.95);
-    // 釘
-    const cx = b.x / CELL | 0, cy = b.y / CELL | 0;
-    if (cx >= 0 && cy >= 0 && cx < GC && cy < GR) {
-      const cell = grid[cx + cy * GC];
-      if (cell) for (let j = 0; j < cell.length; j++) {
-        const p = cell[j], dx = b.x - px[p], dy = b.y - py[p], d2 = dx * dx + dy * dy;
-        if (d2 < RR2) {
-          const d = Math.sqrt(d2) || 0.01; const jt = (rnd() - 0.5) * 0.3, c = Math.cos(jt), s = Math.sin(jt);
-          const nx = dx / d, ny = dy / d; bounce(b, nx * c - ny * s, nx * s + ny * c, RB + RP - d, 0.5, 0.9);
-        }
-      }
-    }
-    // 電チュー（閉）
-    if (!M.denchuOpen) { const dx = b.x - DC.x, dy = b.y - (DC.y - 4), d2 = dx * dx + dy * dy, r = RB + 8; if (d2 < r * r) { const d = Math.sqrt(d2) || 0.01; bounce(b, dx / d, dy / d, r - d, 0.4, 0.9); } }
-    // 壁
-    for (let i = 0; i < ns; i++) {
-      let t = ((b.x - sx1[i]) * sdx[i] + (b.y - sy1[i]) * sdy[i]) / sl2[i]; t = t < 0 ? 0 : t > 1 ? 1 : t;
-      const ex = b.x - (sx1[i] + sdx[i] * t), ey = b.y - (sy1[i] + sdy[i] * t), d2 = ex * ex + ey * ey;
-      if (d2 < RB * RB) { const d = Math.sqrt(d2) || 0.01; if (i === ns - 1) bounce(b, ex / d, ey / d, RB - d, 0.25, 0.999); else bounce(b, ex / d, ey / d, RB - d, 0.36, 0.94); }
-    }
-    // 風車
-    for (let i = 0; i < 2; i++) {
-      const m = mills[i], dx = b.x - m.x, dy = b.y - m.y, d2 = dx * dx + dy * dy, r = RB + m.r;
-      if (d2 < r * r) { const d = Math.sqrt(d2) || 0.01, nx = dx / d, ny = dy / d; bounce(b, nx, ny, r - d, 0.45, 0.9); b.vx += -ny * m.w * m.r * 2.2; b.vy += nx * m.w * m.r * 2.2; }
-    }
-    return true;
-  }
-  function update(dt) {
-    mills[0].a += mills[0].w * dt; mills[1].a += mills[1].w * dt;
-    const sub = 3, h = dt / sub;
-    for (let k = 0; k < balls.length; k++) {
-      const b = balls[k]; if (!b.on) continue;
-      if (b.rail) {
-        b.s += 1500 * dt;
-        if (b.s >= b.sRel) { railPos(b.sRel); b.x = RPOS.x; b.y = RPOS.y; b.vx = RPOS.tx * b.vRel; b.vy = RPOS.ty * b.vRel; b.rail = false; }
-        else { railPos(b.s); b.x = RPOS.x; b.y = RPOS.y; }
-        continue;
-      }
-      if (b.warp > 0) { b.warp -= dt; if (b.warp <= 0) { b.warp = 0; b.x = 344 + rnd() * 32; b.y = 704; b.vx = (rnd() - 0.5) * 50; b.vy = 40; } continue; }
-      for (let s = 0; s < sub; s++) if (!step(b, h)) break;
-      if (b.on && b.warp <= 0) { if (b.vx * b.vx + b.vy * b.vy < 400) { b.still += dt; if (b.still > 2.5) b.on = false; } else b.still = 0; }
-    }
-  }
-  return {
-    build, launch, update, balls, mills, plateY, PLATE, DC, inField, ROAD,
-    get np() { return np; }, get px() { return px; }, get py() { return py; },
-    setWarp(v) { warpRate = v; },
-    active() { let n = 0; for (let i = 0; i < balls.length; i++) if (balls[i].on) n++; return n; }
-  };
-})();
-
+// ---- src/game/06-reels.js ----
 // =====================================================================
 //  リール（図柄）
 // =====================================================================
@@ -763,84 +1163,7 @@ const Reels = {
   }
 };
 
-// =====================================================================
-//  抽選（ヘソ入賞の瞬間に乱数取得 → 当否・演出を決定）
-// =====================================================================
-const KM = 0.00005; // 激熱演出がハズレで出る確率（99%以上の信頼度）
-const RUSH_PROB = 1 / 60; // 100回転ST → 継続率 約81%
-const Lottery = {
-  draw(raw, isRush, force) {
-    const S = D.settings;
-    const prob = isRush ? RUSH_PROB : 1 / S.prob;
-    let hit = raw < 65536 * prob;
-    if (force) hit = force !== 'miss';
-    const h = { raw, isRush, hit, kind: null, route: null, final: 0, nums: [1, 2, 3], reachNum: 0, sc: null, rs: null, color: 'white', dispColor: 'white', changeAt: null, fxType: 'sword', sakibare: false, fx: null, uraDone: false };
-    if (isRush) {
-      h.kind = hit ? 'rush' : null; h.route = hit ? 'rush' : null;
-      if (hit) { h.final = rnd() < 0.5 ? 7 : 1 + (rnd() * 9 | 0); h.nums = [h.final, h.final, h.final]; }
-      else { const l = 1 + (rnd() * 9 | 0); let r = 1 + (rnd() * 9 | 0); if (r === l) r = (r % 9) + 1; h.nums = [l, 1 + (rnd() * 9 | 0), r]; }
-      const iw = ['bgmStop', 'lampOff', 'count777'];
-      h.rs = { iwakan: hit ? ((force === 'iwakan' || rnd() < 0.85) ? iw[rnd() * 3 | 0] : null) : null, battle: hit ? true : rnd() < 0.1 };
-      h.color = hit ? pickW([['white', 55], ['red', 25], ['gold', 12], ['rainbow', 8]]) : pickW([['white', 97], ['blue', 3]]);
-    } else {
-      if (hit) {
-        h.kind = force === 'regular' ? 'regular' : (force && force !== 'hit' && force !== 'sakibare') ? 'fever' : (rnd() < 0.6 ? 'fever' : 'regular');
-        h.route = h.kind === 'regular' ? 'regular' : force === 'scoop' ? 'scoop' : force === 'lever' ? 'lever' : (force === 'battle' || force === 'story' || force === 'zenkaiten' || force === 'ippatsu') ? '7direct' : pickW([['7direct', 50], ['scoop', 30], ['lever', 20]]);
-        h.final = h.route === '7direct' ? 7 : this.nonSeven(h.route);
-      }
-      const pre = S.preread;
-      if (hit) h.color = pickW(pre ? [['white', 15], ['blue', 10], ['green', 15], ['red', 37], ['gold', 15], ['rainbow', 8]] : [['white', 25], ['blue', 15], ['green', 15], ['red', 30], ['gold', 10], ['rainbow', 5]]);
-      else h.color = pickW(pre ? [['white', 94], ['blue', 4.5], ['green', 1.4], ['red', 0.1]] : [['white', 88], ['blue', 8], ['green', 3.5], ['red', 0.5], ['gold', 0.00001]]);
-      h.sc = this.scenario(h, force);
-      if (!hit && COLOR_RANK[h.color] >= 3) h.sc.reach = 'sp';
-      if (!hit && h.color === 'green' && h.sc.reach === 'none' && rnd() < 0.5) h.sc.reach = 'normal';
-      if (force === 'miss') { h.sc.reach = 'sp'; h.sc.spType = rnd() < 0.5 ? 'battle' : 'story'; }
-      this.numbers(h);
-      if (hit && (force === 'sakibare' || rnd() < S.sakibare)) { h.sakibare = true; if (COLOR_RANK[h.color] < 3) h.color = 'red'; }
-    }
-    h.fxType = h.color === 'rainbow' ? 'thunder' : ['sword', 'bullet', 'thunder'][rnd() * 3 | 0];
-    if (h.color !== 'white') h.changeAt = h.sakibare ? 'saki' : (rnd() < 0.45 ? 'entry' : 'spin');
-    return h;
-  },
-  nonSeven(route) {
-    const odd = [1, 3, 5, 9], even = [2, 4, 6, 8];
-    const useOdd = route === 'regular' ? rnd() < 0.3 : rnd() < 0.7;
-    const a = useOdd ? odd : even; return a[rnd() * a.length | 0];
-  },
-  scenario(h, force) {
-    const hit = h.hit, s = {};
-    if (hit) s.reach = force === 'zenkaiten' ? 'zenkaiten' : force === 'ippatsu' ? 'ippatsu' : (force === 'battle' || force === 'story' || force === 'scoop' || force === 'lever') ? 'sp' : pickW([['sp', 80], ['normal', 8], ['zenkaiten', 4], ['ippatsu', 8]]);
-    else s.reach = pickW([['none', 82], ['normal', 13], ['sp', 5]]);
-    s.spType = force === 'battle' ? 'battle' : force === 'story' ? 'story' : (rnd() < 0.55 ? 'battle' : 'story');
-    s.judge = rnd() < 0.55 ? 'button' : 'lever';
-    const isReach = s.reach === 'normal' || s.reach === 'sp';
-    if (isReach) s.telop = hit ? pickW([[0, 10], [1, 35], [2, 40], [3, 15]]) : pickW([[0, 65], [1, 35], [2, KM]]);
-    else s.telop = (hit && s.reach !== 'ippatsu' && rnd() < 0.5) ? 2 : (rnd() < 0.1 ? 0 : -1);
-    s.telopStart = s.telop > 0 && rnd() < 0.55 ? s.telop - 1 : s.telop;
-    s.cutin = s.reach === 'sp' ? (hit ? pickW([[0, 30], [1, 40], [2, 30]]) : pickW([[0, 70], [1, 30], [2, KM]])) : 0;
-    s.goldTitle = s.reach === 'sp' && (hit ? rnd() < 0.45 : rnd() < KM);
-    s.titleColor = s.goldTitle ? 'gold' : (rnd() < (hit ? 0.6 : 0.25) ? 'red' : 'white');
-    s.logoDrop = s.reach === 'sp' && (hit ? rnd() < 0.3 : rnd() < KM);
-    s.stepup = hit ? (rnd() < 0.5 ? pickW([[3, 20], [4, 40], [5, 40]]) : 0) : (rnd() < 0.1 ? pickW([[1, 40], [2, 35], [3, 22], [4, 3]]) : 0);
-    if (s.reach === 'zenkaiten' || s.reach === 'ippatsu') s.stepup = 0;
-    if (!hit && s.stepup >= 3 && s.reach === 'none') s.reach = 'normal';
-    s.scoop = null;
-    if (hit) {
-      if (h.route === 'scoop') s.scoop = { ok: true };
-      else if (h.route === 'lever') s.scoop = rnd() < 0.4 ? { ok: false } : null;
-      else if (h.route === 'regular') s.scoop = rnd() < 0.5 ? { ok: false } : null;
-      if (s.scoop) s.scoop.timing = (s.reach === 'sp' && rnd() < 0.5) ? 'pre' : 'post';
-    }
-    return s;
-  },
-  numbers(h) {
-    const s = h.sc;
-    if (h.hit) { h.reachNum = h.final; h.nums = [h.final, h.final, h.final]; return; }
-    if (s.reach !== 'none') { const n = 1 + (rnd() * 9 | 0); h.reachNum = n; const c = rnd() < 0.65 ? (n % 9) + 1 : ((n + 7) % 9) + 1; h.nums = [n, c, n]; }
-    else { const l = 1 + (rnd() * 9 | 0); let r = 1 + (rnd() * 9 | 0); if (r === l) r = (r % 9) + 1; h.nums = [l, 1 + (rnd() * 9 | 0), r]; }
-  }
-};
-
+// ---- src/game/07-fx.js ----
 // =====================================================================
 //  エフェクト（パーティクル・フラッシュ・シェイク・ポップ文字）
 // =====================================================================
@@ -911,6 +1234,7 @@ const FX = {
   }
 };
 
+// ---- src/game/08-yaku.js ----
 // =====================================================================
 //  役物（巨大FEVERロゴ）とパトランプ
 // =====================================================================
@@ -962,6 +1286,7 @@ const Patlamp = {
   }
 };
 
+// ---- src/game/09-frame.js ----
 // =====================================================================
 //  筐体枠LED（通常:青緑グラデ流れ / リーチ:赤点滅 / 確定:レインボー高速回転）
 // =====================================================================
@@ -1008,6 +1333,7 @@ const Frame = {
   }
 };
 
+// ---- src/game/10-board.js ----
 // =====================================================================
 //  盤面（静的キャッシュ + 動的部品）
 // =====================================================================
@@ -1068,7 +1394,7 @@ const Board = {
     // 釘
     const pin = mkCanvas(10, 10); const pg = pin.x.createRadialGradient(4, 4, 0.5, 5, 5, 5); pg.addColorStop(0, '#fffbe0'); pg.addColorStop(0.5, '#e0b030'); pg.addColorStop(1, '#4a3000'); pin.x.fillStyle = pg; pin.x.beginPath(); pin.x.arc(5, 5, 4.6, 0, TAU); pin.x.fill();
     const pxs = Phys.px, pys = Phys.py;
-    const RD = Phys.ROAD; for (let i = 0; i <= 15; i++) { const k = i / 15, rx = lerp(RD.x1, RD.x2, k), ry = lerp(RD.y1, RD.y2, k) + 3; x.drawImage(pin.c, rx - 4.5, ry - 4.5, 9, 9); }
+    const RD = CFG.layout.road; for (let i = 0; i <= 15; i++) { const k = i / 15, rx = lerp(RD.x1, RD.x2, k), ry = lerp(RD.y1, RD.y2, k) + 3; x.drawImage(pin.c, rx - 4.5, ry - 4.5, 9, 9); }
     for (let i = 0; i < Phys.np; i++) { x.fillStyle = 'rgba(0,0,0,0.5)'; x.beginPath(); x.arc(pxs[i] + 2, pys[i] + 2, 3.4, 0, TAU); x.fill(); x.drawImage(pin.c, pxs[i] - 4.5, pys[i] - 4.5, 9, 9); }
     // 下皿パネル
     const lp = x.createLinearGradient(0, 1014, 0, 1160); lp.addColorStop(0, '#2a1a00'); lp.addColorStop(1, '#0a0500'); x.fillStyle = lp; x.beginPath(); rr(x, 22, 1018, 676, 138, 26); x.fill();
@@ -1090,7 +1416,7 @@ const Board = {
     // ヘソ発光
     if (this.hesoT > 0) { x.globalCompositeOperation = 'lighter'; x.fillStyle = GOLD_A[aIdx(this.hesoT * 2.5)]; x.beginPath(); x.arc(360, 858, 26, 0, TAU); x.fill(); x.globalCompositeOperation = 'source-over'; }
     // 電チュー
-    const dc = Phys.DC, o = this.dcAnim;
+    const dc = CFG.layout.denchu, o = this.dcAnim;
     x.fillStyle = '#c08a10'; x.fillRect(dc.x - 14, dc.y + 4, 28, 14);
     x.lineWidth = 6; x.lineCap = 'round'; x.strokeStyle = o > 0.5 ? '#40ff80' : '#ff4040';
     x.beginPath(); x.moveTo(dc.x - 8, dc.y + 4); x.lineTo(dc.x - 8 - 14 * o, dc.y - 14 + 6 * o); x.stroke();
@@ -1127,6 +1453,7 @@ const Board = {
   }
 };
 
+// ---- src/game/11-counter.js ----
 // =====================================================================
 //  上部データカウンター（回転数・大当り・初当り・最高出玉・RUSH・スランプグラフ・履歴）
 // =====================================================================
@@ -1181,6 +1508,7 @@ const Counter = {
   draw(x) { if (this.dirty) this.render(); x.drawImage(this.cv.c, 0, 0, W, 196); }
 };
 
+// ---- src/game/12-lcd.js ----
 // =====================================================================
 //  液晶（ビューモデル + 描画）
 // =====================================================================
@@ -1518,6 +1846,7 @@ const LCD = {
 };
 const SLOT = { x: 0, y: 0, r: 0 };
 
+// ---- src/game/13-fsm.js ----
 // =====================================================================
 //  ステートマシン（スタック型）とタイムライン
 // =====================================================================
@@ -1543,6 +1872,7 @@ class FSM {
   update(dt) { const tp = this.top; if (tp) tp.update(dt); }
 }
 
+// ---- src/game/14-machine.js ----
 // =====================================================================
 //  マシン本体（保留・出玉・統計）
 // =====================================================================
@@ -1555,28 +1885,29 @@ const M = {
   ledMode() { return this.ledFlash > 0 ? 'flash' : this.led; },
   addBalls(n) { D.balls += n; Store.mark(); },
   fire() {
-    if (D.balls <= 0) { D.balls += 250; D.invest += 1000; Store.mark(); }
-    if (Phys.launch(this.strong)) { D.balls--; Sound.play('shot'); }
+    if (D.balls <= 0) { D.balls += CFG.payout.lendBalls; D.invest += CFG.payout.lendYen; Store.mark(); }
+    if (Phys.launch(this.strong)) { D.balls--; if (!this.strong) D.meas.leftShots++; Sound.play('shot'); }
   },
   update(dt) {
     const needR = this.needRight();
     this.strong = D.settings.autoAim ? needR : this.manualStrong;
     if (this.arrowT > 0) this.arrowT -= dt;
     if (this.auto && this.started && !this.noFire) {
-      const iv = this.inBonus ? 0.2 : (this.mode === 'rush' ? 0.42 : 0.6); // 大当り中は爆速消化
+      const iv = this.inBonus ? CFG.fire.bonus : (this.mode === 'rush' ? CFG.fire.rush : CFG.fire.normal); // 大当り中は爆速消化
       this.fireAcc += dt; while (this.fireAcc >= iv) { this.fireAcc -= iv; this.fire(); }
     } else this.fireAcc = 0;
-    if (this.mode === 'rush' && !this.inBonus) { this.dcT += dt; this.denchuOpen = (this.dcT % 1.8) < 1.35; } else this.denchuOpen = false;
+    if (this.mode === 'rush' && !this.inBonus) { this.dcT += dt; this.denchuOpen = (this.dcT % CFG.denchu.cycle) < CFG.denchu.open; } else this.denchuOpen = false;
     if (this.ledFlash > 0) this.ledFlash -= dt;
     this.sm.update(dt);
   },
   entry(src, virtual) {
     if (src === 'attacker') { const s = this.sm.top; if (s && s.onAttacker) s.onAttacker(); return; }
-    if (!virtual) this.addBalls(src === 'heso' ? 3 : src === 'denchu' ? 1 : src === 'general' ? 10 : 0);
+    if (!virtual) this.addBalls(CFG.payout[src] || 0);
+    if (!virtual && src === 'heso' && !this.strong) D.meas.hesoIn++;
     if (src === 'general') { Sound.play('chime'); return; }
     if (!virtual) Sound.play(src === 'heso' ? 'chucker' : 'denchu');
     if (src === 'heso') Board.hesoT = 0.4;
-    if (this.holds.length >= 4) return; // オーバーフロー
+    if (this.holds.length >= CFG.holdMax) return; // オーバーフロー
     const isRush = this.mode === 'rush' || (this.inBonus && this.bonusRush);
     let force = this.force;
     if (force === 'iwakan' && !isRush) force = null; else this.force = null;
@@ -1595,7 +1926,7 @@ const M = {
   },
   spinStat(isRush) {
     if (isRush) this.rushSpinCount++; else { D.totalSpins++; D.spinsSinceHit++; }
-    const net = Math.round(D.balls - D.invest / 4);
+    const net = Math.round(D.balls - D.invest / (CFG.payout.lendYen / CFG.payout.lendBalls));
     D.slump.push(net); if (D.slump.length > 600) { const a = []; for (let i = 0; i < D.slump.length; i += 2) a.push(D.slump[i]); a.push(D.slump[D.slump.length - 1]); D.slump = a; }
     Counter.dirty = true; Store.mark();
   }
@@ -1621,6 +1952,7 @@ function rushEnterFx() {
   FX.pop(T('RUSH突入!!', 92, 'rainbow'), W / 2, 560, 2.2, 'zoom'); FX.rainbow(1.5); FX.confetti(120); FX.shake(18, 0.6); Sound.play('boom'); Sound.speak('ラッシュ突入！');
 }
 
+// ---- src/game/15-states.js ----
 // =====================================================================
 //  各ステート
 // =====================================================================
@@ -1655,8 +1987,8 @@ class SpinState extends State {
   enter() {
     const h = this.h, s = h.sc; M.spinStat(false);
     Reels.startAll(); Reels.setLayout('big'); LCD.setScene('magma'); setLed('normal'); BGM.set('normal');
-    const full = M.holds.length >= 3;
-    const T0 = s.reach === 'none' ? (full ? 0.8 + rnd() * 0.3 : 2 + rnd()) : 2.3;
+    const full = M.holds.length >= CFG.holdMax - 1; // 保留満タンから消化した直後は超高速
+    const T0 = s.reach === 'none' ? randIn(full ? TM.fullSpin : TM.normalSpin) : TM.reachSpin;
     const tl = this.tl;
     if (h.color !== h.dispColor && !h.fx) tl.at(0.12, () => startHoldFx(h));
     if (s.stepup) tl.at(0.3, () => M.sm.push(new ChanceState(s.stepup)));
@@ -1668,9 +2000,9 @@ class SpinState extends State {
       return;
     }
     if (s.reach === 'zenkaiten') { tl.at(0.5, () => M.sm.change(new FullRotationState(h))); return; }
-    tl.at(T0 * 0.45, () => Reels.stop(0, h.nums[0]));
-    tl.at(T0 * 0.7, () => { Reels.stop(2, h.nums[2]); });
-    if (s.reach !== 'none') tl.at(T0 * 0.7 + 0.3, () => M.sm.change(new ReachState(h)));
+    tl.at(T0 * TM.stopL, () => Reels.stop(0, h.nums[0]));
+    tl.at(T0 * TM.stopR, () => { Reels.stop(2, h.nums[2]); });
+    if (s.reach !== 'none') tl.at(T0 * TM.stopR + 0.3, () => M.sm.change(new ReachState(h)));
     else { tl.at(T0, () => Reels.stop(1, h.nums[1])); tl.at(T0 + 0.35, () => M.sm.change(new IdleState())); }
   }
 }
@@ -1680,8 +2012,9 @@ class ChanceState extends State {
   enter() {
     LCD.stepup = { cur: 1, t: 0, sp: [T('STEP1', 46, 'white', F_HEAVY), T('STEP2', 46, 'white', F_HEAVY), T('STEP3', 50, 'red', F_HEAVY), T('STEP4', 54, 'gold', F_HEAVY), T('激アツ', 70, 'rainbow')] };
     LCD.pop(T('CHANCE!', 40, 'gold', F_HEAVY), LW / 2, 36, 0.9, 'zoom');
-    for (let k = 1; k <= this.n; k++) this.tl.at((k - 1) * 0.55, () => { LCD.stepup.cur = k; LCD.stepup.t = 0; Sound.play('step', k); if (k >= 4) FX.shake(k * 3, 0.25); if (k === 5) { Sound.speak('激アツ！'); FX.flash(GOLD_A, 0.6); } });
-    this.tl.at(this.n * 0.55 + 0.35, () => { LCD.stepup = null; M.sm.pop(); });
+    const iv = TM.stepupInterval;
+    for (let k = 1; k <= this.n; k++) this.tl.at((k - 1) * iv, () => { LCD.stepup.cur = k; LCD.stepup.t = 0; Sound.play('step', k); if (k >= 4) FX.shake(k * 3, 0.25); if (k === 5) { Sound.speak('激アツ！'); FX.flash(GOLD_A, 0.6); } });
+    this.tl.at(this.n * iv + 0.35, () => { LCD.stepup = null; M.sm.pop(); });
   }
 }
 
@@ -1693,10 +2026,10 @@ class ReachState extends State {
     Sound.play('reach'); Sound.speak('リーチ！'); setLed('reach'); BGM.set('reach'); LCD.setScene('reach');
     Reels.r[0].glow = true; Reels.r[2].glow = true; Reels.slow(1);
     LCD.pop(T('リーチ!!', 64, 'red'), LW / 2, 50, 1.2, 'zoom');
-    if (s.reach === 'normal') { this.tl.at(3.6, () => this.finish()); }
+    if (s.reach === 'normal') { this.tl.at(TM.normalReach, () => this.finish()); }
     else {
-      this.tl.at(1.5, () => { FX.flash(WHITE_A, 0.9); Sound.play('whoosh'); LCD.pop(T('発展!!', 70, 'gold'), LW / 2, LH / 2, 0.8, 'zoom'); });
-      this.tl.at(2.1, () => M.sm.change(new SPReachState(h)));
+      this.tl.at(TM.spDevelop, () => { FX.flash(WHITE_A, 0.9); Sound.play('whoosh'); LCD.pop(T('発展!!', 70, 'gold'), LW / 2, LH / 2, 0.8, 'zoom'); });
+      this.tl.at(TM.spEnter, () => M.sm.change(new SPReachState(h)));
     }
   }
   finish() {
@@ -1708,7 +2041,7 @@ class ReachState extends State {
       else { Sound.play('lose'); this.tl.after(0.6, () => M.sm.change(new IdleState())); }
     });
   }
-  onSkip() { if (this.h.sc.reach === 'normal') { this.tl.t = Math.max(this.tl.t, 3.6); } else M.sm.change(new JudgeState(this.h, true)); }
+  onSkip() { if (this.h.sc.reach === 'normal') { this.tl.t = Math.max(this.tl.t, TM.normalReach); } else M.sm.change(new JudgeState(this.h, true)); }
   exit() { URA.allow = false; }
 }
 
@@ -1720,20 +2053,19 @@ class SPReachState extends State {
     LCD.setScene(battle ? 'battle' : 'story'); BGM.set(battle ? 'battle' : 'reach'); setLed('reach');
     Reels.setLayout('small'); LCD.telop = null;
     const name = battle ? '黄金決戦' : '極伝説 ～覚醒～';
-    LCD.title = { t: 0, dur: 1.8, sp: T(name, 64, s.titleColor), sub: T(battle ? 'バトルSPリーチ' : 'ストーリーSPリーチ', 26, 'white') };
+    LCD.title = { t: 0, dur: TM.sp.title, sp: T(name, 64, s.titleColor), sub: T(battle ? 'バトルSPリーチ' : 'ストーリーSPリーチ', 26, 'white') };
     if (s.goldTitle) { Sound.play('kiin'); FX.flash(GOLD_A, 0.6); }
     if (battle) {
       LCD.battle = { hp: [100, 100], fl: [0, 0], act: null, actT: 0, actor: 0, dmg: 0, applied: false, res: null, resT: 0, t: 0 };
-      const acts = [[2.0, 0], [2.9, 1], [3.8, 0], [4.7, 1], [5.6, 0]];
-      acts.forEach(a => this.tl.at(a[0], () => { const b = LCD.battle; if (!b) return; b.act = 'atk'; b.actor = a[1]; b.actT = 0; b.applied = false; b.dmg = 12 + rnd() * 14; }));
+      TM.sp.battleActs.forEach((at, i) => this.tl.at(at, () => { const b = LCD.battle; if (!b) return; b.act = 'atk'; b.actor = i % 2; b.actT = 0; b.applied = false; b.dmg = 12 + rnd() * 14; }));
     } else {
       const lines = ['遥か昔、黄金の都に封印されし龍あり…', '千年の時を経て、今その封印が揺らぐ！', '選ばれし者よ、極限の力を解き放て!!'];
       LCD.story = { t: 0, pre: lines.map(l => { const a = []; for (let i = 0; i <= l.length; i++) a.push(l.slice(0, i)); return a; }) };
     }
-    if (s.cutin) this.tl.at(3.4, () => { LCD.cutin = { t: 0, gold: s.cutin === 2, sp: T(s.cutin === 2 ? '激熱' : '熱', 84, s.cutin === 2 ? 'gold' : 'white') }; Sound.play('cutin'); if (s.cutin === 2) { FX.shake(14, 0.4); Sound.speak('激熱！'); } });
-    if (s.telop >= 0) this.tl.at(4.6, () => { const txt = ['チャンス!', '熱い!!', '激アツ!!', '超激アツ!!!'][s.telop]; LCD.pop(T(txt, 54, COLOR_STYLE[s.telop]), LW / 2, 236, 1.4, 'zoom'); Sound.play('holdChange'); if (s.telop >= 2) FX.flash(GOLD_A, 0.5); });
-    if (s.logoDrop) this.tl.at(5.6, () => { Yaku.drop(); Sound.speak('激アツ！'); });
-    this.tl.at(6.8, () => M.sm.change(new JudgeState(h, false)));
+    if (s.cutin) this.tl.at(TM.sp.cutin, () => { LCD.cutin = { t: 0, gold: s.cutin === 2, sp: T(s.cutin === 2 ? '激熱' : '熱', 84, s.cutin === 2 ? 'gold' : 'white') }; Sound.play('cutin'); if (s.cutin === 2) { FX.shake(14, 0.4); Sound.speak('激熱！'); } });
+    if (s.telop >= 0) this.tl.at(TM.sp.telop, () => { const txt = ['チャンス!', '熱い!!', '激アツ!!', '超激アツ!!!'][s.telop]; LCD.pop(T(txt, 54, COLOR_STYLE[s.telop]), LW / 2, 236, 1.4, 'zoom'); Sound.play('holdChange'); if (s.telop >= 2) FX.flash(GOLD_A, 0.5); });
+    if (s.logoDrop) this.tl.at(TM.sp.logoDrop, () => { Yaku.drop(); Sound.speak('激アツ！'); });
+    this.tl.at(TM.sp.judge, () => M.sm.change(new JudgeState(h, false)));
   }
   onSkip() { M.sm.change(new JudgeState(this.h, true)); }
   exit() { URA.allow = false; }
@@ -1744,7 +2076,7 @@ class JudgeState extends State {
   enter() {
     const s = this.h.sc; URA.allow = true;
     if (this.skipped) { LCD.title = LCD.cutin = null; if (s.reach !== 'normal') { if (s.spType === 'battle' && !LCD.battle) LCD.battle = { hp: [40, 40], fl: [0, 0], act: null, actT: 0, actor: 0, dmg: 0, applied: true, res: null, resT: 0, t: 0 }; if (s.spType === 'battle') LCD.setScene('battle'); else LCD.setScene('story'); } Reels.setLayout('small'); this.reveal(); return; }
-    this.type = s.judge; LCD.judge = { type: this.type, t: 0, dur: 3.6 };
+    this.type = s.judge; LCD.judge = { type: this.type, t: 0, dur: TM.judge };
     UI.hot(this.type === 'button' ? 'push' : 'lever', true);
     Sound.speak(this.type === 'button' ? 'ボタンを押せ！' : 'レバーを引け！');
   }
@@ -1778,18 +2110,18 @@ class JudgeState extends State {
 class ScoopState extends State {
   constructor(h, timing) { super('昇格スクープ'); this.h = h; this.timing = timing; }
   enter() {
-    const h = this.h; this.ok = !!(h.sc.scoop && h.sc.scoop.ok); this.cap = 0.5 + rnd() * 0.3;
+    const h = this.h; this.ok = !!(h.sc.scoop && h.sc.scoop.ok); this.cap = randIn(TM.scoop.failCap);
     LCD.battle = null; LCD.story = null; LCD.setScene('reach'); Reels.setLayout('big');
     if (this.timing === 'pre') { Reels.r[1].state = 'spin'; Reels.r[1].vel = 10; }
     LCD.scoop = { gauge: 0, t: 0, done: false, ok: this.ok };
     UI.hot('push', true); Sound.speak('連打せよ！'); Sound.play('kiin'); setLed('reach');
   }
-  onPush() { if (!LCD.scoop || LCD.scoop.done) return; LCD.scoop.gauge += 0.075; Sound.play('tap', LCD.scoop.gauge * 10); FX.shake(3, 0.08); }
+  onPush() { if (!LCD.scoop || LCD.scoop.done) return; LCD.scoop.gauge += TM.scoop.tapGain; Sound.play('tap', LCD.scoop.gauge * 10); FX.shake(3, 0.08); }
   tick(dt) {
     const s = LCD.scoop; if (!s || s.done) return;
-    s.gauge += dt * 0.2; if (!this.ok) s.gauge = Math.min(s.gauge, this.cap);
+    s.gauge += dt * TM.scoop.autoRate; if (!this.ok) s.gauge = Math.min(s.gauge, this.cap);
     if (this.ok && s.gauge >= 1) this.finish(true);
-    else if (this.t > 3.3) this.finish(this.ok);
+    else if (this.t > TM.scoop.duration) this.finish(this.ok);
   }
   finish(ok) {
     const s = LCD.scoop; s.done = true; s.gauge = ok ? 1 : s.gauge; UI.hot('push', false); const h = this.h;
@@ -1809,10 +2141,10 @@ class ScoopState extends State {
 class FullRotationState extends State {
   constructor(h) { super('全回転'); this.h = h; }
   enter() {
-    const h = this.h; Sound.silence(1.7); BGM.set(null); setLed('off'); LCD.dark = 1; LCD.telop = null;
-    this.tl.at(1.7, () => { LCD.dark = 0; Sound.play('gyuin'); FX.rainbow(2); FX.flash(WHITE_A, 1); setLed('rainbow'); Reels.zenkaiten(); LCD.pop(T('全回転', 90, 'rainbow'), LW / 2, 60, 2.4, 'drop'); FX.shake(20, 0.6); Sound.speak('全回転！'); BGM.set(chainTrack()); });
-    this.tl.at(5.6, () => Reels.stopAllAligned(h.final));
-    this.tl.at(8.4, () => { Sound.play('boom'); FX.shake(24, 0.7); FX.confetti(100); onAligned(h); });
+    const h = this.h, Z = TM.zenkaiten; Sound.silence(Z.freeze); BGM.set(null); setLed('off'); LCD.dark = 1; LCD.telop = null;
+    this.tl.at(Z.freeze, () => { LCD.dark = 0; Sound.play('gyuin'); FX.rainbow(2); FX.flash(WHITE_A, 1); setLed('rainbow'); Reels.zenkaiten(); LCD.pop(T('全回転', 90, 'rainbow'), LW / 2, 60, 2.4, 'drop'); FX.shake(20, 0.6); Sound.speak('全回転！'); BGM.set(chainTrack()); });
+    this.tl.at(Z.stop, () => Reels.stopAllAligned(h.final));
+    this.tl.at(Z.align, () => { Sound.play('boom'); FX.shake(24, 0.7); FX.confetti(100); onAligned(h); });
   }
 }
 
@@ -1820,7 +2152,7 @@ class FeverState extends State {
   constructor(bonus) { super('大当り'); this.b = bonus; this.round = 0; this.count = 0; this.pay = 0; this.phase = 'fanfare'; this.ph = 0; this.vPending = false; }
   enter() {
     const b = this.b; M.inBonus = true; M.bonusRush = b.rushBound; M.noFire = false;
-    if (!b.isRush) { M.chain = 1; M.rushPayout = 0; D.firstHits++; } else M.chain++;
+    if (!b.isRush) { M.chain = 1; M.rushPayout = 0; D.firstHits++; } else { M.chain++; D.meas.rushHits++; }
     D.hits++; D.maxChain = Math.max(D.maxChain, M.chain);
     this.hist = { s: b.isRush ? M.rushSpinCount : D.spinsSinceHit, r: b.rounds, t: b.isRush ? 'RUSH' : (b.rushBound ? 'FEVER' : 'BONUS') };
     D.history.unshift(this.hist); if (D.history.length > 10) D.history.length = 10;
@@ -1832,7 +2164,7 @@ class FeverState extends State {
     FX.pop(T('大当り', 150, 'gold'), W / 2, 500, 2.6, 'zoom');
     this.tl.at(0.9, () => FX.pop(b.rushBound ? T('極極FEVER', 96, 'rainbow') : T('CHANCE BONUS', 70, 'red', F_HEAVY), W / 2, 640, 2.0, 'slide'));
     if (b.isRush) this.tl.at(0.2, () => FX.pop(T(M.chain + '連!!', 90, M.chain >= 10 ? 'rainbow' : 'red'), W / 2, 380, 2.4, 'drop'));
-    this.tl.at(2.8, () => { LCD.arrow = { kind: b.rushBound ? 'v' : 'right', t: 0, dur: 2.2 }; M.arrowT = 2.5; Sound.speak(b.rushBound ? 'Vをねらえ！' : '右をねらえ！'); this.startRound(); });
+    this.tl.at(TM.fanfare, () => { LCD.arrow = { kind: b.rushBound ? 'v' : 'right', t: 0, dur: 2.2 }; M.arrowT = 2.5; Sound.speak(b.rushBound ? 'Vをねらえ！' : '右をねらえ！'); this.startRound(); });
   }
   startRound() {
     this.round++; this.count = 0; this.rt = 0; this.phase = 'open'; M.attackerOpen = true; Sound.play('open');
@@ -1841,21 +2173,21 @@ class FeverState extends State {
     LCD.round = { sp: T('ROUND ' + this.round, 58, this.round >= 10 ? 'rainbow' : 'gold', F_HEAVY), labelSp: T(label, 34, this.b.rushBound ? 'red' : 'blue', F_HEAVY), count: 0, payStr: '+' + fmt(this.pay), endSp: null };
   }
   onAttacker() {
-    if (this.phase !== 'open' && this.phase !== 'closing') { M.addBalls(15); return; }
-    this.count++; this.pay += 15; M.rushPayout += 15; M.addBalls(15);
-    if (LCD.round) { LCD.round.count = Math.min(10, this.count); LCD.round.payStr = '+' + fmt(this.pay); }
+    if (this.phase !== 'open' && this.phase !== 'closing') { M.addBalls(CFG.payout.attacker); return; }
+    const pay = CFG.payout.attacker; this.count++; this.pay += pay; M.rushPayout += pay; M.addBalls(pay);
+    if (LCD.round) { LCD.round.count = Math.min(CFG.spec.countPerRound, this.count); LCD.round.payStr = '+' + fmt(this.pay); }
     if (this.vPending) { this.vPending = false; Sound.play('v'); FX.pop(T('V入賞!!', 74, 'rainbow'), W / 2, 760, 1.4, 'zoom'); FX.flash(WHITE_A, 0.6); Sound.speak('V！'); }
     if (this.phase === 'closing') { Sound.play('kyuin'); Sound.speak('オーバー入賞！'); FX.pop(T('オーバー入賞!', 44, 'gold'), 600, 820, 1.4, 'rise'); return; }
     Sound.play('entry', this.count);
-    if (this.count >= 10) { Sound.play('kyuin'); this.phase = 'closing'; this.ph = 0.22; FX.sparks(640, 860, 30, 40, 260); }
+    if (this.count >= CFG.spec.countPerRound) { Sound.play('kyuin'); this.phase = 'closing'; this.ph = TM.bonus.overWindow; FX.sparks(640, 860, 30, 40, 260); }
   }
   tick(dt) {
-    if (this.phase === 'open') { this.rt += dt; if (this.rt > 30) { this.phase = 'closing'; this.ph = 0.05; } }
-    else if (this.phase === 'closing') { this.ph -= dt; if (this.ph <= 0) { M.attackerOpen = false; this.phase = 'interval'; this.ph = 0.6; } }
+    if (this.phase === 'open') { this.rt += dt; if (this.rt > TM.bonus.roundTimeout) { this.phase = 'closing'; this.ph = 0.05; } }
+    else if (this.phase === 'closing') { this.ph -= dt; if (this.ph <= 0) { M.attackerOpen = false; this.phase = 'interval'; this.ph = TM.bonus.interval; } }
     else if (this.phase === 'interval') {
       this.ph -= dt;
       if (this.ph <= 0) {
-        if (this.b.lever && this.round === 4) { this.phase = 'lever'; M.sm.push(new LeverPromoteState(this)); }
+        if (this.b.lever && this.round === TM.bonus.leverAfterRound) { this.phase = 'lever'; M.sm.push(new LeverPromoteState(this)); }
         else if (this.round < this.b.rounds) this.startRound();
         else this.ending();
       }
@@ -1868,12 +2200,12 @@ class FeverState extends State {
     D.maxPayout = Math.max(D.maxPayout, b.rushBound ? M.rushPayout : this.pay); Counter.dirty = true; Store.mark();
     if (LCD.round) { LCD.round.sp = T('獲得 ' + fmt(this.pay) + '個', 50, 'gold', F_HEAVY); LCD.round.labelSp = T('BONUS END', 30, 'white', F_HEAVY); LCD.round.endSp = b.rushBound ? T(b.isRush ? 'RUSH継続!!' : 'RUSH突入!!', 54, 'rainbow') : T('昇格ならず…', 44, 'silver'); }
     if (!b.rushBound) Sound.play('lose');
-    this.tl.after(2.6, () => this.finish());
+    this.tl.after(TM.bonus.ending, () => this.finish());
   }
   finish() {
     const b = this.b; M.inBonus = false; M.bonusRush = false; M.attackerOpen = false; LCD.round = null;
     if (b.rushBound) {
-      if (M.mode === 'rush') { M.rushLeft = 100; LCD.setRushInfo(); M.sm.change(new IdleState()); }
+      if (M.mode === 'rush') { M.rushLeft = CFG.spec.rush.stSpins; LCD.setRushInfo(); M.sm.change(new IdleState()); }
       else M.sm.change(new RushSelectState());
     } else { D.lastChain = M.chain; M.chain = 0; Counter.dirty = true; M.sm.change(new IdleState()); }
   }
@@ -1889,7 +2221,7 @@ class LeverPromoteState extends State {
     this.tl.after(3.3, () => { LCD.lever = null; M.sm.pop(); });
   }
   onPush() { this.onLever(); }
-  tick() { if (!this.pulled && this.t > 6) this.onLever(); }
+  tick() { if (!this.pulled && this.t > TM.bonus.leverAuto) this.onLever(); }
   exit() { UI.hot('lever', false); }
 }
 
@@ -1898,11 +2230,11 @@ class RushSelectState extends State {
   enter() { LCD.clear(); LCD.setScene('rush'); Reels.setLayout('big'); M.noFire = true; UI.showModeSel(true); Sound.speak('モードを選択してください'); this.done = false; }
   select(mode) {
     if (this.done) return; this.done = true; M.rushMode = mode; D.settings.rushMode = mode; Store.mark(); UI.showModeSel(false); UI.syncPanels();
-    M.mode = 'rush'; M.rushLeft = 100; M.rushSpinCount = 0; M.dcT = 0; D.rushEntries++; M.rejudge(true); LCD.setRushInfo(); Counter.dirty = true;
+    M.mode = 'rush'; M.rushLeft = CFG.spec.rush.stSpins; M.rushSpinCount = 0; M.dcT = 0; D.rushEntries++; M.rejudge(true); LCD.setRushInfo(); Counter.dirty = true;
     rushEnterFx(); LCD.arrow = { kind: 'right', t: 0, dur: 2 }; M.arrowT = 2.5;
     M.sm.change(new IdleState());
   }
-  tick() { UI.modeCd(Math.max(0, Math.ceil(12 - this.t))); if (this.t > 12) this.select(M.rushMode); }
+  tick() { UI.modeCd(Math.max(0, Math.ceil(TM.modeSelect - this.t))); if (this.t > TM.modeSelect) this.select(M.rushMode); }
   exit() { UI.showModeSel(false); M.noFire = false; }
 }
 
@@ -1917,13 +2249,14 @@ class RushSpinState extends State {
       if (iw === 'bgmStop') tl.at(0.05, () => { Sound.cutBgm(1.2); });
       else if (iw === 'lampOff') tl.at(0.05, () => setLed('off'));
       else if (iw === 'count777') tl.at(0.05, () => { LCD.countOverride = '777'; Sound.play('kiin'); });
-      const d = iw ? 1.25 : 0.5;
+      const d = iw ? TM.rushIwakanSpin : TM.rushSpin;
       tl.at(d * 0.5, () => Reels.stop(0, h.nums[0], 0.12)).at(d * 0.72, () => Reels.stop(2, h.nums[2], 0.12)).at(d, () => { Reels.stop(1, h.nums[1], 0.12); Reels.r.forEach(r => r.glow = true); });
       tl.at(d + 0.15, () => { Sound.play('zudon'); Sound.play('boom'); FX.shake(22, 0.6); FX.rainbow(1.4); setLed('rainbow'); LCD.pop(T('即当り!!', 80, 'rainbow'), LW / 2, LH / 2, 1.2, 'zoom'); });
       tl.at(d + 1.0, () => { LCD.countOverride = null; onAligned(h); });
     } else {
-      tl.at(0.22, () => Reels.stop(0, h.nums[0], 0.1)).at(0.34, () => Reels.stop(2, h.nums[2], 0.1)).at(0.46, () => Reels.stop(1, h.nums[1], 0.1));
-      tl.at(0.58, () => M.sm.change(new IdleState()));
+      const d = TM.rushSpin;
+      tl.at(d * 0.44, () => Reels.stop(0, h.nums[0], 0.1)).at(d * 0.68, () => Reels.stop(2, h.nums[2], 0.1)).at(d * 0.92, () => Reels.stop(1, h.nums[1], 0.1));
+      tl.at(d * 1.16, () => M.sm.change(new IdleState()));
     }
   }
 }
@@ -1934,14 +2267,15 @@ class RushBattleState extends State {
     const h = this.h; M.rushLeft--; M.spinStat(true); LCD.setRushInfo(); LCD.setScene('battle'); Reels.startAll(); Reels.setLayout('small'); BGM.set('battle');
     LCD.battle = { hp: [100, 100], fl: [0, 0], act: null, actT: 0, actor: 0, dmg: 0, applied: false, res: null, resT: 0, t: 0 };
     LCD.pop(T('BATTLE!!', 70, 'red', F_HEAVY), LW / 2, 110, 0.9, 'zoom'); Sound.play('cutin');
-    [[0.7, 0], [1.3, 1], [1.9, 0], [2.5, 1]].forEach(a => this.tl.at(a[0], () => { const b = LCD.battle; if (!b) return; b.act = 'atk'; b.actor = a[1]; b.actT = 0; b.applied = false; b.dmg = 15 + rnd() * 15; }));
-    this.tl.at(3.1, () => { const b = LCD.battle; b.act = 'final'; b.actor = h.hit ? 0 : 1; b.actT = 0; b.applied = false; b.dmg = 100; });
-    this.tl.at(3.6, () => {
+    const RB = TM.rushBattle;
+    RB.acts.forEach((at, i) => this.tl.at(at, () => { const b = LCD.battle; if (!b) return; b.act = 'atk'; b.actor = i % 2; b.actT = 0; b.applied = false; b.dmg = 15 + rnd() * 15; }));
+    this.tl.at(RB.final, () => { const b = LCD.battle; b.act = 'final'; b.actor = h.hit ? 0 : 1; b.actT = 0; b.applied = false; b.dmg = 100; });
+    this.tl.at(RB.result, () => {
       LCD.battle.res = h.hit ? 'win' : 'lose'; LCD.battle.resT = 0;
       if (h.hit) { Sound.play('boom'); FX.shake(24, 0.7); FX.rainbow(1.5); setLed('rainbow'); LCD.pop(T('WIN!!', 96, 'rainbow', F_HEAVY), LW / 2, 130, 1.6, 'zoom'); Reels.setAll(h.final); Reels.r.forEach(r => r.glow = true); }
       else { Sound.play('lose'); LCD.pop(T('LOSE…', 70, 'silver', F_HEAVY), LW / 2, 130, 1.2, 'zoom'); Reels.stop(0, h.nums[0], 0.1); Reels.stop(1, h.nums[1], 0.1); Reels.stop(2, h.nums[2], 0.1); }
     });
-    this.tl.at(h.hit ? 5.0 : 4.6, () => { LCD.battle = null; if (h.hit) onAligned(h); else M.sm.change(new IdleState()); });
+    this.tl.at(h.hit ? RB.winEnd : RB.loseEnd, () => { LCD.battle = null; if (h.hit) onAligned(h); else M.sm.change(new IdleState()); });
   }
   onPush() { const b = LCD.battle; if (b && !b.res) { FX.shake(4, 0.1); Sound.play('tap', 5); } }
 }
@@ -1950,26 +2284,26 @@ class LastChanceState extends State {
   constructor(h) { super('ラストチャンス'); this.h = h; }
   enter() {
     const h = this.h; M.rushLeft = 0; M.spinStat(true); LCD.setRushInfo(); LCD.setScene('last'); Reels.startAll(); Reels.setLayout('small'); BGM.set('reach'); setLed('reach');
-    LCD.last = { meter: 0, state: 'charge' }; this.cap = 0.62 + rnd() * 0.28; UI.hot('push', true);
+    LCD.last = { meter: 0, state: 'charge' }; this.cap = randIn(TM.lastChance.failCap); UI.hot('push', true);
     Sound.speak('ラストチャンス！ ボタン長押し！'); FX.pop(T('LAST CHANCE', 80, 'red', F_HEAVY), W / 2, 560, 1.6, 'zoom'); FX.shake(10, 0.4);
     this.sndT = 0;
   }
-  onPushHeld(t, dt) { const l = LCD.last; if (l && l.state === 'charge') l.meter += dt * 0.42; }
+  onPushHeld(t, dt) { const l = LCD.last; if (l && l.state === 'charge') l.meter += dt * TM.lastChance.holdRate; }
   tick(dt) {
     const l = LCD.last; if (!l || l.state !== 'charge') return;
-    l.meter += dt * 0.09; if (!this.h.hit) l.meter = Math.min(l.meter, this.cap);
+    l.meter += dt * TM.lastChance.autoRate; if (!this.h.hit) l.meter = Math.min(l.meter, this.cap);
     this.sndT -= dt; if (this.sndT <= 0) { this.sndT = 0.1; Sound.play('charge', l.meter); }
-    if (this.h.hit && (l.meter >= 1 || this.t > 5.5)) this.win();
-    else if (!this.h.hit && this.t > 5.5) this.lose();
+    if (this.h.hit && (l.meter >= 1 || this.t > TM.lastChance.duration)) this.win();
+    else if (!this.h.hit && this.t > TM.lastChance.duration) this.lose();
   }
   win() {
     const l = LCD.last; l.meter = 1; l.state = 'full'; UI.hot('push', false); const h = this.h;
     Sound.play('boom'); FX.shake(28, 0.8); FX.rainbow(2); FX.confetti(120); setLed('rainbow'); Reels.setAll(h.final); Reels.r.forEach(r => r.glow = true);
     FX.pop(T('大当り!!', 120, 'rainbow'), W / 2, 540, 1.8, 'zoom'); Sound.speak('大当り！');
-    this.tl.after(1.8, () => { LCD.last = null; M.rushLeft = 100; onAligned(h); });
+    this.tl.after(1.8, () => { LCD.last = null; M.rushLeft = CFG.spec.rush.stSpins; onAligned(h); });
   }
   lose() {
-    const l = LCD.last; l.state = 'broken'; UI.hot('push', false); Sound.play('crack'); FX.shake(12, 0.4);
+    const l = LCD.last; l.state = 'broken'; D.meas.rushEnds++; UI.hot('push', false); Sound.play('crack'); FX.shake(12, 0.4);
     Reels.stop(0, this.h.nums[0]); Reels.stop(1, this.h.nums[1]); Reels.stop(2, this.h.nums[2]);
     FX.pop(T('RUSH終了', 80, 'silver'), W / 2, 560, 1.6, 'zoom');
     this.tl.after(2.0, () => M.sm.change(new ResultState()));
@@ -1983,20 +2317,21 @@ class ResultState extends State {
     const pay = M.rushPayout, chain = M.chain;
     M.mode = 'normal'; M.rushLeft = 0; M.rejudge(false); M.noFire = true;
     D.lastChain = chain; D.maxPayout = Math.max(D.maxPayout, pay); Counter.dirty = true; Store.mark();
-    const rank = pay >= 15000 ? '神' : pay >= 5000 ? '一騎当千' : '凡人';
-    const style = rank === '神' ? 'rainbow' : rank === '一騎当千' ? 'gold' : 'silver';
-    LCD.clear(); LCD.setScene('result'); Reels.setLayout('hidden'); setLed(rank === '凡人' ? 'normal' : 'rainbow');
+    const rk = CFG.result.ranks.find(r => pay >= r[0]) || CFG.result.ranks[CFG.result.ranks.length - 1];
+    const rank = rk[1], style = rk[2], low = rk === CFG.result.ranks[CFG.result.ranks.length - 1];
+    LCD.clear(); LCD.setScene('result'); Reels.setLayout('hidden'); setLed(low ? 'normal' : 'rainbow');
     LCD.result = { t: 0, chainStr: chain + '連チャン', payStr: fmt(pay) + '個', rankSp: T(rank, rank.length > 2 ? 62 : 80, style) };
-    BGM.set(rank === '凡人' ? 'normal' : 'premium');
-    this.tl.at(1.1, () => { Sound.play(rank === '凡人' ? 'lose' : 'boom'); if (rank !== '凡人') { FX.confetti(rank === '神' ? 200 : 100); FX.shake(18, 0.5); FX.rainbow(1.5); } Sound.speak('称号、' + rank); });
+    BGM.set(low ? 'normal' : 'premium');
+    this.tl.at(1.1, () => { Sound.play(low ? 'lose' : 'boom'); if (!low) { FX.confetti(rk === CFG.result.ranks[0] ? 200 : 100); FX.shake(18, 0.5); FX.rainbow(1.5); } Sound.speak('称号、' + rank); });
     UI.hot('push', true);
   }
-  onPush() { if (this.t > 1.6) this.close(); }
-  tick() { if (this.t > 12) this.close(); }
+  onPush() { if (this.t > TM.result.closable) this.close(); }
+  tick() { if (this.t > TM.result.auto) this.close(); }
   close() { if (this.closed) return; this.closed = true; UI.hot('push', false); M.chain = 0; M.rushPayout = 0; M.noFire = false; Counter.dirty = true; M.sm.change(new IdleState()); }
   exit() { UI.hot('push', false); M.noFire = false; }
 }
 
+// ---- src/game/16-input.js ----
 // =====================================================================
 //  入力（デカボタン・レバー・裏ボタン・スキップ）
 // =====================================================================
@@ -2007,8 +2342,8 @@ const Input = {
     UI.btnDown(true); Sound.play('tap', 2);
     this.presses[this.pi] = this.clock; this.pi = (this.pi + 1) % 8;
     const tp = M.sm.top; if (tp) tp.onPush();
-    let n = 0; for (let i = 0; i < 8; i++) if (this.clock - this.presses[i] < 1.5 && this.presses[i] > 0) n++;
-    if (n >= 5) this.ura();
+    const IN = CFG.input; let n = 0; for (let i = 0; i < 8; i++) if (this.clock - this.presses[i] < IN.uraWindow && this.presses[i] > 0) n++;
+    if (n >= IN.uraTaps) this.ura();
   },
   pushUp() { if (!this.down) return; this.down = false; UI.btnDown(false); const tp = M.sm.top; if (tp) tp.onPushRelease(); },
   ura() { // 裏ボタン（一発告知）
@@ -2021,12 +2356,13 @@ const Input = {
     this.clock += dt;
     if (this.down) {
       this.downT += dt; const tp = M.sm.top; if (tp) tp.onPushHeld(this.downT, dt);
-      if (this.downT > 0.6 && !this.uraFired) { this.uraFired = true; this.ura(); }
-      if (this.downT > 1.5 && !this.skipFired) { this.skipFired = true; this.skip(); }
+      if (this.downT > CFG.input.uraHold && !this.uraFired) { this.uraFired = true; this.ura(); }
+      if (this.downT > CFG.input.skipHold && !this.skipFired) { this.skipFired = true; this.skip(); }
     }
   }
 };
 
+// ---- src/game/17-ui.js ----
 // =====================================================================
 //  UI（DOM：ボタン・メニュー・デバッグ）
 // =====================================================================
@@ -2050,7 +2386,11 @@ const UI = {
     $('bDbg').addEventListener('click', () => { unlock(); this.toggle('dbg'); });
     document.querySelectorAll('[data-close]').forEach(b => b.addEventListener('click', () => this.toggle(b.dataset.close, false)));
     document.querySelectorAll('[data-set]').forEach(sp => {
-      const key = sp.dataset.set, vals = sp.dataset.vals.split(','), labels = (sp.dataset.labels || sp.dataset.vals).split(',');
+      const key = sp.dataset.set; let vals, labels;
+      // 選択肢は設定ファイルから作る（@prob / @sakibare）
+      if (sp.dataset.vals === '@prob') { vals = CFG.spec.probDenoms.map(String); labels = vals.map(v => '1/' + v); }
+      else if (sp.dataset.vals === '@sakibare') { vals = CFG.holdColor.sakibareOptions.map(String); labels = CFG.holdColor.sakibareOptions.map(v => v ? '1/' + Math.round(1 / v) : 'OFF'); }
+      else { vals = sp.dataset.vals.split(','); labels = (sp.dataset.labels || sp.dataset.vals).split(','); }
       vals.forEach((v, i) => { const b = document.createElement('button'); b.className = 'opt'; b.textContent = labels[i]; b.dataset.key = key; b.dataset.val = v; b.addEventListener('click', () => this.setOpt(key, v)); sp.appendChild(b); });
     });
     document.querySelectorAll('[data-force]').forEach(b => b.addEventListener('click', () => { unlock(); this.force(b.dataset.force); }));
@@ -2058,7 +2398,7 @@ const UI = {
     document.querySelectorAll('#modesel .mode').forEach(b => b.addEventListener('click', () => { const s = M.sm.top; if (s instanceof RushSelectState) { Sound.play('select'); s.select(b.dataset.mode); } }));
     $('start').addEventListener('pointerdown', e => { e.preventDefault(); unlock(); });
     const cv = $('cv'); let lastTap = 0;
-    cv.addEventListener('pointerdown', e => { unlock(); const now = performance.now(); if (now - lastTap < 320) Input.skip(); lastTap = now; });
+    cv.addEventListener('pointerdown', e => { unlock(); const now = performance.now(); if (now - lastTap < CFG.input.doubleTap * 1000) Input.skip(); lastTap = now; });
     window.addEventListener('keydown', e => {
       if (e.repeat && e.code !== 'Space') return;
       const k = e.key.toLowerCase();
@@ -2099,7 +2439,23 @@ const UI = {
   syncPanels() {
     document.querySelectorAll('.opt').forEach(b => { const v = D.settings[b.dataset.key]; b.classList.toggle('on', String(v) === b.dataset.val); });
     const st = $('statBox');
+    this.syncSpec();
     if (st) st.innerHTML = `累計回転数 <b>${fmt(D.totalSpins)}</b> / 大当り <b>${D.hits}</b> / 初当り <b>${D.firstHits}</b> / RUSH突入 <b>${D.rushEntries}</b><br>最高出玉 <b>${fmt(D.maxPayout)}</b>個 / 最大連チャン <b>${D.maxChain}</b>連<br>投資 <b>${fmt(D.invest)}</b>円 / 持ち玉 <b>${fmt(D.balls)}</b>玉`;
+  },
+  /** 理論値（設定ファイルから計算）と、この台で実際に出た値を並べる */
+  syncSpec() {
+    const el = $('specBox'); if (!el) return;
+    const th = PG.Spec.theory(CFG, { prob: D.settings.prob, preread: D.settings.preread }), m = D.meas, T = CFG.targets;
+    const pct = v => (v * 100).toFixed(1) + '%', den = v => v > 0 ? '1/' + v.toFixed(1) : '---';
+    const first = D.firstHits ? den(D.totalSpins / D.firstHits) + `（${D.firstHits}回）` : '---';
+    const rushN = m.rushHits + m.rushEnds, cont = rushN ? pct(m.rushHits / rushN) + `（${rushN}回）` : '---';
+    const heso = m.hesoIn ? den(m.leftShots / m.hesoIn) + `（${fmt(m.leftShots)}球）` : '---';
+    const cues = Object.entries(th.cues).filter(([, v]) => v.reliability >= 0.5).map(([k, v]) => `${k} ${pct(v.reliability)}`).join(' / ');
+    el.innerHTML = `大当り確率 理論 <b>${den(th.hitDenom)}</b>（当り${th.hitThreshold}個/${CFG.spec.randRange}）・実測 <b>${first}</b><br>` +
+      `RUSH継続率 理論 <b>${pct(th.continuation)}</b>（${den(th.rushDenom)}×${CFG.spec.rush.stSpins}回転）・実測 <b>${cont}</b><br>` +
+      `平均連チャン 理論 <b>${th.expectedChains.toFixed(2)}連</b> / 初当り1回の期待出玉 <b>${fmt(th.payoutPerFirstHit)}個</b><br>` +
+      `ヘソ入賞率 目標 <b>${den(1 / T.hesoRate[1])}〜${den(1 / T.hesoRate[0])}</b>・実測 <b>${heso}</b><br>` +
+      `激熱信頼度（理論） ${cues}`;
   },
   showModeSel(on) { $('modesel').classList.toggle('hidden', !on); },
   modeCd(n) { const el = $('modeCd'); const s = n + '秒後に自動選択（前回: ' + (M.rushMode === 'battle' ? 'バトル' : '爆速即当り') + '）'; if (el.textContent !== s) el.textContent = s; },
@@ -2116,7 +2472,7 @@ const UI = {
     const aim = $('bAim'); const want = M.strong ? '右打ち' : '左打ち'; if (aim.textContent !== want) this.syncBar();
     const blink = M.needRight() !== M.strong; if (aim.classList.contains('blink') !== blink) aim.classList.toggle('blink', blink);
     if (this.fpsOn) $('fps').textContent = fps.toFixed(0) + 'fps  balls:' + Phys.active() + '  ' + (M.sm.top ? M.sm.top.name : '');
-    const ds = $('dbg'); if (!ds.classList.contains('hidden')) { const el = $('dbgState'); el.textContent = '状態: ' + M.sm.stack.map(s => s.name).join(' > ') + ' / モード: ' + M.mode + ' / 保留: ' + M.holds.length + ' / RUSH残: ' + M.rushLeft; }
+    const ds = $('dbg'); if (!ds.classList.contains('hidden')) { this.specT = (this.specT || 0) + 1; if (this.specT % 7 === 0) this.syncSpec(); const el = $('dbgState'); el.textContent = '状態: ' + M.sm.stack.map(s => s.name).join(' > ') + ' / モード: ' + M.mode + ' / 保留: ' + M.holds.length + ' / RUSH残: ' + M.rushLeft; }
   }
 };
 let unlocked = false;
@@ -2125,6 +2481,7 @@ function unlock() {
   if (!unlocked) { unlocked = true; M.started = true; M.auto = true; $('start').classList.add('hidden'); UI.syncBar(); }
 }
 
+// ---- src/game/18-main.js ----
 // =====================================================================
 //  画面スケーリング・ビルド・メインループ
 // =====================================================================
@@ -2168,7 +2525,12 @@ function render(t) {
 }
 function boot() {
   stageEl = $('stage'); Cv.c = $('cv'); Cv.x = Cv.c.getContext('2d');
-  Phys.build(); Frame.build(); FX.init();
+  Phys = PG.createPhysics(CFG, {
+    rng: rnd,
+    emit: ev => { if (ev === 'warp') Bus.emit('warp'); else Bus.emit('entry', ev); },
+    gates: { denchuOpen: () => M.denchuOpen, attackerOpen: () => M.attackerOpen }
+  });
+  Frame.build(); FX.init();
   R = 0; fit();
   Bus.on('entry', src => M.entry(src));
   Bus.on('state', () => { UI.syncBar(); });
@@ -2184,7 +2546,8 @@ function boot() {
   });
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { buildAll(); });
   requestAnimationFrame(frame);
-  window.__PACHI = { setSpeed(v) { speed = v; }, M, Phys, Lottery, Bus, Store, LCD, Reels, FX, UI, Input, Sound, get D() { return D; } };
+  // テスト窓口（E2E が待ち時間の短縮と状態の確認に使う）
+  window.__PACHI = { setSpeed(v) { speed = v; }, state() { return M.sm.stack.map(s => s.name).join('>'); }, M, Phys, Lottery, Bus, Store, LCD, Reels, FX, UI, Input, Sound, get D() { return D; } };
 }
 boot();
 })();
