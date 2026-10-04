@@ -37,7 +37,11 @@ import {
   idiomChance,
   IDIOM_FLOOR,
   effectText,
+  speedRate,
+  levelRate,
+  SPEED_SLOW,
 } from "./quest.js";
+import { tr, getLang } from "./i18n.js";
 
 const RARITY_STYLE = {
   N: "bg-slate-200 text-slate-700",
@@ -48,7 +52,7 @@ const RARITY_STYLE = {
 const el = (key) => ELEMENTS[key] || ELEMENTS.none;
 const bonusText = (b) =>
   Object.entries(b)
-    .map(([k, v]) => `${{ atk: "攻撃", def: "守備", hp: "HP", mp: "MP" }[k]} +${v}`)
+    .map(([k, v]) => `${{ atk: tr("攻撃", "ATK"), def: tr("守備", "DEF"), hp: "HP", mp: "MP" }[k]} +${v}`)
     .join("・");
 
 function Bar({ value, max, color, label }) {
@@ -70,12 +74,12 @@ function Bar({ value, max, color, label }) {
 
 /** 相性の倍率（1.5 = ばつぐん、0.75 = いまひとつ） */
 function MultBadge({ mult, long = false }) {
-  if (mult === 1) return long ? <span className="whitespace-nowrap rounded bg-white/15 px-1.5 py-0.5 text-[10px] font-black">×1 ふつう</span> : null;
+  if (mult === 1) return long ? <span className="whitespace-nowrap rounded bg-white/15 px-1.5 py-0.5 text-[10px] font-black">{tr("×1 ふつう", "×1 normal")}</span> : null;
   const good = mult > 1;
   return (
     <span className={`whitespace-nowrap rounded px-1.5 py-0.5 text-[10px] font-black ${good ? "bg-amber-400 text-slate-900" : "bg-slate-500 text-white"}`}>
       ×{mult}
-      {long ? (good ? " ばつぐん！" : " いまひとつ") : ""}
+      {long ? (good ? tr(" ばつぐん！", " super effective!") : tr(" いまひとつ", " not very effective")) : ""}
     </span>
   );
 }
@@ -84,7 +88,9 @@ function MultBadge({ mult, long = false }) {
 export function AffinityChart({ dark = false }) {
   return (
     <p className={`text-[11px] leading-relaxed ${dark ? "text-white/70" : "text-slate-500"}`} data-testid="affinity-chart">
-      相性: 🔥炎 → ❄️氷 → ⚡雷 → 🔥炎、✨光 ⇔ 🌑闇（矢印の先に <b>1.5倍</b>、逆は 0.75倍）
+      {tr("相性: 🔥炎 → ❄️氷 → ⚡雷 → 🔥炎、✨光 ⇔ 🌑闇（矢印の先に ", "Matchups: 🔥Fire → ❄️Ice → ⚡Thunder → 🔥Fire, ✨Light ⇔ 🌑Dark (")}
+      <b>{tr("1.5倍", "×1.5")}</b>
+      {tr("、逆は 0.75倍）", " toward the arrow, ×0.75 the other way)")}
     </p>
   );
 }
@@ -117,7 +123,7 @@ function GearPicker({ slot, owned, cards, enhance = {}, favorites = {}, onToggle
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-900/50" onClick={onClose}>
       <div
         role="dialog"
-        aria-label={`${info.name}をえらぶ`}
+        aria-label={tr(`${info.name}をえらぶ`, `Choose ${info.name}`)}
         data-testid="gear-picker"
         className="flex max-h-[80dvh] w-full max-w-md flex-col rounded-t-3xl bg-white p-4 shadow-2xl"
         style={{ paddingBottom: "calc(1rem + env(safe-area-inset-bottom))" }}
@@ -125,9 +131,10 @@ function GearPicker({ slot, owned, cards, enhance = {}, favorites = {}, onToggle
       >
         <div className="flex items-center justify-between">
           <p className="text-base font-extrabold text-slate-900">
-            <QuestIcon src={SLOT_ART[slot]} size={24} /> {info.name}をえらぶ <span className="text-xs font-bold text-slate-400">（{info.stat}が上がる）</span>
+            <QuestIcon src={SLOT_ART[slot]} size={24} /> {tr(`${info.name}をえらぶ`, `Choose ${info.name}`)}{" "}
+            <span className="text-xs font-bold text-slate-400">{tr(`（${info.stat}が上がる）`, `(raises ${info.stat})`)}</span>
           </p>
-          <button type="button" onClick={onClose} aria-label="閉じる" className="rounded-full p-1 text-slate-400">
+          <button type="button" onClick={onClose} aria-label={tr("閉じる", "Close")} className="rounded-full p-1 text-slate-400">
             <X size={20} />
           </button>
         </div>
@@ -135,7 +142,7 @@ function GearPicker({ slot, owned, cards, enhance = {}, favorites = {}, onToggle
           type="search"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder={`${list.length}語から検索（英語・日本語）`}
+          placeholder={tr(`${list.length}語から検索（英語・日本語）`, `Search ${list.length} words (English/Japanese)`)}
           className="mt-2 w-full rounded-xl bg-slate-50 px-3 py-2 text-sm ring-1 ring-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-400"
         />
         <button
@@ -145,13 +152,13 @@ function GearPicker({ slot, owned, cards, enhance = {}, favorites = {}, onToggle
           data-testid="gear-fav-only"
           className={`mt-2 flex w-fit items-center gap-1 rounded-full px-3 py-1 text-xs font-bold ${favOnly ? "bg-amber-400 text-amber-950" : "bg-slate-50 text-slate-500 ring-1 ring-slate-200"}`}
         >
-          <Star size={13} className={favOnly ? "fill-current" : ""} /> お気に入りだけ（{favCount}）
+          <Star size={13} className={favOnly ? "fill-current" : ""} /> {tr(`お気に入りだけ（${favCount}）`, `Favorites only (${favCount})`)}
         </button>
         <ul className="mt-2 min-h-0 flex-1 space-y-1.5 overflow-y-auto">
           {current && (
             <li>
               <button type="button" onClick={() => onPick(null)} className="w-full rounded-xl bg-slate-100 py-2 text-sm font-bold text-slate-600">
-                はずす
+                {tr("はずす", "Unequip")}
               </button>
             </li>
           )}
@@ -167,7 +174,7 @@ function GearPicker({ slot, owned, cards, enhance = {}, favorites = {}, onToggle
                   <span className="font-bold text-slate-900">{g.english}</span>
                   {g.plus > 0 && <span className="text-[11px] font-black text-amber-500">+{g.plus}</span>}
                   <span className="text-[10px] font-bold text-slate-400">Lv{g.level}</span>
-                  <span className="ml-auto text-xs" title={`${el(g.element).name}属性`}>
+                  <span className="ml-auto text-xs" title={tr(`${el(g.element).name}属性`, `${el(g.element).name} element`)}>
                     <ElementIcon element={g.element} size={16} />
                   </span>
                   <span className="text-xs font-black text-indigo-600 tabular-nums">{bonusText(slotBonus(slot, g.power))}</span>
@@ -179,7 +186,7 @@ function GearPicker({ slot, owned, cards, enhance = {}, favorites = {}, onToggle
               {onToggleFavorite && (
                 <button
                   type="button"
-                  aria-label={favorites[g.id] ? `${g.english}をお気に入りから外す` : `${g.english}をお気に入りに追加`}
+                  aria-label={favorites[g.id] ? tr(`${g.english}をお気に入りから外す`, `Remove ${g.english} from favorites`) : tr(`${g.english}をお気に入りに追加`, `Add ${g.english} to favorites`)}
                   aria-pressed={!!favorites[g.id]}
                   onClick={() => onToggleFavorite(g.id)}
                   className={`shrink-0 rounded-xl px-2 ${favorites[g.id] ? "text-amber-400" : "text-slate-300"}`}
@@ -189,8 +196,8 @@ function GearPicker({ slot, owned, cards, enhance = {}, favorites = {}, onToggle
               )}
             </li>
           ))}
-          {favOnly && favCount === 0 && <li className="p-4 text-center text-xs text-slate-500">お気に入りはまだありません。右の ☆ で登録できます。</li>}
-          {list.length === 0 && <li className="p-4 text-center text-xs text-slate-500">まだ単語を持っていません。ガチャで集めると装備にできます。</li>}
+          {favOnly && favCount === 0 && <li className="p-4 text-center text-xs text-slate-500">{tr("お気に入りはまだありません。右の ☆ で登録できます。", "No favorites yet. Add them with ☆ on the right.")}</li>}
+          {list.length === 0 && <li className="p-4 text-center text-xs text-slate-500">{tr("まだ単語を持っていません。ガチャで集めると装備にできます。", "You don't have any words yet. Collect them from the gacha to equip them.")}</li>}
         </ul>
       </div>
     </div>
@@ -211,12 +218,12 @@ export function EnhancePanel({ card, exp = 0, exPoints = 0, onEnhance }) {
   return (
     <div className="rounded-2xl bg-slate-50 p-3 ring-1 ring-slate-200" data-testid="enhance-panel">
       <p className="flex items-center gap-1.5 text-sm font-extrabold text-slate-800">
-        強化
+        {tr("強化", "Enhance")}
         <span className={`text-base font-black ${plus >= ULTIMATE_PLUS ? "text-pink-500" : "text-amber-500"}`} data-testid="enhance-plus">
           +{plus}
         </span>
         {plus >= ULTIMATE_PLUS && <span className="rounded bg-pink-500 px-1.5 text-[10px] font-black text-white">ULTIMATE</span>}
-        <span className="ml-auto text-[11px] font-bold text-slate-500 tabular-nums">交換ポイント {exPoints.toLocaleString()}</span>
+        <span className="ml-auto text-[11px] font-bold text-slate-500 tabular-nums">{tr("交換ポイント", "Ex points")} {exPoints.toLocaleString()}</span>
       </p>
       <div className="mt-1.5 flex gap-0.5" aria-hidden="true">
         {Array.from({ length: MAX_PLUS }, (_, i) => (
@@ -227,7 +234,7 @@ export function EnhancePanel({ card, exp = 0, exPoints = 0, onEnhance }) {
         ))}
       </div>
       {maxed ? (
-        <p className="mt-2 text-center text-sm font-black text-amber-600">+{MAX_PLUS}（最大）！ やり込みの証です</p>
+        <p className="mt-2 text-center text-sm font-black text-amber-600">{tr(`+${MAX_PLUS}（最大）！ やり込みの証です`, `+${MAX_PLUS} (max)! A true mark of dedication`)}</p>
       ) : (
         <>
           <button
@@ -236,20 +243,22 @@ export function EnhancePanel({ card, exp = 0, exPoints = 0, onEnhance }) {
             onClick={() => {
               const r = onEnhance(card.id);
               if (r?.error) setMessage({ ok: false, text: r.error });
-              else setMessage({ ok: true, text: `+${r.from} → +${r.to} に強化した！${r.to === ULTIMATE_PLUS ? "　アルティメット解放！" : ""}` });
+              else setMessage({ ok: true, text: tr(`+${r.from} → +${r.to} に強化した！${r.to === ULTIMATE_PLUS ? "　アルティメット解放！" : ""}`, `Enhanced +${r.from} → +${r.to}!${r.to === ULTIMATE_PLUS ? " Ultimate unlocked!" : ""}`) });
             }}
             className="mt-2 w-full rounded-2xl bg-gradient-to-r from-amber-500 to-pink-500 py-2.5 text-sm font-extrabold text-white shadow transition active:scale-95 disabled:opacity-40"
           >
-            +{plus + 1} に強化する（交換ポイント {cost.toLocaleString()}）
+            {tr(`+${plus + 1} に強化する（交換ポイント ${cost.toLocaleString()}）`, `Enhance to +${plus + 1} (${cost.toLocaleString()} ex points)`)}
           </button>
           <p className="mt-1 text-[10px] text-slate-400 tabular-nums">
-            +{MAX_PLUS} まで あと合計 {rest.toLocaleString()}（段が上がるほど必要な数が増えます）
+            {tr(`+${MAX_PLUS} まで あと合計 ${rest.toLocaleString()}（段が上がるほど必要な数が増えます）`, `${rest.toLocaleString()} more in total to reach +${MAX_PLUS} (each step costs more)`)}
           </p>
         </>
       )}
       <p className="mt-1 text-[11px] leading-relaxed text-slate-500">
-        1段ごとに冒険での強さ +10%・効果 +8%。+{ULTIMATE_PLUS} から<b>アルティメット</b>（効果さらに1.5倍・SSR の呪文は「極」）。
-        交換ポイントはガチャ1回で1つ、MAX の単語がまた出るともっともらえます。
+        {tr(
+          `1段ごとに冒険での強さ +10%・効果 +8%。+${ULTIMATE_PLUS} からアルティメット（効果さらに1.5倍・SSR の呪文は「極」）。交換ポイントはガチャ1回で1つ、MAX の単語がまた出るともっともらえます。`,
+          `Each step: +10% quest power, +8% effects. From +${ULTIMATE_PLUS} it becomes Ultimate (effects ×1.5 more, SSR spells become “Extreme”). You get 1 ex point per gacha pull, and more when a MAX word drops again.`
+        )}
       </p>
       {message && (
         <p className={`mt-1 text-center text-sm font-black ${message.ok ? "text-amber-600" : "text-rose-500"}`} data-testid="enhance-message">
@@ -266,7 +275,7 @@ function EnhanceSheet({ state, cards, targetId, onEnhance, onClose }) {
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-900/50" onClick={onClose}>
       <div
         role="dialog"
-        aria-label="装備を強化"
+        aria-label={tr("装備を強化", "Enhance gear")}
         data-testid="enhance-sheet"
         className="w-full max-w-md rounded-t-3xl bg-white p-4 shadow-2xl"
         style={{ paddingBottom: "calc(1rem + env(safe-area-inset-bottom))" }}
@@ -274,9 +283,10 @@ function EnhanceSheet({ state, cards, targetId, onEnhance, onClose }) {
       >
         <div className="mb-2 flex items-center justify-between">
           <p className="flex items-center gap-1.5 text-base font-extrabold text-slate-900">
-            <RarityBadge rarity={target.rarity} />「{target.english}」を強化
+            <RarityBadge rarity={target.rarity} />
+            {tr(`「${target.english}」を強化`, `Enhance “${target.english}”`)}
           </p>
-          <button type="button" onClick={onClose} aria-label="閉じる" className="rounded-full p-1 text-slate-400">
+          <button type="button" onClick={onClose} aria-label={tr("閉じる", "Close")} className="rounded-full p-1 text-slate-400">
             <X size={20} />
           </button>
         </div>
@@ -304,25 +314,25 @@ function QuestHome({ state, cards, stats, header, onEquip, onAutoEquip, onSavePr
         <p className="flex items-baseline justify-between">
           <span className="flex items-center gap-1.5 text-lg font-black">
             <QuestIcon src={QUEST_HERO} size={40} className="-my-2" />
-            ぼうけんしゃ
+            {tr("ぼうけんしゃ", "Adventurer")}
           </span>
           <span className="text-sm font-black text-amber-300" data-testid="quest-level">
             Lv {q.level}
           </span>
         </p>
         <div className="mt-2">
-          <Bar value={q.exp} max={expToNext(q.level)} color="bg-amber-400" label="けいけんち" />
+          <Bar value={q.exp} max={expToNext(q.level)} color="bg-amber-400" label={tr("けいけんち", "EXP")} />
         </div>
         <div className="mt-3 grid grid-cols-4 gap-1.5 text-center text-xs" data-testid="quest-stats">
           {[
             ["HP", stats.hp],
             ["MP", stats.mp],
-            ["攻撃", stats.atk],
-            ["守備", stats.def],
-            ["会心", `${stats.crit}%`],
-            ["回避", `${stats.evade}%`],
-            ["盾", stats.block],
-            ["属性", <ElementIcon element={stats.element} size={20} fallback="－" />],
+            [tr("攻撃", "ATK"), stats.atk],
+            [tr("守備", "DEF"), stats.def],
+            [tr("会心", "Crit"), `${stats.crit}%`],
+            [tr("回避", "Evade"), `${stats.evade}%`],
+            [tr("盾", "Block"), stats.block],
+            [tr("属性", "Element"), <ElementIcon element={stats.element} size={20} fallback="－" />],
           ].map(([k, v]) => (
             <div key={k} className="rounded-xl bg-white/10 py-1.5">
               <p className="text-[10px] text-white/60">{k}</p>
@@ -331,15 +341,15 @@ function QuestHome({ state, cards, stats, header, onEquip, onAutoEquip, onSavePr
           ))}
         </div>
         <p className="mt-2 text-[11px] text-white/80">
-          攻撃の属性 <ElementIcon element={stats.element} size={14} />
-          {el(stats.element).name}・盾の属性 <ElementIcon element={stats.guard} size={14} />
+          {tr("攻撃の属性", "Attack element")} <ElementIcon element={stats.element} size={14} />
+          {el(stats.element).name}・{tr("盾の属性", "Shield element")} <ElementIcon element={stats.guard} size={14} />
           {el(stats.guard).name}
-          {stats.setBonus > 0 && <span className="ml-1 font-black text-amber-300">属性そろい！攻撃+{stats.setBonus}%</span>}
+          {stats.setBonus > 0 && <span className="ml-1 font-black text-amber-300">{tr(`属性そろい！攻撃+${stats.setBonus}%`, `Element set! ATK +${stats.setBonus}%`)}</span>}
         </p>
         {effects.length > 0 && <p className="mt-1 text-[11px] text-emerald-300">{effects.map(effectText).join("・")}</p>}
         {stats.skills.length > 0 && (
           <div className="mt-2 rounded-xl bg-gradient-to-r from-amber-400/20 to-pink-500/20 p-2" data-testid="quest-skills">
-            <p className="text-[10px] font-black text-amber-300">SSR の特製の呪文</p>
+            <p className="text-[10px] font-black text-amber-300">{tr("SSR の特製の呪文", "SSR special spells")}</p>
             {stats.skills.map((sk) => (
               <p key={sk.id} className="text-[11px]">
                 <QuestIcon src={SKILL_ART[sk.element] || SKILL_ART.none} size={18} /> <b>{sk.name}</b>（MP{sk.mp}）{sk.text} <span className="text-white/50">← {sk.from}</span>
@@ -350,18 +360,18 @@ function QuestHome({ state, cards, stats, header, onEquip, onAutoEquip, onSavePr
       </div>
 
       <div className="mt-4 flex items-center justify-between">
-        <p className="text-sm font-bold text-slate-800">そうび（集めた単語・7か所）</p>
+        <p className="text-sm font-bold text-slate-800">{tr("そうび（集めた単語・7か所）", "Gear (collected words, 7 slots)")}</p>
         <button
           type="button"
           onClick={onAutoEquip}
           disabled={!ownedCount}
           className="rounded-full bg-indigo-50 px-3 py-1 text-xs font-bold text-indigo-600 disabled:opacity-40"
         >
-          おまかせ装備
+          {tr("おまかせ装備", "Auto-equip")}
         </button>
       </div>
       <div className="mt-2 rounded-2xl bg-white p-2 shadow-sm ring-1 ring-slate-200" data-testid="quest-presets">
-        <p className="px-1 text-[10px] font-bold text-slate-400">装備のプリセット（今の装備を保存して、ワンタップで付け替え）</p>
+        <p className="px-1 text-[10px] font-bold text-slate-400">{tr("装備のプリセット（今の装備を保存して、ワンタップで付け替え）", "Gear presets (save your gear and swap with one tap)")}</p>
         <div className="mt-1 grid grid-cols-3 gap-1.5">
           {Array.from({ length: PRESETS }, (_, i) => {
             const p = q.presets?.[i];
@@ -369,26 +379,26 @@ function QuestHome({ state, cards, stats, header, onEquip, onAutoEquip, onSavePr
             return (
               <div key={i} className="rounded-xl bg-slate-50 p-1.5 text-center ring-1 ring-slate-200">
                 <p className="text-[11px] font-black text-slate-700">
-                  セット{i + 1}
-                  <span className="ml-1 font-bold text-slate-400">{p ? `${count}か所` : "空"}</span>
+                  {tr(`セット${i + 1}`, `Set ${i + 1}`)}
+                  <span className="ml-1 font-bold text-slate-400">{p ? tr(`${count}か所`, `${count} slots`) : tr("空", "empty")}</span>
                 </p>
                 <div className="mt-1 grid grid-cols-2 gap-1">
                   <button
                     type="button"
                     disabled={!p}
                     onClick={() => onLoadPreset(i)}
-                    aria-label={`セット${i + 1}を装備する`}
+                    aria-label={tr(`セット${i + 1}を装備する`, `Equip set ${i + 1}`)}
                     className="rounded-lg bg-indigo-600 py-1 text-[10px] font-bold text-white disabled:opacity-30"
                   >
-                    装備
+                    {tr("装備", "Equip")}
                   </button>
                   <button
                     type="button"
                     onClick={() => onSavePreset(i)}
-                    aria-label={`今の装備をセット${i + 1}に保存`}
+                    aria-label={tr(`今の装備をセット${i + 1}に保存`, `Save current gear to set ${i + 1}`)}
                     className="rounded-lg bg-white py-1 text-[10px] font-bold text-indigo-600 ring-1 ring-indigo-200"
                   >
-                    保存
+                    {tr("保存", "Save")}
                   </button>
                 </div>
               </div>
@@ -404,13 +414,14 @@ function QuestHome({ state, cards, stats, header, onEquip, onAutoEquip, onSavePr
               <button
                 type="button"
                 onClick={() => setPicking(s.id)}
-                aria-label={`${s.name}を変える`}
+                aria-label={tr(`${s.name}を変える`, `Change ${s.name}`)}
                 className="flex w-full items-center gap-2.5 rounded-2xl bg-white px-3 py-2 text-left shadow-sm ring-1 ring-slate-200 active:scale-[0.99]"
               >
                 <QuestIcon src={SLOT_ART[s.id]} size={32} />
                 <span className="min-w-0 flex-1">
                   <span className="block text-[10px] font-bold text-slate-400">
-                    {s.name}（{s.stat}）
+                    {s.name}
+                    {tr(`（${s.stat}）`, ` (${s.stat})`)}
                   </span>
                   {g ? (
                     <>
@@ -423,7 +434,7 @@ function QuestHome({ state, cards, stats, header, onEquip, onAutoEquip, onSavePr
                         {g.rarity === "SSR" && (
                           <span className="flex items-center text-[10px] font-black text-amber-500">
                             <QuestIcon src={SKILL_ART[g.element] || SKILL_ART.none} size={14} />
-                            呪文
+                            {tr("呪文", "Spell")}
                           </span>
                         )}
                       </span>
@@ -432,14 +443,14 @@ function QuestHome({ state, cards, stats, header, onEquip, onAutoEquip, onSavePr
                       </span>
                     </>
                   ) : (
-                    <span className="block text-sm font-bold text-slate-300">なし（タップで装備）</span>
+                    <span className="block text-sm font-bold text-slate-300">{tr("なし（タップで装備）", "None (tap to equip)")}</span>
                   )}
                 </span>
                 {g && (
                   <span
                     role="button"
                     tabIndex={0}
-                    aria-label={`${s.name}を強化`}
+                    aria-label={tr(`${s.name}を強化`, `Enhance ${s.name}`)}
                     onClick={(ev) => {
                       ev.stopPropagation();
                       setEnhancing(g.id);
@@ -447,7 +458,7 @@ function QuestHome({ state, cards, stats, header, onEquip, onAutoEquip, onSavePr
                     onKeyDown={(ev) => ev.key === "Enter" && (ev.stopPropagation(), setEnhancing(g.id))}
                     className="shrink-0 rounded-full bg-gradient-to-r from-amber-400 to-pink-500 px-2.5 py-1 text-[10px] font-black text-white shadow"
                   >
-                    強化
+                    {tr("強化", "Enhance")}
                   </span>
                 )}
               </button>
@@ -457,20 +468,24 @@ function QuestHome({ state, cards, stats, header, onEquip, onAutoEquip, onSavePr
       </ul>
       {!ownedCount && (
         <p className="mt-2 rounded-2xl bg-amber-50 p-3 text-xs text-amber-800 ring-1 ring-amber-200">
-          ガチャで単語を集めると、武器や防具として装備できます。レア度が高いほど強く、単語ごとに効果と属性があります。
+          {tr(
+            "ガチャで単語を集めると、武器や防具として装備できます。レア度が高いほど強く、単語ごとに効果と属性があります。",
+            "Words you collect from the gacha can be equipped as weapons and armor. Higher rarity is stronger, and each word has its own effects and element."
+          )}
         </p>
       )}
       <div className="mt-2">
         <AffinityChart />
       </div>
       <p className="mt-1 text-[11px] leading-relaxed text-slate-500">
-        名詞は守り・動詞は攻め・形容詞はからめ手の効果。SSR は効果が2つと特製の呪文付き（呪文は SSR の装備だけ）。4か所の属性をそろえると攻撃+15%。
-        5階ごとのボスを倒すと宝箱（冒険限定の単語など）。
-        敵が「ちからをためた」ら、次は大こうげき。ぼうぎょで受けとめると、はんげきします（盾が強いほど減らせる）。
+        {tr(
+          "名詞は守り・動詞は攻め・形容詞はからめ手の効果。SSR は効果が2つと特製の呪文付き（呪文は SSR の装備だけ）。4か所の属性をそろえると攻撃+15%。5階ごとのボスを倒すと宝箱（冒険限定の単語など）。敵が「ちからをためた」ら、次は大こうげき。ぼうぎょで受けとめると、はんげきします（盾が強いほど減らせる）。",
+          "Nouns give defensive effects, verbs offensive ones, adjectives tricky ones. SSR gear has 2 effects and a special spell (only SSR gear has spells). Match the element in 4 slots for ATK +15%. Beat the boss every 5 floors for a chest (with quest-only words and more). When an enemy is “powering up,” a heavy attack comes next — defend to block it and counterattack (a stronger shield reduces more)."
+        )}
       </p>
 
       <p className="mt-5 text-sm font-bold text-slate-800">
-        塔にいどむ <span className="text-xs font-bold text-slate-400">（最高 {q.best}階）</span>
+        {tr("塔にいどむ", "Challenge the tower")} <span className="text-xs font-bold text-slate-400">{tr(`（最高 ${q.best}階）`, `(best: floor ${q.best})`)}</span>
       </p>
       <div className="mt-2 grid grid-cols-2 gap-2">
         {startFloors(q.best).map((f) => (
@@ -480,18 +495,21 @@ function QuestHome({ state, cards, stats, header, onEquip, onAutoEquip, onSavePr
             onClick={() => onStart(f)}
             className="flex items-center justify-center gap-1.5 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 py-3.5 text-sm font-extrabold text-white shadow active:scale-95"
           >
-            <Castle size={16} /> {f}階から
+            <Castle size={16} /> {tr(`${f}階から`, `From floor ${f}`)}
           </button>
         ))}
       </div>
-      <p className="mt-2 text-[11px] text-slate-500">5階ごとにボスがいます。ボスを倒すと、次からはその次の階から始められます。</p>
+      <p className="mt-2 text-[11px] text-slate-500">{tr("5階ごとにボスがいます。ボスを倒すと、次からはその次の階から始められます。", "There's a boss every 5 floors. Beat one and you can start from the floor after it next time.")}</p>
       {onIdioms && (
         <label className="mt-2 flex items-center gap-2 rounded-2xl bg-white p-3 text-sm font-bold text-slate-700 shadow-sm ring-1 ring-slate-200">
           <input id="quest-idioms" type="checkbox" checked={idioms} onChange={(e) => onIdioms(e.target.checked)} className="h-4 w-4 accent-indigo-600" />
           <span className="flex-1">
-            熟語も出す
+            {tr("熟語も出す", "Include idioms")}
             <span className="block text-[11px] font-normal text-slate-500">
-              {IDIOM_FLOOR}階から「wake up」「take a shower」などの熟語が混ざります（最初は2割、深い階ほど増えて最大5割）。オフなら単語だけ
+              {tr(
+                `${IDIOM_FLOOR}階から「wake up」「take a shower」などの熟語が混ざります（最初は2割、深い階ほど増えて最大5割）。オフなら単語だけ`,
+                `From floor ${IDIOM_FLOOR}, idioms like “wake up” and “take a shower” are mixed in (20% at first, rising to 50% on deeper floors). Off = words only`
+              )}
             </span>
           </span>
         </label>
@@ -520,49 +538,61 @@ function QuestHome({ state, cards, stats, header, onEquip, onAutoEquip, onSavePr
 
 /** 起きたことをメッセージにする（ドラクエ風の文） */
 function messagesOf(events, enemyName, answerText) {
+  const en = getLang() === "en";
   return events.map((e) => {
     switch (e.type) {
       case "hit":
         return [
-          e.skill ? `${e.skill}！` : e.magic ? "じゅもんを となえた！" : "こうげき！",
-          e.crit ? "かいしんの いちげき！" : "",
-          e.weak ? "こうかは ばつぐんだ！" : e.resist ? "あまり きいていない…" : "",
-          `${enemyName}に ${e.dmg}の ダメージ！`,
+          e.skill ? `${e.skill}！` : e.magic ? tr("じゅもんを となえた！", "Cast a spell!") : tr("こうげき！", "Attack!"),
+          e.crit ? tr("かいしんの いちげき！", "Critical hit!") : "",
+          e.weak ? tr("こうかは ばつぐんだ！", "It's super effective!") : e.resist ? tr("あまり きいていない…", "It's not very effective…") : "",
+          e.speed > 1 ? tr(`はやわざ ×${e.speed.toFixed(2)}！`, `Quick answer ×${e.speed.toFixed(2)}!`) : "",
+          tr(`${enemyName}に ${e.dmg}の ダメージ！`, `${e.dmg} damage to ${enemyName}!`),
         ]
           .filter(Boolean)
           .join(" ");
       case "miss":
-        return `ミス！ ${e.skill || (e.magic ? "じゅもん" : "こうげき")}は はずれた…（正解は「${answerText}」）`;
+        return en
+          ? `Miss! The ${e.skill || (e.magic ? "spell" : "attack")} missed… (answer: “${answerText}”)`
+          : `ミス！ ${e.skill || (e.magic ? "じゅもん" : "こうげき")}は はずれた…（正解は「${answerText}」）`;
       case "drain":
-        return `HPを ${e.heal} すいとった！`;
+        return tr(`HPを ${e.heal} すいとった！`, `Drained ${e.heal} HP!`);
       case "heal":
-        return `ひかりに つつまれ HPが ${e.heal} かいふくした！`;
+        return tr(`ひかりに つつまれ HPが ${e.heal} かいふくした！`, `Wrapped in light, recovered ${e.heal} HP!`);
       case "freeze":
-        return `${enemyName}は こおりついた！`;
+        return tr(`${enemyName}は こおりついた！`, `${enemyName} is frozen!`);
       case "frozen":
-        return `${enemyName}は うごけない！`;
+        return tr(`${enemyName}は うごけない！`, `${enemyName} can't move!`);
       case "defend":
-        return "みを まもっている。MPが すこし かいふくした";
+        return en
+          ? `You're guarding. Recovered a little MP${e.speed > 1 ? ` (quick answer: guard ×${e.speed.toFixed(2)})` : ""}`
+          : `みを まもっている。MPが すこし かいふくした${e.speed > 1 ? `（はやわざで まもり ×${e.speed.toFixed(2)}）` : ""}`;
       case "defendMiss":
-        return `ぼうぎょに しっぱい！ みを まもれない…（正解は「${answerText}」）`;
+        return tr(`ぼうぎょに しっぱい！ みを まもれない…（正解は「${answerText}」）`, `Guard failed! You can't protect yourself… (answer: “${answerText}”)`);
       case "herb":
-        return `やくそうを つかった！ HPが ${e.heal} かいふくした`;
+        return tr(`やくそうを つかった！ HPが ${e.heal} かいふくした`, `Used an herb! Recovered ${e.heal} HP`);
       case "win":
-        return `${enemyName}を たおした！ けいけんち ${e.exp} を かくとく！`;
+        return tr(`${enemyName}を たおした！ けいけんち ${e.exp} を かくとく！`, `Defeated ${enemyName}! Gained ${e.exp} EXP!`);
       case "charge":
-        return `${enemyName}は ${e.boss ? "おおきく いきを すいこんだ" : "ちからを ためている"}…！ つぎは 大こうげきだ！ ぼうぎょ しよう！`;
+        return en
+          ? `${enemyName} is ${e.boss ? "taking a deep breath" : "powering up"}…! A heavy attack is coming next — defend!`
+          : `${enemyName}は ${e.boss ? "おおきく いきを すいこんだ" : "ちからを ためている"}…！ つぎは 大こうげきだ！ ぼうぎょ しよう！`;
       case "evade":
-        return `${enemyName}の こうげき！ ひらりと かわした！`;
+        return tr(`${enemyName}の こうげき！ ひらりと かわした！`, `${enemyName} attacks! You dodged it!`);
       case "hurt":
+        if (en)
+          return `${e.smash ? (e.boss ? `${enemyName} breathes fierce flames!` : `${enemyName}'s heavy attack!`) : `${enemyName} attacks!`} You took ${e.dmg} damage!${
+            e.guarded ? (e.smash ? " (blocked with your shield)" : " (guarding)") : ""
+          }${e.resist ? " (reduced by element)" : ""}`;
         return `${e.smash ? (e.boss ? `${enemyName}は はげしい ほのおを はいた！` : `${enemyName}の 大こうげき！`) : `${enemyName}の こうげき！`} ${e.dmg}の ダメージを うけた！${
           e.guarded ? (e.smash ? "（たてで うけとめた）" : "（ぼうぎょ）") : ""
         }${e.resist ? "（ぞくせいで けいげん）" : ""}`;
       case "counter":
-        return `はんげき！ ${enemyName}に ${e.dmg}の ダメージ！`;
+        return tr(`はんげき！ ${enemyName}に ${e.dmg}の ダメージ！`, `Counterattack! ${e.dmg} damage to ${enemyName}!`);
       case "regen":
-        return `HPが ${e.heal} かいふくした`;
+        return tr(`HPが ${e.heal} かいふくした`, `Recovered ${e.heal} HP`);
       case "lose":
-        return "ちからつきた…";
+        return tr("ちからつきた…", "You collapsed…");
       default:
         return "";
     }
@@ -575,12 +605,13 @@ const FX_MS = 1300;
 /** 冒険中の画面 */
 function QuestRun({ stats, pool, idiomPool = [], idioms = false, chestWords, cards, speech, sound, dopamine, onEnd, active }) {
   const [run, setRun] = useState(() => createRun(stats, stats.startFloor));
-  const [log, setLog] = useState(() => [`${stats.startFloor}階。${run.enemy.name}が あらわれた！`]);
+  const [log, setLog] = useState(() => [tr(`${stats.startFloor}階。${run.enemy.name}が あらわれた！`, `Floor ${stats.startFloor}. ${run.enemy.name} appeared!`)]);
   const [question, setQuestion] = useState(null); // { action, skillId, item, choices }
   const [fx, setFx] = useState([]); // 表示中の演出
   const [busy, setBusy] = useState(false); // 演出中はコマンドを受け付けない
   const [dying, setDying] = useState(null); // 倒した敵（消える演出）
   const [chestOpen, setChestOpen] = useState(false); // 宝箱の中身を見せている
+  const askedItems = useRef({}); // 答えた問題（ID → 問題。倒したあとの解説用）
   const enemyRef = useRef(null);
   const arenaRef = useRef(null);
   const fxId = useRef(0);
@@ -626,13 +657,14 @@ function QuestRun({ stats, pool, idiomPool = [], idioms = false, chestWords, car
   const ask = (action, skillId = null) => {
     const cost = skillId ? stats.skills.find((x) => x.id === skillId)?.mp || 0 : 0;
     if (cost && run.mp < cost) {
-      setLog(["MPが たりない！"]);
+      setLog([tr("MPが たりない！", "Not enough MP!")]);
       return;
     }
     // 深い階では熟語も混ざる（「熟語も出す」がオンのとき）。選択肢は同じ種類から
     const from = idioms && idiomPool.length > 4 && Math.random() < idiomChance(run.floor) ? idiomPool : pool;
     const item = from[Math.floor(Math.random() * from.length)];
-    setQuestion({ action, skillId, item, idiom: from !== pool, choices: makeChoices(item, from, Math.random, 4, "japanese") });
+    const idiom = from !== pool;
+    setQuestion({ action, skillId, item, idiom, level: idiom ? "SR" : item.rarity || "N", at: performance.now(), choices: makeChoices(item, from, Math.random, 4, "japanese") });
     // 単語は問題が出たときに読む（答えたあとに読むと、効果音や合いの手のあとになって遅れるため）
     speech.speak(item.english, null, item.id);
   };
@@ -686,7 +718,7 @@ function QuestRun({ stats, pool, idiomPool = [], idioms = false, chestWords, car
     );
     if (e.type === "evade") {
       sound.play("slash", 0, { cheer: false });
-      addFx([{ kind: "text", text: "かわした！", color: "#e0f2fe" }]);
+      addFx([{ kind: "text", text: tr("かわした！", "Dodged!"), color: "#e0f2fe" }]);
       return;
     }
     if (e.type === "hurt") {
@@ -703,7 +735,7 @@ function QuestRun({ stats, pool, idiomPool = [], idioms = false, chestWords, car
     if (e.type === "counter") {
       later(520, () => {
         sound.play("slash", 0, { cheer: false });
-        addFx([{ kind: "text", text: "はんげき！", color: "#fde68a" }, { kind: "burst", color: "#93c5fd", big: true }, { kind: "number", text: `${e.dmg}` }]);
+        addFx([{ kind: "text", text: tr("はんげき！", "Counter!"), color: "#fde68a" }, { kind: "burst", color: "#93c5fd", big: true }, { kind: "number", text: `${e.dmg}` }]);
         animate(enemyRef.current, [{ filter: "brightness(4) saturate(0)" }, { filter: "brightness(1)" }], 300);
       });
     }
@@ -735,7 +767,7 @@ function QuestRun({ stats, pool, idiomPool = [], idioms = false, chestWords, car
         addFx([{ kind: "shield" }]);
       } else if (e.type === "defendMiss") {
         sound.play("wrong", 0, { cheer: false });
-        addFx([{ kind: "text", text: "ガード失敗", color: "#cbd5e1" }]);
+        addFx([{ kind: "text", text: tr("ガード失敗", "Guard failed"), color: "#cbd5e1" }]);
       } else if (e.type === "herb" || e.type === "heal" || e.type === "drain" || e.type === "regen") {
         const at = e.type === "regen" ? 700 : 0;
         later(at, () => {
@@ -764,16 +796,19 @@ function QuestRun({ stats, pool, idiomPool = [], idioms = false, chestWords, car
   };
 
   const answerWith = (choice) => {
-    const { action, item, skillId } = question;
+    const { action, item, skillId, level, at } = question;
     const correct = choice.id === item.id;
+    const seconds = (performance.now() - at) / 1000;
     dopamine.hit(correct);
-    doAct(action, { id: item.id, correct }, item, skillId);
+    // 解説用に、答えた問題を覚えておく（同じ階のあいだ）
+    askedItems.current[item.id] = item;
+    doAct(action, { id: item.id, correct, seconds, level }, item, skillId);
   };
 
   const e = run.enemy;
   const cmd = "flex items-center justify-center gap-1.5 rounded-xl border-2 border-white bg-slate-800 py-3 text-sm font-black active:scale-95 disabled:opacity-40";
   return (
-    <div className="flex h-full flex-col bg-slate-950 text-white" data-testid="quest-run">
+    <div className="relative flex h-full flex-col bg-slate-950 text-white" data-testid="quest-run">
       <div ref={arenaRef} className="relative h-[42%] min-h-[220px] overflow-hidden">
         <img src={QUEST_BACKDROP} alt="" draggable={false} aria-hidden="true" className="pointer-events-none absolute inset-0 h-full w-full select-none object-cover object-bottom" />
         <img
@@ -785,11 +820,12 @@ function QuestRun({ stats, pool, idiomPool = [], idioms = false, chestWords, car
           data-testid="quest-hero"
         />
         <p className="absolute left-3 top-2 z-10 rounded-full bg-black/60 px-2.5 py-1 text-xs font-black" data-testid="quest-floor">
-          {run.floor}階{isBossFloor(run.floor) ? "（ボス）" : ""}
+          {tr(`${run.floor}階`, `Floor ${run.floor}`)}
+          {isBossFloor(run.floor) ? tr("（ボス）", " (boss)") : ""}
         </p>
         {e.charging && !run.won && (
           <p className="qs-warn-badge absolute right-3 top-2 z-10 rounded-full bg-rose-600 px-2.5 py-1 text-xs font-black shadow-lg" data-testid="quest-charging">
-            ⚠️ 大こうげきが来る！ ぼうぎょ！
+            {tr("⚠️ 大こうげきが来る！ ぼうぎょ！", "⚠️ Heavy attack incoming! Defend!")}
           </p>
         )}
         <div className="absolute inset-x-0 bottom-3 flex flex-col items-center">
@@ -823,17 +859,17 @@ function QuestRun({ stats, pool, idiomPool = [], idioms = false, chestWords, car
             </div>
             <p className="mt-1 flex items-center justify-between gap-1 text-[10px] font-bold" data-testid="quest-matchup">
               <span className="flex shrink-0 items-center whitespace-nowrap">
-                こうげき <ElementIcon element={stats.element} size={13} fallback="無" />→<ElementIcon element={e.element} size={13} fallback="無" />
+                {tr("こうげき", "Attack")} <ElementIcon element={stats.element} size={13} fallback={tr("無", "–")} />→<ElementIcon element={e.element} size={13} fallback={tr("無", "–")} />
               </span>
               <MultBadge mult={elementMultiplier(stats.element, e.element)} long />
             </p>
           </div>
         </div>
         <FxLayer fx={fx} />
-        {chestOpen && run.chests?.length > 0 && (
-          <ChestModal chest={run.chests[run.chests.length - 1]} cards={cards} onClose={() => setChestOpen(false)} />
-        )}
       </div>
+      {chestOpen && run.chests?.length > 0 && (
+        <ChestModal chest={run.chests[run.chests.length - 1]} cards={cards} onClose={() => setChestOpen(false)} />
+      )}
 
       <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto p-3">
         <div className="grid shrink-0 grid-cols-2 gap-3 rounded-xl border-2 border-white bg-slate-900 px-3 py-2" data-testid="quest-status">
@@ -850,11 +886,19 @@ function QuestRun({ stats, pool, idiomPool = [], idioms = false, chestWords, car
         {question ? (
           <div className="shrink-0 rounded-xl border-2 border-amber-300 bg-slate-900 p-3" data-testid="quest-question">
             <p className="text-center text-[11px] font-bold text-amber-300">
-              {question.skillId ? SKILLS[question.skillId].name : question.action === "defend" ? "ぼうぎょ" : "こうげき"}: {question.idiom ? "熟語の" : ""}意味をえらべ！
+              {question.skillId ? SKILLS[question.skillId].name : question.action === "defend" ? tr("ぼうぎょ", "Defend") : tr("こうげき", "Attack")}:{" "}
+              {question.idiom ? tr("熟語の意味をえらべ！", "Pick the idiom's meaning!") : tr("意味をえらべ！", "Pick the meaning!")}
             </p>
+            <div className="mt-1 flex items-center justify-between gap-2 text-[10px] font-bold">
+              <span className="flex items-center gap-1 text-white/70" data-testid="quest-level">
+                {tr("むずかしさ", "Difficulty")} <RarityBadge rarity={question.level} />
+                {question.action !== "defend" && <span className="tabular-nums">×{levelRate(question.level).toFixed(2)}</span>}
+              </span>
+              <SpeedMeter key={question.at} at={question.at} defend={question.action === "defend"} />
+            </div>
             <p className={`mt-1 flex items-center justify-center gap-2 text-center font-black ${question.item.english.length > 14 ? "text-xl" : "text-2xl"}`}>
               {question.item.english}
-              <button type="button" aria-label="読み上げる" onClick={() => speech.speak(question.item.english, null, question.item.id)} className="text-amber-300">
+              <button type="button" aria-label={tr("読み上げる", "Read aloud")} onClick={() => speech.speak(question.item.english, null, question.item.id)} className="text-amber-300">
                 <Volume2 size={20} />
               </button>
             </p>
@@ -872,36 +916,39 @@ function QuestRun({ stats, pool, idiomPool = [], idioms = false, chestWords, car
                 </button>
               ))}
             </div>
-            <button type="button" onClick={() => setQuestion(null)} className="mt-2 w-full text-center text-[11px] font-bold text-white/50">
-              もどる
-            </button>
+            <p className="mt-2 text-center text-[10px] font-bold text-white/40">{tr("答えるまで、ほかのコマンドには変えられない", "You can't switch commands until you answer")}</p>
           </div>
         ) : run.over ? (
           <p className="text-center text-sm font-bold text-white/70">…</p>
         ) : run.won ? (
-          <div className="grid grid-cols-2 gap-2">
+          <>
+          <Explanations asked={run.asked} items={askedItems.current} speech={speech} />
+          <div className="grid shrink-0 grid-cols-2 gap-2">
             <button
               type="button"
               disabled={busy}
               onClick={() => {
                 const next = nextFloor(run, stats);
+                askedItems.current = {};
+                setChestOpen(false);
                 setDying(null);
                 setRun(next);
-                setLog([`${next.floor}階へ すすんだ。${next.enemy.name}が あらわれた！`]);
+                setLog([tr(`${next.floor}階へ すすんだ。${next.enemy.name}が あらわれた！`, `On to floor ${next.floor}. ${next.enemy.name} appeared!`)]);
                 sound.play("appear");
               }}
               className="rounded-xl border-2 border-white bg-emerald-700 py-3 text-sm font-black disabled:opacity-40"
             >
-              つぎの階へ
+              {tr("つぎの階へ", "Next floor")}
             </button>
             <button type="button" onClick={() => end(retreat(run))} className="rounded-xl border-2 border-white bg-slate-800 py-3 text-sm font-black">
-              街に帰る
+              {tr("街に帰る", "Return to town")}
             </button>
           </div>
+          </>
         ) : (
           <div className="grid shrink-0 grid-cols-2 gap-2" data-testid="quest-commands">
             <button type="button" disabled={busy} onClick={() => ask("attack")} className={cmd}>
-              <Swords size={16} /> たたかう
+              <Swords size={16} /> {tr("たたかう", "Fight")}
             </button>
             {stats.skills.map((sk) => (
               <button
@@ -917,13 +964,13 @@ function QuestRun({ stats, pool, idiomPool = [], idioms = false, chestWords, car
               </button>
             ))}
             <button type="button" disabled={busy} onClick={() => ask("defend")} className={`${cmd} ${e.charging ? "qs-defend-hint border-sky-300 bg-sky-800" : ""}`}>
-              <Shield size={16} /> ぼうぎょ
+              <Shield size={16} /> {tr("ぼうぎょ", "Defend")}
             </button>
             <button type="button" onClick={() => doAct("herb")} disabled={busy || run.herbs <= 0} className={cmd}>
-              <Heart size={16} /> やくそう ×{run.herbs}
+              <Heart size={16} /> {tr("やくそう", "Herb")} ×{run.herbs}
             </button>
             <button type="button" onClick={() => end(retreat(run))} className="col-span-2 py-1 text-xs font-bold text-white/50">
-              にげる（街に帰る）
+              {tr("にげる（街に帰る）", "Flee (return to town)")}
             </button>
           </div>
         )}
@@ -932,23 +979,94 @@ function QuestRun({ stats, pool, idiomPool = [], idioms = false, chestWords, car
   );
 }
 
-const LOOT_LABEL = { points: "ガチャのポイント", tickets: "レアチケット", srTickets: "SR チケット", medals: "メダル" };
+const LOOT_LABEL = {
+  get points() { return tr("ガチャのポイント", "Gacha points"); },
+  get tickets() { return tr("レアチケット", "Rare tickets"); },
+  get srTickets() { return tr("SR チケット", "SR tickets"); },
+  get medals() { return tr("メダル", "Medals"); },
+};
 
-/** 宝箱をあけた演出（ボスを倒したあと） */
+/** 答えの速さのメーター（問題が出てからの時間で倍率が下がっていく） */
+function SpeedMeter({ at, defend }) {
+  const [now, setNow] = useState(() => performance.now());
+  useEffect(() => {
+    const id = setInterval(() => setNow(performance.now()), 100);
+    return () => clearInterval(id);
+  }, []);
+  const seconds = (now - at) / 1000;
+  const rate = speedRate(seconds);
+  const left = Math.max(0, 1 - seconds / SPEED_SLOW);
+  return (
+    <span className="flex items-center gap-1" data-testid="quest-speed" data-rate={rate}>
+      <span className="text-white/70">{defend ? tr("まもり", "Guard") : tr("はやさ", "Speed")}</span>
+      <span className="h-1.5 w-14 overflow-hidden rounded-full bg-white/15">
+        <span className={`block h-full rounded-full ${rate > 1.15 ? "bg-emerald-400" : rate > 1 ? "bg-amber-400" : "bg-slate-500"}`} style={{ width: `${left * 100}%` }} />
+      </span>
+      <span className={`w-9 text-right tabular-nums ${rate > 1 ? "text-emerald-300" : "text-white/50"}`}>×{rate.toFixed(2)}</span>
+    </span>
+  );
+}
+
+/** 例文（単語は example、熟語は会話例の1行目） */
+const exampleOf = (item) => ({
+  en: item.example || String(item.exampleContext || "").split("\n")[0],
+  ja: item.exampleJa || String(item.exampleJapanese || "").split("\n")[0],
+});
+
+/** 倒したあとの解説: この階で答えた問題の意味・例文・語源 */
+function Explanations({ asked = [], items, speech }) {
+  const seen = new Set();
+  const list = [];
+  for (const a of asked) {
+    if (seen.has(a.id) || !items[a.id]) continue;
+    seen.add(a.id);
+    list.push({ item: items[a.id], correct: !asked.some((x) => x.id === a.id && !x.correct) });
+  }
+  if (!list.length) return null;
+  return (
+    <div className="shrink-0 rounded-xl border-2 border-white/60 bg-slate-900 p-3" data-testid="quest-explain">
+      <p className="text-[11px] font-black text-amber-300">{tr("今の戦いの問題の解説", "Review of this fight's questions")}</p>
+      <ul className="mt-1 space-y-2">
+        {list.map(({ item, correct }) => (
+          <li key={item.id} className="border-t border-white/10 pt-2 first:border-t-0 first:pt-0" data-testid="quest-explain-item">
+            <p className="flex items-center gap-1.5 font-black">
+              <span className={correct ? "text-emerald-300" : "text-rose-300"}>{correct ? "○" : "×"}</span>
+              {item.english}
+              <button type="button" aria-label={tr("読み上げる", "Read aloud")} onClick={() => speech.speak(item.english, null, item.id)} className="text-amber-300">
+                <Volume2 size={16} />
+              </button>
+              {item.rarity && <RarityBadge rarity={item.rarity} />}
+            </p>
+            <p className="text-sm font-bold text-white/90">{item.japanese}</p>
+            {exampleOf(item).en && (
+              <p className="mt-0.5 text-xs leading-relaxed text-white/70">
+                {exampleOf(item).en}
+                {exampleOf(item).ja && <span className="block text-white/50">{exampleOf(item).ja}</span>}
+              </p>
+            )}
+            {item.trivia?.etymology && <p className="mt-0.5 text-xs leading-relaxed text-amber-200/80">{tr("語源", "Origin")}: {item.trivia.etymology}</p>}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+/** 宝箱をあけた演出（ボスを倒したあと。OK を押すまで閉じない） */
 function ChestModal({ chest, cards, onClose }) {
   return (
-    <div className="absolute inset-0 z-30 flex items-center justify-center bg-black/60" data-testid="quest-chest" onClick={onClose}>
+    <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/70 p-4" data-testid="quest-chest" role="dialog" aria-modal="true">
       <div className="qs-appear flex flex-col items-center rounded-2xl border-2 border-amber-300 bg-slate-900/95 px-6 py-4 text-center shadow-2xl">
         <div className="qs-chest">
           <Art src={CHEST_ART} size={96} />
         </div>
-        <p className="mt-1 text-sm font-black text-amber-300">{chest.floor}階の たからばこを あけた！</p>
+        <p className="mt-1 text-sm font-black text-amber-300">{tr(`${chest.floor}階の たからばこを あけた！`, `Opened the floor ${chest.floor} chest!`)}</p>
         <ul className="mt-2 space-y-1 text-sm">
           {chest.items.map((it, i) =>
             it.kind === "word" ? (
               <li key={i} className="qs-heal-in flex items-center justify-center gap-1.5 font-black">
                 <RarityBadge rarity={it.rarity} /> {cards[it.id]?.english || it.id}
-                <span className="text-[10px] font-bold text-amber-300">冒険限定</span>
+                <span className="text-[10px] font-bold text-amber-300">{tr("冒険限定", "Quest only")}</span>
               </li>
             ) : (
               <li key={i} className="qs-heal-in font-bold">
@@ -957,7 +1075,15 @@ function ChestModal({ chest, cards, onClose }) {
             )
           )}
         </ul>
-        <p className="mt-2 text-[10px] text-white/50">街に帰ると受け取れます（負けても受け取れます）・タップで閉じる</p>
+        <p className="mt-2 text-[10px] text-white/50">{tr("街に帰ると受け取れます（負けても受け取れます）", "You get these when you return to town (even if you lose)")}</p>
+        <button
+          type="button"
+          onClick={onClose}
+          data-testid="quest-chest-close"
+          className="mt-3 w-full rounded-xl border-2 border-white bg-amber-500 py-2.5 text-sm font-black text-slate-900 active:scale-95"
+        >
+          {tr("OK", "OK")}
+        </button>
       </div>
     </div>
   );
@@ -1072,28 +1198,30 @@ function FxLayer({ fx }) {
 function QuestResult({ run, reward, cards, onBack }) {
   return (
     <div className="h-full overflow-y-auto bg-slate-950 px-5 pt-8 pb-6 text-white" data-testid="quest-result">
-      <p className="text-center text-2xl font-black">{run.lost ? "ちからつきた…" : "ぶじに 街へ もどった"}</p>
+      <p className="text-center text-2xl font-black">{run.lost ? tr("ちからつきた…", "You collapsed…") : tr("ぶじに 街へ もどった", "Made it back to town")}</p>
       <div className="mt-5 space-y-2 rounded-2xl border-2 border-white bg-slate-900 p-4 text-sm">
         <p>
-          とうたつ: <b>{run.floor}階</b>（たおした敵 {run.cleared}）{reward.newBest && <span className="ml-1 font-black text-amber-300">最高記録！</span>}
+          {tr("とうたつ", "Reached")}: <b>{tr(`${run.floor}階`, `Floor ${run.floor}`)}</b>
+          {tr(`（たおした敵 ${run.cleared}）`, ` (defeated ${run.cleared})`)}
+          {reward.newBest && <span className="ml-1 font-black text-amber-300">{tr("最高記録！", "New record!")}</span>}
         </p>
         <p>
-          けいけんち: <b>+{reward.exp}</b>
-          {reward.levels > 0 && <span className="ml-1 font-black text-amber-300">レベルアップ！ Lv{reward.level}</span>}
+          {tr("けいけんち", "EXP")}: <b>+{reward.exp}</b>
+          {reward.levels > 0 && <span className="ml-1 font-black text-amber-300">{tr("レベルアップ！", "Level up!")} Lv{reward.level}</span>}
         </p>
         <p>
-          ガチャのポイント: <b>+{reward.points}pt</b>
-          {reward.boosted ? "（ブースト中）" : ""}
-          {reward.levelBonus > 0 && <span className="ml-1 text-[11px] text-white/60">（とうたつボーナス {reward.levelBonus}pt を含む）</span>}
+          {tr("ガチャのポイント", "Gacha points")}: <b>+{reward.points}pt</b>
+          {reward.boosted ? tr("（ブースト中）", " (boosted)") : ""}
+          {reward.levelBonus > 0 && <span className="ml-1 text-[11px] text-white/60">{tr(`（とうたつボーナス ${reward.levelBonus}pt を含む）`, `(includes floor bonus ${reward.levelBonus}pt)`)}</span>}
         </p>
         {reward.tickets > 0 && (
           <p>
-            レアチケット: <b>+{reward.tickets}</b>
+            {tr("レアチケット", "Rare tickets")}: <b>+{reward.tickets}</b>
           </p>
         )}
         {(run.chests || []).length > 0 && (
           <div className="rounded-xl bg-amber-400/10 p-2" data-testid="quest-loot">
-            <p className="text-xs font-black text-amber-300">たからばこ（{run.chests.length}こ）</p>
+            <p className="text-xs font-black text-amber-300">{tr(`たからばこ（${run.chests.length}こ）`, `Chests (${run.chests.length})`)}</p>
             {Object.entries(reward.loot || {})
               .filter(([, v]) => v > 0)
               .map(([k, v]) => (
@@ -1103,15 +1231,16 @@ function QuestResult({ run, reward, cards, onBack }) {
               ))}
             {(reward.words || []).map((w, i) => (
               <p key={i} className="flex items-center gap-1 text-xs font-bold">
-                <RarityBadge rarity={w.rarity} /> {cards[w.id]?.english || w.id}（冒険限定）
+                <RarityBadge rarity={w.rarity} /> {cards[w.id]?.english || w.id}
+                {tr("（冒険限定）", " (quest only)")}
               </p>
             ))}
           </div>
         )}
-        {run.lost && <p className="text-xs text-white/60">負けても、手に入れた経験値はなくなりません。</p>}
+        {run.lost && <p className="text-xs text-white/60">{tr("負けても、手に入れた経験値はなくなりません。", "Even if you lose, you keep the EXP you earned.")}</p>}
       </div>
       <button type="button" onClick={onBack} className="mt-5 w-full rounded-2xl bg-white py-3.5 text-sm font-extrabold text-slate-900">
-        準備にもどる
+        {tr("準備にもどる", "Back to preparation")}
       </button>
     </div>
   );

@@ -110,11 +110,22 @@ test("ログイン前の進捗はログインするとアカウントに引き�
   expect(await cloudLearned(page)).toBe(2);
 });
 
-test("ログイン中の操作はまとめてクラウドに保存され、別の端末でも続きから始められる", async ({ page }) => {
+test("ログイン中の操作は、アプリを閉じる・切り替えるときにまとめてクラウドに保存され、別の端末でも続きから始められる", async ({ page }) => {
   await skipWelcome(page);
   await login(page);
   await page.getByRole("button", { name: "学習", exact: true }).click();
   await swipe(page, 220);
+  await expect(page.getByTestId("remaining")).toHaveText(/^49/);
+  // 操作のたびには保存しない（書き込みの回数を減らす）
+  await page.waitForTimeout(2500);
+  expect(await cloudLearned(page)).toBe(0);
+  await page.getByRole("button", { name: "進捗", exact: true }).click();
+  await expect(page.getByTestId("sync-status")).toHaveText(/保存していない変更があります/);
+  // ほかのアプリに切り替える（画面が隠れる）と保存
+  await page.evaluate(() => {
+    Object.defineProperty(document, "visibilityState", { value: "hidden", configurable: true });
+    document.dispatchEvent(new Event("visibilitychange"));
+  });
   await expect.poll(() => cloudLearned(page), { timeout: 5000 }).toBe(1);
 
   await switchDevice(page);
@@ -122,6 +133,31 @@ test("ログイン中の操作はまとめてクラウドに保存され、別�
   await page.getByRole("button", { name: "進捗", exact: true }).click();
   await expect(page.getByTestId("sync-status")).toHaveText(/クラウドに保存済み/);
   await expect(page.getByText(/^1 \/ 5500 覚えた$/)).toBeVisible();
+});
+
+test("閉じたときの保存が間に合わなくても（強制終了）、次に開くと続きから遊べて、そのときクラウドに上がる", async ({ page }) => {
+  await skipWelcome(page);
+  await login(page);
+  await page.getByRole("button", { name: "学習", exact: true }).click();
+  await swipe(page, 220);
+  await expect(page.getByTestId("remaining")).toHaveText(/^49/);
+  expect(await cloudLearned(page)).toBe(0);
+  // 保存せずにページを開き直す（強制終了と同じ）
+  await page.evaluate(() => (window.__swipetalkCloud.save = async () => {}));
+  await page.reload();
+  await expect(page.getByTestId("remaining")).toHaveText(/^49/);
+  await expect.poll(() => cloudLearned(page), { timeout: 5000 }).toBe(1);
+});
+
+test("「今すぐ保存」でもクラウドに保存できる", async ({ page }) => {
+  await skipWelcome(page);
+  await login(page);
+  await page.getByRole("button", { name: "学習", exact: true }).click();
+  await swipe(page, 220);
+  await page.getByRole("button", { name: "進捗", exact: true }).click();
+  await page.getByTestId("save-now").click();
+  await expect(page.getByTestId("sync-status")).toHaveText(/クラウドに保存済み/);
+  expect(await cloudLearned(page)).toBe(1);
 });
 
 test("ログアウトすると、この端末から進捗が消える（クラウドには残る）", async ({ page }) => {

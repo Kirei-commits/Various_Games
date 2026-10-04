@@ -19,15 +19,16 @@
  */
 import { grant, boostRate, pointsForTime, MAX_LEVEL as CARD_MAX, DUP_MEDALS } from "./gacha.js";
 import { BATTLE_POINTS, BATTLE_TICKETS, REWARD_MIN_KILLS, endlessLevelBonus } from "./battle.js";
+import { tr } from "./i18n.js";
 
 export const SLOTS = [
-  { id: "weapon", name: "武器", icon: "⚔️", stat: "攻撃力" },
-  { id: "shield", name: "盾", icon: "🛡️", stat: "守備力・ぼうぎょ" },
-  { id: "head", name: "頭", icon: "⛑️", stat: "守備力・MP" },
-  { id: "body", name: "体", icon: "🥋", stat: "HP・守備力" },
-  { id: "arms", name: "腕", icon: "🧤", stat: "攻撃力・会心" },
-  { id: "feet", name: "足", icon: "👢", stat: "みかわし・守備力" },
-  { id: "accessory", name: "アクセ", icon: "💍", stat: "HP・MP" },
+  { id: "weapon", get name() { return tr("武器", "Weapon"); }, icon: "⚔️", get stat() { return tr("攻撃力", "ATK"); } },
+  { id: "shield", get name() { return tr("盾", "Shield"); }, icon: "🛡️", get stat() { return tr("守備力・ぼうぎょ", "DEF & guard"); } },
+  { id: "head", get name() { return tr("頭", "Head"); }, icon: "⛑️", get stat() { return tr("守備力・MP", "DEF & MP"); } },
+  { id: "body", get name() { return tr("体", "Body"); }, icon: "🥋", get stat() { return tr("HP・守備力", "HP & DEF"); } },
+  { id: "arms", get name() { return tr("腕", "Arms"); }, icon: "🧤", get stat() { return tr("攻撃力・会心", "ATK & crit"); } },
+  { id: "feet", get name() { return tr("足", "Feet"); }, icon: "👢", get stat() { return tr("みかわし・守備力", "evasion & DEF"); } },
+  { id: "accessory", get name() { return tr("アクセ", "Accessory"); }, icon: "💍", get stat() { return tr("HP・MP", "HP & MP"); } },
 ];
 /** 以前の3か所の装備（武器・防具・お守り）から、今の場所への引っ越し先 */
 export const OLD_SLOTS = { armor: "body", charm: "accessory" };
@@ -43,12 +44,12 @@ export const RARITY_POWER = {
 const RARITY_KEYS = ["N", "R", "SR", "SSR"];
 
 export const ELEMENTS = {
-  none: { name: "なし", icon: "" },
-  fire: { name: "炎", icon: "🔥" },
-  ice: { name: "氷", icon: "❄️" },
-  thunder: { name: "雷", icon: "⚡" },
-  light: { name: "光", icon: "✨" },
-  dark: { name: "闇", icon: "🌑" },
+  none: { get name() { return tr("なし", "None"); }, icon: "" },
+  fire: { get name() { return tr("炎", "Fire"); }, icon: "🔥" },
+  ice: { get name() { return tr("氷", "Ice"); }, icon: "❄️" },
+  thunder: { get name() { return tr("雷", "Thunder"); }, icon: "⚡" },
+  light: { get name() { return tr("光", "Light"); }, icon: "✨" },
+  dark: { get name() { return tr("闇", "Dark"); }, icon: "🌑" },
 };
 const ELEMENT_KEYS = ["fire", "ice", "thunder", "light", "dark"];
 /** 相性: 炎→氷→雷→炎 は矢印の先に強い（1.5倍、逆は0.75倍）。光と闇はおたがいに強い */
@@ -72,16 +73,16 @@ const ELEMENT_WORDS = {
 
 /** 効果の種類。値はレア度で決まり、Lv で少し伸びる（Lv1 を 1 として 1 つごとに +15%） */
 export const EFFECTS = {
-  atkUp: { name: "攻撃力アップ", unit: "%", values: { N: 5, R: 10, SR: 18, SSR: 30 } },
-  defUp: { name: "守備力アップ", unit: "%", values: { N: 5, R: 10, SR: 18, SSR: 30 } },
-  hpUp: { name: "HPアップ", unit: "%", values: { N: 5, R: 10, SR: 18, SSR: 30 } },
-  crit: { name: "会心率アップ", unit: "%", values: { N: 3, R: 6, SR: 10, SSR: 15 } },
-  regen: { name: "自動回復", unit: "HP/ターン", values: { N: 1, R: 3, SR: 5, SSR: 9 } },
-  evade: { name: "みかわし", unit: "%", values: { N: 3, R: 5, SR: 8, SSR: 12 } },
-  mpUp: { name: "MPアップ", unit: "", values: { N: 3, R: 6, SR: 10, SSR: 16 } },
-  expUp: { name: "経験値アップ", unit: "%", values: { N: 5, R: 10, SR: 20, SSR: 35 } },
-  elemUp: { name: "属性強化", unit: "%", values: { N: 10, R: 15, SR: 25, SSR: 40 } },
-  drain: { name: "HP吸収", unit: "%", values: { N: 3, R: 6, SR: 10, SSR: 15 } },
+  atkUp: { get name() { return tr("攻撃力アップ", "ATK up"); }, unit: "%", values: { N: 5, R: 10, SR: 18, SSR: 30 } },
+  defUp: { get name() { return tr("守備力アップ", "DEF up"); }, unit: "%", values: { N: 5, R: 10, SR: 18, SSR: 30 } },
+  hpUp: { get name() { return tr("HPアップ", "HP up"); }, unit: "%", values: { N: 5, R: 10, SR: 18, SSR: 30 } },
+  crit: { get name() { return tr("会心率アップ", "Crit up"); }, unit: "%", values: { N: 3, R: 6, SR: 10, SSR: 15 } },
+  regen: { get name() { return tr("自動回復", "Regen"); }, get unit() { return tr("HP/ターン", "HP/turn"); }, values: { N: 1, R: 3, SR: 5, SSR: 9 } },
+  evade: { get name() { return tr("みかわし", "Evasion"); }, unit: "%", values: { N: 3, R: 5, SR: 8, SSR: 12 } },
+  mpUp: { get name() { return tr("MPアップ", "MP up"); }, unit: "", values: { N: 3, R: 6, SR: 10, SSR: 16 } },
+  expUp: { get name() { return tr("経験値アップ", "EXP up"); }, unit: "%", values: { N: 5, R: 10, SR: 20, SSR: 35 } },
+  elemUp: { get name() { return tr("属性強化", "Element boost"); }, unit: "%", values: { N: 10, R: 15, SR: 25, SSR: 40 } },
+  drain: { get name() { return tr("HP吸収", "HP drain"); }, unit: "%", values: { N: 3, R: 6, SR: 10, SSR: 15 } },
 };
 const EFFECT_KEYS = Object.keys(EFFECTS);
 /** 品詞ごとに付きやすい効果（名詞=守り、動詞=攻め、形容詞=からめ手、その他=おまけ） */
@@ -186,13 +187,13 @@ export const enhanceTotal = (card, from, to) => {
  */
 export function enhance(state, cards, targetId) {
   const card = cards[targetId];
-  if (!card || !(state.gacha?.cards?.[targetId] > 0)) return { state, error: "持っていない単語は強化できません" };
+  if (!card || !(state.gacha?.cards?.[targetId] > 0)) return { state, error: tr("持っていない単語は強化できません", "You can't enhance a word you don't have") };
   const q = { ...initialQuest(), ...state.quest };
   const from = plusOf(q.enhance[targetId]);
-  if (from >= MAX_PLUS) return { state, error: `もう +${MAX_PLUS}（最大）です` };
+  if (from >= MAX_PLUS) return { state, error: tr(`もう +${MAX_PLUS}（最大）です`, `Already +${MAX_PLUS} (max)`) };
   const cost = enhanceCost(card, from + 1);
   const have = state.gacha.exPoints || 0;
-  if (have < cost) return { state, error: `交換ポイントが ${cost - have} 足りません` };
+  if (have < cost) return { state, error: tr(`交換ポイントが ${cost - have} 足りません`, `You need ${cost - have} more exchange points`) };
   return {
     state: {
       ...state,
@@ -231,12 +232,12 @@ export function slotBonus(slot, power) {
  * drain = 与えたダメージの割合を吸収
  */
 export const SKILLS = {
-  fire: { id: "fire", name: "フレイムバースト", icon: "🔥", mp: 10, mult: 2.4, element: "fire", text: "炎の大爆発" },
-  ice: { id: "ice", name: "ブリザード", icon: "❄️", mp: 10, mult: 1.8, element: "ice", effect: "freeze", text: "敵を凍らせて1ターン止める" },
-  thunder: { id: "thunder", name: "ライトニング", icon: "⚡", mp: 9, mult: 2.0, element: "thunder", effect: "pierce", text: "守備を無視する雷" },
-  light: { id: "light", name: "ホーリーライト", icon: "✨", mp: 8, mult: 1.2, element: "light", effect: "heal", value: 40, text: "光の攻撃と HP 40% 回復" },
-  dark: { id: "dark", name: "ダークドレイン", icon: "🌑", mp: 10, mult: 1.8, element: "dark", effect: "drain", value: 50, text: "与えたダメージの半分を吸収" },
-  none: { id: "none", name: "メテオストライク", icon: "☄️", mp: 12, mult: 2.8, element: "none", text: "隕石の超こうげき" },
+  fire: { id: "fire", get name() { return tr("フレイムバースト", "Flame Burst"); }, icon: "🔥", mp: 10, mult: 2.4, element: "fire", get text() { return tr("炎の大爆発", "A huge fiery explosion"); } },
+  ice: { id: "ice", get name() { return tr("ブリザード", "Blizzard"); }, icon: "❄️", mp: 10, mult: 1.8, element: "ice", effect: "freeze", get text() { return tr("敵を凍らせて1ターン止める", "Freezes the enemy for 1 turn"); } },
+  thunder: { id: "thunder", get name() { return tr("ライトニング", "Lightning"); }, icon: "⚡", mp: 9, mult: 2.0, element: "thunder", effect: "pierce", get text() { return tr("守備を無視する雷", "Lightning that ignores defense"); } },
+  light: { id: "light", get name() { return tr("ホーリーライト", "Holy Light"); }, icon: "✨", mp: 8, mult: 1.2, element: "light", effect: "heal", value: 40, get text() { return tr("光の攻撃と HP 40% 回復", "Light attack + heal 40% HP"); } },
+  dark: { id: "dark", get name() { return tr("ダークドレイン", "Dark Drain"); }, icon: "🌑", mp: 10, mult: 1.8, element: "dark", effect: "drain", value: 50, get text() { return tr("与えたダメージの半分を吸収", "Absorbs half the damage dealt"); } },
+  none: { id: "none", get name() { return tr("メテオストライク", "Meteor Strike"); }, icon: "☄️", mp: 12, mult: 2.8, element: "none", get text() { return tr("隕石の超こうげき", "A super meteor attack"); } },
 };
 
 /** 装備している SSR の呪文（同じ呪文は1つだけ） */
@@ -247,7 +248,7 @@ export function skillsOf(gear) {
     if (!base) continue;
     // +5 以上の SSR は「極」の呪文（1.6倍・回復や吸収も多い）
     const sk = g.ultimate
-      ? { ...base, name: `極・${base.name}`, mult: Math.round(base.mult * 1.6 * 100) / 100, value: base.value ? Math.round(base.value * 1.5) : base.value, ultimate: true }
+      ? { ...base, name: tr(`極・${base.name}`, `Extreme ${base.name}`), mult: Math.round(base.mult * 1.6 * 100) / 100, value: base.value ? Math.round(base.value * 1.5) : base.value, ultimate: true }
       : base;
     const i = out.findIndex((x) => x.id === sk.id);
     if (i < 0) out.push({ ...sk, from: g.english });
@@ -328,16 +329,16 @@ export const skillCost = (sk, maxMp) => Math.round((sk.mp + maxMp * SKILL_MP_SHA
 
 /** 敵の種類（絵はバトルと同じ。src/battle-art.jsx の MONSTER_KINDS） */
 export const ENEMY_KINDS = [
-  { kind: "slime", name: "スライム", element: "ice" },
-  { kind: "bat", name: "こうもり", element: "dark" },
-  { kind: "mushroom", name: "おばけキノコ", element: "none" },
-  { kind: "goblin", name: "ゴブリン", element: "none" },
-  { kind: "imp", name: "インプ", element: "fire" },
-  { kind: "ghost", name: "ゴースト", element: "dark" },
-  { kind: "eye", name: "まどうアイ", element: "light" },
-  { kind: "fire", name: "ほのおのせい", element: "fire" },
-  { kind: "skull", name: "どくろ", element: "dark" },
-  { kind: "golem", name: "ゴーレム", element: "thunder" },
+  { kind: "slime", get name() { return tr("スライム", "Slime"); }, element: "ice" },
+  { kind: "bat", get name() { return tr("こうもり", "Bat"); }, element: "dark" },
+  { kind: "mushroom", get name() { return tr("おばけキノコ", "Spooky Shroom"); }, element: "none" },
+  { kind: "goblin", get name() { return tr("ゴブリン", "Goblin"); }, element: "none" },
+  { kind: "imp", get name() { return tr("インプ", "Imp"); }, element: "fire" },
+  { kind: "ghost", get name() { return tr("ゴースト", "Ghost"); }, element: "dark" },
+  { kind: "eye", get name() { return tr("まどうアイ", "Magic Eye"); }, element: "light" },
+  { kind: "fire", get name() { return tr("ほのおのせい", "Fire Spirit"); }, element: "fire" },
+  { kind: "skull", get name() { return tr("どくろ", "Skull"); }, element: "dark" },
+  { kind: "golem", get name() { return tr("ゴーレム", "Golem"); }, element: "thunder" },
 ];
 export const BOSS_EVERY = 5;
 export const isBossFloor = (floor) => floor % BOSS_EVERY === 0;
@@ -354,7 +355,7 @@ export const ENEMY = {
 export function enemyFor(floor, rng = Math.random) {
   const boss = isBossFloor(floor);
   const base = boss
-    ? { kind: "dragon", name: floor % 10 === 0 ? "やみのドラゴン" : "ほのおのドラゴン", element: floor % 10 === 0 ? "dark" : "fire" }
+    ? { kind: "dragon", name: floor % 10 === 0 ? tr("やみのドラゴン", "Dark Dragon") : tr("ほのおのドラゴン", "Fire Dragon"), element: floor % 10 === 0 ? "dark" : "fire" }
     : ENEMY_KINDS[(Math.min(floor - 1, 6) + Math.floor(rng() * 4)) % ENEMY_KINDS.length];
   // 深い階ほど一気に強くなる（2乗の項）。強い装備でも30階を超えると何回も殴らないと倒せない
   const f2 = floor * floor;
@@ -401,6 +402,22 @@ export const comboRate = (combo) => 1 + Math.min(combo, 5) * 0.1;
 /** ぼうぎょしたときに受けるダメージの割合（ふつうのこうげき・大こうげき）。盾の block で大こうげきはさらに減る */
 export const guardRate = (smash, block = 0) => (smash ? Math.max(0.1, 0.25 - block / 400) : 0.5);
 
+/**
+ * 答えの速さの倍率: 問題が出てから答えるまでが短いほど、こうげき（ぼうぎょなら守り）が強くなる。
+ * 1.5 秒以内で ×1.3、そこから 8 秒で ×1.0 まで下がる（遅くても下がりすぎない）
+ */
+export const SPEED_FAST = 1.5;
+export const SPEED_SLOW = 8;
+export const SPEED_MAX = 1.3;
+export function speedRate(seconds) {
+  if (!Number.isFinite(seconds)) return 1;
+  const t = Math.min(1, Math.max(0, (seconds - SPEED_FAST) / (SPEED_SLOW - SPEED_FAST)));
+  return Math.round((SPEED_MAX - (SPEED_MAX - 1) * t) * 100) / 100;
+}
+/** 問題の難しさ（単語のレア度。熟語は SR と同じ）によるダメージの倍率（差は小さめ） */
+export const LEVEL_RATE = { N: 0.95, R: 1, SR: 1.07, SSR: 1.15 };
+export const levelRate = (level) => LEVEL_RATE[level] || 1;
+
 export const damageOf = (atk, def, rng) => Math.max(1, Math.round((atk - def / 2) * (0.9 + rng() * 0.2)));
 
 /** 冒険を始める（start 階から） */
@@ -423,6 +440,7 @@ export function createRun(stats, start = 1, rng = Math.random) {
     over: false, // 負けた・帰った
     lost: false,
     results: {}, // 問題ID → 最後まで間違えずに答えられたか（苦手の記録に使う）
+    asked: [], // この階で答えた問題 [{ id, correct }]（倒したあとの解説用）
     events: [], // 直前の行動で起きたこと（画面の演出とメッセージ用）
   };
 }
@@ -430,17 +448,18 @@ export function createRun(stats, start = 1, rng = Math.random) {
 /**
  * 1ターン進める。
  * @param action "attack" | "skill" | "defend" | "herb"
- * @param answer { id, correct }（attack・skill・defend のときの4択の答え。defend で間違えると身をまもれない）
+ * @param answer { id, correct, seconds, level }（attack・skill・defend のときの4択の答え。defend で間違えると身をまもれない）
+ *   seconds は答えるまでの秒数（速いほど強い。speedRate）、level は問題の難しさ（"N"〜"SSR"。levelRate）
  * @param skillId skill のときの呪文（SKILLS のキー。装備している SSR のものだけ）
  * @returns 新しい run（error があれば行動できなかった）
  */
 export function act(run, stats, action, answer = null, rng = Math.random, skillId = null) {
   if (run.over || run.won) return run;
   const skill = action === "skill" ? (stats.skills || []).find((x) => x.id === skillId) : null;
-  if (action === "skill" && !skill) return { ...run, error: "その呪文は使えない！" };
+  if (action === "skill" && !skill) return { ...run, error: tr("その呪文は使えない！", "You can't use that spell!") };
   const cost = skill ? skill.mp : 0;
-  if (cost && run.mp < cost) return { ...run, error: "MPがたりない！" };
-  if (action === "herb" && run.herbs <= 0) return { ...run, error: "やくそうがない！" };
+  if (cost && run.mp < cost) return { ...run, error: tr("MPがたりない！", "Not enough MP!") };
+  if (action === "herb" && run.herbs <= 0) return { ...run, error: tr("やくそうがない！", "No herbs left!") };
   const r = { ...run, enemy: { ...run.enemy }, results: { ...run.results }, events: [], defending: false };
   const ev = (e) => r.events.push(e);
   const e = r.enemy;
@@ -449,6 +468,10 @@ export function act(run, stats, action, answer = null, rng = Math.random, skillI
   // 答えた問題の記録（こうげき・呪文・ぼうぎょ。苦手の記録に使う）
   if (answer?.id && !(answer.id in r.results)) r.results[answer.id] = !!answer.correct;
   else if (answer?.id && !answer.correct) r.results[answer.id] = false;
+  // この階で答えた問題（倒したあとの解説に使う）
+  if (answer?.id) r.asked = [...(r.asked || []), { id: answer.id, correct: !!answer.correct }];
+  const speed = answer?.correct ? speedRate(answer.seconds) : 1;
+  r.guardBoost = 1;
 
   if (action === "attack" || skill) {
     r.mp -= cost;
@@ -463,11 +486,12 @@ export function act(run, stats, action, answer = null, rng = Math.random, skillI
       const elemBoost = element !== "none" ? 1 + stats.elemUp / 100 : 1;
       const crit = rng() * 100 < stats.crit;
       const mult = skill ? skill.mult : 1;
-      const power = stats.atk * comboRate(r.combo - 1) * mult * elem * elemBoost * (crit ? CRIT_RATE : 1);
+      const level = levelRate(answer.level);
+      const power = stats.atk * comboRate(r.combo - 1) * mult * elem * elemBoost * (crit ? CRIT_RATE : 1) * speed * level;
       const def = skill?.effect === "pierce" ? 0 : magic ? e.def / 2 : e.def;
       const dmg = damageOf(power, def, rng);
       e.hp = Math.max(0, e.hp - dmg);
-      ev({ type: "hit", dmg, crit, magic, skill: skill?.name, element, weak: elem > 1, resist: elem < 1, combo: r.combo });
+      ev({ type: "hit", dmg, crit, magic, skill: skill?.name, element, weak: elem > 1, resist: elem < 1, combo: r.combo, speed, level });
       const drain = skill?.effect === "drain" ? skill.value : stats.drain;
       if (drain > 0) {
         const heal = Math.min(stats.hp - r.hp, Math.round((dmg * drain) / 100));
@@ -496,8 +520,9 @@ export function act(run, stats, action, answer = null, rng = Math.random, skillI
       ev({ type: "defendMiss" });
     } else {
       r.defending = true;
+      r.guardBoost = speed; // 速く答えるほど、受けるダメージが減る
       r.mp = Math.min(stats.mp, r.mp + defendMp(stats.mp));
-      ev({ type: "defend" });
+      ev({ type: "defend", speed });
     }
   } else if (action === "herb") {
     r.herbs -= 1;
@@ -560,13 +585,13 @@ function enemyTurn(r, stats, rng) {
   const resist = stats.guard !== "none" && stats.guard === e.element;
   const rate = smash ? (e.boss ? BOSS_SMASH_RATE : SMASH_RATE) : 1;
   const raw = damageOf(e.atk * rate, stats.def, rng);
-  const guarded = r.defending ? guardRate(smash, stats.block) : 1;
+  const guarded = r.defending ? guardRate(smash, stats.block) / (r.guardBoost || 1) : 1;
   const dmg = Math.max(1, Math.round(raw * guarded * (resist ? 0.5 : 1)));
   r.hp = Math.max(0, r.hp - dmg);
   ev({ type: "hurt", dmg, smash, boss: e.boss, guarded: r.defending, resist });
   // 大こうげきをぼうぎょで受けとめたら、はんげき（守備力と盾で決まる）
   if (smash && r.defending && r.hp > 0) {
-    const counter = Math.max(1, Math.round((stats.def + stats.block * 2) * (0.9 + rng() * 0.2)));
+    const counter = Math.max(1, Math.round((stats.def + stats.block * 2) * (r.guardBoost || 1) * (0.9 + rng() * 0.2)));
     e.hp = Math.max(0, e.hp - counter);
     ev({ type: "counter", dmg: counter });
     if (e.hp <= 0) {
@@ -592,6 +617,7 @@ export function nextFloor(run, stats, rng = Math.random) {
     mp: Math.min(stats.mp, run.mp + Math.round(stats.mp * 0.2)),
     herbs: run.herbs + (run.enemy.boss ? 1 : 0),
     won: false,
+    asked: [],
     combo: run.combo,
     events: [],
   };

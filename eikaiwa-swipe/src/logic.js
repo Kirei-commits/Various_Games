@@ -7,6 +7,7 @@ import { initialGacha, restoreGacha, mergeGacha, grant, loginGachaReward, GOAL_P
 import { initialBattle, restoreBattle, mergeBattle } from "./battle.js";
 import { restoreDiary, mergeDiary } from "./diary.js";
 import { initialQuest, restoreQuest, mergeQuest } from "./quest.js";
+import { tr } from "./i18n.js";
 
 // ---------------------------------------------------------------------------
 // データ
@@ -516,12 +517,12 @@ export const initialBonus = () => ({
 
 /** 着せかえ（カードと画面の色）。設定からいつでも無料で選べる */
 export const THEMES = [
-  { id: "default", name: "スタンダード", colors: ["#6366f1", "#8b5cf6", "#ec4899"] },
-  { id: "sakura", name: "桜", colors: ["#f9a8d4", "#f472b6", "#fb7185"] },
-  { id: "ocean", name: "海", colors: ["#38bdf8", "#0ea5e9", "#6366f1"] },
-  { id: "forest", name: "森", colors: ["#4ade80", "#10b981", "#0d9488"] },
-  { id: "sunset", name: "夕焼け", colors: ["#fbbf24", "#f97316", "#e11d48"] },
-  { id: "night", name: "夜空", colors: ["#1e3a8a", "#4c1d95", "#0f172a"] },
+  { id: "default", get name() { return tr("スタンダード", "Standard"); }, colors: ["#6366f1", "#8b5cf6", "#ec4899"] },
+  { id: "sakura", get name() { return tr("桜", "Sakura"); }, colors: ["#f9a8d4", "#f472b6", "#fb7185"] },
+  { id: "ocean", get name() { return tr("海", "Ocean"); }, colors: ["#38bdf8", "#0ea5e9", "#6366f1"] },
+  { id: "forest", get name() { return tr("森", "Forest"); }, colors: ["#4ade80", "#10b981", "#0d9488"] },
+  { id: "sunset", get name() { return tr("夕焼け", "Sunset"); }, colors: ["#fbbf24", "#f97316", "#e11d48"] },
+  { id: "night", get name() { return tr("夜空", "Night sky"); }, colors: ["#1e3a8a", "#4c1d95", "#0f172a"] },
 ];
 
 /** 今日のログインボーナスを受け取る（受け取り済みなら reward は null） */
