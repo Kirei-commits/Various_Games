@@ -8,7 +8,7 @@ class IdleState extends State {
     LCD.setScene(M.mode === 'rush' ? 'rush' : 'magma'); Reels.setLayout('big'); M.cur = null;
     LCD.telop = LCD.judge = LCD.scoop = LCD.title = LCD.cutin = LCD.battle = LCD.story = LCD.round = LCD.last = LCD.result = LCD.lever = LCD.stepup = null;
     LCD.dark = 0; LCD.countOverride = null; M.noFire = false;
-    Reels.r.forEach(r => r.glow = false);
+    Reels.clearLines();
     if (M.mode === 'rush') LCD.setRushInfo();
   }
   tick() {
@@ -40,15 +40,16 @@ class SpinState extends State {
     if (s.telop >= 0) tl.at(0.45, () => LCD.showTelop(s.telop, s.telopStart));
     if (s.reach === 'ippatsu') {
       tl.at(0.5, () => { Patlamp.fire(); setLed('rainbow'); FX.flash(WHITE_A, 0.8); LCD.pop(T('確定!!', 80, 'rainbow'), LW / 2, LH / 2, 1.6, 'zoom'); Sound.speak('キュインキュイン！'); });
-      tl.at(1.5, () => Reels.stop(0, h.nums[0])).at(1.7, () => Reels.stop(2, h.nums[2])).at(1.9, () => { Reels.stop(1, h.nums[1]); Reels.r.forEach(r => r.glow = true); });
+      tl.at(1.5, () => Reels.stop(0, h.cols[0])).at(1.7, () => Reels.stop(2, h.cols[2])).at(1.9, () => { Reels.stop(1, h.cols[1]); Reels.setWin(h.win); });
       tl.at(2.6, () => { Sound.play('zudon'); FX.shake(16, 0.4); onAligned(h); });
       return;
     }
     if (s.reach === 'zenkaiten') { tl.at(0.5, () => M.sm.change(new FullRotationState(h))); return; }
-    tl.at(T0 * TM.stopL, () => Reels.stop(0, h.nums[0]));
-    tl.at(T0 * TM.stopR, () => { Reels.stop(2, h.nums[2]); });
+    tl.at(T0 * TM.stopL, () => Reels.stop(0, h.cols[0]));
+    // ライン増加リーチは、まず1ラインだけテンパイする列で右を止める
+    tl.at(T0 * TM.stopR, () => { Reels.stop(2, h.lineUp ? h.lineUp[0] : h.cols[2]); });
     if (s.reach !== 'none') tl.at(T0 * TM.stopR + 0.3, () => M.sm.change(new ReachState(h)));
-    else { tl.at(T0, () => Reels.stop(1, h.nums[1])); tl.at(T0 + 0.35, () => M.sm.change(new IdleState())); }
+    else { tl.at(T0, () => Reels.stop(1, h.cols[1])); tl.at(T0 + 0.35, () => M.sm.change(new IdleState())); }
   }
 }
 
@@ -68,25 +69,50 @@ class ReachState extends State {
   constructor(h) { super('リーチ'); this.h = h; }
   enter() {
     const h = this.h, s = h.sc; URA.allow = true;
-    Sound.play('reach'); Sound.speak('リーチ！'); setLed('reach'); BGM.set('reach'); LCD.setScene('reach');
-    Reels.r[0].glow = true; Reels.r[2].glow = true; Reels.slow(1);
-    LCD.pop(T('リーチ!!', 64, 'red'), LW / 2, 50, 1.2, 'zoom');
-    if (s.reach === 'normal') { this.tl.at(TM.normalReach, () => this.finish()); }
+    setLed('reach'); BGM.set('reach'); LCD.setScene('reach'); Sound.play('reach');
+    Reels.slow(1);
+    // ライン増加リーチ: 右リールを止め直すたびにテンパイが1本ずつ増える
+    const steps = h.lineUp ? h.lines.length - 1 : 0;
+    Reels.setLines(h.lineUp ? h.lines.slice(0, 1) : h.lines);
+    this.announce(h.lineUp ? 1 : h.lines.length, h.lineUp ? [h.lines[0].num] : h.tenpai, true);
+    for (let k = 1; k <= steps; k++) {
+      const at = 0.9 + (k - 1) * TM.lineUp;
+      this.tl.at(at, () => { const r = Reels.r[2]; r.state = 'spin'; r.vel = 14; Sound.play('kiin'); LCD.pop(T('ライン追加!?', 40, 'gold'), LW / 2, 40, 0.5, 'zoom'); });
+      this.tl.at(at + 0.4, () => {
+        Reels.stop(2, k < steps ? h.lineUp[k] : h.cols[2]); Reels.addLine(h.lines[k]);
+        FX.flash(k >= 2 ? GOLD_A : WHITE_A, 0.6); FX.shake(6 + k * 4, 0.3); Sound.play('step', 2 + k);
+        this.announce(k + 1, [h.lines[k].num], false);
+      });
+    }
+    const off = steps ? 0.9 + (steps - 1) * TM.lineUp + 0.6 : 0;
+    if (s.reach === 'normal') { this.tl.at(off + TM.normalReach, () => this.finish()); }
     else {
-      this.tl.at(TM.spDevelop, () => { FX.flash(WHITE_A, 0.9); Sound.play('whoosh'); LCD.pop(T('発展!!', 70, 'gold'), LW / 2, LH / 2, 0.8, 'zoom'); });
-      this.tl.at(TM.spEnter, () => M.sm.change(new SPReachState(h)));
+      this.tl.at(off + TM.spDevelop, () => { FX.flash(WHITE_A, 0.9); Sound.play('whoosh'); LCD.pop(T('発展!!', 70, 'gold'), LW / 2, LH / 2, 0.8, 'zoom'); });
+      this.tl.at(off + TM.spEnter, () => M.sm.change(new SPReachState(h)));
+    }
+    this.off = off;
+  }
+  /** テンパイの告知: ライン数（シングル/ダブル/トリプル）と、新しく出た図柄（7テン・奇数） */
+  announce(n, nums, first) {
+    const label = n >= 3 ? ['トリプルリーチ!!!', 'rainbow'] : n === 2 ? ['ダブルリーチ!!', 'gold'] : ['リーチ!!', 'red'];
+    if (first || n >= 2) { LCD.pop(T(label[0], n >= 2 ? 58 : 64, label[1]), LW / 2, 50, 1.2, 'zoom'); Sound.speak(n >= 3 ? 'トリプルリーチ！' : n === 2 ? 'ダブルリーチ！' : 'リーチ！'); }
+    if (nums.includes(7)) {
+      // 7テン＝大当り濃厚（当りは RUSH 直行だけ）
+      this.tl.after(0.5, () => { LCD.pop(T('7テンパイ!!', 66, 'rainbow'), LW / 2, LH / 2, 1.6, 'zoom'); setLed('rainbow'); FX.rainbow(1.2); FX.shake(16, 0.5); Sound.play('kiin'); Sound.speak('セブンリーチ！'); });
+    } else if (nums.some(n => n === 3 || n === 5)) {
+      this.tl.after(0.5, () => { LCD.pop(T('チャンス図柄!', 40, 'red'), LW / 2, LH / 2 + 20, 1.0, 'zoom'); FX.flash(RED_A, 0.3); });
     }
   }
   finish() {
     if (this.done) return; this.done = true; const h = this.h;
-    Reels.stopSlow(1, h.hit ? h.reachNum : h.nums[1]);
+    Reels.stopSlow(1, h.cols[1]);
     const dur = Reels.r[1].dur;
     this.tl.after(dur + 0.25, () => {
-      if (h.hit) { setLed('rainbow'); FX.rainbow(1.2); FX.shake(14, 0.5); Sound.play('boom'); this.tl.after(0.7, () => onAligned(h)); }
+      if (h.hit) { Reels.setWin(h.win); setLed('rainbow'); FX.rainbow(1.2); FX.shake(14, 0.5); Sound.play('boom'); this.tl.after(0.7, () => onAligned(h)); }
       else { Sound.play('lose'); this.tl.after(0.6, () => M.sm.change(new IdleState())); }
     });
   }
-  onSkip() { if (this.h.sc.reach === 'normal') { this.tl.t = Math.max(this.tl.t, TM.normalReach); } else M.sm.change(new JudgeState(this.h, true)); }
+  onSkip() { if (this.h.sc.reach === 'normal') { this.tl.t = Math.max(this.tl.t, this.off + TM.normalReach); } else M.sm.change(new JudgeState(this.h, true)); }
   exit() { URA.allow = false; }
 }
 
@@ -107,8 +133,9 @@ class SPReachState extends State {
       const lines = ['遥か昔、黄金の都に封印されし龍あり…', '千年の時を経て、今その封印が揺らぐ！', '選ばれし者よ、極限の力を解き放て!!'];
       LCD.story = { t: 0, pre: lines.map(l => { const a = []; for (let i = 0; i <= l.length; i++) a.push(l.slice(0, i)); return a; }) };
     }
-    if (s.cutin) this.tl.at(TM.sp.cutin, () => { LCD.cutin = { t: 0, gold: s.cutin === 2, sp: T(s.cutin === 2 ? '激熱' : '熱', 84, s.cutin === 2 ? 'gold' : 'white') }; Sound.play('cutin'); if (s.cutin === 2) { FX.shake(14, 0.4); Sound.speak('激熱！'); } });
-    if (s.telop >= 0) this.tl.at(TM.sp.telop, () => { const txt = ['チャンス!', '熱い!!', '激アツ!!', '超激アツ!!!'][s.telop]; LCD.pop(T(txt, 54, COLOR_STYLE[s.telop]), LW / 2, 236, 1.4, 'zoom'); Sound.play('holdChange'); if (s.telop >= 2) FX.flash(GOLD_A, 0.5); });
+    // カットイン（白→青→緑→赤→金→虹）
+    if (s.cutin >= 0) this.tl.at(TM.sp.cutin, () => { const lv = s.cutin, txt = ['チャンス', 'チャンス', '熱', '熱', '激熱', '超激熱'][lv]; LCD.cutin = { t: 0, lv, sp: T(txt, 84, lv >= 4 ? (lv === 5 ? 'rainbow' : 'white') : 'white') }; Sound.play('cutin'); if (lv >= 4) { FX.shake(14, 0.4); Sound.speak(lv === 5 ? '超激熱！' : '激熱！'); } });
+    if (s.telop >= 0) this.tl.at(TM.sp.telop, () => { const txt = ['チャンス!', 'チャンス!', '熱い!', '熱い!!', '激アツ!!', '超激アツ!!!'][s.telop]; LCD.pop(T(txt, 54, COLOR_STYLE[s.telop]), LW / 2, 236, 1.4, 'zoom'); Sound.play('holdChange'); if (s.telop >= 4) FX.flash(GOLD_A, 0.5); });
     if (s.logoDrop) this.tl.at(TM.sp.logoDrop, () => { Yaku.drop(); Sound.speak('激アツ！'); });
     this.tl.at(TM.sp.judge, () => M.sm.change(new JudgeState(h, false)));
   }
@@ -139,13 +166,13 @@ class JudgeState extends State {
       if (s.logoDrop === false && s.goldTitle && rnd() < 0.5) Yaku.drop();
       if (s.scoop && s.scoop.timing === 'pre') { this.tl.after(1.3, () => M.sm.change(new ScoopState(h, 'pre'))); return; }
       this.tl.after(1.2, () => { LCD.battle = null; LCD.setScene('magma'); Reels.setLayout('big'); Reels.r[1].state = 'spin'; Reels.r[1].vel = 12; });
-      this.tl.after(1.6, () => { Reels.stop(1, h.reachNum); Reels.r.forEach(r => r.glow = true); });
+      this.tl.after(1.6, () => { Reels.stop(1, h.cols[1]); Reels.setWin(h.win); });
       this.tl.after(2.4, () => onAligned(h));
     } else {
       Sound.play('lose'); LCD.pop(T(s.spType === 'battle' ? '敗北…' : '…無念', 64, 'silver'), LW / 2, 130, 1.4, 'zoom');
       if (LCD.battle) { const b = LCD.battle; b.act = 'final'; b.actor = 1; b.actT = 0; b.applied = false; b.dmg = 100; this.tl.after(0.55, () => { if (LCD.battle) { LCD.battle.res = 'lose'; LCD.battle.resT = 0; } }); }
       this.tl.after(1.3, () => { LCD.battle = null; LCD.setScene('magma'); Reels.setLayout('big'); Reels.r[1].state = 'spin'; Reels.r[1].vel = 12; });
-      this.tl.after(1.5, () => Reels.stop(1, h.nums[1]));
+      this.tl.after(1.5, () => Reels.stop(1, h.cols[1]));
       this.tl.after(2.1, () => M.sm.change(new IdleState()));
     }
   }
@@ -171,12 +198,12 @@ class ScoopState extends State {
   finish(ok) {
     const s = LCD.scoop; s.done = true; s.gauge = ok ? 1 : s.gauge; UI.hot('push', false); const h = this.h;
     if (ok) {
-      Reels.setAll(7); Reels.r.forEach(r => r.glow = true); Sound.play('boom'); FX.shake(24, 0.7); FX.rainbow(1.6); FX.confetti(90); setLed('rainbow');
+      Reels.setCol(1, h.cols[1]); Reels.promoteLine(h.win, 7); Reels.setWin(h.win); Sound.play('boom'); FX.shake(24, 0.7); FX.rainbow(1.6); FX.confetti(90); setLed('rainbow');
       FX.pop(T('7図柄昇格!!', 84, 'rainbow'), W / 2, 540, 2, 'zoom'); Sound.speak('昇格！');
       this.tl.after(2.2, () => { LCD.scoop = null; startFever(h, true); });
     } else {
       Sound.play('lose');
-      if (this.timing === 'pre') { Reels.stop(1, h.reachNum); }
+      if (this.timing === 'pre') { Reels.stop(1, h.cols[1]); Reels.setWin(h.win); }
       this.tl.after(1.4, () => { LCD.scoop = null; startFever(h, false); });
     }
   }
@@ -295,12 +322,12 @@ class RushSpinState extends State {
       else if (iw === 'lampOff') tl.at(0.05, () => setLed('off'));
       else if (iw === 'count777') tl.at(0.05, () => { LCD.countOverride = '777'; Sound.play('kiin'); });
       const d = iw ? TM.rushIwakanSpin : TM.rushSpin;
-      tl.at(d * 0.5, () => Reels.stop(0, h.nums[0], 0.12)).at(d * 0.72, () => Reels.stop(2, h.nums[2], 0.12)).at(d, () => { Reels.stop(1, h.nums[1], 0.12); Reels.r.forEach(r => r.glow = true); });
+      tl.at(d * 0.5, () => Reels.stop(0, h.cols[0], 0.12)).at(d * 0.72, () => Reels.stop(2, h.cols[2], 0.12)).at(d, () => { Reels.stop(1, h.cols[1], 0.12); Reels.setWin(h.win); });
       tl.at(d + 0.15, () => { Sound.play('zudon'); Sound.play('boom'); FX.shake(22, 0.6); FX.rainbow(1.4); setLed('rainbow'); LCD.pop(T('即当り!!', 80, 'rainbow'), LW / 2, LH / 2, 1.2, 'zoom'); });
       tl.at(d + 1.0, () => { LCD.countOverride = null; onAligned(h); });
     } else {
       const d = TM.rushSpin;
-      tl.at(d * 0.44, () => Reels.stop(0, h.nums[0], 0.1)).at(d * 0.68, () => Reels.stop(2, h.nums[2], 0.1)).at(d * 0.92, () => Reels.stop(1, h.nums[1], 0.1));
+      tl.at(d * 0.44, () => Reels.stop(0, h.cols[0], 0.1)).at(d * 0.68, () => Reels.stop(2, h.cols[2], 0.1)).at(d * 0.92, () => Reels.stop(1, h.cols[1], 0.1));
       tl.at(d * 1.16, () => M.sm.change(new IdleState()));
     }
   }
@@ -317,8 +344,8 @@ class RushBattleState extends State {
     this.tl.at(RB.final, () => { const b = LCD.battle; b.act = 'final'; b.actor = h.hit ? 0 : 1; b.actT = 0; b.applied = false; b.dmg = 100; });
     this.tl.at(RB.result, () => {
       LCD.battle.res = h.hit ? 'win' : 'lose'; LCD.battle.resT = 0;
-      if (h.hit) { Sound.play('boom'); FX.shake(24, 0.7); FX.rainbow(1.5); setLed('rainbow'); LCD.pop(T('WIN!!', 96, 'rainbow', F_HEAVY), LW / 2, 130, 1.6, 'zoom'); Reels.setAll(h.final); Reels.r.forEach(r => r.glow = true); }
-      else { Sound.play('lose'); LCD.pop(T('LOSE…', 70, 'silver', F_HEAVY), LW / 2, 130, 1.2, 'zoom'); Reels.stop(0, h.nums[0], 0.1); Reels.stop(1, h.nums[1], 0.1); Reels.stop(2, h.nums[2], 0.1); }
+      if (h.hit) { Sound.play('boom'); FX.shake(24, 0.7); FX.rainbow(1.5); setLed('rainbow'); LCD.pop(T('WIN!!', 96, 'rainbow', F_HEAVY), LW / 2, 130, 1.6, 'zoom'); Reels.setCols(h.cols); Reels.setWin(h.win); }
+      else { Sound.play('lose'); LCD.pop(T('LOSE…', 70, 'silver', F_HEAVY), LW / 2, 130, 1.2, 'zoom'); Reels.stop(0, h.cols[0], 0.1); Reels.stop(1, h.cols[1], 0.1); Reels.stop(2, h.cols[2], 0.1); }
     });
     this.tl.at(h.hit ? RB.winEnd : RB.loseEnd, () => { LCD.battle = null; if (h.hit) onAligned(h); else M.sm.change(new IdleState()); });
   }
@@ -343,13 +370,13 @@ class LastChanceState extends State {
   }
   win() {
     const l = LCD.last; l.meter = 1; l.state = 'full'; UI.hot('push', false); const h = this.h;
-    Sound.play('boom'); FX.shake(28, 0.8); FX.rainbow(2); FX.confetti(120); setLed('rainbow'); Reels.setAll(h.final); Reels.r.forEach(r => r.glow = true);
+    Sound.play('boom'); FX.shake(28, 0.8); FX.rainbow(2); FX.confetti(120); setLed('rainbow'); Reels.setCols(h.cols); Reels.setWin(h.win);
     FX.pop(T('大当り!!', 120, 'rainbow'), W / 2, 540, 1.8, 'zoom'); Sound.speak('大当り！');
     this.tl.after(1.8, () => { LCD.last = null; M.rushLeft = CFG.spec.rush.stSpins; onAligned(h); });
   }
   lose() {
     const l = LCD.last; l.state = 'broken'; D.meas.rushEnds++; UI.hot('push', false); Sound.play('crack'); FX.shake(12, 0.4);
-    Reels.stop(0, this.h.nums[0]); Reels.stop(1, this.h.nums[1]); Reels.stop(2, this.h.nums[2]);
+    Reels.stop(0, this.h.cols[0]); Reels.stop(1, this.h.cols[1]); Reels.stop(2, this.h.cols[2]);
     FX.pop(T('RUSH終了', 80, 'silver'), W / 2, 560, 1.6, 'zoom');
     this.tl.after(2.0, () => M.sm.change(new ResultState()));
   }

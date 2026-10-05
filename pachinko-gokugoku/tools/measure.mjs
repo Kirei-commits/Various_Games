@@ -25,8 +25,11 @@ row('初当り1回の期待出玉', Math.round(th.payoutPerFirstHit) + '個', '-
 const ms = drawMany(mods, 200000 * big, { seed: 23, raw: cfg.spec.randRange - 1 });
 row('ハズレSPリーチ率', pct(th.reach.miss.sp), pct(ms.filter(h => h.sc.reach === 'sp').length / ms.length));
 for (const [k, v] of Object.entries(th.cues)) {
-  const hot = v.reliability >= 0.5;
-  row(`信頼度 ${k}`, pct(v.reliability), `当り${pct(v.hit)} / ハズレ${v.miss.toExponential(1)}`, hot ? v.reliability >= T.hotReliability : null);
+  // 3・5テンは目標の範囲（50〜70%）、そのほかの信頼度50%以上の演出は激熱の目標（99%以上）で判定
+  const ok = (k === '3テン' || k === '5テン') ? v.reliability >= T.tenpai35[0] && v.reliability <= T.tenpai35[1]
+    : k === '7テン' ? v.reliability >= T.sevenTen
+      : v.reliability >= 0.5 ? v.reliability >= T.hotReliability : null;
+  row(`信頼度 ${k}`, pct(v.reliability), `当り${pct(v.hit)} / ハズレ${v.miss.toExponential(1)}`, ok);
 }
 let heso = 0, la = 0, stuck = 0;
 for (const seed of [1, 2, 3, 4]) { const s = shoot(mods, { balls: 500 * big, seed }); heso += s.heso; la += s.launched; stuck += s.stuck; }

@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Yuji+Boku&display=swap" rel="stylesheet">
-<meta name="pg-source-hash" content="a013579c6ab02649">
+<meta name="pg-source-hash" content="718b7aa1f517add9">
 <!-- このファイルは tools/build.mjs が src/ から生成する。直接編集しないこと -->
 <style>
 *{box-sizing:border-box}
@@ -109,6 +109,8 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
     <div class="row">
       <button class="act sub" data-force="battle">バトルSP</button>
       <button class="act sub" data-force="story">ストーリーSP</button>
+      <button class="act sub" data-force="double">ダブルテン</button>
+      <button class="act sub" data-force="lineup">ライン増加</button>
       <button class="act sub" data-force="zenkaiten">全回転</button>
       <button class="act sub" data-force="ippatsu">一発告知</button>
       <button class="act sub" data-force="scoop">昇格スクープ</button>
@@ -163,7 +165,6 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
       defaultProbDenom: 319.6,
       feverRate: 0.6,                   // 初当りのうち FEVER（10R + RUSH）になる割合。残りは 3R
       feverRoutes: [['7direct', 50], ['scoop', 30], ['lever', 20]], // FEVER の見せ方（7直揃い / スクープ昇格 / 一撃レバー昇格）
-      oddRate: { regular: 0.3, promote: 0.7 }, // 非7揃いで奇数図柄を使う割合（奇数＝チャンス）
       rounds: { fever: 10, regular: 3 },
       countPerRound: 10,                // 1ラウンドのカウント
       rush: {
@@ -200,14 +201,15 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
       },
       spTypeBattle: 0.55,               // SP リーチがバトルになる割合（残りはストーリー）
       judgeButton: 0.55,                // 当否判定がデカボタンになる割合（残りは Vコンレバー）
-      // テロップ色 0=白 1=赤 2=金 3=虹（リーチ時）
-      telopHit: [[0, 10], [1, 35], [2, 40], [3, 15]],
-      telopMiss: [[0, 65], [1, 35], [2, KM]],
+      // 文字色のチャンスアップ（テロップ・SPの煽り文字）: 0=白 1=青 2=緑 3=赤 4=金 5=虹（金以上は激熱）
+      telopHit: [[0, 6], [1, 8], [2, 10], [3, 30], [4, 32], [5, 14]],
+      telopMiss: [[0, 55], [1, 25], [2, 14], [3, 6], [4, KM]],
       telopNoReachHitGold: 0.5,         // リーチなし当り（全回転以外）で金テロップが出る割合
       telopNoReachWhite: 0.1,           // リーチなしで白テロップが出る割合（ガセ）
       telopUpgrade: 0.55,               // テロップが一段下の色で出てから昇格する割合
-      cutinHit: [[0, 30], [1, 40], [2, 30]], // 0=なし 1=赤 2=金
-      cutinMiss: [[0, 70], [1, 30], [2, KM]],
+      // カットイン: -1=なし 0=白 1=青 2=緑 3=赤 4=金 5=虹
+      cutinHit: [[-1, 20], [0, 4], [1, 6], [2, 8], [3, 28], [4, 24], [5, 10]],
+      cutinMiss: [[-1, 60], [0, 18], [1, 12], [2, 7], [3, 3], [4, KM]],
       goldTitleHit: 0.45, goldTitleMiss: KM,
       redTitleHit: 0.6, redTitleMiss: 0.25,
       logoDropHit: 0.3, logoDropMiss: KM,
@@ -217,6 +219,27 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
       scoopFakeLever: 0.4,              // 一撃レバー当りでスクープ失敗演出が出る割合
       scoopFakeRegular: 0.5,            // 3R 当りでスクープ失敗演出が出る割合
       scoopPreRate: 0.5                 // スクープを揃い直前（SP の判定中）にする割合
+    },
+    // テンパイ（図柄は3×3、ラインは 0=上段 1=中段 2=下段 3=右下がり 4=右上がり）
+    tenpai: {
+      linesHit: [[1, 55], [2, 30], [3, 15]],     // テンパイライン数（シングル / ダブル / トリプル）
+      linesMiss: [[1, 90], [2, 8.5], [3, 1.5]],
+      lineUpHit: 0.5, lineUpMiss: 0.15,          // 2ライン以上のとき、1本ずつ増えていく見せ方にする割合
+      // ハズレのテンパイ図柄（1ラインごと）。偶数が多く、奇数は少なめ、3・5はまれ、7はほぼ無い（7テン＝当り濃厚）
+      missNum: [[1, 10], [2, 20], [3, 0.1], [4, 20], [5, 0.1], [6, 20], [7, KM], [8, 20], [9, 5]],
+      // 当りの図柄（7以外で揃う当り）。昇格する当り（スクープ・一撃レバー）は奇数、特に3・5が多い。3R は偶数が多い
+      hitNum: {
+        promote: [[1, 8], [2, 7], [3, 26], [4, 8], [5, 26], [6, 7], [8, 8], [9, 10]],
+        regular: [[1, 10], [2, 17], [3, 8], [4, 17], [5, 8], [6, 17], [8, 17], [9, 6]]
+      },
+      // 当りのとき、当りライン以外のテンパイラインに出る図柄（7は出さない＝7テンは RUSH 直行の当りだけ）
+      extraHit: [[1, 14], [2, 20], [3, 0.1], [4, 20], [5, 0.1], [6, 20], [8, 20], [9, 6]],
+      // ライン数ごとのライン（左・右で同じ段を2回使わない組み合わせだけ）。先頭が最初にテンパイするライン
+      lineSets: {
+        1: [[[1], 70], [[0], 10], [[2], 10], [[3], 5], [[4], 5]],
+        2: [[[1, 0], 30], [[1, 2], 30], [[0, 2], 15], [[3, 4], 25]],
+        3: [[[1, 0, 2], 60], [[1, 3, 4], 40]]
+      }
     },
     holdColor: {
       hit: [['white', 25], ['blue', 15], ['green', 15], ['red', 30], ['gold', 10], ['rainbow', 5]],
@@ -237,6 +260,7 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
       stopL: 0.45, stopR: 0.7,          // 変動時間に対する左・右の停止位置（左→右→中）
       stepupInterval: 0.55,
       normalReach: 3.6, spDevelop: 1.5, spEnter: 2.1,
+      lineUp: 1.1,                      // テンパイライン増加の1本ごとの間隔
       sp: { title: 1.8, battleActs: [2.0, 2.9, 3.8, 4.7, 5.6], cutin: 3.4, telop: 4.6, logoDrop: 5.6, judge: 6.8 },
       judge: 3.6,
       scoop: { duration: 3.3, autoRate: 0.2, tapGain: 0.075, failCap: [0.5, 0.8] },
@@ -293,6 +317,8 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
       attackerCatch: 0.9,               // アタッカー開放中に右打ちの球が入る割合（以上）
       denchuCatch: 0.85,                // 電チュー開放中に右打ちの球が入る割合（以上）
       hotReliability: 0.99,             // 激熱演出の大当り信頼度（以上、1/319.6 のとき）
+      tenpai35: [0.5, 0.7],             // 3・5テンパイの大当り信頼度
+      sevenTen: 0.99,                   // 7テンパイの大当り信頼度（以上）。7テンの当りはすべて RUSH 直行
       feverRate: [0.58, 0.62]           // 初当りの FEVER 割合（実測）
     }
   };
@@ -311,6 +337,9 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
   'use strict';
   const PG = G.PG || (G.PG = {});
   const COLOR_RANK = { white: 0, blue: 1, green: 2, red: 3, gold: 4, rainbow: 5 };
+  // 図柄は3×3。ラインごとに [左の段, 中の段, 右の段]（0=上 1=中 2=下）
+  const LINES = [[0, 0, 0], [1, 1, 1], [2, 2, 2], [0, 1, 2], [2, 1, 0]];
+  const LINE_NAMES = ['上段', '中段', '下段', '右下がり', '右上がり'];
 
   function pickW(arr, rng) {
     let s = 0; for (let i = 0; i < arr.length; i++) s += arr[i][1];
@@ -338,9 +367,78 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
   const rushProb = cfg => rushThreshold(cfg) / cfg.spec.randRange;
   const continuation = cfg => 1 - Math.pow(1 - rushProb(cfg), cfg.spec.rush.stSpins);
 
+  /** 表から k 個を重複なしで順に引いたとき、x が含まれる確率（抽選の引き方と同じ） */
+  function pIncl(table, exclude, k, x) {
+    if (k <= 0) return 0;
+    let tot = 0; for (const [n, w] of table) if (!exclude.includes(n)) tot += w;
+    if (!tot) return 0;
+    let p = 0;
+    for (const [n, w] of table) {
+      if (exclude.includes(n) || !w) continue;
+      p += (w / tot) * (n === x ? 1 : pIncl(table, exclude.concat(n), k - 1, x));
+    }
+    return p;
+  }
+  /** 表から k 個を重複なしで引いたとき、pred を満たすものが1つも無い確率 */
+  function pNone(table, exclude, k, pred) {
+    if (k <= 0) return 1;
+    let tot = 0; for (const [n, w] of table) if (!exclude.includes(n)) tot += w;
+    if (!tot) return 1;
+    let p = 0;
+    for (const [n, w] of table) { if (exclude.includes(n) || !w || pred(n)) continue; p += (w / tot) * pNone(table, exclude.concat(n), k - 1, pred); }
+    return p;
+  }
+
   function createLottery(cfg, rng) {
-    const S = cfg.spec, SC = cfg.scenario, HC = cfg.holdColor;
+    const S = cfg.spec, SC = cfg.scenario, HC = cfg.holdColor, TP = cfg.tenpai;
     const d9 = () => 1 + (rng() * 9 | 0);
+    const pickFrom = (table, exclude) => pickW(table.filter(([n]) => !exclude.includes(n)), rng);
+    /** 列の空き(0)を、列の中で重ならない数字で埋める */
+    // 乱数で決めた数字が使用済みなら次の数字へ（乱数しだいで終わらないループにしない）
+    const fill = col => { for (let r = 0; r < 3; r++) if (!col[r]) { let n = d9(); while (col.includes(n)) n = (n % 9) + 1; col[r] = n; } return col; };
+    /** L と R で、lines 以外のラインがテンパイしていないか */
+    const onlyLines = (L, R, lines) => LINES.every((ln, i) => lines.includes(i) || L[ln[0]] !== R[ln[2]]);
+    /**
+     * 3×3 の図柄を作る。lines: [{ line, num }]（テンパイするラインと図柄）, win: 揃うライン（-1 ならハズレ）
+     * 返り値 { cols: [左, 中, 右], lineUp: 右リールの途中の列（ライン増加リーチ用）| null }
+     */
+    function grid(lines, win, lineUp) {
+      const ids = lines.map(l => l.line);
+      let L, R;
+      for (let tries = 0; ; tries++) {
+        L = [0, 0, 0]; R = [0, 0, 0];
+        for (const { line, num } of lines) { L[LINES[line][0]] = num; R[LINES[line][2]] = num; }
+        fill(L); fill(R);
+        if (onlyLines(L, R, ids)) break;
+        if (tries > 500) throw new Error('図柄が作れない');
+      }
+      // 中リール: 当りラインだけ揃える。ハズレは本命ラインの図柄を1コマずらした位置に置く（惜しい止まり方）
+      let C;
+      for (let tries = 0; ; tries++) {
+        C = [0, 0, 0];
+        if (win >= 0) C[LINES[win][1]] = lines.find(l => l.line === win).num;
+        else if (lines.length && rng() < 0.7) { const m = lines[0], rc = LINES[m.line][1], adj = rc === 1 ? (rng() < 0.5 ? 0 : 2) : 1; C[adj] = m.num; }
+        fill(C);
+        if (lines.every(l => l.line === win || C[LINES[l.line][1]] !== l.num)) break;
+        if (tries > 500) throw new Error('中図柄が作れない');
+      }
+      // ライン増加リーチ: 右リールを止め直すたびに1本ずつテンパイが増える
+      let steps = null;
+      if (lineUp && lines.length > 1) {
+        steps = [];
+        for (let k = 1; k < lines.length; k++) {
+          const keep = ids.slice(0, k);
+          for (let tries = 0; ; tries++) {
+            const Rk = [0, 0, 0];
+            for (const { line, num } of lines.slice(0, k)) Rk[LINES[line][2]] = num;
+            fill(Rk);
+            if (onlyLines(L, Rk, keep)) { steps.push(Rk); break; }
+            if (tries > 500) throw new Error('ライン増加の図柄が作れない');
+          }
+        }
+      }
+      return { cols: [L, C, R], lineUp: steps };
+    }
     const L = {
       /**
        * raw: 入賞の瞬間に取った乱数 / isRush: RUSH の表で判定するか / force: 演出チェック用の強制
@@ -360,8 +458,8 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
       rush(h, force) {
         const R = S.rush;
         h.kind = h.hit ? 'rush' : null; h.route = h.kind;
-        if (h.hit) { h.final = rng() < R.sevenRate ? 7 : d9(); h.nums = [h.final, h.final, h.final]; }
-        else h.nums = this.missNums();
+        if (h.hit) { h.final = rng() < R.sevenRate ? 7 : d9(); this.setGrid(h, [{ line: 1, num: h.final }], 1, false); }
+        else this.setGrid(h, [], -1, false);
         const iw = R.iwakanTypes;
         h.rs = { iwakan: h.hit ? ((force === 'iwakan' || rng() < R.iwakanRate) ? iw[rng() * iw.length | 0] : null) : null, battle: h.hit ? true : rng() < R.battleFakeRate };
         h.color = pickW(h.hit ? HC.rushHit : HC.rushMiss, rng);
@@ -374,23 +472,18 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
             : force === 'scoop' ? 'scoop' : force === 'lever' ? 'lever'
               : (force === 'battle' || force === 'story' || force === 'zenkaiten' || force === 'ippatsu') ? '7direct'
                 : pickW(S.feverRoutes, rng);
-          h.final = h.route === '7direct' ? 7 : this.nonSeven(h.route);
+          h.final = h.route === '7direct' ? 7 : pickW(h.route === 'regular' ? TP.hitNum.regular : TP.hitNum.promote, rng);
         }
         const pre = !!settings.preread;
         h.color = pickW(h.hit ? (pre ? HC.hitPreread : HC.hit) : (pre ? HC.missPreread : HC.miss), rng);
         h.sc = this.scenario(h, force);
-        this.numbers(h);
+        this.numbers(h, force);
         if (h.hit && (force === 'sakibare' || rng() < (settings.sakibare || 0))) { h.sakibare = true; if (COLOR_RANK[h.color] < 3) h.color = 'red'; }
-      },
-      nonSeven(route) {
-        const odd = [1, 3, 5, 9], even = [2, 4, 6, 8];
-        const a = rng() < (route === 'regular' ? S.oddRate.regular : S.oddRate.promote) ? odd : even;
-        return a[rng() * a.length | 0];
       },
       reach(h, force) {
         if (h.hit) {
           if (force === 'zenkaiten' || force === 'ippatsu') return force;
-          if (force === 'battle' || force === 'story' || force === 'scoop' || force === 'lever') return 'sp';
+          if (force === 'battle' || force === 'story' || force === 'scoop' || force === 'lever' || force === 'double' || force === 'lineup') return 'sp';
           return pickW(SC.hitReach, rng);
         }
         if (force === 'miss') return 'sp';
@@ -407,10 +500,11 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
         s.judge = rng() < SC.judgeButton ? 'button' : 'lever';
         const isReach = s.reach === 'normal' || s.reach === 'sp';
         if (isReach) s.telop = pickW(hit ? SC.telopHit : SC.telopMiss, rng);
-        else s.telop = (hit && s.reach !== 'ippatsu' && rng() < SC.telopNoReachHitGold) ? 2 : (rng() < SC.telopNoReachWhite ? 0 : -1);
-        s.telopStart = s.telop > 0 && rng() < SC.telopUpgrade ? s.telop - 1 : s.telop;
+        else s.telop = (hit && s.reach !== 'ippatsu' && rng() < SC.telopNoReachHitGold) ? 4 : (rng() < SC.telopNoReachWhite ? 0 : -1);
+        // 一段か二段下の色で出てから昇格する（白→青→緑→赤→金→虹）
+        s.telopStart = s.telop > 0 && rng() < SC.telopUpgrade ? Math.max(0, s.telop - 1 - (rng() < 0.5 ? 1 : 0)) : s.telop;
         const sp = s.reach === 'sp';
-        s.cutin = sp ? pickW(hit ? SC.cutinHit : SC.cutinMiss, rng) : 0;
+        s.cutin = sp ? pickW(hit ? SC.cutinHit : SC.cutinMiss, rng) : -1;
         s.goldTitle = sp && rng() < (hit ? SC.goldTitleHit : SC.goldTitleMiss);
         s.titleColor = s.goldTitle ? 'gold' : (rng() < (hit ? SC.redTitleHit : SC.redTitleMiss) ? 'red' : 'white');
         s.logoDrop = sp && rng() < (hit ? SC.logoDropHit : SC.logoDropMiss);
@@ -423,11 +517,30 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
         }
         return s;
       },
-      missNums() { const l = d9(); let r = d9(); if (r === l) r = (r % 9) + 1; return [l, d9(), r]; },
-      numbers(h) {
-        if (h.hit) { h.reachNum = h.final; h.nums = [h.final, h.final, h.final]; return; }
-        if (h.sc.reach !== 'none') { const n = d9(); h.reachNum = n; const c = rng() < 0.65 ? (n % 9) + 1 : ((n + 7) % 9) + 1; h.nums = [n, c, n]; }
-        else h.nums = this.missNums();
+      setGrid(h, lines, win, lineUp) {
+        const g = grid(lines, win, lineUp);
+        h.lines = lines; h.win = win; h.cols = g.cols; h.lineUp = g.lineUp;
+        h.tenpai = lines.map(l => l.num);
+        h.reachNum = win >= 0 ? h.final : (lines.length ? lines[0].num : 0);
+      },
+      /** テンパイライン数・ライン・図柄を決めて3×3を作る */
+      numbers(h, force) {
+        const s = h.sc, reach = s.reach === 'normal' || s.reach === 'sp';
+        if (h.hit && !reach) { this.setGrid(h, [{ line: 1, num: h.final }], 1, false); return; } // 全回転・一発告知
+        if (!reach) { this.setGrid(h, [], -1, false); return; }
+        // 演出チェック: double=ダブルテン、lineup=トリプルまで増えるライン増加リーチ
+        const n = force === 'lineup' ? 3 : force === 'double' ? 2 : pickW(h.hit ? TP.linesHit : TP.linesMiss, rng);
+        const set = pickW(TP.lineSets[n], rng);
+        const nums = [];
+        if (h.hit) {
+          const winAt = rng() * n | 0;
+          for (let i = 0; i < n; i++) nums.push(i === winAt ? h.final : 0);
+          for (let i = 0; i < n; i++) if (!nums[i]) nums[i] = pickFrom(TP.extraHit, nums.concat(h.final));
+          this.setGrid(h, set.map((line, i) => ({ line, num: nums[i] })), set[winAt], force === 'lineup' || (force !== 'double' && n > 1 && rng() < TP.lineUpHit));
+        } else {
+          for (let i = 0; i < n; i++) nums.push(pickFrom(TP.missNum, nums));
+          this.setGrid(h, set.map((line, i) => ({ line, num: nums[i] })), -1, n > 1 && rng() < TP.lineUpMiss);
+        }
       }
     };
     return L;
@@ -452,11 +565,12 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
     const hit = { sp: hitR('sp'), normal: hitR('normal'), zenkaiten: hitR('zenkaiten'), ippatsu: hitR('ippatsu') };
     const hitReach = hit.sp + hit.normal;
     const missReach = miss.sp + miss.normal;
-    const goldTelop = v => v >= 2;
+    const goldTelop = v => v >= 4;
     const cue = (h, m) => ({ hit: h, miss: m, reliability: p * h / (p * h + q * m || 1) });
     const cues = {
       '金テロップ以上': cue(hitReach * share(SC.telopHit, goldTelop) + (1 - hitReach - hit.ippatsu) * SC.telopNoReachHitGold, missReach * share(SC.telopMiss, goldTelop)),
-      '金カットイン': cue(hit.sp * share(SC.cutinHit, v => v === 2), miss.sp * share(SC.cutinMiss, v => v === 2)),
+      '金カットイン以上': cue(hit.sp * share(SC.cutinHit, v => v >= 4), miss.sp * share(SC.cutinMiss, v => v >= 4)),
+      '赤カットイン': cue(hit.sp * share(SC.cutinHit, v => v === 3), miss.sp * share(SC.cutinMiss, v => v === 3)),
       '金タイトル': cue(hit.sp * SC.goldTitleHit, miss.sp * SC.goldTitleMiss),
       '役物落下': cue(hit.sp * SC.logoDropHit, miss.sp * SC.logoDropMiss),
       '金保留以上': cue(share(colHit, c => COLOR_RANK[c] >= 4), share(colMiss, c => COLOR_RANK[c] >= 4)),
@@ -464,6 +578,7 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
       // 全回転・一発告知ではステップアップを出さない
       'ステップ5': cue(hitReach * SC.stepupHitRate * share(SC.stepupHit, v => v === 5), SC.stepupMissRate * share(SC.stepupMiss, v => v === 5)),
       'SPリーチ': cue(hit.sp, miss.sp),
+      ...tenpaiCues(cfg, hitReach, missReach, cue),
       'リーチ': cue(hitReach, missReach)
     };
     const c = continuation(cfg);
@@ -481,7 +596,31 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
     };
   }
 
-  PG.Spec = { COLOR_RANK, pickW, share, threshold, rushThreshold, hitProb, rushProb, continuation, createLottery, theory };
+  /** テンパイ図柄とライン数の信頼度（抽選の引き方と同じ計算） */
+  function tenpaiCues(cfg, hitReach, missReach, cue) {
+    const S = cfg.spec, TP = cfg.tenpai;
+    const w7 = share(S.feverRoutes, r => r === '7direct');
+    const routes = [[S.feverRate * w7, [[7, 1]]], [S.feverRate * (1 - w7), TP.hitNum.promote], [1 - S.feverRate, TP.hitNum.regular]];
+    const lnH = TP.linesHit, lnM = TP.linesMiss;
+    const tot = t => t.reduce((a, b) => a + b[1], 0);
+    // 当りで pred(テンパイ図柄の集合) が成り立つ確率。f=当り図柄、残り n-1 本は extraHit から
+    const hitP = (withF, extra) => { let p = 0; for (const [pr, tbl] of routes) for (const [f, wf] of tbl) for (const [n, wn] of lnH) p += pr * (wf / tot(tbl)) * (wn / tot(lnH)) * (withF(f) ? 1 : extra(f, n - 1)); return p; };
+    const missP = fn => { let p = 0; for (const [n, wn] of lnM) p += (wn / tot(lnM)) * fn(n); return p; };
+    const out = {};
+    for (let x = 1; x <= 9; x++) {
+      out[x + 'テン'] = cue(hitReach * hitP(f => f === x, (f, k) => pIncl(TP.extraHit, [f], k, x)), missReach * missP(n => pIncl(TP.missNum, [], n, x)));
+    }
+    const odd = n => n % 2 === 1, even = n => n % 2 === 0;
+    out['奇数テン'] = cue(hitReach * hitP(odd, (f, k) => 1 - pNone(TP.extraHit, [f], k, odd)), missReach * missP(n => 1 - pNone(TP.missNum, [], n, odd)));
+    out['偶数テン'] = cue(hitReach * hitP(even, (f, k) => 1 - pNone(TP.extraHit, [f], k, even)), missReach * missP(n => 1 - pNone(TP.missNum, [], n, even)));
+    const nShare = (t, pred) => share(t, pred);
+    out['ダブルテンパイ以上'] = cue(hitReach * nShare(lnH, n => n >= 2), missReach * nShare(lnM, n => n >= 2));
+    out['トリプルテンパイ'] = cue(hitReach * nShare(lnH, n => n >= 3), missReach * nShare(lnM, n => n >= 3));
+    out['ライン増加リーチ'] = cue(hitReach * nShare(lnH, n => n >= 2) * TP.lineUpHit, missReach * nShare(lnM, n => n >= 2) * TP.lineUpMiss);
+    return out;
+  }
+
+  PG.Spec = { COLOR_RANK, LINES, LINE_NAMES, pIncl, pNone, pickW, share, threshold, rushThreshold, hitProb, rushProb, continuation, createLottery, theory };
 })(typeof globalThis !== 'undefined' ? globalThis : this);
 </script>
 <script id="pg-physics">
@@ -1033,7 +1172,9 @@ const STYLES = {
   rainbow: { rainbow: true, edge: '#1a0030', glow: 'rgba(255,255,255,0.95)', inner: '#ffffff' },
   purple: { stops: [[0, '#f6e6ff'], [0.4, '#c060ff'], [0.55, '#5a0090'], [1, '#e0a0ff']], edge: '#14002a', glow: 'rgba(190,80,255,0.9)', inner: '#fff' }
 };
-const COLOR_STYLE = ['white', 'red', 'gold', 'rainbow'];
+// 文字色のチャンスアップ 0=白 1=青 2=緑 3=赤 4=金 5=虹
+const COLOR_STYLE = ['white', 'blue', 'green', 'red', 'gold', 'rainbow'];
+const COLOR_NAME = ['白', '青', '緑', '赤', '金', '虹'];
 function makeText(text, size, style, font) {
   const st = STYLES[style] || STYLES.gold; font = font || F_BRUSH;
   const mc = document.createElement('canvas').getContext('2d'); const f = `900 ${size}px ${font}`; mc.font = f;
@@ -1101,67 +1242,114 @@ function buildDigits() {
 
 // ---- src/game/06-reels.js ----
 // =====================================================================
-//  リール（図柄）
+//  リール（図柄 3×3・5ライン）
 // =====================================================================
-const SP = 168;
-const BIG = { x: [86, 226, 366], y: 142, s: 0.88 };
-const SMALL = { x: [32, 74, 116], y: 34, s: 0.28 };
+// 各リールは止まると3つの図柄（上・中・下）を見せる。どの図柄が並ぶかは抽選（spec.js）が決めた cols。
+// 回っている間・リーチのスロー中は、1〜9 の帯が流れて見える。
+const RG = 86;                                               // 段の間隔
+const BIG = { x: [86, 226, 366], y: [38, 124, 210], s: 0.47 };
+const SMALL = { x: [24, 52, 80], y: [18, 42, 66], s: 0.15 };
+const LINES = PG.Spec.LINES;
+const LINE_HUE = [200, 40, 120, 300, 0];                   // ラインごとの色
 const Reels = {
-  r: [0, 1, 2].map(i => ({ pos: i * 3 + 1, vel: 0, state: 'stop', from: 0, dest: 0, t: 0, dur: 0.2, num: 1, glow: false, hide: false })),
-  layout: 'big', lt: 1, prev: 'big', zen: false, flashT: 0,
+  r: [0, 1, 2].map(i => ({ pos: i * 3, vel: 0, state: 'stop', t: 0, dur: 0.2, col: [i + 2, i + 1, i + 3], glow: [false, false, false] })),
+  layout: 'big', lt: 1, prev: 'big', flashT: 0, lines: [], win: -1, winT: 0,
   setLayout(l) { if (l === this.layout) return; this.prev = this.layout; this.layout = l; this.lt = 0; },
-  startAll() { this.zen = false; this.r.forEach((r, i) => { r.state = 'spin'; r.vel = 15 + i * 1.5; r.glow = false; r.hide = false; }); },
-  stop(i, num, dur) {
-    const r = this.r[i]; const idx = num - 1; let k = Math.ceil(r.pos + 1.2); while ((((k % 9) + 9) % 9) !== idx) k++;
-    r.from = r.pos; r.dest = k; r.t = 0; r.dur = dur || 0.22; r.state = 'stopping'; r.num = num;
+  startAll() { this.r.forEach((r, i) => { r.state = 'spin'; r.vel = 15 + i * 1.5; r.glow = [false, false, false]; }); this.clearLines(); },
+  /** col: 止まったときの [上, 中, 下] */
+  stop(i, col, dur) { const r = this.r[i]; r.col = col.slice(); r.t = 0; r.dur = dur || 0.22; r.state = 'stopping'; this.refreshGlow(); },
+  slow(i) { this.r[i].state = 'slow'; },
+  stopSlow(i, col) { this.stop(i, col, 0.7); },
+  setCol(i, col) { const r = this.r[i]; r.col = col.slice(); r.state = 'stop'; r.vel = 0; this.refreshGlow(); },
+  setCols(cols) { for (let i = 0; i < 3; i++) this.setCol(i, cols[i]); this.flashT = 0.6; },
+  zenkaiten() { const p = Math.floor(this.r[0].pos); this.r.forEach(r => { r.state = 'zen'; r.pos = p; r.vel = 2.6; r.glow = [true, true, true]; }); },
+  stopAllAligned(n) { const col = [(n % 9) + 1, n, ((n + 7) % 9) + 1]; this.r.forEach(r => { r.col = col.slice(); r.t = 0; r.dur = 0.6; r.state = 'stopping'; r.glow = [true, true, true]; }); },
+  // ---- ライン ----
+  clearLines() { this.lines = []; this.win = -1; this.r.forEach(r => r.glow = [false, false, false]); },
+  setLines(lines) { this.lines = lines.map(l => ({ line: l.line, num: l.num, t: 0 })); this.refreshGlow(); },
+  addLine(l) { this.lines.push({ line: l.line, num: l.num, t: 0 }); this.refreshGlow(); },
+  setWin(line) { this.win = line; this.winT = 0; this.refreshGlow(); },
+  refreshGlow() {
+    this.r.forEach(r => r.glow = [false, false, false]);
+    for (const l of this.lines) { const ln = LINES[l.line]; this.r[0].glow[ln[0]] = true; this.r[2].glow[ln[2]] = true; }
+    if (this.win >= 0) { const ln = LINES[this.win]; for (let i = 0; i < 3; i++) this.r[i].glow[ln[i]] = true; }
   },
-  slow(i) { const r = this.r[i]; r.state = 'slow'; },
-  stopSlow(i, num) { const r = this.r[i]; const idx = num - 1; let k = Math.ceil(r.pos + 1.5); while ((((k % 9) + 9) % 9) !== idx) k++; r.from = r.pos; r.dest = k; r.t = 0; r.dur = clamp((k - r.pos) / 3.2, 0.5, 2.6); r.state = 'stopping'; r.num = num; },
-  set(i, num) { const r = this.r[i]; r.pos = num - 1; r.state = 'stop'; r.num = num; r.vel = 0; },
-  setAll(n) { for (let i = 0; i < 3; i++) this.set(i, n); this.flashT = 0.6; },
-  zenkaiten() { this.zen = true; const p = this.r[0].pos; this.r.forEach(r => { r.state = 'zen'; r.pos = Math.floor(p); r.vel = 2.6; r.glow = true; }); },
-  stopAllAligned(n) { const r0 = this.r[0]; let k = Math.ceil(r0.pos + 1.5); while ((((k % 9) + 9) % 9) !== n - 1) k++; this.r.forEach(r => { r.pos = r0.pos; r.from = r0.pos; r.dest = k; r.t = 0; r.dur = clamp((k - r0.pos) / 2.4, 0.6, 3); r.state = 'stopping'; r.num = n; }); this.zen = false; },
-  allStopped() { return this.r.every(r => r.state === 'stop'); },
+  /** 昇格: 当りラインの図柄を n に差し替える（同じ列に n があれば入れ替える） */
+  promoteLine(line, n) {
+    const ln = LINES[line];
+    for (let i = 0; i < 3; i++) { const c = this.r[i].col, row = ln[i], j = c.indexOf(n); if (j >= 0 && j !== row) c[j] = c[row]; c[row] = n; }
+    this.flashT = 0.6;
+  },
   update(dt) {
     if (this.lt < 1) this.lt = Math.min(1, this.lt + dt / 0.35);
     if (this.flashT > 0) this.flashT -= dt;
+    this.winT += dt;
+    for (let i = 0; i < this.lines.length; i++) this.lines[i].t += dt;
     for (let i = 0; i < 3; i++) {
       const r = this.r[i];
-      if (r.state === 'spin') r.pos += r.vel * dt;
+      if (r.state === 'spin' || r.state === 'zen') r.pos += r.vel * dt;
       else if (r.state === 'slow') { r.vel = lerp(r.vel, 2.4, Math.min(1, dt * 3)); r.pos += r.vel * dt; }
-      else if (r.state === 'zen') r.pos += r.vel * dt;
-      else if (r.state === 'stopping') {
-        r.t += dt; const p = Math.min(1, r.t / r.dur);
-        r.pos = r.from + (r.dest - r.from) * (r.dur > 0.4 ? easeOut(p) : easeOutBack(p));
-        if (p >= 1) { r.state = 'stop'; r.pos = ((r.dest % 9) + 9) % 9; Sound.play('stop'); }
-      }
+      else if (r.state === 'stopping') { r.t += dt; if (r.t >= r.dur) { r.state = 'stop'; Sound.play('stop'); } }
     }
   },
+  geom(i, row, A, B, p) { GEO.x = lerp(A.x[i], B.x[i], p); GEO.y = lerp(A.y[row], B.y[row], p); return GEO; },
   draw(x, t) {
-    if (this.layout === 'hidden' && this.lt >= 1) return;
-    const A = this.prev === 'small' ? SMALL : BIG, B = this.layout === 'small' ? SMALL : BIG;
-    const p = easeInOut(this.lt);
-    const alpha = this.layout === 'hidden' ? 1 - p : (this.prev === 'hidden' ? p : 1);
     if (this.layout === 'hidden' && this.prev === 'hidden') return;
-    const sc = lerp(A.s, B.s, this.layout === 'hidden' ? 0 : p), cyy = lerp(A.y, B.y, this.layout === 'hidden' ? 0 : p);
+    if (this.layout === 'hidden' && this.lt >= 1) return;
+    const hidden = this.layout === 'hidden';
+    const A = this.prev === 'small' ? SMALL : BIG, B = this.layout === 'small' ? SMALL : (hidden ? A : BIG);
+    const p = easeInOut(this.lt);
+    const alpha = hidden ? 1 - p : (this.prev === 'hidden' ? p : 1);
+    const sc = lerp(A.s, B.s, p), gap = RG * sc / BIG.s;
     for (let i = 0; i < 3; i++) {
-      const r = this.r[i]; if (r.hide) continue;
-      const cx = lerp(A.x[i], B.x[i], this.layout === 'hidden' ? 0 : p);
-      const moving = r.state === 'spin' || (r.state === 'slow' && r.vel > 6);
-      const k0 = Math.floor(r.pos), frac = r.pos - k0;
-      for (let kk = -1; kk <= 1; kk++) {
-        const k = k0 + kk; const y = cyy + (frac - kk) * SP * sc;
-        const dist = Math.abs(y - cyy) / (SP * sc);
-        if (dist > 1.05) continue;
-        const n = (((k % 9) + 9) % 9) + 1; const sp = DIG.s[n]; if (!sp) continue;
-        const a = alpha * (1 - dist * 0.55);
-        if (!moving && r.glow && dist < 0.3) { const pulse = 0.6 + 0.4 * Math.sin(t * 14); drawS(x, sp.glow, cx, y, sc * (1.04 + pulse * 0.04), a); }
-        drawS(x, moving ? sp.blur : sp.norm, cx, y, sc, a);
+      const r = this.r[i];
+      if (r.state === 'spin' || r.state === 'slow' || r.state === 'zen') {
+        // 帯が流れる（上から下へ）
+        const blur = r.state === 'spin' || (r.state === 'slow' && r.vel > 6);
+        const k0 = Math.floor(r.pos), frac = r.pos - k0, mid = this.geom(i, 1, A, B, p), cx = mid.x, cy = mid.y;
+        for (let kk = -2; kk <= 2; kk++) {
+          const y = cy + (frac - kk) * gap, d = Math.abs(y - cy) / gap;
+          if (d > 1.6) continue;
+          const n = ((((k0 + kk) % 9) + 9) % 9) + 1, sp = DIG.s[n];
+          if (r.state === 'zen' && d < 0.3) drawS(x, sp.glow, cx, y, sc * 1.05, alpha * 0.8);
+          drawS(x, blur ? sp.blur : sp.norm, cx, y, sc, alpha * (1 - Math.max(0, d - 1) * 1.6));
+        }
+        continue;
+      }
+      // 止まっている（止まる途中は上から滑り込んで少し跳ねる）
+      const k = r.state === 'stopping' ? Math.min(1, r.t / r.dur) : 1;
+      const off = (1 - (r.dur > 0.4 ? easeOut(k) : easeOutBack(k))) * -gap * 0.9;
+      for (let row = 0; row < 3; row++) {
+        const g = this.geom(i, row, A, B, p), sp = DIG.s[r.col[row]]; if (!sp) continue;
+        if (r.glow[row] && k >= 1) drawS(x, sp.glow, g.x, g.y, sc * (1.05 + 0.04 * Math.sin(t * 14)), alpha * (0.6 + 0.4 * Math.sin(t * 14)));
+        drawS(x, sp.norm, g.x, g.y + off, sc, alpha);
       }
     }
+    this.drawLines(x, t, A, B, p, alpha);
     if (this.flashT > 0) { x.globalCompositeOperation = 'lighter'; x.fillStyle = WHITE_A[aIdx(this.flashT)]; x.fillRect(0, 0, LW, LH); x.globalCompositeOperation = 'source-over'; }
+  },
+  /** テンパイライン（左右の図柄を結ぶ光の線）と当りライン（虹） */
+  drawLines(x, t, A, B, p, alpha) {
+    if (!this.lines.length && this.win < 0) return;
+    const small = this.layout === 'small';
+    x.save(); x.globalCompositeOperation = 'lighter'; x.lineCap = 'round';
+    const path = ln => { const a = this.geom(0, ln[0], A, B, p), ax = a.x, ay = a.y, b = this.geom(1, ln[1], A, B, p), bx = b.x, by = b.y, c = this.geom(2, ln[2], A, B, p); x.beginPath(); x.moveTo(ax - (small ? 8 : 34), ay - (ln[2] - ln[0]) * (small ? 3 : 12)); x.lineTo(ax, ay); x.lineTo(bx, by); x.lineTo(c.x, c.y); x.lineTo(c.x + (small ? 8 : 34), c.y + (ln[2] - ln[0]) * (small ? 3 : 12)); };
+    for (const l of this.lines) {
+      if (l.line === this.win) continue;
+      const k = Math.min(1, l.t / 0.25), pulse = 0.55 + 0.35 * Math.sin(t * 9 + l.line);
+      path(LINES[l.line]);
+      x.strokeStyle = hue(LINE_HUE[l.line]); x.globalAlpha = alpha * 0.35 * k; x.lineWidth = small ? 5 : 16; x.stroke();
+      x.globalAlpha = alpha * pulse * k; x.lineWidth = small ? 1.5 : 4; x.stroke();
+    }
+    if (this.win >= 0) {
+      path(LINES[this.win]);
+      x.strokeStyle = hue(t * 500); x.globalAlpha = alpha * 0.45; x.lineWidth = small ? 7 : 24; x.stroke();
+      x.strokeStyle = '#ffffff'; x.globalAlpha = alpha * 0.9; x.lineWidth = small ? 2 : 6; x.stroke();
+    }
+    x.restore();
   }
 };
+const GEO = { x: 0, y: 0 };
 
 // ---- src/game/07-fx.js ----
 // =====================================================================
@@ -1554,12 +1742,13 @@ const LCD = {
   showTelop(colorIdx, startIdx) {
     const texts = ['灼熱の魂が燃え上がる…', '運命の炎が、今目覚める！', '極限の扉が開かれる…', '黄金の伝説が始まる!!'];
     const tx = texts[rnd() * texts.length | 0];
-    this.telop = { t: 0, cur: startIdx, fin: colorIdx, up: startIdx < colorIdx ? 1.3 : -1, sp: [T(tx, 26, COLOR_STYLE[0]), T(tx, 26, COLOR_STYLE[1]), T(tx, 26, COLOR_STYLE[2]), T(tx, 26, COLOR_STYLE[3])] };
+    this.telop = { t: 0, cur: startIdx, fin: colorIdx, up: startIdx < colorIdx ? 1.3 : -1, sp: COLOR_STYLE.map(st => T(tx, 26, st)) };
   },
   setRushInfo() { this.rushLeftStr = M.rushLeft > 0 ? String(M.rushLeft) : '0'; this.chainStr = M.chain + '連'; this.payStr = 'TOTAL ' + fmt(M.rushPayout) + '個'; },
   update(dt) {
     this.sceneT += dt;
-    const tl = this.telop; if (tl) { tl.t += dt; if (tl.up > 0 && tl.t >= tl.up) { tl.cur = tl.fin; tl.up = -1; Sound.play('holdChange'); FX.flash(WHITE_A, 0.4); } }
+    // 文字色が1段ずつ上がっていく（白→青→緑→赤→金→虹）
+    const tl = this.telop; if (tl) { tl.t += dt; if (tl.up > 0 && tl.t >= tl.up) { tl.cur++; Sound.play('holdChange'); FX.flash(tl.cur >= 4 ? GOLD_A : WHITE_A, 0.4); if (tl.cur >= tl.fin) tl.up = -1; else tl.up += 0.5; } }
     if (this.stepup) this.stepup.t += dt;
     if (this.judge) this.judge.t += dt;
     if (this.scoop) this.scoop.t += dt;
@@ -1603,7 +1792,7 @@ const LCD = {
     if (M.mode === 'rush' && (sc === 'rush' || sc === 'battle' || sc === 'last')) this.drawRushInfo(c, t);
     if (this.round) this.drawRound(c, t);
     if (this.stepup) this.drawStepup(c, t);
-    if (this.telop) { const tl = this.telop, s = tl.sp[tl.cur]; const sh = tl.cur === 3 ? 1 + 0.05 * Math.sin(t * 10) : 1; drawS(c, s, LW / 2 + (tl.t < 0.3 ? (1 - tl.t / 0.3) * 300 : 0), LH - 64, sh * 0.95, 1); }
+    if (this.telop) { const tl = this.telop, s = tl.sp[tl.cur]; const sh = tl.cur >= 4 ? 1 + 0.05 * Math.sin(t * 10) : 1; drawS(c, s, LW / 2 + (tl.t < 0.3 ? (1 - tl.t / 0.3) * 300 : 0), LH - 52, sh * 0.95, 1); }
     if (this.title) this.drawTitle(c, t);
     if (this.cutin) this.drawCutin(c, t);
     if (this.scoop) this.drawScoop(c, t);
@@ -1736,7 +1925,7 @@ const LCD = {
     const ci = this.cutin, k = Math.min(1, ci.t / 0.18), out = ci.t > 1.05 ? (ci.t - 1.05) / 0.25 : 0;
     c.save(); c.translate(lerp(-LW, 0, easeOut(k)) + out * LW, 0);
     c.beginPath(); c.moveTo(0, 100); c.lineTo(LW, 60); c.lineTo(LW, 230); c.lineTo(0, 270); c.closePath();
-    c.fillStyle = ci.gold ? '#ffcc22' : '#d01010'; c.fill(); c.lineWidth = 6; c.strokeStyle = ci.gold ? '#fff' : '#ffd700'; c.stroke();
+    c.fillStyle = ci.lv === 5 ? hue(t * 400) : CUTIN_FILL[ci.lv]; c.fill(); c.lineWidth = 6; c.strokeStyle = ci.lv >= 4 ? '#fff' : '#ffd700'; c.stroke();
     c.globalCompositeOperation = 'lighter'; c.fillStyle = WHITE_A[4]; for (let i = 0; i < 8; i++) c.fillRect(((i * 70 + ci.t * 1500) % (LW + 100)) - 50, 70, 8, 190); c.globalCompositeOperation = 'source-over';
     this.drawHero(c, 100, 262, 1.15, 0);
     drawS(c, ci.sp, 290, 165, 1 + 0.06 * Math.sin(t * 20));
@@ -1845,6 +2034,8 @@ const LCD = {
   }
 };
 const SLOT = { x: 0, y: 0, r: 0 };
+// カットインの帯の色 0=白 1=青 2=緑 3=赤 4=金（5=虹は毎フレーム色相を回す）
+const CUTIN_FILL = ['#e8e8f0', '#2f6bff', '#18b858', '#d01010', '#ffcc22'];
 
 // ---- src/game/13-fsm.js ----
 // =====================================================================
@@ -1963,7 +2154,7 @@ class IdleState extends State {
     LCD.setScene(M.mode === 'rush' ? 'rush' : 'magma'); Reels.setLayout('big'); M.cur = null;
     LCD.telop = LCD.judge = LCD.scoop = LCD.title = LCD.cutin = LCD.battle = LCD.story = LCD.round = LCD.last = LCD.result = LCD.lever = LCD.stepup = null;
     LCD.dark = 0; LCD.countOverride = null; M.noFire = false;
-    Reels.r.forEach(r => r.glow = false);
+    Reels.clearLines();
     if (M.mode === 'rush') LCD.setRushInfo();
   }
   tick() {
@@ -1995,15 +2186,16 @@ class SpinState extends State {
     if (s.telop >= 0) tl.at(0.45, () => LCD.showTelop(s.telop, s.telopStart));
     if (s.reach === 'ippatsu') {
       tl.at(0.5, () => { Patlamp.fire(); setLed('rainbow'); FX.flash(WHITE_A, 0.8); LCD.pop(T('確定!!', 80, 'rainbow'), LW / 2, LH / 2, 1.6, 'zoom'); Sound.speak('キュインキュイン！'); });
-      tl.at(1.5, () => Reels.stop(0, h.nums[0])).at(1.7, () => Reels.stop(2, h.nums[2])).at(1.9, () => { Reels.stop(1, h.nums[1]); Reels.r.forEach(r => r.glow = true); });
+      tl.at(1.5, () => Reels.stop(0, h.cols[0])).at(1.7, () => Reels.stop(2, h.cols[2])).at(1.9, () => { Reels.stop(1, h.cols[1]); Reels.setWin(h.win); });
       tl.at(2.6, () => { Sound.play('zudon'); FX.shake(16, 0.4); onAligned(h); });
       return;
     }
     if (s.reach === 'zenkaiten') { tl.at(0.5, () => M.sm.change(new FullRotationState(h))); return; }
-    tl.at(T0 * TM.stopL, () => Reels.stop(0, h.nums[0]));
-    tl.at(T0 * TM.stopR, () => { Reels.stop(2, h.nums[2]); });
+    tl.at(T0 * TM.stopL, () => Reels.stop(0, h.cols[0]));
+    // ライン増加リーチは、まず1ラインだけテンパイする列で右を止める
+    tl.at(T0 * TM.stopR, () => { Reels.stop(2, h.lineUp ? h.lineUp[0] : h.cols[2]); });
     if (s.reach !== 'none') tl.at(T0 * TM.stopR + 0.3, () => M.sm.change(new ReachState(h)));
-    else { tl.at(T0, () => Reels.stop(1, h.nums[1])); tl.at(T0 + 0.35, () => M.sm.change(new IdleState())); }
+    else { tl.at(T0, () => Reels.stop(1, h.cols[1])); tl.at(T0 + 0.35, () => M.sm.change(new IdleState())); }
   }
 }
 
@@ -2023,25 +2215,50 @@ class ReachState extends State {
   constructor(h) { super('リーチ'); this.h = h; }
   enter() {
     const h = this.h, s = h.sc; URA.allow = true;
-    Sound.play('reach'); Sound.speak('リーチ！'); setLed('reach'); BGM.set('reach'); LCD.setScene('reach');
-    Reels.r[0].glow = true; Reels.r[2].glow = true; Reels.slow(1);
-    LCD.pop(T('リーチ!!', 64, 'red'), LW / 2, 50, 1.2, 'zoom');
-    if (s.reach === 'normal') { this.tl.at(TM.normalReach, () => this.finish()); }
+    setLed('reach'); BGM.set('reach'); LCD.setScene('reach'); Sound.play('reach');
+    Reels.slow(1);
+    // ライン増加リーチ: 右リールを止め直すたびにテンパイが1本ずつ増える
+    const steps = h.lineUp ? h.lines.length - 1 : 0;
+    Reels.setLines(h.lineUp ? h.lines.slice(0, 1) : h.lines);
+    this.announce(h.lineUp ? 1 : h.lines.length, h.lineUp ? [h.lines[0].num] : h.tenpai, true);
+    for (let k = 1; k <= steps; k++) {
+      const at = 0.9 + (k - 1) * TM.lineUp;
+      this.tl.at(at, () => { const r = Reels.r[2]; r.state = 'spin'; r.vel = 14; Sound.play('kiin'); LCD.pop(T('ライン追加!?', 40, 'gold'), LW / 2, 40, 0.5, 'zoom'); });
+      this.tl.at(at + 0.4, () => {
+        Reels.stop(2, k < steps ? h.lineUp[k] : h.cols[2]); Reels.addLine(h.lines[k]);
+        FX.flash(k >= 2 ? GOLD_A : WHITE_A, 0.6); FX.shake(6 + k * 4, 0.3); Sound.play('step', 2 + k);
+        this.announce(k + 1, [h.lines[k].num], false);
+      });
+    }
+    const off = steps ? 0.9 + (steps - 1) * TM.lineUp + 0.6 : 0;
+    if (s.reach === 'normal') { this.tl.at(off + TM.normalReach, () => this.finish()); }
     else {
-      this.tl.at(TM.spDevelop, () => { FX.flash(WHITE_A, 0.9); Sound.play('whoosh'); LCD.pop(T('発展!!', 70, 'gold'), LW / 2, LH / 2, 0.8, 'zoom'); });
-      this.tl.at(TM.spEnter, () => M.sm.change(new SPReachState(h)));
+      this.tl.at(off + TM.spDevelop, () => { FX.flash(WHITE_A, 0.9); Sound.play('whoosh'); LCD.pop(T('発展!!', 70, 'gold'), LW / 2, LH / 2, 0.8, 'zoom'); });
+      this.tl.at(off + TM.spEnter, () => M.sm.change(new SPReachState(h)));
+    }
+    this.off = off;
+  }
+  /** テンパイの告知: ライン数（シングル/ダブル/トリプル）と、新しく出た図柄（7テン・奇数） */
+  announce(n, nums, first) {
+    const label = n >= 3 ? ['トリプルリーチ!!!', 'rainbow'] : n === 2 ? ['ダブルリーチ!!', 'gold'] : ['リーチ!!', 'red'];
+    if (first || n >= 2) { LCD.pop(T(label[0], n >= 2 ? 58 : 64, label[1]), LW / 2, 50, 1.2, 'zoom'); Sound.speak(n >= 3 ? 'トリプルリーチ！' : n === 2 ? 'ダブルリーチ！' : 'リーチ！'); }
+    if (nums.includes(7)) {
+      // 7テン＝大当り濃厚（当りは RUSH 直行だけ）
+      this.tl.after(0.5, () => { LCD.pop(T('7テンパイ!!', 66, 'rainbow'), LW / 2, LH / 2, 1.6, 'zoom'); setLed('rainbow'); FX.rainbow(1.2); FX.shake(16, 0.5); Sound.play('kiin'); Sound.speak('セブンリーチ！'); });
+    } else if (nums.some(n => n === 3 || n === 5)) {
+      this.tl.after(0.5, () => { LCD.pop(T('チャンス図柄!', 40, 'red'), LW / 2, LH / 2 + 20, 1.0, 'zoom'); FX.flash(RED_A, 0.3); });
     }
   }
   finish() {
     if (this.done) return; this.done = true; const h = this.h;
-    Reels.stopSlow(1, h.hit ? h.reachNum : h.nums[1]);
+    Reels.stopSlow(1, h.cols[1]);
     const dur = Reels.r[1].dur;
     this.tl.after(dur + 0.25, () => {
-      if (h.hit) { setLed('rainbow'); FX.rainbow(1.2); FX.shake(14, 0.5); Sound.play('boom'); this.tl.after(0.7, () => onAligned(h)); }
+      if (h.hit) { Reels.setWin(h.win); setLed('rainbow'); FX.rainbow(1.2); FX.shake(14, 0.5); Sound.play('boom'); this.tl.after(0.7, () => onAligned(h)); }
       else { Sound.play('lose'); this.tl.after(0.6, () => M.sm.change(new IdleState())); }
     });
   }
-  onSkip() { if (this.h.sc.reach === 'normal') { this.tl.t = Math.max(this.tl.t, TM.normalReach); } else M.sm.change(new JudgeState(this.h, true)); }
+  onSkip() { if (this.h.sc.reach === 'normal') { this.tl.t = Math.max(this.tl.t, this.off + TM.normalReach); } else M.sm.change(new JudgeState(this.h, true)); }
   exit() { URA.allow = false; }
 }
 
@@ -2062,8 +2279,9 @@ class SPReachState extends State {
       const lines = ['遥か昔、黄金の都に封印されし龍あり…', '千年の時を経て、今その封印が揺らぐ！', '選ばれし者よ、極限の力を解き放て!!'];
       LCD.story = { t: 0, pre: lines.map(l => { const a = []; for (let i = 0; i <= l.length; i++) a.push(l.slice(0, i)); return a; }) };
     }
-    if (s.cutin) this.tl.at(TM.sp.cutin, () => { LCD.cutin = { t: 0, gold: s.cutin === 2, sp: T(s.cutin === 2 ? '激熱' : '熱', 84, s.cutin === 2 ? 'gold' : 'white') }; Sound.play('cutin'); if (s.cutin === 2) { FX.shake(14, 0.4); Sound.speak('激熱！'); } });
-    if (s.telop >= 0) this.tl.at(TM.sp.telop, () => { const txt = ['チャンス!', '熱い!!', '激アツ!!', '超激アツ!!!'][s.telop]; LCD.pop(T(txt, 54, COLOR_STYLE[s.telop]), LW / 2, 236, 1.4, 'zoom'); Sound.play('holdChange'); if (s.telop >= 2) FX.flash(GOLD_A, 0.5); });
+    // カットイン（白→青→緑→赤→金→虹）
+    if (s.cutin >= 0) this.tl.at(TM.sp.cutin, () => { const lv = s.cutin, txt = ['チャンス', 'チャンス', '熱', '熱', '激熱', '超激熱'][lv]; LCD.cutin = { t: 0, lv, sp: T(txt, 84, lv >= 4 ? (lv === 5 ? 'rainbow' : 'white') : 'white') }; Sound.play('cutin'); if (lv >= 4) { FX.shake(14, 0.4); Sound.speak(lv === 5 ? '超激熱！' : '激熱！'); } });
+    if (s.telop >= 0) this.tl.at(TM.sp.telop, () => { const txt = ['チャンス!', 'チャンス!', '熱い!', '熱い!!', '激アツ!!', '超激アツ!!!'][s.telop]; LCD.pop(T(txt, 54, COLOR_STYLE[s.telop]), LW / 2, 236, 1.4, 'zoom'); Sound.play('holdChange'); if (s.telop >= 4) FX.flash(GOLD_A, 0.5); });
     if (s.logoDrop) this.tl.at(TM.sp.logoDrop, () => { Yaku.drop(); Sound.speak('激アツ！'); });
     this.tl.at(TM.sp.judge, () => M.sm.change(new JudgeState(h, false)));
   }
@@ -2094,13 +2312,13 @@ class JudgeState extends State {
       if (s.logoDrop === false && s.goldTitle && rnd() < 0.5) Yaku.drop();
       if (s.scoop && s.scoop.timing === 'pre') { this.tl.after(1.3, () => M.sm.change(new ScoopState(h, 'pre'))); return; }
       this.tl.after(1.2, () => { LCD.battle = null; LCD.setScene('magma'); Reels.setLayout('big'); Reels.r[1].state = 'spin'; Reels.r[1].vel = 12; });
-      this.tl.after(1.6, () => { Reels.stop(1, h.reachNum); Reels.r.forEach(r => r.glow = true); });
+      this.tl.after(1.6, () => { Reels.stop(1, h.cols[1]); Reels.setWin(h.win); });
       this.tl.after(2.4, () => onAligned(h));
     } else {
       Sound.play('lose'); LCD.pop(T(s.spType === 'battle' ? '敗北…' : '…無念', 64, 'silver'), LW / 2, 130, 1.4, 'zoom');
       if (LCD.battle) { const b = LCD.battle; b.act = 'final'; b.actor = 1; b.actT = 0; b.applied = false; b.dmg = 100; this.tl.after(0.55, () => { if (LCD.battle) { LCD.battle.res = 'lose'; LCD.battle.resT = 0; } }); }
       this.tl.after(1.3, () => { LCD.battle = null; LCD.setScene('magma'); Reels.setLayout('big'); Reels.r[1].state = 'spin'; Reels.r[1].vel = 12; });
-      this.tl.after(1.5, () => Reels.stop(1, h.nums[1]));
+      this.tl.after(1.5, () => Reels.stop(1, h.cols[1]));
       this.tl.after(2.1, () => M.sm.change(new IdleState()));
     }
   }
@@ -2126,12 +2344,12 @@ class ScoopState extends State {
   finish(ok) {
     const s = LCD.scoop; s.done = true; s.gauge = ok ? 1 : s.gauge; UI.hot('push', false); const h = this.h;
     if (ok) {
-      Reels.setAll(7); Reels.r.forEach(r => r.glow = true); Sound.play('boom'); FX.shake(24, 0.7); FX.rainbow(1.6); FX.confetti(90); setLed('rainbow');
+      Reels.setCol(1, h.cols[1]); Reels.promoteLine(h.win, 7); Reels.setWin(h.win); Sound.play('boom'); FX.shake(24, 0.7); FX.rainbow(1.6); FX.confetti(90); setLed('rainbow');
       FX.pop(T('7図柄昇格!!', 84, 'rainbow'), W / 2, 540, 2, 'zoom'); Sound.speak('昇格！');
       this.tl.after(2.2, () => { LCD.scoop = null; startFever(h, true); });
     } else {
       Sound.play('lose');
-      if (this.timing === 'pre') { Reels.stop(1, h.reachNum); }
+      if (this.timing === 'pre') { Reels.stop(1, h.cols[1]); Reels.setWin(h.win); }
       this.tl.after(1.4, () => { LCD.scoop = null; startFever(h, false); });
     }
   }
@@ -2250,12 +2468,12 @@ class RushSpinState extends State {
       else if (iw === 'lampOff') tl.at(0.05, () => setLed('off'));
       else if (iw === 'count777') tl.at(0.05, () => { LCD.countOverride = '777'; Sound.play('kiin'); });
       const d = iw ? TM.rushIwakanSpin : TM.rushSpin;
-      tl.at(d * 0.5, () => Reels.stop(0, h.nums[0], 0.12)).at(d * 0.72, () => Reels.stop(2, h.nums[2], 0.12)).at(d, () => { Reels.stop(1, h.nums[1], 0.12); Reels.r.forEach(r => r.glow = true); });
+      tl.at(d * 0.5, () => Reels.stop(0, h.cols[0], 0.12)).at(d * 0.72, () => Reels.stop(2, h.cols[2], 0.12)).at(d, () => { Reels.stop(1, h.cols[1], 0.12); Reels.setWin(h.win); });
       tl.at(d + 0.15, () => { Sound.play('zudon'); Sound.play('boom'); FX.shake(22, 0.6); FX.rainbow(1.4); setLed('rainbow'); LCD.pop(T('即当り!!', 80, 'rainbow'), LW / 2, LH / 2, 1.2, 'zoom'); });
       tl.at(d + 1.0, () => { LCD.countOverride = null; onAligned(h); });
     } else {
       const d = TM.rushSpin;
-      tl.at(d * 0.44, () => Reels.stop(0, h.nums[0], 0.1)).at(d * 0.68, () => Reels.stop(2, h.nums[2], 0.1)).at(d * 0.92, () => Reels.stop(1, h.nums[1], 0.1));
+      tl.at(d * 0.44, () => Reels.stop(0, h.cols[0], 0.1)).at(d * 0.68, () => Reels.stop(2, h.cols[2], 0.1)).at(d * 0.92, () => Reels.stop(1, h.cols[1], 0.1));
       tl.at(d * 1.16, () => M.sm.change(new IdleState()));
     }
   }
@@ -2272,8 +2490,8 @@ class RushBattleState extends State {
     this.tl.at(RB.final, () => { const b = LCD.battle; b.act = 'final'; b.actor = h.hit ? 0 : 1; b.actT = 0; b.applied = false; b.dmg = 100; });
     this.tl.at(RB.result, () => {
       LCD.battle.res = h.hit ? 'win' : 'lose'; LCD.battle.resT = 0;
-      if (h.hit) { Sound.play('boom'); FX.shake(24, 0.7); FX.rainbow(1.5); setLed('rainbow'); LCD.pop(T('WIN!!', 96, 'rainbow', F_HEAVY), LW / 2, 130, 1.6, 'zoom'); Reels.setAll(h.final); Reels.r.forEach(r => r.glow = true); }
-      else { Sound.play('lose'); LCD.pop(T('LOSE…', 70, 'silver', F_HEAVY), LW / 2, 130, 1.2, 'zoom'); Reels.stop(0, h.nums[0], 0.1); Reels.stop(1, h.nums[1], 0.1); Reels.stop(2, h.nums[2], 0.1); }
+      if (h.hit) { Sound.play('boom'); FX.shake(24, 0.7); FX.rainbow(1.5); setLed('rainbow'); LCD.pop(T('WIN!!', 96, 'rainbow', F_HEAVY), LW / 2, 130, 1.6, 'zoom'); Reels.setCols(h.cols); Reels.setWin(h.win); }
+      else { Sound.play('lose'); LCD.pop(T('LOSE…', 70, 'silver', F_HEAVY), LW / 2, 130, 1.2, 'zoom'); Reels.stop(0, h.cols[0], 0.1); Reels.stop(1, h.cols[1], 0.1); Reels.stop(2, h.cols[2], 0.1); }
     });
     this.tl.at(h.hit ? RB.winEnd : RB.loseEnd, () => { LCD.battle = null; if (h.hit) onAligned(h); else M.sm.change(new IdleState()); });
   }
@@ -2298,13 +2516,13 @@ class LastChanceState extends State {
   }
   win() {
     const l = LCD.last; l.meter = 1; l.state = 'full'; UI.hot('push', false); const h = this.h;
-    Sound.play('boom'); FX.shake(28, 0.8); FX.rainbow(2); FX.confetti(120); setLed('rainbow'); Reels.setAll(h.final); Reels.r.forEach(r => r.glow = true);
+    Sound.play('boom'); FX.shake(28, 0.8); FX.rainbow(2); FX.confetti(120); setLed('rainbow'); Reels.setCols(h.cols); Reels.setWin(h.win);
     FX.pop(T('大当り!!', 120, 'rainbow'), W / 2, 540, 1.8, 'zoom'); Sound.speak('大当り！');
     this.tl.after(1.8, () => { LCD.last = null; M.rushLeft = CFG.spec.rush.stSpins; onAligned(h); });
   }
   lose() {
     const l = LCD.last; l.state = 'broken'; D.meas.rushEnds++; UI.hot('push', false); Sound.play('crack'); FX.shake(12, 0.4);
-    Reels.stop(0, this.h.nums[0]); Reels.stop(1, this.h.nums[1]); Reels.stop(2, this.h.nums[2]);
+    Reels.stop(0, this.h.cols[0]); Reels.stop(1, this.h.cols[1]); Reels.stop(2, this.h.cols[2]);
     FX.pop(T('RUSH終了', 80, 'silver'), W / 2, 560, 1.6, 'zoom');
     this.tl.after(2.0, () => M.sm.change(new ResultState()));
   }

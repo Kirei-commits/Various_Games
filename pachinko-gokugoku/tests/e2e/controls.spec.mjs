@@ -51,3 +51,24 @@ test('先バレ強制: ヘソ入賞の瞬間に保留が赤以上になる', asy
   expect(h.hit).toBe(true);
   expect(['red', 'gold', 'rainbow']).toContain(h.disp);
 });
+
+test('ライン増加リーチ: テンパイラインが1本ずつ増えてトリプルまでいく', async ({ page }) => {
+  const errors = await open(page);
+  await page.evaluate(() => window.__PACHI.M.holds.length = 0);
+  await debug(page, '[data-force="lineup"]');
+  await speed(page, 2);
+  await playUntil(page, /^リーチ/);
+  const seen = new Set();
+  for (let i = 0; i < 60 && seen.size < 3; i++) { seen.add(await page.evaluate(() => window.__PACHI.Reels.lines.length)); await page.waitForTimeout(100); }
+  expect([...seen].sort().join()).toBe('1,2,3');
+  await playUntil(page, /^大当り/);
+  expect(errors).toEqual([]);
+});
+
+test('設定モードの理論値に 3・5・7テンの信頼度が出る', async ({ page }) => {
+  await open(page);
+  await press(page, '#bDbg');
+  const box = page.locator('#specBox');
+  await expect(box).toContainText('3テン');
+  await expect(box).toContainText('7テン');
+});
