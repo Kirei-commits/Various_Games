@@ -43,12 +43,13 @@ const LCD = {
   showTelop(colorIdx, startIdx) {
     const texts = ['灼熱の魂が燃え上がる…', '運命の炎が、今目覚める！', '極限の扉が開かれる…', '黄金の伝説が始まる!!'];
     const tx = texts[rnd() * texts.length | 0];
-    this.telop = { t: 0, cur: startIdx, fin: colorIdx, up: startIdx < colorIdx ? 1.3 : -1, sp: [T(tx, 26, COLOR_STYLE[0]), T(tx, 26, COLOR_STYLE[1]), T(tx, 26, COLOR_STYLE[2]), T(tx, 26, COLOR_STYLE[3])] };
+    this.telop = { t: 0, cur: startIdx, fin: colorIdx, up: startIdx < colorIdx ? 1.3 : -1, sp: COLOR_STYLE.map(st => T(tx, 26, st)) };
   },
   setRushInfo() { this.rushLeftStr = M.rushLeft > 0 ? String(M.rushLeft) : '0'; this.chainStr = M.chain + '連'; this.payStr = 'TOTAL ' + fmt(M.rushPayout) + '個'; },
   update(dt) {
     this.sceneT += dt;
-    const tl = this.telop; if (tl) { tl.t += dt; if (tl.up > 0 && tl.t >= tl.up) { tl.cur = tl.fin; tl.up = -1; Sound.play('holdChange'); FX.flash(WHITE_A, 0.4); } }
+    // 文字色が1段ずつ上がっていく（白→青→緑→赤→金→虹）
+    const tl = this.telop; if (tl) { tl.t += dt; if (tl.up > 0 && tl.t >= tl.up) { tl.cur++; Sound.play('holdChange'); FX.flash(tl.cur >= 4 ? GOLD_A : WHITE_A, 0.4); if (tl.cur >= tl.fin) tl.up = -1; else tl.up += 0.5; } }
     if (this.stepup) this.stepup.t += dt;
     if (this.judge) this.judge.t += dt;
     if (this.scoop) this.scoop.t += dt;
@@ -92,7 +93,7 @@ const LCD = {
     if (M.mode === 'rush' && (sc === 'rush' || sc === 'battle' || sc === 'last')) this.drawRushInfo(c, t);
     if (this.round) this.drawRound(c, t);
     if (this.stepup) this.drawStepup(c, t);
-    if (this.telop) { const tl = this.telop, s = tl.sp[tl.cur]; const sh = tl.cur === 3 ? 1 + 0.05 * Math.sin(t * 10) : 1; drawS(c, s, LW / 2 + (tl.t < 0.3 ? (1 - tl.t / 0.3) * 300 : 0), LH - 64, sh * 0.95, 1); }
+    if (this.telop) { const tl = this.telop, s = tl.sp[tl.cur]; const sh = tl.cur >= 4 ? 1 + 0.05 * Math.sin(t * 10) : 1; drawS(c, s, LW / 2 + (tl.t < 0.3 ? (1 - tl.t / 0.3) * 300 : 0), LH - 52, sh * 0.95, 1); }
     if (this.title) this.drawTitle(c, t);
     if (this.cutin) this.drawCutin(c, t);
     if (this.scoop) this.drawScoop(c, t);
@@ -225,7 +226,7 @@ const LCD = {
     const ci = this.cutin, k = Math.min(1, ci.t / 0.18), out = ci.t > 1.05 ? (ci.t - 1.05) / 0.25 : 0;
     c.save(); c.translate(lerp(-LW, 0, easeOut(k)) + out * LW, 0);
     c.beginPath(); c.moveTo(0, 100); c.lineTo(LW, 60); c.lineTo(LW, 230); c.lineTo(0, 270); c.closePath();
-    c.fillStyle = ci.gold ? '#ffcc22' : '#d01010'; c.fill(); c.lineWidth = 6; c.strokeStyle = ci.gold ? '#fff' : '#ffd700'; c.stroke();
+    c.fillStyle = ci.lv === 5 ? hue(t * 400) : CUTIN_FILL[ci.lv]; c.fill(); c.lineWidth = 6; c.strokeStyle = ci.lv >= 4 ? '#fff' : '#ffd700'; c.stroke();
     c.globalCompositeOperation = 'lighter'; c.fillStyle = WHITE_A[4]; for (let i = 0; i < 8; i++) c.fillRect(((i * 70 + ci.t * 1500) % (LW + 100)) - 50, 70, 8, 190); c.globalCompositeOperation = 'source-over';
     this.drawHero(c, 100, 262, 1.15, 0);
     drawS(c, ci.sp, 290, 165, 1 + 0.06 * Math.sin(t * 20));
@@ -334,3 +335,5 @@ const LCD = {
   }
 };
 const SLOT = { x: 0, y: 0, r: 0 };
+// カットインの帯の色 0=白 1=青 2=緑 3=赤 4=金（5=虹は毎フレーム色相を回す）
+const CUTIN_FILL = ['#e8e8f0', '#2f6bff', '#18b858', '#d01010', '#ffcc22'];

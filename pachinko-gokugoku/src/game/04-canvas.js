@@ -26,7 +26,9 @@ const STYLES = {
   rainbow: { rainbow: true, edge: '#1a0030', glow: 'rgba(255,255,255,0.95)', inner: '#ffffff' },
   purple: { stops: [[0, '#f6e6ff'], [0.4, '#c060ff'], [0.55, '#5a0090'], [1, '#e0a0ff']], edge: '#14002a', glow: 'rgba(190,80,255,0.9)', inner: '#fff' }
 };
-const COLOR_STYLE = ['white', 'red', 'gold', 'rainbow'];
+// 文字色のチャンスアップ 0=白 1=青 2=緑 3=赤 4=金 5=虹
+const COLOR_STYLE = ['white', 'blue', 'green', 'red', 'gold', 'rainbow'];
+const COLOR_NAME = ['白', '青', '緑', '赤', '金', '虹'];
 function makeText(text, size, style, font) {
   const st = STYLES[style] || STYLES.gold; font = font || F_BRUSH;
   const mc = document.createElement('canvas').getContext('2d'); const f = `900 ${size}px ${font}`; mc.font = f;
