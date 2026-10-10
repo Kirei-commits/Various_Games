@@ -49,3 +49,12 @@ tests/e2e/*.spec.mjs         Playwright（desktop + mobile）。ドラッグは�
 
 ハブ（`#hub` の `.cards`）の COMING SOON の枠を置き換える。コインは `Store.d.coins` で共通。
 ミニゲームごとのセーブは `Store.d.<名前>` に分ける。純粋なモジュールは `src/pure/<名前>-*.js` にして、`tools/build.mjs` の `PURE` に足す。
+
+## CI/CD
+
+| いつ | ジョブ | 中身 |
+|---|---|---|
+| push / PR（このディレクトリか ci.yml が変わったとき） | 静的検査とロジックテスト | lint（ビルドが最新か含む）→ ロジック（バランス含む） |
+| 同上 | ブラウザテスト | Playwright（desktop + mobile のタッチ） |
+| 同上 | バランスの測定 | `measure.mjs --md` の表をジョブのサマリーに出す（情報だけ。合否はロジックテスト） |
+| デフォルトブランチへの push | Pages | 公開前に `build.mjs --check`、公開後に実際の URL を開いてハッシュが最新か確かめる |

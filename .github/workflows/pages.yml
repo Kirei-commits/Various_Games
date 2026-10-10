@@ -56,6 +56,17 @@ jobs:
         with:
           path: _preview
 
+      # src/ からビルドするゲームは、index.html が古いまま公開されないように確かめる（依存なしで動く）
+      - name: ビルド済みの index.html が最新か確かめる
+        run: |
+          for game in */; do
+            game=${game%/}
+            # --check を実装しているビルドだけ（ほかのビルドは --check を知らずに作り直してしまう）
+            if [ -f "$game/tools/build.mjs" ] && grep -q -- "'--check'" "$game/tools/build.mjs"; then
+              (cd "$game" && node tools/build.mjs --check)
+            fi
+          done
+
       # 配信物に開発用のものを混ぜない（node_modules やテスト結果）
       - name: 配信するファイルだけを集める
         run: |
@@ -81,3 +92,27 @@ jobs:
 
       - id: deploy
         uses: actions/deploy-pages@v5
+
+      # 公開したあと、実際の URL を開いて全部のゲームが返ってくるか確かめる。
+      # src/ からビルドするゲームは、公開された版のハッシュがリポジトリと同じか（＝最新が出たか）も見る。
+      # 反映に少し時間がかかるので、数回待ってやり直す。
+      - name: 公開されたページを確かめる
+        if: github.ref_name == github.event.repository.default_branch || github.ref_name == 'main'
+        env:
+          URL: ${{ steps.deploy.outputs.page_url }}
+        run: |
+          ok=0
+          for try in 1 2 3 4 5 6; do
+            ok=1
+            curl -fsS "$URL" -o /dev/null || ok=0
+            for game in god-arena gomoku-narabe tsuri-quest eikaiwa-swipe monster-strike pachinko-gokugoku minigame-rush; do
+              page=$(curl -fsS "$URL$game/" || true)
+              if [ -z "$page" ]; then echo "まだ開けない: $game"; ok=0; continue; fi
+              want=$(grep -o 'name="[a-z]*-source-hash" content="[0-9a-f]*"' "$game/index.html" || true)
+              if [ -n "$want" ] && ! printf '%s' "$page" | grep -q "$want"; then echo "古い版のまま: $game"; ok=0; fi
+            done
+            [ $ok = 1 ] && break
+            sleep 20
+          done
+          [ $ok = 1 ] || { echo "公開されたページが確かめられない"; exit 1; }
+          echo "全部のゲームが最新の版で公開されている"
