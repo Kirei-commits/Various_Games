@@ -12,6 +12,14 @@
     let task = null, think = 0, rr = 0;
     const speed = cfg.hero.dragSpeedBot;
 
+    /** 支援役の撃つ列: 射程に入ったよいゲート → 檻。どちらも無ければ null */
+    function supportCol() {
+      const reach = cfg.world.leakY + cfg.hero.range - 1;
+      const g = S.gates.filter(x => x.kind === 'good' && x.y < reach).sort((a, b) => a.y - b.y)[0];
+      if (g) return Math.max(0, Math.min(4, Math.floor((g.x0 + g.x1) / 2)));
+      const c = S.cages[0];
+      return c ? Math.max(0, Math.min(4, Math.floor((c.x0 + c.x1) / 2))) : null;
+    }
     /** 撃つ列: 一番近い敵の列。敵が遠ければ檻 → よいゲート */
     function wantCol() {
       let near = null;
@@ -50,8 +58,11 @@
       if (!S.heroes.length) return null;
       // 弾の少ない英雄から順に、撃ちたい列の得意武器を拾いに行く
       const order = S.heroes.slice().sort((a, b) => a.ammo.length - b.ammo.length);
-      const h = order[rr++ % Math.min(order.length, 3)];
-      const col = wantCol();
+      const pickI = rr++;
+      const h = order[pickI % Math.min(order.length, 3)];
+      // 3体に1体は支援役（ゲートと檻をねらう）。英雄が1体だけのときは敵が近くにいなければ支援
+      const sup = (S.heroes.length >= 2 && S.heroes.indexOf(h) % 3 === 2) || (S.heroes.length === 1 && pickI % 3 === 2) ? supportCol() : null;
+      const col = sup ?? wantCol();
       const t = nearestWeapon(h, col);
       if (!t) return { id: h.id, x: col + 0.5, y: h.y };
       return { id: h.id, x: t.col + 0.5, y: t.row + 0.5, settle: col + 0.5 };

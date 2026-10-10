@@ -48,7 +48,7 @@ test('弾は英雄のいる列の真上へ飛ぶ: 左の列なら檻に当たり
     assert.equal(S.cages.length, 1);
     const cage = S.cages[0], hp0 = cage.hp;
     const h = S.heroes[0];
-    h.col = col; h.row = 0; h.x = col + 0.5; h.y = 0.5; h.ammo = ['sickle'];
+    h.col = col; h.row = 5; h.x = col + 0.5; h.y = 5.5; h.ammo = ['sickle'];   // 射程があるので檻に届く奥の段から
     S.enemies.length = 0; S.evIndex = S.stage.events.length;  // 敵とゲートを出さない
     S.gates.length = 0;
     run(sim, 2.5);
@@ -63,7 +63,7 @@ test('檻のHPを0にすると2択になり、時間が止まる。仲間にす�
     const cage = S.cages[0];
     cage.hp = 1;
     const h = S.heroes[0];
-    h.col = 0; h.x = 0.5; h.ammo = ['sickle'];
+    h.col = 0; h.row = 5; h.x = 0.5; h.y = 5.5; h.ammo = ['sickle'];
     run(sim, 2);
     assert.equal(S.phase, 'choice');
     assert.equal(S.choice.hero, cage.hero);
@@ -125,7 +125,7 @@ test('敵が拠点まで来るとHPが減り、バリアがあれば防ぐ。0�
   S.enemies.push({ ...e1 }, { ...e1, id: 9002, y: 6.5 });
   run(sim, 1);
   assert.equal(S.barrier, 0);
-  assert.equal(S.baseHp, S.baseMax - 2);
+  assert.equal(S.baseHp, S.baseMax - 2 * cfg.base.leakMul);
   S.baseHp = 1;
   S.enemies.push({ ...e1, id: 9003 });
   run(sim, 0.5);
@@ -167,6 +167,19 @@ test('分裂・復活・回復・ボスの手下呼び', () => {
   assert.equal(S.enemies.filter(e => e.type === 'goblin').length, cfg.bosses.king.summon[0], 'キングが手下を呼ぶ');
 });
 
+test('弾には射程があり、遠くの敵には届かない（手前の段ほど届く範囲が短い）', () => {
+  const { sim, S } = newSim(ctx);
+  S.evIndex = S.stage.events.length; S.gates.length = 0; S.slots = S.slots.map(() => ({}));  // 檻を出さない
+  const h = S.heroes[0]; h.col = 4; h.row = 0; h.x = 4.5; h.y = 0.5; h.ammo = ['sickle'];
+  const far = { id: 9100, type: 'goblin', x: 4.5, bx: 4.5, y: 20, hp: 1e6, maxHp: 1e6, r: 0.27, speed: 0, armor: 0, leak: 2, coin: 1, lane: 0, wob: 0, flash: 0, healT: 9, phaseT: 0 };
+  S.enemies.push(far);
+  run(sim, 2);
+  assert.equal(far.hp, 1e6, '射程の外');
+  far.y = 0.5 + cfg.hero.range - 1.5; h.ammo = ['sickle'];
+  run(sim, 2);
+  assert.ok(far.hp < 1e6, '射程の中');
+});
+
 test('同じ乱数なら同じ結果になる', () => {
   const a = newSim(ctx, { n: 4, seed: 5 }), b = newSim(ctx, { n: 4, seed: 5 });
   run(a.sim, 40); run(b.sim, 40);
@@ -178,7 +191,7 @@ test('コイン: ★が多いほど・難しいほど多い。強化の値段は
   const S = { coins: 100, wave: 0 };
   const r1 = L.reward(cfg, st1, S, 1), r3 = L.reward(cfg, st1, S, 3), rh = L.reward(cfg, st2, S, 3), r0 = L.reward(cfg, st1, S, 0);
   assert.ok(r3.total > r1.total && rh.total > r3.total);
-  assert.equal(r0.clear, 0); assert.equal(r0.kills, 100);
+  assert.equal(r0.clear, 0); assert.equal(r0.kills, Math.round(100 * cfg.stage.killCoin));
   assert.ok(L.reward(cfg, st1, S, 3, { greed: 5 }).total > r3.total);
   for (const k of cfg.upgradeOrder) {
     assert.ok(L.upgradeCost(cfg, k, 1) > L.upgradeCost(cfg, k, 0));

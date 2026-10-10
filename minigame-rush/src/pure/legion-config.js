@@ -22,6 +22,7 @@
 
     hero: {
       ammoMax: 4, maxHeroes: 12, maxTier: 4, idleReach: 1,
+      range: 11,              // 弾が届く距離（ワールド単位）。遠くの敵は届くまで近づいてくる
       tierDmg: [1, 2.3, 5.2, 11.5],
       tierRate: [1, 1.15, 1.3, 1.5],
       dragSpeedBot: 9         // ボットの指の速さ（マス/秒）
@@ -34,7 +35,7 @@
       staff:    { name: '杖',       dmg: 13, every: 0.46, speed: 10, r: 0.3, pierce: 0, homing: 3.2 },
       sling:    { name: 'パチンコ', dmg: 9,  every: 0.5,  speed: 13, r: 0.26, pierce: 0, aoe: 0.85, aoeDmg: 0.6 },
       bow:      { name: '弓',       dmg: 8,  every: 0.52, speed: 16, r: 0.24, pierce: 0, spread: [-0.16, 0, 0.16] },
-      spear:    { name: '槍',       dmg: 7,  every: 0.42, speed: 21, r: 0.22, pierce: 99 },
+      spear:    { name: '槍',       dmg: 7,  every: 0.42, speed: 21, r: 0.22, pierce: 99, range: 14 },
       axe:      { name: '斧',       dmg: 18, every: 0.56, speed: 11, r: 0.55, pierce: 1, spin: true },
       bomb:     { name: '爆弾',     dmg: 26, every: 0.95, speed: 8,  r: 0.34, pierce: 0, aoe: 1.45, aoeDmg: 0.8 },
       shuriken: { name: '手裏剣',   dmg: 5,  every: 0.2,  speed: 18, r: 0.22, pierce: 0, bounce: 2, spin: true }
@@ -79,7 +80,7 @@
     bossOrder: ['king', 'gslime', 'dknight'],
 
     // 拠点
-    base: { hp: 100 },
+    base: { hp: 100, leakMul: 0.5 },  // 敵が途切れず来るので、1体あたりの拠点ダメージは半分
 
     // ゲート。kind: good / bad。w: 出やすさ。v: 効果の値（配列なら抽選）
     gates: {
@@ -107,19 +108,24 @@
       haste:    { kind: 'bad',  w: 3,  label: '敵の速さ', fmt: 'x', v: [1.25] },
       loseHero: { kind: 'bad',  w: 2,  label: '英雄の数', fmt: '-', v: [1] }
     },
-    gate: { w: 1.9, h: 0.55, hpBase: 30, hpGrow: 1.045, hpPerValue: 0.35, badFrom: 4, critMul: 3 },
+    gate: { w: 1.9, h: 0.55, speed: 1.35, hpBase: 30, hpGrow: 1.045, hpPerValue: 0.35, badFrom: 4, critMul: 3 },
     cap: { atkspd: 6, atk: 12, multi: 4, pierce: 5, crit: 60, pspeed: 2.5, big: 2.5, slow: 0.45, haste: 2 },
 
     // ステージ
     stage: {
       count: 99,
       duration: 150,            // 雑魚が出てくる時間（秒）。最後にボス
-      hpGrow: 1.044,            // ステージごとの敵HPの伸び
-      countBase: 70, countGrow: 6, countMax: 260,
+      hpGrow: 1.033,            // ステージごとの敵HPの伸び
+      // 敵の行進: rowEvery 秒ごとに1列（ステージが進むと rowEveryGrow ずつ詰まり、rowEveryMin まで）。
+      // surgeEvery 秒ごとに surgeRows 列ぶんの大群。数が多いぶん1体のHPは streamHp 倍に下げる
+      rowEvery: 0.5, rowEveryGrow: 0.0008, rowEveryMin: 0.35, surgeEvery: 22, surgeRows: 3, streamHp: 0.7,
+      rowSize: 4,  // 1列の敵の数
+      earlyEase: 0.8, easyUntil: 8,  // ステージ1は列の間隔が (1+earlyEase) 倍。easyUntil で普通になる
+      rampFrom: 4, rampTo: 80,  // 開始直後の列の間隔は rowEvery の rampFrom 倍。rampTo 秒で rowEvery になる
+      killCoin: 0.3,            // 倒した敵のコインは数が多いので割り引く
       gates: [7, 11],           // 1ステージのゲートの数（最小〜最大）
       cages: [2, 3],
       cageHp: 70, cageHpGrow: 1.05, cageTierFrom: [18, 40, 70],  // 檻の英雄が★2/★3/★4で出るステージ
-      waveEvery: 10,            // 敵の群れの間隔(秒)の目安
       layoutsFrom: { A: 1, B: 4, C: 6, D: 8, E: 10 },
       star: [0.8, 0.4],         // 拠点HPの残りが 80% 以上で★3、40% 以上で★2
       clearCoin: 40, clearCoinGrow: 8

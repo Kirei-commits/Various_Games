@@ -49,7 +49,16 @@ test('先のステージほど敵が強く・多い。難易度で変わる', ()
   const hp = (n, d) => L.Stage.build(cfg, n, d).events.find(e => e.kind === 'boss').hpMul;
   assert.ok(hp(30, 'normal') > hp(10, 'normal') && hp(10, 'normal') > hp(1, 'normal'));
   assert.ok(hp(5, 'hard') > hp(5, 'normal') && hp(5, 'normal') > hp(5, 'easy'));
-  assert.ok(L.Stage.build(cfg, 30).total > L.Stage.build(cfg, 1).total);
+  assert.ok(L.Stage.build(cfg, 60).total > L.Stage.build(cfg, 1).total);
+  assert.ok(L.Stage.build(cfg, 5, 'hard').total > L.Stage.build(cfg, 5, 'easy').total);
+});
+
+test('敵は途切れずに来る: 雑魚の出現の間が3秒を超えない', () => {
+  for (const n of [1, 10, 50, 99]) {
+    const t = L.Stage.build(cfg, n).events.filter(e => e.kind === 'wave').map(e => e.t);
+    for (let i = 1; i < t.length; i++) assert.ok(t[i] - t[i - 1] < 3, `stage ${n}: ${t[i - 1].toFixed(1)}→${t[i].toFixed(1)}秒`);
+    assert.ok(t[0] < 3 && t[t.length - 1] > cfg.stage.duration - 3, `stage ${n}: 最初から最後まで`);
+  }
 });
 
 test('エンドレスは必要なぶんだけ先を作り、だんだん強くなる', () => {

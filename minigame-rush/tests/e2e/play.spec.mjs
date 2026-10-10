@@ -40,8 +40,8 @@ test('檻の英雄を解放 → 2択。「仲間にする」で加わり、「�
   await open(page, { save: SAVE_DONE });
   await startStage(page, 1);
   await page.waitForFunction(() => window.__MGR.sim().S.cages.length === 1);
-  // 檻の真下の列に立たせて、檻をあと1発で壊れるようにする
-  await sim(page, `S.cages[0].hp = 1; const h = S.heroes[0]; h.col = 0; h.x = 0.5; h.ammo = ['sickle'];`);
+  // 檻の真下の列・いちばん奥の段（射程が届く）に立たせて、檻をあと1発で壊れるようにする
+  await sim(page, `S.cages[0].hp = 1; const h = S.heroes[0]; h.col = 0; h.row = 5; h.x = 0.5; h.y = 5.5; h.ammo = ['sickle'];`);
   await expect(page.locator('#choice')).toBeVisible({ timeout: 10_000 });
   await expect(page.locator('#choiceName')).toContainText('騎士');
   await press(page, '#chJoin');
@@ -49,7 +49,7 @@ test('檻の英雄を解放 → 2択。「仲間にする」で加わり、「�
   expect(await sim(page, 'return S.heroes.map(h => h.type).sort()')).toEqual(['knight', 'reaper']);
 
   await page.waitForFunction(() => window.__MGR.sim().S.cages.length === 1, null, { timeout: 10_000 });
-  await sim(page, `S.cages[0].hp = 1; const h = S.heroes.find(h => h.type === 'reaper'); h.col = 0; h.x = 0.5; h.ammo = ['sickle'];`);
+  await sim(page, `S.cages[0].hp = 1; const h = S.heroes.find(h => h.type === 'reaper'); h.col = 0; h.row = 5; h.x = 0.5; h.y = 5.5; h.ammo = ['sickle'];`);
   await expect(page.locator('#choice')).toBeVisible({ timeout: 10_000 });
   await press(page, '#chEvolve');
   await expect(page.locator('#evolveHint')).toBeVisible();

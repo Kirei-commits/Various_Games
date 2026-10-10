@@ -28,7 +28,7 @@
     A: { name: '左の檻', lanes: [{ x0: 2.05, x1: 4.95 }], mergeY: 11, slots: [{ x0: 0.15, x1: 1.85, y0: 13.4, y1: 17.2 }], rooms: [{ x0: 0, x1: 2, y0: 11, y1: 22 }] },
     B: { name: '右の檻', lanes: [{ x0: 0.05, x1: 2.95 }], mergeY: 11, slots: [{ x0: 3.15, x1: 4.85, y0: 13.4, y1: 17.2 }], rooms: [{ x0: 3, x1: 5, y0: 11, y1: 22 }] },
     C: { name: '二本道', lanes: [{ x0: 0.05, x1: 1.9 }, { x0: 3.1, x1: 4.95 }], mergeY: 10, slots: [{ x0: 2.02, x1: 2.98, y0: 13, y1: 16.6 }], rooms: [{ x0: 1.95, x1: 3.05, y0: 10, y1: 22 }] },
-    D: { name: '奥の檻', lanes: [{ x0: 0.05, x1: 1.5 }, { x0: 3.5, x1: 4.95 }], mergeY: 18.6, slots: [{ x0: 1.65, x1: 3.35, y0: 19.2, y1: 21.6 }], rooms: [{ x0: 1.55, x1: 3.45, y0: 18.6, y1: 22 }] },
+    D: { name: '奥の檻', lanes: [{ x0: 0.05, x1: 1.5 }, { x0: 3.5, x1: 4.95 }], mergeY: 15.6, slots: [{ x0: 1.65, x1: 3.35, y0: 16.1, y1: 18.5 }], rooms: [{ x0: 1.55, x1: 3.45, y0: 15.6, y1: 22 }] },
     E: { name: '両側の檻', lanes: [{ x0: 1.05, x1: 3.95 }], mergeY: 10, slots: [{ x0: 0.1, x1: 0.95, y0: 13, y1: 16.6 }, { x0: 4.05, x1: 4.9, y0: 13, y1: 16.6 }], rooms: [{ x0: 0, x1: 1, y0: 10, y1: 22 }, { x0: 4, x1: 5, y0: 10, y1: 22 }] }
   };
   const LAYOUT_IDS = ['A', 'B', 'C', 'D', 'E'];
@@ -71,6 +71,36 @@
 
   function laneOf(layout, r) { return Math.floor(r() * layout.lanes.length) % layout.lanes.length; }
 
+  /**
+   * t0〜t1 のあいだ、敵の列を途切れずに流す。同じ種類の敵が数秒ずつ続き、surgeEvery ごとに大群が来る。
+   * 出した敵の数を返す
+   */
+  function stream(cfg, n, r, layout, events, t0, t1, hpAt, diff, wave) {
+    const S = cfg.stage;
+    // 最初はまばらで、仲間が増えるころ（rampTo 秒）にかけて詰まっていく
+    // 序盤のステージ（easyUntil まで）は列の間隔を広げて、遊び方を覚えられるようにする
+    const ease = 1 + S.earlyEase * Math.max(0, S.easyUntil - n) / (S.easyUntil - 1);
+    const base = Math.max(S.rowEveryMin, S.rowEvery - S.rowEveryGrow * (n - 1)) * ease / diff.count;
+    const every = t => base * (S.rampFrom + (1 - S.rampFrom) * Math.min(1, t / S.rampTo)) ;
+    let t = t0, total = 0, type = null, segEnd = -1, lane = 0, nextSurge = t0 + S.surgeEvery * (0.5 + r() * 0.5);
+    while (t < t1) {
+      if (t >= segEnd) { type = waveType(cfg, n, r); lane = laneOf(layout, r); segEnd = t + 5 + r() * 5; }
+      const heavy = cfg.enemies[type].hp / cfg.enemies.goblin.hp;
+      // 列のところどころを空けて、ぎっしりすぎない行進にする。HP の多い敵は1列の数を減らす
+      // 地形で道幅が違っても数は同じ（狭い道では2列になる）
+      let count = Math.max(1, Math.round(S.rowSize / Math.max(1, heavy * 0.7)) - (r() < 0.3 ? 1 : 0));
+      let rows = 1;
+      if (t >= nextSurge) { rows = S.surgeRows; nextSurge = t + S.surgeEvery * (0.8 + r() * 0.4); }
+      count *= rows;
+      const ev = { t, kind: 'wave', type, count, lane, hpMul: hpAt(t) * S.streamHp };
+      if (wave && total === 0) ev.wave = wave;
+      events.push(ev);
+      total += count;
+      t += Math.min(2.5, every(wave ? S.rampTo : t) * (0.85 + r() * 0.3) * (rows > 1 ? 1.8 : 1));  // 間が空きすぎないように
+    }
+    return total;
+  }
+
   function build(cfg, n, diffKey = 'normal') {
     const diff = cfg.difficulty[diffKey];
     const r = rng32(mixSeed(n * 7919 + 13));
@@ -78,7 +108,6 @@
     const layoutId = layoutFor(cfg, n, r);
     const layout = LAYOUTS[layoutId];
     const hpMul = Math.pow(S.hpGrow, n - 1) * diff.hp;
-    const total = Math.round(Math.min(S.countMax, S.countBase + S.countGrow * (n - 1)) * diff.count);
     const events = [];
 
     // 檻の英雄（ステージ1は広告どおり騎士から）
@@ -98,22 +127,8 @@
       const w = pick(r, cfg.weaponOrder); if (!pool.includes(w)) pool.push(w);
     }
 
-    // 敵の群れ
-    const waves = Math.max(4, Math.round(S.duration / S.waveEvery));
-    let left = total;
-    for (let i = 0; i < waves; i++) {
-      const t = 3 + (S.duration - 6) * i / (waves - 1) + (r() - 0.5) * 2;
-      // 後半ほど大きな群れ
-      const share = (0.6 + 0.8 * i / (waves - 1)) / waves;
-      let count = i === waves - 1 ? left : Math.max(2, Math.round(total * share));
-      count = Math.min(count, left); if (count <= 0) break;
-      left -= count;
-      const type = waveType(cfg, n, r);
-      // HP の多い敵は数を減らす
-      const heavy = cfg.enemies[type].hp / cfg.enemies.goblin.hp;
-      const c = Math.max(1, Math.round(count / Math.max(1, heavy * 0.7)));
-      events.push({ t: Math.max(1.5, t), kind: 'wave', type, count: c, lane: laneOf(layout, r), hpMul: hpMul * (0.85 + 0.35 * i / (waves - 1)) });
-    }
+    // 敵は途切れずに行進してくる（列が1秒ごとくらいに入ってきて、ときどき大群が押し寄せる）
+    const total = stream(cfg, n, r, layout, events, 1.5, S.duration, t => hpMul * (0.85 + 0.35 * t / S.duration), diff);
 
     // ゲート
     const gateCount = S.gates[0] + Math.floor(r() * (S.gates[1] - S.gates[0] + 1));
@@ -155,10 +170,7 @@
       const level = 1 + k / 2;
       const hpMul = Math.pow(E.hpGrow, k) * diff.hp;
       const n = Math.min(cfg.enemyOrder.length * 2 + 1, Math.floor(level));
-      const count = Math.round((5 + k * 0.9) * diff.count);
-      const type = waveType(cfg, Math.max(1, n), r);
-      const heavy = cfg.enemies[type].hp / cfg.enemies.goblin.hp;
-      def.events.push({ t: t0 + 1, kind: 'wave', type, count: Math.max(1, Math.round(count / Math.max(1, heavy * 0.7))), lane: laneOf(layout, r), hpMul, wave: k + 1 });
+      stream(cfg, Math.max(1, n), r, layout, def.events, t0 + 0.5, t0 + E.waveEvery, () => hpMul, { count: diff.count * (0.85 + Math.min(0.6, k * 0.02)) }, k + 1);
       if (k % 2 === 1 || r() < 0.3) def.events.push({ t: t0 + 4, kind: 'gate', lane: laneOf(layout, r), gate: gateDef(cfg, Math.max(1, Math.floor(level)), r, pool, diff), pos: r() });
       if ((k + 1) % E.bossEvery === 0) def.events.push({ t: t0 + 6, kind: 'boss', type: cfg.bossOrder[Math.floor(k / E.bossEvery) % cfg.bossOrder.length], lane: laneOf(layout, r), hpMul: hpMul * 0.8 });
       if (k % Math.max(1, Math.round(E.cageEvery / E.waveEvery)) === 1) {

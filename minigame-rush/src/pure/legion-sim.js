@@ -122,7 +122,7 @@
             dmg: heroDmg(h, w) * (crit ? cfg.gate.critMul : 1), crit,
             r: wd.r * S.mods.big, pierce: (wd.pierce || 0) + S.mods.pierce, bounce: wd.bounce || 0,
             aoe: wd.aoe ? wd.aoe * Math.sqrt(S.mods.big) : 0, aoeDmg: wd.aoeDmg || 0, homing: wd.homing || 0,
-            hit: [], ang: 0, life: 4
+            hit: [], ang: 0, life: 4, dist: 0, range: (wd.range || cfg.hero.range) * Math.sqrt(S.mods.pspeed)
           });
         }
       }
@@ -165,7 +165,7 @@
       const w = Math.min(cfg.gate.w, l.x1 - l.x0 - 0.1);
       const x0 = l.x0 + 0.05 + (l.x1 - l.x0 - 0.1 - w) * ev.pos;
       const g = cfg.gates[ev.gate.id];
-      S.gates.push({ id: nextId++, ...ev.gate, kind: g.kind, x0, x1: x0 + w, y: cfg.world.spawnY, maxHp: ev.gate.hp, speed: 0.85 * stage.speedMul, flash: 0 });
+      S.gates.push({ id: nextId++, ...ev.gate, kind: g.kind, x0, x1: x0 + w, y: cfg.world.spawnY, maxHp: ev.gate.hp, speed: cfg.gate.speed * stage.speedMul, flash: 0 });
     }
     function spawnBoss(ev) {
       const l = laneRange(ev.lane);
@@ -375,6 +375,7 @@
           }
         }
         const dist = Math.hypot(p.vx, p.vy) * dt;
+        p.dist += dist;
         const steps = Math.max(1, Math.ceil(dist / 0.22));
         for (let i = 0; i < steps && !p.dead; i++) {
           p.x += p.vx * dt / steps; p.y += p.vy * dt / steps;
@@ -382,7 +383,7 @@
         }
         p.ang += dt * 14;
         p.life -= dt;
-        if (walled(p) || p.life <= 0) p.dead = true;
+        if (walled(p) || p.life <= 0 || p.dist > p.range) p.dead = true;  // 射程を超えたら消える
         if (S.phase !== 'play') break;
       }
       S.projs = S.projs.filter(p => !p.dead);
@@ -430,7 +431,7 @@
           // ボスに拠点まで来られたら負け
           if (e.boss) { S.baseHp = 0; emit('leak', { enemy: e }); }
           else if (S.barrier > 0) { S.barrier--; emit('barrier', { enemy: e }); }
-          else { S.baseHp = Math.max(0, S.baseHp - e.leak); emit('leak', { enemy: e }); }
+          else { S.baseHp = Math.max(0, S.baseHp - e.leak * cfg.base.leakMul); emit('leak', { enemy: e }); }
         }
       }
 
@@ -539,7 +540,7 @@
   L.reward = (cfg, stage, S, stars, meta = {}) => {
     const greed = 1 + (meta.greed || 0) * cfg.upgrades.greed.per;
     const mul = (stage.coinMul || 1) * greed;
-    const kills = Math.round(S.coins * mul);
+    const kills = Math.round(S.coins * (cfg.stage.killCoin ?? 1) * mul);
     const clear = stars > 0 && !stage.endless
       ? Math.round((cfg.stage.clearCoin + cfg.stage.clearCoinGrow * (stage.n - 1)) * (1 + (stars - 1) * 0.25) * mul)
       : 0;
