@@ -27,6 +27,7 @@ jobs:
     timeout-minutes: 5
     outputs:
       games: ${{ steps.pick.outputs.games }}
+      kyozai: ${{ steps.pick.outputs.kyozai }}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -68,6 +69,10 @@ jobs:
             fi
           done
           echo "games=[$games]" | tee -a "$GITHUB_OUTPUT"
+          # kyozai-quiz はゲームではなく Python のアプリなので、上の matrix とは別のジョブで調べる
+          kyozai=false
+          if [ "$changed" = "*" ] || printf '%s\n' "$changed" | grep -q "^kyozai-quiz/"; then kyozai=true; fi
+          echo "kyozai=$kyozai" | tee -a "$GITHUB_OUTPUT"
 
   checks:
     name: 静的検査とロジックテスト (${{ matrix.game }})
@@ -208,3 +213,39 @@ jobs:
 
       - name: ボットで各ステージを遊んで表にする
         run: node tools/measure.mjs 1,5,10,20,30,45,60,80,99 normal 3 --md | tee -a "$GITHUB_STEP_SUMMARY"
+
+  # 教材登録・問題生成アプリ（Python）。Gemini は呼ばず、偽のクライアントで登録〜問題生成まで通す。
+  kyozai-quiz:
+    name: テスト (kyozai-quiz)
+    needs: changes
+    if: needs.changes.outputs.kyozai == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: kyozai-quiz
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: kyozai-quiz/mermaid-validator/package-lock.json
+
+      # pptx → PDF の変換に使う
+      - name: LibreOffice を導入
+        run: sudo apt-get update -q && sudo apt-get install -y -q --no-install-recommends libreoffice-impress
+
+      - name: Mermaid 構文チェッカーの依存をインストール
+        run: npm ci --prefix mermaid-validator
+
+      - name: 依存をインストール
+        run: pip install -e '.[dev]'
+
+      - name: テスト
+        run: pytest -q -rs
