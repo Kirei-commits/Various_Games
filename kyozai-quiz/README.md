@@ -1,6 +1,26 @@
 # kyozai-quiz（教材登録・問題生成）
 
-pptx 教材を登録し、図解を含む内容に沿った問題（4択・記述・正誤）を Gemini で生成する CLI です。
+pptx 教材を登録し、図解を含む内容に沿った問題（4択・記述・正誤）を Gemini で生成するアプリです。
+**ブラウザ版**（インストール不要）と **CLI 版**（Python）があります。
+
+## ブラウザ版
+
+https://kirei-commits.github.io/Various_Games/kyozai-quiz/
+
+1. 「設定」で Gemini の API キーを入れる（[Google AI Studio](https://aistudio.google.com/apikey) で無料で発行できる）
+2. pptx と、同じ pptx から書き出した PDF を選んで登録する（画面のサンプルでも試せる）
+3. 「問題」タブで問題を作る。答え合わせ・出典ページへの移動・Markdown / JSON の書き出しができる
+
+- pptx の解析（テキスト・ノート・図の判定）はブラウザ内の JavaScript で行い、Python 版と同じ結果になることをテストで確かめています
+- ページ画像は PDF から作ります（LibreOffice の代わり）。PowerPoint が非表示スライドを PDF に出さない場合も対応づけます
+- 教材・ページ画像・問題はそのブラウザの IndexedDB にだけ保存し、API キーもそのブラウザにだけ保存します。Gemini API へはブラウザから直接送ります
+- 無料枠向けの動き（呼び出し間隔・1日の上限での未処理化・問題生成のまとめ呼び出し）は CLI 版と同じです
+
+ソースは `web/`（ビルド不要の静的ファイル）。手元では `cd web && npm ci && npm start` で http://localhost:4173/ に開きます。
+テストは `npm run test:logic`（Node）と `npm run test:e2e`（Playwright。Gemini は偽物に差し替え）です。
+プロンプトは `web/js/prompts.js` と `kyozai_quiz/prompts.py` で同じ文面を持ちます（食い違うとテストが落ちます）。
+
+## CLI 版
 
 - 図の解析（VLM）は**登録時に一度だけ**行い、結果を SQLite に保存します。問題生成では保存済みデータを使うので、VLM を毎回呼びません。
 - OCR は使いません。テキスト・発表者ノート・グラフの数値・表・SmartArt の文字は python-pptx でファイルから直接読みます。

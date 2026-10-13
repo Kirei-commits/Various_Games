@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>教材クイズ</title>
+  <meta name="description" content="pptx 教材を登録し、図解を含む内容に沿った問題を Gemini で生成する。データはこのブラウザの中だけに保存する。">
+  <link rel="stylesheet" href="css/app.css">
+  <script type="importmap">
+  {
+    "imports": {
+      "jszip": "https://cdn.jsdelivr.net/npm/jszip@3.10.1/+esm",
+      "pdfjs-dist": "https://cdn.jsdelivr.net/npm/pdfjs-dist@5.4.624/build/pdf.min.mjs",
+      "mermaid": "https://cdn.jsdelivr.net/npm/mermaid@11.17.2/dist/mermaid.esm.min.mjs"
+    }
+  }
+  </script>
+  <script type="module" src="js/app.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="#/">教材クイズ</a>
+    <nav>
+      <a href="#/" data-nav="home">教材</a>
+      <a href="#/settings" data-nav="settings">設定</a>
+    </nav>
+    <span id="key-status" class="chip"></span>
+  </header>
+  <div class="joblog-wrap">
+    <section id="joblog" class="joblog" hidden>
+      <header><strong id="job-title">処理中</strong><button type="button" id="job-close" class="link">閉じる</button></header>
+      <ol id="job-lines"></ol>
+    </section>
+  </div>
+  <main id="view" aria-live="polite"></main>
+  <dialog id="image-dialog"><img alt=""><form method="dialog"><button>閉じる</button></form></dialog>
+  <noscript>このページは JavaScript を有効にして開いてください。</noscript>
+</body>
+</html>

@@ -249,3 +249,28 @@ jobs:
 
       - name: テスト
         run: pytest -q -rs
+
+      # ブラウザ版（GitHub Pages で公開する kyozai-quiz/web）
+      - name: ブラウザ版の依存をインストール
+        run: npm ci --prefix web
+
+      - name: ブラウザ版のロジックテスト（Python 版との一致も確かめる）
+        working-directory: kyozai-quiz/web
+        run: npm run test:logic
+
+      - name: Chromium を導入
+        working-directory: kyozai-quiz/web
+        run: npx playwright install --with-deps chromium
+
+      # Gemini API は偽物に差し替える。pdf.js・mermaid などは CDN から読む
+      - name: ブラウザ版の E2E テスト
+        working-directory: kyozai-quiz/web
+        run: npm run test:e2e
+
+      - name: E2E のレポートを保存
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: playwright-report-kyozai-quiz
+          path: kyozai-quiz/web/playwright-report/
+          retention-days: 7
