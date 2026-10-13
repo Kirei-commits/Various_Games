@@ -1,0 +1,10 @@
+{
+  "name": "kyozai-mermaid-validator",
+  "private": true,
+  "type": "module",
+  "description": "Mermaid の構文チェックだけを行う小さなスクリプト（kyozai-quiz から呼ばれる）",
+  "dependencies": {
+    "jsdom": "^26.1.0",
+    "mermaid": "^11.12.0"
+  }
+}
