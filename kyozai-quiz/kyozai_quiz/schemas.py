@@ -20,6 +20,7 @@ QuestionType = Literal["multiple_choice", "short_answer", "true_false"]
 
 
 class GeneratedQuestion(BaseModel):
+    page_number: int = Field(description="この問題の根拠にした教材のページ番号（出典）")
     question_type: QuestionType
     question: str
     choices: list[str] = Field(default_factory=list, description="multiple_choice のときだけ4つ。それ以外は空")

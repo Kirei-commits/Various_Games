@@ -60,7 +60,7 @@ def test_duplicate_id_and_bad_file(conn, settings, sample_pptx, registered, tmp_
 
 def test_figure_analysis_failure_and_retry(conn, settings, registered):
     mid = registered.material_id
-    client = FakeClient(fail_if=lambda prompt: "chart" in prompt)  # p.4（グラフ）だけ失敗させる
+    client = FakeClient(fail_if=lambda prompt: prompt.rstrip().endswith("\nchart"))  # p.4（グラフ）だけ失敗させる
     outcomes = analyze(conn, settings, client, select_unprocessed(conn, mid))
     assert [o.success for o in outcomes] == [True, True, False]
     assert all(call["images"] for call in client.calls)  # 図の解析にはページ画像を渡す
@@ -124,12 +124,13 @@ def test_generate_questions_normal_and_deep(conn, settings, registered):
     analyze(conn, settings, FakeClient(), select_unprocessed(conn, mid, [2, 3]))
 
     client = FakeClient(model_name="fake-q")
-    result = generate_questions(conn, settings.data_dir, client, mid, per_page=3)
+    result = generate_questions(conn, settings.data_dir, client, mid, per_page=3, pages_per_call=3)
     # p.4 は未処理なので飛ばす。p.6 は非表示だが内容があるので対象
     assert sorted(p.page_number for p in result.pages) == [1, 2, 3, 5, 6]
     assert 4 in result.skipped
+    assert len(client.calls) == 2  # 5ページを3ページずつまとめて呼ぶ
     assert all(not call["images"] for call in client.calls)  # 通常は画像を渡さない
-    prompt_p2 = next(c["prompt"] for c in client.calls if "ページ: 2" in c["prompt"])
+    prompt_p2 = next(c["prompt"] for c in client.calls if "## ページ 2" in c["prompt"])
     assert "図の説明文" in prompt_p2 and "```mermaid" in prompt_p2 and "| a | b |" in prompt_p2
     assert all(p.saved == 3 and len(p.dropped) == 1 for p in result.pages)  # 選択肢2つの問題は捨てる
 
@@ -145,7 +146,8 @@ def test_generate_questions_normal_and_deep(conn, settings, registered):
     deep_client = FakeClient(model_name="fake-q")
     deep = generate_questions(conn, settings.data_dir, deep_client, mid, deep=True, include_unprocessed=True)
     assert sorted(p.page_number for p in deep.pages) == [2, 3, 4]  # 図ページのみ
-    assert all(len(call["images"]) == 1 for call in deep_client.calls)  # 図を深く問うときだけ画像を渡す
+    assert [len(call["images"]) for call in deep_client.calls] == [3]  # 図を深く問うときだけ画像を渡す
+    assert "p.2, p.3, p.4" in deep_client.calls[0]["prompt"]
     assert all(q["used_page_image"] for q in list_questions(conn, mid, deep.batch_id))
 
 
@@ -153,7 +155,7 @@ def test_cli_end_to_end(settings, sample_pptx, monkeypatch, tmp_path):
     monkeypatch.setenv("KYOZAI_DATA_DIR", str(settings.data_dir))
     monkeypatch.setenv("GEMINI_API_KEY", "test-key")
     monkeypatch.setenv("KYOZAI_MERMAID_VALIDATOR", "basic")
-    fake = FakeClient(fail_if=lambda p: "chart" in p and "図の種類" in p)
+    fake = FakeClient(fail_if=lambda p: p.rstrip().endswith("\nchart"))
     monkeypatch.setattr(cli, "client_factory", lambda s, model: fake)
     runner = CliRunner()
 
@@ -186,3 +188,17 @@ def test_cli_end_to_end(settings, sample_pptx, monkeypatch, tmp_path):
 
     r = runner.invoke(cli.app, ["delete", "sec", "--yes"])
     assert r.exit_code == 0 and not (settings.materials_dir / "sec").exists()
+
+
+def test_questions_with_wrong_source_page_are_dropped(conn, settings, registered):
+    from kyozai_quiz.schemas import GeneratedQuestion
+
+    bad = GeneratedQuestion(
+        page_number=99, question_type="short_answer", question="?", choices=[], answer="x", explanation="", figure_based=False
+    )
+    good = bad.model_copy(update={"page_number": 1})
+    result = generate_questions(
+        conn, settings.data_dir, FakeClient(questions=[bad, good]), registered.material_id, pages=[1, 5]
+    )
+    assert result.saved == 1
+    assert [q["page_number"] for q in list_questions(conn, registered.material_id)] == [1]

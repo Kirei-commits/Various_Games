@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import io
+import re
 import shutil
 from pathlib import Path
 
@@ -106,26 +107,29 @@ class FakeClient:
                 description="「検知」から「封じ込め」へ矢印が伸びている。", mermaid=list(self.mermaid), tables=["| a | b |\n|---|---|\n| 1 | 2 |"]
             )
         if schema is QuestionSet:
-            return QuestionSet(questions=self.questions or default_questions())
+            if self.questions is not None:
+                return QuestionSet(questions=self.questions)
+            pages = [int(n) for n in re.findall(r"^## ページ (\d+)$", prompt, flags=re.M)]
+            return QuestionSet(questions=[q for n in pages for q in default_questions(n)])
         raise AssertionError(schema)
 
 
-def default_questions():
+def default_questions(page_number=1):
     return [
         GeneratedQuestion(
-            question_type="multiple_choice", question="最初に行うのは？", choices=["検知", "封じ込め", "復旧", "報告"],
+            page_number=page_number, question_type="multiple_choice", question="最初に行うのは？", choices=["検知", "封じ込め", "復旧", "報告"],
             answer="A", explanation="図の矢印の始点", figure_based=True,
         ),
         GeneratedQuestion(
-            question_type="true_false", question="封じ込めの後に検知を行う。", choices=[], answer="誤",
+            page_number=page_number, question_type="true_false", question="封じ込めの後に検知を行う。", choices=[], answer="誤",
             explanation="矢印は検知→封じ込め", figure_based=True,
         ),
         GeneratedQuestion(
-            question_type="short_answer", question="検知の次の段階は？", choices=[], answer="封じ込め",
+            page_number=page_number, question_type="short_answer", question="検知の次の段階は？", choices=[], answer="封じ込め",
             explanation="図より", figure_based=True,
         ),
         GeneratedQuestion(
-            question_type="multiple_choice", question="壊れた問題", choices=["a", "b"], answer="a",
+            page_number=page_number, question_type="multiple_choice", question="壊れた問題", choices=["a", "b"], answer="a",
             explanation="", figure_based=False,
         ),
     ]

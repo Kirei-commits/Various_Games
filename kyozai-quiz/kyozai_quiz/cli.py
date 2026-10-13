@@ -13,7 +13,7 @@ import typer
 from . import db
 from .config import Settings
 from .figures import Outcome, analyze_pages, select_for_regeneration, select_unprocessed
-from .llm import GeminiClient, LLMClient
+from .llm import DAILY_QUOTA_MESSAGE, GeminiClient, LLMClient
 from .mermaid import MermaidValidator
 from .prompts import FIGURE_PROMPT_VERSION
 from .questions import generate_questions, list_questions, parse_types, to_markdown
@@ -22,7 +22,9 @@ from .register import RegistrationError, delete_material, register_material
 app = typer.Typer(help="pptx 教材の登録と問題生成", no_args_is_help=True, add_completion=False)
 
 # テストから差し替えられるようにしておく
-client_factory = lambda settings, model: GeminiClient(settings.gemini_api_key, model, settings.vlm_retries)  # noqa: E731
+client_factory = lambda settings, model: GeminiClient(  # noqa: E731
+    settings.gemini_api_key, model, settings.vlm_retries, settings.rpm
+)
 
 
 def _settings() -> Settings:
@@ -69,6 +71,8 @@ def _report(outcome: Outcome) -> None:
         extra = f"（Mermaid {outcome.mermaid_count}件"
         extra += f"、構文エラーで {outcome.mermaid_rejected}件を破棄）" if outcome.mermaid_rejected else "）"
         typer.echo(f"  ✓ {where} 図の説明文を保存{extra}")
+    elif outcome.error and outcome.error.startswith("DailyQuotaExceeded"):
+        typer.secho(f"  ✗ {where} 未処理として記録: 1日の上限に達したため API を呼んでいません", fg=typer.colors.YELLOW)
     else:
         typer.secho(f"  ✗ {where} 未処理として記録: {outcome.error}", fg=typer.colors.YELLOW)
 
@@ -76,7 +80,9 @@ def _report(outcome: Outcome) -> None:
 def _run_analysis(settings, conn, rows, *, keep_previous_on_failure=False) -> list[Outcome]:
     client: LLMClient = client_factory(settings, settings.vlm_model)
     validator = MermaidValidator(settings.mermaid_validator, settings.mermaid_validator_dir)
-    typer.echo(f"図の解析: {len(rows)}ページ（モデル {client.model_name} / プロンプト {FIGURE_PROMPT_VERSION}）")
+    typer.echo(
+        f"図の解析: {len(rows)}ページ（API 呼び出し {len(rows)}回〜 / モデル {client.model_name} / プロンプト {FIGURE_PROMPT_VERSION}）"
+    )
     return analyze_pages(
         conn, settings.data_dir, client, validator, rows,
         keep_previous_on_failure=keep_previous_on_failure, workers=settings.workers, on_done=_report,
@@ -86,7 +92,9 @@ def _run_analysis(settings, conn, rows, *, keep_previous_on_failure=False) -> li
 def _summarize(outcomes: list[Outcome]) -> None:
     failed = [o for o in outcomes if not o.success]
     typer.echo(f"成功 {len(outcomes) - len(failed)} / 失敗 {len(failed)}")
-    if failed:
+    if any(o.error and o.error.startswith("DailyQuotaExceeded") for o in failed):
+        typer.secho(DAILY_QUOTA_MESSAGE, fg=typer.colors.YELLOW)
+    elif failed:
         typer.echo("失敗したページは `kyozai retry` で再実行できます。")
 
 
@@ -291,7 +299,8 @@ def generate(
         result = generate_questions(
             conn, settings.data_dir, client, material_id,
             pages=parse_pages(pages), per_page=per_page, types=type_list, deep=figure_deep,
-            include_unprocessed=include_unprocessed, workers=settings.workers, on_page=report,
+            include_unprocessed=include_unprocessed, pages_per_call=settings.pages_per_call,
+            workers=settings.workers, on_page=report,
         )
     except ValueError as e:
         _fail(str(e))

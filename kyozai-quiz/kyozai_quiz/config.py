@@ -23,6 +23,10 @@ class Settings:
     vlm_retries: int
     # 同時に投げるAPI呼び出しの数
     workers: int
+    # 1分あたりの API 呼び出し回数の上限（0 なら制限しない）。既定は Gemini 無料枠に収まる値
+    rpm: float
+    # 問題生成で1回の API 呼び出しにまとめるページ数（無料枠の1日の回数を節約する）
+    pages_per_call: int
     # Mermaid の構文チェック方法: auto | node | basic | off
     mermaid_validator: str
     mermaid_validator_dir: Path
@@ -48,7 +52,9 @@ class Settings:
             question_model=env("KYOZAI_QUESTION_MODEL", "gemini-3.6-flash"),
             dpi=int(env("KYOZAI_DPI", "150")),
             vlm_retries=int(env("KYOZAI_VLM_RETRIES", "3")),
-            workers=int(env("KYOZAI_WORKERS", "2")),
+            workers=int(env("KYOZAI_WORKERS", "1")),
+            rpm=float(env("KYOZAI_RPM", "4")),
+            pages_per_call=int(env("KYOZAI_PAGES_PER_CALL", "5")),
             mermaid_validator=env("KYOZAI_MERMAID_VALIDATOR", "auto"),
             mermaid_validator_dir=Path(
                 env("KYOZAI_MERMAID_VALIDATOR_DIR", str(PACKAGE_ROOT / "mermaid-validator"))

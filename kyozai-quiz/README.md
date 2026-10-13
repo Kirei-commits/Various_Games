@@ -6,16 +6,52 @@ pptx 教材を登録し、図解を含む内容に沿った問題（4択・記�
 - OCR は使いません。テキスト・発表者ノート・グラフの数値・表・SmartArt の文字は python-pptx でファイルから直接読みます。
 - ページ画像は必ず保存するので、あとからモデルやプロンプトを変えて説明文・Mermaid を作り直せます。
 
-## 準備
+## 準備（手元の PC で動かす）
+
+必要なもの: Python 3.10 以上、[LibreOffice](https://ja.libreoffice.org/)（pptx → PDF 変換）、Node.js 18 以上（Mermaid の構文チェック。なくても簡易チェックで動きます）。
 
 ```bash
-cd kyozai-quiz
+git clone https://github.com/Kirei-commits/Various_Games.git
+cd Various_Games/kyozai-quiz
+python -m venv .venv && source .venv/bin/activate   # Windows は .venv\Scripts\activate
 pip install -e '.[dev]'
-npm ci --prefix mermaid-validator   # Mermaid の構文チェック用（本物の mermaid.parse を使う）
-export GEMINI_API_KEY=...           # Google AI Studio の API キー
+npm ci --prefix mermaid-validator
+export GEMINI_API_KEY=...                           # Windows (PowerShell) は $env:GEMINI_API_KEY="..."
 ```
 
-LibreOffice（`soffice`）が必要です（pptx → PDF 変換）。
+API キーは [Google AI Studio](https://aistudio.google.com/apikey) で無料で発行できます。
+`soffice` にパスが通っていない場合は、`KYOZAI_SOFFICE` に場所を指定してください
+（Mac: `/Applications/LibreOffice.app/Contents/MacOS/soffice`、Windows: `C:\Program Files\LibreOffice\program\soffice.exe`）。
+
+## サンプル教材で試す
+
+`samples/` に、サザンオールスターズと桑田佳祐をお題にした9ページの教材（図あり5ページ）と、実際に生成した問題があります。
+
+```bash
+kyozai register samples/southern_all_stars.pptx --id sas --title "サザンオールスターズと桑田佳祐"
+kyozai show sas --page 4
+kyozai generate sas --per-page 2
+kyozai generate sas --figure-deep --per-page 1
+kyozai questions sas --out questions.md
+```
+
+API の呼び出し回数は、登録で5回（図ページの数）、問題生成で2回（5ページずつまとめる）、図を深く問う問題で1回です。
+`samples/build_southern_all_stars.js` は教材を作った pptxgenjs のスクリプトです。
+
+## Gemini API の無料枠で使う
+
+既定の設定は無料枠に収まるようにしてあります。
+
+- 呼び出しは1分あたり4回まで（`KYOZAI_RPM`）、同時に1つずつ（`KYOZAI_WORKERS`）
+- 分あたりの上限（429）に当たったら、API が指定する時間だけ待って再試行
+- 1日あたりの上限に当たったら、残りのページは API を呼ばずに「未処理」として記録。上限が戻ったら（太平洋時間の0時＝日本時間16〜17時）`kyozai retry` で続きから
+- 問題生成は5ページを1回の呼び出しにまとめる（`KYOZAI_PAGES_PER_CALL`）
+
+無料枠の上限はプロジェクトごとに決まり、Google は現在の数値を公表していません（実測では gemini-3.6-flash で1日20回程度という報告があります）。
+自分の上限は AI Studio のダッシュボードで確認できます。1日の回数を増やしたいときは、`KYOZAI_VLM_MODEL` / `KYOZAI_QUESTION_MODEL` に上限の大きい軽量モデル（`gemini-3.5-flash-lite` など）を指定する手もあります。
+
+**注意**: 無料枠では、送った内容（教材のテキストや画像）が Google のサービス改善に使われることがあります。社外秘の教材には有料枠を使ってください。
+有料枠では `KYOZAI_RPM=0`（制限なし）、`KYOZAI_WORKERS=4` などにすると速くなります。
 
 ## 使い方
 
@@ -68,7 +104,7 @@ data/
 
 ## エラー処理
 
-- VLM の呼び出しは一時的なエラー（429・5xx・応答の形式不備）を指数バックオフで再試行し、それでも失敗したページは `unprocessed`（未処理）として記録します。`kyozai retry` で再実行できます。
+- VLM の呼び出しは一時的なエラー（429・5xx・応答の形式不備）を再試行し、それでも失敗したページは `unprocessed`（未処理）として記録します。`kyozai retry` で再実行できます。
 - 再生成（`regenerate`）で失敗したページは、前の説明文を残したままにします。メタ情報が変わらないので、同じ条件でもう一度実行できます。
 - Mermaid は保存前に構文チェックし、エラーのものは捨てて説明文のみ保存します（捨てたコードとエラーは `mermaid_error` に残ります）。
 - 図が未処理のページは、問題生成で既定では対象外です（`--include-unprocessed` で含められます）。
@@ -83,7 +119,9 @@ data/
 | `KYOZAI_QUESTION_MODEL` | `gemini-3.6-flash` | 問題生成に使うモデル |
 | `KYOZAI_DPI` | `150` | ページ画像の解像度 |
 | `KYOZAI_VLM_RETRIES` | `3` | API 呼び出しの再試行回数 |
-| `KYOZAI_WORKERS` | `2` | 同時に投げる API 呼び出しの数 |
+| `KYOZAI_RPM` | `4` | 1分あたりの API 呼び出し回数の上限（`0` で制限なし） |
+| `KYOZAI_WORKERS` | `1` | 同時に投げる API 呼び出しの数 |
+| `KYOZAI_PAGES_PER_CALL` | `5` | 問題生成で1回の呼び出しにまとめるページ数 |
 | `KYOZAI_MERMAID_VALIDATOR` | `auto` | `node`（mermaid.parse）/ `basic`（簡易）/ `off` / `auto` |
 | `KYOZAI_MIN_PICTURE_AREA_RATIO` | `0.01` | これより小さい画像は図とみなさない |
 | `KYOZAI_SOFFICE` | `soffice` | LibreOffice の実行ファイル |
@@ -91,7 +129,7 @@ data/
 ## プロンプトのバージョン
 
 プロンプトは `kyozai_quiz/prompts.py` にあります。文面を変えたら `FIGURE_PROMPT_VERSION` / `QUESTION_PROMPT_VERSION` を上げてください。
-上げたあと `kyozai regenerate --prompt-version figure-v1` で、古いプロンプトで作ったページだけを作り直せます。
+上げたあと `kyozai regenerate --prompt-version figure-v1`（古い版）で、古いプロンプトで作ったページだけを作り直せます。
 
 ## テスト
 

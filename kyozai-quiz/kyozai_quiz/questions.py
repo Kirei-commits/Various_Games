@@ -14,7 +14,7 @@ from typing import Callable
 
 from . import db
 from .llm import LLMClient
-from .prompts import QUESTION_PROMPT_VERSION, question_prompt
+from .prompts import QUESTION_PROMPT_VERSION, page_section, question_prompt
 from .schemas import GeneratedQuestion, QuestionSet
 
 ALL_TYPES = ["multiple_choice", "short_answer", "true_false"]
@@ -102,9 +102,11 @@ def generate_questions(
     types: list[str] | None = None,
     deep: bool = False,
     include_unprocessed: bool = False,
+    pages_per_call: int = 5,
     workers: int = 1,
     on_page: Callable[[PageResult], None] | None = None,
 ) -> GenerationResult:
+    """pages_per_call ページずつまとめて1回の API 呼び出しで問題を作る（無料枠の回数を節約するため）。"""
     if not conn.execute("SELECT 1 FROM materials WHERE id = ?", (material_id,)).fetchone():
         raise ValueError(f"教材が見つかりません: {material_id}")
     if per_page < 1:
@@ -112,42 +114,54 @@ def generate_questions(
     types = types or list(ALL_TYPES)
     targets, skipped = select_pages(conn, material_id, pages, deep=deep, include_unprocessed=include_unprocessed)
     result = GenerationResult(batch_id=uuid.uuid4().hex[:12], skipped=skipped)
+    size = max(1, pages_per_call)
+    batches = [targets[i : i + size] for i in range(0, len(targets), size)]
 
-    def call(row):
+    def call(batch):
+        sections = [
+            page_section(
+                page_number=row["page_number"],
+                slide_text=row["extracted_text"],
+                notes=row["speaker_notes"],
+                description=row["figure_description"],
+                mermaid=db.loads(row["mermaid"]),
+                tables=db.loads(row["tables_markdown"]),
+            )
+            for row in batch
+        ]
+        numbers = [row["page_number"] for row in batch]
         prompt = question_prompt(
-            material_id=material_id,
-            page_number=row["page_number"],
-            slide_text=row["extracted_text"],
-            notes=row["speaker_notes"],
-            description=row["figure_description"],
-            mermaid=db.loads(row["mermaid"]),
-            tables=db.loads(row["tables_markdown"]),
-            count=per_page,
-            types=types,
-            deep=deep,
+            material_id=material_id, pages=sections, page_numbers=numbers, count=per_page, types=types, deep=deep
         )
-        images = [(data_dir / row["image_path"]).read_bytes()] if deep else None
+        images = [(data_dir / row["image_path"]).read_bytes() for row in batch] if deep else None
         try:
-            return row, client.generate_json(prompt, QuestionSet, images=images), None
+            return batch, client.generate_json(prompt, QuestionSet, images=images), None
         except Exception as e:
-            return row, None, f"{type(e).__name__}: {e}"
+            return batch, None, f"{type(e).__name__}: {e}"
 
     with ThreadPoolExecutor(max_workers=max(1, workers)) as pool:
-        for row, qset, error in pool.map(call, targets):
-            page_result = PageResult(row["page_number"], error=error)
+        for batch, qset, error in pool.map(call, batches):
+            by_page = {row["page_number"]: PageResult(row["page_number"], error=error) for row in batch}
             if qset is not None:
                 now = db.now_iso()
                 with conn:
                     for q in qset.questions:
+                        page_result = by_page.get(q.page_number)
+                        if page_result is None:
+                            # 出典が対象外のページを指している問題は、出典を信用できないので捨てる
+                            first = next(iter(by_page.values()))
+                            first.dropped.append(f"出典ページが不正: {q.page_number}")
+                            continue
                         normalized, reason = normalize_question(q, types)
                         if normalized is None:
                             page_result.dropped.append(reason)
                             continue
-                        _insert(conn, material_id, row["page_number"], normalized, deep, client.model_name, result.batch_id, now)
+                        _insert(conn, material_id, q.page_number, normalized, deep, client.model_name, result.batch_id, now)
                         page_result.saved += 1
-            result.pages.append(page_result)
-            if on_page:
-                on_page(page_result)
+            for page_result in by_page.values():
+                result.pages.append(page_result)
+                if on_page:
+                    on_page(page_result)
     return result
 
 
