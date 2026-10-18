@@ -261,7 +261,8 @@
     const sources = Object.keys(tree).filter((p) => p.startsWith('src/')).sort().map((p) => tree[p]);
     const items = C.UNITS.flatMap((u) => u.demos.map((d) => ({ u, d, live: !!tree[u.aiTask.file] })));
     const liveCount = C.UNITS.filter((u) => tree[u.aiTask.file]).length;
-    const stage = liveCount >= 10 ? '振り込める銀行（L2 完成）' : liveCount >= 5 ? '照会できる銀行（L1 完成）' : liveCount ? '育ち始めた銀行' : 'まだ看板だけの銀行';
+    const levelDone = (lv) => C.UNITS.filter((u) => u.level === lv).every((u) => tree[u.aiTask.file]);
+    const stage = levelDone(1) && levelDone(2) ? '振り込める銀行（L2 完成）' : levelDone(1) ? '照会できる銀行（L1 完成）' : liveCount ? '育ち始めた銀行' : 'まだ看板だけの銀行';
     const list = h('ul', { class: 'bank-features' });
     items.forEach((it, k) => { it.key = String(k); });
     for (const it of items) {

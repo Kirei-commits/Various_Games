@@ -7,9 +7,10 @@ const { UNITS, STAGES, AREAS } = RGA.content;
 const { runSuite, runJob } = RGA.runner;
 const R = RGA.rules;
 
-test('MVP の単元がそろっている（L1 5本・L2 5本）', () => {
-  assert.equal(UNITS.filter((u) => u.level === 1).length, 5);
-  assert.equal(UNITS.filter((u) => u.level === 2).length, 5);
+test('単元がそろっている（L1 10本・L2 10本）、レベル → ID の順に並ぶ', () => {
+  assert.equal(UNITS.filter((u) => u.level === 1).length, 10);
+  assert.equal(UNITS.filter((u) => u.level === 2).length, 10);
+  assert.deepEqual(UNITS.map((u) => u.id), UNITS.map((u) => u.id).slice().sort());
   assert.equal(new Set(UNITS.map((u) => u.id)).size, UNITS.length);
 });
 

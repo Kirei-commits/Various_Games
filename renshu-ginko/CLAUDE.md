@@ -7,7 +7,8 @@ AI前提の開発を段階的に練習するアプリ。仕様の出典は「ア
 
 ```
 js/core.js     SHA-256・文字列の正規化・決定的な並べ替え（純粋）
-js/content.js  スキルマップ・10単元の中身（データだけ）。コードは String.raw で書く（\d などを守る）
+js/content.js  スキルマップ・L1-01〜05 / L2-01〜05 の中身（データだけ）。コードは String.raw で書く（\d などを守る）
+js/units-more.js 追加の単元（L1-06〜10 / L2-06〜10）。content.addUnits で足す（レベル → ID の順に並べ直る）
 js/runner.js   テストの DSL（test/expect）と実行。毎回使い捨ての Web Worker、5秒で打ち切り
 js/rules.js    採点・足場・説明ゲート・マスキング検査・漏えい検査・静的解析・CI（純粋）
 js/gitsim.js   ブラウザ上の簡易 Git（純粋。操作は新しい repo か { error } を返す）

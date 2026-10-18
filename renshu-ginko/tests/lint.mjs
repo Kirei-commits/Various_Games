@@ -15,8 +15,8 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const read = (p) => fs.readFileSync(path.join(ROOT, p), 'utf8');
 const problems = [];
 
-const ORDER = ['core', 'content', 'runner', 'rules', 'gitsim', 'tutor', 'store', 'app'];
-const PURE = ['core', 'content', 'rules', 'gitsim', 'tutor', 'store'];
+const ORDER = ['core', 'content', 'units-more', 'runner', 'rules', 'gitsim', 'tutor', 'store', 'app'];
+const PURE = ['core', 'content', 'units-more', 'rules', 'gitsim', 'tutor', 'store'];
 
 // 1. 構文
 for (const f of fs.readdirSync(path.join(ROOT, 'js'))) {

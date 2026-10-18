@@ -1722,15 +1722,20 @@ test('日付もエスケープ', () => { expect(renderStatementHtml([{ date: '<b
     },
   ];
 
-  // 単元ごとに、正解コード（漏えい検査用）と練習問題の段階を補う
-  for (const u of UNITS) {
-    for (const ex of u.exercises) {
-      ex.unitId = u.id;
-      if (!ex.mode) ex.mode = 'code';
-      if (ex.stage === 'parsons') ex.solution = ex.lines.join('\n');
-      if (ex.stage === 'blank') ex.solution = fillBlanks(ex.template, ex.answers);
+  // 単元ごとに、正解コード（漏えい検査用）と練習問題の段階を補う。単元はレベル → ID の順に並べる
+  function addUnits(list) {
+    for (const u of list) {
+      for (const ex of u.exercises) {
+        ex.unitId = u.id;
+        if (!ex.mode) ex.mode = 'code';
+        if (ex.stage === 'parsons') ex.solution = ex.lines.join('\n');
+        if (ex.stage === 'blank') ex.solution = fillBlanks(ex.template, ex.answers);
+      }
+      if (!UNITS.includes(u)) UNITS.push(u);
     }
+    UNITS.sort((a, b) => a.level - b.level || (a.id < b.id ? -1 : 1));
   }
+  addUnits(UNITS.slice());
 
   function fillBlanks(template, values) {
     return template.replace(/\[\[(\d+)\]\]/g, (_, n) => (values[Number(n) - 1] ?? ''));
@@ -1803,5 +1808,5 @@ const BANK_NAME = '練習銀行';
   ];
   const SURVEY_SCALE = ['まだ', '少し', 'だいたい', '自信あり'];
 
-  RGA.content = { AREAS, LEVELS, BANK_STAGES, UNITS, STAGES, STEPS, REPO_TEMPLATE, SURVEY, SURVEY_SCALE, fillBlanks };
+  RGA.content = { AREAS, LEVELS, BANK_STAGES, UNITS, STAGES, STEPS, REPO_TEMPLATE, SURVEY, SURVEY_SCALE, fillBlanks, addUnits, p };
 })(globalThis);
