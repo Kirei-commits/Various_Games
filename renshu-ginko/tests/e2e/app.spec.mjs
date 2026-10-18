@@ -119,6 +119,7 @@ test('一貫プロジェクト: L1-01 を基本ループどおりに通しで修
   await page.fill('#gate-risk', GOOD_GATE['L1-01'].risk);
   await page.click('#gate-submit');
   await expect(page.locator('#gate-result')).toContainText('合格');
+  await expect(page.locator('#celebrate .cele-card')).toContainText('AI が解禁されました');
   await page.click('#to-aion');
   await expect(page.locator('#ai-badge')).toHaveAttribute('data-ai', 'on');
   // 4. 実践（AIオン）: 仕様が足りないと AI は欠陥のある実装を返す
@@ -350,4 +351,18 @@ test('FR-130 ダッシュボード: 単元をまたいで AIオフ／オンの�
   await expect(page.locator('.viz-tip')).toContainText('L1-01 AIオン: 6 分');
   await page.click('summary:has-text("表で見る")');
   await expect(page.locator('#dash-table')).toContainText('2回目で合格');
+});
+
+test('体験: はじめての画面のガイドは一度閉じたら出ない／効果音は設定で切れる', async ({ page }) => {
+  await onboard(page);
+  await expect(page.locator('#guide-unit')).toBeVisible();
+  await page.click('#guide-unit-ok');
+  await expect(page.locator('#guide-unit')).toHaveCount(0);
+  await page.reload();
+  await expect(page.locator('#step-understand')).toBeVisible();
+  await expect(page.locator('#guide-unit')).toHaveCount(0);
+  await page.click('#nav-settings');
+  await page.uncheck('#set-sound');
+  await page.click('#set-save');
+  expect(await page.evaluate(() => window.__RGA_APP.state.settings.sound)).toBe(false);
 });
