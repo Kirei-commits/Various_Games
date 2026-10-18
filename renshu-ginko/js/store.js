@@ -30,7 +30,7 @@
       journal: [],
       aiLog: [],
       repo: null,
-      settings: { model: 'claude-opus-5-5', monthlyBudgetUsd: 3, tutorStopped: false, rememberKey: false, sound: true },
+      settings: { model: 'claude-opus-5-5', monthlyBudgetUsd: 3, tutorStopped: false, rememberKey: false, sound: true, lang: 'js' },
       spend: { month: '', usd: 0 },
       seen: {},
     };

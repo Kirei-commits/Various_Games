@@ -15,7 +15,7 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const read = (p) => fs.readFileSync(path.join(ROOT, p), 'utf8');
 const problems = [];
 
-const ORDER = ['core', 'content', 'units-more', 'units-l3', 'runner', 'rules', 'gitsim', 'tutor', 'store', 'app'];
+const ORDER = ['core', 'content', 'units-more', 'units-l3', 'runner', 'rules', 'gitsim', 'tutor', 'store', 'ts', 'app'];
 const PURE = ['core', 'content', 'units-more', 'units-l3', 'rules', 'gitsim', 'tutor', 'store'];
 
 // 1. 構文
@@ -36,7 +36,7 @@ for (const m of html.matchAll(/<(?:script|link|img)\b[^>]*\b(?:src|href)="([^"]+
   if (!m[1].startsWith('data:') && /^[a-z]+:|^\/\//i.test(m[1])) problems.push(`外部ファイルを参照している: ${m[1]}`);
 }
 const csp = (html.match(/http-equiv="Content-Security-Policy" content="([^"]+)"/) || [])[1] || '';
-if (!/connect-src https:\/\/api\.anthropic\.com;/.test(csp)) problems.push('CSP の connect-src が Claude API だけになっていない');
+if (!/connect-src https:\/\/api\.anthropic\.com https:\/\/cdn\.jsdelivr\.net;/.test(csp)) problems.push('CSP の connect-src が Claude API と jsDelivr（TypeScript）だけになっていない');
 if (!/worker-src blob:/.test(csp)) problems.push('CSP に worker-src blob: が無い（サンドボックスが動かない）');
 
 // 4. 純粋さ

@@ -1,7 +1,7 @@
 # CLAUDE.md — 練習銀行アカデミー（renshu-ginko）
 
 AI前提の開発を段階的に練習するアプリ。仕様の出典は「アプリ開発練習アプリ 仕様プロンプト v0.1」、判断の記録は `SPEC-NOTES.md`。
-**ビルド工程なし・実行時の依存ゼロ**。`index.html` と `css/`・`js/` をそのまま配る（file:// でも動く）。
+**ビルド工程なし・実行時の依存ゼロ**（設定で TypeScript を選んだときだけ、js/ts.js がコンパイラを jsDelivr から読み込む）。`index.html` と `css/`・`js/` をそのまま配る（file:// でも動く）。
 
 ## 構成
 
@@ -15,6 +15,7 @@ js/rules.js    採点・足場・説明ゲート・マスキング検査・漏�
 js/gitsim.js   ブラウザ上の簡易 Git（純粋。操作は新しい repo か { error } を返す）
 js/tutor.js    ルールベースのチューター、Claude API（fetchImpl を引数でもらう）、AI実装役
 js/store.js    状態の形・保存・監査ログのハッシュの鎖（純粋）
+js/ts.js       TypeScript 対応。compile(ts, libs, code) は ts と型定義を引数でもらう（Node のテストは npm の typescript を渡す）
 js/app.js      画面（S-01〜S-08）。ブラウザ専用
 tests/lint.mjs         構文・読み込み順・外部参照・CSP・純粋さ・id の実在
 tests/logic/*.test.mjs コンテンツの検査（お手本は合格・バグ入りは不合格）、評価セット（9章の受け入れ基準）
@@ -37,3 +38,5 @@ tests/e2e/*.spec.mjs   Playwright（desktop + mobile）
 - レビュー課題の欠陥の行番号（aiTask.defects[].line）は aiTask.buggy の行に合わせる。buggy を書き換えたら行番号も直す（content.test が空行を指していないか確かめる）。
 - 赤チーム演習の FAQ ボット（rules.faqBotReply）は LLM ではなく、動きを再現した関数。「秘密の質問を忘れました」のようなふつうの質問で漏れないこと（テストあり）。
 - ダッシュボードの2系列の色（--series-off / --series-on）は dataviz の validate_palette で light・dark とも確認した値。変えるときは測り直す。
+- TypeScript の版は js/ts.js の VERSION と package.json の devDependencies をそろえる（ts.test が確かめる）。E2E は CDN への要求を node_modules のファイルで答える。
+- TypeScript で型チェックするのは「ゼロから」（strict）と実践のコード（strict を外す。AI の書いた JavaScript も通すため）。パーソンズ・穴埋め・修正は渡されたコードが JavaScript なので型チェックしない。

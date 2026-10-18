@@ -129,6 +129,22 @@
     return ta;
   }
 
+  // ---- TypeScript（設定で選んだときだけ）: 型チェックして JavaScript にしてから動かす ----
+  const tsMode = () => state.settings.lang === 'ts';
+  let tsLoaded = false;
+  async function toRunnable(code, opts) {
+    if (!tsMode()) return { js: code };
+    try {
+      if (!tsLoaded) toast('TypeScript のコンパイラを読み込んでいます（初回だけ少し時間がかかります）…');
+      const r = await window.RGA.ts.check(code, opts);
+      tsLoaded = true;
+      return r.ok ? { js: r.js } : { typeErrors: r.diagnostics };
+    } catch (e) {
+      return { error: 'TypeScript を読み込めませんでした（' + e.message + '）。ネットワークを確かめるか、設定で JavaScript に戻してください' };
+    }
+  }
+  const typeErrorRows = (list) => list.map((d) => ({ name: '型エラー（' + d.line + '行目）', pass: false, error: d.message }));
+
   // ---------------------------------------------------------------- ルーター
   function route() {
     const parts = (location.hash || '#/home').replace(/^#\/?/, '').split('/');
@@ -522,6 +538,7 @@
       h('div', { class: 'row between' }, h('h2', null, C.STAGES.find((s) => s.id === ex.stage).name + ' ／ ' + ex.id), itemNav),
       h('p', { class: 'prompt' }, ex.prompt),
       ex.mode === 'tests' ? h('p', { class: 'note small' }, 'テストを書く課題です。テスト対象: latest(txs, n) — 日付の新しい順に n 件返す（元の配列は変えない）。正しい実装と、わざと壊した実装（変異体）の両方で実行します。') : null,
+      ex.stage === 'scratch' && ex.mode === 'code' && tsMode() ? h('p', { class: 'note small', id: 'ts-note' }, 'TypeScript モード: 引数と戻り値に型を付けます（例: function formatYen(n: number): string）。strict で型チェックし、型エラーがあるとテストは実行しません。') : null,
       exerciseWidget(ex, st),
       h('div', { class: 'row' },
         h('button', { id: 'ex-submit', class: 'btn primary', onclick: () => submitExercise(unit, enr, ex) }, 'テストを実行'),
@@ -609,9 +626,14 @@
     st.running = true;
     render();
     const t0 = performance.now();
-    const result = await runner.runInSandbox(R.exerciseJob(unit, ex, answer));
+    // TypeScript を選んでいたら、「ゼロから」のコードは strict で型チェックしてから動かす
+    const typed = ex.stage === 'scratch' && ex.mode === 'code' && tsMode();
+    const prep = typed ? await toRunnable(answer) : { js: answer };
+    let grade;
+    if (prep.typeErrors) grade = { pass: false, error: '型エラーがあるので、テストは実行していません', rows: typeErrorRows(prep.typeErrors) };
+    else if (prep.error) grade = { pass: false, error: prep.error, rows: [] };
+    else grade = R.gradeExercise(unit, ex, await runner.runInSandbox(R.exerciseJob(unit, ex, prep.js)), answer);
     const ms = performance.now() - t0;
-    const grade = R.gradeExercise(unit, ex, result, answer);
     update((s) => {
       enr.currentEx = ex.id; // 合格しても、結果を見せるためにこの問題に留まる（次の問題へはボタンで進む）
       st.running = false;
@@ -1011,9 +1033,22 @@
     update(() => { a.running = true; });
     render();
     const t0 = performance.now();
+    // TypeScript を選んでいたら、型チェックしてから動かす（AI の書いた JavaScript も通るよう strict は外す）
+    const prep = await toRunnable(a.code, { noImplicitAny: false });
+    if (prep.typeErrors || prep.error) {
+      update(() => {
+        a.running = false;
+        a.rows = prep.typeErrors ? typeErrorRows(prep.typeErrors) : [];
+        a.error = prep.error || '型エラーがあるので、テストは実行していません';
+        a.pass = false;
+        enr.metrics = S.addMetric(enr, 'on', 'failures', 1).metrics;
+      });
+      render();
+      return;
+    }
     const job = withLearner
-      ? { kind: 'many', suites: [{ sources: [a.code], tests: a.sf.tests }, { sources: [a.code], tests: t.tests }] }
-      : { sources: [a.code], tests: t.tests };
+      ? { kind: 'many', suites: [{ sources: [prep.js], tests: a.sf.tests }, { sources: [prep.js], tests: t.tests }] }
+      : { sources: [prep.js], tests: t.tests };
     const out = await runner.runInSandbox(job);
     const parts = withLearner ? out : [out];
     const rows = parts.flatMap((r) => r.results || []);
@@ -1032,7 +1067,7 @@
     render();
   }
 
-  function adopt(unit, enr) {
+  async function adopt(unit, enr) {
     const a = enr.aion;
     const t = unit.aiTask;
     const chk = R.checkAdoptExplanation(t.review, a.review);
@@ -1054,7 +1089,14 @@
         repo = G.createBranch(repo, branch).repo;
       }
     }
-    repo = G.writeFile(repo, t.file, a.code.endsWith('\n') ? a.code : a.code + '\n');
+    // リポジトリと CI は JavaScript のまま。TypeScript なら型を取り除いた JavaScript を入れる
+    let fileCode = a.code;
+    if (tsMode()) {
+      const prep = await toRunnable(a.code, { noImplicitAny: false });
+      if (!prep.js) { update(() => { a.adoptMsg = { ok: false, text: prep.error || '型エラーがあるので取り込めません。「テストで検証」で確かめてください' }; }); render(); return; }
+      fileCode = prep.js;
+    }
+    repo = G.writeFile(repo, t.file, fileCode.endsWith('\n') ? fileCode : fileCode + '\n');
     repo = G.writeFile(repo, t.testFile, t.mode === 'spec-first' && a.sf ? a.sf.tests.trim() + '\n\n' + t.tests : t.tests);
     update((s) => {
       s.repo = repo;
@@ -1418,12 +1460,16 @@
   // ---------------------------------------------------------------- 設定
   function viewSettings() {
     const s = state.settings;
-    const draft = { name: state.user.name, apiKey: s.apiKey || '', remember: !!s.rememberKey, model: s.model || T.MODEL_DEFAULT, budget: s.monthlyBudgetUsd, stop: !!s.tutorStopped, sound: s.sound !== false };
+    const draft = { name: state.user.name, apiKey: s.apiKey || '', remember: !!s.rememberKey, model: s.model || T.MODEL_DEFAULT, budget: s.monthlyBudgetUsd, stop: !!s.tutorStopped, sound: s.sound !== false, lang: s.lang === 'ts' ? 'ts' : 'js' };
     return h('div', { class: 'page narrow' }, h('h1', null, '設定'),
       h('section', { class: 'card' }, h('h2', null, 'プロフィール'),
         h('label', { class: 'field' }, h('span', null, '表示名'), h('input', { id: 'set-name', type: 'text', maxlength: '20', value: draft.name, oninput: (e) => { draft.name = e.target.value; } })),
         h('label', { class: 'check' }, h('input', { id: 'set-sound', type: 'checkbox', checked: draft.sound, onchange: (e) => { draft.sound = e.target.checked; } }), '効果音を鳴らす（合格・AI の解禁・マージ・修了のとき。失敗では鳴りません）'),
         h('button', { class: 'btn tiny ghost', onclick: () => { update((st) => { st.seen = {}; }); toast('使い方のガイドを、もう一度表示します'); } }, '使い方のガイドをもう一度見る')),
+      h('section', { class: 'card' }, h('h2', null, '課題の言語'),
+        h('label', { class: 'field' }, h('span', null, '自分で書くコードの言語'), h('select', { id: 'set-lang', onchange: (e) => { draft.lang = e.target.value; } },
+          [['js', 'JavaScript（既定）'], ['ts', 'TypeScript（型チェックあり）']].map(([v, l]) => h('option', { value: v, selected: draft.lang === v }, l)))),
+        h('p', { class: 'muted small' }, 'TypeScript を選ぶと、「ゼロから」の段階と実践のコードを型チェックしてから動かします（「ゼロから」は strict）。コンパイラ（TypeScript ' + window.RGA.ts.VERSION + '）は初めて使うときに jsDelivr から読み込みます。リポジトリと CI には、型を取り除いた JavaScript が入ります。')),
       h('section', { class: 'card' }, h('h2', null, 'AIチューター（任意）'),
         h('p', { class: 'muted small' }, 'Claude の API キーを入れると、チューター・AI実装・説明の観点採点が本物の LLM になります。入れなければ、練習用のルールベースで動きます（無料・オフライン）。キーはこのブラウザから Anthropic の API にだけ送られます。'),
         h('p', { class: 'note small' }, '組織で使う場合は、API の利用規約とデータの取り扱い（学習に使われない設定か）を事前に確認してください（NFR-07）。業務のキーではなく、練習用に発行したキーを使いましょう。'),
@@ -1437,7 +1483,7 @@
       h('div', { class: 'row' }, h('button', { id: 'set-save', class: 'btn primary', onclick: () => {
         update((st) => {
           st.user.name = draft.name.trim() || '学習者';
-          st.settings = { ...st.settings, apiKey: draft.apiKey, rememberKey: draft.remember, model: draft.model, monthlyBudgetUsd: draft.budget, tutorStopped: draft.stop, sound: draft.sound };
+          st.settings = { ...st.settings, apiKey: draft.apiKey, rememberKey: draft.remember, model: draft.model, monthlyBudgetUsd: draft.budget, tutorStopped: draft.stop, sound: draft.sound, lang: draft.lang };
         });
         toast('保存しました', 'ok');
         render();

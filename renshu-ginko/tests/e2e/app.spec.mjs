@@ -1,4 +1,10 @@
 import { test, expect } from '@playwright/test';
+import fs from 'node:fs';
+import path from 'node:path';
+import { createRequire } from 'node:module';
+
+const require = createRequire(import.meta.url);
+const TS_LIB = path.dirname(require.resolve('typescript/lib/typescript.js'));
 import { onboard, passUnderstand, passPractice, solveCurrent, GOOD_GATE, jumpToAion } from './helpers.mjs';
 
 test.beforeEach(async ({ page }) => {
@@ -365,4 +371,30 @@ test('体験: はじめての画面のガイドは一度閉じたら出ない／
   await page.uncheck('#set-sound');
   await page.click('#set-save');
   expect(await page.evaluate(() => window.__RGA_APP.state.settings.sound)).toBe(false);
+});
+
+test('TypeScript: 「ゼロから」は strict で型チェックし、型エラーならテストを動かさない', async ({ page }) => {
+  // CDN（jsDelivr）への要求は、npm の typescript の同じ版のファイルで答える（ネットワークに頼らない）
+  let served = 0;
+  await page.route('https://cdn.jsdelivr.net/npm/typescript@*/lib/*', (route) => {
+    served += 1;
+    const file = path.join(TS_LIB, path.basename(new URL(route.request().url()).pathname));
+    route.fulfill({ status: 200, contentType: file.endsWith('.js') ? 'text/javascript' : 'text/plain', body: fs.readFileSync(file) });
+  });
+  await onboard(page);
+  await page.click('#nav-settings');
+  await page.selectOption('#set-lang', 'ts');
+  await page.click('#set-save');
+  await page.goto('/#/unit/L1-01');
+  await passUnderstand(page, 'L1-01');
+  await page.click('#stage-scratch');
+  await expect(page.locator('#ts-note')).toBeVisible();
+  await page.fill('#ex-editor', "function formatYen(n) {\n  const sign = n < 0 ? '-' : '';\n  return sign + '¥' + Math.abs(Math.round(n)).toLocaleString('ja-JP');\n}");
+  await page.click('#ex-submit');
+  await expect(page.locator('#ex-results')).toContainText('型エラー（1行目）', { timeout: 30_000 });
+  await expect(page.locator('#ex-results')).toContainText('テストは実行していません');
+  await page.fill('#ex-editor', "function formatYen(n: number): string {\n  const sign = n < 0 ? '-' : '';\n  return sign + '¥' + Math.abs(Math.round(n)).toLocaleString('ja-JP');\n}");
+  await page.click('#ex-submit');
+  await expect(page.locator('#ex-results')).toContainText('合格', { timeout: 30_000 });
+  expect(served).toBeGreaterThan(5);
 });
