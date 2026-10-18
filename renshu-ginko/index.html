@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<!-- ネットワークに出られるのは Claude API と、TypeScript を選んだときのコンパイラの読み込み（jsDelivr）だけ。学習者のコードを動かすワーカー（blob:）もこの制限を受け継ぐ（NFR-01） -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-eval' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src https://api.anthropic.com https://cdn.jsdelivr.net; worker-src blob:; base-uri 'none'; form-action 'none'; object-src 'none'" />
+<meta name="description" content="練習銀行アカデミー — 架空の銀行アプリを育てながら、AI前提の開発プロセス（仕様→AI実装→検証→運用）を基礎から段階的に練習する。" />
+<title>練習銀行アカデミー</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%231d3a5f'/%3E%3Cpath d='M6 13 16 6l10 7z' fill='%23f2c94c'/%3E%3Crect x='8' y='14' width='3' height='9' fill='%23fff'/%3E%3Crect x='14.5' y='14' width='3' height='9' fill='%23fff'/%3E%3Crect x='21' y='14' width='3' height='9' fill='%23fff'/%3E%3Crect x='6' y='24' width='20' height='3' fill='%23f2c94c'/%3E%3C/svg%3E" />
+<link rel="stylesheet" href="css/app.css" />
+</head>
+<body>
+  <a class="skip" href="#main">本文へ移動</a>
+  <header class="topbar">
+    <a class="brand" href="#/home" id="brand">
+      <span class="brand-mark" aria-hidden="true">🏦</span>
+      <span>練習銀行アカデミー<small>（仮称）</small></span>
+    </a>
+    <nav id="nav" aria-label="メインメニュー" hidden>
+      <a href="#/home" id="nav-home">ホーム</a>
+      <a href="#/map" id="nav-map">スキルマップ</a>
+      <a href="#/repo" id="nav-repo">リポジトリ</a>
+      <a href="#/dashboard" id="nav-dashboard">ダッシュボード</a>
+      <a href="#/log" id="nav-log">AI利用ログ</a>
+      <a href="#/settings" id="nav-settings">設定</a>
+    </nav>
+  </header>
+  <main id="main" tabindex="-1"></main>
+  <div id="toast" role="status" aria-live="polite"></div>
+  <div id="celebrate" aria-hidden="true"></div>
+
+  <script src="js/core.js"></script>
+  <script src="js/content.js"></script>
+  <script src="js/units-more.js"></script>
+  <script src="js/units-l3.js"></script>
+  <script src="js/runner.js"></script>
+  <script src="js/rules.js"></script>
+  <script src="js/gitsim.js"></script>
+  <script src="js/tutor.js"></script>
+  <script src="js/store.js"></script>
+  <script src="js/ts.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
