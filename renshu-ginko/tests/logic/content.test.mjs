@@ -10,6 +10,7 @@ const R = RGA.rules;
 test('単元がそろっている（L1 10本・L2 10本）、レベル → ID の順に並ぶ', () => {
   assert.equal(UNITS.filter((u) => u.level === 1).length, 10);
   assert.equal(UNITS.filter((u) => u.level === 2).length, 10);
+  assert.equal(UNITS.filter((u) => u.level === 3).length, 5);
   assert.deepEqual(UNITS.map((u) => u.id), UNITS.map((u) => u.id).slice().sort());
   assert.equal(new Set(UNITS.map((u) => u.id)).size, UNITS.length);
 });
@@ -68,7 +69,16 @@ for (const u of UNITS) {
     assert.ok(good.ok, u.id + ' 良い版が落ちる: ' + JSON.stringify(good));
     const bad = runSuite({ sources: [t.buggy], tests: t.tests });
     assert.ok(!bad.ok, u.id + ' 仕様不足の版が通ってしまう');
-    assert.ok(t.specGroups.length >= 1 && t.file.startsWith('src/') && t.testFile.startsWith('tests/'));
+    assert.ok((t.mode === 'review' || t.specGroups.length >= 1) && t.file.startsWith('src/') && t.testFile.startsWith('tests/'));
+    if (t.mode === 'spec-first') {
+      assert.equal(t.plans.filter((x) => x.good).length, 1, u.id + ' 正しい設計は1つ');
+      assert.ok(t.testTemplate.includes('[R1]') && t.minReqs >= 1);
+    }
+    if (t.mode === 'review') {
+      const lines = t.buggy.split('\n');
+      for (const d of t.defects) assert.ok(lines[d.line - 1] && lines[d.line - 1].trim(), u.id + ' 欠陥の行 ' + d.line + ' が空');
+      assert.ok(t.defects.every((d) => t.reviewKinds.includes(d.kind)));
+    }
     assert.deepEqual(R.lintFile(t.file, t.good).filter((l) => l.level === 'error'), [], u.id + ' 良い版が静的解析で落ちる');
   });
 }

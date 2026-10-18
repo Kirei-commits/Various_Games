@@ -61,3 +61,20 @@ export async function passPractice(page) {
 export const GOOD_GATE = {
   'L1-01': { what: '金額を¥とカンマの3桁区切りの文字列にして、マイナスなら符号を先頭に付ける', risk: '小数は四捨五入で丸めるので端数が消える。数値以外の文字列が来ると壊れる' },
 };
+
+// 理解〜説明ゲートを済ませた状態にして、実践ステップを開く（第2段階の E2E を短くするため）
+export async function jumpToAion(page, unitId) {
+  await onboard(page);
+  await page.goto('/#/unit/' + unitId);
+  await page.locator('#step-understand').waitFor();
+  await page.evaluate((id) => {
+    const app = window.__RGA_APP;
+    const e = app.state.enrollments[id];
+    e.estimate = { off: 30, on: 20 };
+    e.done = { understand: true, practice: true, gate: true };
+    e.gate.passed = true;
+    e.step = 'aion';
+  }, unitId);
+  await page.goto('/#/unit/' + unitId + '/aion');
+  await page.locator('#ai-badge[data-ai="on"]').waitFor();
+}

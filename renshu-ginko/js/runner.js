@@ -43,6 +43,10 @@
         toBeTruthy() { if (!actual) throw fail('真になる値', fmt(actual)); },
         toBeFalsy() { if (actual) throw fail('偽になる値', fmt(actual)); },
         toBeNull() { if (actual !== null) throw fail('null', fmt(actual)); },
+        toBeCloseTo(exp, digits) {
+          const d = digits === undefined ? 2 : digits;
+          if (!(Math.abs(actual - exp) < Math.pow(10, -d) / 2)) throw fail(fmt(exp) + '（小数点以下' + d + '桁まで）', fmt(actual));
+        },
         toContain(x) {
           const ok = actual !== null && actual !== undefined && typeof actual.includes === 'function' && actual.includes(x);
           if (!ok) throw fail(fmt(x) + ' を含む', fmt(actual));

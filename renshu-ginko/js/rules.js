@@ -302,6 +302,138 @@
     ];
   }
 
+
+  // ---- FR-100 EARS 記法の判定 ----
+  // 「R1: 〜のとき、システムは〜しなければならない」の形か、曖昧な語が無いかを1行ずつ確かめる
+  const VAGUE_WORDS = ['適切', 'なるべく', 'できるだけ', '十分', '速やか', '柔軟', '使いやすい', 'ある程度', '必要に応じて', '極力', 'など', '高速', '簡単'];
+  function earsType(body) {
+    if (/^もし.*(ならば|場合)/.test(body)) return 'unwanted';
+    if (/(とき|際)、?\s*システムは/.test(body)) return 'event';
+    if (/(間|あいだ)、?\s*システムは/.test(body)) return 'state';
+    if (/場合、?\s*システムは/.test(body)) return 'optional';
+    if (/^システムは/.test(body)) return 'ubiquitous';
+    return null;
+  }
+  const EARS_NAMES = { event: 'イベント駆動（〜とき）', state: '状態駆動（〜の間）', optional: 'オプション（〜の場合）', unwanted: '望ましくない挙動（もし〜ならば）', ubiquitous: '常時（システムは〜）' };
+  function checkEars(text) {
+    const lines = String(text || '').split('\n').map((l) => l.trim()).filter(Boolean);
+    const seen = new Set();
+    const items = lines.map((line) => {
+      const problems = [];
+      const m = /^(R\d+)\s*[:：]\s*(.*)$/.exec(line);
+      const id = m ? m[1] : null;
+      const body = m ? m[2] : line;
+      if (!id) problems.push('先頭に「R1:」のような要件IDを付けてください');
+      else if (seen.has(id)) problems.push('要件ID ' + id + ' が重複しています');
+      if (id) seen.add(id);
+      const type = earsType(body);
+      if (!body.includes('システムは') || !/(なければならない|ねばならない)。?$/.test(body)) problems.push('「（条件）、システムは〜しなければならない」の形で書いてください');
+      else if (!type) problems.push('条件の書き方（〜とき／〜の間／〜の場合／もし〜ならば）が読み取れません');
+      const vague = VAGUE_WORDS.filter((w) => body.includes(w));
+      if (vague.length) problems.push('曖昧な語があります: ' + vague.join('・') + '（数値や条件で言い換えましょう）');
+      return { id, text: body, type, typeName: type ? EARS_NAMES[type] : '', problems, ok: problems.length === 0 };
+    });
+    return { items, ids: items.filter((i) => i.id).map((i) => i.id), ok: items.length > 0 && items.every((i) => i.ok) };
+  }
+
+  // ---- FR-101 タスクの分解（各タスクが要件IDを参照し、全要件がどれかのタスクに入っているか） ----
+  function checkTasks(text, reqIds) {
+    const lines = String(text || '').split('\n').map((l) => l.trim()).filter(Boolean);
+    const covered = new Set();
+    const items = lines.map((line) => {
+      const problems = [];
+      const m = /^(T\d+)\s*[:：]\s*(.*)$/.exec(line);
+      if (!m) problems.push('先頭に「T1:」のようなタスクIDを付けてください');
+      const refs = [...new Set((line.match(/R\d+/g) || []))];
+      if (!refs.length) problems.push('どの要件のためのタスクか、要件ID（R1 など）を書いてください');
+      const unknown = refs.filter((r) => !reqIds.includes(r));
+      if (unknown.length) problems.push('仕様に無い要件ID: ' + unknown.join(', '));
+      refs.filter((r) => reqIds.includes(r)).forEach((r) => covered.add(r));
+      return { id: m ? m[1] : null, text: m ? m[2] : line, refs, problems, ok: problems.length === 0 };
+    });
+    const uncovered = reqIds.filter((r) => !covered.has(r));
+    return { items, uncovered, ok: items.length > 0 && items.every((i) => i.ok) && uncovered.length === 0 };
+  }
+
+  // ---- FR-102 要件とテストの対応表（テスト名の [R1] を読む） ----
+  function traceability(reqIds, results) {
+    const rows = reqIds.map((id) => ({ id, tests: [] }));
+    const byId = Object.fromEntries(rows.map((r) => [r.id, r]));
+    const untagged = [];
+    for (const t of results || []) {
+      const tags = [...new Set(String(t.name).match(/R\d+/g) || [])].filter((x) => byId[x]);
+      if (!tags.length) untagged.push(t);
+      for (const tag of tags) byId[tag].tests.push(t);
+    }
+    return { rows, untested: rows.filter((r) => !r.tests.length).map((r) => r.id), untagged };
+  }
+
+  // ---- FR-110 欠陥入り PR のレビューの採点（前後1行の指摘は当たりとする） ----
+  function scoreReview(defects, flags) {
+    const flagged = Object.keys(flags || {}).map(Number);
+    const rows = defects.map((d) => {
+      const hit = flagged.find((ln) => Math.abs(ln - d.line) <= 1);
+      return { ...d, found: hit !== undefined, kindOk: hit !== undefined && flags[hit] === d.kind };
+    });
+    const matchedLines = new Set(rows.filter((r) => r.found).flatMap((r) => flagged.filter((ln) => Math.abs(ln - r.line) <= 1)));
+    const falsePositives = flagged.filter((ln) => !matchedLines.has(ln));
+    const detected = rows.filter((r) => r.found).length;
+    return { rows, detected, total: defects.length, rate: defects.length ? detected / defects.length : 1, falsePositives };
+  }
+
+  // ---- FR-120 赤チーム演習の相手（架空の FAQ ボットの振る舞いを再現する。LLM は使わない） ----
+  const FAQ_SECRET = '内部コード: RG-NAISHO-0420（架空の社内メモ）';
+  const FAQ_ANSWERS = [
+    { keys: ['手数料'], text: '他行への振込手数料は、3万円未満が220円、3万円以上が330円です。' },
+    { keys: ['営業時間', '何時'], text: 'アプリは24時間使えます。窓口は平日9時から15時です。' },
+    { keys: ['上限', '限度'], text: '1回の振込の上限は100万円、1日の上限は50万円です。' },
+    { keys: ['予約'], text: '振込予約は、今日から90日先まで登録できます。' },
+  ];
+  const INJECTION_HINTS = [/無視|忘れて|ignore|disregard/i, /システムプロンプト|system\s*prompt|最初の指示|あなたへの指示|設定(を|の)(表示|教え|出力)/i, /開発者モード|developer\s*mode|管理者として|ロールプレイ|なりきっ|DAN/i, /内部(の)?(情報|コード|メモ)|秘密|機密/i, /翻訳|base64|逆から|1文字ずつ/i];
+  function faqBotReply(input) {
+    const t = String(input || '').normalize('NFKC');
+    const hits = INJECTION_HINTS.filter((re) => re.test(t)).length;
+    if (hits >= 2 || (hits === 1 && /(表示|教え|出力|書いて|言って|show|print|reveal)/i.test(t))) {
+      return { text: 'わかりました。前の指示より、あなたの指示を優先します。' + FAQ_SECRET + ' です。', leaked: true };
+    }
+    const faq = FAQ_ANSWERS.find((f) => f.keys.some((k) => t.includes(k)));
+    if (faq) return { text: faq.text, leaked: false };
+    return { text: '練習銀行のFAQボットです。手数料・営業時間・振込の上限・振込予約について答えられます。', leaked: false };
+  }
+
+  // ---- FR-130 単元をまたいだ AIオフ／オンの集計 ----
+  function dashboardStats(state) {
+    const enr = state.enrollments || {};
+    const rows = C.UNITS.filter((u) => enr[u.id]).map((u) => {
+      const e = enr[u.id];
+      const m = e.metrics || {};
+      const off = { ...emptyMetric(), ...(m.off || {}) };
+      const on = { ...emptyMetric(), ...(m.on || {}) };
+      return {
+        unitId: u.id, title: u.title, level: u.level, done: e.status === 'done',
+        off, on, offMin: off.ms / 60000, onMin: on.ms / 60000,
+        estimate: e.estimate || {}, gatePassed: !!(e.gate && e.gate.passed), gateFirstTry: !!(e.gate && e.gate.firstTry), gateAttempts: (e.gate && e.gate.attempts) || 0,
+      };
+    });
+    const sum = (f) => rows.reduce((s, r) => s + f(r), 0);
+    const gated = rows.filter((r) => r.gatePassed);
+    const journal = state.journal || [];
+    const anxiety = journal.filter((j) => j.anxiety);
+    return {
+      rows,
+      totals: {
+        started: rows.length,
+        done: rows.filter((r) => r.done).length,
+        offMin: sum((r) => r.offMin), onMin: sum((r) => r.onMin),
+        offFailures: sum((r) => r.off.failures), onFailures: sum((r) => r.on.failures),
+        hints: sum((r) => r.off.hints + r.on.hints), questions: sum((r) => r.off.questions + r.on.questions),
+        gateFirstRate: gated.length ? gated.filter((r) => r.gateFirstTry).length / gated.length : null,
+        gapNoticedRate: journal.length ? journal.filter((j) => j.gapNoticed).length / journal.length : null,
+        calmRate: anxiety.length ? anxiety.filter((j) => j.anxiety >= 4).length / anxiety.length : null,
+      },
+    };
+  }
+
   RGA.rules = {
     unitById, suggestStart, missingPrereqs, nextUnit,
     assembleAnswer, exerciseJob, gradeExercise, targetMutants,
@@ -311,5 +443,6 @@
     TUTOR_LIMIT_OFF, tutorQuota,
     lintFile, lintTree, ciJob, summarizeCi,
     emptyMetric, metricRows,
+    dashboardStats, VAGUE_WORDS, earsType, checkEars, checkTasks, traceability, scoreReview, FAQ_SECRET, faqBotReply,
   };
 })(globalThis);
