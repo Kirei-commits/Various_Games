@@ -317,3 +317,4 @@ table.log pre.code { max-width: 520px; white-space: pre-wrap; }
   .unit-row { flex-direction: column; }
   .card { padding: 14px; }
 }
+label.btn:has(+ #data-import:focus-visible) { outline: 3px solid var(--focus); outline-offset: 2px; }

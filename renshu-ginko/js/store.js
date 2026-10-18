@@ -74,6 +74,22 @@
     }
   }
 
+  // ---- 書き出したデータの読み込み（Q-12: 当面はブラウザ保存なので、バックアップと端末の移行に使う） ----
+  // 戻り値: { state } か { error }。API キーなどの設定は今の端末のものを残す
+  function importData(text, current) {
+    let data;
+    try { data = JSON.parse(text); } catch (e) { return { error: 'JSON として読めません' }; }
+    if (!data || data.version !== 1) return { error: '練習銀行アカデミーの書き出しファイルではありません（version が違います）' };
+    if (!data.user || typeof data.user.id !== 'string') return { error: '学習者の情報がありません' };
+    const base = defaultState();
+    const lists = ['submissions', 'explanations', 'journal', 'aiLog'];
+    for (const k of lists) if (data[k] !== undefined && !Array.isArray(data[k])) return { error: k + ' の形が違います' };
+    if (data.enrollments !== undefined && (typeof data.enrollments !== 'object' || Array.isArray(data.enrollments))) return { error: 'enrollments の形が違います' };
+    const state = { ...base, ...data, settings: { ...base.settings, ...(current && current.settings) } };
+    const log = verifyLog(state.aiLog || []);
+    return { state, logOk: log.ok, logCount: log.count };
+  }
+
   // ---- 監査ログ（ハッシュの鎖） ----
   function entryHash(prevHash, body) {
     return sha256(prevHash + '\n' + JSON.stringify(body));
@@ -131,5 +147,5 @@
     return out.length > max ? out.slice(out.length - max) : out;
   }
 
-  RGA.store = { KEY, KEY_SECRET, MAX_SUBMISSIONS, defaultState, newEnrollment, load, save, appendLog, verifyLog, entryHash, addMetric, spentThisMonth, addSpend, pushCapped, monthOf };
+  RGA.store = { KEY, KEY_SECRET, MAX_SUBMISSIONS, defaultState, importData, newEnrollment, load, save, appendLog, verifyLog, entryHash, addMetric, spentThisMonth, addSpend, pushCapped, monthOf };
 })(globalThis);

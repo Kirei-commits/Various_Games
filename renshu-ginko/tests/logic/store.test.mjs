@@ -61,3 +61,22 @@ test('FR-050 計測を足し込む', () => {
   assert.equal(rows[1].minutes, 1);
   assert.equal(rows[1].estimate, 5);
 });
+
+test('Q-12 書き出したデータを読み込める（API キーは今の端末のものを残す）', () => {
+  const st = S.defaultState();
+  st.user = { id: 'learner-x', name: 'A' };
+  st.aiLog = S.appendLog([], { unitId: 'L1-01', kind: 'tutor', input: 'q', output: 'a' }, 0, 'learner-x');
+  const { apiKey, ...settings } = st.settings;
+  const text = JSON.stringify({ ...st, settings });
+  const cur = S.defaultState();
+  cur.settings.apiKey = 'keep-me';
+  const r = S.importData(text, cur);
+  assert.equal(r.state.user.id, 'learner-x');
+  assert.equal(r.state.settings.apiKey, 'keep-me');
+  assert.equal(r.logOk, true);
+  assert.match(S.importData('{', cur).error, /JSON/);
+  assert.match(S.importData('{"version":2}', cur).error, /version/);
+  const tampered = JSON.parse(text);
+  tampered.aiLog[0].output = 'x';
+  assert.equal(S.importData(JSON.stringify(tampered), cur).logOk, false);
+});

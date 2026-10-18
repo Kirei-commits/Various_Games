@@ -1077,15 +1077,32 @@
         render();
       } }, '保存')),
       h('section', { class: 'card' }, h('h2', null, 'データ'),
-        h('p', { class: 'muted small' }, '学習データはこのブラウザの中にだけ保存されています（サーバーには送りません）。'),
+        h('p', { class: 'muted small' }, '学習データはこのブラウザの中にだけ保存されています（サーバーには送りません）。バックアップや別の端末への移行は、書き出したファイルを読み込んでください。'),
         h('div', { class: 'row wrap' },
           h('button', { id: 'data-export', class: 'btn', onclick: () => { const { apiKey, ...settings } = state.settings; download('renshu-ginko-data.json', JSON.stringify({ ...state, settings }, null, 2)); } }, 'すべて書き出す（JSON）'),
+          h('label', { class: 'btn', for: 'data-import' }, '書き出したファイルを読み込む'),
+          h('input', { id: 'data-import', type: 'file', accept: 'application/json,.json', class: 'sr-only', onchange: (e) => importFile(e.target.files[0]) }),
           h('button', { id: 'data-reset', class: 'btn danger', onclick: () => {
             if (!window.confirm('学習データをすべて消して最初からやり直しますか？（元に戻せません）')) return;
             state = S.defaultState();
             S.save(state, safeStorage('localStorage') || memStore, safeStorage('sessionStorage'));
             go('#/onboarding');
           } }, '最初からやり直す'))));
+  }
+
+  function importFile(file) {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const r = S.importData(String(reader.result), state);
+      if (r.error) { toast('読み込めませんでした: ' + r.error, 'warn'); return; }
+      if (!window.confirm('今の学習データを、ファイルの内容で置き換えますか？（今のデータは消えます）')) return;
+      state = r.state;
+      S.save(state, safeStorage('localStorage') || memStore, safeStorage('sessionStorage'));
+      toast('読み込みました' + (r.logOk ? '' : '（AI利用ログのハッシュが合いません。改ざんの可能性があります）'), r.logOk ? 'ok' : 'warn');
+      go('#/home');
+    };
+    reader.readAsText(file);
   }
 
   // ---------------------------------------------------------------- 計測のタイマー（FR-050）

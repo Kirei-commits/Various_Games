@@ -227,3 +227,21 @@ test('キーボードだけでパーソンズ問題を解ける（NFR-12）', as
   await page.keyboard.press('Enter');
   await expect(page.locator('#ex-results')).toContainText('合格');
 });
+
+test('Q-12 書き出したファイルを読み込んで、別の端末へ移せる', async ({ page, browser }) => {
+  await onboard(page);
+  await passUnderstand(page, 'L1-01');
+  await page.click('#nav-settings');
+  const [dl] = await Promise.all([page.waitForEvent('download'), page.click('#data-export')]);
+  const text = await (await dl.createReadStream()).toArray().then((b) => Buffer.concat(b).toString('utf8'));
+  const other = await browser.newPage();
+  await other.goto('/');
+  await other.click('#ob-suggest');
+  await other.click('#ob-home');
+  await other.click('#nav-settings');
+  other.on('dialog', (d) => d.accept());
+  await other.setInputFiles('#data-import', { name: 'data.json', mimeType: 'application/json', buffer: Buffer.from(text) });
+  await expect(other.locator('#home-start')).toContainText('続きから');
+  await expect(other.locator('.greet')).toContainText('テスト新人');
+  await other.close();
+});
