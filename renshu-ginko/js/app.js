@@ -185,6 +185,7 @@
     else if (r.name === 'log') view = viewLog();
     else if (r.name === 'settings') view = viewSettings();
     else if (r.name === 'hack') view = window.RGA.hackView.view(ui, r.args);
+    else if (r.name === 'texts') view = window.RGA.textView.view(ui, r.args);
     else view = viewHome();
     main.replaceChildren(view);
     if (focusId && $(focusId)) {
@@ -307,6 +308,7 @@
           h('p', { class: 'eyebrow' }, '前回の振り返り'),
           lastJournal ? [h('p', { class: 'muted small' }, fmtTime(lastJournal.time) + ' ・ ' + lastJournal.unitId), h('blockquote', null, lastJournal.text || '（本文なし）')] : h('p', { class: 'muted' }, 'まだありません。単元の最後に、計測結果を見ながら書きます。')),
         hackCard(),
+        textsCard(),
         retryCard(),
         bankPreview()));
   }
@@ -321,6 +323,15 @@
       s ? h('p', { class: 'muted small' }, s.title) : null,
       h('p', { class: 'small' }, '同期のコードをレビューし、自分のコードを直し、コンフリクトを解いて「AIお金相談チャット」をリリースしよう。'),
       h('button', { id: 'home-hack', class: 'btn primary', onclick: () => go('#/hack') }, 'ハッカソンへ'));
+  }
+  function textsCard() {
+    const TX = window.RGA.texts;
+    const pr = window.RGA.textView.progressOf(state);
+    return h('section', { class: 'card' },
+      h('p', { class: 'eyebrow' }, '言語テキスト（読めるようになる）'),
+      h('div', { class: 'row wrap' }, TX.COURSES.map((c) => { const st = TX.courseStatus(pr, c); return h('a', { class: 'btn tiny', href: '#/texts/c/' + c.id }, c.icon + ' ' + c.name + ' ' + st.chapters + '/' + st.count + '章'); })),
+      h('p', { class: 'small' }, 'コンストラクタも継承も useEffect も、会話と図で「読める」ように。'),
+      h('button', { id: 'home-texts', class: 'btn', onclick: () => go('#/texts') }, 'テキストを開く'));
   }
   function retryCard() {
     const list = state.retry || [];

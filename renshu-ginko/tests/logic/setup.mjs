@@ -13,5 +13,10 @@ import '../../js/hack-sprints-a.js';
 import '../../js/hack-sprints-b.js';
 import '../../js/hack-sprints-c.js';
 import '../../js/hack-consults.js';
+import '../../js/texts.js';
+import '../../js/text-js.js';
+import '../../js/text-react.js';
+import '../../js/text-java.js';
+import '../../js/text-python.js';
 
 export const RGA = globalThis.RGA;

@@ -477,3 +477,29 @@ fieldset.quiz { min-width: 0; }
 .consult-talk .bubble { background: var(--on-bg); }
 .consult-inline { margin: 8px 0; }
 .consult-inline summary { cursor: pointer; font-weight: 700; color: var(--accent); }
+
+/* ---- 言語テキスト ---- */
+.course-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
+.course-card { display: grid; gap: 4px; color: var(--text); text-decoration: none; }
+.course-card:hover { border-color: var(--accent); }
+.course-card h2 { margin: 0; }
+.course-icon { font-size: 2rem; }
+.meter { height: 8px; border-radius: 999px; background: var(--panel-2); overflow: hidden; }
+.meter span { display: block; height: 100%; background: var(--accent); }
+.badge-chip { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 999px; font-size: .82rem; font-weight: 700; background: var(--panel-2); border: 1px solid var(--line); }
+.badge-chip.gold { background: var(--warn-bg); border-color: var(--gold); color: var(--gold); }
+.chapter-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
+.chapter-card h2 { margin: 0; font-size: 1.05rem; }
+.chapter-card.done { border-color: var(--ok); }
+.chapter-card.locked { opacity: .65; }
+.handout-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 8px 16px; }
+.handout-grid ul { margin: 4px 0 0; padding-left: 1.2em; }
+.tx-figure { margin: 8px 0; min-width: 0; }
+.tx-figure figcaption { font-size: .85rem; font-weight: 700; color: var(--muted); margin-bottom: 4px; }
+pre.diagram { margin: 0; padding: 12px; background: var(--panel-2); border: 1px solid var(--line); border-radius: 10px; overflow-x: auto; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Noto Sans Mono CJK JP", monospace; font-size: .8rem; line-height: 1.45; }
+.text-body > * { min-width: 0; }
+.points { background: var(--accent-weak); border-radius: 10px; padding: 8px 14px; }
+.points h3 { margin: 0 0 4px; font-size: .9rem; }
+.points ul { margin: 0; padding-left: 1.2em; }
+.highlight-box { border: 1px solid var(--accent); border-radius: 10px; padding: 10px 14px; box-shadow: 0 0 0 3px var(--accent-weak); }
+.highlight-box h3 { margin: 0; }

@@ -251,7 +251,7 @@
     }
     if (p.type === 'predict') {
       return h('div', { class: 'stack' },
-        codeLines(ui, p.code),
+        p.code ? codeLines(ui, p.code) : null,
         h('fieldset', { class: 'quiz' }, h('legend', null, H.fill(p.q, names)),
           h('div', { class: 'choices' }, p.choices.map((c, i) => h('label', { class: 'choice' },
             h('input', { type: 'radio', name: 'hk-pq', id: 'hk-choice-' + i, value: String(i), checked: w.choice === i, disabled: done, onchange: () => refresh(() => { w.choice = i; }) }),
@@ -437,5 +437,6 @@
     ui.render();
   }
 
-  RGA.hackView = { view, progressOf, namesOf };
+  // 言語テキスト（text-view.js）も同じ部品で問題を描く
+  RGA.hackView = { view, progressOf, namesOf, talkLines, codeLines, problemWidget, feedbackBox, explain, langTag, TYPE_NAME };
 })(globalThis);
