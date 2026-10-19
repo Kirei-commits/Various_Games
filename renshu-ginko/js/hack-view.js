@@ -74,7 +74,7 @@
     }));
   }
 
-  const TYPE_NAME = { review: '同期のコードをレビュー', fix: '自分のコードを直す', conflict: 'コンフリクトを解く', predict: '動きを読む', comment: 'レビューコメントを書く', talk: '関係者の割り込み' };
+  const TYPE_NAME = { order: '順番に並べる', review: '同期のコードをレビュー', fix: '自分のコードを直す', conflict: 'コンフリクトを解く', predict: '動きを読む', comment: 'レビューコメントを書く', talk: '関係者の割り込み' };
 
   // ---------------------------------------------------------------- ハッカソンのホーム
   function viewHackHome(ui) {
@@ -230,10 +230,10 @@
     }
     if (p.type === 'fix') {
       return h('div', { class: 'stack' },
-        h('p', { class: 'prompt' }, '① バグのある行を押してください。② 正しい直し方を選んでください。'),
+        h('p', { class: 'prompt' }, p.lang === 'text' ? '① 原因の手がかりになる行を押してください。② 最初にやる対処を選んでください。' : '① バグのある行を押してください。② 正しい直し方を選んでください。'),
         h('p', { class: 'muted small' }, p.file),
         codeLines(ui, p.code, { sel: w.line, answer: done ? [p.bugLine] : null, onLine: done ? null : (n) => refresh(() => { w.line = n; }), idPrefix: 'hk-line-' }),
-        h('fieldset', { class: 'quiz' }, h('legend', null, '直し方' + (w.line ? '（' + w.line + '行目を）' : '')),
+        h('fieldset', { class: 'quiz' }, h('legend', null, p.lang === 'text' ? '最初にやる対処' : '直し方' + (w.line ? '（' + w.line + '行目を）' : '')),
           h('div', { class: 'choices' }, p.fixes.map((f, i) => h('label', { class: 'choice' },
             h('input', { type: 'radio', name: 'hk-fix', id: 'hk-choice-' + i, value: String(i), checked: w.choice === i, disabled: done, onchange: () => refresh(() => { w.choice = i; }) }),
             h('code', null, f))))));
@@ -264,6 +264,17 @@
         h('label', { class: 'field' }, h('span', null, H.fill(p.prompt, names)),
           h('textarea', { id: 'hk-comment', rows: '5', value: w.text || '', disabled: done, placeholder: '何が問題か・なぜ・どう直すか。良いところもひとこと添えると伝わりやすくなります。', oninput: (e) => { w.text = e.target.value; ui.persist(); } })));
     }
+    if (p.type === 'order') {
+      if (!w.order || w.order.length !== p.items.length) w.order = H.initialOrder(p);
+      const move = (i, j) => refresh(() => { const o = [...w.order]; [o[i], o[j]] = [o[j], o[i]]; w.order = o; });
+      return h('div', { class: 'stack' },
+        p.prompt ? h('p', { class: 'prompt' }, H.fill(p.prompt, names)) : h('p', { class: 'prompt' }, '正しい順番に並べ替えてください。'),
+        h('ol', { class: 'order-list', 'aria-label': '手順（上から順）' }, w.order.map((item, i) => h('li', { class: 'order-item' },
+          h('span', { class: 'order-text' }, H.fill(item, names)),
+          done ? null : h('span', { class: 'ops' },
+            h('button', { class: 'icon', id: 'hk-up-' + i, 'aria-label': (i + 1) + '番目を上へ', disabled: i === 0, onclick: () => move(i, i - 1) }, '↑'),
+            h('button', { class: 'icon', id: 'hk-down-' + i, 'aria-label': (i + 1) + '番目を下へ', disabled: i === w.order.length - 1, onclick: () => move(i, i + 1) }, '↓'))))));
+    }
     // talk
     return h('div', { class: 'stack' },
       talkLines(ui, [[p.from, p.text]], names),
@@ -284,12 +295,14 @@
       if (r.missed.length) items.push('まだ見つかっていない欠陥が ' + r.missed.length + ' 個あります。');
       if (r.extra.length > 1) items.push('欠陥ではない行への指摘が ' + r.extra.length + ' 個あります（1個までは大丈夫）。');
     } else if (p.type === 'fix') {
-      items.push(r.lineOk ? '行は合っています。' : 'バグのある行は別の場所です。');
-      items.push(r.fixOk ? '直し方は合っています。' : '直し方をもう一度考えてみましょう。');
+      items.push(r.lineOk ? '行は合っています。' : (p.lang === 'text' ? '手がかりになる行は別の場所です。' : 'バグのある行は別の場所です。'));
+      items.push(r.fixOk ? (p.lang === 'text' ? '対処は合っています。' : '直し方は合っています。') : (p.lang === 'text' ? '最初にやる対処をもう一度考えてみましょう。' : '直し方をもう一度考えてみましょう。'));
     } else if (p.type === 'comment') {
       if (r.ng.length) items.push('言い方に気をつけましょう（「' + r.ng.join('」「') + '」）。指摘はコードに対して、理由とともに。');
       if (r.tooShort) items.push('もう少し具体的に書いてみましょう（何が・なぜ・どう直すか）。');
       if (r.missing.length) items.push('足りない観点（' + r.matched.length + ' / ' + r.need + ' 必要）: ' + r.missing.join('、'));
+    } else if (p.type === 'order') {
+      items.push('上から ' + r.prefix + ' 番目までは合っています。その次を考え直してみましょう。');
     } else if (p.type === 'talk' && r.option) {
       return h('div', { id: 'hk-feedback', 'aria-live': 'polite', class: 'stack' }, talkLines(ui, r.option.reply, names), r.option.note ? h('p', { class: 'warn-text small' }, H.fill(r.option.note, names)) : null, h('p', { class: 'small' }, 'もう一度、別の答え方を考えてみましょう。'));
     } else {
@@ -302,10 +315,11 @@
     const h = ui.h;
     const parts = [];
     if (p.type === 'review') parts.push(h('ul', null, p.defects.map((d) => h('li', null, h('strong', null, d.line + '行目（' + H.REVIEW_KINDS.find((k) => k.id === d.kind).name + '）: '), d.why))));
-    if (p.type === 'fix') parts.push(h('p', null, p.bugLine + '行目を ', h('code', null, p.fixes[p.answer]), ' に直します。'));
+    if (p.type === 'fix') parts.push(p.lang === 'text' ? h('p', null, p.bugLine + '行目が手がかり。最初の対処: ' + p.fixes[p.answer]) : h('p', null, p.bugLine + '行目を ', h('code', null, p.fixes[p.answer]), ' に直します。'));
     if (p.type === 'conflict') parts.push(ui.codeBlock(p.options[p.answer]));
     if (p.type === 'predict') parts.push(h('p', null, '答え: ', h('code', null, p.choices[p.answer])));
     if (p.type === 'comment') parts.push(h('p', { class: 'small' }, 'コメントの例:'), h('blockquote', null, H.fill(p.sample, names)));
+    if (p.type === 'order') parts.push(h('ol', null, p.items.map((x) => h('li', null, H.fill(x, names)))));
     if (p.type === 'talk') {
       const best = p.options.find((o) => o.best);
       parts.push(h('p', null, '答え方: ', H.fill(best.text, names)), talkLines(ui, best.reply, names));
@@ -362,7 +376,7 @@
     const state = ui.state();
     const pr = progressOf(state);
     const names = namesOf(state);
-    const groups = [['team', 'チーム（同期）'], ['po', 'プロダクトオーナー'], ['user', 'ユーザー'], ['boss', '上司'], ['friend', '同期（ほかの部署・チーム）'], ['outside', '友人（他社のBP）'], ['senpai', '先輩'], ['stake', '関係者']];
+    const groups = [['team', 'チーム（同期）'], ['po', 'プロダクトオーナー'], ['user', 'ユーザー'], ['boss', '上司'], ['work', '配属先（モバイルバンキング開発グループ）'], ['friend', '同期（ほかの部署・チーム）'], ['outside', '友人（他社のBP）'], ['senpai', '先輩'], ['stake', '関係者']];
     const c = id && H.CAST_BY_ID[id] && id !== 'player' ? H.CAST_BY_ID[id] : null;
     const castBtn = (x) => ui.h('li', null, ui.h('a', { class: 'cast-btn' + (c && c.id === x.id ? ' sel' : ''), id: 'hk-talk-' + x.id, href: '#/hack/team/' + x.id },
       ui.h('span', { class: 'avatar' }, x.icon),

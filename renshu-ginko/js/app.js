@@ -186,6 +186,7 @@
     else if (r.name === 'settings') view = viewSettings();
     else if (r.name === 'hack') view = window.RGA.hackView.view(ui, r.args);
     else if (r.name === 'texts') view = window.RGA.textView.view(ui, r.args);
+    else if (r.name === 'work') view = window.RGA.workView.view(ui, r.args);
     else view = viewHome();
     main.replaceChildren(view);
     if (focusId && $(focusId)) {
@@ -308,6 +309,7 @@
           h('p', { class: 'eyebrow' }, '前回の振り返り'),
           lastJournal ? [h('p', { class: 'muted small' }, fmtTime(lastJournal.time) + ' ・ ' + lastJournal.unitId), h('blockquote', null, lastJournal.text || '（本文なし）')] : h('p', { class: 'muted' }, 'まだありません。単元の最後に、計測結果を見ながら書きます。')),
         hackCard(),
+        workCard(),
         textsCard(),
         retryCard(),
         bankPreview()));
@@ -323,6 +325,15 @@
       s ? h('p', { class: 'muted small' }, s.title) : null,
       h('p', { class: 'small' }, '同期のコードをレビューし、自分のコードを直し、コンフリクトを解いて「AIお金相談チャット」をリリースしよう。'),
       h('button', { id: 'home-hack', class: 'btn primary', onclick: () => go('#/hack') }, 'ハッカソンへ'));
+  }
+  function workCard() {
+    const WK = window.RGA.work;
+    const pr = window.RGA.workView.progressOf(state);
+    return h('section', { class: 'card' },
+      h('p', { class: 'eyebrow' }, '配属先（実案件・仕事の進め方）'),
+      h('h2', null, pr.phase === 'done' ? '1年目 修了 🎓' : '第' + pr.week + '週 / ' + WK.TOTAL_WEEKS),
+      h('p', { class: 'small' }, '利用者 ' + pr.metrics.users.toLocaleString('ja-JP') + ' 人 ・ ★' + pr.metrics.rating.toFixed(1) + ' ・ チームの体力 ' + pr.metrics.stamina),
+      h('button', { id: 'home-work', class: 'btn', onclick: () => go('#/work') }, '配属先へ'));
   }
   function textsCard() {
     const TX = window.RGA.texts;

@@ -11,6 +11,7 @@
  *   predict { code, q, choices, answer }                                 … 出力・動きの予想
  *   comment { file, code, focus: [行], prompt, checks: [{ label, any }], min, sample } … レビューコメントを書く
  *   talk    { from, text, options: [{ text, best, reply: [[話し手, せりふ]], note }], interrupt? } … 関係者・ユーザーとのやりとり
+ *   order   { items: [正しい順の手順], prompt }                    … 手順を正しい順に並べる（表示は決まった並べ替え）
  *           interrupt: true は関係者の割り込みや仕様のひっくり返し（3〜4スプリントに1回だけ）
  *
  * スプリント { no, title, goal, knowledge: [], briefing: [[話し手, せりふ]], problems: [], event: talk, retro: [[話し手, せりふ]] }
@@ -138,6 +139,31 @@
       { q: '実は悩んでいて……', a: 'うんうん、どうしたの。全部話してごらん。……そっか、がんばってたんだね。ひとりで抱えなくていいのよ。' },
       { q: '最近どう？', a: '{player}くん、ちゃんとごはん食べてる？ 顔見たら分かるのよ。今日はもう早く帰りなさいね。' },
     ] },
+    // ---- 配属先（練習銀行 モバイルバンキング開発グループ）。名前・人物は仮（オーナーの監修待ち） ----
+    { id: 'mizuno', name: '水野 拓海', icon: '🧭', group: 'work', field: '設計・コードレビュー・技術判断', role: '配属先の先輩・テックリード', persona: '配属先のテックリード。設計とコードレビューに厳密で、判断の理由を必ず言葉にする。口調は穏やかで、質問には図を描いて答える。', topics: [
+      { q: '設計で一番大事なことは？', a: '「なぜそうしたか」を残すこと。正解は時代で変わるけど、理由が残っていれば後の人が判断し直せる。' },
+      { q: '最近どう？', a: 'アプリの起動時間、先週より0.2秒縮んだよ。{player}くんのレビューのおかげもある。' },
+    ] },
+    { id: 'mikami', name: '三上 さやか', icon: '📋', group: 'work', field: '要件定義・調整・段取り', role: '配属先の先輩（中堅）', persona: '配属先の中堅エンジニア。要件のヒアリングと関係部署との調整が得意で、段取りがとにかくうまい。はっきり物を言うが面倒見がいい。', topics: [
+      { q: 'ヒアリングのコツは？', a: '「何が欲しいですか」じゃなくて「何に困っていますか」って聞くの。欲しいものは、困りごとの答えの1つでしかないから。' },
+      { q: '最近どう？', a: '業務部門との定例、今日は15分で終わった！ 議事録を先に共有しておいたからね。{player}くんも真似していいよ。' },
+    ] },
+    { id: 'ohashi', name: '大橋 健二', icon: '🚒', group: 'work', field: '運用・監視・障害対応', role: '配属先の先輩（運用・SRE）', persona: '配属先の運用担当エンジニア。障害対応のプロで、どんなときも落ち着いている。「まず止血、原因はそのあと」が口ぐせ。', topics: [
+      { q: '障害のとき最初にやることは？', a: 'まず止血。お客さまへの影響を止めるのが先で、原因探しはそのあとだ。それと、一人で抱えるな。すぐ声を上げろ。' },
+      { q: '最近どう？', a: '先週はアラートが一度も鳴らなかった。静かな週は、誰かが見えないところでいい仕事をした証拠だ。' },
+    ] },
+    { id: 'saeki', name: '佐伯 誠', icon: '🤝', group: 'work', field: '協力会社との進め方・品質の受け入れ', role: '協力会社のリーダー', persona: '協力会社のリーダー。経験豊富なベテランで、依頼の書き方や受け入れの観点に詳しい。丁寧な言葉づかいで、曖昧な依頼には必ず確認を返す。', topics: [
+      { q: '依頼で気をつけることは？', a: '「何を」「いつまでに」「どうなったら完了か」の3つがそろっていると、こちらも迷わずに済みます。' },
+      { q: '最近どう？', a: '{player}さんの依頼書、最近とても分かりやすいです。完了の条件が書いてあるのが助かります。' },
+    ] },
+    { id: 'hayakawa', name: '早川 美咲', icon: '📞', group: 'work', field: 'お客さまの問い合わせ・運用の現場', role: 'お客さまサポート担当', persona: 'お客さまサポート（問い合わせ窓口）の担当者。アプリへの問い合わせを毎日受けていて、お客さまの困りごとを一番よく知っている。明るく、現場の声を正確に伝えてくれる。', topics: [
+      { q: '多い問い合わせは？', a: '「ログインできない」が一番です。画面の文言がちょっと分かりにくいみたいで……。' },
+      { q: '最近どう？', a: '先月のアップデートで、振込の問い合わせが3割減りました！ 開発のみなさんのおかげです。' },
+    ] },
+    { id: 'katagiri', name: '片桐 部長', icon: '📈', group: 'work', field: '業務部門の要望・事業の目線', role: '業務部門の部長（依頼者）', persona: '個人営業企画部の部長。アプリへの要望を出す依頼者で、事業の数字に責任を持っている。せっかちだが話は分かる人で、理由と数字で説明すれば納得してくれる。', topics: [
+      { q: 'アプリに期待することは？', a: '窓口に来なくても、アプリで用事が済むこと。それがお客さまのためにも、銀行のためにもなる。' },
+      { q: '最近どう？', a: '来期の目標が決まってね。アプリの利用者数、もっと伸ばしたいんだよ。{player}くん、頼りにしてるよ。' },
+    ] },
     { id: 'legal', name: '堅田 法務', icon: '⚖️', group: 'stake', role: '法務部（関係者）', persona: '法務部の担当者。金融商品取引法や個人情報保護の観点から、表現と同意取得に厳しい。' },
     { id: 'sales', name: '押野 部長', icon: '📣', group: 'stake', role: '営業部長（関係者）', persona: '営業部長。お客さまの声を持ってきては、急な機能追加を求める。悪い人ではない。' },
     { id: 'sec', name: '守屋 セキュリティ室', icon: '🛡️', group: 'stake', role: 'セキュリティ室（関係者）', persona: 'セキュリティ室の担当者。ログ・鍵・個人情報の扱いを厳しく確認する。' },
@@ -236,8 +262,21 @@
     return { pass: !!(opt && opt.best), option: opt || null };
   }
   // work: 画面での入力 { marks, line, choice, text }
+  // order: 並べた順が items と同じなら合格。何個目まで合っているかも返す
+  function gradeOrder(p, order) {
+    const o = order || [];
+    let prefix = 0;
+    while (prefix < p.items.length && o[prefix] === p.items[prefix]) prefix += 1;
+    return { pass: o.length === p.items.length && prefix === p.items.length, prefix };
+  }
+  // 並べ替え問題の最初の並び（答えと同じにならないように、決まった並べ替えをずらす）
+  function initialOrder(p) {
+    const s = RGA.core.seededShuffle(p.items, p.id);
+    return s.every((x, i) => x === p.items[i]) ? [...p.items.slice(1), p.items[0]] : s;
+  }
   function grade(p, work) {
     const w = work || {};
+    if (p.type === 'order') return gradeOrder(p, w.order);
     if (p.type === 'review') return gradeReview(p, w.marks);
     if (p.type === 'fix') return gradeFix(p, w.line, w.choice);
     if (p.type === 'comment') return gradeComment(p, w.text);
@@ -246,6 +285,7 @@
   }
   // 答えを見たときに、その答えを入力欄に入れた状態
   function answerWork(p) {
+    if (p.type === 'order') return { order: [...p.items] };
     if (p.type === 'review') return { marks: Object.fromEntries(p.defects.map((d) => [d.line, d.kind])) };
     if (p.type === 'fix') return { line: p.bugLine, choice: p.answer };
     if (p.type === 'comment') return { text: p.sample };
@@ -309,7 +349,7 @@
     TOTAL_SPRINTS, CAST, CAST_BY_ID, SM_ORDER, REVIEW_KINDS, LANGS, NG_WORDS, SPRINTS,
     CONSULTS, SMALLTALK, addConsults, addSmallTalk, consultsOf, smallTalkOf,
     addSprints, problemsOf, findProblem, scrumMaster, nameOf, fill,
-    gradeReview, gradeFix, gradeChoice, gradeComment, gradeTalk, grade, answerWork,
+    gradeReview, gradeFix, gradeChoice, gradeComment, gradeTalk, gradeOrder, initialOrder, grade, answerWork,
     emptyProgress, sprintStatus, unlockedUpTo, released, velocity, solve, personaPrompt,
   };
 })(globalThis);

@@ -18,5 +18,8 @@ import '../../js/text-js.js';
 import '../../js/text-react.js';
 import '../../js/text-java.js';
 import '../../js/text-python.js';
+import '../../js/work.js';
+import '../../js/work-weeks-a.js';
+import '../../js/work-weeks-b.js';
 
 export const RGA = globalThis.RGA;
