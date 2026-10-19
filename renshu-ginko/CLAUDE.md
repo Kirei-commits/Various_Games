@@ -28,6 +28,9 @@ js/work-view.js 配属先モードの画面（#/work…）
 js/challenge.js チャレンジの出題（3モードの問題から。日付・開始の合図で決まる順）と記録（純粋）
 js/challenge-view.js チャレンジの画面（#/challenge…）。入力は挑戦ごとの使い捨てで、学習の記録に触れない
 js/journey.js  モードのつながり: スプリント↔テキストの章の対応（章の資料の「スプリントN「」から）・今日やること・称号（純粋）
+js/bonds.js    絆とエピソード（絆は保存せず、終えたスプリント・相談・会話・配属先の週から毎回数える）（純粋）
+js/bond-episodes.js 16人×2話のエピソード（データだけ。恋愛・ライバルの要素は入れない。テストあり）
+js/moneychat.js 作っているアプリのデモの中身（スプリント → 機能、直す前のバグと直した後の動き。返答はルール）（純粋）
 js/hack-view.js ハッカソンの画面（#/hack…）。app.js が渡す ui（h・update・render・state() など）で描く
 js/app.js      画面（S-01〜S-08）。ブラウザ専用
 tests/lint.mjs         構文・読み込み順・外部参照・CSP・純粋さ・id の実在

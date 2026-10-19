@@ -25,5 +25,6 @@ import '../../js/challenge.js';
 import '../../js/journey.js';
 import '../../js/bonds.js';
 import '../../js/bond-episodes.js';
+import '../../js/moneychat.js';
 
 export const RGA = globalThis.RGA;
