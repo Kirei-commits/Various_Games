@@ -13,7 +13,7 @@ js/units-l3.js 第2段階（L3-01〜05）。aiTask.mode で実践の進め方が
 js/runner.js   テストの DSL（test/expect）と実行。毎回使い捨ての Web Worker、5秒で打ち切り
 js/rules.js    採点・足場・説明ゲート・マスキング検査・漏えい検査・静的解析・CI（純粋）
 js/gitsim.js   ブラウザ上の簡易 Git（純粋。操作は新しい repo か { error } を返す）
-js/tutor.js    ルールベースのチューター、Claude API（fetchImpl を引数でもらう）、AI実装役
+js/tutor.js    ルールベースのチューター、LLM の呼び出し（Claude と Gemini。callLLM が設定の provider で振り分ける。fetchImpl を引数でもらう）、AI実装役
 js/store.js    状態の形・保存・監査ログのハッシュの鎖（純粋）
 js/ts.js       TypeScript 対応。compile(ts, libs, code) は ts と型定義を引数でもらう（Node のテストは npm の typescript を渡す）
 js/hackathon.js ハッカソン・レビューモードの登場人物・採点・進み具合（純粋）。問題の形は先頭のコメント
@@ -33,6 +33,9 @@ js/bond-episodes.js 16人×2話のエピソード（データだけ。恋愛・�
 js/moneychat.js 作っているアプリのデモの中身（スプリント → 機能、直す前のバグと直した後の動き。返答はルール）（純粋）
 js/report.js   メンター用の学習レポート（進み具合の数と状態だけ。会話・本文・鍵は入れない。テストあり）（純粋）
 js/report-view.js レポートの画面（#/report）。ダッシュボードの「すべてのモードの記録」も同じ表示
+js/messenger.js チャット（個別・グループ）の部屋・発言の種類・ルールの返事（ハッシュで決まる）・LLM への頼み方（グループは JSON の配列）（純粋）
+js/chat-lines-a/b.js 一人ひとりのチャットのせりふ（データだけ。発言の種類ごと。messenger.test が全員そろっているか見張る）
+js/chat-view.js チャットの画面（#/chat・#/chat/<部屋>）
 js/hack-view.js ハッカソンの画面（#/hack…）。app.js が渡す ui（h・update・render・state() など）で描く
 js/app.js      画面（S-01〜S-08）。ブラウザ専用
 tests/lint.mjs         構文・読み込み順・外部参照・CSP・純粋さ・簡易 SAST・id の実在
@@ -73,3 +76,7 @@ tests/e2e/*.spec.mjs   Playwright（desktop + mobile）
 - 称号は app.js の render のたびに journey.newTitles で確かめ、state.titles に記録してお祝いする（どの画面で条件を満たしても気づく）。
 - E2E でファイルを選ばせるとき（setInputFiles）は、ファイルを英数字だけのパス（os.tmpdir() の下）に置く。日本語の長いテスト名から作られる test-results のフォルダだと、選択が黙って空になった。
 - lint の簡易 SAST は文字列とコメントを除いたコードだけを見る。new Function は runner.js だけに許している。
+- API キーは store.SECRETS（Claude の apiKey・Gemini の geminiKey）に並べ、主の保存先（localStorage の本体）には書かない。書き出しは store.exportable を通す。新しい鍵を足すときも SECRETS に足す（gemini.test が確かめる）。
+- LLM を呼ぶ画面は tutor.hasAI / modelFor / callLLM を使う（会社ごとの分岐を画面に書かない）。CSP の connect-src は Anthropic と Google の API だけ（lint が確かめる）。
+- チャットに話せる人を足したら、chat-lines-a/b.js に全部の発言の種類（open〜default）のせりふを足す（messenger.test が確かめる）。上司は「{player}くん」。グループの顔ぶれは messenger.GROUPS。
+- チャットの個別の部屋で話した回数も絆に入る（ハッカソンの会話と合わせて5点まで）。会話の本文はレポートに入れない。

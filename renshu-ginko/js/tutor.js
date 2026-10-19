@@ -14,9 +14,15 @@
   // ---- モデルと料金（NFR-11: 月の上限を超えたら軽量モデルへ） ----
   const MODEL_DEFAULT = 'claude-opus-5-5';
   const MODEL_LIGHT = 'claude-haiku-5-5';
-  const PRICES = { // USD / 100万トークン
+  // Gemini（設定で選べる。モデル名は Google AI Studio の表記をそのまま入れられる）
+  const GEMINI_DEFAULT = 'gemini-2.5-flash';
+  const GEMINI_MODELS = ['gemini-2.5-flash', 'gemini-2.5-pro', 'gemini-2.5-flash-lite'];
+  const PRICES = { // USD / 100万トークン（概算）
     'claude-opus-5-5': { in: 4, out: 20 },
     'claude-haiku-5-5': { in: 0.1, out: 0.5 },
+    'gemini-2.5-flash': { in: 0.3, out: 2.5 },
+    'gemini-2.5-pro': { in: 1.25, out: 10 },
+    'gemini-2.5-flash-lite': { in: 0.1, out: 0.4 },
   };
   function pickModel(settings, spentUsd) {
     const budget = Number(settings.monthlyBudgetUsd);
@@ -24,7 +30,7 @@
     return settings.model || MODEL_DEFAULT;
   }
   function costOf(model, usage) {
-    const p = PRICES[model] || PRICES[MODEL_DEFAULT];
+    const p = PRICES[model] || (String(model).startsWith('gemini') ? PRICES[GEMINI_DEFAULT] : PRICES[MODEL_DEFAULT]);
     return ((usage.input_tokens || 0) * p.in + (usage.output_tokens || 0) * p.out) / 1e6;
   }
 
@@ -192,6 +198,49 @@
     return { text, usage: data.usage || {}, model: data.model || model };
   }
 
+  // ---- Gemini API（ブラウザから直接。キーは学習者自身のもの） ----
+  async function callGemini(fetchImpl, { apiKey, model, system, messages, maxTokens }) {
+    const body = {
+      systemInstruction: { parts: [{ text: system || '' }] },
+      contents: messages.map((m) => ({ role: m.role === 'assistant' ? 'model' : 'user', parts: [{ text: String(m.content) }] })),
+      generationConfig: { maxOutputTokens: maxTokens || 1024 },
+    };
+    const url = 'https://generativelanguage.googleapis.com/v1beta/models/' + encodeURIComponent(model) + ':generateContent';
+    const res = await fetchImpl(url, { method: 'POST', headers: { 'content-type': 'application/json', 'x-goog-api-key': apiKey }, body: JSON.stringify(body) });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      const msg = (data && data.error && data.error.message) || 'HTTP ' + res.status;
+      const err = new Error(res.status === 404 ? msg + '（設定のモデル名を確かめてください）' : msg);
+      err.status = res.status;
+      throw err;
+    }
+    const cand = (data.candidates || [])[0];
+    if (!cand || cand.finishReason === 'SAFETY' || (data.promptFeedback && data.promptFeedback.blockReason)) throw new Error('応答が断られました');
+    const text = ((cand.content && cand.content.parts) || []).map((part) => part.text || '').join('');
+    const u = data.usageMetadata || {};
+    return { text, usage: { input_tokens: u.promptTokenCount || 0, output_tokens: u.candidatesTokenCount || 0 }, model: model };
+  }
+
+  // 設定で選んだ AI（Claude / Gemini）が使えるか
+  function providerOf(settings) {
+    return (settings && settings.provider) === 'gemini' ? 'gemini' : 'claude';
+  }
+  function hasAI(settings) {
+    const s = settings || {};
+    if (s.tutorStopped) return false;
+    return providerOf(s) === 'gemini' ? !!s.geminiKey : !!s.apiKey;
+  }
+  // 表示用のモデル名（Claude は月の上限を超えると軽量モデル）
+  function modelFor(settings, spentUsd) {
+    return providerOf(settings) === 'gemini' ? (settings.geminiModel || GEMINI_DEFAULT) : pickModel(settings, spentUsd || 0);
+  }
+  // 選んだ AI を呼ぶ。戻り値は Claude と同じ形 { text, usage: { input_tokens, output_tokens }, model }
+  async function callLLM(fetchImpl, settings, spentUsd, req) {
+    const model = modelFor(settings, spentUsd);
+    if (providerOf(settings) === 'gemini') return callGemini(fetchImpl, { apiKey: settings.geminiKey, model, ...req });
+    return callClaude(fetchImpl, { apiKey: settings.apiKey, model, ...req });
+  }
+
   /**
    * チューターに質問する。
    * env: { settings, spentUsd, fetchImpl }
@@ -204,15 +253,15 @@
       return { text: guardReply(r.text, solution).text, source: 'rule', costUsd: 0 };
     };
     const s = env.settings || {};
-    if (!s.apiKey || s.tutorStopped || !env.fetchImpl) return rule();
-    const model = pickModel(s, env.spentUsd || 0);
+    if (!hasAI(s) || !env.fetchImpl) return rule();
+    const model = modelFor(s, env.spentUsd || 0);
     const system = buildSystemPrompt(ctx);
     const messages = [...(ctx.history || []).slice(-6), { role: 'user', content: ctx.question }];
     let cost = 0;
     try {
       for (let attempt = 0; attempt < 2; attempt++) {
         const sys = attempt === 0 ? system : system + '\n\n# 注意\n前の回答には正解と同じコードが含まれていたため破棄しました。コードを含めず、質問の形で導いてください。';
-        const out = await callClaude(env.fetchImpl, { apiKey: s.apiKey, model, system: sys, messages });
+        const out = await callLLM(env.fetchImpl, s, env.spentUsd || 0, { system: sys, messages });
         cost += costOf(out.model, out.usage);
         const guarded = guardReply(out.text, solution);
         if (!guarded.leaked) {
@@ -238,12 +287,12 @@
         : { code: task.buggy, source: 'rule', note: task.buggyNote, costUsd: 0, missing: cov.missing };
     };
     const s = (env && env.settings) || {};
-    if (!s.apiKey || s.tutorStopped || !env.fetchImpl) return canned();
-    const model = pickModel(s, env.spentUsd || 0);
+    if (!hasAI(s) || !env.fetchImpl) return canned();
+    const model = modelFor(s, env.spentUsd || 0);
     const system = 'あなたは架空の銀行アプリ「練習銀行」のコーディングエージェントです。AGENTS.md の約束を守り、指定されたファイルの完全な内容を JavaScript のコードブロック1つで返してください。import / export は使わず、トップレベルの関数宣言で書きます。仕様に書かれていないことは推測で足さず、仮定したことはコードの前に1文で書いてください。\n\n# AGENTS.md\n' + (env.agentsMd || '');
     const user = '# チケット\n' + task.ticket + '\n\n# 実装する関数\n' + task.signature + '\n\n# ファイル\n' + task.file + '\n\n# 仕様（学習者が書いたもの）\n' + spec + (env.currentFile ? '\n\n# 今のファイルの内容\n```js\n' + env.currentFile + '```' : '');
     try {
-      const out = await callClaude(env.fetchImpl, { apiKey: s.apiKey, model, system, messages: [{ role: 'user', content: user }], maxTokens: 4000, effort: 'medium' });
+      const out = await callLLM(env.fetchImpl, s, env.spentUsd || 0, { system, messages: [{ role: 'user', content: user }], maxTokens: 4000, effort: 'medium' });
       const note = firstSentence(out.text.split('```')[0]) || 'LLM が実装しました。';
       return { code: extractCode(out.text), source: 'llm', model: out.model, note, costUsd: costOf(out.model, out.usage) };
     } catch (e) {
@@ -254,13 +303,13 @@
   // ---- Q-06 説明ゲートの LLM 観点採点（ルール採点に上乗せ。失敗したらルールだけ） ----
   async function llmScoreExplanation(unit, code, answer, env) {
     const s = (env && env.settings) || {};
-    if (!s.apiKey || s.tutorStopped || !env.fetchImpl) return null;
-    const model = pickModel(s, env.spentUsd || 0);
+    if (!hasAI(s) || !env.fetchImpl) return null;
+    const model = modelFor(s, env.spentUsd || 0);
     const pts = (f) => unit.gate[f].points.map((pt) => '- ' + pt.label).join('\n');
     const system = 'あなたは説明ゲートの採点者です。学習者の説明が、コードの「何をするか」と「どこが危ないか」を自分の言葉で正しく説明しているかを判定します。JSON だけを返してください: {"what_ok": true|false, "risk_ok": true|false, "feedback": "日本語で2文以内。足りない観点を質問の形で"}。正解コードは書かないこと。';
     const user = '# コード\n```js\n' + code + '\n```\n\n# 観点（何をするか）\n' + pts('what') + '\n\n# 観点（どこが危ないか）\n' + pts('risk') + '\n\n# 学習者の説明\n何をするか: ' + answer.what + '\nどこが危ないか: ' + answer.risk;
     try {
-      const out = await callClaude(env.fetchImpl, { apiKey: s.apiKey, model, system, messages: [{ role: 'user', content: user }], maxTokens: 400 });
+      const out = await callLLM(env.fetchImpl, s, env.spentUsd || 0, { system, messages: [{ role: 'user', content: user }], maxTokens: 400 });
       const m = out.text.match(/\{[\s\S]*\}/);
       const j = JSON.parse(m ? m[0] : out.text);
       return { whatOk: !!j.what_ok, riskOk: !!j.risk_ok, feedback: String(j.feedback || ''), model: out.model, costUsd: costOf(out.model, out.usage), input: user, output: out.text };
@@ -269,5 +318,5 @@
     }
   }
 
-  RGA.tutor = { MODEL_DEFAULT, MODEL_LIGHT, PRICES, pickModel, costOf, SYSTEM_PROMPT, buildSystemPrompt, describeTests, ruleTutor, guardReply, callClaude, askTutor, generateCode, extractCode, llmScoreExplanation };
+  RGA.tutor = { MODEL_DEFAULT, MODEL_LIGHT, GEMINI_DEFAULT, GEMINI_MODELS, PRICES, pickModel, costOf, providerOf, hasAI, modelFor, callLLM, callGemini, SYSTEM_PROMPT, buildSystemPrompt, describeTests, ruleTutor, guardReply, callClaude, askTutor, generateCode, extractCode, llmScoreExplanation };
 })(globalThis);

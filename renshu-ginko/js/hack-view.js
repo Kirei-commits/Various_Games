@@ -533,7 +533,7 @@
       topics.push({ q: '今のスプリントのこと', a: line ? line[1] : 'スプリント' + sprint.no + 'は「' + sprint.goal + '」がゴールだよね。困ったら声をかけて。' });
     }
     const say = (q, a) => { ui.update(() => { pr.chat[c.id] = [...log, { role: 'user', text: q }, { role: 'char', text: a }].slice(-40); }); ui.render(); };
-    const ai = !!(state.settings.apiKey && !state.settings.tutorStopped);
+    const ai = RGA.tutor.hasAI(state.settings);
     return h('section', { class: 'card chat-panel' },
       h('div', { class: 'row' }, h('span', { class: 'avatar big' }, c.icon), h('div', null, h('h2', null, H.nameOf(c.id, names)), h('p', { class: 'muted small' }, c.role), c.field ? h('p', { class: 'small' }, '相談できること: ' + c.field) : null)),
       bondBlock(ui, c, pr, names),
@@ -542,10 +542,10 @@
         h('div', { class: 'bubble' }, h('p', null, H.fill(m.text, names))))) : h('p', { class: 'muted small' }, '話題を選ぶと会話が始まります。')),
       h('div', { class: 'row wrap', role: 'group', 'aria-label': '話題' }, topics.map((t, i) => h('button', { class: 'btn tiny', id: 'hk-topic-' + i, onclick: () => say(t.q, t.a) }, t.q))),
       ai ? h('div', { class: 'stack' },
-        h('label', { class: 'field' }, h('span', null, '自由に話す（Claude）'),
+        h('label', { class: 'field' }, h('span', null, '自由に話す（' + (RGA.tutor.providerOf(state.settings) === 'gemini' ? 'Gemini' : 'Claude') + '）'),
           h('textarea', { id: 'hk-free', rows: '2', value: chatDraft.text, placeholder: '個人情報や API キーは書かないでください', oninput: (e) => { chatDraft.text = e.target.value; } })),
         h('div', { class: 'row end' }, h('button', { id: 'hk-free-send', class: 'btn primary', disabled: chatDraft.sending, onclick: () => freeChat(ui, c, pr, names, sprint) }, chatDraft.sending ? '返事を待っています…' : '送る')))
-        : h('p', { class: 'muted tiny' }, '設定で Claude の API キーを入れると、選択肢のほかに自由に話せます。'),
+        : h('p', { class: 'muted tiny' }, '設定で Claude か Gemini の API キーを入れると、選択肢のほかに自由に話せます。'),
       log.length ? h('button', { class: 'btn tiny ghost', onclick: () => { ui.update(() => { pr.chat[c.id] = []; }); ui.render(); } }, '会話を消す') : null);
   }
   async function freeChat(ui, c, pr, names, sprint) {
@@ -564,19 +564,19 @@
     chatDraft.sending = true;
     ui.render();
     const env = ui.aiEnv();
-    const model = T.pickModel(state.settings, env.spentUsd);
+
     const messages = [...log.slice(-8).map((m) => ({ role: m.role === 'user' ? 'user' : 'assistant', content: m.text })), { role: 'user', content: text }];
     // 会話は user から始め、同じ役が続かないようにする
     while (messages.length && messages[0].role !== 'user') messages.shift();
     let reply;
     try {
-      const out = await T.callClaude(env.fetchImpl, { apiKey: state.settings.apiKey, model, system: H.personaPrompt(c.id, names, sprint), messages, maxTokens: 500 });
+      const out = await T.callLLM(env.fetchImpl, state.settings, env.spentUsd, { system: H.personaPrompt(c.id, names, sprint), messages, maxTokens: 500 });
       reply = R.limitCodeBlocks(out.text);
       ui.update((s) => { Object.assign(s, RGA.store.addSpend(s, T.costOf(out.model, out.usage), ui.now())); });
       ui.logAi({ unitId: 'hack', kind: 'hack-chat', input: text, output: reply, masking: { blocked: false, labels: [] }, source: 'llm', model: out.model });
     } catch (e) {
       reply = '（つながらなかったみたい。選択肢の話題なら、いつでも話せるよ）';
-      ui.toast('Claude に接続できませんでした（' + e.message + '）', 'warn');
+      ui.toast((RGA.tutor.providerOf(state.settings) === 'gemini' ? 'Gemini' : 'Claude') + ' に接続できませんでした（' + e.message + '）', 'warn');
     }
     chatDraft.sending = false;
     chatDraft.text = '';

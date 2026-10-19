@@ -32,7 +32,9 @@
       const c = H.consultsOf(no)[i];
       if (c && c.who === charId) pts += 2;
     }
-    pts += Math.min(5, ((hp.chat || {})[charId] || []).filter((m) => m.role === 'user').length);
+    // 話した回数（ハッカソンの会話とチャットの個別の部屋。合わせて5点まで）
+    const talked = ((hp.chat || {})[charId] || []).filter((m) => m.role === 'user').length;
+    pts += Math.min(5, talked + (RGA.messenger ? RGA.messenger.sentCount(state.messenger, 'dm-' + charId) : 0));
     if (RGA.work && state.work) {
       for (const h of state.work.history || []) {
         const w = RGA.work.weekOf(h.no);

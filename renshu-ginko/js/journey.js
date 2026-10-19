@@ -71,6 +71,7 @@
     { id: 'hunter-10', icon: '🐞', name: 'バグハンター', how: 'バグハントで10問連続正解', check: (s) => Object.values(((s.challenge || {}).best) || {}).some((n) => n >= 10) },
     { id: 'bond-1', icon: '🤝', name: '打ち解けた', how: 'だれかと絆 Lv1 になる', check: (s) => bondLevels(s).some((lv) => lv >= 1) },
     { id: 'bond-3', icon: '🫶', name: '頼れる仲間', how: '3人と絆 Lv2 になる', check: (s) => bondLevels(s).filter((lv) => lv >= 2).length >= 3 },
+    { id: 'chatter', icon: '💬', name: '話し好き', how: 'チャットで20回話しかける', check: (s) => !!RGA.messenger && RGA.messenger.totalSent(s.messenger) >= 20 },
     { id: 'episodes-10', icon: '📖', name: '物語の聞き手', how: 'エピソードを10話読む', check: (s) => Object.values(((s.hack || {}).episodes) || {}).filter(Boolean).length >= 10 },
   ];
   function bondLevels(s) {

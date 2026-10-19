@@ -167,6 +167,7 @@
 
   function render() {
     const r = route();
+    if (r.name !== 'settings') settingsDraft = null;
     const active = document.activeElement;
     const focusId = active && active.id;
     const sel = active && 'selectionStart' in active ? [active.selectionStart, active.selectionEnd] : null;
@@ -189,6 +190,7 @@
     else if (r.name === 'work') view = window.RGA.workView.view(ui, r.args);
     else if (r.name === 'challenge') view = window.RGA.challengeView.view(ui, r.args);
     else if (r.name === 'report') view = window.RGA.reportView.view(ui);
+    else if (r.name === 'chat') view = window.RGA.chatView.view(ui, r.args);
     else view = viewHome();
     main.replaceChildren(view);
     checkTitles();
@@ -814,7 +816,7 @@
     let llm = null;
     // Q-06: ルール採点に LLM の観点採点を上乗せ（API キーがあり、送信前の検査を通ったときだけ）
     const mask = R.detectSensitive(answer.what + '\n' + answer.risk);
-    if (state.settings.apiKey && !state.settings.tutorStopped) {
+    if (T.hasAI(state.settings)) {
       if (mask.blocked) {
         logAi({ unitId: unit.id, kind: 'gate-score', input: R.redact(answer.what + '\n' + answer.risk), output: '（送信を止めました）', masking: { blocked: true, labels: mask.labels }, source: 'blocked' });
         toast('説明に ' + mask.labels.join('・') + ' らしき内容があるので、AIへの送信を止めました（ルール採点だけで判定します）', 'warn');
@@ -1309,7 +1311,7 @@
     const panel = h('aside', { class: 'tutor card', 'aria-label': 'AIチューター' },
       h('div', { class: 'row between' }, h('h2', null, 'AIチューター'), h('span', { class: 'chip-mini ' + ai }, ai === 'on' ? 'AIオン' : 'AIオフ')),
       h('p', { id: 'tutor-remaining', class: 'small ' + (quota.limited && quota.remaining <= 3 ? 'warn' : 'muted') }, remainingText),
-      h('p', { class: 'muted tiny' }, state.settings.apiKey && !stopped ? 'Claude（' + T.pickModel(state.settings, S.spentThisMonth(state, now())) + '）で応答します' : '練習用のルールベースのチューターで応答します（設定で Claude の API キーを入れると LLM で応答）'),
+      h('p', { class: 'muted tiny' }, T.hasAI(state.settings) ? (T.providerOf(state.settings) === 'gemini' ? 'Gemini' : 'Claude') + '（' + T.modelFor(state.settings, S.spentThisMonth(state, now())) + '）で応答します' : '練習用のルールベースのチューターで応答します（設定で Claude か Gemini の API キーを入れると LLM で応答）'),
       log,
       h('label', { class: 'sr-only', for: 'tutor-input' }, 'チューターへの質問'),
       h('textarea', { id: 'tutor-input', rows: '3', placeholder: stopped ? 'チューターは停止中です' : '例: テストが落ちる理由が分かりません', disabled: stopped || (quota.limited && quota.remaining <= 0), oninput: (e) => { draft.text = e.target.value; }, onkeydown: (e) => { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); sendTutor(unit, enr, step, ai, draft.text); } } }),
@@ -1585,9 +1587,11 @@
   }
 
   // ---------------------------------------------------------------- 設定
+  let settingsDraft = null;
   function viewSettings() {
     const s = state.settings;
-    const draft = { name: state.user.name, apiKey: s.apiKey || '', remember: !!s.rememberKey, model: s.model || T.MODEL_DEFAULT, budget: s.monthlyBudgetUsd, stop: !!s.tutorStopped, sound: s.sound !== false, lang: s.lang === 'ts' ? 'ts' : 'js', names: { ...(s.names || {}) } };
+    // 入力途中の内容は、設定画面にいるあいだ保つ（「使う AI」を切り替えると描き直すため）
+    const draft = settingsDraft || (settingsDraft = { name: state.user.name, provider: T.providerOf(s), geminiKey: s.geminiKey || '', geminiModel: s.geminiModel || T.GEMINI_DEFAULT, apiKey: s.apiKey || '', remember: !!s.rememberKey, model: s.model || T.MODEL_DEFAULT, budget: s.monthlyBudgetUsd, stop: !!s.tutorStopped, sound: s.sound !== false, lang: s.lang === 'ts' ? 'ts' : 'js', names: { ...(s.names || {}) } });
     return h('div', { class: 'page narrow' }, h('h1', null, '設定'),
       h('section', { class: 'card' }, h('h2', null, 'プロフィール'),
         h('label', { class: 'field' }, h('span', null, '表示名'), h('input', { id: 'set-name', type: 'text', maxlength: '20', value: draft.name, oninput: (e) => { draft.name = e.target.value; } })),
@@ -1603,11 +1607,18 @@
           [['js', 'JavaScript（既定）'], ['ts', 'TypeScript（型チェックあり）']].map(([v, l]) => h('option', { value: v, selected: draft.lang === v }, l)))),
         h('p', { class: 'muted small' }, 'TypeScript を選ぶと、「ゼロから」の段階と実践のコードを型チェックしてから動かします（「ゼロから」は strict）。コンパイラ（TypeScript ' + window.RGA.ts.VERSION + '）は初めて使うときに jsDelivr から読み込みます。リポジトリと CI には、型を取り除いた JavaScript が入ります。')),
       h('section', { class: 'card' }, h('h2', null, 'AIチューター（任意）'),
-        h('p', { class: 'muted small' }, 'Claude の API キーを入れると、チューター・AI実装・説明の観点採点が本物の LLM になります。入れなければ、練習用のルールベースで動きます（無料・オフライン）。キーはこのブラウザから Anthropic の API にだけ送られます。'),
+        h('p', { class: 'muted small' }, 'Claude か Gemini の API キーを入れると、チューター・AI実装・説明の観点採点・登場人物との自由な会話が本物の LLM になります。入れなければ、練習用のルールベースで動きます（無料・オフライン）。キーはこのブラウザから、選んだ会社の API（Anthropic または Google）にだけ送られます。'),
+        h('label', { class: 'field' }, h('span', null, '使う AI'), h('select', { id: 'set-provider', onchange: (e) => { draft.provider = e.target.value; render(); } },
+          [['claude', 'Claude（Anthropic）'], ['gemini', 'Gemini（Google）']].map(([v, l]) => h('option', { value: v, selected: draft.provider === v }, l)))),
         h('p', { class: 'note small' }, '組織で使う場合は、API の利用規約とデータの取り扱い（学習に使われない設定か）を事前に確認してください（NFR-07）。業務のキーではなく、練習用に発行したキーを使いましょう。'),
-        h('label', { class: 'field' }, h('span', null, 'Claude API キー'), h('input', { id: 'set-apikey', type: 'password', autocomplete: 'off', value: draft.apiKey, placeholder: 'sk-ant-…', oninput: (e) => { draft.apiKey = e.target.value.trim(); } })),
+        draft.provider === 'gemini' ? h('div', { class: 'stack', id: 'set-gemini' },
+          h('label', { class: 'field' }, h('span', null, 'Gemini API キー（Google AI Studio で発行）'), h('input', { id: 'set-geminikey', type: 'password', autocomplete: 'off', value: draft.geminiKey, placeholder: 'AIza…', oninput: (e) => { draft.geminiKey = e.target.value.trim(); } })),
+          h('label', { class: 'field' }, h('span', null, 'Gemini のモデル'), h('input', { id: 'set-geminimodel', type: 'text', list: 'gemini-models', value: draft.geminiModel, oninput: (e) => { draft.geminiModel = e.target.value.trim(); } }),
+            h('datalist', { id: 'gemini-models' }, T.GEMINI_MODELS.map((m) => h('option', { value: m })))),
+          h('p', { class: 'muted tiny' }, '新しいモデルが出たら、Google AI Studio に表示される名前をそのまま入れてください。月の上限での軽量モデルへの切り替えは Claude だけです（Gemini の利用料は概算に含めます）。')) : null,
+        h('label', { class: 'field', hidden: draft.provider === 'gemini' }, h('span', null, 'Claude API キー'), h('input', { id: 'set-apikey', type: 'password', autocomplete: 'off', value: draft.apiKey, placeholder: 'sk-ant-…', oninput: (e) => { draft.apiKey = e.target.value.trim(); } })),
         h('label', { class: 'check' }, h('input', { id: 'set-remember', type: 'checkbox', checked: draft.remember, onchange: (e) => { draft.remember = e.target.checked; } }), 'この端末に保存する（外すと、タブを閉じたら消えます）'),
-        h('label', { class: 'field' }, h('span', null, 'モデル'), h('select', { id: 'set-model', onchange: (e) => { draft.model = e.target.value; } },
+        h('label', { class: 'field', hidden: draft.provider === 'gemini' }, h('span', null, 'モデル'), h('select', { id: 'set-model', onchange: (e) => { draft.model = e.target.value; } },
           [[T.MODEL_DEFAULT, 'Claude Opus 5.5（既定）'], [T.MODEL_LIGHT, 'Claude Haiku 5.5（軽量）']].map(([v, l]) => h('option', { value: v, selected: draft.model === v }, l)))),
         h('label', { class: 'field inline' }, h('span', null, '月の利用料の上限（超えたら軽量モデルに切り替え）'), h('input', { id: 'set-budget', type: 'number', min: '0', step: '0.5', value: String(draft.budget), oninput: (e) => { draft.budget = Number(e.target.value); } }), h('span', null, 'USD')),
         h('p', { class: 'muted small' }, '今月の利用料（概算）: $' + S.spentThisMonth(state, now()).toFixed(4)),
@@ -1615,8 +1626,9 @@
       h('div', { class: 'row' }, h('button', { id: 'set-save', class: 'btn primary', onclick: () => {
         update((st) => {
           st.user.name = draft.name.trim() || '学習者';
-          st.settings = { ...st.settings, apiKey: draft.apiKey, rememberKey: draft.remember, model: draft.model, monthlyBudgetUsd: draft.budget, tutorStopped: draft.stop, sound: draft.sound, lang: draft.lang, names: Object.fromEntries(Object.entries(draft.names).filter(([, v]) => v)) };
+          st.settings = { ...st.settings, provider: draft.provider, geminiKey: draft.geminiKey, geminiModel: draft.geminiModel || T.GEMINI_DEFAULT, apiKey: draft.apiKey, rememberKey: draft.remember, model: draft.model, monthlyBudgetUsd: draft.budget, tutorStopped: draft.stop, sound: draft.sound, lang: draft.lang, names: Object.fromEntries(Object.entries(draft.names).filter(([, v]) => v)) };
         });
+        settingsDraft = null;
         toast('保存しました', 'ok');
         render();
       } }, '保存')),
@@ -1624,7 +1636,7 @@
         h('p', { class: 'muted small' }, '学習データはこのブラウザの中にだけ保存されています（サーバーには送りません）。バックアップや別の端末への移行は、書き出したファイルを読み込んでください。'),
         h('p', { class: 'small' }, 'メンターに進み具合を見てもらうときは、', h('a', { href: '#/report', id: 'set-report' }, 'メンター用の学習レポート'), 'を書き出して渡せます（会話や振り返りの本文は入りません）。'),
         h('div', { class: 'row wrap' },
-          h('button', { id: 'data-export', class: 'btn', onclick: () => { const { apiKey, ...settings } = state.settings; download('renshu-ginko-data.json', JSON.stringify({ ...state, settings }, null, 2)); } }, 'すべて書き出す（JSON）'),
+          h('button', { id: 'data-export', class: 'btn', onclick: () => { download('renshu-ginko-data.json', JSON.stringify(S.exportable(state), null, 2)); } }, 'すべて書き出す（JSON）'),
           h('label', { class: 'btn', for: 'data-import' }, '書き出したファイルを読み込む'),
           h('input', { id: 'data-import', type: 'file', accept: 'application/json,.json', class: 'sr-only', onchange: (e) => importFile(e.target.files[0]) }),
           h('button', { id: 'data-reset', class: 'btn danger', onclick: () => {

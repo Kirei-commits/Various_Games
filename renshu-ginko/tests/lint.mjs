@@ -15,8 +15,8 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const read = (p) => fs.readFileSync(path.join(ROOT, p), 'utf8');
 const problems = [];
 
-const ORDER = ['core', 'content', 'units-more', 'units-l3', 'runner', 'rules', 'gitsim', 'tutor', 'store', 'ts', 'hackathon', 'hack-sprints-a', 'hack-sprints-b', 'hack-sprints-c', 'hack-consults', 'texts', 'text-js', 'text-react', 'text-java', 'text-python', 'work', 'work-weeks-a', 'work-weeks-b', 'challenge', 'journey', 'bonds', 'bond-episodes', 'moneychat', 'report', 'hack-view', 'text-view', 'work-view', 'challenge-view', 'report-view', 'app'];
-const PURE = ['core', 'content', 'units-more', 'units-l3', 'rules', 'gitsim', 'tutor', 'store', 'hackathon', 'hack-sprints-a', 'hack-sprints-b', 'hack-sprints-c', 'hack-consults', 'texts', 'text-js', 'text-react', 'text-java', 'text-python', 'work', 'work-weeks-a', 'work-weeks-b', 'challenge', 'journey', 'bonds', 'bond-episodes', 'moneychat', 'report'];
+const ORDER = ['core', 'content', 'units-more', 'units-l3', 'runner', 'rules', 'gitsim', 'tutor', 'store', 'ts', 'hackathon', 'hack-sprints-a', 'hack-sprints-b', 'hack-sprints-c', 'hack-consults', 'texts', 'text-js', 'text-react', 'text-java', 'text-python', 'work', 'work-weeks-a', 'work-weeks-b', 'challenge', 'journey', 'bonds', 'bond-episodes', 'moneychat', 'report', 'messenger', 'chat-lines-a', 'chat-lines-b', 'hack-view', 'text-view', 'work-view', 'challenge-view', 'report-view', 'chat-view', 'app'];
+const PURE = ['core', 'content', 'units-more', 'units-l3', 'rules', 'gitsim', 'tutor', 'store', 'hackathon', 'hack-sprints-a', 'hack-sprints-b', 'hack-sprints-c', 'hack-consults', 'texts', 'text-js', 'text-react', 'text-java', 'text-python', 'work', 'work-weeks-a', 'work-weeks-b', 'challenge', 'journey', 'bonds', 'bond-episodes', 'moneychat', 'report', 'messenger', 'chat-lines-a', 'chat-lines-b'];
 
 // 1. 構文
 for (const f of fs.readdirSync(path.join(ROOT, 'js'))) {
@@ -36,7 +36,7 @@ for (const m of html.matchAll(/<(?:script|link|img)\b[^>]*\b(?:src|href)="([^"]+
   if (!m[1].startsWith('data:') && /^[a-z]+:|^\/\//i.test(m[1])) problems.push(`外部ファイルを参照している: ${m[1]}`);
 }
 const csp = (html.match(/http-equiv="Content-Security-Policy" content="([^"]+)"/) || [])[1] || '';
-if (!/connect-src https:\/\/api\.anthropic\.com https:\/\/cdn\.jsdelivr\.net;/.test(csp)) problems.push('CSP の connect-src が Claude API と jsDelivr（TypeScript）だけになっていない');
+if (!/connect-src https:\/\/api\.anthropic\.com https:\/\/generativelanguage\.googleapis\.com https:\/\/cdn\.jsdelivr\.net;/.test(csp)) problems.push('CSP の connect-src が Claude API・Gemini API・jsDelivr（TypeScript）だけになっていない');
 if (!/worker-src blob:/.test(csp)) problems.push('CSP に worker-src blob: が無い（サンドボックスが動かない）');
 
 // 4. 純粋さ
