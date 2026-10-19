@@ -187,6 +187,7 @@
     else if (r.name === 'hack') view = window.RGA.hackView.view(ui, r.args);
     else if (r.name === 'texts') view = window.RGA.textView.view(ui, r.args);
     else if (r.name === 'work') view = window.RGA.workView.view(ui, r.args);
+    else if (r.name === 'challenge') view = window.RGA.challengeView.view(ui, r.args);
     else view = viewHome();
     main.replaceChildren(view);
     if (focusId && $(focusId)) {
@@ -311,6 +312,7 @@
         hackCard(),
         workCard(),
         textsCard(),
+        challengeCard(),
         retryCard(),
         bankPreview()));
   }
@@ -343,6 +345,13 @@
       h('div', { class: 'row wrap' }, TX.COURSES.map((c) => { const st = TX.courseStatus(pr, c); return h('a', { class: 'btn tiny', href: '#/texts/c/' + c.id }, c.icon + ' ' + c.name + ' ' + st.chapters + '/' + st.count + '章'); })),
       h('p', { class: 'small' }, 'コンストラクタも継承も useEffect も、会話と図で「読める」ように。'),
       h('button', { id: 'home-texts', class: 'btn', onclick: () => go('#/texts') }, 'テキストを開く'));
+  }
+  function challengeCard() {
+    const rec = window.RGA.challengeView.recordsOf(state);
+    return h('section', { class: 'card' },
+      h('p', { class: 'eyebrow' }, 'チャレンジ（腕試し）'),
+      h('p', { class: 'small' }, 'バグハントの自己ベスト ' + (rec.best.all || 0) + ' 問連続 ・ 今日の5問は日付で変わります'),
+      h('button', { id: 'home-challenge', class: 'btn', onclick: () => go('#/challenge') }, 'チャレンジする'));
   }
   function retryCard() {
     const list = state.retry || [];
