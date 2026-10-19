@@ -36,7 +36,7 @@ for (const m of html.matchAll(/<(?:script|link|img)\b[^>]*\b(?:src|href)="([^"]+
   if (!m[1].startsWith('data:') && /^[a-z]+:|^\/\//i.test(m[1])) problems.push(`外部ファイルを参照している: ${m[1]}`);
 }
 const csp = (html.match(/http-equiv="Content-Security-Policy" content="([^"]+)"/) || [])[1] || '';
-if (!/connect-src https:\/\/api\.anthropic\.com https:\/\/cdn\.jsdelivr\.net;/.test(csp)) problems.push('CSP の connect-src が Claude API と jsDelivr（TypeScript）だけになっていない');
+if (!/connect-src https:\/\/api\.anthropic\.com https:\/\/generativelanguage\.googleapis\.com https:\/\/cdn\.jsdelivr\.net;/.test(csp)) problems.push('CSP の connect-src が Claude API・Gemini API・jsDelivr（TypeScript）だけになっていない');
 if (!/worker-src blob:/.test(csp)) problems.push('CSP に worker-src blob: が無い（サンドボックスが動かない）');
 
 // 4. 純粋さ

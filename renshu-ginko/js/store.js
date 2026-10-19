@@ -17,6 +17,9 @@
 
   const KEY = 'renshu-ginko-v1';
   const KEY_SECRET = 'renshu-ginko-apikey';
+  const KEY_SECRET_GEMINI = 'renshu-ginko-geminikey';
+  // 秘密（API キー）は settings のこのフィールドに入る。保存・書き出しでは本体から外す
+  const SECRETS = [['apiKey', KEY_SECRET], ['geminiKey', KEY_SECRET_GEMINI]];
   const MAX_SUBMISSIONS = 400;
   const GENESIS = '0'.repeat(64);
 
@@ -33,7 +36,7 @@
       retry: [],
       hack: null,
       titles: {},
-      settings: { model: 'claude-opus-5-5', monthlyBudgetUsd: 3, tutorStopped: false, rememberKey: false, sound: true, lang: 'js', names: {} },
+      settings: { provider: 'claude', model: 'claude-opus-5-5', geminiModel: 'gemini-2.5-flash', monthlyBudgetUsd: 3, tutorStopped: false, rememberKey: false, sound: true, lang: 'js', names: {} },
       spend: { month: '', usd: 0 },
       seen: {},
     };
@@ -59,23 +62,35 @@
         if (parsed && parsed.version === 1) state = { ...state, ...parsed, settings: { ...state.settings, ...parsed.settings } };
       }
     } catch (e) { /* 壊れたデータは無視して最初から */ }
-    let key = '';
-    try { key = (session && session.getItem(KEY_SECRET)) || (local && local.getItem(KEY_SECRET)) || ''; } catch (e) { key = ''; }
-    state.settings.apiKey = key;
+    for (const [field, storageKey] of SECRETS) {
+      let key = '';
+      try { key = (session && session.getItem(storageKey)) || (local && local.getItem(storageKey)) || ''; } catch (e) { key = ''; }
+      state.settings[field] = key;
+    }
     return state;
   }
   function save(state, local, session) {
-    const { apiKey, ...settings } = state.settings;
+    const settings = { ...state.settings };
+    for (const [field] of SECRETS) delete settings[field];
     const data = { ...state, settings };
     try {
       local.setItem(KEY, JSON.stringify(data));
-      if (apiKey && settings.rememberKey) { local.setItem(KEY_SECRET, apiKey); session && session.removeItem(KEY_SECRET); }
-      else if (apiKey) { session && session.setItem(KEY_SECRET, apiKey); local.removeItem(KEY_SECRET); }
-      else { local.removeItem(KEY_SECRET); session && session.removeItem(KEY_SECRET); }
+      for (const [field, storageKey] of SECRETS) {
+        const key = state.settings[field];
+        if (key && settings.rememberKey) { local.setItem(storageKey, key); session && session.removeItem(storageKey); }
+        else if (key) { session && session.setItem(storageKey, key); local.removeItem(storageKey); }
+        else { local.removeItem(storageKey); session && session.removeItem(storageKey); }
+      }
       return true;
     } catch (e) {
       return false;
     }
+  }
+  // 書き出し用: API キーを外した状態
+  function exportable(state) {
+    const settings = { ...state.settings };
+    for (const [field] of SECRETS) delete settings[field];
+    return { ...state, settings };
   }
 
   // ---- 書き出したデータの読み込み（Q-12: 当面はブラウザ保存なので、バックアップと端末の移行に使う） ----
@@ -151,5 +166,5 @@
     return out.length > max ? out.slice(out.length - max) : out;
   }
 
-  RGA.store = { KEY, KEY_SECRET, MAX_SUBMISSIONS, defaultState, importData, newEnrollment, load, save, appendLog, verifyLog, entryHash, addMetric, spentThisMonth, addSpend, pushCapped, monthOf };
+  RGA.store = { KEY, KEY_SECRET, KEY_SECRET_GEMINI, SECRETS, exportable, MAX_SUBMISSIONS, defaultState, importData, newEnrollment, load, save, appendLog, verifyLog, entryHash, addMetric, spentThisMonth, addSpend, pushCapped, monthOf };
 })(globalThis);

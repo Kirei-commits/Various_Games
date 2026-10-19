@@ -405,3 +405,21 @@ test('TypeScript: 「ゼロから」は strict で型チェックし、型エラ
   await expect(page.locator('#ex-results')).toContainText('合格', { timeout: 30_000 });
   expect(served).toBeGreaterThan(5);
 });
+
+test('設定: Gemini を選んでキーを保存すると、チューターが Gemini で応答する表示になり、キーは書き出しに入らない', async ({ page }) => {
+  await onboard(page);
+  await page.click('#nav-settings');
+  await expect(page.locator('#set-gemini')).toHaveCount(0);
+  await page.selectOption('#set-provider', 'gemini');
+  await expect(page.locator('#set-gemini')).toBeVisible();
+  await page.fill('#set-geminikey', 'AIza-test-key-not-real');
+  await page.click('#set-save');
+  await page.waitForFunction(() => !!sessionStorage.getItem('renshu-ginko-geminikey'));
+  const st = await page.evaluate(() => ({ s: window.__RGA_APP.state.settings, main: localStorage.getItem('renshu-ginko-v1') || '', sess: sessionStorage.getItem('renshu-ginko-geminikey') }));
+  expect(st.s.provider).toBe('gemini');
+  expect(st.s.geminiKey).toBe('AIza-test-key-not-real');
+  expect(st.main).not.toContain('AIza-test-key-not-real');
+  expect(st.sess).toContain('AIza-test-key-not-real');
+  await page.goto('/#/unit/L1-01');
+  await expect(page.locator('.tutor')).toContainText('Gemini（gemini-2.5-flash）で応答します');
+});
