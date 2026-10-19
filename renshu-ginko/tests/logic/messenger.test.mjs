@@ -102,27 +102,28 @@ test('保存の形: はじめて開くと相手のひとことが入る。100件
   assert.equal(M.totalSent(undefined), 0);
 });
 
-test('LLM への頼み方: 個別は人物のプロンプト＋会話（user から、同じ役は1つにまとめる）。グループは JSON の配列で頼む', () => {
+test('LLM への頼み方: 雑談の場として頼む（仕事の話を持ち出さない・スプリントの状況は渡さない）。個別は会話を user から、グループは JSON の配列で', () => {
   const st = RGA.store.defaultState();
   const dm = M.roomOf(st, 'dm-mizuno');
   const log = [{ who: 'mizuno', text: 'どうした？' }, { who: 'player', text: 'あの' }, { who: 'player', text: '設計の相談です' }];
-  const req = M.llmRequest(dm, log, names, H.SPRINTS[0]);
+  const req = M.llmRequest(dm, log, names);
   assert.match(req.system, /水野/);
-  assert.match(req.system, /配属先/);
   assert.match(req.system, /LINE/);
+  assert.match(req.system, /仕事の場ではなく/);
+  assert.match(req.system, /自分から持ち出さない/);
+  assert.doesNotMatch(req.system, /スプリント|ハッカソンのチーム（/);
   assert.deepEqual(req.messages, [{ role: 'user', content: 'あの\n設計の相談です' }]);
-  const boss = M.llmRequest(M.roomOf(st, 'dm-shiraishi'), [{ who: 'player', text: 'こんにちは' }, { who: 'shiraishi', text: '{player}くん、どうしたの？' }, { who: 'player', text: '相談が' }], names, null);
+  const boss = M.llmRequest(M.roomOf(st, 'dm-shiraishi'), [{ who: 'player', text: 'こんにちは' }, { who: 'shiraishi', text: '{player}くん、どうしたの？' }, { who: 'player', text: '相談が' }], names);
   assert.equal(boss.messages[1].content, 'テスト新人くん、どうしたの？');
-  assert.doesNotMatch(boss.system, /配属先（スマホ/);
+  assert.match(boss.system, /テスト新人くん」と呼ぶ/);
   const gr = M.roomOf(st, 'g-daily');
-  const greq = M.llmRequest(gr, [{ who: 'kasuga', text: 'お昼どうする？' }, { who: 'player', text: '{kujo}も行く？' }], names, null);
+  const greq = M.llmRequest(gr, [{ who: 'kasuga', text: 'お昼どうする？' }, { who: 'player', text: '{kujo}も行く？' }], names);
   assert.match(greq.system, /JSON の配列/);
   assert.match(greq.system, /- himuro: 氷室 蓮/);
+  assert.match(greq.system, /自分から持ち出さない/);
   assert.match(greq.system, /恋愛やライバル/);
   assert.equal(greq.messages.length, 1);
   assert.match(greq.messages[0].content, /春日 ゆず（kasuga）: お昼どうする？\nテスト新人: 九条 学も行く？/);
-  const withSprint = M.llmRequest(gr, [{ who: 'player', text: 'やあ' }], names, H.SPRINTS[0]);
-  assert.match(withSprint.system, /スプリント1/);
 });
 
 test('グループの返事を読む: 前後の文やコードの囲みがあっても読む。参加者以外・空の発言は捨てる。読めなければ null', () => {
