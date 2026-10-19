@@ -48,3 +48,5 @@ tests/e2e/*.spec.mjs   Playwright（desktop + mobile）
   行番号（defects[].line・bugLine・focus）は code の行に合わせる。採点の基準を表すフィールドは `checks`（`points` は問題のポイント）。
 - lint の純粋さの検査は、テンプレート文字列（問題として見せるコード）の中は見ない。ふつうの文字列の中の `Math.random` などは引っかかる。
 - E2E で保存データ（localStorage）を書き換えても、ページを離れるとき（pagehide）に画面の状態で上書きされる。状態を作るときは `window.__RGA_APP.state` を直接変えて、ハッシュで移動する。
+- 登場人物のペルソナは `PERSONAS.md`（オーナー監修）が正。CAST とせりふはそれに合わせる。ライバル関係や衝突と和解の青春要素は入れない。
+- 関係者の割り込み・技術ユーザーの仕様のひっくり返しは3〜4スプリントに1回だけ（event.interrupt: true。hack.test が間隔を見張る）。ほかの回は PO・ユーザー・チームとのやりとりにする。

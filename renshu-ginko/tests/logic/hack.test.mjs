@@ -144,3 +144,15 @@ test('名前の置き換えと、スクラムマスターの交代', () => {
   const sys = H.personaPrompt('shiraishi', { shiraishi: '白石さん', player: 'ミナト' }, H.SPRINTS[0]);
   assert.ok(sys.includes('白石さん') && sys.includes('ミナト') && sys.includes('スプリント1'));
 });
+
+test('関係者の割り込み・仕様のひっくり返しは3〜4スプリントに1回（それ以外の回は、PO・ユーザー・チームとのやりとり）', () => {
+  const stake = new Set(H.CAST.filter((c) => c.group === 'stake').map((c) => c.id));
+  const marked = H.SPRINTS.filter((s) => s.event.interrupt).map((s) => s.no);
+  for (const s of H.SPRINTS) if (stake.has(s.event.from)) assert.ok(s.event.interrupt, 'スプリント' + s.no + ' の関係者の割り込みに interrupt: true がない');
+  assert.ok(marked.length && marked[0] <= 4, '最初の割り込みは4スプリント目まで');
+  for (let i = 1; i < marked.length; i++) {
+    const gap = marked[i] - marked[i - 1];
+    assert.ok(gap >= 3 && gap <= 4, 'スプリント' + marked[i - 1] + ' → ' + marked[i] + ' の間隔が ' + gap);
+  }
+  assert.ok(H.TOTAL_SPRINTS - marked[marked.length - 1] <= 4);
+});

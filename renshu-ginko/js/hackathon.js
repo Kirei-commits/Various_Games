@@ -10,7 +10,8 @@
  *   conflict{ file, context, conflict, options: [解決後のコード], answer } … コンフリクトの解決
  *   predict { code, q, choices, answer }                                 … 出力・動きの予想
  *   comment { file, code, focus: [行], prompt, checks: [{ label, any }], min, sample } … レビューコメントを書く
- *   talk    { from, text, options: [{ text, best, reply: [[話し手, せりふ]], note }] } … 関係者の割り込みへの対応
+ *   talk    { from, text, options: [{ text, best, reply: [[話し手, せりふ]], note }], interrupt? } … 関係者・ユーザーとのやりとり
+ *           interrupt: true は関係者の割り込みや仕様のひっくり返し（3〜4スプリントに1回だけ）
  *
  * スプリント { no, title, goal, knowledge: [], briefing: [[話し手, せりふ]], problems: [], event: talk, retro: [[話し手, せりふ]] }
  * せりふの中の {player} {madoka} などは、設定で変えられる名前に置き換える。
@@ -24,7 +25,7 @@
 
   // ---- 登場人物（名前は仮。設定で変えられる。ペルソナは学習者の回答で詰めていく） ----
   const CAST = [
-    { id: 'player', name: 'あなた', icon: '🧑‍💻', group: 'team', role: '新卒1年目（研修中）', persona: '主人公。新卒1年目で研修中。書くのはまだ苦手でも、読んでレビューする力を伸ばしている。' },
+    { id: 'player', name: 'あなた', icon: '🧑‍💻', group: 'team', role: '新卒1年目（研修中・院卒）', persona: '主人公。新卒1年目で研修中。大学院を出ているので同期より少し年上。真面目さとゆるさが同居していて、やるときはやるが肩の力は抜けている。積極的で、分からないことにも自分から手を挙げる。書くのはまだ苦手でも、読んでレビューする力を伸ばしている。' },
     { id: 'madoka', name: '早瀬 まどか', icon: '👩‍💼', group: 'team', role: '同期・まとめ役', persona: '同期。段取りとマネジメントが得意で、タスクの抜け漏れにすぐ気づく。話し方は落ち着いていて的確。', topics: [
       { q: 'タスクの切り方のコツは？', a: '「1日で終わって、終わったと言える」大きさにするの。終わりが見えないタスクは、だいたい2つ以上の仕事が混ざってるよ。' },
       { q: 'レビューで気をつけていることは？', a: 'PRの説明を先に読む。何を変えたかったのかが分からないまま差分を見ると、好みの指摘ばかりになっちゃうから。' },
