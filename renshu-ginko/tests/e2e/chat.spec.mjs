@@ -93,3 +93,27 @@ test('チャット: 名前の横に所属と好感度が出て（話しても消
   await page.click('#chat-members summary');
   await expect(page.locator('#chat-members')).toContainText('瀬戸 海斗');
 });
+
+test('チャット: AI の返事が読めないときは、ルールのせりふで埋めずに知らせ、「返事をもらい直す」で取り直せる', async ({ page }) => {
+  let good = false;
+  let posts = 0;
+  await page.route('https://generativelanguage.googleapis.com/**', (route) => {
+    if (route.request().method() === 'GET') return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ models: [{ name: 'models/gemini-3.8-flash', supportedGenerationMethods: ['generateContent'] }] }) });
+    posts += 1;
+    const text = good ? '[{"who":"hikari","text":"行きたい！"}]' : 'ごめん、うまく言えない';
+    route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ candidates: [{ content: { parts: [{ text }] } }] }) });
+  });
+  await onboard(page);
+  await page.evaluate(() => { Object.assign(window.__RGA_APP.state.settings, { provider: 'gemini', geminiKey: 'AIza-test' }); });
+  await page.goto('/#/chat/g-team');
+  await expect(page.locator('#chat-log .bubble-row')).toHaveCount(2);
+  await page.fill('#chat-input', 'エルレのチケット3枚余ってる');
+  await page.click('#chat-send');
+  await expect(page.locator('#chat-failed')).toBeVisible();
+  expect(posts).toBe(2); // 1回だけやり直した
+  await expect(page.locator('#chat-log .bubble-row')).toHaveCount(3); // 自分の発言だけ（ルールのせりふは入らない）
+  good = true;
+  await page.click('#chat-retry');
+  await expect(page.locator('#chat-log')).toContainText('行きたい！');
+  await expect(page.locator('#chat-failed')).toHaveCount(0);
+});

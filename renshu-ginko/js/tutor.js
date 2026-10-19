@@ -198,11 +198,16 @@
   }
 
   // ---- Gemini API（ブラウザから直接。キーは学習者自身のもの） ----
-  async function callGemini(fetchImpl, { apiKey, model, system, messages, maxTokens }) {
+  // 新しい Gemini は答える前に「考える」分も出力の上限に数えるので、上限は多めにとる（少ないと答えが途中で切れた）。
+  // json: true なら JSON だけを返すよう頼む（グループチャットの返事）
+  const GEMINI_MIN_OUTPUT = 4096;
+  async function callGemini(fetchImpl, { apiKey, model, system, messages, maxTokens, json }) {
+    const generationConfig = { maxOutputTokens: Math.max(GEMINI_MIN_OUTPUT, maxTokens || 1024) };
+    if (json) generationConfig.responseMimeType = 'application/json';
     const body = {
       systemInstruction: { parts: [{ text: system || '' }] },
       contents: messages.map((m) => ({ role: m.role === 'assistant' ? 'model' : 'user', parts: [{ text: String(m.content) }] })),
-      generationConfig: { maxOutputTokens: maxTokens || 1024 },
+      generationConfig,
     };
     const url = 'https://generativelanguage.googleapis.com/v1beta/models/' + encodeURIComponent(model) + ':generateContent';
     const res = await fetchImpl(url, { method: 'POST', headers: { 'content-type': 'application/json', 'x-goog-api-key': apiKey }, body: JSON.stringify(body) });
@@ -215,7 +220,9 @@
     }
     const cand = (data.candidates || [])[0];
     if (!cand || cand.finishReason === 'SAFETY' || (data.promptFeedback && data.promptFeedback.blockReason)) throw new Error('応答が断られました');
-    const text = ((cand.content && cand.content.parts) || []).map((part) => part.text || '').join('');
+    // 考えた過程（thought）は答えに混ぜない
+    const text = ((cand.content && cand.content.parts) || []).filter((part) => !part.thought).map((part) => part.text || '').join('');
+    if (!text.trim()) throw new Error(cand.finishReason === 'MAX_TOKENS' ? '答えが長すぎて途中で切れました' : '答えが空でした');
     const u = data.usageMetadata || {};
     return { text, usage: { input_tokens: u.promptTokenCount || 0, output_tokens: u.candidatesTokenCount || 0 }, model: model };
   }
