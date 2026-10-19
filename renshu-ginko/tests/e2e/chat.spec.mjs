@@ -52,3 +52,24 @@ test('チャット: Gemini のキーがあると、グループの返事を JSON
   await page.goto('/#/log');
   await expect(page.locator('main')).toContainText('行こう、ちょうど腹ぺこ');
 });
+
+test('チャット: 部屋ごと・すべての会話を消せる（消すと最初のひとことからやり直し。ほかの記録は残る）', async ({ page }) => {
+  page.on('dialog', (d) => d.accept());
+  await onboard(page);
+  await page.goto('/#/chat/dm-kujo');
+  await expect(page.locator('#chat-log .bubble-row')).toHaveCount(1);
+  await page.click('#chat-quick-0');
+  await expect(page.locator('#chat-log .bubble-row')).toHaveCount(3);
+  await page.click('#chat-clear');
+  await expect(page.locator('#chat-log .bubble-row')).toHaveCount(1);
+  await page.click('#chat-quick-1');
+  await expect(page.locator('#chat-log .bubble-row')).toHaveCount(3);
+  await page.goto('/#/chat/g-team');
+  await expect(page.locator('#chat-log .bubble-row')).toHaveCount(2);
+  await page.goto('/#/chat');
+  await page.click('#chat-reset-all');
+  await expect(page.locator('#chat-reset-all')).toBeDisabled();
+  const st = await page.evaluate(() => ({ rooms: window.__RGA_APP.state.messenger.rooms, user: window.__RGA_APP.state.user.name }));
+  expect(st.rooms).toEqual({});
+  expect(st.user).toBe('テスト新人');
+});

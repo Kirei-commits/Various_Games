@@ -135,11 +135,31 @@
   }
 
   // ---- LLM への頼み方 ----
-  const CHAT_STYLE = 'ここはスマホのメッセージアプリ（LINE のようなチャット）での雑談。返事は1〜3文の短い話し言葉で。見出しや箇条書き、コードは使わない。';
-  function llmRequest(room, log, names, sprint) {
+  // チャットは仕事の場ではなく、ただの雑談の場。ハッカソンの自由チャット（hack.personaPrompt）とは別の頼み方にして、
+  // スプリントの状況は渡さない（渡すと、どの人物も仕事の話に引っぱられた）
+  const CHAT_STYLE = [
+    'ここはスマホのメッセージアプリ（LINE のようなチャット）。仕事の場ではなく、仲のいい人どうしのふだんの雑談。',
+    '部署・得意分野・仕事ぶりは人物の背景として知っておくだけ。相手が仕事・研修・技術の話を振らない限り、それらの話題は自分から持ち出さない（ハッカソン・要件・レビュー・コードの話に戻さない）。',
+    'ごはん・休日・趣味・最近あったこと・ちょっとした冗談など、相手の話題にそのまま乗る。相手の言葉の意味が分からなければ、推測して乗るか、軽く聞き返す。',
+    '返事は1〜3文の短い話し言葉。見出し・箇条書き・コードは使わない。キャラクターの持ちネタは、たまに出す程度にして毎回は言わない。',
+  ].join('\n');
+  const RULES = '守ること: 恋愛やライバル関係の話にしない。実在の人物・企業・顧客情報には触れない。パスワードや API キーなどの秘密は聞かない・言わない。投資や税金の具体的な助言はしない。';
+  function playerLine(names) {
+    return '話し相手は' + H.nameOf('player', names) + '（新卒1年目。情報系の大学院を出ていて同期より少し年上。一人称は俺。真面目さとゆるさが同居していて、積極的）。上司は「' + H.nameOf('player', names) + 'くん」と呼ぶ。';
+  }
+  function personOf(id, names) {
+    const c = H.CAST_BY_ID[id];
+    return H.nameOf(id, names) + '（' + c.role + '）。' + H.fill(c.persona, names);
+  }
+  function llmRequest(room, log, names) {
     if (room.kind === 'dm') {
-      const c = H.CAST_BY_ID[room.char];
-      const system = [H.personaPrompt(room.char, names, sprint), c.group === 'work' ? 'あなたは主人公の配属先（スマホの銀行アプリの開発チーム）の人。' : '', CHAT_STYLE].filter(Boolean).join('\n');
+      const system = [
+        'あなたは研修用の学習アプリ「練習銀行アカデミー」に登場する架空の人物として、主人公とチャットで雑談します。',
+        'あなた: ' + personOf(room.char, names),
+        playerLine(names),
+        CHAT_STYLE,
+        RULES,
+      ].join('\n');
       const messages = [];
       for (const m of log.slice(-12)) {
         const role = m.who === 'player' ? 'user' : 'assistant';
@@ -151,20 +171,15 @@
       while (messages.length && messages[0].role !== 'user') messages.shift();
       return { system, messages, maxTokens: 400 };
     }
-    const people = room.members.map((id) => {
-      const c = H.CAST_BY_ID[id];
-      return '- ' + id + ': ' + H.nameOf(id, names) + '（' + c.role + '）。' + H.fill(c.persona, names);
-    }).join('\n');
     const system = [
       'あなたは研修用の学習アプリ「練習銀行アカデミー」のグループチャット「' + room.name + '」で、次の架空の人物たちを演じ分けます。',
-      people,
-      '話し相手は' + H.nameOf('player', names) + '（新卒1年目・情報系の院卒で同期より少し年上・一人称は俺）。上司は「くん」付けで呼ぶ。',
-      sprint ? '今はハッカソンのスプリント' + sprint.no + '「' + sprint.title + '」のころ。' : '',
+      room.members.map((id) => '- ' + id + ': ' + personOf(id, names)).join('\n'),
+      playerLine(names),
       CHAT_STYLE,
-      'これまでの会話を読み、' + H.nameOf('player', names) + 'の最後の発言に、参加者のうち話の流れに合う1〜3人が返事をする。名前を呼ばれた人は必ず返事をする。',
+      'これまでの会話を読み、' + H.nameOf('player', names) + 'の最後の発言に、参加者のうち話の流れに合う1〜3人が返事をする。名前を呼ばれた人は必ず返事をする。参加者どうしで軽くつっこみ合うのはよいが、話の中心は' + H.nameOf('player', names) + 'の話題にする。',
       '出力は JSON の配列だけにする。形: [{"who": "参加者の id", "text": "発言"}]',
-      '守ること: 恋愛やライバル関係の話にしない。実在の人物・企業・顧客情報には触れない。パスワードや API キーなどの秘密は聞かない・言わない。投資や税金の具体的な助言はしない。',
-    ].filter(Boolean).join('\n');
+      RULES,
+    ].join('\n');
     const transcript = log.slice(-16).map((m) => (m.who === 'player' ? H.nameOf('player', names) : H.nameOf(m.who, names) + '（' + m.who + '）') + ': ' + H.fill(m.text, names)).join('\n');
     return { system, messages: [{ role: 'user', content: 'これまでの会話:\n' + transcript }], maxTokens: 700 };
   }

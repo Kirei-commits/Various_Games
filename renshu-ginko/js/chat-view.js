@@ -44,7 +44,15 @@
       h('h1', null, 'チャット'),
       h('p', { class: 'muted' }, '同期や先輩、チームの人たちと、ただ話すための場所です。' + (RGA.tutor.hasAI(state.settings) ? '返事は設定の AI（' + providerName(state) + '）が、その人になりきって書きます。' : '返事は一人ひとりのせりふから選ばれます。設定で Claude か Gemini の API キーを入れると、自由な返事になります。')),
       h('section', { class: 'card' }, h('h2', null, 'グループ'), h('ul', { class: 'room-list' }, rooms.filter((r) => r.kind === 'group').map(item))),
-      h('section', { class: 'card' }, h('h2', null, '個別'), h('ul', { class: 'room-list' }, rooms.filter((r) => r.kind === 'dm').map(item))));
+      h('section', { class: 'card' }, h('h2', null, '個別'), h('ul', { class: 'room-list' }, rooms.filter((r) => r.kind === 'dm').map(item))),
+      h('section', { class: 'card' }, h('h2', null, 'リセット'),
+        h('p', { class: 'muted small' }, '会話を消すと、相手（AI）もそれまでの会話を覚えていない状態に戻ります。部屋ごとに消すときは、その部屋の下にある「この部屋の会話を消す」を使ってください。ほかの学習の記録は消えません。'),
+        h('button', { class: 'btn danger', id: 'chat-reset-all', disabled: !Object.values(mp.rooms || {}).some((l) => l.length), onclick: () => {
+          if (!window.confirm('すべての部屋の会話を消しますか？（元に戻せません）')) return;
+          ui.update(() => { state.messenger = M.empty(); });
+          ui.toast('チャットの会話をすべて消しました', 'ok');
+          ui.render();
+        } }, 'チャットの会話をすべて消す')));
   }
   const providerName = (state) => (RGA.tutor.providerOf(state.settings) === 'gemini' ? 'Gemini' : 'Claude');
 
@@ -79,7 +87,11 @@
         h('div', { class: 'row between' },
           h('span', { class: 'muted tiny' }, ai ? providerName(state) + ' が返事をします（Ctrl+Enter でも送れます）' : 'ルールの返事です（設定で API キーを入れると自由な返事に）'),
           h('button', { class: 'btn primary', id: 'chat-send', disabled: busy, onclick: () => send(ui, room, drafts[room.id] || '') }, busy ? '返事を待っています…' : '送る')),
-        log.length > 2 ? h('button', { class: 'btn tiny ghost', id: 'chat-clear', onclick: () => { ui.update(() => { state.messenger = { ...messengerOf(ui), rooms: { ...messengerOf(ui).rooms, [room.id]: [] } }; }); ui.render(); } }, '会話を消す') : null));
+        log.length > 1 ? h('button', { class: 'btn tiny ghost', id: 'chat-clear', disabled: busy, onclick: () => {
+          if (!window.confirm('この部屋の会話を消して、最初からにしますか？（相手もこれまでの会話を覚えていない状態に戻ります）')) return;
+          ui.update(() => { state.messenger = { ...messengerOf(ui), rooms: { ...messengerOf(ui).rooms, [room.id]: [] } }; });
+          ui.render();
+        } }, 'この部屋の会話を消す') : null));
   }
 
   async function send(ui, room, raw) {
@@ -103,10 +115,8 @@
     let replies = null;
     if (T.hasAI(state.settings)) {
       const env = ui.aiEnv();
-      const hp = state.hack || H.emptyProgress();
-      const sprint = H.SPRINTS.find((s) => s.no === H.unlockedUpTo(hp));
       try {
-        const out = await T.callLLM(env.fetchImpl, state.settings, env.spentUsd, M.llmRequest(room, M.logOf(state.messenger, room.id), names, sprint));
+        const out = await T.callLLM(env.fetchImpl, state.settings, env.spentUsd, M.llmRequest(room, M.logOf(state.messenger, room.id), names));
         ui.update((s) => { Object.assign(s, RGA.store.addSpend(s, T.costOf(out.model, out.usage), ui.now())); });
         replies = room.kind === 'dm' ? [{ who: room.char, text: R.limitCodeBlocks(out.text).trim() }] : M.parseGroupReply(out.text, room.members);
         ui.logAi({ unitId: 'chat', kind: 'chat', input: text, output: replies ? replies.map((m) => m.who + ': ' + m.text).join('\n') : out.text, masking: { blocked: false, labels: [] }, source: 'llm', model: out.model });
