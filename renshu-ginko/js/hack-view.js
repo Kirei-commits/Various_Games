@@ -576,7 +576,7 @@
       ui.logAi({ unitId: 'hack', kind: 'hack-chat', input: text, output: reply, masking: { blocked: false, labels: [] }, source: 'llm', model: out.model });
     } catch (e) {
       reply = '（つながらなかったみたい。選択肢の話題なら、いつでも話せるよ）';
-      ui.toast('Claude に接続できませんでした（' + e.message + '）', 'warn');
+      ui.toast((RGA.tutor.providerOf(state.settings) === 'gemini' ? 'Gemini' : 'Claude') + ' に接続できませんでした（' + e.message + '）', 'warn');
     }
     chatDraft.sending = false;
     chatDraft.text = '';

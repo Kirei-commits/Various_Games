@@ -33,6 +33,9 @@ js/bond-episodes.js 16人×2話のエピソード（データだけ。恋愛・�
 js/moneychat.js 作っているアプリのデモの中身（スプリント → 機能、直す前のバグと直した後の動き。返答はルール）（純粋）
 js/report.js   メンター用の学習レポート（進み具合の数と状態だけ。会話・本文・鍵は入れない。テストあり）（純粋）
 js/report-view.js レポートの画面（#/report）。ダッシュボードの「すべてのモードの記録」も同じ表示
+js/messenger.js チャット（個別・グループ）の部屋・発言の種類・ルールの返事（ハッシュで決まる）・LLM への頼み方（グループは JSON の配列）（純粋）
+js/chat-lines-a/b.js 一人ひとりのチャットのせりふ（データだけ。発言の種類ごと。messenger.test が全員そろっているか見張る）
+js/chat-view.js チャットの画面（#/chat・#/chat/<部屋>）
 js/hack-view.js ハッカソンの画面（#/hack…）。app.js が渡す ui（h・update・render・state() など）で描く
 js/app.js      画面（S-01〜S-08）。ブラウザ専用
 tests/lint.mjs         構文・読み込み順・外部参照・CSP・純粋さ・簡易 SAST・id の実在
@@ -75,3 +78,5 @@ tests/e2e/*.spec.mjs   Playwright（desktop + mobile）
 - lint の簡易 SAST は文字列とコメントを除いたコードだけを見る。new Function は runner.js だけに許している。
 - API キーは store.SECRETS（Claude の apiKey・Gemini の geminiKey）に並べ、主の保存先（localStorage の本体）には書かない。書き出しは store.exportable を通す。新しい鍵を足すときも SECRETS に足す（gemini.test が確かめる）。
 - LLM を呼ぶ画面は tutor.hasAI / modelFor / callLLM を使う（会社ごとの分岐を画面に書かない）。CSP の connect-src は Anthropic と Google の API だけ（lint が確かめる）。
+- チャットに話せる人を足したら、chat-lines-a/b.js に全部の発言の種類（open〜default）のせりふを足す（messenger.test が確かめる）。上司は「{player}くん」。グループの顔ぶれは messenger.GROUPS。
+- チャットの個別の部屋で話した回数も絆に入る（ハッカソンの会話と合わせて5点まで）。会話の本文はレポートに入れない。

@@ -190,6 +190,7 @@
     else if (r.name === 'work') view = window.RGA.workView.view(ui, r.args);
     else if (r.name === 'challenge') view = window.RGA.challengeView.view(ui, r.args);
     else if (r.name === 'report') view = window.RGA.reportView.view(ui);
+    else if (r.name === 'chat') view = window.RGA.chatView.view(ui, r.args);
     else view = viewHome();
     main.replaceChildren(view);
     checkTitles();
