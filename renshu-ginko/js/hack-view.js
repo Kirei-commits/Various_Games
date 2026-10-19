@@ -59,6 +59,21 @@
   function langTag(ui, p) {
     return ui.h('span', { class: 'tag lang-' + p.lang }, H.LANGS[p.lang] || p.lang);
   }
+  // 分からないことを聞きに行く（ハッカソンの外の同期・友人・先輩）。押すと会話が開く
+  function consultBlock(ui, sprint, pr, names, idp) {
+    const list = H.consultsOf(sprint.no);
+    if (!list.length) return null;
+    return ui.h('div', { class: 'consults stack' }, list.map((c, i) => {
+      const key = sprint.no + '-' + i;
+      const who = H.CAST_BY_ID[c.who];
+      const open = pr.consulted[key];
+      return ui.h('div', { class: 'consult' },
+        ui.h('button', { class: 'btn consult-btn' + (open ? ' primary' : ''), id: (idp || 'hk-consult-') + i, 'aria-expanded': open ? 'true' : 'false', onclick: () => { ui.update(() => { pr.consulted[key] = !open; }); ui.render(); } },
+          who.icon + ' ' + H.nameOf(c.who, names) + 'に聞く: ' + c.topic),
+        open ? talkLines(ui, [['player', c.q], ...c.lines], names, 'consult-talk') : null);
+    }));
+  }
+
   const TYPE_NAME = { review: '同期のコードをレビュー', fix: '自分のコードを直す', conflict: 'コンフリクトを解く', predict: '動きを読む', comment: 'レビューコメントを書く', talk: '関係者の割り込み' };
 
   // ---------------------------------------------------------------- ハッカソンのホーム
@@ -97,6 +112,7 @@
           ui.h('p', { class: 'eyebrow' }, 'チーム'),
           ui.h('ul', { class: 'cast-mini' }, H.CAST.filter((c) => c.group === 'team').map((c) => ui.h('li', null, c.icon + ' ' + H.nameOf(c.id, names), ui.h('small', { class: 'muted' }, ' ' + c.role)))),
           ui.h('a', { class: 'btn', id: 'hk-team', href: '#/hack/team' }, 'チームと話す'))),
+      smallTalkCard(ui, upTo, names),
       ui.h('section', { class: 'card' }, ui.h('h2', null, 'スプリント'),
         ui.h('ol', { class: 'sprint-grid' }, H.SPRINTS.map((s) => {
           const st = H.sprintStatus(pr, s);
@@ -108,6 +124,13 @@
         H.SPRINTS.length < H.TOTAL_SPRINTS ? ui.h('p', { class: 'muted small' }, 'スプリント' + (H.SPRINTS.length + 1) + '以降は準備中です。') : null),
       retry.length ? ui.h('section', { class: 'card', id: 'hk-retry' }, ui.h('h2', null, '答えを見た問題（もう一度挑戦）'),
         ui.h('ul', null, retry.map((r) => ui.h('li', null, ui.h('a', { href: r.href }, r.title))))) : null);
+  }
+
+  // 毎日しゃべる同期との雑談（物語には直接かかわらない）
+  function smallTalkCard(ui, no, names) {
+    const t = H.smallTalkOf(no);
+    if (!t) return null;
+    return ui.h('section', { class: 'card', id: 'hk-smalltalk' }, ui.h('h2', null, '☕ 今日の雑談'), talkLines(ui, t.lines, names));
   }
 
   // ---------------------------------------------------------------- スプリント
@@ -135,6 +158,9 @@
       ui.h('section', { class: 'card' }, ui.h('h2', null, 'スプリントプランニング'),
         talkLines(ui, s.briefing, names),
         !briefed ? ui.h('div', { class: 'row end' }, ui.h('button', { id: 'hk-start', class: 'btn primary', onclick: () => { ui.update(() => { pr.briefed[s.no] = true; }); ui.render(); } }, 'スプリントを始める')) : null),
+      H.consultsOf(s.no).length ? ui.h('section', { class: 'card', id: 'hk-consults' }, ui.h('h2', null, '🤔 分からないことは聞きに行こう'),
+        ui.h('p', { class: 'muted small' }, 'ハッカソンの外の同期や先輩に、この章の知識を聞けます（何度でも・記録には影響しません）。'),
+        consultBlock(ui, s, pr, names)) : null,
       briefed ? ui.h('section', { class: 'card' }, ui.h('h2', null, 'スプリントボード'),
         ui.h('p', { class: 'muted small' }, st.points + ' / ' + st.total + ' pt'),
         ui.h('div', { class: 'board' },
@@ -184,7 +210,8 @@
       ui.h('div', { class: 'row end' },
         nextP ? ui.h('button', { id: 'hk-next', class: 'btn primary', onclick: () => ui.go('#/hack/p/' + nextP.id) }, '次のタスクへ')
           : ui.h('button', { id: 'hk-to-sprint', class: 'btn primary', onclick: () => ui.go('#/hack/s/' + sprint.no) }, 'スプリントボードへ'))) : null;
-    return ui.h('div', { class: 'page' }, head, ui.h('section', { class: 'card exercise' }, body, controls, hintList, feedback), after);
+    const consult = !done && H.consultsOf(sprint.no).length ? ui.h('details', { class: 'consult-inline', id: 'hk-consult-box' }, ui.h('summary', null, '🤔 分からないときは聞きに行く'), consultBlock(ui, sprint, pr, names, 'hk-pconsult-')) : null;
+    return ui.h('div', { class: 'page' }, head, ui.h('section', { class: 'card exercise' }, body, controls, hintList, consult, feedback), after);
   }
 
   function problemWidget(ui, p, w, names, done, refresh) {
@@ -335,7 +362,7 @@
     const state = ui.state();
     const pr = progressOf(state);
     const names = namesOf(state);
-    const groups = [['team', 'チーム（同期）'], ['po', 'プロダクトオーナー'], ['user', 'ユーザー'], ['boss', '上司'], ['stake', '関係者']];
+    const groups = [['team', 'チーム（同期）'], ['po', 'プロダクトオーナー'], ['user', 'ユーザー'], ['boss', '上司'], ['friend', '同期（ほかの部署・チーム）'], ['outside', '友人（他社のBP）'], ['senpai', '先輩'], ['stake', '関係者']];
     const c = id && H.CAST_BY_ID[id] && id !== 'player' ? H.CAST_BY_ID[id] : null;
     const castBtn = (x) => ui.h('li', null, ui.h('a', { class: 'cast-btn' + (c && c.id === x.id ? ' sel' : ''), id: 'hk-talk-' + x.id, href: '#/hack/team/' + x.id },
       ui.h('span', { class: 'avatar' }, x.icon),
@@ -362,7 +389,7 @@
     const say = (q, a) => { ui.update(() => { pr.chat[c.id] = [...log, { role: 'user', text: q }, { role: 'char', text: a }].slice(-40); }); ui.render(); };
     const ai = !!(state.settings.apiKey && !state.settings.tutorStopped);
     return h('section', { class: 'card chat-panel' },
-      h('div', { class: 'row' }, h('span', { class: 'avatar big' }, c.icon), h('div', null, h('h2', null, H.nameOf(c.id, names)), h('p', { class: 'muted small' }, c.role))),
+      h('div', { class: 'row' }, h('span', { class: 'avatar big' }, c.icon), h('div', null, h('h2', null, H.nameOf(c.id, names)), h('p', { class: 'muted small' }, c.role), c.field ? h('p', { class: 'small' }, '相談できること: ' + c.field) : null)),
       h('div', { class: 'talk', id: 'hk-chat-log', 'aria-live': 'polite' }, log.length ? log.map((m) => h('div', { class: 'bubble-row' + (m.role === 'user' ? ' me' : '') },
         h('span', { class: 'avatar' }, m.role === 'user' ? '🧑‍💻' : c.icon),
         h('div', { class: 'bubble' }, h('p', null, H.fill(m.text, names))))) : h('p', { class: 'muted small' }, '話題を選ぶと会話が始まります。')),

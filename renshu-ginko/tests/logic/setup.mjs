@@ -12,5 +12,6 @@ import '../../js/hackathon.js';
 import '../../js/hack-sprints-a.js';
 import '../../js/hack-sprints-b.js';
 import '../../js/hack-sprints-c.js';
+import '../../js/hack-consults.js';
 
 export const RGA = globalThis.RGA;

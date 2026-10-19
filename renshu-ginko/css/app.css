@@ -472,3 +472,8 @@ a.sprint-btn:hover { border-color: var(--accent); }
 fieldset.quiz { min-width: 0; }
 .exercise pre.code { max-width: 100%; overflow-x: auto; }
 @media (max-width: 760px) { .team-grid .chat-panel { order: -1; } }
+.consults { gap: 8px; }
+.consult-btn { justify-content: flex-start; text-align: left; white-space: normal; }
+.consult-talk .bubble { background: var(--on-bg); }
+.consult-inline { margin: 8px 0; }
+.consult-inline summary { cursor: pointer; font-weight: 700; color: var(--accent); }

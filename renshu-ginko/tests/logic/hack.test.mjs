@@ -156,3 +156,27 @@ test('関係者の割り込み・仕様のひっくり返しは3〜4スプリン
   }
   assert.ok(H.TOTAL_SPRINTS - marked[marked.length - 1] <= 4);
 });
+
+test('分からないことを聞きに行く相手は、ハッカソンの外の同期・友人・先輩。どのスプリントにも1つ以上ある', () => {
+  const outsiders = new Set(H.CAST.filter((c) => ['friend', 'outside', 'senpai'].includes(c.group)).map((c) => c.id));
+  for (const s of H.SPRINTS) assert.ok(H.consultsOf(s.no).length >= 1, 'スプリント' + s.no + ' に相談がない');
+  for (const c of H.CONSULTS) {
+    assert.ok(H.SPRINTS.some((s) => s.no === c.no), '相談のスプリント ' + c.no);
+    assert.ok(outsiders.has(c.who), '相談の相手 ' + c.who);
+    assert.ok(c.topic && c.q && c.lines.length >= 2, 'スプリント' + c.no + ' の相談');
+    for (const [who, text] of c.lines) assert.ok(H.CAST_BY_ID[who] && text, 'スプリント' + c.no + ' 話し手 ' + who);
+    for (const t of [c.q, ...c.lines.map((l) => l[1])]) for (const m of t.matchAll(/\{(\w+)\}/g)) assert.ok(H.CAST_BY_ID[m[1]], '不明な名前 {' + m[1] + '}');
+  }
+});
+
+test('毎日の雑談: どのスプリントにもあり、毎日しゃべる同期が出てくる', () => {
+  const daily = new Set(H.CAST.filter((c) => c.daily).map((c) => c.id));
+  assert.deepEqual([...daily].sort(), ['himuro', 'kasuga', 'kujo', 'onizuka']);
+  for (const s of H.SPRINTS) {
+    const t = H.smallTalkOf(s.no);
+    assert.ok(t && t.lines.length >= 2, 'スプリント' + s.no + ' に雑談がない');
+    assert.ok(t.lines.some(([who]) => daily.has(who)), 'スプリント' + s.no + ' の雑談に毎日しゃべる同期がいない');
+    for (const [who, text] of t.lines) assert.ok(H.CAST_BY_ID[who] && text, 'スプリント' + s.no);
+    for (const [, text] of t.lines) for (const m of text.matchAll(/\{(\w+)\}/g)) assert.ok(H.CAST_BY_ID[m[1]], '不明な名前 {' + m[1] + '}');
+  }
+});

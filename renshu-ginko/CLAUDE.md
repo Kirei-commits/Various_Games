@@ -18,6 +18,7 @@ js/store.js    状態の形・保存・監査ログのハッシュの鎖（純�
 js/ts.js       TypeScript 対応。compile(ts, libs, code) は ts と型定義を引数でもらう（Node のテストは npm の typescript を渡す）
 js/hackathon.js ハッカソン・レビューモードの登場人物・採点・進み具合（純粋）。問題の形は先頭のコメント
 js/hack-sprints-a/b/c.js スプリント1〜8 / 9〜16 / 17〜24 の中身（データだけ。addSprints で足す）
+js/hack-consults.js スプリントごとの「聞きに行く」相談と、毎日の雑談（データだけ）
 js/hack-view.js ハッカソンの画面（#/hack…）。app.js が渡す ui（h・update・render・state() など）で描く
 js/app.js      画面（S-01〜S-08）。ブラウザ専用
 tests/lint.mjs         構文・読み込み順・外部参照・CSP・純粋さ・id の実在

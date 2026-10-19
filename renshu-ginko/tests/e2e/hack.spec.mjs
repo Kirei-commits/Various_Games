@@ -110,3 +110,23 @@ test('ハッカソン: 登場人物の名前は設定で変えられ、チーム
   await page.goto('/#/hack/s/1');
   await expect(page.locator('main')).toContainText('ミナミ先輩');
 });
+
+test('ハッカソン: 今日の雑談があり、分からないことはハッカソンの外の同期や先輩に聞きに行ける', async ({ page }) => {
+  await onboard(page);
+  await page.goto('/#/hack');
+  await expect(page.locator('#hk-smalltalk .bubble').first()).toBeVisible();
+  await page.goto('/#/hack/s/1');
+  const c = await page.evaluate(() => window.RGA.hack.consultsOf(1)[0]);
+  await page.click('#hk-consult-0');
+  await expect(page.locator('#hk-consults .consult-talk')).toContainText(c.lines[0][1].slice(0, 10));
+  // 問題の画面からも聞ける
+  await page.click('#hk-start');
+  await page.click('#hk-open-S01-1');
+  await page.click('#hk-consult-box summary');
+  await expect(page.locator('#hk-consult-box .consult-talk')).toBeVisible();
+  // チームと話す画面に、先輩と同期（ほかの部署）がいる
+  await page.goto('/#/hack/team/miyamoto');
+  await expect(page.locator('.chat-panel')).toContainText('相談できること');
+  await page.click('#hk-topic-1');
+  await expect(page.locator('#hk-chat-log')).toContainText('くん');
+});

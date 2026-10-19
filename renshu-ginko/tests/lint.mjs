@@ -15,8 +15,8 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const read = (p) => fs.readFileSync(path.join(ROOT, p), 'utf8');
 const problems = [];
 
-const ORDER = ['core', 'content', 'units-more', 'units-l3', 'runner', 'rules', 'gitsim', 'tutor', 'store', 'ts', 'hackathon', 'hack-sprints-a', 'hack-sprints-b', 'hack-sprints-c', 'hack-view', 'app'];
-const PURE = ['core', 'content', 'units-more', 'units-l3', 'rules', 'gitsim', 'tutor', 'store', 'hackathon', 'hack-sprints-a', 'hack-sprints-b', 'hack-sprints-c'];
+const ORDER = ['core', 'content', 'units-more', 'units-l3', 'runner', 'rules', 'gitsim', 'tutor', 'store', 'ts', 'hackathon', 'hack-sprints-a', 'hack-sprints-b', 'hack-sprints-c', 'hack-consults', 'hack-view', 'app'];
+const PURE = ['core', 'content', 'units-more', 'units-l3', 'rules', 'gitsim', 'tutor', 'store', 'hackathon', 'hack-sprints-a', 'hack-sprints-b', 'hack-sprints-c', 'hack-consults'];
 
 // 1. 構文
 for (const f of fs.readdirSync(path.join(ROOT, 'js'))) {
