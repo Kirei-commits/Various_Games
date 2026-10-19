@@ -32,6 +32,9 @@ test('チャット: 個別の部屋で話すとルールの返事が来る。グ
 test('チャット: Gemini のキーがあると、グループの返事を JSON で受け取り、AI 利用ログに残る', async ({ page }) => {
   let body = null;
   await page.route('https://generativelanguage.googleapis.com/**', (route) => {
+    // 自動でモデルを選ぶので、まず一覧を聞かれる
+    if (route.request().method() === 'GET') return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ models: [{ name: 'models/gemini-3.8-flash', supportedGenerationMethods: ['generateContent'] }] }) });
+    expect(route.request().url()).toContain('/models/gemini-3.8-flash:generateContent');
     body = JSON.parse(route.request().postData());
     route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({
       candidates: [{ content: { parts: [{ text: '[{"who":"kujo","text":"行こう、ちょうど腹ぺこ"},{"who":"kasuga","text":"私も！"}]' }] } }],

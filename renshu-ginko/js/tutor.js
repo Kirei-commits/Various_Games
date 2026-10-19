@@ -14,15 +14,12 @@
   // ---- モデルと料金（NFR-11: 月の上限を超えたら軽量モデルへ） ----
   const MODEL_DEFAULT = 'claude-opus-5-5';
   const MODEL_LIGHT = 'claude-haiku-5-5';
-  // Gemini（設定で選べる。モデル名は Google AI Studio の表記をそのまま入れられる）
-  const GEMINI_DEFAULT = 'gemini-2.5-flash';
-  const GEMINI_MODELS = ['gemini-2.5-flash', 'gemini-2.5-pro', 'gemini-2.5-flash-lite'];
+  // Gemini（設定で選べる）。既定は「自動」: キーで使えるモデルの一覧から、無料枠のある新しい Flash を選ぶ。
+  // モデル名を入れれば、それを使う（Google AI Studio の表記のまま）
+  const GEMINI_DEFAULT = 'auto';
   const PRICES = { // USD / 100万トークン（概算）
     'claude-opus-5-5': { in: 4, out: 20 },
     'claude-haiku-5-5': { in: 0.1, out: 0.5 },
-    'gemini-2.5-flash': { in: 0.3, out: 2.5 },
-    'gemini-2.5-pro': { in: 1.25, out: 10 },
-    'gemini-2.5-flash-lite': { in: 0.1, out: 0.4 },
   };
   function pickModel(settings, spentUsd) {
     const budget = Number(settings.monthlyBudgetUsd);
@@ -30,7 +27,9 @@
     return settings.model || MODEL_DEFAULT;
   }
   function costOf(model, usage) {
-    const p = PRICES[model] || (String(model).startsWith('gemini') ? PRICES[GEMINI_DEFAULT] : PRICES[MODEL_DEFAULT]);
+    // Gemini は無料枠で使う前提なので数えない（有料のキーの請求は Google 側で確かめてもらう）
+    if (String(model).startsWith('gemini')) return 0;
+    const p = PRICES[model] || PRICES[MODEL_DEFAULT];
     return ((usage.input_tokens || 0) * p.in + (usage.output_tokens || 0) * p.out) / 1e6;
   }
 
@@ -221,6 +220,64 @@
     return { text, usage: { input_tokens: u.promptTokenCount || 0, output_tokens: u.candidatesTokenCount || 0 }, model: model };
   }
 
+  // ---- Gemini のモデルを自動で選ぶ ----
+  // 一覧（models.list）から、generateContent が使える Flash / Flash-Lite（無料枠がある）を新しい順に並べる。
+  // Pro は無料枠がないので選ばない。正式版を先に、プレビュー版はその後ろ。
+  function rankGeminiModels(list) {
+    const out = [];
+    for (const m of list || []) {
+      const name = String((m && m.name) || '').replace(/^models\//, '');
+      if (!((m && m.supportedGenerationMethods) || []).includes('generateContent')) continue;
+      const hit = /^gemini-(\d+(?:\.\d+)?)-flash(-lite)?(-preview(?:-[\w-]+)?)?$/.exec(name);
+      if (!hit) continue;
+      out.push({ name, ver: Number(hit[1]), lite: !!hit[2], preview: !!hit[3] });
+    }
+    out.sort((a, b) => (a.preview - b.preview) || (b.ver - a.ver) || (a.lite - b.lite) || a.name.localeCompare(b.name));
+    return out.map((x) => x.name);
+  }
+  async function listGeminiModels(fetchImpl, apiKey) {
+    const res = await fetchImpl('https://generativelanguage.googleapis.com/v1beta/models?pageSize=1000', { method: 'GET', headers: { 'x-goog-api-key': apiKey } });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      const err = new Error(((data && data.error && data.error.message) || 'HTTP ' + res.status) + (res.status === 400 || res.status === 403 ? '（API キーを確かめてください）' : ''));
+      err.status = res.status;
+      throw err;
+    }
+    return rankGeminiModels(data.models);
+  }
+  // キーごとに、選んだ候補と、最後にうまくいったモデルを覚えておく（画面を開いている間だけ）
+  const geminiPicked = new Map();
+  // 次の候補に回してよい失敗: なくなった・見つからない（404・「no longer available」）、無料枠の回数切れ（429）
+  function shouldTryNext(err) {
+    return err.status === 404 || err.status === 429 || /no longer available|not found|is not supported/i.test(err.message);
+  }
+  async function callGeminiAuto(fetchImpl, apiKey, req) {
+    let entry = geminiPicked.get(apiKey);
+    if (!entry) {
+      const candidates = await listGeminiModels(fetchImpl, apiKey);
+      if (!candidates.length) throw new Error('このキーで使える Gemini の Flash モデルが見つかりませんでした');
+      entry = { candidates, last: candidates[0] };
+      geminiPicked.set(apiKey, entry);
+    }
+    const order = [entry.last, ...entry.candidates.filter((m) => m !== entry.last)].slice(0, 4);
+    let lastErr = null;
+    for (const model of order) {
+      try {
+        const out = await callGemini(fetchImpl, { apiKey, model, ...req });
+        entry.last = model;
+        return out;
+      } catch (e) {
+        lastErr = e;
+        if (!shouldTryNext(e)) throw e;
+      }
+    }
+    throw lastErr.status === 429 ? new Error('無料枠の回数の上限に達しました。少し時間をおいてから試してください') : lastErr;
+  }
+  function isAutoGemini(settings) {
+    const m = String((settings && settings.geminiModel) || '').trim();
+    return !m || m === 'auto';
+  }
+
   // 設定で選んだ AI（Claude / Gemini）が使えるか
   function providerOf(settings) {
     return (settings && settings.provider) === 'gemini' ? 'gemini' : 'claude';
@@ -232,12 +289,18 @@
   }
   // 表示用のモデル名（Claude は月の上限を超えると軽量モデル）
   function modelFor(settings, spentUsd) {
-    return providerOf(settings) === 'gemini' ? (settings.geminiModel || GEMINI_DEFAULT) : pickModel(settings, spentUsd || 0);
+    if (providerOf(settings) !== 'gemini') return pickModel(settings, spentUsd || 0);
+    if (!isAutoGemini(settings)) return settings.geminiModel.trim();
+    const entry = geminiPicked.get(settings.geminiKey);
+    return entry ? entry.last + '・自動' : '自動で選ぶ';
   }
   // 選んだ AI を呼ぶ。戻り値は Claude と同じ形 { text, usage: { input_tokens, output_tokens }, model }
   async function callLLM(fetchImpl, settings, spentUsd, req) {
     const model = modelFor(settings, spentUsd);
-    if (providerOf(settings) === 'gemini') return callGemini(fetchImpl, { apiKey: settings.geminiKey, model, ...req });
+    if (providerOf(settings) === 'gemini') {
+      if (isAutoGemini(settings)) return callGeminiAuto(fetchImpl, settings.geminiKey, req);
+      return callGemini(fetchImpl, { apiKey: settings.geminiKey, model, ...req });
+    }
     return callClaude(fetchImpl, { apiKey: settings.apiKey, model, ...req });
   }
 
@@ -318,5 +381,5 @@
     }
   }
 
-  RGA.tutor = { MODEL_DEFAULT, MODEL_LIGHT, GEMINI_DEFAULT, GEMINI_MODELS, PRICES, pickModel, costOf, providerOf, hasAI, modelFor, callLLM, callGemini, SYSTEM_PROMPT, buildSystemPrompt, describeTests, ruleTutor, guardReply, callClaude, askTutor, generateCode, extractCode, llmScoreExplanation };
+  RGA.tutor = { MODEL_DEFAULT, MODEL_LIGHT, GEMINI_DEFAULT, PRICES, rankGeminiModels, listGeminiModels, isAutoGemini, pickModel, costOf, providerOf, hasAI, modelFor, callLLM, callGemini, SYSTEM_PROMPT, buildSystemPrompt, describeTests, ruleTutor, guardReply, callClaude, askTutor, generateCode, extractCode, llmScoreExplanation };
 })(globalThis);
