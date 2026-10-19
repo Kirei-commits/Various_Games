@@ -130,3 +130,50 @@ test('ハッカソン: 今日の雑談があり、分からないことはハッ
   await page.click('#hk-topic-1');
   await expect(page.locator('#hk-chat-log')).toContainText('くん');
 });
+
+test('絆: 一緒にスプリントを終えると絆が深まり、エピソードが読めるようになる', async ({ page }) => {
+  await onboard(page);
+  await page.goto('/#/hack/team/rio');
+  await expect(page.locator('#hk-bond')).toContainText('絆 Lv0');
+  await page.evaluate(() => {
+    const { hack } = window.RGA;
+    let pr = hack.emptyProgress();
+    for (const s of hack.SPRINTS.slice(0, 6)) for (const p of hack.problemsOf(s)) pr = hack.solve(pr, p, false, 1);
+    window.__RGA_APP.state.hack = pr;
+  });
+  await page.goto('/#/hack');
+  await expect(page.locator('#hk-new-episodes')).toContainText('神崎');
+  await page.goto('/#/hack/team/rio');
+  await expect(page.locator('#hk-bond')).toContainText('絆 Lv1');
+  await page.click('#hk-ep-rio-1 summary');
+  await expect(page.locator('#hk-ep-rio-1')).toContainText('ラーメン');
+  await expect(page.locator('#hk-ep-rio-1 summary')).not.toContainText('🆕');
+});
+
+test('作っているアプリ: スプリントを終えると機能が入り、前はバグのまま動く', async ({ page }) => {
+  await onboard(page);
+  const solveUpTo = async (n) => page.evaluate((k) => {
+    const { hack } = window.RGA;
+    let pr = hack.emptyProgress();
+    for (const s of hack.SPRINTS.slice(0, k)) for (const p of hack.problemsOf(s)) pr = hack.solve(pr, p, false, 1);
+    window.__RGA_APP.state.hack = pr;
+  }, n);
+  // スプリント3まで: 返答は届くが、口座番号は伏せ字にならない
+  await solveUpTo(3);
+  await page.goto('/#/hack/app');
+  await page.fill('#app-input', '口座番号 1234567 です');
+  await page.click('#app-send');
+  await expect(page.locator('#app-log')).toContainText('そのまま AI に送られました');
+  // スプリント12まで: 同意が必要になり、株は勧めず、伏せ字にしてから送る
+  await solveUpTo(12);
+  await page.goto('/#/hack');
+  await page.click('#hk-open-app');
+  await page.click('#app-agree');
+  await page.fill('#app-input', 'おすすめの株は？');
+  await page.click('#app-send');
+  await expect(page.locator('#app-log')).toContainText('個別の銘柄は勧めない');
+  await expect(page.locator('#app-log .disclaimer')).toContainText('投資助言ではありません');
+  await page.fill('#app-input', '1000円を3人で割り勘したい');
+  await page.click('#app-send');
+  await expect(page.locator('#app-log')).toContainText('1 人だけ 1 円多く');
+});

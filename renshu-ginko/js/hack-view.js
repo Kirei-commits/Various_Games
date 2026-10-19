@@ -29,6 +29,7 @@
     if (sub === 's') return viewSprint(ui, Number(args[1]));
     if (sub === 'p') return viewProblem(ui, args[1]);
     if (sub === 'team') return viewTeam(ui, args[1]);
+    if (sub === 'app') return viewApp(ui);
     return viewHackHome(ui);
   }
 
@@ -112,6 +113,8 @@
           ui.h('p', { class: 'eyebrow' }, 'チーム'),
           ui.h('ul', { class: 'cast-mini' }, H.CAST.filter((c) => c.group === 'team').map((c) => ui.h('li', null, c.icon + ' ' + H.nameOf(c.id, names), ui.h('small', { class: 'muted' }, ' ' + c.role)))),
           ui.h('a', { class: 'btn', id: 'hk-team', href: '#/hack/team' }, 'チームと話す'))),
+      unreadCard(ui, names),
+      appCard(ui, pr),
       smallTalkCard(ui, upTo, names),
       ui.h('section', { class: 'card' }, ui.h('h2', null, 'スプリント'),
         ui.h('ol', { class: 'sprint-grid' }, H.SPRINTS.map((s) => {
@@ -124,6 +127,23 @@
         H.SPRINTS.length < H.TOTAL_SPRINTS ? ui.h('p', { class: 'muted small' }, 'スプリント' + (H.SPRINTS.length + 1) + '以降は準備中です。') : null),
       retry.length ? ui.h('section', { class: 'card', id: 'hk-retry' }, ui.h('h2', null, '答えを見た問題（もう一度挑戦）'),
         ui.h('ul', null, retry.map((r) => ui.h('li', null, ui.h('a', { href: r.href }, r.title))))) : null);
+  }
+
+  function unreadCard(ui, names) {
+    if (!RGA.bonds) return null;
+    const list = RGA.bonds.unreadEpisodes(ui.state());
+    if (!list.length) return null;
+    return ui.h('section', { class: 'card highlight', id: 'hk-new-episodes' }, ui.h('h2', null, '📖 新しいエピソードが読めます'),
+      ui.h('ul', null, list.map((e) => ui.h('li', null, ui.h('a', { href: '#/hack/team/' + e.char }, H.CAST_BY_ID[e.char].icon + ' ' + H.nameOf(e.char, names) + '「' + e.title + '」')))));
+  }
+
+  function appCard(ui, pr) {
+    if (!RGA.moneychat) return null;
+    const f = RGA.moneychat.featuresOf(pr);
+    return ui.h('section', { class: 'card', id: 'hk-app-card' }, ui.h('h2', null, '🧪 作っているアプリを触る'),
+      ui.h('p', { class: 'small' }, 'チームで作っている「AIお金相談チャット」を試せます。スプリントを終えるたびに機能が入り、まだ直していないところはバグのまま動きます。'),
+      ui.h('p', { class: 'muted small' }, '入っている機能 ' + f.size + ' / ' + RGA.moneychat.FEATURES.length),
+      ui.h('a', { class: 'btn', id: 'hk-open-app', href: '#/hack/app' }, 'アプリを開く'));
   }
 
   // 毎日しゃべる同期との雑談（物語には直接かかわらない）
@@ -380,6 +400,88 @@
     }
   }
 
+  // ---------------------------------------------------------------- 作っているアプリ（AIお金相談チャット）のデモ
+  const demo = { log: [], sending: false, text: '', consented: false };
+  function viewApp(ui) {
+    const M = RGA.moneychat;
+    const state = ui.state();
+    const pr = progressOf(state);
+    const f = M.featuresOf(pr);
+    const h = ui.h;
+    // 履歴の保存（スプリント6）が入ったら、会話は保存データに残す。入る前は開き直すと消える
+    const log = f.has('history') ? (pr.demoLog || (pr.demoLog = [])) : demo.log;
+    const consented = f.has('history') ? !!pr.demoConsent : demo.consented;
+    const head = [
+      h('p', { class: 'crumbs' }, h('a', { href: '#/hack' }, 'ハッカソン'), ' › 作っているアプリ'),
+      h('h1', null, 'AIお金相談チャット（開発中の版）'),
+      h('p', { class: 'muted small' }, '返答はルールで作るデモです（本物の AI は使いません）。データはすべて架空です。'),
+    ];
+    const featureList = h('details', { class: 'card', id: 'app-features' }, h('summary', null, '入っている機能 ' + f.size + ' / ' + M.FEATURES.length),
+      h('ul', { class: 'feature-list' }, M.FEATURES.map((x) => h('li', { class: f.has(x.id) ? 'on' : 'off' }, (f.has(x.id) ? '✅ ' : '🔒 ') + 'S' + x.sprint + ' ' + x.name))));
+    if (!f.has('chat')) return h('div', { class: 'page' }, head, h('section', { class: 'card' }, h('p', null, 'スプリント1を終えると、チャット画面が動きはじめます。')), featureList);
+    if (f.has('disclaimer') && !consented) {
+      return h('div', { class: 'page' }, head, h('section', { class: 'card phone-app', id: 'app-consent' },
+        h('h2', null, 'ご利用の前に'),
+        h('p', null, 'このチャットは、家計やお金についての一般的な情報をお伝えします。個別の金融商品のおすすめ（投資助言）は行いません。'),
+        h('button', { class: 'btn primary', id: 'app-agree', onclick: () => { ui.update(() => { if (f.has('history')) pr.demoConsent = true; else demo.consented = true; }); ui.render(); } }, '同意して始める')), featureList);
+    }
+    const send = (text) => {
+      // 送信中にもう一度押されたら（スプリント8の前は止められない）
+      if (demo.sending && !f.has('dedupe')) {
+        log.push({ role: 'note', notes: [{ kind: 'bug', sprint: 8, text: '送信中にもう一度押されて、同じメッセージが二重に送られました（スプリント8）' }] });
+      }
+      const res = M.respond(text, f, { history: log.filter((m) => m.role !== 'note') });
+      if (res.error) { log.push({ role: 'error', text: res.error, notes: res.notes }); ui.update(() => {}); ui.render(); return; }
+      log.push({ role: 'user', text, sent: res.sent !== text ? res.sent : null });
+      const bot = { role: 'bot', text: f.has('stream') ? '' : '…', full: res.reply, disclaimer: res.disclaimer, notes: res.notes };
+      log.push(bot);
+      demo.sending = true;
+      demo.text = '';
+      ui.update(() => {});
+      ui.render();
+      if (f.has('stream')) {
+        let i = 0;
+        const timer = setInterval(() => {
+          i = Math.min(bot.full.length, i + 4);
+          bot.text = bot.full.slice(0, i);
+          if (i >= bot.full.length) { clearInterval(timer); demo.sending = false; ui.update(() => {}); }
+          if (location.hash === '#/hack/app') ui.render();
+        }, 40);
+      } else {
+        setTimeout(() => { bot.text = bot.full; demo.sending = false; ui.update(() => {}); if (location.hash === '#/hack/app') ui.render(); }, 700);
+      }
+    };
+    const busy = () => {
+      const r = M.busy(f);
+      log.push({ role: 'bot', text: r.reply || '…（ずっと待っています）', full: r.reply, notes: r.notes });
+      ui.update(() => {});
+      ui.render();
+    };
+    const msgs = h('div', { class: 'app-log', id: 'app-log', 'aria-live': f.has('xss') ? 'polite' : 'off' }, log.length ? log.map((m) => {
+      if (m.role === 'note') return noteChips(ui, m.notes);
+      if (m.role === 'error') return h('div', { class: 'app-error', role: 'alert' }, '⚠ ' + m.text, noteChips(ui, m.notes));
+      if (m.role === 'user') return h('div', { class: 'app-msg me' }, h('p', null, m.text), m.sent !== null && m.sent !== undefined ? h('small', { class: 'muted' }, 'AIに送った内容: ' + m.sent) : null);
+      return h('div', { class: 'app-msg bot' }, h('p', null, m.text), m.disclaimer && m.text === m.full ? h('small', { class: 'disclaimer' }, m.disclaimer) : null, noteChips(ui, m.notes));
+    }) : h('p', { class: 'muted small' }, '例: 「3人で1000円を割り勘したい」「残高を教えて」「おすすめの株は？」「口座番号 1234567 です」'));
+    // 新しいメッセージが見えるように、会話の欄をいちばん下までスクロールする
+    setTimeout(() => { const el = document.getElementById('app-log'); if (el) el.scrollTop = el.scrollHeight; }, 0);
+    const input = h('textarea', { id: 'app-input', rows: '2', 'aria-label': f.has('xss') ? 'メッセージ' : null, value: demo.text, placeholder: 'お金の相談を入力', oninput: (e) => { demo.text = e.target.value; } });
+    return h('div', { class: 'page' }, head,
+      h('section', { class: 'card phone-app' },
+        h('div', { class: 'app-bar' }, '🏦 練習銀行 AIお金相談', pr && H.released(pr) ? h('span', { class: 'tag ok' }, 'リリース済み') : h('span', { class: 'tag' }, '開発中')),
+        msgs,
+        h('div', { class: 'app-input-row' }, input,
+          h('button', { class: 'btn primary', id: 'app-send', disabled: f.has('dedupe') && demo.sending, onclick: () => send(demo.text) }, f.has('dedupe') && demo.sending ? '送信中…' : '送信')),
+        h('div', { class: 'row small' },
+          h('button', { class: 'btn tiny ghost', id: 'app-busy', onclick: busy }, '混雑しているときを試す'),
+          h('button', { class: 'btn tiny ghost', id: 'app-clear', onclick: () => { ui.update(() => { log.length = 0; }); ui.render(); } }, '会話を消す'))),
+      featureList);
+  }
+  function noteChips(ui, notes) {
+    if (!notes || !notes.length) return null;
+    return ui.h('ul', { class: 'app-notes' }, notes.map((n) => ui.h('li', { class: n.kind }, (n.kind === 'bug' ? '🐞 ' : '✅ ') + n.text)));
+  }
+
   // ---------------------------------------------------------------- チームと話す
   const chatDraft = { text: '', sending: false };
   function viewTeam(ui, id) {
@@ -400,6 +502,26 @@
       ui.h('h1', null, 'チームと話す'),
       ui.h('div', { class: 'team-grid' }, list, c ? chatPanel(ui, c, pr, names) : ui.h('section', { class: 'card' }, ui.h('p', { class: 'muted' }, '左から話す相手を選んでください。'))));
   }
+  // 絆とエピソード（エピソードのある人だけ）
+  function bondBlock(ui, c, pr, names) {
+    const B = RGA.bonds;
+    if (!B || !B.charsWithEpisodes().includes(c.id)) return null;
+    const state = ui.state();
+    const pts = B.bondPoints(state, c.id);
+    const lv = B.bondLevel(pts);
+    const next = B.nextLevelAt(pts);
+    const eps = B.episodesOf(state, c.id);
+    if (!pr.episodes) pr.episodes = {};
+    return ui.h('div', { class: 'bond', id: 'hk-bond' },
+      ui.h('p', { class: 'small' }, '🤝 絆 Lv' + lv + '（' + pts + (next ? ' / 次は ' + next : '') + '）'),
+      ui.h('span', { class: 'bar' }, ui.h('span', { style: 'width:' + Math.min(100, Math.round((pts / B.LEVELS[B.LEVELS.length - 1]) * 100)) + '%' })),
+      ui.h('ul', { class: 'episodes' }, eps.map((e) => ui.h('li', null, e.unlocked
+        ? ui.h('details', { id: 'hk-ep-' + e.key, open: pr.openEp === e.key, ontoggle: (ev) => { if (ev.target.open && !pr.episodes[e.key]) { ui.update(() => { pr.episodes = { ...pr.episodes, [e.key]: true }; pr.openEp = e.key; }); ui.render(); } } },
+          ui.h('summary', null, '📖 エピソード' + e.level + '「' + e.title + '」' + (e.read ? '' : ' 🆕')), talkLines(ui, e.lines, names))
+        : ui.h('span', { class: 'muted small' }, '🔒 エピソード' + e.level + '（絆 Lv' + e.level + ' で読めます）')))),
+      ui.h('p', { class: 'muted tiny' }, '一緒にスプリントを終える・聞きに行く・話す・配属先で一緒に働くと、絆が深まります。'));
+  }
+
   function chatPanel(ui, c, pr, names) {
     const h = ui.h;
     const state = ui.state();
@@ -414,6 +536,7 @@
     const ai = !!(state.settings.apiKey && !state.settings.tutorStopped);
     return h('section', { class: 'card chat-panel' },
       h('div', { class: 'row' }, h('span', { class: 'avatar big' }, c.icon), h('div', null, h('h2', null, H.nameOf(c.id, names)), h('p', { class: 'muted small' }, c.role), c.field ? h('p', { class: 'small' }, '相談できること: ' + c.field) : null)),
+      bondBlock(ui, c, pr, names),
       h('div', { class: 'talk', id: 'hk-chat-log', 'aria-live': 'polite' }, log.length ? log.map((m) => h('div', { class: 'bubble-row' + (m.role === 'user' ? ' me' : '') },
         h('span', { class: 'avatar' }, m.role === 'user' ? '🧑‍💻' : c.icon),
         h('div', { class: 'bubble' }, h('p', null, H.fill(m.text, names))))) : h('p', { class: 'muted small' }, '話題を選ぶと会話が始まります。')),

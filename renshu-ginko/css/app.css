@@ -536,3 +536,25 @@ pre.diagram { margin: 0; padding: 12px; background: var(--panel-2); border: 1px 
 .today-icon { font-size: 1.5rem; }
 .related { margin-top: 8px; }
 .related ul { margin: 4px 0 0; padding-left: 1.2em; }
+.bond { display: grid; gap: 4px; padding: 8px 10px; border: 1px dashed var(--line); border-radius: 10px; }
+.bond .bar { display: block; height: 6px; border-radius: 999px; background: var(--panel-2); overflow: hidden; }
+.bond .bar span { display: block; height: 100%; background: var(--gold); }
+.episodes { list-style: none; padding: 0; margin: 4px 0 0; display: grid; gap: 4px; }
+.episodes summary { cursor: pointer; font-weight: 700; }
+
+/* ---- 作っているアプリ（AIお金相談チャット）のデモ ---- */
+.phone-app { max-width: 460px; margin: 0 auto; width: 100%; display: grid; gap: 8px; border-radius: 22px; border-width: 2px; }
+.app-bar { display: flex; justify-content: space-between; align-items: center; font-weight: 700; padding-bottom: 6px; border-bottom: 1px solid var(--line); }
+.app-log { display: grid; gap: 8px; min-height: 200px; max-height: 460px; overflow-y: auto; align-content: start; }
+.app-msg { max-width: 88%; padding: 8px 12px; border-radius: 14px; background: var(--panel-2); }
+.app-msg p { margin: 0; overflow-wrap: anywhere; white-space: pre-wrap; }
+.app-msg.me { justify-self: end; background: var(--accent-weak); }
+.app-msg .disclaimer { display: block; margin-top: 4px; color: var(--muted); }
+.app-error { color: var(--err); font-weight: 700; }
+.app-input-row { display: flex; gap: 6px; align-items: flex-end; }
+.app-input-row textarea { flex: 1; min-width: 0; }
+.app-notes { list-style: none; padding: 0; margin: 4px 0 0; display: grid; gap: 2px; font-size: .78rem; }
+.app-notes .bug { color: var(--warn); }
+.app-notes .fix { color: var(--ok); }
+.feature-list { list-style: none; padding: 0; margin: 6px 0 0; display: grid; gap: 2px; font-size: .88rem; }
+.feature-list .off { color: var(--muted); }
