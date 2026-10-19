@@ -9,6 +9,8 @@ test('チャレンジ: 今日の5問を最後まで解くと結果が残り、�
   await page.click('#ch-lang-java');
   await page.click('#ch-daily');
   for (let i = 0; i < 5; i++) {
+    // 画面の切り替わり（ハッシュでの遷移・再描画）を待ってから答える
+    await expect(page.locator('h1')).toContainText((i + 1) + ' / 5 問目');
     await page.click('#ch-submit'); // 何も選ばずに答える（まちがいでも次へ進める）
     await expect(page.locator('#ch-result')).toBeVisible();
     await page.click('#ch-next');
@@ -23,6 +25,7 @@ test('チャレンジ: バグハントはまちがえると終わる', async ({ 
   await onboard(page);
   await page.goto('/#/challenge');
   await page.click('#ch-hunt');
+  await expect(page.locator('h1')).toContainText('0 問連続');
   await page.click('#ch-submit');
   await expect(page.locator('#ch-result')).toContainText('残念');
   await page.click('#ch-next');
