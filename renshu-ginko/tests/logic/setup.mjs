@@ -8,5 +8,9 @@ import '../../js/rules.js';
 import '../../js/gitsim.js';
 import '../../js/tutor.js';
 import '../../js/store.js';
+import '../../js/hackathon.js';
+import '../../js/hack-sprints-a.js';
+import '../../js/hack-sprints-b.js';
+import '../../js/hack-sprints-c.js';
 
 export const RGA = globalThis.RGA;

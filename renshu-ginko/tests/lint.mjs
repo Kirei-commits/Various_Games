@@ -15,8 +15,8 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const read = (p) => fs.readFileSync(path.join(ROOT, p), 'utf8');
 const problems = [];
 
-const ORDER = ['core', 'content', 'units-more', 'units-l3', 'runner', 'rules', 'gitsim', 'tutor', 'store', 'ts', 'app'];
-const PURE = ['core', 'content', 'units-more', 'units-l3', 'rules', 'gitsim', 'tutor', 'store'];
+const ORDER = ['core', 'content', 'units-more', 'units-l3', 'runner', 'rules', 'gitsim', 'tutor', 'store', 'ts', 'hackathon', 'hack-sprints-a', 'hack-sprints-b', 'hack-sprints-c', 'hack-view', 'app'];
+const PURE = ['core', 'content', 'units-more', 'units-l3', 'rules', 'gitsim', 'tutor', 'store', 'hackathon', 'hack-sprints-a', 'hack-sprints-b', 'hack-sprints-c'];
 
 // 1. 構文
 for (const f of fs.readdirSync(path.join(ROOT, 'js'))) {
@@ -41,7 +41,8 @@ if (!/worker-src blob:/.test(csp)) problems.push('CSP に worker-src blob: が�
 
 // 4. 純粋さ
 for (const n of PURE) {
-  const src = read(`js/${n}.js`).replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '');
+  // 問題文として書いたコード（テンプレート文字列）の中身は、実際に動く処理ではないので見ない
+  const src = read(`js/${n}.js`).replace(/`(?:\\[\s\S]|[^`\\])*`/g, '``').replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '');
   for (const bad of ['document.', 'window.', 'Math.random', 'Date.now', 'performance.now', 'localStorage', 'sessionStorage', 'setTimeout', 'new Worker']) {
     if (src.includes(bad)) problems.push(`js/${n}.js が ${bad} を使っている（純粋なモジュールに入れない）`);
   }
