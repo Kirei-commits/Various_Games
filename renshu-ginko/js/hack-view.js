@@ -112,6 +112,7 @@
           ui.h('p', { class: 'eyebrow' }, 'チーム'),
           ui.h('ul', { class: 'cast-mini' }, H.CAST.filter((c) => c.group === 'team').map((c) => ui.h('li', null, c.icon + ' ' + H.nameOf(c.id, names), ui.h('small', { class: 'muted' }, ' ' + c.role)))),
           ui.h('a', { class: 'btn', id: 'hk-team', href: '#/hack/team' }, 'チームと話す'))),
+      unreadCard(ui, names),
       smallTalkCard(ui, upTo, names),
       ui.h('section', { class: 'card' }, ui.h('h2', null, 'スプリント'),
         ui.h('ol', { class: 'sprint-grid' }, H.SPRINTS.map((s) => {
@@ -124,6 +125,14 @@
         H.SPRINTS.length < H.TOTAL_SPRINTS ? ui.h('p', { class: 'muted small' }, 'スプリント' + (H.SPRINTS.length + 1) + '以降は準備中です。') : null),
       retry.length ? ui.h('section', { class: 'card', id: 'hk-retry' }, ui.h('h2', null, '答えを見た問題（もう一度挑戦）'),
         ui.h('ul', null, retry.map((r) => ui.h('li', null, ui.h('a', { href: r.href }, r.title))))) : null);
+  }
+
+  function unreadCard(ui, names) {
+    if (!RGA.bonds) return null;
+    const list = RGA.bonds.unreadEpisodes(ui.state());
+    if (!list.length) return null;
+    return ui.h('section', { class: 'card highlight', id: 'hk-new-episodes' }, ui.h('h2', null, '📖 新しいエピソードが読めます'),
+      ui.h('ul', null, list.map((e) => ui.h('li', null, ui.h('a', { href: '#/hack/team/' + e.char }, H.CAST_BY_ID[e.char].icon + ' ' + H.nameOf(e.char, names) + '「' + e.title + '」')))));
   }
 
   // 毎日しゃべる同期との雑談（物語には直接かかわらない）
@@ -400,6 +409,26 @@
       ui.h('h1', null, 'チームと話す'),
       ui.h('div', { class: 'team-grid' }, list, c ? chatPanel(ui, c, pr, names) : ui.h('section', { class: 'card' }, ui.h('p', { class: 'muted' }, '左から話す相手を選んでください。'))));
   }
+  // 絆とエピソード（エピソードのある人だけ）
+  function bondBlock(ui, c, pr, names) {
+    const B = RGA.bonds;
+    if (!B || !B.charsWithEpisodes().includes(c.id)) return null;
+    const state = ui.state();
+    const pts = B.bondPoints(state, c.id);
+    const lv = B.bondLevel(pts);
+    const next = B.nextLevelAt(pts);
+    const eps = B.episodesOf(state, c.id);
+    if (!pr.episodes) pr.episodes = {};
+    return ui.h('div', { class: 'bond', id: 'hk-bond' },
+      ui.h('p', { class: 'small' }, '🤝 絆 Lv' + lv + '（' + pts + (next ? ' / 次は ' + next : '') + '）'),
+      ui.h('span', { class: 'bar' }, ui.h('span', { style: 'width:' + Math.min(100, Math.round((pts / B.LEVELS[B.LEVELS.length - 1]) * 100)) + '%' })),
+      ui.h('ul', { class: 'episodes' }, eps.map((e) => ui.h('li', null, e.unlocked
+        ? ui.h('details', { id: 'hk-ep-' + e.key, open: pr.openEp === e.key, ontoggle: (ev) => { if (ev.target.open && !pr.episodes[e.key]) { ui.update(() => { pr.episodes = { ...pr.episodes, [e.key]: true }; pr.openEp = e.key; }); ui.render(); } } },
+          ui.h('summary', null, '📖 エピソード' + e.level + '「' + e.title + '」' + (e.read ? '' : ' 🆕')), talkLines(ui, e.lines, names))
+        : ui.h('span', { class: 'muted small' }, '🔒 エピソード' + e.level + '（絆 Lv' + e.level + ' で読めます）')))),
+      ui.h('p', { class: 'muted tiny' }, '一緒にスプリントを終える・聞きに行く・話す・配属先で一緒に働くと、絆が深まります。'));
+  }
+
   function chatPanel(ui, c, pr, names) {
     const h = ui.h;
     const state = ui.state();
@@ -414,6 +443,7 @@
     const ai = !!(state.settings.apiKey && !state.settings.tutorStopped);
     return h('section', { class: 'card chat-panel' },
       h('div', { class: 'row' }, h('span', { class: 'avatar big' }, c.icon), h('div', null, h('h2', null, H.nameOf(c.id, names)), h('p', { class: 'muted small' }, c.role), c.field ? h('p', { class: 'small' }, '相談できること: ' + c.field) : null)),
+      bondBlock(ui, c, pr, names),
       h('div', { class: 'talk', id: 'hk-chat-log', 'aria-live': 'polite' }, log.length ? log.map((m) => h('div', { class: 'bubble-row' + (m.role === 'user' ? ' me' : '') },
         h('span', { class: 'avatar' }, m.role === 'user' ? '🧑‍💻' : c.icon),
         h('div', { class: 'bubble' }, h('p', null, H.fill(m.text, names))))) : h('p', { class: 'muted small' }, '話題を選ぶと会話が始まります。')),

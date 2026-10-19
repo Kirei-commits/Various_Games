@@ -23,5 +23,7 @@ import '../../js/work-weeks-a.js';
 import '../../js/work-weeks-b.js';
 import '../../js/challenge.js';
 import '../../js/journey.js';
+import '../../js/bonds.js';
+import '../../js/bond-episodes.js';
 
 export const RGA = globalThis.RGA;
