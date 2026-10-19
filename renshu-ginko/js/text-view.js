@@ -105,7 +105,7 @@
     const handout = index === 0 ? ui.h('section', { class: 'card handout', id: 'tx-handout' }, ui.h('h2', null, '📄 この章で配られた資料'),
       V().talkLines(ui, chapter.handout.talk, names),
       ui.h('div', { class: 'handout-grid' },
-        ui.h('div', null, ui.h('h3', { class: 'small' }, 'この章に関係する単元'), ui.h('ul', null, chapter.handout.units.map((u) => ui.h('li', null, u)))),
+        ui.h('div', null, ui.h('h3', { class: 'small' }, 'この章に関係する単元'), ui.h('ul', null, chapter.handout.units.map((u) => { const m = u.match(/スプリント(\d+)「/); return ui.h('li', null, m ? ui.h('a', { href: '#/hack/s/' + m[1] }, u) : u); }))),
         ui.h('div', null, ui.h('h3', { class: 'small' }, '先に知っておくこと'), ui.h('ul', null, chapter.handout.knowledge.map((k) => ui.h('li', null, k)))))) : null;
     return ui.h('div', { class: 'page' },
       ui.h('p', { class: 'crumbs' }, ui.h('a', { href: '#/texts' }, '言語テキスト'), ' › ', ui.h('a', { href: '#/texts/c/' + course.id }, course.name), ' › ' + (course.chapters.indexOf(chapter) + 1) + '章 ' + chapter.title),

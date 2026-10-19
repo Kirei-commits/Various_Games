@@ -527,3 +527,12 @@ pre.diagram { margin: 0; padding: 12px; background: var(--panel-2); border: 1px 
 .alloc-ctl .icon { width: 36px; height: 36px; font-size: 1.1rem; }
 .banner.incident { background: var(--err-bg); border: 1px solid var(--err); color: var(--err); font-weight: 700; }
 .table-wrap { overflow-x: auto; }
+
+/* ---- 今日やること・称号・関連テキスト ---- */
+.today-list { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 8px; }
+.today-item { display: flex; gap: 10px; align-items: center; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--panel); color: var(--text); text-decoration: none; height: 100%; }
+.today-item:hover { border-color: var(--accent); }
+.today-item > span:last-child { display: grid; min-width: 0; }
+.today-icon { font-size: 1.5rem; }
+.related { margin-top: 8px; }
+.related ul { margin: 4px 0 0; padding-left: 1.2em; }

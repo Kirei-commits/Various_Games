@@ -190,6 +190,7 @@
     else if (r.name === 'challenge') view = window.RGA.challengeView.view(ui, r.args);
     else view = viewHome();
     main.replaceChildren(view);
+    checkTitles();
     if (focusId && $(focusId)) {
       const el = $(focusId);
       el.focus({ preventScroll: true });
@@ -292,6 +293,7 @@
     const doneCount = Object.values(state.enrollments).filter((e) => e.status === 'done').length;
     return h('div', { class: 'page' },
       h('h1', { class: 'greet' }, 'こんにちは、' + state.user.name + 'さん'),
+      todayCard(),
       guide('home', 'はじめての方へ', ['「次にやる1単元」の「始める」から、単元に入ります。', 'どの単元も、まず AI を使わずに基礎を確かめ（AIオフ）、説明できたら AI が使えるようになります（AIオン）。', '実践で作ったコードをマージすると、下の「練習銀行」の機能が動きだします。', '記録は誰にも公開されません。失敗しても何度でもやり直せます。']),
       h('div', { class: 'home-grid' },
         h('section', { class: 'card next-unit' },
@@ -313,6 +315,7 @@
         workCard(),
         textsCard(),
         challengeCard(),
+        titlesCard(),
         retryCard(),
         bankPreview()));
   }
@@ -345,6 +348,39 @@
       h('div', { class: 'row wrap' }, TX.COURSES.map((c) => { const st = TX.courseStatus(pr, c); return h('a', { class: 'btn tiny', href: '#/texts/c/' + c.id }, c.icon + ' ' + c.name + ' ' + st.chapters + '/' + st.count + '章'); })),
       h('p', { class: 'small' }, 'コンストラクタも継承も useEffect も、会話と図で「読める」ように。'),
       h('button', { id: 'home-texts', class: 'btn', onclick: () => go('#/texts') }, 'テキストを開く'));
+  }
+  function todayISO() {
+    const d = new Date();
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  }
+  // 各モードの次の一歩（ハッカソン・予習・配属先・今日の5問）
+  function todayCard() {
+    const plan = window.RGA.journey.todayPlan(state, todayISO());
+    if (!plan.length) return null;
+    return h('section', { class: 'card today', id: 'home-today' },
+      h('p', { class: 'eyebrow' }, '今日やること'),
+      h('ul', { class: 'today-list' }, plan.map((x) => h('li', null, h('a', { class: 'today-item', href: x.href, 'data-mode': x.mode },
+        h('span', { class: 'today-icon', 'aria-hidden': 'true' }, x.icon),
+        h('span', null, h('strong', null, x.title), x.sub ? h('small', { class: 'muted' }, x.sub) : null))))));
+  }
+  function titlesCard() {
+    const J = window.RGA.journey;
+    const have = state.titles || {};
+    const got = J.TITLES.filter((t) => have[t.id]);
+    return h('section', { class: 'card', id: 'home-titles' },
+      h('p', { class: 'eyebrow' }, '称号 ' + got.length + ' / ' + J.TITLES.length),
+      got.length ? h('div', { class: 'row wrap' }, got.map((t) => h('span', { class: 'badge-chip gold', title: t.how }, t.icon + ' ' + t.name))) : h('p', { class: 'muted small' }, 'まだありません。'),
+      h('details', null, h('summary', { class: 'small' }, 'まだの称号'),
+        h('ul', { class: 'small' }, J.TITLES.filter((t) => !have[t.id]).map((t) => h('li', null, t.icon + ' ' + t.name + ' — ' + t.how)))));
+  }
+  // 新しく取った称号を記録して、お祝いする（どの画面で条件を満たしても、次に描くときに気づく）
+  function checkTitles() {
+    if (!state.user || !window.RGA.journey) return;
+    const fresh = window.RGA.journey.newTitles(state, todayISO());
+    if (!fresh.length) return;
+    update((s) => { s.titles = { ...(s.titles || {}), ...Object.fromEntries(fresh.map((id) => [id, now()])) }; });
+    const t = window.RGA.journey.TITLES.find((x) => x.id === fresh[fresh.length - 1]);
+    setTimeout(() => celebrate('done', '称号を獲得: ' + t.icon + ' ' + t.name, fresh.length > 1 ? 'ほか ' + (fresh.length - 1) + ' 個' : t.how), 2700);
   }
   function challengeCard() {
     const rec = window.RGA.challengeView.recordsOf(state);
