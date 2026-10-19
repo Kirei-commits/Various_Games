@@ -8,5 +8,18 @@ import '../../js/rules.js';
 import '../../js/gitsim.js';
 import '../../js/tutor.js';
 import '../../js/store.js';
+import '../../js/hackathon.js';
+import '../../js/hack-sprints-a.js';
+import '../../js/hack-sprints-b.js';
+import '../../js/hack-sprints-c.js';
+import '../../js/hack-consults.js';
+import '../../js/texts.js';
+import '../../js/text-js.js';
+import '../../js/text-react.js';
+import '../../js/text-java.js';
+import '../../js/text-python.js';
+import '../../js/work.js';
+import '../../js/work-weeks-a.js';
+import '../../js/work-weeks-b.js';
 
 export const RGA = globalThis.RGA;

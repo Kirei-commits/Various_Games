@@ -112,13 +112,16 @@
   }
   // 提出の結果を練習の進み具合に反映する（新しいオブジェクトを返す）
   // 連続正解 = 同じ段階の問題を続けて解けた数。途中で落ちてもやり直し扱いで、数え直しにはしない（C-06: 失敗を罰にしない）
-  function applyPracticeResult(practice, unit, ex, pass) {
-    const p = { stage: 'parsons', passed: {}, streak: {}, ...practice };
+  // revealed: 答えを見て解いた（合格にはするが、連続正解には数えない）
+  function applyPracticeResult(practice, unit, ex, pass, revealed) {
+    const p = { stage: 'parsons', passed: {}, streak: {}, revealed: {}, ...practice };
     p.passed = { ...p.passed };
     p.streak = { ...p.streak };
+    p.revealed = { ...p.revealed };
     if (pass && !p.passed[ex.id]) {
       p.passed[ex.id] = true;
-      p.streak[ex.stage] = (p.streak[ex.stage] || 0) + 1;
+      if (revealed) p.revealed[ex.id] = true;
+      else p.streak[ex.stage] = (p.streak[ex.stage] || 0) + 1;
     }
     const list = exercisesOf(unit, ex.stage);
     const allPassed = list.every((e) => p.passed[e.id]);
@@ -126,6 +129,26 @@
     p.suggestNext = ex.stage !== 'scratch' && (p.streak[ex.stage] >= 2 || allPassed);
     p.complete = exercisesOf(unit, 'scratch').every((e) => p.passed[e.id]);
     return p;
+  }
+  // ---- ヒントは3〜5段階。全部開けたら「答えを見る」で答えを入れて先に進める ----
+  // 並べ替え・穴埋めは、元の3段階に「答えに近いヒント」を1つ足す
+  function hintsFor(ex) {
+    const list = [...ex.hints];
+    if (ex.stage === 'parsons' && ex.lines.length >= 3) list.push('最初の行は「' + ex.lines[0].trim() + '」、最後の行は「' + ex.lines[ex.lines.length - 1].trim() + '」です。');
+    if (ex.stage === 'blank' && ex.answers.length >= 2) list.push('空欄1には「' + ex.answers[0] + '」が入ります。残りも同じように考えてみましょう。');
+    return list;
+  }
+  const HINT_LABELS = ['方向性', '着目箇所', '考え方', '部分コード', '答えに近いヒント'];
+  function hintLabel(ex, i) {
+    const n = hintsFor(ex).length;
+    if (i === n - 1 && n > 3) return HINT_LABELS[4];
+    return HINT_LABELS[i === 2 ? 3 : i] || HINT_LABELS[2];
+  }
+  // 答えを見たときに入力欄に入れる中身
+  function answerInput(ex) {
+    if (ex.stage === 'parsons') return { order: [...ex.lines] };
+    if (ex.stage === 'blank') return { blanks: [...ex.answers] };
+    return { code: ex.solution };
   }
   function nextStage(stage) {
     const i = STAGE_ORDER.indexOf(stage);
@@ -437,7 +460,7 @@
   RGA.rules = {
     unitById, suggestStart, missingPrereqs, nextUnit,
     assembleAnswer, exerciseJob, gradeExercise, targetMutants,
-    STAGE_ORDER, exercisesOf, applyPracticeResult, nextStage,
+    STAGE_ORDER, exercisesOf, applyPracticeResult, nextStage, hintsFor, hintLabel, answerInput,
     scoreExplanation, checkAdoptExplanation, specCoverage, MIN_CHARS,
     detectSensitive, redact, leaksSolution, limitCodeBlocks, codeLines,
     TUTOR_LIMIT_OFF, tutorQuota,

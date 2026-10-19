@@ -216,3 +216,27 @@ test('FR-130 ダッシュボードの集計', () => {
   assert.equal(d.totals.calmRate, 0.5);
   assert.equal(R.dashboardStats(RGA.store.defaultState()).totals.gateFirstRate, null);
 });
+
+test('ヒントは3〜5段階。答えを入れると合格し、答えを見て解いた問題は連続正解に数えない', async () => {
+  const { UNITS } = RGA.content;
+  for (const u of UNITS) {
+    for (const ex of u.exercises) {
+      const hints = R.hintsFor(ex);
+      assert.ok(hints.length >= 3 && hints.length <= 5, ex.id);
+      hints.forEach((_, i) => assert.ok(R.hintLabel(ex, i), ex.id));
+      const input = R.answerInput(ex);
+      const answer = R.assembleAnswer(ex, input);
+      const graded = R.gradeExercise(u, ex, await RGA.runner.runJob(R.exerciseJob(u, ex, answer)), answer);
+      assert.equal(graded.pass, true, ex.id + ' 答えを入れると合格');
+    }
+  }
+  const u = UNITS[0];
+  const [a, b] = R.exercisesOf(u, 'parsons');
+  let p = R.applyPracticeResult(undefined, u, a, true, true);
+  assert.equal(p.passed[a.id], true);
+  assert.equal(p.revealed[a.id], true);
+  assert.equal(p.streak.parsons || 0, 0);
+  p = R.applyPracticeResult(p, u, b, true, false);
+  assert.equal(p.streak.parsons, 1);
+  assert.equal(p.suggestNext, true, '段階の問題を全部解いたら次を提案');
+});

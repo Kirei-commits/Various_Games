@@ -155,6 +155,16 @@
     else location.hash = hash;
   }
 
+  // ハッカソンの画面（hack-view.js）に渡す道具。state は読み込みや初期化で差し替わるので関数で渡す
+  const ui = {
+    h, codeBlock, toast, sfx, celebrate, update, persist, go, now,
+    guide: (...a) => guide(...a),
+    render: () => render(),
+    state: () => state,
+    logAi: (e) => logAi(e),
+    aiEnv: () => aiEnv(),
+  };
+
   function render() {
     const r = route();
     const active = document.activeElement;
@@ -174,6 +184,9 @@
     else if (r.name === 'dashboard') view = viewDashboard();
     else if (r.name === 'log') view = viewLog();
     else if (r.name === 'settings') view = viewSettings();
+    else if (r.name === 'hack') view = window.RGA.hackView.view(ui, r.args);
+    else if (r.name === 'texts') view = window.RGA.textView.view(ui, r.args);
+    else if (r.name === 'work') view = window.RGA.workView.view(ui, r.args);
     else view = viewHome();
     main.replaceChildren(view);
     if (focusId && $(focusId)) {
@@ -295,7 +308,49 @@
         h('section', { class: 'card' },
           h('p', { class: 'eyebrow' }, '前回の振り返り'),
           lastJournal ? [h('p', { class: 'muted small' }, fmtTime(lastJournal.time) + ' ・ ' + lastJournal.unitId), h('blockquote', null, lastJournal.text || '（本文なし）')] : h('p', { class: 'muted' }, 'まだありません。単元の最後に、計測結果を見ながら書きます。')),
+        hackCard(),
+        workCard(),
+        textsCard(),
+        retryCard(),
         bankPreview()));
+  }
+  function hackCard() {
+    const HK = window.RGA.hack;
+    const pr = window.RGA.hackView.progressOf(state);
+    const no = HK.unlockedUpTo(pr);
+    const s = HK.SPRINTS.find((x) => x.no === no);
+    return h('section', { class: 'card hack-card' },
+      h('p', { class: 'eyebrow' }, '研修ハッカソン（読む・レビューする）'),
+      h('h2', null, HK.released(pr) ? 'リリース済み 🎉' : 'スプリント' + no + ' / ' + HK.TOTAL_SPRINTS),
+      s ? h('p', { class: 'muted small' }, s.title) : null,
+      h('p', { class: 'small' }, '同期のコードをレビューし、自分のコードを直し、コンフリクトを解いて「AIお金相談チャット」をリリースしよう。'),
+      h('button', { id: 'home-hack', class: 'btn primary', onclick: () => go('#/hack') }, 'ハッカソンへ'));
+  }
+  function workCard() {
+    const WK = window.RGA.work;
+    const pr = window.RGA.workView.progressOf(state);
+    return h('section', { class: 'card' },
+      h('p', { class: 'eyebrow' }, '配属先（実案件・仕事の進め方）'),
+      h('h2', null, pr.phase === 'done' ? '1年目 修了 🎓' : '第' + pr.week + '週 / ' + WK.TOTAL_WEEKS),
+      h('p', { class: 'small' }, '利用者 ' + pr.metrics.users.toLocaleString('ja-JP') + ' 人 ・ ★' + pr.metrics.rating.toFixed(1) + ' ・ チームの体力 ' + pr.metrics.stamina),
+      h('button', { id: 'home-work', class: 'btn', onclick: () => go('#/work') }, '配属先へ'));
+  }
+  function textsCard() {
+    const TX = window.RGA.texts;
+    const pr = window.RGA.textView.progressOf(state);
+    return h('section', { class: 'card' },
+      h('p', { class: 'eyebrow' }, '言語テキスト（読めるようになる）'),
+      h('div', { class: 'row wrap' }, TX.COURSES.map((c) => { const st = TX.courseStatus(pr, c); return h('a', { class: 'btn tiny', href: '#/texts/c/' + c.id }, c.icon + ' ' + c.name + ' ' + st.chapters + '/' + st.count + '章'); })),
+      h('p', { class: 'small' }, 'コンストラクタも継承も useEffect も、会話と図で「読める」ように。'),
+      h('button', { id: 'home-texts', class: 'btn', onclick: () => go('#/texts') }, 'テキストを開く'));
+  }
+  function retryCard() {
+    const list = state.retry || [];
+    if (!list.length) return null;
+    return h('section', { class: 'card', id: 'home-retry' },
+      h('p', { class: 'eyebrow' }, '答えを見た問題（もう一度挑戦）'),
+      h('ul', { class: 'small' }, list.slice(-6).reverse().map((r) => h('li', null, h('a', { href: r.href }, r.title)))),
+      list.length > 6 ? h('p', { class: 'muted tiny' }, 'ほか ' + (list.length - 6) + ' 問') : null);
   }
   function areaName(id) {
     return id + '. ' + C.AREAS.find((a) => a.id === id).name;
@@ -499,7 +554,11 @@
           update(() => { enr.predicted['c' + i] = true; });
           render();
         } }, '答え合わせ'),
-        checked ? h('p', { class: 'feedback', role: 'status' }, correct ? '正解！ ' + q.why : 'おしい。もう一度考えてみましょう。ヒント: ' + q.why.split('。')[0] + '。') : null));
+        checked ? h('p', { class: 'feedback', role: 'status' }, correct ? (enr.predicted['r' + i] ? '答え: ' : '正解！ ') + q.why : 'おしい。もう一度考えてみましょう。ヒント: ' + q.why.split('。')[0] + '。') : null,
+        checked && !correct ? h('button', { class: 'btn tiny warn pq-reveal', 'data-q': String(i), onclick: () => {
+          update(() => { enr.predicted[i] = q.answer; enr.predicted['c' + i] = true; enr.predicted['r' + i] = true; });
+          render();
+        } }, 'わからないので答えを見る') : null));
     });
     const allOk = unit.predict.every((q, i) => enr.predicted['c' + i] && enr.predicted[i] === q.answer);
     quiz.append(h('div', { class: 'row end' }, h('button', { id: 'to-practice', class: 'btn primary', disabled: !allOk, onclick: () => { completeStep(enr, 'understand'); go('#/unit/' + unit.id + '/practice'); } }, allOk ? '練習へ進む' : '全問正解すると練習へ進めます')));
@@ -524,6 +583,7 @@
   function stepPractice(unit, enr) {
     const ex = currentExercise(unit, enr);
     const st = exState(enr, ex);
+    const hints = R.hintsFor(ex);
     const tabs = h('div', { class: 'tabs', role: 'tablist', 'aria-label': '足場の段階' }, C.STAGES.map((s, i) => {
       const list = R.exercisesOf(unit, s.id);
       const passed = list.filter((e) => enr.practice.passed[e.id]).length;
@@ -542,12 +602,14 @@
       exerciseWidget(ex, st),
       h('div', { class: 'row' },
         h('button', { id: 'ex-submit', class: 'btn primary', onclick: () => submitExercise(unit, enr, ex) }, 'テストを実行'),
-        h('button', { id: 'ex-hint', class: 'btn', disabled: st.hintLevel >= 3, onclick: () => {
+        h('button', { id: 'ex-hint', class: 'btn', disabled: st.hintLevel >= hints.length, onclick: () => {
           update(() => { st.hintLevel += 1; enr.metrics = S.addMetric(enr, 'off', 'hints', 1).metrics; });
           render();
-        } }, st.hintLevel >= 3 ? 'ヒントはここまで' : 'ヒント（' + ['方向性', '着目箇所', '部分コード'][st.hintLevel] + '）'),
+        } }, st.hintLevel >= hints.length ? 'ヒントはここまで' : 'ヒント ' + (st.hintLevel + 1) + '/' + hints.length + '（' + R.hintLabel(ex, st.hintLevel) + '）'),
+        st.hintLevel >= hints.length && !st.pass ? h('button', { id: 'ex-reveal', class: 'btn warn', onclick: () => revealExercise(unit, enr, ex) }, '答えを見る') : null,
         h('button', { id: 'ex-reset', class: 'btn ghost', onclick: () => { update(() => { st.order = []; st.blanks = []; st.code = ex.code || ''; st.rows = null; st.error = null; }); render(); } }, '最初に戻す')),
-      st.hintLevel ? h('ol', { class: 'hints', 'aria-label': 'ヒント' }, ex.hints.slice(0, st.hintLevel).map((t, i) => h('li', null, h('strong', null, ['方向性', '着目箇所', '部分コード'][i] + ': '), i === 2 ? h('code', null, t) : t))) : null,
+      st.hintLevel ? h('ol', { class: 'hints', 'aria-label': 'ヒント' }, hints.slice(0, st.hintLevel).map((t, i) => h('li', null, h('strong', null, R.hintLabel(ex, i) + ': '), i === 2 ? h('code', null, t) : t))) : null,
+      st.revealed ? h('p', { class: 'note small', id: 'ex-revealed' }, '答えを入れました。1行ずつ読んで「なぜこうなるか」を確かめてから「テストを実行」で進みましょう。この問題は「答えを見た問題」に入れておくので、あとでもう一度挑戦できます。') : null,
       resultsBox('ex-results', st));
     const after = h('div', { class: 'stack' });
     if (st.pass) {
@@ -620,6 +682,19 @@
     return box;
   }
 
+  // ヒントを全部開けたあとだけ押せる。答えを入力欄に入れて、「答えを見た問題」に記録する
+  function revealExercise(unit, enr, ex) {
+    const st = exState(enr, ex);
+    update((s) => {
+      Object.assign(st, R.answerInput(ex), { revealed: true, rows: null, error: null });
+      s.retry = addRetry(s.retry, { kind: 'practice', ref: unit.id + '/' + ex.id, title: unit.id + ' ' + C.STAGES.find((x) => x.id === ex.stage).name + '（' + ex.id + '）', href: '#/unit/' + unit.id + '/practice', time: now() });
+    });
+    render();
+  }
+  function addRetry(list, item) {
+    return [...(list || []).filter((r) => r.ref !== item.ref), item].slice(-50);
+  }
+
   async function submitExercise(unit, enr, ex) {
     const st = exState(enr, ex);
     const answer = R.assembleAnswer(ex, st);
@@ -643,7 +718,7 @@
       st.ms = ms;
       enr.metrics = S.addMetric(enr, 'off', 'submissions', 1).metrics;
       if (!grade.pass) enr.metrics = S.addMetric(enr, 'off', 'failures', 1).metrics;
-      enr.practice = R.applyPracticeResult(enr.practice, unit, ex, grade.pass);
+      enr.practice = R.applyPracticeResult(enr.practice, unit, ex, grade.pass, !!st.revealed);
       s.submissions = S.pushCapped(s.submissions, { id: uid('sub'), unitId: unit.id, step: 'practice', exId: ex.id, code: answer.slice(0, 4000), pass: grade.pass, failed: grade.rows.filter((r) => !r.pass).map((r) => r.name), time: now() }, S.MAX_SUBMISSIONS);
     });
     render();
@@ -679,6 +754,9 @@
         h('h2', null, res.pass ? '合格！ AIが解禁されました' : 'もう少しです'),
         res.pass ? h('p', null, 'この単元の「実践」ステップで、AIに実装させてレビューする練習ができます。') : h('p', null, '次の観点が足りていません。練習に戻ってコードを見直してもかまいません。何度でも出し直せます。'),
         res.missing.length ? h('ul', { class: 'missing' }, res.missing.map((m) => h('li', null, m))) : null,
+        !res.pass && g.attempts >= 2 ? h('details', { class: 'gate-sample', id: 'gate-sample' }, h('summary', null, 'お手本の観点を見る（2回出したので開けます）'),
+          h('p', { class: 'small' }, 'それぞれの観点に、例のことばを入れて書くと合格します。ことばを写すだけでなく、コードのどこの話かを自分で確かめてください。'),
+          h('ul', null, ['what', 'risk'].flatMap((k) => unit.gate[k].points.map((pt) => h('li', null, (k === 'what' ? '何をするか: ' : '危ないところ: ') + pt.label + '（例: 「' + pt.any.slice(0, 2).join('」「') + '」）'))))) : null,
         res.llm ? h('p', { class: 'note small' }, 'AIの観点採点: ' + res.llm.feedback) : null,
         res.pass ? h('button', { id: 'to-aion', class: 'btn primary', onclick: () => { go('#/unit/' + unit.id + '/aion'); } }, '実践へ（AIオン）') : h('button', { class: 'btn', onclick: () => go('#/unit/' + unit.id + '/practice') }, '練習に戻る')) : null);
   }
@@ -1460,12 +1538,17 @@
   // ---------------------------------------------------------------- 設定
   function viewSettings() {
     const s = state.settings;
-    const draft = { name: state.user.name, apiKey: s.apiKey || '', remember: !!s.rememberKey, model: s.model || T.MODEL_DEFAULT, budget: s.monthlyBudgetUsd, stop: !!s.tutorStopped, sound: s.sound !== false, lang: s.lang === 'ts' ? 'ts' : 'js' };
+    const draft = { name: state.user.name, apiKey: s.apiKey || '', remember: !!s.rememberKey, model: s.model || T.MODEL_DEFAULT, budget: s.monthlyBudgetUsd, stop: !!s.tutorStopped, sound: s.sound !== false, lang: s.lang === 'ts' ? 'ts' : 'js', names: { ...(s.names || {}) } };
     return h('div', { class: 'page narrow' }, h('h1', null, '設定'),
       h('section', { class: 'card' }, h('h2', null, 'プロフィール'),
         h('label', { class: 'field' }, h('span', null, '表示名'), h('input', { id: 'set-name', type: 'text', maxlength: '20', value: draft.name, oninput: (e) => { draft.name = e.target.value; } })),
         h('label', { class: 'check' }, h('input', { id: 'set-sound', type: 'checkbox', checked: draft.sound, onchange: (e) => { draft.sound = e.target.checked; } }), '効果音を鳴らす（合格・AI の解禁・マージ・修了のとき。失敗では鳴りません）'),
         h('button', { class: 'btn tiny ghost', onclick: () => { update((st) => { st.seen = {}; }); toast('使い方のガイドを、もう一度表示します'); } }, '使い方のガイドをもう一度見る')),
+      h('section', { class: 'card' }, h('h2', null, 'ハッカソンの登場人物の名前'),
+        h('p', { class: 'muted small' }, '名前は仮です。好きな名前に変えられます（空にすると元の名前に戻ります）。あなたの名前は「表示名」が使われます。'),
+        h('div', { class: 'names-grid' }, window.RGA.hack.CAST.filter((c) => c.id !== 'player').map((c) => h('label', { class: 'field' },
+          h('span', null, c.icon + ' ' + c.role),
+          h('input', { id: 'set-name-' + c.id, type: 'text', maxlength: '20', placeholder: c.name, value: draft.names[c.id] || '', oninput: (e) => { draft.names[c.id] = e.target.value.trim(); } }))))),
       h('section', { class: 'card' }, h('h2', null, '課題の言語'),
         h('label', { class: 'field' }, h('span', null, '自分で書くコードの言語'), h('select', { id: 'set-lang', onchange: (e) => { draft.lang = e.target.value; } },
           [['js', 'JavaScript（既定）'], ['ts', 'TypeScript（型チェックあり）']].map(([v, l]) => h('option', { value: v, selected: draft.lang === v }, l)))),
@@ -1483,7 +1566,7 @@
       h('div', { class: 'row' }, h('button', { id: 'set-save', class: 'btn primary', onclick: () => {
         update((st) => {
           st.user.name = draft.name.trim() || '学習者';
-          st.settings = { ...st.settings, apiKey: draft.apiKey, rememberKey: draft.remember, model: draft.model, monthlyBudgetUsd: draft.budget, tutorStopped: draft.stop, sound: draft.sound, lang: draft.lang };
+          st.settings = { ...st.settings, apiKey: draft.apiKey, rememberKey: draft.remember, model: draft.model, monthlyBudgetUsd: draft.budget, tutorStopped: draft.stop, sound: draft.sound, lang: draft.lang, names: Object.fromEntries(Object.entries(draft.names).filter(([, v]) => v)) };
         });
         toast('保存しました', 'ok');
         render();

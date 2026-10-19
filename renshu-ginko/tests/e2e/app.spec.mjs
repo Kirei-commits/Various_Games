@@ -56,16 +56,23 @@ test('FR-022 提出するとテスト名と期待値・実際の値を返す（1
   await expect(results).toContainText('"¥1,234円"');
 });
 
-test('FR-023 ヒントは方向性 → 着目箇所 → 部分コードの順に1段階ずつ', async ({ page }) => {
+test('FR-023 ヒントは3〜5段階で1つずつ開き、全部開けると「答えを見る」で答えを入れて進める', async ({ page }) => {
   await onboard(page);
   await passUnderstand(page, 'L1-01');
+  await expect(page.locator('#ex-reveal')).toHaveCount(0);
   await page.click('#ex-hint');
   await expect(page.locator('.hints li')).toHaveCount(1);
   await expect(page.locator('#ex-hint')).toContainText('着目箇所');
-  await page.click('#ex-hint');
-  await page.click('#ex-hint');
-  await expect(page.locator('.hints li')).toHaveCount(3);
+  const n = await page.evaluate(() => window.RGA.rules.hintsFor(window.RGA.content.UNITS[0].exercises[0]).length);
+  for (let i = 1; i < n; i++) await page.click('#ex-hint');
+  await expect(page.locator('.hints li')).toHaveCount(n);
   await expect(page.locator('#ex-hint')).toBeDisabled();
+  await page.click('#ex-reveal');
+  await expect(page.locator('#ex-revealed')).toBeVisible();
+  await page.click('#ex-submit');
+  await expect(page.locator('#ex-results')).toContainText('合格', { timeout: 10_000 });
+  await page.goto('/#/home');
+  await expect(page.locator('#home-retry')).toContainText('L1-01');
 });
 
 test('無限ループは時間切れで止まり、画面は固まらない（NFR-01）', async ({ page }) => {

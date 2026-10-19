@@ -16,6 +16,16 @@ js/gitsim.js   ブラウザ上の簡易 Git（純粋。操作は新しい repo �
 js/tutor.js    ルールベースのチューター、Claude API（fetchImpl を引数でもらう）、AI実装役
 js/store.js    状態の形・保存・監査ログのハッシュの鎖（純粋）
 js/ts.js       TypeScript 対応。compile(ts, libs, code) は ts と型定義を引数でもらう（Node のテストは npm の typescript を渡す）
+js/hackathon.js ハッカソン・レビューモードの登場人物・採点・進み具合（純粋）。問題の形は先頭のコメント
+js/hack-sprints-a/b/c.js スプリント1〜8 / 9〜16 / 17〜24 の中身（データだけ。addSprints で足す）
+js/hack-consults.js スプリントごとの「聞きに行く」相談と、毎日の雑談（データだけ）
+js/texts.js    言語テキストのコース・章・進み具合・バッジ（純粋）。形は先頭のコメント。問題の形と採点はハッカソンと共通
+js/text-js/react/java/python.js 各言語のテキストの中身（データだけ。addCourse で足す）
+js/text-view.js 言語テキストの画面（#/texts…）。問題の部品は hack-view.js のものを使う
+js/work.js     配属先モード（実案件）の週・経営シミュレーション（力の配分 → 数字）・障害の抽選（週の番号で決まる）（純粋）
+js/work-weeks-a/b.js 第1〜12週 / 第13〜24週の中身と抽選の障害（データだけ）
+js/work-view.js 配属先モードの画面（#/work…）
+js/hack-view.js ハッカソンの画面（#/hack…）。app.js が渡す ui（h・update・render・state() など）で描く
 js/app.js      画面（S-01〜S-08）。ブラウザ専用
 tests/lint.mjs         構文・読み込み順・外部参照・CSP・純粋さ・id の実在
 tests/logic/*.test.mjs コンテンツの検査（お手本は合格・バグ入りは不合格）、評価セット（9章の受け入れ基準）
@@ -40,3 +50,14 @@ tests/e2e/*.spec.mjs   Playwright（desktop + mobile）
 - ダッシュボードの2系列の色（--series-off / --series-on）は dataviz の validate_palette で light・dark とも確認した値。変えるときは測り直す。
 - TypeScript の版は js/ts.js の VERSION と package.json の devDependencies をそろえる（ts.test が確かめる）。E2E は CDN への要求を node_modules のファイルで答える。
 - TypeScript で型チェックするのは「ゼロから」（strict）と実践のコード（strict を外す。AI の書いた JavaScript も通すため）。パーソンズ・穴埋め・修正は渡されたコードが JavaScript なので型チェックしない。
+- ヒントは3〜5段階（練習は rules.hintsFor が並べ替え・穴埋めに1段足す。ハッカソンは問題データに3〜5個）。全部開けたときだけ「答えを見る」を出す。答えを見た問題は state.retry に入れ、自力で解いたら消す。
+- ハッカソンの問題データの `{名前}` は登場人物の id に置き換わる（hack.test が不明な名前を見張る）。せりふやヒントに JSX の `{sending}` などを書くと引っかかるので言い換える。
+  行番号（defects[].line・bugLine・focus）は code の行に合わせる。採点の基準を表すフィールドは `checks`（`points` は問題のポイント）。
+- lint の純粋さの検査は、テンプレート文字列（問題として見せるコード）の中は見ない。ふつうの文字列の中の `Math.random` などは引っかかる。
+- E2E で保存データ（localStorage）を書き換えても、ページを離れるとき（pagehide）に画面の状態で上書きされる。状態を作るときは `window.__RGA_APP.state` を直接変えて、ハッシュで移動する。
+- 登場人物のペルソナは `PERSONAS.md`（オーナー監修）が正。CAST とせりふはそれに合わせる。ライバル関係や衝突と和解の青春要素は入れない。
+- 関係者の割り込み・技術ユーザーの仕様のひっくり返しは3〜4スプリントに1回だけ（event.interrupt: true。hack.test が間隔を見張る）。ほかの回は PO・ユーザー・チームとのやりとりにする。
+- 言語テキストの図（figure.text）は等幅で、全角を2文字と数えて44桁以内（スマホで横にはみ出さないように）。
+- text-js.js の問題のコードにテンプレート文字列を書くときは、ファイル内のタグ R（ˋ をバッククォート、＄{ を ${ に置き換える String.raw）を使う。ふつうの文字列にバッククォートを書くと lint の「テンプレート文字列の中は見ない」がずれる。
+- 配属先モードの障害の抽選は乱数を使わず、週の番号のハッシュで決める（同じ配分なら同じ結果。テストが確かめる）。抽選の障害は何度か起きうるので、起きるたびに入力をまっさらにする。
+- 並べ替え問題（order）の最初の並びは hack.initialOrder（決まった並べ替え。答えと同じにならない）。
