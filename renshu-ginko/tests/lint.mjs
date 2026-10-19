@@ -15,8 +15,8 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const read = (p) => fs.readFileSync(path.join(ROOT, p), 'utf8');
 const problems = [];
 
-const ORDER = ['core', 'content', 'units-more', 'units-l3', 'runner', 'rules', 'gitsim', 'tutor', 'store', 'ts', 'hackathon', 'hack-sprints-a', 'hack-sprints-b', 'hack-sprints-c', 'hack-consults', 'texts', 'text-js', 'text-react', 'text-java', 'text-python', 'work', 'work-weeks-a', 'work-weeks-b', 'challenge', 'journey', 'bonds', 'bond-episodes', 'moneychat', 'hack-view', 'text-view', 'work-view', 'challenge-view', 'app'];
-const PURE = ['core', 'content', 'units-more', 'units-l3', 'rules', 'gitsim', 'tutor', 'store', 'hackathon', 'hack-sprints-a', 'hack-sprints-b', 'hack-sprints-c', 'hack-consults', 'texts', 'text-js', 'text-react', 'text-java', 'text-python', 'work', 'work-weeks-a', 'work-weeks-b', 'challenge', 'journey', 'bonds', 'bond-episodes', 'moneychat'];
+const ORDER = ['core', 'content', 'units-more', 'units-l3', 'runner', 'rules', 'gitsim', 'tutor', 'store', 'ts', 'hackathon', 'hack-sprints-a', 'hack-sprints-b', 'hack-sprints-c', 'hack-consults', 'texts', 'text-js', 'text-react', 'text-java', 'text-python', 'work', 'work-weeks-a', 'work-weeks-b', 'challenge', 'journey', 'bonds', 'bond-episodes', 'moneychat', 'report', 'hack-view', 'text-view', 'work-view', 'challenge-view', 'report-view', 'app'];
+const PURE = ['core', 'content', 'units-more', 'units-l3', 'rules', 'gitsim', 'tutor', 'store', 'hackathon', 'hack-sprints-a', 'hack-sprints-b', 'hack-sprints-c', 'hack-consults', 'texts', 'text-js', 'text-react', 'text-java', 'text-python', 'work', 'work-weeks-a', 'work-weeks-b', 'challenge', 'journey', 'bonds', 'bond-episodes', 'moneychat', 'report'];
 
 // 1. 構文
 for (const f of fs.readdirSync(path.join(ROOT, 'js'))) {
@@ -47,6 +47,28 @@ for (const n of PURE) {
     if (src.includes(bad)) problems.push(`js/${n}.js が ${bad} を使っている（純粋なモジュールに入れない）`);
   }
   if (/(^|[^\w.])fetch\(/.test(src)) problems.push(`js/${n}.js が fetch を直接呼んでいる（fetchImpl を引数でもらう）`);
+}
+
+// 4b. 危ない書き方（簡易の SAST）: 文字列とコメントを除いた「動くコード」だけを見る
+//     new Function は runner.js（学習者のコードを使い捨てのワーカーで動かす所）だけに許す
+const stripCode = (src) => src
+  .replace(/`(?:\\[\s\S]|[^`\\])*`/g, '``')
+  .replace(/'(?:\\.|[^'\\\n])*'/g, "''")
+  .replace(/"(?:\\.|[^"\\\n])*"/g, '""')
+  .replace(/\/\*[\s\S]*?\*\//g, '')
+  .replace(/\/\/.*$/gm, '');
+const SAST = [
+  { re: /\.(innerHTML|outerHTML)\s*\+?=/, msg: 'innerHTML / outerHTML への代入（XSS の入口）' },
+  { re: /\binsertAdjacentHTML\s*\(/, msg: 'insertAdjacentHTML（XSS の入口）' },
+  { re: /\bdocument\.write\s*\(/, msg: 'document.write' },
+  { re: /(^|[^\w.])eval\s*\(/, msg: 'eval' },
+  { re: /\bnew Function\s*\(/, msg: 'new Function', allow: ['runner.js'] },
+  { re: /\bset(Timeout|Interval)\s*\(\s*['"`]/, msg: '文字列を渡す setTimeout / setInterval' },
+];
+for (const f of fs.readdirSync(path.join(ROOT, 'js'))) {
+  if (!f.endsWith('.js')) continue;
+  const code = stripCode(read('js/' + f));
+  for (const rule of SAST) if (rule.re.test(code) && !(rule.allow || []).includes(f)) problems.push(`js/${f} に ${rule.msg} がある（安全な書き方にする）`);
 }
 
 // 5. id の実在

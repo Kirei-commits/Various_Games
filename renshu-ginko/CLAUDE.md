@@ -31,9 +31,12 @@ js/journey.js  モードのつながり: スプリント↔テキストの章の
 js/bonds.js    絆とエピソード（絆は保存せず、終えたスプリント・相談・会話・配属先の週から毎回数える）（純粋）
 js/bond-episodes.js 16人×2話のエピソード（データだけ。恋愛・ライバルの要素は入れない。テストあり）
 js/moneychat.js 作っているアプリのデモの中身（スプリント → 機能、直す前のバグと直した後の動き。返答はルール）（純粋）
+js/report.js   メンター用の学習レポート（進み具合の数と状態だけ。会話・本文・鍵は入れない。テストあり）（純粋）
+js/report-view.js レポートの画面（#/report）。ダッシュボードの「すべてのモードの記録」も同じ表示
 js/hack-view.js ハッカソンの画面（#/hack…）。app.js が渡す ui（h・update・render・state() など）で描く
 js/app.js      画面（S-01〜S-08）。ブラウザ専用
-tests/lint.mjs         構文・読み込み順・外部参照・CSP・純粋さ・id の実在
+tests/lint.mjs         構文・読み込み順・外部参照・CSP・純粋さ・簡易 SAST・id の実在
+tests/coverage.mjs     ロジックテスト（npm run test:logic）をカバレッジつきで動かし、基準を下回ると失敗
 tests/logic/*.test.mjs コンテンツの検査（お手本は合格・バグ入りは不合格）、評価セット（9章の受け入れ基準）
 tests/e2e/*.spec.mjs   Playwright（desktop + mobile）
 ```
@@ -68,3 +71,5 @@ tests/e2e/*.spec.mjs   Playwright（desktop + mobile）
 - 配属先モードの障害の抽選は乱数を使わず、週の番号のハッシュで決める（同じ配分なら同じ結果。テストが確かめる）。抽選の障害は何度か起きうるので、起きるたびに入力をまっさらにする。
 - 並べ替え問題（order）の最初の並びは hack.initialOrder（決まった並べ替え。答えと同じにならない）。
 - 称号は app.js の render のたびに journey.newTitles で確かめ、state.titles に記録してお祝いする（どの画面で条件を満たしても気づく）。
+- E2E でファイルを選ばせるとき（setInputFiles）は、ファイルを英数字だけのパス（os.tmpdir() の下）に置く。日本語の長いテスト名から作られる test-results のフォルダだと、選択が黙って空になった。
+- lint の簡易 SAST は文字列とコメントを除いたコードだけを見る。new Function は runner.js だけに許している。

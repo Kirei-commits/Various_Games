@@ -188,6 +188,7 @@
     else if (r.name === 'texts') view = window.RGA.textView.view(ui, r.args);
     else if (r.name === 'work') view = window.RGA.workView.view(ui, r.args);
     else if (r.name === 'challenge') view = window.RGA.challengeView.view(ui, r.args);
+    else if (r.name === 'report') view = window.RGA.reportView.view(ui);
     else view = viewHome();
     main.replaceChildren(view);
     checkTitles();
@@ -1557,7 +1558,10 @@
         tile('ヒント・質問', t.hints + ' / ' + t.questions, 'ヒント / チューター質問'),
         tile('「体感と実測が違った」', pct(t.gapNoticedRate), '振り返りでの割合')),
       h('section', { class: 'card' }, chart),
-      table);
+      table,
+      h('section', { class: 'card', id: 'dash-modes' },
+        window.RGA.reportView.renderReport(ui, window.RGA.report.buildReport(state, now()), { title: 'すべてのモードの記録' }),
+        h('p', { class: 'small' }, h('a', { href: '#/report', id: 'dash-report' }, 'メンター用の学習レポートを書き出す →'))));
   }
 
   // ---------------------------------------------------------------- S-08 AI利用ログ
@@ -1618,6 +1622,7 @@
       } }, '保存')),
       h('section', { class: 'card' }, h('h2', null, 'データ'),
         h('p', { class: 'muted small' }, '学習データはこのブラウザの中にだけ保存されています（サーバーには送りません）。バックアップや別の端末への移行は、書き出したファイルを読み込んでください。'),
+        h('p', { class: 'small' }, 'メンターに進み具合を見てもらうときは、', h('a', { href: '#/report', id: 'set-report' }, 'メンター用の学習レポート'), 'を書き出して渡せます（会話や振り返りの本文は入りません）。'),
         h('div', { class: 'row wrap' },
           h('button', { id: 'data-export', class: 'btn', onclick: () => { const { apiKey, ...settings } = state.settings; download('renshu-ginko-data.json', JSON.stringify({ ...state, settings }, null, 2)); } }, 'すべて書き出す（JSON）'),
           h('label', { class: 'btn', for: 'data-import' }, '書き出したファイルを読み込む'),
