@@ -25,6 +25,8 @@ js/text-view.js 言語テキストの画面（#/texts…）。問題の部品は
 js/work.js     配属先モード（実案件）の週・経営シミュレーション（力の配分 → 数字）・障害の抽選（週の番号で決まる）（純粋）
 js/work-weeks-a/b.js 第1〜12週 / 第13〜24週の中身と抽選の障害（データだけ）
 js/work-view.js 配属先モードの画面（#/work…）
+js/challenge.js チャレンジの出題（3モードの問題から。日付・開始の合図で決まる順）と記録（純粋）
+js/challenge-view.js チャレンジの画面（#/challenge…）。入力は挑戦ごとの使い捨てで、学習の記録に触れない
 js/hack-view.js ハッカソンの画面（#/hack…）。app.js が渡す ui（h・update・render・state() など）で描く
 js/app.js      画面（S-01〜S-08）。ブラウザ専用
 tests/lint.mjs         構文・読み込み順・外部参照・CSP・純粋さ・id の実在

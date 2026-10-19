@@ -21,5 +21,6 @@ import '../../js/text-python.js';
 import '../../js/work.js';
 import '../../js/work-weeks-a.js';
 import '../../js/work-weeks-b.js';
+import '../../js/challenge.js';
 
 export const RGA = globalThis.RGA;
