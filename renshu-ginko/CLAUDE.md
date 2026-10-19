@@ -82,3 +82,5 @@ tests/e2e/*.spec.mjs   Playwright（desktop + mobile）
 - チャットの個別の部屋で話した回数も絆に入る（ハッカソンの会話と合わせて5点まで）。会話の本文はレポートに入れない。
 - Gemini のモデルは既定で自動（tutor.callGeminiAuto）。一覧（models.list）を rankGeminiModels で並べ、キーごとに覚える。モデル名を決め打ちしない（gemini-2.5-flash は新しい利用者には提供が終わり、実際に止まった）。
 - チャットの LLM への頼み方は messenger.llmRequest（雑談の場。部署や得意分野は背景だけで、相手が振らない限り仕事・技術の話をしない）。hack.personaPrompt やスプリントの状況は渡さない（渡すと全員が仕事の話に引っぱられた）。
+- チャットの好感度は保存せず messenger.statsOf で毎回数える（土台 PROFILES[id].base ＋ 絆×3 ＋ 個別で話した回数 ＋ うれしい言葉×3 ＋ グループでの発言）。人柄の数値は PROFILES（PERSONAS.md から決めた目安）。話せる人を足したら PROFILES にも足す（messenger.test が確かめる）。
+- 個別とグループの返事は互いに引き継ぐ（llmRequest が呼び方・口調の例・仲・相手の部屋の最近のやりとりを入れる）。

@@ -73,3 +73,23 @@ test('チャット: 部屋ごと・すべての会話を消せる（消すと最
   expect(st.rooms).toEqual({});
   expect(st.user).toBe('テスト新人');
 });
+
+test('チャット: 名前の横に所属と好感度が出て（話しても消えない）、個別の部屋で人物のデータが見られる', async ({ page }) => {
+  await onboard(page);
+  await page.goto('/#/chat/dm-seto');
+  await expect(page.locator('#chat-log .bubble-row')).toHaveCount(1);
+  const before = Number(await page.locator('#chat-affinity').textContent());
+  await page.fill('#chat-input', 'いつもありがとう');
+  await page.click('#chat-send');
+  await expect(page.locator('#chat-log .bubble-row')).toHaveCount(3);
+  await expect(page.locator('#chat-affinity')).toHaveText(String(before + 7)); // 話した回数 +1・うれしい言葉 +3・絆 +1点（×3）
+  await page.click('#chat-profile summary');
+  await expect(page.locator('#chat-profile')).toContainText('技術力');
+  await expect(page.locator('#chat-profile')).toContainText('個別で話した回数');
+  await page.click('#chat-back');
+  await expect(page.locator('#chat-room-dm-seto')).toContainText('同期・海外本部');
+  await expect(page.locator('#chat-room-dm-seto')).toContainText('♥ ' + (before + 7));
+  await page.goto('/#/chat/g-douki');
+  await page.click('#chat-members summary');
+  await expect(page.locator('#chat-members')).toContainText('瀬戸 海斗');
+});
