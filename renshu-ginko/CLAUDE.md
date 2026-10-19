@@ -80,3 +80,4 @@ tests/e2e/*.spec.mjs   Playwright（desktop + mobile）
 - LLM を呼ぶ画面は tutor.hasAI / modelFor / callLLM を使う（会社ごとの分岐を画面に書かない）。CSP の connect-src は Anthropic と Google の API だけ（lint が確かめる）。
 - チャットに話せる人を足したら、chat-lines-a/b.js に全部の発言の種類（open〜default）のせりふを足す（messenger.test が確かめる）。上司は「{player}くん」。グループの顔ぶれは messenger.GROUPS。
 - チャットの個別の部屋で話した回数も絆に入る（ハッカソンの会話と合わせて5点まで）。会話の本文はレポートに入れない。
+- Gemini のモデルは既定で自動（tutor.callGeminiAuto）。一覧（models.list）を rankGeminiModels で並べ、キーごとに覚える。モデル名を決め打ちしない（gemini-2.5-flash は新しい利用者には提供が終わり、実際に止まった）。

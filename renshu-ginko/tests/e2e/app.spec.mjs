@@ -413,13 +413,20 @@ test('設定: Gemini を選んでキーを保存すると、チューターが G
   await page.selectOption('#set-provider', 'gemini');
   await expect(page.locator('#set-gemini')).toBeVisible();
   await page.fill('#set-geminikey', 'AIza-test-key-not-real');
+  // モデルは既定で自動。名前を指定するときだけ入力欄が出る
+  await expect(page.locator('#set-geminimodel')).toHaveCount(0);
+  await page.selectOption('#set-geminimode', 'manual');
+  await expect(page.locator('#set-geminimodel')).toBeVisible();
+  await expect(page.locator('#set-geminikey')).toHaveValue('AIza-test-key-not-real');
+  await page.selectOption('#set-geminimode', 'auto');
   await page.click('#set-save');
   await page.waitForFunction(() => !!sessionStorage.getItem('renshu-ginko-geminikey'));
   const st = await page.evaluate(() => ({ s: window.__RGA_APP.state.settings, main: localStorage.getItem('renshu-ginko-v1') || '', sess: sessionStorage.getItem('renshu-ginko-geminikey') }));
   expect(st.s.provider).toBe('gemini');
   expect(st.s.geminiKey).toBe('AIza-test-key-not-real');
+  expect(st.s.geminiModel).toBe('auto');
   expect(st.main).not.toContain('AIza-test-key-not-real');
   expect(st.sess).toContain('AIza-test-key-not-real');
   await page.goto('/#/unit/L1-01');
-  await expect(page.locator('.tutor')).toContainText('Gemini（gemini-2.5-flash）で応答します');
+  await expect(page.locator('.tutor')).toContainText('Gemini（自動で選ぶ）で応答します');
 });

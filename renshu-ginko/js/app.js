@@ -1591,7 +1591,7 @@
   function viewSettings() {
     const s = state.settings;
     // 入力途中の内容は、設定画面にいるあいだ保つ（「使う AI」を切り替えると描き直すため）
-    const draft = settingsDraft || (settingsDraft = { name: state.user.name, provider: T.providerOf(s), geminiKey: s.geminiKey || '', geminiModel: s.geminiModel || T.GEMINI_DEFAULT, apiKey: s.apiKey || '', remember: !!s.rememberKey, model: s.model || T.MODEL_DEFAULT, budget: s.monthlyBudgetUsd, stop: !!s.tutorStopped, sound: s.sound !== false, lang: s.lang === 'ts' ? 'ts' : 'js', names: { ...(s.names || {}) } });
+    const draft = settingsDraft || (settingsDraft = { name: state.user.name, provider: T.providerOf(s), geminiKey: s.geminiKey || '', geminiManual: !T.isAutoGemini(s), geminiModel: T.isAutoGemini(s) ? '' : s.geminiModel, apiKey: s.apiKey || '', remember: !!s.rememberKey, model: s.model || T.MODEL_DEFAULT, budget: s.monthlyBudgetUsd, stop: !!s.tutorStopped, sound: s.sound !== false, lang: s.lang === 'ts' ? 'ts' : 'js', names: { ...(s.names || {}) } });
     return h('div', { class: 'page narrow' }, h('h1', null, '設定'),
       h('section', { class: 'card' }, h('h2', null, 'プロフィール'),
         h('label', { class: 'field' }, h('span', null, '表示名'), h('input', { id: 'set-name', type: 'text', maxlength: '20', value: draft.name, oninput: (e) => { draft.name = e.target.value; } })),
@@ -1613,9 +1613,12 @@
         h('p', { class: 'note small' }, '組織で使う場合は、API の利用規約とデータの取り扱い（学習に使われない設定か）を事前に確認してください（NFR-07）。業務のキーではなく、練習用に発行したキーを使いましょう。'),
         draft.provider === 'gemini' ? h('div', { class: 'stack', id: 'set-gemini' },
           h('label', { class: 'field' }, h('span', null, 'Gemini API キー（Google AI Studio で発行）'), h('input', { id: 'set-geminikey', type: 'password', autocomplete: 'off', value: draft.geminiKey, placeholder: 'AIza…', oninput: (e) => { draft.geminiKey = e.target.value.trim(); } })),
-          h('label', { class: 'field' }, h('span', null, 'Gemini のモデル'), h('input', { id: 'set-geminimodel', type: 'text', list: 'gemini-models', value: draft.geminiModel, oninput: (e) => { draft.geminiModel = e.target.value.trim(); } }),
-            h('datalist', { id: 'gemini-models' }, T.GEMINI_MODELS.map((m) => h('option', { value: m })))),
-          h('p', { class: 'muted tiny' }, '新しいモデルが出たら、Google AI Studio に表示される名前をそのまま入れてください。月の上限での軽量モデルへの切り替えは Claude だけです（Gemini の利用料は概算に含めます）。')) : null,
+          h('label', { class: 'field' }, h('span', null, 'Gemini のモデル'), h('select', { id: 'set-geminimode', onchange: (e) => { draft.geminiManual = e.target.value === 'manual'; render(); } },
+            h('option', { value: 'auto', selected: !draft.geminiManual }, '自動（無料枠のある新しい Flash を選ぶ・おすすめ）'),
+            h('option', { value: 'manual', selected: draft.geminiManual }, '名前を指定する'))),
+          draft.geminiManual ? h('label', { class: 'field' }, h('span', null, 'モデル名（Google AI Studio の表記のまま）'), h('input', { id: 'set-geminimodel', type: 'text', value: draft.geminiModel, placeholder: 'gemini-…-flash', oninput: (e) => { draft.geminiModel = e.target.value.trim(); } })) : null,
+          h('p', { class: 'muted tiny' }, '自動にすると、キーで使えるモデルの一覧から新しい Flash を選び、提供が終わったり無料枠の回数を使い切ったりしたら次の候補に切り替えます。Pro は無料枠がないので選びません。Gemini は無料枠で使う前提で、利用料は数えません。'),
+          h('p', { class: 'muted tiny' }, '注意: Gemini の無料枠では、送った内容が Google のサービス改善に使われることがあります。送る前に個人情報や鍵らしきものは止めますが、架空の練習の話だけを書いてください。')) : null,
         h('label', { class: 'field', hidden: draft.provider === 'gemini' }, h('span', null, 'Claude API キー'), h('input', { id: 'set-apikey', type: 'password', autocomplete: 'off', value: draft.apiKey, placeholder: 'sk-ant-…', oninput: (e) => { draft.apiKey = e.target.value.trim(); } })),
         h('label', { class: 'check' }, h('input', { id: 'set-remember', type: 'checkbox', checked: draft.remember, onchange: (e) => { draft.remember = e.target.checked; } }), 'この端末に保存する（外すと、タブを閉じたら消えます）'),
         h('label', { class: 'field', hidden: draft.provider === 'gemini' }, h('span', null, 'モデル'), h('select', { id: 'set-model', onchange: (e) => { draft.model = e.target.value; } },
@@ -1626,7 +1629,7 @@
       h('div', { class: 'row' }, h('button', { id: 'set-save', class: 'btn primary', onclick: () => {
         update((st) => {
           st.user.name = draft.name.trim() || '学習者';
-          st.settings = { ...st.settings, provider: draft.provider, geminiKey: draft.geminiKey, geminiModel: draft.geminiModel || T.GEMINI_DEFAULT, apiKey: draft.apiKey, rememberKey: draft.remember, model: draft.model, monthlyBudgetUsd: draft.budget, tutorStopped: draft.stop, sound: draft.sound, lang: draft.lang, names: Object.fromEntries(Object.entries(draft.names).filter(([, v]) => v)) };
+          st.settings = { ...st.settings, provider: draft.provider, geminiKey: draft.geminiKey, geminiModel: (draft.geminiManual && draft.geminiModel) || 'auto', apiKey: draft.apiKey, rememberKey: draft.remember, model: draft.model, monthlyBudgetUsd: draft.budget, tutorStopped: draft.stop, sound: draft.sound, lang: draft.lang, names: Object.fromEntries(Object.entries(draft.names).filter(([, v]) => v)) };
         });
         settingsDraft = null;
         toast('保存しました', 'ok');
