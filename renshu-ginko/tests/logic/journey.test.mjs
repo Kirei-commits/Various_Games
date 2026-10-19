@@ -34,3 +34,15 @@ test('称号: 条件を満たすと取れて、取ったものは new に出な�
   assert.deepEqual(J.newTitles(st, '2026-10-19'), []);
   assert.equal(new Set(J.TITLES.map((t) => t.id)).size, J.TITLES.length);
 });
+
+test('絆の称号と、今日やることの「新しいエピソード」', () => {
+  const H = RGA.hack;
+  const st = RGA.store.defaultState();
+  let pr = H.emptyProgress();
+  for (const s of H.SPRINTS.slice(0, 6)) for (const p of H.problemsOf(s)) pr = H.solve(pr, p, false, 1);
+  st.hack = pr;
+  assert.ok(J.earnedTitles(st, '2026-10-19').includes('bond-1'));
+  assert.ok(J.todayPlan(st, '2026-10-19').some((x) => x.mode === 'bond' && x.href.startsWith('#/hack/team/')));
+  st.hack.episodes = Object.fromEntries(RGA.bonds.unreadEpisodes(st).map((e) => [e.key, true]));
+  assert.ok(!J.todayPlan(st, '2026-10-19').some((x) => x.mode === 'bond'), '読んだら出さない');
+});

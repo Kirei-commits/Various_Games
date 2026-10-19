@@ -36,6 +36,11 @@
       const rel = chaptersOfSprint(no).find((x) => T.chapterUnlocked(tp, x.course, x.chapter.id) && !T.chapterStatus(tp, x.chapter).complete);
       if (rel) plan.push({ mode: 'texts', icon: rel.course.icon, title: '予習: ' + rel.course.name + '「' + rel.chapter.title + '」', sub: 'スプリント' + no + 'で使う知識', href: '#/texts/s/' + rel.chapter.sections[0].id });
     }
+    // 読めるようになったエピソード（いちばん古いものを1つ）
+    if (RGA.bonds) {
+      const ep = RGA.bonds.unreadEpisodes(state)[0];
+      if (ep) plan.push({ mode: 'bond', icon: '📖', title: '新しいエピソード', sub: H.CAST_BY_ID[ep.char].name + '「' + ep.title + '」', href: '#/hack/team/' + ep.char });
+    }
     const wp = state.work || W.emptyProgress();
     if (wp.phase !== 'done') {
       const week = W.weekOf(wp.week);
@@ -64,7 +69,14 @@
     { id: 'daily-3', icon: '📅', name: '三日坊主じゃない', how: '今日の5問を3日続ける', check: (s, today) => RGA.challenge.dailyStreak(s.challenge || RGA.challenge.emptyRecords(), today) >= 3 },
     { id: 'daily-7', icon: '🗓️', name: '1週間皆勤', how: '今日の5問を7日続ける', check: (s, today) => RGA.challenge.dailyStreak(s.challenge || RGA.challenge.emptyRecords(), today) >= 7 },
     { id: 'hunter-10', icon: '🐞', name: 'バグハンター', how: 'バグハントで10問連続正解', check: (s) => Object.values(((s.challenge || {}).best) || {}).some((n) => n >= 10) },
+    { id: 'bond-1', icon: '🤝', name: '打ち解けた', how: 'だれかと絆 Lv1 になる', check: (s) => bondLevels(s).some((lv) => lv >= 1) },
+    { id: 'bond-3', icon: '🫶', name: '頼れる仲間', how: '3人と絆 Lv2 になる', check: (s) => bondLevels(s).filter((lv) => lv >= 2).length >= 3 },
+    { id: 'episodes-10', icon: '📖', name: '物語の聞き手', how: 'エピソードを10話読む', check: (s) => Object.values(((s.hack || {}).episodes) || {}).filter(Boolean).length >= 10 },
   ];
+  function bondLevels(s) {
+    const B = RGA.bonds;
+    return B ? B.charsWithEpisodes().map((id) => B.bondLevel(B.bondPoints(s, id))) : [];
+  }
   function sprintDone(s, no) {
     const sp = RGA.hack.SPRINTS.find((x) => x.no === no);
     return !!sp && RGA.hack.sprintStatus(s.hack || RGA.hack.emptyProgress(), sp).complete;
