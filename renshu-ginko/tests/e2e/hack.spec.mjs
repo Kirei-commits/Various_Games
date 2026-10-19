@@ -130,3 +130,22 @@ test('ハッカソン: 今日の雑談があり、分からないことはハッ
   await page.click('#hk-topic-1');
   await expect(page.locator('#hk-chat-log')).toContainText('くん');
 });
+
+test('絆: 一緒にスプリントを終えると絆が深まり、エピソードが読めるようになる', async ({ page }) => {
+  await onboard(page);
+  await page.goto('/#/hack/team/rio');
+  await expect(page.locator('#hk-bond')).toContainText('絆 Lv0');
+  await page.evaluate(() => {
+    const { hack } = window.RGA;
+    let pr = hack.emptyProgress();
+    for (const s of hack.SPRINTS.slice(0, 6)) for (const p of hack.problemsOf(s)) pr = hack.solve(pr, p, false, 1);
+    window.__RGA_APP.state.hack = pr;
+  });
+  await page.goto('/#/hack');
+  await expect(page.locator('#hk-new-episodes')).toContainText('神崎');
+  await page.goto('/#/hack/team/rio');
+  await expect(page.locator('#hk-bond')).toContainText('絆 Lv1');
+  await page.click('#hk-ep-rio-1 summary');
+  await expect(page.locator('#hk-ep-rio-1')).toContainText('ラーメン');
+  await expect(page.locator('#hk-ep-rio-1 summary')).not.toContainText('🆕');
+});
