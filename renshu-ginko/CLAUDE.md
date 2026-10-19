@@ -27,6 +27,7 @@ js/work-weeks-a/b.js 第1〜12週 / 第13〜24週の中身と抽選の障害（�
 js/work-view.js 配属先モードの画面（#/work…）
 js/challenge.js チャレンジの出題（3モードの問題から。日付・開始の合図で決まる順）と記録（純粋）
 js/challenge-view.js チャレンジの画面（#/challenge…）。入力は挑戦ごとの使い捨てで、学習の記録に触れない
+js/journey.js  モードのつながり: スプリント↔テキストの章の対応（章の資料の「スプリントN「」から）・今日やること・称号（純粋）
 js/hack-view.js ハッカソンの画面（#/hack…）。app.js が渡す ui（h・update・render・state() など）で描く
 js/app.js      画面（S-01〜S-08）。ブラウザ専用
 tests/lint.mjs         構文・読み込み順・外部参照・CSP・純粋さ・id の実在
@@ -63,3 +64,4 @@ tests/e2e/*.spec.mjs   Playwright（desktop + mobile）
 - text-js.js の問題のコードにテンプレート文字列を書くときは、ファイル内のタグ R（ˋ をバッククォート、＄{ を ${ に置き換える String.raw）を使う。ふつうの文字列にバッククォートを書くと lint の「テンプレート文字列の中は見ない」がずれる。
 - 配属先モードの障害の抽選は乱数を使わず、週の番号のハッシュで決める（同じ配分なら同じ結果。テストが確かめる）。抽選の障害は何度か起きうるので、起きるたびに入力をまっさらにする。
 - 並べ替え問題（order）の最初の並びは hack.initialOrder（決まった並べ替え。答えと同じにならない）。
+- 称号は app.js の render のたびに journey.newTitles で確かめ、state.titles に記録してお祝いする（どの画面で条件を満たしても気づく）。

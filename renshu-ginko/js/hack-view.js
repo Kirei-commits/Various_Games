@@ -133,6 +133,15 @@
     return ui.h('section', { class: 'card', id: 'hk-smalltalk' }, ui.h('h2', null, '☕ 今日の雑談'), talkLines(ui, t.lines, names));
   }
 
+  // このスプリントで使う知識を予習できる言語テキストの章
+  function relatedTexts(ui, no) {
+    if (!RGA.journey || !RGA.texts) return null;
+    const list = RGA.journey.chaptersOfSprint(no);
+    if (!list.length) return null;
+    return ui.h('div', { class: 'related', id: 'hk-related' }, ui.h('h3', { class: 'small' }, '📚 予習できるテキスト'),
+      ui.h('ul', null, list.map(({ course, chapter }) => ui.h('li', null, ui.h('a', { href: '#/texts/s/' + chapter.sections[0].id }, course.icon + ' ' + course.name + ' ' + (course.chapters.indexOf(chapter) + 1) + '章「' + chapter.title + '」')))));
+  }
+
   // ---------------------------------------------------------------- スプリント
   function viewSprint(ui, no) {
     const state = ui.state();
@@ -154,7 +163,8 @@
       ui.h('p', { class: 'muted' }, 'スプリントゴール: ' + s.goal + ' ／ スクラムマスター: ' + H.CAST_BY_ID[s.sm].icon + ' ' + H.nameOf(s.sm, names)),
       ui.h('section', { class: 'card handout', id: 'hk-handout' }, ui.h('h2', null, '📄 この章で配られた資料'),
         ui.h('p', { class: 'small' }, 'この章では、次の単元と知識を使います。'),
-        ui.h('ul', null, s.knowledge.map((k) => ui.h('li', null, k)))),
+        ui.h('ul', null, s.knowledge.map((k) => ui.h('li', null, k))),
+        relatedTexts(ui, s.no)),
       ui.h('section', { class: 'card' }, ui.h('h2', null, 'スプリントプランニング'),
         talkLines(ui, s.briefing, names),
         !briefed ? ui.h('div', { class: 'row end' }, ui.h('button', { id: 'hk-start', class: 'btn primary', onclick: () => { ui.update(() => { pr.briefed[s.no] = true; }); ui.render(); } }, 'スプリントを始める')) : null),
