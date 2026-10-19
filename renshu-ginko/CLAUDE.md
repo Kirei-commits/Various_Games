@@ -19,6 +19,9 @@ js/ts.js       TypeScript 対応。compile(ts, libs, code) は ts と型定義�
 js/hackathon.js ハッカソン・レビューモードの登場人物・採点・進み具合（純粋）。問題の形は先頭のコメント
 js/hack-sprints-a/b/c.js スプリント1〜8 / 9〜16 / 17〜24 の中身（データだけ。addSprints で足す）
 js/hack-consults.js スプリントごとの「聞きに行く」相談と、毎日の雑談（データだけ）
+js/texts.js    言語テキストのコース・章・進み具合・バッジ（純粋）。形は先頭のコメント。問題の形と採点はハッカソンと共通
+js/text-js/react/java/python.js 各言語のテキストの中身（データだけ。addCourse で足す）
+js/text-view.js 言語テキストの画面（#/texts…）。問題の部品は hack-view.js のものを使う
 js/hack-view.js ハッカソンの画面（#/hack…）。app.js が渡す ui（h・update・render・state() など）で描く
 js/app.js      画面（S-01〜S-08）。ブラウザ専用
 tests/lint.mjs         構文・読み込み順・外部参照・CSP・純粋さ・id の実在
@@ -51,3 +54,5 @@ tests/e2e/*.spec.mjs   Playwright（desktop + mobile）
 - E2E で保存データ（localStorage）を書き換えても、ページを離れるとき（pagehide）に画面の状態で上書きされる。状態を作るときは `window.__RGA_APP.state` を直接変えて、ハッシュで移動する。
 - 登場人物のペルソナは `PERSONAS.md`（オーナー監修）が正。CAST とせりふはそれに合わせる。ライバル関係や衝突と和解の青春要素は入れない。
 - 関係者の割り込み・技術ユーザーの仕様のひっくり返しは3〜4スプリントに1回だけ（event.interrupt: true。hack.test が間隔を見張る）。ほかの回は PO・ユーザー・チームとのやりとりにする。
+- 言語テキストの図（figure.text）は等幅で、全角を2文字と数えて44桁以内（スマホで横にはみ出さないように）。
+- text-js.js の問題のコードにテンプレート文字列を書くときは、ファイル内のタグ R（ˋ をバッククォート、＄{ を ${ に置き換える String.raw）を使う。ふつうの文字列にバッククォートを書くと lint の「テンプレート文字列の中は見ない」がずれる。

@@ -1112,8 +1112,8 @@ export class SavingsAccount extends Account {
             figure: {
               title: 'this は点の左',
               text: String.raw`  n.hello()         this → n       ✔
-  └┬┘
-   点の左
+  ▲
+  点の左
 
   const fn = n.hello
   fn()              this → undefined ✘
@@ -1301,14 +1301,16 @@ console.log(state.sending, state.error);`,
             figure: {
               title: '名前つき と default',
               text: String.raw`  money.js
-  ┌─────────────────────────────┐
-  │ export function yen()  ─────┼─┐ 名前つき
-  │ export default format ──────┼┐│ ファイルに1つ
-  └─────────────────────────────┘││
-  app.js                         ││
-  import show, { yen } ◀─────────┘│
-         ▲       └────────────────┘
-     好きな名前   同じ名前＋波かっこ`,
+  ┌─────────────────────────┐
+  │ export function yen()   ├──┐ 名前つき
+  │ export default format   ├┐ │ 1つだけ
+  └─────────────────────────┘│ │
+  app.js                     │ │
+  import show, { yen }       │ │
+         ▲       ▲           │ │
+         │       └───────────┼─┘
+         └───────────────────┘
+   好きな名前    同じ名前＋波かっこ`,
             },
             points: ['名前つき export は、波かっこで同じ名前を指定して import する', 'export default はファイルに1つ。波かっこなしで好きな名前で import できる'],
             quiz: [
