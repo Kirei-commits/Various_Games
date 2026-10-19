@@ -4,6 +4,9 @@ import { onboard } from './helpers.mjs';
 
 async function answer(page, id) {
   const q = await page.evaluate((qid) => window.RGA.texts.findQuiz(qid).problem, id);
+  // 「次へ」のあとはハッシュでの画面遷移が非同期なので、この問題が表示されてから答える（遅い CI で前の画面に答えていた）
+  await expect(page.locator('#tx-quiz h2')).toContainText(q.title);
+  await expect(page.locator('#tx-submit')).toBeVisible();
   if (q.type === 'review') {
     for (const d of q.defects) { await page.click('#hk-line-' + d.line); await page.click('#hk-kind-' + d.kind); }
   } else if (q.type === 'fix') {
@@ -11,6 +14,7 @@ async function answer(page, id) {
     await page.check('#hk-choice-' + q.answer);
   } else {
     await page.check('#hk-choice-' + q.answer);
+    await expect(page.locator('#hk-choice-' + q.answer)).toBeChecked();
   }
   await page.click('#tx-submit');
 }
@@ -28,6 +32,7 @@ test('言語テキスト: 4つのコースがあり、章の前に資料が配�
   const ids = await page.evaluate(() => window.RGA.texts.quizOf(window.RGA.texts.courseById('java').chapters[0]).map((q) => q.id));
   // 1問目: まちがえるとフィードバック → 正解
   const q0 = await page.evaluate((id) => window.RGA.texts.findQuiz(id).problem, ids[0]);
+  await expect(page.locator('#tx-quiz h2')).toContainText(q0.title);
   await page.check('#hk-choice-' + ((q0.answer + 1) % q0.choices.length));
   await page.click('#tx-submit');
   await expect(page.locator('#hk-feedback')).toContainText('違う');
@@ -35,7 +40,9 @@ test('言語テキスト: 4つのコースがあり、章の前に資料が配�
   await expect(page.locator('#tx-why')).toContainText('正解');
   // 2問目: ヒントを全部開けて答えを見る
   await page.click('#tx-next');
-  const n = await page.evaluate((id) => window.RGA.texts.findQuiz(id).problem.hints.length, ids[1]);
+  const q1 = await page.evaluate((id) => window.RGA.texts.findQuiz(id).problem, ids[1]);
+  await expect(page.locator('#tx-quiz h2')).toContainText(q1.title);
+  const n = q1.hints.length;
   await expect(page.locator('#tx-reveal')).toHaveCount(0);
   for (let i = 0; i < n; i++) await page.click('#tx-hint');
   await page.click('#tx-reveal');
