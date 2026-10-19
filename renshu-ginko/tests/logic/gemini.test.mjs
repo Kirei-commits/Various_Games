@@ -22,7 +22,7 @@ test('Gemini を選ぶと generateContent に送り、system と会話を Gemini
   assert.equal(c.init.headers['x-goog-api-key'], 'AIza-test');
   assert.equal(c.body.systemInstruction.parts[0].text, 'あなたは先輩です');
   assert.deepEqual(c.body.contents.map((x) => x.role), ['user', 'model', 'user']);
-  assert.equal(c.body.generationConfig.maxOutputTokens, 300);
+  assert.equal(c.body.generationConfig.maxOutputTokens, 4096); // 考える分を見込んで多めにとる
   assert.equal(out.text, 'こんにちは！');
   assert.deepEqual(out.usage, { input_tokens: 100, output_tokens: 20 });
   assert.equal(T.costOf(out.model, out.usage), 0); // 無料枠で使う前提なので数えない
@@ -155,4 +155,18 @@ test('以前の既定（gemini-2.5-flash）を保存していた人は、読み�
   st.settings.geminiModel = 'gemini-3.8-flash';
   S.save(st, local, mem());
   assert.equal(S.load(local, mem()).settings.geminiModel, 'gemini-3.8-flash');
+});
+
+test('Gemini: 考える分を見込んで出力の上限を多めにとり、JSON を頼むときは JSON で返させる。考えた過程は答えに混ぜず、空や途中切れはエラー', async () => {
+  const settings = { provider: 'gemini', geminiKey: 'k', geminiModel: 'gemini-x-flash' };
+  const f = fakeFetch({ candidates: [{ content: { parts: [{ text: '考え中…', thought: true }, { text: '[]' }] } }] });
+  const out = await T.callLLM(f, settings, 0, { system: '', messages: [{ role: 'user', content: 'a' }], maxTokens: 700, json: true });
+  assert.equal(out.text, '[]');
+  assert.equal(f.calls[0].body.generationConfig.responseMimeType, 'application/json');
+  assert.ok(f.calls[0].body.generationConfig.maxOutputTokens >= 4096);
+  const g = fakeFetch({ candidates: [{ content: { parts: [{ text: 'やあ' }] } }] });
+  await T.callLLM(g, settings, 0, { system: '', messages: [{ role: 'user', content: 'a' }] });
+  assert.equal(g.calls[0].body.generationConfig.responseMimeType, undefined);
+  await assert.rejects(T.callLLM(fakeFetch({ candidates: [{ content: { parts: [] }, finishReason: 'MAX_TOKENS' }] }), settings, 0, { system: '', messages: [{ role: 'user', content: 'a' }] }), /途中で切れ/);
+  await assert.rejects(T.callLLM(fakeFetch({ candidates: [{ content: { parts: [{ text: ' ' }] }, finishReason: 'STOP' }] }), settings, 0, { system: '', messages: [{ role: 'user', content: 'a' }] }), /空/);
 });

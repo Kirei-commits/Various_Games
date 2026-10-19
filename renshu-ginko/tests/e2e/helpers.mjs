@@ -1,6 +1,6 @@
 // E2E の共通操作。答えはページの中の RGA.content（お手本）から取り出して入れる
 export async function onboard(page, answers = { read: 1, debug: 1, git: 0, security: 0, review: 0 }) {
-  await page.goto('/');
+  await page.goto('/#/onboarding');
   await page.fill('#ob-name', 'テスト新人');
   for (const [k, v] of Object.entries(answers)) await page.check(`input[name="sv-${k}"][value="${v}"]`);
   await page.click('#ob-suggest');

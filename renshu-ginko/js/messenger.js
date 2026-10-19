@@ -120,7 +120,7 @@
   }
   function append(mp, roomId, msgs, time) {
     const base = mp || empty();
-    const log = [...logOf(base, roomId), ...msgs.map((m) => ({ who: m.who, text: m.text, at: time }))].slice(-MAX_LOG);
+    const log = [...logOf(base, roomId), ...msgs.map((m) => (m.src ? { who: m.who, text: m.text, at: time, src: m.src } : { who: m.who, text: m.text, at: time }))].slice(-MAX_LOG);
     return { ...base, rooms: { ...base.rooms, [roomId]: log } };
   }
   // はじめて開いた部屋には、相手からのひとことを置く
@@ -218,10 +218,17 @@
     const c = H.CAST_BY_ID[id];
     return H.nameOf(id, names) + '（' + c.role + '）。' + H.fill(c.persona, names);
   }
+  // ルールの返事か（印のある新しいものと、印がない以前のもの。最初のひとこと（open）は除く）
+  function isRuleLine(m) {
+    if (m.src === 'rule') return true;
+    if (m.who === 'player' || !LINES[m.who]) return false;
+    return Object.entries(LINES[m.who]).some(([k, lines]) => k !== 'open' && lines.includes(m.text));
+  }
   // 個別とグループの情報は互いに引き継ぐ（呼び方・口調・仲のよさ、相手の部屋での最近のやりとり）
   function llmRequest(room, state, names) {
     const mp = (state && state.messenger) || empty();
-    const log = logOf(mp, room.id);
+    // ルールのせりふ（AI なしのときの返事）は、話の流れと合わないことがあるので AI には渡さない
+    const log = logOf(mp, room.id).filter((m) => !isRuleLine(m));
     if (room.kind === 'dm') {
       const fromGroups = groupExcerpt(mp, room.char, names, 3);
       const system = [
@@ -257,21 +264,39 @@
       RULES,
     ].join('\n');
     const transcript = log.slice(-16).map((m) => (m.who === 'player' ? H.nameOf('player', names) : H.nameOf(m.who, names) + '（' + m.who + '）') + ': ' + H.fill(m.text, names)).join('\n');
-    return { system, messages: [{ role: 'user', content: 'これまでの会話:\n' + transcript }], maxTokens: 700 };
+    return { system, messages: [{ role: 'user', content: 'これまでの会話:\n' + transcript }], maxTokens: 700, json: true };
   }
   // グループの返事（JSON の配列）を読む。読めなければ null（ルールの返事に切り替える）
   function parseGroupReply(text, members) {
     const s = String(text || '');
+    let data = null;
     const start = s.indexOf('[');
     const end = s.lastIndexOf(']');
-    if (start < 0 || end <= start) return null;
-    let data;
-    try { data = JSON.parse(s.slice(start, end + 1)); } catch (e) { return null; }
-    if (!Array.isArray(data)) return null;
+    if (start >= 0 && end > start) { try { data = JSON.parse(s.slice(start, end + 1)); } catch (e) { data = null; } }
+    // 途中で切れた・余計な文字が混ざったときは、読める {"who": …, "text": …} だけ拾う
+    if (!Array.isArray(data)) {
+      data = [];
+      for (const m of s.matchAll(/\{\s*"who"\s*:\s*"([\w-]+)"\s*,\s*"text"\s*:\s*"((?:[^"\\]|\\.)*)"\s*\}/g)) {
+        try { data.push({ who: m[1], text: JSON.parse('"' + m[2] + '"') }); } catch (e) { /* 読めない1件は飛ばす */ }
+      }
+    }
     const out = data.filter((m) => m && members.includes(m.who) && typeof m.text === 'string' && m.text.trim())
       .slice(0, 4).map((m) => ({ who: m.who, text: m.text.trim().slice(0, 400) }));
     return out.length ? out : null;
   }
+  // 個別の返事。空なら null。名前の書き出し（「九条: …」）や JSON で返ってきたときもふつうの文にする
+  function parseDmReply(text, charId) {
+    let t = String(text || '').trim();
+    if (/^[\[{]/.test(t)) {
+      const g = parseGroupReply(t, [charId]);
+      if (g) t = g.map((m) => m.text).join('\n');
+    }
+    const c = H.CAST_BY_ID[charId];
+    const labels = [charId, ...(c ? [c.name, ...c.name.split(/[\s　]+/)] : [])];
+    const head = /^([^:：\n]{1,16})[:：]\s*/.exec(t);
+    if (head && labels.includes(head[1].trim())) t = t.slice(head[0].length).trim();
+    return t ? [{ who: charId, text: t.slice(0, 600) }] : null;
+  }
 
-  RGA.messenger = { STAT_LABELS, PROFILES, AFFINITY_STAGES, stageOf, statsOf, callOf, voiceOf, dmExcerpt, groupExcerpt, GROUPS, DM_GROUPS, MAX_LOG, LINES, addLines, roomsFor, roomOf, roomName, intentOf, ruleReply, ruleReplies, mentioned, openerOf, empty, logOf, append, ensureOpened, sentCount, totalSent, llmRequest, parseGroupReply };
+  RGA.messenger = { STAT_LABELS, PROFILES, AFFINITY_STAGES, stageOf, statsOf, callOf, voiceOf, dmExcerpt, groupExcerpt, GROUPS, DM_GROUPS, MAX_LOG, LINES, addLines, roomsFor, roomOf, roomName, intentOf, ruleReply, ruleReplies, mentioned, openerOf, empty, logOf, append, ensureOpened, sentCount, totalSent, llmRequest, parseGroupReply, parseDmReply, isRuleLine };
 })(globalThis);

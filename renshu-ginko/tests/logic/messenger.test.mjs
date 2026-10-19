@@ -201,3 +201,33 @@ test('引き継ぎ: グループの頼み方に、各メンバーとの個別チ
   assert.equal(M.dmExcerpt(st.messenger, 'kujo', names), '');
   assert.match(M.dmExcerpt({ rooms: { 'dm-rio': [{ who: 'rio', text: 'あ'.repeat(80) }] } }, 'rio', names), /…」$/);
 });
+
+test('返事の読み方: 途中で切れた JSON からも読める分を拾う。個別の返事は名前の書き出しや JSON を外す。ルールのせりふは AI に渡さない', () => {
+  const members = ['kujo', 'himuro'];
+  // 途中で切れた（最後の閉じかっこがない）
+  assert.deepEqual(M.parseGroupReply('[{"who":"kujo","text":"行く\\"よ\\""},{"who":"himuro","text":"俺も', members), [{ who: 'kujo', text: '行く"よ"' }]);
+  assert.deepEqual(M.parseGroupReply('{"replies":[{"who":"himuro","text":"了解"}]}', members), [{ who: 'himuro', text: '了解' }]);
+  assert.deepEqual(M.parseDmReply('九条: そうだね', 'kujo'), [{ who: 'kujo', text: 'そうだね' }]);
+  assert.deepEqual(M.parseDmReply('九条 学：そうだね', 'kujo'), [{ who: 'kujo', text: 'そうだね' }]);
+  assert.deepEqual(M.parseDmReply('ポイント: まず寝よう', 'kujo'), [{ who: 'kujo', text: 'ポイント: まず寝よう' }]);
+  assert.deepEqual(M.parseDmReply('[{"who":"kujo","text":"いいね"}]', 'kujo'), [{ who: 'kujo', text: 'いいね' }]);
+  assert.equal(M.parseDmReply('  ', 'kujo'), null);
+  const st = RGA.store.defaultState();
+  let mp = M.append(undefined, 'g-daily', [{ who: 'player', text: 'やあ' }], 1);
+  mp = M.append(mp, 'g-daily', [{ who: 'kujo', text: 'へえ、知らなかった！', src: 'rule' }], 2);
+  mp = M.append(mp, 'g-daily', [{ who: 'player', text: 'チケット余ってる' }], 3);
+  assert.equal(M.logOf(mp, 'g-daily')[1].src, 'rule');
+  assert.equal(M.logOf(mp, 'g-daily')[0].src, undefined);
+  st.messenger = mp;
+  const req = M.llmRequest(M.roomOf(st, 'g-daily'), st, names);
+  assert.equal(req.json, true);
+  assert.doesNotMatch(req.messages[0].content, /知らなかった/);
+  assert.match(req.messages[0].content, /チケット余ってる/);
+  assert.equal(M.llmRequest(M.roomOf(st, 'dm-kujo'), st, names).json, undefined);
+  // 印のない以前のルールのせりふも、文が同じなら外す（最初のひとことは残す）
+  assert.equal(M.isRuleLine({ who: 'kujo', text: M.LINES.kujo.default[0] }), true);
+  assert.equal(M.isRuleLine({ who: 'kujo', text: M.LINES.kujo.open[0] }), false);
+  assert.equal(M.isRuleLine({ who: 'kujo', text: 'AI の自由な返事' }), false);
+  assert.equal(M.isRuleLine({ who: 'player', text: M.LINES.kujo.default[0] }), false);
+  assert.equal(M.isRuleLine({ who: 'nobody', text: 'x' }), false);
+});

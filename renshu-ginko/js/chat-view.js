@@ -9,6 +9,7 @@
   const H = RGA.hack;
   const drafts = {}; // 部屋ごとの書きかけ（保存しない）
   let sending = null; // 返事を待っている部屋
+  const failed = {}; // 部屋ごとの、返事をもらえなかった理由（保存しない）
 
   const QUICK = ['おはよう！', 'お疲れさま〜', 'ちょっと相談していい？', '今日のお昼どうする？'];
 
@@ -94,6 +95,9 @@
         h('div', { class: 'row between' },
           h('span', { class: 'muted tiny' }, ai ? providerName(state) + ' が返事をします（Ctrl+Enter でも送れます）' : 'ルールの返事です（設定で API キーを入れると自由な返事に）'),
           h('button', { class: 'btn primary', id: 'chat-send', disabled: busy, onclick: () => send(ui, room, drafts[room.id] || '') }, busy ? '返事を待っています…' : '送る')),
+        failed[room.id] && !busy && log.length && log[log.length - 1].who === 'player' ? h('div', { class: 'row between', id: 'chat-failed' },
+          h('span', { class: 'small warn' }, '返事を受け取れませんでした（' + failed[room.id] + '）'),
+          h('button', { class: 'btn tiny', id: 'chat-retry', onclick: () => reply(ui, room, log[log.length - 1].text) }, '返事をもらい直す')) : null,
         log.length > 1 ? h('button', { class: 'btn tiny ghost', id: 'chat-clear', disabled: busy, onclick: () => {
           if (!window.confirm('この部屋の会話を消して、最初からにしますか？（相手もこれまでの会話を覚えていない状態に戻ります）')) return;
           ui.update(() => { state.messenger = { ...messengerOf(ui), rooms: { ...messengerOf(ui).rooms, [room.id]: [] } }; });
@@ -153,25 +157,46 @@
     }
     drafts[room.id] = '';
     ui.update(() => { state.messenger = M.append(messengerOf(ui), room.id, [{ who: 'player', text }], ui.now()); });
+    await reply(ui, room, text);
+  }
+
+  // 最後の発言に返事をもらう。AI がうまく返せなかったときは、ルールのせりふで埋めない
+  // （話の流れに合わないせりふが混ざり、次の返事までおかしくなった）。1回だけやり直し、だめなら知らせて「返事をもらい直す」を出す
+  async function reply(ui, room, text) {
+    const state = ui.state();
+    const R = RGA.rules;
+    const T = RGA.tutor;
     sending = room.id;
+    failed[room.id] = null;
     ui.render();
     const n = M.sentCount(state.messenger, room.id);
     const names = namesOf(state);
     let replies = null;
     if (T.hasAI(state.settings)) {
       const env = ui.aiEnv();
-      try {
-        const out = await T.callLLM(env.fetchImpl, state.settings, env.spentUsd, M.llmRequest(room, state, names));
-        ui.update((s) => { Object.assign(s, RGA.store.addSpend(s, T.costOf(out.model, out.usage), ui.now())); });
-        replies = room.kind === 'dm' ? [{ who: room.char, text: R.limitCodeBlocks(out.text).trim() }] : M.parseGroupReply(out.text, room.members);
-        ui.logAi({ unitId: 'chat', kind: 'chat', input: text, output: replies ? replies.map((m) => m.who + ': ' + m.text).join('\n') : out.text, masking: { blocked: false, labels: [] }, source: 'llm', model: out.model });
-      } catch (e) {
-        ui.toast(providerName(state) + ' に接続できませんでした（' + e.message + '）。ルールの返事にします', 'warn');
+      let lastErr = '';
+      for (let attempt = 0; attempt < 2 && !replies; attempt++) {
+        try {
+          const out = await T.callLLM(env.fetchImpl, state.settings, env.spentUsd, M.llmRequest(room, state, names));
+          ui.update((s) => { Object.assign(s, RGA.store.addSpend(s, T.costOf(out.model, out.usage), ui.now())); });
+          replies = room.kind === 'dm' ? M.parseDmReply(R.limitCodeBlocks(out.text), room.char) : M.parseGroupReply(out.text, room.members);
+          if (!replies) lastErr = '返事の形が読めませんでした';
+          ui.logAi({ unitId: 'chat', kind: 'chat', input: text, output: replies ? replies.map((m) => m.who + ': ' + m.text).join('\n') : out.text, masking: { blocked: false, labels: [] }, source: 'llm', model: out.model });
+        } catch (e) {
+          lastErr = e.message;
+        }
+      }
+      if (!replies) {
+        sending = null;
+        failed[room.id] = lastErr;
+        ui.toast(providerName(state) + ' から返事を受け取れませんでした（' + lastErr + '）', 'warn');
+        ui.render();
+        return;
       }
     } else {
       await new Promise((resolve) => setTimeout(resolve, 450)); // 「入力中…」を少し見せる
+      replies = M.ruleReplies(room, text, n, names).map((m) => ({ ...m, src: 'rule' }));
     }
-    if (!replies || !replies.length || !replies[0].text) replies = M.ruleReplies(room, text, n, names);
     sending = null;
     ui.update(() => { state.messenger = M.append(messengerOf(ui), room.id, replies, ui.now()); });
     ui.render();

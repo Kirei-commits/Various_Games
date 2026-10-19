@@ -11,8 +11,17 @@ test.beforeEach(async ({ page }) => {
   page.on('pageerror', (e) => { throw e; });
 });
 
-test('S-01 オンボーディング: 自己評価から開始単元を提案し、3クリック以内で単元に着手できる', async ({ page }) => {
+test('S-01 オンボーディング: はじめはホームから。単元を始めるときに自己評価から開始単元を提案し、3クリック以内で単元に着手できる', async ({ page }) => {
   await page.goto('/');
+  await expect(page).toHaveURL(/#\/home/);
+  await expect(page.locator('#nav')).toBeVisible();
+  // アンケートの前でも、ほかのモードは使える。単元への直リンクはアンケートへ
+  await page.click('#nav-chat');
+  await expect(page.locator('h1')).toHaveText('チャット');
+  await page.goto('/#/unit/L1-01');
+  await expect(page).toHaveURL(/#\/onboarding/);
+  await page.goto('/#/home');
+  await page.click('#home-survey');
   await expect(page).toHaveURL(/#\/onboarding/);
   await expect(page.locator('text=失敗は罰になりません')).toBeVisible();
   for (const k of ['read', 'debug', 'git', 'security', 'review']) await page.check(`input[name="sv-${k}"][value="3"]`);
@@ -249,7 +258,7 @@ test('Q-12 書き出したファイルを読み込んで、別の端末へ移せ
   const [dl] = await Promise.all([page.waitForEvent('download'), page.click('#data-export')]);
   const text = await (await dl.createReadStream()).toArray().then((b) => Buffer.concat(b).toString('utf8'));
   const other = await browser.newPage();
-  await other.goto('/');
+  await other.goto('/#/onboarding');
   await other.click('#ob-suggest');
   await other.click('#ob-home');
   await other.click('#nav-settings');

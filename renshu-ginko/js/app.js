@@ -172,8 +172,10 @@
     const focusId = active && active.id;
     const sel = active && 'selectionStart' in active ? [active.selectionStart, active.selectionEnd] : null;
     const main = $('main');
-    if (!state.user && r.name !== 'onboarding') { location.replace('#/onboarding'); return; }
-    $('nav').hidden = !state.user;
+    // はじめての人もホームから。アンケート（開始レベルの提案）は、単元を始めるときに受ける
+    if (!state.user) ensureUser();
+    if (r.name === 'unit' && !surveyDone()) { location.replace('#/onboarding'); return; }
+    $('nav').hidden = false;
     for (const a of $('nav').querySelectorAll('a')) a.removeAttribute('aria-current');
     const navEl = $('nav-' + ({ unit: 'home' }[r.name] || r.name));
     if (navEl) navEl.setAttribute('aria-current', 'page');
@@ -210,7 +212,14 @@
 
   // ---------------------------------------------------------------- S-01 オンボーディング
   const obDraft = { name: '', answers: {}, suggestion: null };
+  function ensureUser() {
+    update((s) => { s.user = { id: uid('learner'), name: '学習者', role: 'learner', startLevel: 1, survey: null, surveyDone: false, createdAt: now() }; });
+  }
+  // 以前のデータ（アンケートの答えがある人）は受けたことにする
+  const surveyDone = () => !!(state.user && (state.user.surveyDone || state.user.survey));
+
   function viewOnboarding() {
+    if (!obDraft.name && state.user && state.user.name !== '学習者') obDraft.name = state.user.name;
     const promises = [
       ['失敗は罰になりません', 'テストが落ちるのは、次に直す場所を教えてくれているだけ。やり直しは何度でもできます。'],
       ['スコアは誰にも公開しません', 'ランキングもありません。記録はあなたの振り返りのためだけに使います。'],
@@ -252,7 +261,7 @@
   }
   function finishOnboarding(sug, next) {
     update((s) => {
-      s.user = { id: uid('learner'), name: obDraft.name.trim() || '学習者', role: 'learner', startLevel: sug.level, survey: { ...obDraft.answers }, createdAt: now() };
+      s.user = { ...(s.user || { id: uid('learner'), role: 'learner', createdAt: now() }), name: obDraft.name.trim() || (s.user && s.user.name) || '学習者', startLevel: sug.level, survey: { ...obDraft.answers }, surveyDone: true };
     });
     go(next);
   }
@@ -301,7 +310,11 @@
       h('div', { class: 'home-grid' },
         h('section', { class: 'card next-unit' },
           h('p', { class: 'eyebrow' }, '次にやる1単元'),
-          next ? [
+          !surveyDone() ? [
+            h('h2', null, 'まずは5問のアンケートから'),
+            h('p', { class: 'muted' }, '単元を始める前に、自己評価の5問に答えると、あなたに合った開始レベルと最初の単元を提案します（1分ほど）。ハッカソン・テキスト・配属先・チャットは、アンケートなしでも使えます。'),
+            h('button', { id: 'home-survey', class: 'btn primary big', onclick: () => go('#/onboarding') }, 'アンケートに答えて始める'),
+          ] : next ? [
             h('h2', null, next.id + '「' + next.title + '」'),
             h('p', { class: 'muted' }, areaName(next.area) + ' ／ ' + C.LEVELS[next.level - 1].name + ' ／ 目安 ' + next.estMinutes + '分'),
             h('ul', { class: 'goals' }, next.goals.map((g) => h('li', null, g))),
@@ -1646,7 +1659,7 @@
             if (!window.confirm('学習データをすべて消して最初からやり直しますか？（元に戻せません）')) return;
             state = S.defaultState();
             S.save(state, safeStorage('localStorage') || memStore, safeStorage('sessionStorage'));
-            go('#/onboarding');
+            go('#/home');
           } }, '最初からやり直す'))));
   }
 
@@ -1690,7 +1703,7 @@
   // E2E テスト用の窓口（状態を覗くだけ）
   window.__RGA_APP = { get state() { return state; }, render };
 
-  if (!location.hash) location.replace(state.user ? '#/home' : '#/onboarding');
+  if (!location.hash) location.replace('#/home');
   render();
   lastRoute = route().name + '/' + route().args.join('/');
 })();
