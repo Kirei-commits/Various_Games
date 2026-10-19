@@ -134,6 +134,73 @@
     return Object.keys((mp || empty()).rooms).reduce((n, id) => n + sentCount(mp, id), 0);
   }
 
+  // ---- 人物のデータ ----
+  // 変わらない数値（1〜5）と、はじめの仲のよさ（好感度の土台）。PERSONAS.md の人物像から決めた
+  const STAT_LABELS = [['tech', '技術力'], ['comm', 'コミュ力'], ['bright', '明るさ'], ['care', '面倒見'], ['plan', '段取り']];
+  const P = (base, tech, comm, bright, care, plan) => ({ base, stats: { tech, comm, bright, care, plan } });
+  const PROFILES = {
+    madoka: P(30, 3, 4, 3, 4, 5), hikari: P(30, 2, 5, 5, 4, 3), rio: P(65, 5, 3, 4, 4, 3), daichi: P(30, 1, 4, 4, 3, 2), osamu: P(25, 4, 3, 2, 5, 4),
+    amano: P(20, 4, 5, 5, 3, 4), hosoya: P(10, 2, 2, 2, 2, 5), kiryu: P(15, 5, 3, 3, 3, 4), shiraishi: P(30, 4, 5, 4, 5, 5), kumagai: P(30, 4, 4, 4, 5, 4),
+    kujo: P(35, 5, 3, 3, 4, 2), himuro: P(30, 5, 2, 2, 3, 4), kasuga: P(35, 1, 4, 4, 4, 2), seto: P(30, 4, 4, 3, 5, 4), yabuki: P(60, 3, 5, 5, 5, 3),
+    onizuka: P(35, 5, 2, 3, 3, 3), yuzuki: P(25, 3, 4, 4, 5, 3), hanaoka: P(25, 2, 5, 5, 4, 3), saionji: P(20, 3, 3, 3, 3, 4), kurokawa: P(20, 5, 2, 2, 3, 5),
+    fukamachi: P(40, 4, 4, 3, 4, 4), kazami: P(45, 5, 3, 4, 3, 2), saotome: P(45, 3, 4, 5, 5, 3), miyamoto: P(45, 3, 5, 4, 5, 4),
+    mizuno: P(10, 5, 3, 3, 4, 4), mikami: P(10, 3, 5, 4, 4, 5), ohashi: P(10, 4, 3, 3, 4, 4), saeki: P(5, 4, 4, 3, 3, 5), hayakawa: P(10, 2, 5, 5, 4, 3),
+    katagiri: P(5, 2, 4, 3, 3, 3), arai: P(15, 2, 4, 4, 3, 3),
+  };
+  const AFFINITY_STAGES = [[80, '親友'], [60, '気の置けない仲'], [40, '仲良し'], [20, '話せる仲'], [0, '顔見知り']];
+  function stageOf(affinity) {
+    return AFFINITY_STAGES.find(([n]) => affinity >= n)[1];
+  }
+  // 関係の数値は保存せず、会話の記録と絆から毎回数える（絆と同じ考え方）
+  function statsOf(state, id) {
+    const mp = (state && state.messenger) || empty();
+    const prof = PROFILES[id] || P(10, 3, 3, 3, 3, 3);
+    const dm = logOf(mp, 'dm-' + id);
+    const mine = dm.filter((m) => m.who === 'player');
+    const kind = mine.filter((m) => ['thanks', 'praise'].includes(intentOf(m.text))).length;
+    const groupTalk = Object.keys(mp.rooms || {}).filter((r) => r.startsWith('g-')).reduce((n, r) => n + logOf(mp, r).filter((m) => m.who === id).length, 0);
+    const B = RGA.bonds;
+    const bondPts = B ? B.bondPoints(state, id) : 0;
+    const affinity = Math.min(100, prof.base + bondPts * 3 + Math.min(25, mine.length) + Math.min(15, kind * 3) + Math.min(10, groupTalk));
+    const times = mine.map((m) => m.at).filter((t) => typeof t === 'number');
+    return { affinity, stage: stageOf(affinity), bondLv: B ? B.bondLevel(bondPts) : 0, dmSent: mine.length, kind, groupTalk, lastAt: times.length ? Math.max(...times) : null, stats: { ...prof.stats } };
+  }
+  // 主人公の呼び方（その人のせりふで一番多い形。上司は「くん」）
+  function callOf(id, names) {
+    const p = H.nameOf('player', names);
+    if (H.CAST_BY_ID[id] && H.CAST_BY_ID[id].group === 'boss') return p + 'くん';
+    const all = Object.values(linesOf(id)).flat().join('\n');
+    const kun = (all.match(/\{player\}くん/g) || []).length;
+    const san = (all.match(/\{player\}さん/g) || []).length;
+    const bare = (all.match(/\{player\}/g) || []).length - kun - san;
+    if (kun >= san && kun >= bare && kun > 0) return p + 'くん';
+    if (san >= bare && san > 0) return p + 'さん';
+    return p;
+  }
+  // 口調の例（ルールのせりふから2つ）
+  function voiceOf(id, names) {
+    const l = linesOf(id);
+    return [(l.open || [])[0], (l.greet || [])[0]].filter(Boolean).map((t) => '「' + H.fill(t, names) + '」').join('');
+  }
+  const clipText = (t, n) => (t.length > n ? t.slice(0, n) + '…' : t);
+  // 個別チャットでの最近のやりとり（グループの返事に引き継ぐ）
+  function dmExcerpt(mp, id, names, n) {
+    return logOf(mp, 'dm-' + id).slice(-(n || 4)).map((m) => (m.who === 'player' ? '主人公' : '本人') + '「' + clipText(H.fill(m.text, names), 60) + '」').join(' ');
+  }
+  // グループでの最近の発言（個別の返事に引き継ぐ）
+  function groupExcerpt(mp, id, names, n) {
+    const out = [];
+    for (const r of Object.keys(mp.rooms || {}).filter((x) => x.startsWith('g-'))) {
+      const log = logOf(mp, r);
+      log.forEach((m, i) => { if (m.who === id) out.push({ at: m.at || 0, text: (log[i - 1] && log[i - 1].who === 'player' ? '主人公「' + clipText(H.fill(log[i - 1].text, names), 40) + '」に ' : '') + '本人「' + clipText(H.fill(m.text, names), 60) + '」' }); });
+    }
+    return out.sort((a, b) => a.at - b.at).slice(-(n || 3)).map((x) => x.text).join(' ');
+  }
+  function relationLine(state, id, names) {
+    const st = statsOf(state, id);
+    return '主人公の呼び方: 「' + callOf(id, names) + '」。主人公との仲: ' + st.stage + '（好感度 ' + st.affinity + '/100）。口調の例: ' + voiceOf(id, names);
+  }
+
   // ---- LLM への頼み方 ----
   // チャットは仕事の場ではなく、ただの雑談の場。ハッカソンの自由チャット（hack.personaPrompt）とは別の頼み方にして、
   // スプリントの状況は渡さない（渡すと、どの人物も仕事の話に引っぱられた）
@@ -151,15 +218,21 @@
     const c = H.CAST_BY_ID[id];
     return H.nameOf(id, names) + '（' + c.role + '）。' + H.fill(c.persona, names);
   }
-  function llmRequest(room, log, names) {
+  // 個別とグループの情報は互いに引き継ぐ（呼び方・口調・仲のよさ、相手の部屋での最近のやりとり）
+  function llmRequest(room, state, names) {
+    const mp = (state && state.messenger) || empty();
+    const log = logOf(mp, room.id);
     if (room.kind === 'dm') {
+      const fromGroups = groupExcerpt(mp, room.char, names, 3);
       const system = [
         'あなたは研修用の学習アプリ「練習銀行アカデミー」に登場する架空の人物として、主人公とチャットで雑談します。',
         'あなた: ' + personOf(room.char, names),
+        relationLine(state, room.char, names),
+        fromGroups ? 'グループチャットでの最近のやりとり（覚えていてよい）: ' + fromGroups : '',
         playerLine(names),
         CHAT_STYLE,
         RULES,
-      ].join('\n');
+      ].filter(Boolean).join('\n');
       const messages = [];
       for (const m of log.slice(-12)) {
         const role = m.who === 'player' ? 'user' : 'assistant';
@@ -173,7 +246,10 @@
     }
     const system = [
       'あなたは研修用の学習アプリ「練習銀行アカデミー」のグループチャット「' + room.name + '」で、次の架空の人物たちを演じ分けます。',
-      room.members.map((id) => '- ' + id + ': ' + personOf(id, names)).join('\n'),
+      room.members.map((id) => {
+        const dm = dmExcerpt(mp, id, names, 4);
+        return '- ' + id + ': ' + personOf(id, names) + '\n  ' + relationLine(state, id, names) + (dm ? '\n  主人公との個別チャットでの最近のやりとり（この人は覚えている。口調と関係をそのまま引き継ぐ。内容をほかの人にばらさない）: ' + dm : '');
+      }).join('\n'),
       playerLine(names),
       CHAT_STYLE,
       'これまでの会話を読み、' + H.nameOf('player', names) + 'の最後の発言に、参加者のうち話の流れに合う1〜3人が返事をする。名前を呼ばれた人は必ず返事をする。参加者どうしで軽くつっこみ合うのはよいが、話の中心は' + H.nameOf('player', names) + 'の話題にする。',
@@ -197,5 +273,5 @@
     return out.length ? out : null;
   }
 
-  RGA.messenger = { GROUPS, DM_GROUPS, MAX_LOG, LINES, addLines, roomsFor, roomOf, roomName, intentOf, ruleReply, ruleReplies, mentioned, openerOf, empty, logOf, append, ensureOpened, sentCount, totalSent, llmRequest, parseGroupReply };
+  RGA.messenger = { STAT_LABELS, PROFILES, AFFINITY_STAGES, stageOf, statsOf, callOf, voiceOf, dmExcerpt, groupExcerpt, GROUPS, DM_GROUPS, MAX_LOG, LINES, addLines, roomsFor, roomOf, roomName, intentOf, ruleReply, ruleReplies, mentioned, openerOf, empty, logOf, append, ensureOpened, sentCount, totalSent, llmRequest, parseGroupReply };
 })(globalThis);

@@ -106,18 +106,21 @@ test('LLM への頼み方: 雑談の場として頼む（仕事の話を持ち�
   const st = RGA.store.defaultState();
   const dm = M.roomOf(st, 'dm-mizuno');
   const log = [{ who: 'mizuno', text: 'どうした？' }, { who: 'player', text: 'あの' }, { who: 'player', text: '設計の相談です' }];
-  const req = M.llmRequest(dm, log, names);
+  st.messenger = { rooms: { 'dm-mizuno': log } };
+  const req = M.llmRequest(dm, st, names);
   assert.match(req.system, /水野/);
   assert.match(req.system, /LINE/);
   assert.match(req.system, /仕事の場ではなく/);
   assert.match(req.system, /自分から持ち出さない/);
   assert.doesNotMatch(req.system, /スプリント|ハッカソンのチーム（/);
   assert.deepEqual(req.messages, [{ role: 'user', content: 'あの\n設計の相談です' }]);
-  const boss = M.llmRequest(M.roomOf(st, 'dm-shiraishi'), [{ who: 'player', text: 'こんにちは' }, { who: 'shiraishi', text: '{player}くん、どうしたの？' }, { who: 'player', text: '相談が' }], names);
+  st.messenger = { rooms: { 'dm-shiraishi': [{ who: 'player', text: 'こんにちは' }, { who: 'shiraishi', text: '{player}くん、どうしたの？' }, { who: 'player', text: '相談が' }] } };
+  const boss = M.llmRequest(M.roomOf(st, 'dm-shiraishi'), st, names);
   assert.equal(boss.messages[1].content, 'テスト新人くん、どうしたの？');
   assert.match(boss.system, /テスト新人くん」と呼ぶ/);
   const gr = M.roomOf(st, 'g-daily');
-  const greq = M.llmRequest(gr, [{ who: 'kasuga', text: 'お昼どうする？' }, { who: 'player', text: '{kujo}も行く？' }], names);
+  st.messenger = { rooms: { 'g-daily': [{ who: 'kasuga', text: 'お昼どうする？' }, { who: 'player', text: '{kujo}も行く？' }] } };
+  const greq = M.llmRequest(gr, st, names);
   assert.match(greq.system, /JSON の配列/);
   assert.match(greq.system, /- himuro: 氷室 蓮/);
   assert.match(greq.system, /自分から持ち出さない/);
@@ -146,4 +149,55 @@ test('個別の部屋で話すと絆が深まり、20回話しかけると称号
   st.messenger = mp;
   assert.equal(RGA.bonds.bondPoints(st, 'kasuga'), before + 5);
   assert.ok(RGA.journey.earnedTitles(st, '2026-10-19').includes('chatter'));
+});
+
+test('人物のデータ: 好感度は土台＋絆＋個別で話した回数＋うれしい言葉＋グループでの発言（100まで）。段階と呼び方', () => {
+  const st = RGA.store.defaultState();
+  const base = M.statsOf(st, 'kujo');
+  assert.equal(base.affinity, M.PROFILES.kujo.base);
+  assert.equal(base.stage, M.stageOf(M.PROFILES.kujo.base));
+  assert.equal(base.dmSent, 0);
+  assert.equal(base.lastAt, null);
+  st.messenger = { rooms: {
+    'dm-kujo': [{ who: 'kujo', text: 'やあ', at: 1 }, { who: 'player', text: 'ありがとう', at: 5 }, { who: 'player', text: 'すごいね', at: 9 }, { who: 'player', text: 'へえ', at: 7 }],
+    'g-daily': [{ who: 'player', text: 'やあ' }, { who: 'kujo', text: 'おう' }, { who: 'kujo', text: 'うん' }],
+  } };
+  const s2 = M.statsOf(st, 'kujo');
+  assert.equal(s2.dmSent, 3);
+  assert.equal(s2.kind, 2);
+  assert.equal(s2.groupTalk, 2);
+  assert.equal(s2.lastAt, 9);
+  assert.equal(s2.affinity, Math.min(100, M.PROFILES.kujo.base + RGA.bonds.bondPoints(st, 'kujo') * 3 + 3 + 6 + 2));
+  assert.equal(M.statsOf(st, 'rio').stage, '気の置けない仲');
+  assert.equal(M.stageOf(100), '親友');
+  assert.equal(M.stageOf(0), '顔見知り');
+  // 全員に人柄の数値（1〜5）
+  for (const r of M.roomsFor({ ...st, work: { week: 24 } }).filter((x) => x.kind === 'dm')) {
+    const p = M.PROFILES[r.char];
+    assert.ok(p, r.char);
+    for (const [k] of M.STAT_LABELS) assert.ok(p.stats[k] >= 1 && p.stats[k] <= 5, r.char + ' ' + k);
+  }
+  assert.equal(M.statsOf(st, 'nobody').affinity, 10);
+  assert.equal(M.callOf('kumagai', names), 'テスト新人くん');
+  assert.equal(M.callOf('saionji', names), 'テスト新人さん');
+  assert.match(M.voiceOf('rio', names), /^「/);
+});
+
+test('引き継ぎ: グループの頼み方に、各メンバーとの個別チャットのやりとり・呼び方・仲・口調が入る。個別には、グループでのやりとりが入る', () => {
+  const st = RGA.store.defaultState();
+  st.messenger = { rooms: {
+    'dm-kasuga': [{ who: 'player', text: '今度の飲み会、幹事やるよ', at: 1 }, { who: 'kasuga', text: 'ほんと!? {player}くん神！', at: 2 }],
+    'g-daily': [{ who: 'player', text: '週末ひま？', at: 3 }, { who: 'himuro', text: '本読んでる', at: 4 }],
+  } };
+  const greq = M.llmRequest(M.roomOf(st, 'g-daily'), st, names);
+  assert.match(greq.system, /- kasuga: 春日 ゆず[\s\S]*個別チャットでの最近のやりとり[^\n]*主人公「今度の飲み会、幹事やるよ」 本人「ほんと!\? テスト新人くん神！」/);
+  assert.match(greq.system, /主人公の呼び方: 「テスト新人くん」/);
+  assert.match(greq.system, /好感度 \d+\/100/);
+  assert.match(greq.system, /口調の例: 「/);
+  assert.doesNotMatch(greq.system.split('- himuro:')[1].split('- kasuga:')[0], /個別チャットでの最近のやりとり/);
+  const dreq = M.llmRequest(M.roomOf(st, 'dm-himuro'), st, names);
+  assert.match(dreq.system, /グループチャットでの最近のやりとり[^\n]*主人公「週末ひま？」に 本人「本読んでる」/);
+  assert.equal(M.groupExcerpt(st.messenger, 'kujo', names), '');
+  assert.equal(M.dmExcerpt(st.messenger, 'kujo', names), '');
+  assert.match(M.dmExcerpt({ rooms: { 'dm-rio': [{ who: 'rio', text: 'あ'.repeat(80) }] } }, 'rio', names), /…」$/);
 });

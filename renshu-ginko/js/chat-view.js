@@ -34,10 +34,16 @@
       const log = M.logOf(mp, room.id);
       const last = log[log.length - 1];
       const sub = last ? (last.who === 'player' ? 'あなた: ' : room.kind === 'group' ? H.nameOf(last.who, names) + ': ' : '') + H.fill(last.text, names)
-        : room.kind === 'group' ? room.members.map((id) => H.nameOf(id, names)).join('・') : H.CAST_BY_ID[room.char].role;
+        : room.kind === 'group' ? room.members.map((id) => H.nameOf(id, names)).join('・') : 'まだ話していません';
+      const st = room.kind === 'dm' ? M.statsOf(state, room.char) : null;
+      // 名前の横に、所属（会話しても消えない）と好感度
       return h('li', null, h('a', { class: 'room-item', href: '#/chat/' + room.id, id: 'chat-room-' + room.id },
         h('span', { class: 'avatar' }, room.icon),
-        h('span', { class: 'room-text' }, h('strong', null, M.roomName(room, names) + (room.kind === 'group' ? '（' + (room.members.length + 1) + '）' : '')), h('span', { class: 'muted small room-sub' }, sub))));
+        h('span', { class: 'room-text' },
+          h('span', { class: 'room-head' }, h('strong', null, M.roomName(room, names) + (room.kind === 'group' ? '（' + (room.members.length + 1) + '）' : '')),
+            st ? h('span', { class: 'muted tiny room-role' }, H.CAST_BY_ID[room.char].role) : null,
+            st ? h('span', { class: 'chip-mini affinity', title: '好感度（' + st.stage + '）' }, '♥ ' + st.affinity) : null),
+          h('span', { class: 'muted small room-sub' }, sub))));
     };
     const rooms = M.roomsFor(state);
     return h('div', { class: 'page' },
@@ -77,6 +83,7 @@
       h('div', { class: 'row' }, h('span', { class: 'avatar big' }, room.icon),
         h('div', null, h('h1', null, M.roomName(room, names)),
           h('p', { class: 'muted small' }, c ? c.role : 'メンバー: あなた・' + room.members.map((id) => H.nameOf(id, names)).join('・')))),
+      c ? profileCard(ui, c.id, names) : membersCard(ui, room, names),
       h('section', { class: 'card' },
         logEl,
         h('div', { class: 'row wrap', role: 'group', 'aria-label': 'よく使うひとこと' }, QUICK.map((q, i) => h('button', { class: 'btn tiny', id: 'chat-quick-' + i, disabled: busy, onclick: () => send(ui, room, q) }, q))),
@@ -92,6 +99,44 @@
           ui.update(() => { state.messenger = { ...messengerOf(ui), rooms: { ...messengerOf(ui).rooms, [room.id]: [] } }; });
           ui.render();
         } }, 'この部屋の会話を消す') : null));
+  }
+
+  // 人物のデータ（好感度・仲の段階・絆・話した回数・人柄の数値）
+  function profileCard(ui, id, names) {
+    const h = ui.h;
+    const st = M.statsOf(ui.state(), id);
+    const c = H.CAST_BY_ID[id];
+    const row = (label, value) => h('div', { class: 'prof-row' }, h('span', { class: 'muted small' }, label), h('strong', null, value));
+    return h('details', { class: 'card profile', id: 'chat-profile' },
+      h('summary', null, h('span', null, '♥ 好感度 ', h('strong', { id: 'chat-affinity' }, String(st.affinity)), ' / 100 ・ ' + st.stage),
+        h('span', { class: 'meter' }, h('span', { style: 'width:' + st.affinity + '%' }))),
+      h('div', { class: 'prof-grid' },
+        row('絆', 'Lv' + st.bondLv),
+        row('個別で話した回数', st.dmSent + ' 回'),
+        row('うれしい言葉（ありがとう・すごい）', st.kind + ' 回'),
+        row('グループでの発言', st.groupTalk + ' 回'),
+        row('最後に話した日', st.lastAt ? new Date(st.lastAt).toLocaleDateString('ja-JP') : '—'),
+        row('呼び方', '「' + M.callOf(id, names) + '」')),
+      h('div', { class: 'prof-stats' }, M.STAT_LABELS.map(([k, label]) => h('div', { class: 'prof-stat' },
+        h('span', { class: 'small' }, label),
+        h('span', { class: 'meter', role: 'img', 'aria-label': label + ' ' + st.stats[k] + ' / 5' }, h('span', { style: 'width:' + st.stats[k] * 20 + '%' })),
+        h('span', { class: 'muted tiny' }, st.stats[k] + ' / 5')))),
+      c.field ? h('p', { class: 'small' }, '得意なこと: ' + c.field) : null,
+      h('p', { class: 'muted tiny' }, '好感度は、はじめの仲のよさに、絆・個別で話した回数・うれしい言葉・グループでのやりとりを足したものです。人柄の数値は人物の設定から決めた目安です。'));
+  }
+  function membersCard(ui, room, names) {
+    const h = ui.h;
+    const state = ui.state();
+    return h('details', { class: 'card profile', id: 'chat-members' },
+      h('summary', null, 'メンバーとの仲'),
+      h('ul', { class: 'room-list' }, room.members.map((id) => {
+        const st = M.statsOf(state, id);
+        return h('li', null, h('a', { class: 'room-item', href: '#/chat/dm-' + id },
+          h('span', { class: 'avatar' }, H.CAST_BY_ID[id].icon),
+          h('span', { class: 'room-text' }, h('span', { class: 'room-head' }, h('strong', null, H.nameOf(id, names)), h('span', { class: 'muted tiny room-role' }, H.CAST_BY_ID[id].role), h('span', { class: 'chip-mini affinity' }, '♥ ' + st.affinity)),
+            h('span', { class: 'muted small room-sub' }, st.stage + ' ・ 個別で ' + st.dmSent + ' 回'))));
+      })),
+      h('p', { class: 'muted tiny' }, '個別チャットでの口調や関係は、グループでの返事にも引き継がれます。'));
   }
 
   async function send(ui, room, raw) {
@@ -116,7 +161,7 @@
     if (T.hasAI(state.settings)) {
       const env = ui.aiEnv();
       try {
-        const out = await T.callLLM(env.fetchImpl, state.settings, env.spentUsd, M.llmRequest(room, M.logOf(state.messenger, room.id), names));
+        const out = await T.callLLM(env.fetchImpl, state.settings, env.spentUsd, M.llmRequest(room, state, names));
         ui.update((s) => { Object.assign(s, RGA.store.addSpend(s, T.costOf(out.model, out.usage), ui.now())); });
         replies = room.kind === 'dm' ? [{ who: room.char, text: R.limitCodeBlocks(out.text).trim() }] : M.parseGroupReply(out.text, room.members);
         ui.logAi({ unitId: 'chat', kind: 'chat', input: text, output: replies ? replies.map((m) => m.who + ': ' + m.text).join('\n') : out.text, masking: { blocked: false, labels: [] }, source: 'llm', model: out.model });

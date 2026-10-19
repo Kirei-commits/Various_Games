@@ -567,3 +567,11 @@ pre.diagram { margin: 0; padding: 12px; background: var(--panel-2); border: 1px 
 .room-text { display: flex; flex-direction: column; flex: 1; min-width: 0; overflow: hidden; }
 .room-sub { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .chat-log { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
+.room-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; min-width: 0; }
+.room-role { white-space: nowrap; }
+.chip-mini.affinity { background: var(--accent-weak); color: inherit; }
+.profile summary { cursor: pointer; display: grid; gap: 6px; }
+.prof-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 8px 16px; margin: 12px 0; }
+.prof-row { display: flex; flex-direction: column; min-width: 0; }
+.prof-stats { display: grid; gap: 6px; }
+.prof-stat { display: grid; grid-template-columns: 5.5em 1fr 3em; gap: 8px; align-items: center; }
