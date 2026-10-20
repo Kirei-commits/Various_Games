@@ -32,6 +32,9 @@ test('チャット: 個別の部屋で話すとルールの返事が来る。グ
 test('チャット: Gemini のキーがあると、グループの返事を JSON で受け取り、AI 利用ログに残る', async ({ page }) => {
   let body = null;
   await page.route('https://generativelanguage.googleapis.com/**', (route) => {
+    // 自動でモデルを選ぶので、まず一覧を聞かれる
+    if (route.request().method() === 'GET') return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ models: [{ name: 'models/gemini-3.8-flash', supportedGenerationMethods: ['generateContent'] }] }) });
+    expect(route.request().url()).toContain('/models/gemini-3.8-flash:generateContent');
     body = JSON.parse(route.request().postData());
     route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({
       candidates: [{ content: { parts: [{ text: '[{"who":"kujo","text":"行こう、ちょうど腹ぺこ"},{"who":"kasuga","text":"私も！"}]' }] } }],
@@ -48,4 +51,69 @@ test('チャット: Gemini のキーがあると、グループの返事を JSON
   expect(body.contents[0].parts[0].text).toContain('今日のお昼どうする？');
   await page.goto('/#/log');
   await expect(page.locator('main')).toContainText('行こう、ちょうど腹ぺこ');
+});
+
+test('チャット: 部屋ごと・すべての会話を消せる（消すと最初のひとことからやり直し。ほかの記録は残る）', async ({ page }) => {
+  page.on('dialog', (d) => d.accept());
+  await onboard(page);
+  await page.goto('/#/chat/dm-kujo');
+  await expect(page.locator('#chat-log .bubble-row')).toHaveCount(1);
+  await page.click('#chat-quick-0');
+  await expect(page.locator('#chat-log .bubble-row')).toHaveCount(3);
+  await page.click('#chat-clear');
+  await expect(page.locator('#chat-log .bubble-row')).toHaveCount(1);
+  await page.click('#chat-quick-1');
+  await expect(page.locator('#chat-log .bubble-row')).toHaveCount(3);
+  await page.goto('/#/chat/g-team');
+  await expect(page.locator('#chat-log .bubble-row')).toHaveCount(2);
+  await page.goto('/#/chat');
+  await page.click('#chat-reset-all');
+  await expect(page.locator('#chat-reset-all')).toBeDisabled();
+  const st = await page.evaluate(() => ({ rooms: window.__RGA_APP.state.messenger.rooms, user: window.__RGA_APP.state.user.name }));
+  expect(st.rooms).toEqual({});
+  expect(st.user).toBe('テスト新人');
+});
+
+test('チャット: 名前の横に所属と好感度が出て（話しても消えない）、個別の部屋で人物のデータが見られる', async ({ page }) => {
+  await onboard(page);
+  await page.goto('/#/chat/dm-seto');
+  await expect(page.locator('#chat-log .bubble-row')).toHaveCount(1);
+  const before = Number(await page.locator('#chat-affinity').textContent());
+  await page.fill('#chat-input', 'いつもありがとう');
+  await page.click('#chat-send');
+  await expect(page.locator('#chat-log .bubble-row')).toHaveCount(3);
+  await expect(page.locator('#chat-affinity')).toHaveText(String(before + 7)); // 話した回数 +1・うれしい言葉 +3・絆 +1点（×3）
+  await page.click('#chat-profile summary');
+  await expect(page.locator('#chat-profile')).toContainText('技術力');
+  await expect(page.locator('#chat-profile')).toContainText('個別で話した回数');
+  await page.click('#chat-back');
+  await expect(page.locator('#chat-room-dm-seto')).toContainText('同期・海外本部');
+  await expect(page.locator('#chat-room-dm-seto')).toContainText('♥ ' + (before + 7));
+  await page.goto('/#/chat/g-douki');
+  await page.click('#chat-members summary');
+  await expect(page.locator('#chat-members')).toContainText('瀬戸 海斗');
+});
+
+test('チャット: AI の返事が読めないときは、ルールのせりふで埋めずに知らせ、「返事をもらい直す」で取り直せる', async ({ page }) => {
+  let good = false;
+  let posts = 0;
+  await page.route('https://generativelanguage.googleapis.com/**', (route) => {
+    if (route.request().method() === 'GET') return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ models: [{ name: 'models/gemini-3.8-flash', supportedGenerationMethods: ['generateContent'] }] }) });
+    posts += 1;
+    const text = good ? '[{"who":"hikari","text":"行きたい！"}]' : 'ごめん、うまく言えない';
+    route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ candidates: [{ content: { parts: [{ text }] } }] }) });
+  });
+  await onboard(page);
+  await page.evaluate(() => { Object.assign(window.__RGA_APP.state.settings, { provider: 'gemini', geminiKey: 'AIza-test' }); });
+  await page.goto('/#/chat/g-team');
+  await expect(page.locator('#chat-log .bubble-row')).toHaveCount(2);
+  await page.fill('#chat-input', 'エルレのチケット3枚余ってる');
+  await page.click('#chat-send');
+  await expect(page.locator('#chat-failed')).toBeVisible();
+  expect(posts).toBe(2); // 1回だけやり直した
+  await expect(page.locator('#chat-log .bubble-row')).toHaveCount(3); // 自分の発言だけ（ルールのせりふは入らない）
+  good = true;
+  await page.click('#chat-retry');
+  await expect(page.locator('#chat-log')).toContainText('行きたい！');
+  await expect(page.locator('#chat-failed')).toHaveCount(0);
 });

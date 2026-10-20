@@ -120,7 +120,7 @@
   }
   function append(mp, roomId, msgs, time) {
     const base = mp || empty();
-    const log = [...logOf(base, roomId), ...msgs.map((m) => ({ who: m.who, text: m.text, at: time }))].slice(-MAX_LOG);
+    const log = [...logOf(base, roomId), ...msgs.map((m) => (m.src ? { who: m.who, text: m.text, at: time, src: m.src } : { who: m.who, text: m.text, at: time }))].slice(-MAX_LOG);
     return { ...base, rooms: { ...base.rooms, [roomId]: log } };
   }
   // はじめて開いた部屋には、相手からのひとことを置く
@@ -134,12 +134,112 @@
     return Object.keys((mp || empty()).rooms).reduce((n, id) => n + sentCount(mp, id), 0);
   }
 
+  // ---- 人物のデータ ----
+  // 変わらない数値（1〜5）と、はじめの仲のよさ（好感度の土台）。PERSONAS.md の人物像から決めた
+  const STAT_LABELS = [['tech', '技術力'], ['comm', 'コミュ力'], ['bright', '明るさ'], ['care', '面倒見'], ['plan', '段取り']];
+  const P = (base, tech, comm, bright, care, plan) => ({ base, stats: { tech, comm, bright, care, plan } });
+  const PROFILES = {
+    madoka: P(30, 3, 4, 3, 4, 5), hikari: P(30, 2, 5, 5, 4, 3), rio: P(65, 5, 3, 4, 4, 3), daichi: P(30, 1, 4, 4, 3, 2), osamu: P(25, 4, 3, 2, 5, 4),
+    amano: P(20, 4, 5, 5, 3, 4), hosoya: P(10, 2, 2, 2, 2, 5), kiryu: P(15, 5, 3, 3, 3, 4), shiraishi: P(30, 4, 5, 4, 5, 5), kumagai: P(30, 4, 4, 4, 5, 4),
+    kujo: P(35, 5, 3, 3, 4, 2), himuro: P(30, 5, 2, 2, 3, 4), kasuga: P(35, 1, 4, 4, 4, 2), seto: P(30, 4, 4, 3, 5, 4), yabuki: P(60, 3, 5, 5, 5, 3),
+    onizuka: P(35, 5, 2, 3, 3, 3), yuzuki: P(25, 3, 4, 4, 5, 3), hanaoka: P(25, 2, 5, 5, 4, 3), saionji: P(20, 3, 3, 3, 3, 4), kurokawa: P(20, 5, 2, 2, 3, 5),
+    fukamachi: P(40, 4, 4, 3, 4, 4), kazami: P(45, 5, 3, 4, 3, 2), saotome: P(45, 3, 4, 5, 5, 3), miyamoto: P(45, 3, 5, 4, 5, 4),
+    mizuno: P(10, 5, 3, 3, 4, 4), mikami: P(10, 3, 5, 4, 4, 5), ohashi: P(10, 4, 3, 3, 4, 4), saeki: P(5, 4, 4, 3, 3, 5), hayakawa: P(10, 2, 5, 5, 4, 3),
+    katagiri: P(5, 2, 4, 3, 3, 3), arai: P(15, 2, 4, 4, 3, 3),
+  };
+  const AFFINITY_STAGES = [[80, '親友'], [60, '気の置けない仲'], [40, '仲良し'], [20, '話せる仲'], [0, '顔見知り']];
+  function stageOf(affinity) {
+    return AFFINITY_STAGES.find(([n]) => affinity >= n)[1];
+  }
+  // 関係の数値は保存せず、会話の記録と絆から毎回数える（絆と同じ考え方）
+  function statsOf(state, id) {
+    const mp = (state && state.messenger) || empty();
+    const prof = PROFILES[id] || P(10, 3, 3, 3, 3, 3);
+    const dm = logOf(mp, 'dm-' + id);
+    const mine = dm.filter((m) => m.who === 'player');
+    const kind = mine.filter((m) => ['thanks', 'praise'].includes(intentOf(m.text))).length;
+    const groupTalk = Object.keys(mp.rooms || {}).filter((r) => r.startsWith('g-')).reduce((n, r) => n + logOf(mp, r).filter((m) => m.who === id).length, 0);
+    const B = RGA.bonds;
+    const bondPts = B ? B.bondPoints(state, id) : 0;
+    const affinity = Math.min(100, prof.base + bondPts * 3 + Math.min(25, mine.length) + Math.min(15, kind * 3) + Math.min(10, groupTalk));
+    const times = mine.map((m) => m.at).filter((t) => typeof t === 'number');
+    return { affinity, stage: stageOf(affinity), bondLv: B ? B.bondLevel(bondPts) : 0, dmSent: mine.length, kind, groupTalk, lastAt: times.length ? Math.max(...times) : null, stats: { ...prof.stats } };
+  }
+  // 主人公の呼び方（その人のせりふで一番多い形。上司は「くん」）
+  function callOf(id, names) {
+    const p = H.nameOf('player', names);
+    if (H.CAST_BY_ID[id] && H.CAST_BY_ID[id].group === 'boss') return p + 'くん';
+    const all = Object.values(linesOf(id)).flat().join('\n');
+    const kun = (all.match(/\{player\}くん/g) || []).length;
+    const san = (all.match(/\{player\}さん/g) || []).length;
+    const bare = (all.match(/\{player\}/g) || []).length - kun - san;
+    if (kun >= san && kun >= bare && kun > 0) return p + 'くん';
+    if (san >= bare && san > 0) return p + 'さん';
+    return p;
+  }
+  // 口調の例（ルールのせりふから2つ）
+  function voiceOf(id, names) {
+    const l = linesOf(id);
+    return [(l.open || [])[0], (l.greet || [])[0]].filter(Boolean).map((t) => '「' + H.fill(t, names) + '」').join('');
+  }
+  const clipText = (t, n) => (t.length > n ? t.slice(0, n) + '…' : t);
+  // 個別チャットでの最近のやりとり（グループの返事に引き継ぐ）
+  function dmExcerpt(mp, id, names, n) {
+    return logOf(mp, 'dm-' + id).slice(-(n || 4)).map((m) => (m.who === 'player' ? '主人公' : '本人') + '「' + clipText(H.fill(m.text, names), 60) + '」').join(' ');
+  }
+  // グループでの最近の発言（個別の返事に引き継ぐ）
+  function groupExcerpt(mp, id, names, n) {
+    const out = [];
+    for (const r of Object.keys(mp.rooms || {}).filter((x) => x.startsWith('g-'))) {
+      const log = logOf(mp, r);
+      log.forEach((m, i) => { if (m.who === id) out.push({ at: m.at || 0, text: (log[i - 1] && log[i - 1].who === 'player' ? '主人公「' + clipText(H.fill(log[i - 1].text, names), 40) + '」に ' : '') + '本人「' + clipText(H.fill(m.text, names), 60) + '」' }); });
+    }
+    return out.sort((a, b) => a.at - b.at).slice(-(n || 3)).map((x) => x.text).join(' ');
+  }
+  function relationLine(state, id, names) {
+    const st = statsOf(state, id);
+    return '主人公の呼び方: 「' + callOf(id, names) + '」。主人公との仲: ' + st.stage + '（好感度 ' + st.affinity + '/100）。口調の例: ' + voiceOf(id, names);
+  }
+
   // ---- LLM への頼み方 ----
-  const CHAT_STYLE = 'ここはスマホのメッセージアプリ（LINE のようなチャット）での雑談。返事は1〜3文の短い話し言葉で。見出しや箇条書き、コードは使わない。';
-  function llmRequest(room, log, names, sprint) {
+  // チャットは仕事の場ではなく、ただの雑談の場。ハッカソンの自由チャット（hack.personaPrompt）とは別の頼み方にして、
+  // スプリントの状況は渡さない（渡すと、どの人物も仕事の話に引っぱられた）
+  const CHAT_STYLE = [
+    'ここはスマホのメッセージアプリ（LINE のようなチャット）。仕事の場ではなく、仲のいい人どうしのふだんの雑談。',
+    '部署・得意分野・仕事ぶりは人物の背景として知っておくだけ。相手が仕事・研修・技術の話を振らない限り、それらの話題は自分から持ち出さない（ハッカソン・要件・レビュー・コードの話に戻さない）。',
+    'ごはん・休日・趣味・最近あったこと・ちょっとした冗談など、相手の話題にそのまま乗る。相手の言葉の意味が分からなければ、推測して乗るか、軽く聞き返す。',
+    '返事は1〜3文の短い話し言葉。見出し・箇条書き・コードは使わない。キャラクターの持ちネタは、たまに出す程度にして毎回は言わない。',
+  ].join('\n');
+  const RULES = '守ること: 恋愛やライバル関係の話にしない。実在の人物・企業・顧客情報には触れない。パスワードや API キーなどの秘密は聞かない・言わない。投資や税金の具体的な助言はしない。';
+  function playerLine(names) {
+    return '話し相手は' + H.nameOf('player', names) + '（新卒1年目。情報系の大学院を出ていて同期より少し年上。一人称は俺。真面目さとゆるさが同居していて、積極的）。上司は「' + H.nameOf('player', names) + 'くん」と呼ぶ。';
+  }
+  function personOf(id, names) {
+    const c = H.CAST_BY_ID[id];
+    return H.nameOf(id, names) + '（' + c.role + '）。' + H.fill(c.persona, names);
+  }
+  // ルールの返事か（印のある新しいものと、印がない以前のもの。最初のひとこと（open）は除く）
+  function isRuleLine(m) {
+    if (m.src === 'rule') return true;
+    if (m.who === 'player' || !LINES[m.who]) return false;
+    return Object.entries(LINES[m.who]).some(([k, lines]) => k !== 'open' && lines.includes(m.text));
+  }
+  // 個別とグループの情報は互いに引き継ぐ（呼び方・口調・仲のよさ、相手の部屋での最近のやりとり）
+  function llmRequest(room, state, names) {
+    const mp = (state && state.messenger) || empty();
+    // ルールのせりふ（AI なしのときの返事）は、話の流れと合わないことがあるので AI には渡さない
+    const log = logOf(mp, room.id).filter((m) => !isRuleLine(m));
     if (room.kind === 'dm') {
-      const c = H.CAST_BY_ID[room.char];
-      const system = [H.personaPrompt(room.char, names, sprint), c.group === 'work' ? 'あなたは主人公の配属先（スマホの銀行アプリの開発チーム）の人。' : '', CHAT_STYLE].filter(Boolean).join('\n');
+      const fromGroups = groupExcerpt(mp, room.char, names, 3);
+      const system = [
+        'あなたは研修用の学習アプリ「練習銀行アカデミー」に登場する架空の人物として、主人公とチャットで雑談します。',
+        'あなた: ' + personOf(room.char, names),
+        relationLine(state, room.char, names),
+        fromGroups ? 'グループチャットでの最近のやりとり（覚えていてよい）: ' + fromGroups : '',
+        playerLine(names),
+        CHAT_STYLE,
+        RULES,
+      ].filter(Boolean).join('\n');
       const messages = [];
       for (const m of log.slice(-12)) {
         const role = m.who === 'player' ? 'user' : 'assistant';
@@ -151,36 +251,52 @@
       while (messages.length && messages[0].role !== 'user') messages.shift();
       return { system, messages, maxTokens: 400 };
     }
-    const people = room.members.map((id) => {
-      const c = H.CAST_BY_ID[id];
-      return '- ' + id + ': ' + H.nameOf(id, names) + '（' + c.role + '）。' + H.fill(c.persona, names);
-    }).join('\n');
     const system = [
       'あなたは研修用の学習アプリ「練習銀行アカデミー」のグループチャット「' + room.name + '」で、次の架空の人物たちを演じ分けます。',
-      people,
-      '話し相手は' + H.nameOf('player', names) + '（新卒1年目・情報系の院卒で同期より少し年上・一人称は俺）。上司は「くん」付けで呼ぶ。',
-      sprint ? '今はハッカソンのスプリント' + sprint.no + '「' + sprint.title + '」のころ。' : '',
+      room.members.map((id) => {
+        const dm = dmExcerpt(mp, id, names, 4);
+        return '- ' + id + ': ' + personOf(id, names) + '\n  ' + relationLine(state, id, names) + (dm ? '\n  主人公との個別チャットでの最近のやりとり（この人は覚えている。口調と関係をそのまま引き継ぐ。内容をほかの人にばらさない）: ' + dm : '');
+      }).join('\n'),
+      playerLine(names),
       CHAT_STYLE,
-      'これまでの会話を読み、' + H.nameOf('player', names) + 'の最後の発言に、参加者のうち話の流れに合う1〜3人が返事をする。名前を呼ばれた人は必ず返事をする。',
+      'これまでの会話を読み、' + H.nameOf('player', names) + 'の最後の発言に、参加者のうち話の流れに合う1〜3人が返事をする。名前を呼ばれた人は必ず返事をする。参加者どうしで軽くつっこみ合うのはよいが、話の中心は' + H.nameOf('player', names) + 'の話題にする。',
       '出力は JSON の配列だけにする。形: [{"who": "参加者の id", "text": "発言"}]',
-      '守ること: 恋愛やライバル関係の話にしない。実在の人物・企業・顧客情報には触れない。パスワードや API キーなどの秘密は聞かない・言わない。投資や税金の具体的な助言はしない。',
-    ].filter(Boolean).join('\n');
+      RULES,
+    ].join('\n');
     const transcript = log.slice(-16).map((m) => (m.who === 'player' ? H.nameOf('player', names) : H.nameOf(m.who, names) + '（' + m.who + '）') + ': ' + H.fill(m.text, names)).join('\n');
-    return { system, messages: [{ role: 'user', content: 'これまでの会話:\n' + transcript }], maxTokens: 700 };
+    return { system, messages: [{ role: 'user', content: 'これまでの会話:\n' + transcript }], maxTokens: 700, json: true };
   }
   // グループの返事（JSON の配列）を読む。読めなければ null（ルールの返事に切り替える）
   function parseGroupReply(text, members) {
     const s = String(text || '');
+    let data = null;
     const start = s.indexOf('[');
     const end = s.lastIndexOf(']');
-    if (start < 0 || end <= start) return null;
-    let data;
-    try { data = JSON.parse(s.slice(start, end + 1)); } catch (e) { return null; }
-    if (!Array.isArray(data)) return null;
+    if (start >= 0 && end > start) { try { data = JSON.parse(s.slice(start, end + 1)); } catch (e) { data = null; } }
+    // 途中で切れた・余計な文字が混ざったときは、読める {"who": …, "text": …} だけ拾う
+    if (!Array.isArray(data)) {
+      data = [];
+      for (const m of s.matchAll(/\{\s*"who"\s*:\s*"([\w-]+)"\s*,\s*"text"\s*:\s*"((?:[^"\\]|\\.)*)"\s*\}/g)) {
+        try { data.push({ who: m[1], text: JSON.parse('"' + m[2] + '"') }); } catch (e) { /* 読めない1件は飛ばす */ }
+      }
+    }
     const out = data.filter((m) => m && members.includes(m.who) && typeof m.text === 'string' && m.text.trim())
       .slice(0, 4).map((m) => ({ who: m.who, text: m.text.trim().slice(0, 400) }));
     return out.length ? out : null;
   }
+  // 個別の返事。空なら null。名前の書き出し（「九条: …」）や JSON で返ってきたときもふつうの文にする
+  function parseDmReply(text, charId) {
+    let t = String(text || '').trim();
+    if (/^[\[{]/.test(t)) {
+      const g = parseGroupReply(t, [charId]);
+      if (g) t = g.map((m) => m.text).join('\n');
+    }
+    const c = H.CAST_BY_ID[charId];
+    const labels = [charId, ...(c ? [c.name, ...c.name.split(/[\s　]+/)] : [])];
+    const head = /^([^:：\n]{1,16})[:：]\s*/.exec(t);
+    if (head && labels.includes(head[1].trim())) t = t.slice(head[0].length).trim();
+    return t ? [{ who: charId, text: t.slice(0, 600) }] : null;
+  }
 
-  RGA.messenger = { GROUPS, DM_GROUPS, MAX_LOG, LINES, addLines, roomsFor, roomOf, roomName, intentOf, ruleReply, ruleReplies, mentioned, openerOf, empty, logOf, append, ensureOpened, sentCount, totalSent, llmRequest, parseGroupReply };
+  RGA.messenger = { STAT_LABELS, PROFILES, AFFINITY_STAGES, stageOf, statsOf, callOf, voiceOf, dmExcerpt, groupExcerpt, GROUPS, DM_GROUPS, MAX_LOG, LINES, addLines, roomsFor, roomOf, roomName, intentOf, ruleReply, ruleReplies, mentioned, openerOf, empty, logOf, append, ensureOpened, sentCount, totalSent, llmRequest, parseGroupReply, parseDmReply, isRuleLine };
 })(globalThis);

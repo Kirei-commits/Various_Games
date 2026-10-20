@@ -9,6 +9,7 @@
   const H = RGA.hack;
   const drafts = {}; // 部屋ごとの書きかけ（保存しない）
   let sending = null; // 返事を待っている部屋
+  const failed = {}; // 部屋ごとの、返事をもらえなかった理由（保存しない）
 
   const QUICK = ['おはよう！', 'お疲れさま〜', 'ちょっと相談していい？', '今日のお昼どうする？'];
 
@@ -34,17 +35,31 @@
       const log = M.logOf(mp, room.id);
       const last = log[log.length - 1];
       const sub = last ? (last.who === 'player' ? 'あなた: ' : room.kind === 'group' ? H.nameOf(last.who, names) + ': ' : '') + H.fill(last.text, names)
-        : room.kind === 'group' ? room.members.map((id) => H.nameOf(id, names)).join('・') : H.CAST_BY_ID[room.char].role;
+        : room.kind === 'group' ? room.members.map((id) => H.nameOf(id, names)).join('・') : 'まだ話していません';
+      const st = room.kind === 'dm' ? M.statsOf(state, room.char) : null;
+      // 名前の横に、所属（会話しても消えない）と好感度
       return h('li', null, h('a', { class: 'room-item', href: '#/chat/' + room.id, id: 'chat-room-' + room.id },
         h('span', { class: 'avatar' }, room.icon),
-        h('span', { class: 'room-text' }, h('strong', null, M.roomName(room, names) + (room.kind === 'group' ? '（' + (room.members.length + 1) + '）' : '')), h('span', { class: 'muted small room-sub' }, sub))));
+        h('span', { class: 'room-text' },
+          h('span', { class: 'room-head' }, h('strong', null, M.roomName(room, names) + (room.kind === 'group' ? '（' + (room.members.length + 1) + '）' : '')),
+            st ? h('span', { class: 'muted tiny room-role' }, H.CAST_BY_ID[room.char].role) : null,
+            st ? h('span', { class: 'chip-mini affinity', title: '好感度（' + st.stage + '）' }, '♥ ' + st.affinity) : null),
+          h('span', { class: 'muted small room-sub' }, sub))));
     };
     const rooms = M.roomsFor(state);
     return h('div', { class: 'page' },
       h('h1', null, 'チャット'),
       h('p', { class: 'muted' }, '同期や先輩、チームの人たちと、ただ話すための場所です。' + (RGA.tutor.hasAI(state.settings) ? '返事は設定の AI（' + providerName(state) + '）が、その人になりきって書きます。' : '返事は一人ひとりのせりふから選ばれます。設定で Claude か Gemini の API キーを入れると、自由な返事になります。')),
       h('section', { class: 'card' }, h('h2', null, 'グループ'), h('ul', { class: 'room-list' }, rooms.filter((r) => r.kind === 'group').map(item))),
-      h('section', { class: 'card' }, h('h2', null, '個別'), h('ul', { class: 'room-list' }, rooms.filter((r) => r.kind === 'dm').map(item))));
+      h('section', { class: 'card' }, h('h2', null, '個別'), h('ul', { class: 'room-list' }, rooms.filter((r) => r.kind === 'dm').map(item))),
+      h('section', { class: 'card' }, h('h2', null, 'リセット'),
+        h('p', { class: 'muted small' }, '会話を消すと、相手（AI）もそれまでの会話を覚えていない状態に戻ります。部屋ごとに消すときは、その部屋の下にある「この部屋の会話を消す」を使ってください。ほかの学習の記録は消えません。'),
+        h('button', { class: 'btn danger', id: 'chat-reset-all', disabled: !Object.values(mp.rooms || {}).some((l) => l.length), onclick: () => {
+          if (!window.confirm('すべての部屋の会話を消しますか？（元に戻せません）')) return;
+          ui.update(() => { state.messenger = M.empty(); });
+          ui.toast('チャットの会話をすべて消しました', 'ok');
+          ui.render();
+        } }, 'チャットの会話をすべて消す')));
   }
   const providerName = (state) => (RGA.tutor.providerOf(state.settings) === 'gemini' ? 'Gemini' : 'Claude');
 
@@ -69,6 +84,7 @@
       h('div', { class: 'row' }, h('span', { class: 'avatar big' }, room.icon),
         h('div', null, h('h1', null, M.roomName(room, names)),
           h('p', { class: 'muted small' }, c ? c.role : 'メンバー: あなた・' + room.members.map((id) => H.nameOf(id, names)).join('・')))),
+      c ? profileCard(ui, c.id, names) : membersCard(ui, room, names),
       h('section', { class: 'card' },
         logEl,
         h('div', { class: 'row wrap', role: 'group', 'aria-label': 'よく使うひとこと' }, QUICK.map((q, i) => h('button', { class: 'btn tiny', id: 'chat-quick-' + i, disabled: busy, onclick: () => send(ui, room, q) }, q))),
@@ -79,7 +95,52 @@
         h('div', { class: 'row between' },
           h('span', { class: 'muted tiny' }, ai ? providerName(state) + ' が返事をします（Ctrl+Enter でも送れます）' : 'ルールの返事です（設定で API キーを入れると自由な返事に）'),
           h('button', { class: 'btn primary', id: 'chat-send', disabled: busy, onclick: () => send(ui, room, drafts[room.id] || '') }, busy ? '返事を待っています…' : '送る')),
-        log.length > 2 ? h('button', { class: 'btn tiny ghost', id: 'chat-clear', onclick: () => { ui.update(() => { state.messenger = { ...messengerOf(ui), rooms: { ...messengerOf(ui).rooms, [room.id]: [] } }; }); ui.render(); } }, '会話を消す') : null));
+        failed[room.id] && !busy && log.length && log[log.length - 1].who === 'player' ? h('div', { class: 'row between', id: 'chat-failed' },
+          h('span', { class: 'small warn' }, '返事を受け取れませんでした（' + failed[room.id] + '）'),
+          h('button', { class: 'btn tiny', id: 'chat-retry', onclick: () => reply(ui, room, log[log.length - 1].text) }, '返事をもらい直す')) : null,
+        log.length > 1 ? h('button', { class: 'btn tiny ghost', id: 'chat-clear', disabled: busy, onclick: () => {
+          if (!window.confirm('この部屋の会話を消して、最初からにしますか？（相手もこれまでの会話を覚えていない状態に戻ります）')) return;
+          ui.update(() => { state.messenger = { ...messengerOf(ui), rooms: { ...messengerOf(ui).rooms, [room.id]: [] } }; });
+          ui.render();
+        } }, 'この部屋の会話を消す') : null));
+  }
+
+  // 人物のデータ（好感度・仲の段階・絆・話した回数・人柄の数値）
+  function profileCard(ui, id, names) {
+    const h = ui.h;
+    const st = M.statsOf(ui.state(), id);
+    const c = H.CAST_BY_ID[id];
+    const row = (label, value) => h('div', { class: 'prof-row' }, h('span', { class: 'muted small' }, label), h('strong', null, value));
+    return h('details', { class: 'card profile', id: 'chat-profile' },
+      h('summary', null, h('span', null, '♥ 好感度 ', h('strong', { id: 'chat-affinity' }, String(st.affinity)), ' / 100 ・ ' + st.stage),
+        h('span', { class: 'meter' }, h('span', { style: 'width:' + st.affinity + '%' }))),
+      h('div', { class: 'prof-grid' },
+        row('絆', 'Lv' + st.bondLv),
+        row('個別で話した回数', st.dmSent + ' 回'),
+        row('うれしい言葉（ありがとう・すごい）', st.kind + ' 回'),
+        row('グループでの発言', st.groupTalk + ' 回'),
+        row('最後に話した日', st.lastAt ? new Date(st.lastAt).toLocaleDateString('ja-JP') : '—'),
+        row('呼び方', '「' + M.callOf(id, names) + '」')),
+      h('div', { class: 'prof-stats' }, M.STAT_LABELS.map(([k, label]) => h('div', { class: 'prof-stat' },
+        h('span', { class: 'small' }, label),
+        h('span', { class: 'meter', role: 'img', 'aria-label': label + ' ' + st.stats[k] + ' / 5' }, h('span', { style: 'width:' + st.stats[k] * 20 + '%' })),
+        h('span', { class: 'muted tiny' }, st.stats[k] + ' / 5')))),
+      c.field ? h('p', { class: 'small' }, '得意なこと: ' + c.field) : null,
+      h('p', { class: 'muted tiny' }, '好感度は、はじめの仲のよさに、絆・個別で話した回数・うれしい言葉・グループでのやりとりを足したものです。人柄の数値は人物の設定から決めた目安です。'));
+  }
+  function membersCard(ui, room, names) {
+    const h = ui.h;
+    const state = ui.state();
+    return h('details', { class: 'card profile', id: 'chat-members' },
+      h('summary', null, 'メンバーとの仲'),
+      h('ul', { class: 'room-list' }, room.members.map((id) => {
+        const st = M.statsOf(state, id);
+        return h('li', null, h('a', { class: 'room-item', href: '#/chat/dm-' + id },
+          h('span', { class: 'avatar' }, H.CAST_BY_ID[id].icon),
+          h('span', { class: 'room-text' }, h('span', { class: 'room-head' }, h('strong', null, H.nameOf(id, names)), h('span', { class: 'muted tiny room-role' }, H.CAST_BY_ID[id].role), h('span', { class: 'chip-mini affinity' }, '♥ ' + st.affinity)),
+            h('span', { class: 'muted small room-sub' }, st.stage + ' ・ 個別で ' + st.dmSent + ' 回'))));
+      })),
+      h('p', { class: 'muted tiny' }, '個別チャットでの口調や関係は、グループでの返事にも引き継がれます。'));
   }
 
   async function send(ui, room, raw) {
@@ -96,27 +157,46 @@
     }
     drafts[room.id] = '';
     ui.update(() => { state.messenger = M.append(messengerOf(ui), room.id, [{ who: 'player', text }], ui.now()); });
+    await reply(ui, room, text);
+  }
+
+  // 最後の発言に返事をもらう。AI がうまく返せなかったときは、ルールのせりふで埋めない
+  // （話の流れに合わないせりふが混ざり、次の返事までおかしくなった）。1回だけやり直し、だめなら知らせて「返事をもらい直す」を出す
+  async function reply(ui, room, text) {
+    const state = ui.state();
+    const R = RGA.rules;
+    const T = RGA.tutor;
     sending = room.id;
+    failed[room.id] = null;
     ui.render();
     const n = M.sentCount(state.messenger, room.id);
     const names = namesOf(state);
     let replies = null;
     if (T.hasAI(state.settings)) {
       const env = ui.aiEnv();
-      const hp = state.hack || H.emptyProgress();
-      const sprint = H.SPRINTS.find((s) => s.no === H.unlockedUpTo(hp));
-      try {
-        const out = await T.callLLM(env.fetchImpl, state.settings, env.spentUsd, M.llmRequest(room, M.logOf(state.messenger, room.id), names, sprint));
-        ui.update((s) => { Object.assign(s, RGA.store.addSpend(s, T.costOf(out.model, out.usage), ui.now())); });
-        replies = room.kind === 'dm' ? [{ who: room.char, text: R.limitCodeBlocks(out.text).trim() }] : M.parseGroupReply(out.text, room.members);
-        ui.logAi({ unitId: 'chat', kind: 'chat', input: text, output: replies ? replies.map((m) => m.who + ': ' + m.text).join('\n') : out.text, masking: { blocked: false, labels: [] }, source: 'llm', model: out.model });
-      } catch (e) {
-        ui.toast(providerName(state) + ' に接続できませんでした（' + e.message + '）。ルールの返事にします', 'warn');
+      let lastErr = '';
+      for (let attempt = 0; attempt < 2 && !replies; attempt++) {
+        try {
+          const out = await T.callLLM(env.fetchImpl, state.settings, env.spentUsd, M.llmRequest(room, state, names));
+          ui.update((s) => { Object.assign(s, RGA.store.addSpend(s, T.costOf(out.model, out.usage), ui.now())); });
+          replies = room.kind === 'dm' ? M.parseDmReply(R.limitCodeBlocks(out.text), room.char) : M.parseGroupReply(out.text, room.members);
+          if (!replies) lastErr = '返事の形が読めませんでした';
+          ui.logAi({ unitId: 'chat', kind: 'chat', input: text, output: replies ? replies.map((m) => m.who + ': ' + m.text).join('\n') : out.text, masking: { blocked: false, labels: [] }, source: 'llm', model: out.model });
+        } catch (e) {
+          lastErr = e.message;
+        }
+      }
+      if (!replies) {
+        sending = null;
+        failed[room.id] = lastErr;
+        ui.toast(providerName(state) + ' から返事を受け取れませんでした（' + lastErr + '）', 'warn');
+        ui.render();
+        return;
       }
     } else {
       await new Promise((resolve) => setTimeout(resolve, 450)); // 「入力中…」を少し見せる
+      replies = M.ruleReplies(room, text, n, names).map((m) => ({ ...m, src: 'rule' }));
     }
-    if (!replies || !replies.length || !replies[0].text) replies = M.ruleReplies(room, text, n, names);
     sending = null;
     ui.update(() => { state.messenger = M.append(messengerOf(ui), room.id, replies, ui.now()); });
     ui.render();

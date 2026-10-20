@@ -36,7 +36,7 @@
       retry: [],
       hack: null,
       titles: {},
-      settings: { provider: 'claude', model: 'claude-opus-5-5', geminiModel: 'gemini-2.5-flash', monthlyBudgetUsd: 3, tutorStopped: false, rememberKey: false, sound: true, lang: 'js', names: {} },
+      settings: { provider: 'claude', model: 'claude-opus-5-5', geminiModel: 'auto', monthlyBudgetUsd: 3, tutorStopped: false, rememberKey: false, sound: true, lang: 'js', names: {} },
       spend: { month: '', usd: 0 },
       seen: {},
     };
@@ -60,6 +60,8 @@
       if (raw) {
         const parsed = JSON.parse(raw);
         if (parsed && parsed.version === 1) state = { ...state, ...parsed, settings: { ...state.settings, ...parsed.settings } };
+        // 以前の既定（gemini-2.5-flash など）は新しい利用者には提供が終わったので、自動で選ぶ設定に戻す
+        if (/^gemini-2\.5-/.test(state.settings.geminiModel || '')) state.settings.geminiModel = 'auto';
       }
     } catch (e) { /* 壊れたデータは無視して最初から */ }
     for (const [field, storageKey] of SECRETS) {

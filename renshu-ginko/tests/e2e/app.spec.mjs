@@ -11,8 +11,17 @@ test.beforeEach(async ({ page }) => {
   page.on('pageerror', (e) => { throw e; });
 });
 
-test('S-01 オンボーディング: 自己評価から開始単元を提案し、3クリック以内で単元に着手できる', async ({ page }) => {
+test('S-01 オンボーディング: はじめはホームから。単元を始めるときに自己評価から開始単元を提案し、3クリック以内で単元に着手できる', async ({ page }) => {
   await page.goto('/');
+  await expect(page).toHaveURL(/#\/home/);
+  await expect(page.locator('#nav')).toBeVisible();
+  // アンケートの前でも、ほかのモードは使える。単元への直リンクはアンケートへ
+  await page.click('#nav-chat');
+  await expect(page.locator('h1')).toHaveText('チャット');
+  await page.goto('/#/unit/L1-01');
+  await expect(page).toHaveURL(/#\/onboarding/);
+  await page.goto('/#/home');
+  await page.click('#home-survey');
   await expect(page).toHaveURL(/#\/onboarding/);
   await expect(page.locator('text=失敗は罰になりません')).toBeVisible();
   for (const k of ['read', 'debug', 'git', 'security', 'review']) await page.check(`input[name="sv-${k}"][value="3"]`);
@@ -249,7 +258,7 @@ test('Q-12 書き出したファイルを読み込んで、別の端末へ移せ
   const [dl] = await Promise.all([page.waitForEvent('download'), page.click('#data-export')]);
   const text = await (await dl.createReadStream()).toArray().then((b) => Buffer.concat(b).toString('utf8'));
   const other = await browser.newPage();
-  await other.goto('/');
+  await other.goto('/#/onboarding');
   await other.click('#ob-suggest');
   await other.click('#ob-home');
   await other.click('#nav-settings');
@@ -413,13 +422,20 @@ test('設定: Gemini を選んでキーを保存すると、チューターが G
   await page.selectOption('#set-provider', 'gemini');
   await expect(page.locator('#set-gemini')).toBeVisible();
   await page.fill('#set-geminikey', 'AIza-test-key-not-real');
+  // モデルは既定で自動。名前を指定するときだけ入力欄が出る
+  await expect(page.locator('#set-geminimodel')).toHaveCount(0);
+  await page.selectOption('#set-geminimode', 'manual');
+  await expect(page.locator('#set-geminimodel')).toBeVisible();
+  await expect(page.locator('#set-geminikey')).toHaveValue('AIza-test-key-not-real');
+  await page.selectOption('#set-geminimode', 'auto');
   await page.click('#set-save');
   await page.waitForFunction(() => !!sessionStorage.getItem('renshu-ginko-geminikey'));
   const st = await page.evaluate(() => ({ s: window.__RGA_APP.state.settings, main: localStorage.getItem('renshu-ginko-v1') || '', sess: sessionStorage.getItem('renshu-ginko-geminikey') }));
   expect(st.s.provider).toBe('gemini');
   expect(st.s.geminiKey).toBe('AIza-test-key-not-real');
+  expect(st.s.geminiModel).toBe('auto');
   expect(st.main).not.toContain('AIza-test-key-not-real');
   expect(st.sess).toContain('AIza-test-key-not-real');
   await page.goto('/#/unit/L1-01');
-  await expect(page.locator('.tutor')).toContainText('Gemini（gemini-2.5-flash）で応答します');
+  await expect(page.locator('.tutor')).toContainText('Gemini（自動で選ぶ）で応答します');
 });

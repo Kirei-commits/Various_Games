@@ -172,8 +172,10 @@
     const focusId = active && active.id;
     const sel = active && 'selectionStart' in active ? [active.selectionStart, active.selectionEnd] : null;
     const main = $('main');
-    if (!state.user && r.name !== 'onboarding') { location.replace('#/onboarding'); return; }
-    $('nav').hidden = !state.user;
+    // はじめての人もホームから。アンケート（開始レベルの提案）は、単元を始めるときに受ける
+    if (!state.user) ensureUser();
+    if (r.name === 'unit' && !surveyDone()) { location.replace('#/onboarding'); return; }
+    $('nav').hidden = false;
     for (const a of $('nav').querySelectorAll('a')) a.removeAttribute('aria-current');
     const navEl = $('nav-' + ({ unit: 'home' }[r.name] || r.name));
     if (navEl) navEl.setAttribute('aria-current', 'page');
@@ -210,7 +212,14 @@
 
   // ---------------------------------------------------------------- S-01 オンボーディング
   const obDraft = { name: '', answers: {}, suggestion: null };
+  function ensureUser() {
+    update((s) => { s.user = { id: uid('learner'), name: '学習者', role: 'learner', startLevel: 1, survey: null, surveyDone: false, createdAt: now() }; });
+  }
+  // 以前のデータ（アンケートの答えがある人）は受けたことにする
+  const surveyDone = () => !!(state.user && (state.user.surveyDone || state.user.survey));
+
   function viewOnboarding() {
+    if (!obDraft.name && state.user && state.user.name !== '学習者') obDraft.name = state.user.name;
     const promises = [
       ['失敗は罰になりません', 'テストが落ちるのは、次に直す場所を教えてくれているだけ。やり直しは何度でもできます。'],
       ['スコアは誰にも公開しません', 'ランキングもありません。記録はあなたの振り返りのためだけに使います。'],
@@ -252,7 +261,7 @@
   }
   function finishOnboarding(sug, next) {
     update((s) => {
-      s.user = { id: uid('learner'), name: obDraft.name.trim() || '学習者', role: 'learner', startLevel: sug.level, survey: { ...obDraft.answers }, createdAt: now() };
+      s.user = { ...(s.user || { id: uid('learner'), role: 'learner', createdAt: now() }), name: obDraft.name.trim() || (s.user && s.user.name) || '学習者', startLevel: sug.level, survey: { ...obDraft.answers }, surveyDone: true };
     });
     go(next);
   }
@@ -301,7 +310,11 @@
       h('div', { class: 'home-grid' },
         h('section', { class: 'card next-unit' },
           h('p', { class: 'eyebrow' }, '次にやる1単元'),
-          next ? [
+          !surveyDone() ? [
+            h('h2', null, 'まずは5問のアンケートから'),
+            h('p', { class: 'muted' }, '単元を始める前に、自己評価の5問に答えると、あなたに合った開始レベルと最初の単元を提案します（1分ほど）。ハッカソン・テキスト・配属先・チャットは、アンケートなしでも使えます。'),
+            h('button', { id: 'home-survey', class: 'btn primary big', onclick: () => go('#/onboarding') }, 'アンケートに答えて始める'),
+          ] : next ? [
             h('h2', null, next.id + '「' + next.title + '」'),
             h('p', { class: 'muted' }, areaName(next.area) + ' ／ ' + C.LEVELS[next.level - 1].name + ' ／ 目安 ' + next.estMinutes + '分'),
             h('ul', { class: 'goals' }, next.goals.map((g) => h('li', null, g))),
@@ -1591,7 +1604,7 @@
   function viewSettings() {
     const s = state.settings;
     // 入力途中の内容は、設定画面にいるあいだ保つ（「使う AI」を切り替えると描き直すため）
-    const draft = settingsDraft || (settingsDraft = { name: state.user.name, provider: T.providerOf(s), geminiKey: s.geminiKey || '', geminiModel: s.geminiModel || T.GEMINI_DEFAULT, apiKey: s.apiKey || '', remember: !!s.rememberKey, model: s.model || T.MODEL_DEFAULT, budget: s.monthlyBudgetUsd, stop: !!s.tutorStopped, sound: s.sound !== false, lang: s.lang === 'ts' ? 'ts' : 'js', names: { ...(s.names || {}) } });
+    const draft = settingsDraft || (settingsDraft = { name: state.user.name, provider: T.providerOf(s), geminiKey: s.geminiKey || '', geminiManual: !T.isAutoGemini(s), geminiModel: T.isAutoGemini(s) ? '' : s.geminiModel, apiKey: s.apiKey || '', remember: !!s.rememberKey, model: s.model || T.MODEL_DEFAULT, budget: s.monthlyBudgetUsd, stop: !!s.tutorStopped, sound: s.sound !== false, lang: s.lang === 'ts' ? 'ts' : 'js', names: { ...(s.names || {}) } });
     return h('div', { class: 'page narrow' }, h('h1', null, '設定'),
       h('section', { class: 'card' }, h('h2', null, 'プロフィール'),
         h('label', { class: 'field' }, h('span', null, '表示名'), h('input', { id: 'set-name', type: 'text', maxlength: '20', value: draft.name, oninput: (e) => { draft.name = e.target.value; } })),
@@ -1613,9 +1626,12 @@
         h('p', { class: 'note small' }, '組織で使う場合は、API の利用規約とデータの取り扱い（学習に使われない設定か）を事前に確認してください（NFR-07）。業務のキーではなく、練習用に発行したキーを使いましょう。'),
         draft.provider === 'gemini' ? h('div', { class: 'stack', id: 'set-gemini' },
           h('label', { class: 'field' }, h('span', null, 'Gemini API キー（Google AI Studio で発行）'), h('input', { id: 'set-geminikey', type: 'password', autocomplete: 'off', value: draft.geminiKey, placeholder: 'AIza…', oninput: (e) => { draft.geminiKey = e.target.value.trim(); } })),
-          h('label', { class: 'field' }, h('span', null, 'Gemini のモデル'), h('input', { id: 'set-geminimodel', type: 'text', list: 'gemini-models', value: draft.geminiModel, oninput: (e) => { draft.geminiModel = e.target.value.trim(); } }),
-            h('datalist', { id: 'gemini-models' }, T.GEMINI_MODELS.map((m) => h('option', { value: m })))),
-          h('p', { class: 'muted tiny' }, '新しいモデルが出たら、Google AI Studio に表示される名前をそのまま入れてください。月の上限での軽量モデルへの切り替えは Claude だけです（Gemini の利用料は概算に含めます）。')) : null,
+          h('label', { class: 'field' }, h('span', null, 'Gemini のモデル'), h('select', { id: 'set-geminimode', onchange: (e) => { draft.geminiManual = e.target.value === 'manual'; render(); } },
+            h('option', { value: 'auto', selected: !draft.geminiManual }, '自動（無料枠のある新しい Flash を選ぶ・おすすめ）'),
+            h('option', { value: 'manual', selected: draft.geminiManual }, '名前を指定する'))),
+          draft.geminiManual ? h('label', { class: 'field' }, h('span', null, 'モデル名（Google AI Studio の表記のまま）'), h('input', { id: 'set-geminimodel', type: 'text', value: draft.geminiModel, placeholder: 'gemini-…-flash', oninput: (e) => { draft.geminiModel = e.target.value.trim(); } })) : null,
+          h('p', { class: 'muted tiny' }, '自動にすると、キーで使えるモデルの一覧から新しい Flash を選び、提供が終わったり無料枠の回数を使い切ったりしたら次の候補に切り替えます。Pro は無料枠がないので選びません。Gemini は無料枠で使う前提で、利用料は数えません。'),
+          h('p', { class: 'muted tiny' }, '注意: Gemini の無料枠では、送った内容が Google のサービス改善に使われることがあります。送る前に個人情報や鍵らしきものは止めますが、架空の練習の話だけを書いてください。')) : null,
         h('label', { class: 'field', hidden: draft.provider === 'gemini' }, h('span', null, 'Claude API キー'), h('input', { id: 'set-apikey', type: 'password', autocomplete: 'off', value: draft.apiKey, placeholder: 'sk-ant-…', oninput: (e) => { draft.apiKey = e.target.value.trim(); } })),
         h('label', { class: 'check' }, h('input', { id: 'set-remember', type: 'checkbox', checked: draft.remember, onchange: (e) => { draft.remember = e.target.checked; } }), 'この端末に保存する（外すと、タブを閉じたら消えます）'),
         h('label', { class: 'field', hidden: draft.provider === 'gemini' }, h('span', null, 'モデル'), h('select', { id: 'set-model', onchange: (e) => { draft.model = e.target.value; } },
@@ -1626,7 +1642,7 @@
       h('div', { class: 'row' }, h('button', { id: 'set-save', class: 'btn primary', onclick: () => {
         update((st) => {
           st.user.name = draft.name.trim() || '学習者';
-          st.settings = { ...st.settings, provider: draft.provider, geminiKey: draft.geminiKey, geminiModel: draft.geminiModel || T.GEMINI_DEFAULT, apiKey: draft.apiKey, rememberKey: draft.remember, model: draft.model, monthlyBudgetUsd: draft.budget, tutorStopped: draft.stop, sound: draft.sound, lang: draft.lang, names: Object.fromEntries(Object.entries(draft.names).filter(([, v]) => v)) };
+          st.settings = { ...st.settings, provider: draft.provider, geminiKey: draft.geminiKey, geminiModel: (draft.geminiManual && draft.geminiModel) || 'auto', apiKey: draft.apiKey, rememberKey: draft.remember, model: draft.model, monthlyBudgetUsd: draft.budget, tutorStopped: draft.stop, sound: draft.sound, lang: draft.lang, names: Object.fromEntries(Object.entries(draft.names).filter(([, v]) => v)) };
         });
         settingsDraft = null;
         toast('保存しました', 'ok');
@@ -1643,7 +1659,7 @@
             if (!window.confirm('学習データをすべて消して最初からやり直しますか？（元に戻せません）')) return;
             state = S.defaultState();
             S.save(state, safeStorage('localStorage') || memStore, safeStorage('sessionStorage'));
-            go('#/onboarding');
+            go('#/home');
           } }, '最初からやり直す'))));
   }
 
@@ -1687,7 +1703,7 @@
   // E2E テスト用の窓口（状態を覗くだけ）
   window.__RGA_APP = { get state() { return state; }, render };
 
-  if (!location.hash) location.replace(state.user ? '#/home' : '#/onboarding');
+  if (!location.hash) location.replace('#/home');
   render();
   lastRoute = route().name + '/' + route().args.join('/');
 })();
