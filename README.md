@@ -24,6 +24,7 @@
 
 | ディレクトリ | 内容 |
 |---|---|
+| [quant-trader](./quant-trader/) | 自動トレード・定量分析パイプライン（Python）。データ取得・戦略・バックテスト・発注・リスク管理を層に分けたプロトタイプ。ブラウザ版（Pyodide）で戦略を比べられる。 |
 | [kyozai-quiz](./kyozai-quiz/) | 教材登録・問題生成（ブラウザ版と Python CLI）。pptx を登録し、図を Gemini で一度だけ解析して保存、そこから4択・記述・正誤の問題を出典付きで生成する。 |
 
 ## 遊び方
@@ -35,6 +36,7 @@ GitHub Pages でも公開しています。
 ```
 https://kirei-commits.github.io/Various_Games/
 https://kirei-commits.github.io/Various_Games/eikaiwa-swipe/   ← SwipeTalk
+https://kirei-commits.github.io/Various_Games/quant-trader/    ← Quant Backtester
 ```
 
 > 初回だけ、リポジトリの Settings → Pages → Source を「GitHub Actions」にする必要があります。

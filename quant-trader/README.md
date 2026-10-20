@@ -20,11 +20,20 @@ python main.py --source ccxt --symbol BTC/USDT --interval 4h --allow-short   # p
 python main.py --output output/      # 資産曲線・トレード一覧・レポート JSON を保存
 ```
 
+## ブラウザ版
+
+https://kirei-commits.github.io/Various_Games/quant-trader/
+
+`index.html` は、このディレクトリの `quant/` パッケージをそのままブラウザ（[Pyodide](https://pyodide.org/)）に読み込んで動かします。CLI と同じ計算結果になります。
+合成データのほか、Yahoo Finance 形式の CSV もアップロードできます。手元で開くときは `python -m http.server` で配信してから `http://localhost:8000/` を開いてください（`file://` では Python ファイルを読み込めません）。
+`quant/` に .py ファイルを足したら、`index.html` の `MODULES` にも足してください（テストが一致を確かめます）。
+
 ## ディレクトリ構成
 
 ```
 quant-trader/
 ├── main.py                    # CLI: データ取得 → バックテスト → 指標出力
+├── index.html                 # ブラウザ版（Pyodide で quant/ を動かす）
 ├── pyproject.toml / requirements.txt
 ├── quant/
 │   ├── domain/models.py       # 共有型（Direction, Order, Fill, Trade, PerformanceReport）と pydantic 設定
