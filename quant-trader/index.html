@@ -1,0 +1,540 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Quant Backtester</title>
+<link rel="icon" href="data:,">
+<meta name="description" content="Python の quant パッケージをブラウザ（Pyodide）で動かすバックテスター">
+<style>
+:root {
+  color-scheme: light;
+  --bg: #f6f6f4;
+  --surface: #fcfcfb;
+  --border: #dedcd5;
+  --grid: #ebeae5;
+  --text: #0b0b0b;
+  --text-2: #52514e;
+  --text-3: #7a7973;
+  --accent: #2a78d6;
+  --accent-ink: #ffffff;
+  --series-1: #2a78d6;
+  --series-2: #eb6834;
+  --series-3: #1baf7a;
+  --bench: #8a8983;
+  --good: #0f7a3d;
+  --bad: #c0362c;
+  --warn-bg: #fff4d6;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg: #121211;
+    --surface: #1a1a19;
+    --border: #34332f;
+    --grid: #2a2a27;
+    --text: #f0efec;
+    --text-2: #c3c2b7;
+    --text-3: #93928a;
+    --accent: #3987e5;
+    --series-1: #3987e5;
+    --series-2: #d95926;
+    --series-3: #199e70;
+    --bench: #8f8e87;
+    --good: #4cc27c;
+    --bad: #ef7a70;
+    --warn-bg: #3a3017;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #121211;
+  --surface: #1a1a19;
+  --border: #34332f;
+  --grid: #2a2a27;
+  --text: #f0efec;
+  --text-2: #c3c2b7;
+  --text-3: #93928a;
+  --accent: #3987e5;
+  --series-1: #3987e5;
+  --series-2: #d95926;
+  --series-3: #199e70;
+  --bench: #8f8e87;
+  --good: #4cc27c;
+  --bad: #ef7a70;
+  --warn-bg: #3a3017;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--bg); color: var(--text);
+  font: 15px/1.6 system-ui, -apple-system, "Hiragino Sans", "Noto Sans JP", sans-serif;
+}
+main { max-width: 1080px; margin: 0 auto; padding: 24px 16px 64px; }
+h1 { font-size: 24px; margin: 0 0 4px; }
+h2 { font-size: 17px; margin: 0 0 12px; }
+p.lead { color: var(--text-2); margin: 0 0 20px; }
+a { color: var(--accent); }
+.card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+  padding: 16px; margin-bottom: 16px;
+}
+.controls { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px 16px; }
+.controls fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
+label { display: block; font-size: 13px; color: var(--text-2); margin-bottom: 4px; }
+input, select {
+  width: 100%; font: inherit; color: var(--text); background: var(--bg);
+  border: 1px solid var(--border); border-radius: 6px; padding: 6px 8px;
+}
+input[type=checkbox] { width: auto; margin-right: 6px; }
+.check { display: flex; align-items: center; color: var(--text); font-size: 14px; margin: 2px 0; }
+.actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-top: 16px; }
+button {
+  font: inherit; font-weight: 600; border: 0; border-radius: 8px; padding: 9px 20px;
+  background: var(--accent); color: var(--accent-ink); cursor: pointer;
+}
+button:disabled { opacity: .5; cursor: default; }
+#status { color: var(--text-2); font-size: 14px; }
+#status.error { color: var(--bad); white-space: pre-wrap; }
+.hint { font-size: 12px; color: var(--text-3); margin-top: 4px; }
+.table-wrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 14px; font-variant-numeric: tabular-nums; }
+th, td { padding: 6px 10px; border-bottom: 1px solid var(--grid); text-align: right; white-space: nowrap; }
+th:first-child, td:first-child { text-align: left; }
+thead th { color: var(--text-2); font-weight: 600; font-size: 13px; }
+.pos { color: var(--good); }
+.neg { color: var(--bad); }
+.swatch { display: inline-block; width: 12px; height: 3px; border-radius: 2px; vertical-align: middle; margin-right: 8px; }
+.legend { display: flex; flex-wrap: wrap; gap: 4px 18px; font-size: 13px; color: var(--text-2); margin-bottom: 8px; }
+#chart { position: relative; }
+#chart svg { display: block; width: 100%; height: 340px; }
+#tooltip {
+  position: absolute; pointer-events: none; display: none; background: var(--surface);
+  border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; font-size: 13px;
+  box-shadow: 0 4px 16px rgba(0,0,0,.12); min-width: 170px; font-variant-numeric: tabular-nums;
+}
+#tooltip .row { display: flex; justify-content: space-between; gap: 12px; }
+.note { background: var(--warn-bg); border-radius: 8px; padding: 10px 12px; font-size: 13px; color: var(--text-2); }
+.hidden { display: none; }
+.trades-head { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; justify-content: space-between; }
+.trades-head select { width: auto; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Quant Backtester</h1>
+  <p class="lead">戦略・リスク管理・手数料を変えて、バックテストの成績を比べられます。中身は <code>quant-trader/quant</code> の Python コードそのもので、ブラウザ内（Pyodide）で動きます。</p>
+
+  <form id="form" class="card" novalidate>
+    <h2>設定</h2>
+    <div class="controls">
+      <fieldset>
+        <label for="source">データ</label>
+        <select id="source">
+          <option value="synthetic">合成データ（乱数で作った値動き）</option>
+          <option value="csv">CSV をアップロード</option>
+        </select>
+        <div id="synthetic-opts">
+          <label for="seed" style="margin-top:8px">乱数シード</label>
+          <input id="seed" type="number" value="42" step="1">
+        </div>
+        <div id="csv-opts" class="hidden">
+          <label for="csv" style="margin-top:8px">OHLCV の CSV</label>
+          <input id="csv" type="file" accept=".csv,text/csv">
+          <div class="hint">列: Date, Open, High, Low, Close, Volume（Yahoo Finance の形式でそのまま読めます）</div>
+        </div>
+      </fieldset>
+      <fieldset>
+        <label>戦略</label>
+        <div class="check"><input type="checkbox" name="strategy" value="sma_cross" id="s1" checked><label for="s1" style="margin:0;color:inherit">SMA クロス（20/50）</label></div>
+        <div class="check"><input type="checkbox" name="strategy" value="rsi_reversion" id="s2" checked><label for="s2" style="margin:0;color:inherit">RSI 逆張り（14）</label></div>
+        <div class="check"><input type="checkbox" name="strategy" value="macd" id="s3" checked><label for="s3" style="margin:0;color:inherit">MACD（12/26/9）</label></div>
+        <div class="check"><input type="checkbox" id="allow-short"><label for="allow-short" style="margin:0;color:inherit">ショートも許可</label></div>
+      </fieldset>
+      <fieldset>
+        <label for="sizing">ポジションサイズ</label>
+        <select id="sizing">
+          <option value="fixed_fractional">固定割合リスク</option>
+          <option value="kelly">ケリー基準（ハーフ）</option>
+          <option value="all_in">全額投入</option>
+        </select>
+        <label for="risk" style="margin-top:8px">1 回の許容損失（資産比 %）</label>
+        <input id="risk" type="number" value="2" min="0.1" max="100" step="0.1">
+      </fieldset>
+      <fieldset>
+        <label for="sl">損切り（%・0 で無効）</label>
+        <input id="sl" type="number" value="5" min="0" max="99" step="0.5">
+        <label for="tp" style="margin-top:8px">利確（%・0 で無効）</label>
+        <input id="tp" type="number" value="15" min="0" step="0.5">
+      </fieldset>
+      <fieldset>
+        <label for="fee">手数料（%）</label>
+        <input id="fee" type="number" value="0.1" min="0" max="5" step="0.01">
+        <label for="slip" style="margin-top:8px">スリッページ（bps）</label>
+        <input id="slip" type="number" value="5" min="0" max="1000" step="1">
+      </fieldset>
+      <fieldset>
+        <label for="capital">初期資金</label>
+        <input id="capital" type="number" value="100000" min="1" step="any">
+        <label for="dd" style="margin-top:8px">DD で新規停止（%・0 で無効）</label>
+        <input id="dd" type="number" value="0" min="0" max="99" step="1">
+      </fieldset>
+    </div>
+    <div class="actions">
+      <button id="run" type="submit" disabled>バックテストを実行</button>
+      <span id="status" role="status">Python を読み込んでいます…（初回は 10〜30 秒ほど）</span>
+    </div>
+  </form>
+
+  <section id="results" class="hidden">
+    <div class="card">
+      <h2>資産の推移</h2>
+      <div class="legend" id="legend"></div>
+      <div id="chart"><svg id="svg" role="img" aria-label="資産の推移"></svg><div id="tooltip"></div></div>
+      <p class="hint" id="data-info"></p>
+    </div>
+
+    <div class="card">
+      <h2>成績</h2>
+      <div class="table-wrap"><table id="summary"></table></div>
+      <p class="hint">Sharpe・Sortino は年率換算。PF＝総利益÷総損失。DD＝最大ドローダウン。露出＝ポジションを持っていた時間の割合。</p>
+    </div>
+
+    <div class="card">
+      <div class="trades-head">
+        <h2 style="margin:0">トレード一覧</h2>
+        <select id="trade-strategy" aria-label="戦略を選ぶ"></select>
+      </div>
+      <div class="table-wrap" style="margin-top:12px"><table id="trades"></table></div>
+      <p class="hint" id="trades-info"></p>
+    </div>
+  </section>
+
+  <p class="note">研究・学習用のプロトタイプです。合成データの成績は実際の市場での成績を示しません。売買シグナルは足の終値で決まり、次の足の始値で約定します（先読みなし）。</p>
+</main>
+
+<script src="https://cdn.jsdelivr.net/pyodide/v0.27.2/full/pyodide.js"></script>
+<script>
+// ブラウザに読み込む Python ファイル（quant-trader/tests の test_web_manifest がこの一覧と実ファイルの一致を確かめる）
+const MODULES = [
+  "quant/__init__.py",
+  "quant/backtest/__init__.py",
+  "quant/backtest/engine.py",
+  "quant/backtest/metrics.py",
+  "quant/data/__init__.py",
+  "quant/data/base.py",
+  "quant/data/providers.py",
+  "quant/domain/__init__.py",
+  "quant/domain/models.py",
+  "quant/execution/__init__.py",
+  "quant/execution/base.py",
+  "quant/execution/brokers.py",
+  "quant/risk/__init__.py",
+  "quant/risk/manager.py",
+  "quant/strategy/__init__.py",
+  "quant/strategy/base.py",
+  "quant/strategy/indicators.py",
+  "quant/strategy/technical.py",
+];
+
+const RUNNER = `
+import io, json, math
+import pandas as pd
+from quant.backtest import BacktestEngine
+from quant.data import SyntheticDataProvider, normalize_ohlcv
+from quant.domain import BacktestConfig, CostConfig, RiskConfig
+from quant.strategy import build_strategy
+
+def _clean(v):
+    if isinstance(v, float) and not math.isfinite(v):
+        return None
+    if isinstance(v, pd.Timestamp):
+        return v.strftime("%Y-%m-%d %H:%M") if (v.hour or v.minute) else v.strftime("%Y-%m-%d")
+    if hasattr(v, "value") and not isinstance(v, (int, float)):
+        return v.value
+    return v
+
+def run(params_json, csv_text):
+    p = json.loads(params_json)
+    if p["source"] == "csv":
+        df = pd.read_csv(io.StringIO(csv_text), index_col=0, parse_dates=True)
+        data = normalize_ohlcv(df)
+        symbol = "CSV"
+    else:
+        data = SyntheticDataProvider(seed=int(p["seed"])).fetch_ohlcv("SYNTH")
+        symbol = "SYNTH"
+    if len(data) < 60:
+        raise ValueError("データが短すぎます（60 本以上必要）")
+
+    cfg = BacktestConfig(
+        symbol=symbol, initial_capital=p["capital"], allow_short=p["allow_short"],
+        cost=CostConfig(fee_rate=p["fee"], slippage_bps=p["slippage_bps"]),
+        risk=RiskConfig(sizing=p["sizing"], risk_per_trade=p["risk_per_trade"],
+                        stop_loss_pct=p["sl"] or None, take_profit_pct=p["tp"] or None,
+                        max_drawdown_halt=p["dd"] or None),
+    )
+    step = max(1, len(data) // 600)  # グラフ用に間引く（終端は必ず含める）
+    idx = list(range(0, len(data), step))
+    if idx[-1] != len(data) - 1:
+        idx.append(len(data) - 1)
+
+    out = {"dates": [_clean(data.index[i]) for i in idx], "bars": len(data),
+           "start": _clean(data.index[0]), "end": _clean(data.index[-1]), "results": []}
+    close = data["close"]
+    bench = close / close.iloc[0] * cfg.initial_capital
+    out["benchmark"] = {"equity": [float(bench.iloc[i]) for i in idx],
+                        "total_return": float(close.iloc[-1] / close.iloc[0] - 1),
+                        "max_drawdown": float((close / close.cummax() - 1).min())}
+    for name in p["strategies"]:
+        res = BacktestEngine(build_strategy(name, allow_short=p["allow_short"]), cfg).run(data)
+        eq = res.equity_curve["equity"]
+        out["results"].append({
+            "name": name,
+            "report": {k: _clean(v) for k, v in res.report.model_dump().items()},
+            "equity": [float(eq.iloc[i]) for i in idx],
+            "trades": [{k: _clean(v) for k, v in t.model_dump().items()} for t in res.trades],
+        })
+    return json.dumps(out)
+`;
+
+const $ = (id) => document.getElementById(id);
+const NAMES = { sma_cross: "SMA クロス", rsi_reversion: "RSI 逆張り", macd: "MACD" };
+const COLORS = { sma_cross: "var(--series-1)", rsi_reversion: "var(--series-2)", macd: "var(--series-3)" };
+const REASONS = { signal: "シグナル", stop_loss: "損切り", take_profit: "利確", end_of_data: "期間終了", risk_halt: "DD停止" };
+let pyRun = null;
+let last = null;
+
+const pct = (v, d = 2) => v == null ? "—" : (v * 100).toFixed(d) + "%";
+const num = (v, d = 2) => v == null ? "∞" : v.toLocaleString("ja-JP", { minimumFractionDigits: d, maximumFractionDigits: d });
+const yen = (v) => Math.round(v).toLocaleString("ja-JP");
+const signCls = (v) => v > 0 ? "pos" : v < 0 ? "neg" : "";
+
+function setStatus(text, isError = false) {
+  $("status").textContent = text;
+  $("status").className = isError ? "error" : "";
+}
+
+async function boot() {
+  try {
+    const pyodide = await loadPyodide();
+    setStatus("pandas / numpy / pydantic を読み込んでいます…");
+    await pyodide.loadPackage(["pandas", "numpy", "pydantic"]);
+    setStatus("quant パッケージを読み込んでいます…");
+    for (const path of MODULES) {
+      const res = await fetch(path);
+      if (!res.ok) throw new Error(`${path} を読み込めません（${res.status}）`);
+      const dir = "/home/pyodide/" + path.split("/").slice(0, -1).join("/");
+      pyodide.FS.mkdirTree(dir);
+      pyodide.FS.writeFile("/home/pyodide/" + path, await res.text());
+    }
+    pyodide.runPython(RUNNER);
+    pyRun = pyodide.globals.get("run");
+    $("run").disabled = false;
+    setStatus("準備できました。");
+    runBacktest();
+  } catch (err) {
+    setStatus("読み込みに失敗しました: " + err.message, true);
+  }
+}
+
+function readParams() {
+  const v = (id) => parseFloat($(id).value) || 0;
+  return {
+    source: $("source").value,
+    seed: Math.trunc(v("seed")),
+    strategies: [...document.querySelectorAll("input[name=strategy]:checked")].map((e) => e.value),
+    allow_short: $("allow-short").checked,
+    sizing: $("sizing").value,
+    risk_per_trade: Math.min(1, Math.max(0.001, v("risk") / 100)),
+    sl: v("sl") / 100, tp: v("tp") / 100, dd: v("dd") / 100,
+    fee: v("fee") / 100, slippage_bps: v("slip"),
+    capital: Math.max(1, v("capital")),
+  };
+}
+
+async function runBacktest() {
+  if (!pyRun) return;
+  const params = readParams();
+  if (!params.strategies.length) return setStatus("戦略を 1 つ以上選んでください。", true);
+  let csv = "";
+  if (params.source === "csv") {
+    const file = $("csv").files[0];
+    if (!file) return setStatus("CSV ファイルを選んでください。", true);
+    csv = await file.text();
+  }
+  $("run").disabled = true;
+  setStatus("計算しています…");
+  await new Promise((r) => setTimeout(r, 30));
+  try {
+    const t0 = performance.now();
+    last = JSON.parse(pyRun(JSON.stringify(params), csv));
+    render(last, params);
+    setStatus(`完了（${((performance.now() - t0) / 1000).toFixed(1)} 秒）`);
+  } catch (err) {
+    const msg = String(err.message || err).trim().split("\n").filter(Boolean).pop();
+    setStatus("エラー: " + msg, true);
+  } finally {
+    $("run").disabled = false;
+  }
+}
+
+function render(out, params) {
+  $("results").classList.remove("hidden");
+  $("data-info").textContent = `${out.start} 〜 ${out.end}・${out.bars.toLocaleString()} 本の足・初期資金 ${yen(params.capital)}`;
+  renderLegend(out);
+  renderChart(out);
+  renderSummary(out);
+  const sel = $("trade-strategy");
+  const prev = sel.value;
+  sel.innerHTML = out.results.map((r) => `<option value="${r.name}">${NAMES[r.name]}</option>`).join("");
+  if (out.results.some((r) => r.name === prev)) sel.value = prev;
+  renderTrades();
+}
+
+function series(out) {
+  return [
+    ...out.results.map((r) => ({ name: NAMES[r.name], color: COLORS[r.name], values: r.equity, dash: "" })),
+    { name: "Buy & Hold", color: "var(--bench)", values: out.benchmark.equity, dash: "5 4" },
+  ];
+}
+
+function renderLegend(out) {
+  $("legend").innerHTML = series(out).map((s) =>
+    `<span><span class="swatch" style="background:${s.color}${s.dash ? ";opacity:.8" : ""}"></span>${s.name}</span>`).join("");
+}
+
+function niceTicks(min, max, count = 5) {
+  const span = max - min || 1;
+  const step0 = span / count;
+  const mag = Math.pow(10, Math.floor(Math.log10(step0)));
+  const step = [1, 2, 2.5, 5, 10].map((m) => m * mag).find((s) => s >= step0);
+  const ticks = [];
+  for (let t = Math.ceil(min / step) * step; t <= max + 1e-9; t += step) ticks.push(t);
+  return ticks;
+}
+
+function renderChart(out) {
+  const svg = $("svg");
+  const W = svg.clientWidth || 800, H = 340;
+  const m = { top: 12, right: 96, bottom: 28, left: 64 };
+  const all = series(out);
+  const vals = all.flatMap((s) => s.values);
+  let lo = Math.min(...vals), hi = Math.max(...vals);
+  const pad = (hi - lo) * 0.06 || 1;
+  lo -= pad; hi += pad;
+  const n = out.dates.length;
+  const x = (i) => m.left + (i / Math.max(1, n - 1)) * (W - m.left - m.right);
+  const y = (v) => m.top + (1 - (v - lo) / (hi - lo)) * (H - m.top - m.bottom);
+  const fmtAxis = (v) => Math.abs(v) >= 1e6 ? (v / 1e6).toFixed(1) + "M" : Math.abs(v) >= 1e3 ? Math.round(v / 1e3) + "k" : Math.round(v);
+
+  let html = "";
+  for (const t of niceTicks(lo, hi)) {
+    html += `<line x1="${m.left}" x2="${W - m.right}" y1="${y(t)}" y2="${y(t)}" stroke="var(--grid)" stroke-width="1"/>`;
+    html += `<text x="${m.left - 8}" y="${y(t)}" fill="var(--text-3)" font-size="12" text-anchor="end" dominant-baseline="middle">${fmtAxis(t)}</text>`;
+  }
+  const xTicks = W < 520 ? 2 : W < 760 ? 3 : 5;
+  for (let k = 0; k <= xTicks; k++) {
+    const i = Math.round((k / xTicks) * (n - 1));
+    const anchor = k === 0 ? "start" : k === xTicks ? "end" : "middle";
+    html += `<text x="${x(i)}" y="${H - 8}" fill="var(--text-3)" font-size="12" text-anchor="${anchor}">${out.dates[i].slice(0, 7)}</text>`;
+  }
+  // 末尾ラベル（重なりを避けて縦にずらす）
+  const ends = all.map((s) => ({ s, y: y(s.values[n - 1]) })).sort((a, b) => a.y - b.y);
+  for (let k = 1; k < ends.length; k++) ends[k].y = Math.max(ends[k].y, ends[k - 1].y + 15);
+  for (const s of all) {
+    const d = s.values.map((v, i) => `${i ? "L" : "M"}${x(i).toFixed(1)},${y(v).toFixed(1)}`).join("");
+    html += `<path d="${d}" fill="none" stroke="${s.color}" stroke-width="2" stroke-linejoin="round" stroke-dasharray="${s.dash}"/>`;
+  }
+  for (const e of ends) {
+    html += `<text x="${W - m.right + 8}" y="${e.y}" fill="var(--text-2)" font-size="12" dominant-baseline="middle">${e.s.name}</text>`;
+  }
+  html += `<line id="cross" y1="${m.top}" y2="${H - m.bottom}" stroke="var(--text-3)" stroke-width="1" visibility="hidden"/>`;
+  html += all.map((s, k) => `<circle id="dot${k}" r="4" fill="${s.color}" stroke="var(--surface)" stroke-width="2" visibility="hidden"/>`).join("");
+  html += `<rect x="${m.left}" y="${m.top}" width="${W - m.left - m.right}" height="${H - m.top - m.bottom}" fill="transparent" id="hit"/>`;
+  svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+  svg.innerHTML = html;
+
+  const tip = $("tooltip");
+  const hit = $("hit");
+  const hide = () => {
+    tip.style.display = "none";
+    $("cross").setAttribute("visibility", "hidden");
+    all.forEach((_, k) => $("dot" + k).setAttribute("visibility", "hidden"));
+  };
+  const move = (clientX) => {
+    const rect = svg.getBoundingClientRect();
+    const px = (clientX - rect.left) * (W / rect.width);
+    const i = Math.max(0, Math.min(n - 1, Math.round(((px - m.left) / (W - m.left - m.right)) * (n - 1))));
+    const cx = x(i);
+    $("cross").setAttribute("x1", cx); $("cross").setAttribute("x2", cx);
+    $("cross").setAttribute("visibility", "visible");
+    all.forEach((s, k) => {
+      const dot = $("dot" + k);
+      dot.setAttribute("cx", cx); dot.setAttribute("cy", y(s.values[i])); dot.setAttribute("visibility", "visible");
+    });
+    const rows = all.map((s) => ({ s, v: s.values[i] })).sort((a, b) => b.v - a.v);
+    tip.innerHTML = `<div style="color:var(--text-2);margin-bottom:4px">${out.dates[i]}</div>` +
+      rows.map(({ s, v }) => `<div class="row"><span><span class="swatch" style="background:${s.color}"></span>${s.name}</span><span>${yen(v)}</span></div>`).join("");
+    tip.style.display = "block";
+    const left = (cx / W) * rect.width;
+    tip.style.left = (left + tip.offsetWidth + 16 > rect.width ? left - tip.offsetWidth - 12 : left + 12) + "px";
+    tip.style.top = "8px";
+  };
+  hit.addEventListener("mousemove", (e) => move(e.clientX));
+  hit.addEventListener("mouseleave", hide);
+  hit.addEventListener("touchstart", (e) => move(e.touches[0].clientX), { passive: true });
+  hit.addEventListener("touchmove", (e) => move(e.touches[0].clientX), { passive: true });
+}
+
+function renderSummary(out) {
+  const head = ["", "総リターン", "CAGR", "Sharpe", "Sortino", "最大DD", "勝率", "PF", "取引数", "露出", "最終資産"];
+  let html = `<thead><tr>${head.map((h) => `<th>${h}</th>`).join("")}</tr></thead><tbody>`;
+  for (const r of out.results) {
+    const p = r.report;
+    html += `<tr><td><span class="swatch" style="background:${COLORS[r.name]}"></span>${NAMES[r.name]}</td>` +
+      `<td class="${signCls(p.total_return)}">${pct(p.total_return)}</td><td>${pct(p.cagr)}</td>` +
+      `<td>${num(p.sharpe_ratio)}</td><td>${num(p.sortino_ratio)}</td><td>${pct(p.max_drawdown)}</td>` +
+      `<td>${pct(p.win_rate, 1)}</td><td>${num(p.profit_factor)}</td><td>${p.num_trades}</td>` +
+      `<td>${pct(p.exposure, 0)}</td><td>${yen(p.final_equity)}</td></tr>`;
+  }
+  const b = out.benchmark;
+  html += `<tr><td><span class="swatch" style="background:var(--bench)"></span>Buy &amp; Hold</td>` +
+    `<td class="${signCls(b.total_return)}">${pct(b.total_return)}</td><td>—</td><td>—</td><td>—</td>` +
+    `<td>${pct(b.max_drawdown)}</td><td>—</td><td>—</td><td>—</td><td>100%</td><td>${yen(b.equity[b.equity.length - 1])}</td></tr>`;
+  $("summary").innerHTML = html + "</tbody>";
+}
+
+function renderTrades() {
+  if (!last) return;
+  const r = last.results.find((x) => x.name === $("trade-strategy").value) || last.results[0];
+  const LIMIT = 200;
+  const trades = r.trades.slice(-LIMIT).reverse();
+  const head = ["エントリー", "エグジット", "向き", "建値", "決済値", "数量", "損益", "損益率", "理由", "足数"];
+  let html = `<thead><tr>${head.map((h) => `<th>${h}</th>`).join("")}</tr></thead><tbody>`;
+  for (const t of trades) {
+    html += `<tr><td>${t.entry_time}</td><td>${t.exit_time}</td><td>${t.direction > 0 ? "ロング" : "ショート"}</td>` +
+      `<td>${num(t.entry_price)}</td><td>${num(t.exit_price)}</td><td>${num(t.quantity, 2)}</td>` +
+      `<td class="${signCls(t.pnl)}">${yen(t.pnl)}</td><td class="${signCls(t.return_pct)}">${pct(t.return_pct)}</td>` +
+      `<td>${REASONS[t.exit_reason] || t.exit_reason}</td><td>${t.bars_held}</td></tr>`;
+  }
+  if (!trades.length) html += `<tr><td colspan="${head.length}" style="text-align:center;color:var(--text-3)">トレードはありません</td></tr>`;
+  $("trades").innerHTML = html + "</tbody>";
+  $("trades-info").textContent = r.trades.length > LIMIT
+    ? `全 ${r.trades.length} 件のうち新しい ${LIMIT} 件を表示` : `全 ${r.trades.length} 件（新しい順）`;
+}
+
+$("form").addEventListener("submit", (e) => { e.preventDefault(); runBacktest(); });
+$("source").addEventListener("change", () => {
+  const csv = $("source").value === "csv";
+  $("csv-opts").classList.toggle("hidden", !csv);
+  $("synthetic-opts").classList.toggle("hidden", csv);
+});
+$("trade-strategy").addEventListener("change", renderTrades);
+let resizeTimer;
+window.addEventListener("resize", () => {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(() => last && renderChart(last), 150);
+});
+boot();
+</script>
+</body>
+</html>

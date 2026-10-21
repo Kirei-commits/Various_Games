@@ -28,6 +28,7 @@ jobs:
     outputs:
       games: ${{ steps.pick.outputs.games }}
       kyozai: ${{ steps.pick.outputs.kyozai }}
+      quant: ${{ steps.pick.outputs.quant }}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -73,6 +74,10 @@ jobs:
           kyozai=false
           if [ "$changed" = "*" ] || printf '%s\n' "$changed" | grep -q "^kyozai-quiz/"; then kyozai=true; fi
           echo "kyozai=$kyozai" | tee -a "$GITHUB_OUTPUT"
+          # quant-trader も Python のアプリなので別のジョブ
+          quant=false
+          if [ "$changed" = "*" ] || printf '%s\n' "$changed" | grep -q "^quant-trader/"; then quant=true; fi
+          echo "quant=$quant" | tee -a "$GITHUB_OUTPUT"
 
   checks:
     name: 静的検査とロジックテスト (${{ matrix.game }})
@@ -213,6 +218,33 @@ jobs:
 
       - name: ボットで各ステージを遊んで表にする
         run: node tools/measure.mjs 1,5,10,20,30,45,60,80,99 normal 3 --md | tee -a "$GITHUB_STEP_SUMMARY"
+
+  # 自動トレード・定量分析パイプライン（Python）。合成データで動くので外部 API は呼ばない。
+  quant-trader:
+    name: テスト (quant-trader)
+    needs: changes
+    if: needs.changes.outputs.quant == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: quant-trader
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      - name: 依存をインストール
+        run: pip install -r requirements.txt
+
+      # ブラウザ版（index.html）が読み込む Python ファイルの一覧も、ここのテストで確かめる
+      - name: テスト
+        run: python -m pytest -q
+
+      - name: 合成データでパイプラインを最後まで動かす
+        run: python main.py
 
   # 教材登録・問題生成アプリ（Python）。Gemini は呼ばず、偽のクライアントで登録〜問題生成まで通す。
   kyozai-quiz:

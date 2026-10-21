@@ -81,6 +81,10 @@ jobs:
           mkdir -p _site/kyozai-quiz/samples
           cp -r kyozai-quiz/web/index.html kyozai-quiz/web/css kyozai-quiz/web/js _site/kyozai-quiz/
           cp kyozai-quiz/samples/southern_all_stars.pptx kyozai-quiz/samples/southern_all_stars.pdf _site/kyozai-quiz/samples/
+          # Quant Backtester はページと、ブラウザ（Pyodide）で読み込む Python のパッケージを配る
+          mkdir -p _site/quant-trader
+          cp quant-trader/index.html _site/quant-trader/
+          (cd quant-trader && find quant -name '*.py' -exec cp --parents {} ../_site/quant-trader/ \;)
           if [ -f _preview/monster-strike/index.html ]; then
             mkdir -p _site/preview/monster-strike
             cp _preview/monster-strike/index.html _site/preview/monster-strike/
@@ -109,7 +113,7 @@ jobs:
           for try in 1 2 3 4 5 6; do
             ok=1
             curl -fsS "$URL" -o /dev/null || ok=0
-            for game in god-arena gomoku-narabe tsuri-quest eikaiwa-swipe monster-strike pachinko-gokugoku minigame-rush renshu-ginko kyozai-quiz; do
+            for game in god-arena gomoku-narabe tsuri-quest eikaiwa-swipe monster-strike pachinko-gokugoku minigame-rush renshu-ginko kyozai-quiz quant-trader; do
               page=$(curl -fsS "$URL$game/" || true)
               if [ -z "$page" ]; then echo "まだ開けない: $game"; ok=0; continue; fi
               want=$(grep -o 'name="[a-z]*-source-hash" content="[0-9a-f]*"' "$game/index.html" || true)
