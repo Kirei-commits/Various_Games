@@ -11,6 +11,8 @@ test('チャレンジ: 今日の5問を最後まで解くと結果が残り、�
   for (let i = 0; i < 5; i++) {
     // 画面の切り替わり（ハッシュでの遷移・再描画）を待ってから答える
     await expect(page.locator('h1')).toContainText((i + 1) + ' / 5 問目');
+    // 長いコードの選択肢でもページが横に広がらない（広がるとスマホで表示が縮み、ボタンが押せなくなる）
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
     await page.click('#ch-submit'); // 何も選ばずに答える（まちがいでも次へ進める）
     await expect(page.locator('#ch-result')).toBeVisible();
     await page.click('#ch-next');

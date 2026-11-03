@@ -259,8 +259,8 @@ pre.code code { white-space: pre; }
 .quiz.ok { border-color: var(--ok); background: var(--ok-bg); }
 .quiz.ng { border-color: var(--warn); }
 .quiz legend { font-weight: 700; padding: 0 4px; }
-.choices { display: grid; gap: 6px; margin: 8px 0; }
-.choice { display: flex; gap: 8px; align-items: flex-start; padding: 6px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); cursor: pointer; }
+.choices { display: grid; grid-template-columns: minmax(0, 1fr); gap: 6px; margin: 8px 0; }
+.choice { display: flex; min-width: 0; gap: 8px; align-items: flex-start; padding: 6px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); cursor: pointer; }
 .choice:has(input:checked) { border-color: var(--accent); }
 .choice input { margin-top: .5em; accent-color: var(--accent); }
 .feedback { font-size: .92rem; }
@@ -439,7 +439,7 @@ label.btn:has(+ #data-import:focus-visible) { outline: 3px solid var(--focus); o
 .kind-picker { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; padding: 8px; border: 1px solid var(--line); border-radius: 10px; }
 .code.conflict .cf-ours, .code.conflict .cf-theirs, .code.conflict .cf-mid { color: #fbbf24; font-weight: 700; }
 .choice.block { align-items: stretch; }
-.choice.block pre { flex: 1; margin: 0; min-width: 0; }
+.choice.block pre { flex: 1; margin: 0; min-width: 0; overflow-x: auto; }
 .code.small { font-size: .8rem; }
 .velocity { display: flex; align-items: flex-end; gap: 3px; height: 110px; padding-top: 6px; }
 .vbar { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; height: 100%; min-width: 0; }
