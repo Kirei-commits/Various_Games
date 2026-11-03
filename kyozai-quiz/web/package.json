@@ -11,7 +11,7 @@
     "test": "npm run test:logic && npm run test:e2e"
   },
   "devDependencies": {
-    "@playwright/test": "1.56.1",
+    "@playwright/test": "1.63.0",
     "jsdom": "26.1.0",
     "jszip": "3.10.1"
   },

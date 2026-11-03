@@ -1,0 +1,1100 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+<meta name="theme-color" content="#05060a" />
+<title>コスモ・フュージョン</title>
+<meta name="description" content="上から落ちてくる星が、同じ種類どうしで合体して大きくなる。岩のかけらから太陽まで、8段階の合体を眺める物理シミュレーション。" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2305060a'/%3E%3Ccircle cx='16' cy='16' r='11' fill='none' stroke='%237c5cff' stroke-width='2'/%3E%3Ccircle cx='16' cy='18' r='6' fill='%23ffc93a'/%3E%3Ccircle cx='11' cy='11' r='2.5' fill='%234fb0ff'/%3E%3C/svg%3E" />
+<style>
+  :root {
+    --bg: #05060a;
+    --panel: rgba(255,255,255,0.05);
+    --line: rgba(255,255,255,0.12);
+    --text: #e8ecf4;
+    --muted: #8b93a7;
+    --accent: #ffc93a;
+    --violet: #8b6cff;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text);
+    font-family: system-ui, -apple-system, "Hiragino Sans", "Noto Sans JP", sans-serif; overflow: hidden; }
+  body { overscroll-behavior: none; touch-action: manipulation; }
+  #app { position: relative; display: flex; flex-direction: column; height: 100vh; height: 100dvh;
+    max-width: 560px; margin: 0 auto; padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom); }
+
+  header { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 16px 4px; }
+  .title { font-weight: 800; letter-spacing: .12em; font-size: 15px; white-space: nowrap;
+    background: linear-gradient(90deg, #7cc8ff, #b18cff 45%, #ff7ab8 70%, #ffd36b);
+    -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .back { color: var(--muted); text-decoration: none; font-size: 12px; white-space: nowrap; }
+  .stats { display: flex; gap: 6px; padding: 2px 16px 0; }
+  .stat { flex: 1; min-width: 0; background: var(--panel); border: 1px solid var(--line); border-radius: 10px;
+    padding: 5px 8px; text-align: center; }
+  .stat small { display: block; font-size: 10px; color: var(--muted); }
+  .stat b { display: block; font-size: 14px; font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  #stage { position: relative; flex: 1; min-height: 0; }
+  #view { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; cursor: pointer; }
+
+  #tiers { display: grid; grid-template-columns: repeat(8, 1fr); gap: 2px; padding: 4px 12px 2px; }
+  .tier { display: flex; flex-direction: column; align-items: center; gap: 2px; opacity: .28;
+    filter: grayscale(.9); transition: opacity .3s, filter .3s, transform .3s; }
+  .tier canvas { width: 34px; height: 34px; }
+  .tier span { font-size: 9px; color: var(--muted); white-space: nowrap; }
+  .tier.reached { opacity: 1; filter: none; }
+  .tier.reached span { color: var(--text); }
+  .tier.pop { animation: pop .6s ease-out; }
+  @keyframes pop { 0% { transform: scale(1); } 35% { transform: scale(1.35); } 100% { transform: scale(1); } }
+
+  #controls { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 8px; padding: 6px 16px 12px; }
+  button { font: inherit; color: var(--text); background: var(--panel); border: 1px solid var(--line);
+    border-radius: 12px; padding: 10px 6px; font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+  button:active { transform: scale(.97); }
+  button:focus-visible { outline: 2px solid var(--violet); outline-offset: 2px; }
+  #btnShuffle { background: linear-gradient(135deg, rgba(139,108,255,.35), rgba(79,176,255,.25)); border-color: rgba(139,108,255,.6); }
+
+  .overlay { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 16px;
+    background: rgba(3,4,8,.72); backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px); z-index: 10; }
+  .overlay[hidden] { display: none; }
+  .card { width: 100%; max-width: 360px; text-align: center; background: rgba(16,18,28,.92); border: 1px solid var(--line);
+    border-radius: 20px; padding: 24px 20px; box-shadow: 0 0 40px rgba(139,108,255,.25); }
+  .card h1 { margin: 0 0 4px; font-size: 26px; letter-spacing: .08em; }
+  .card h2 { margin: 0 0 12px; font-size: 22px; }
+  .card p { margin: 0 0 14px; color: var(--muted); font-size: 13px; line-height: 1.75; }
+  .card ul { text-align: left; margin: 0 0 18px; padding-left: 1.2em; color: var(--muted); font-size: 13px; line-height: 1.8; }
+  .card .big { font-size: 15px; color: var(--text); }
+  .card .primary { width: 100%; padding: 13px; font-size: 16px; border: none; color: #1a1200;
+    background: linear-gradient(90deg, #ffd36b, #ff9a4a); }
+  .clear h2 { color: var(--accent); text-shadow: 0 0 18px rgba(255,201,58,.7); }
+  .over h2 { color: #ff6b81; }
+  .result { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 16px; }
+  .result div { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 8px; }
+  .result small { display: block; color: var(--muted); font-size: 11px; }
+  .result b { font-size: 17px; }
+
+  @media (max-height: 640px) {
+    .tier canvas { width: 26px; height: 26px; }
+    .tier span { font-size: 8px; }
+    #controls button { padding: 8px 4px; }
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <div class="title">COSMO FUSION</div>
+    <a class="back" href="../">← ゲーム一覧</a>
+  </header>
+  <div class="stats">
+    <div class="stat"><small>経過時間</small><b id="hudTime">0:00</b></div>
+    <div class="stat"><small>合体</small><b id="hudMerges">0</b></div>
+    <div class="stat"><small>最高段階</small><b id="hudMax">—</b></div>
+  </div>
+
+  <div id="stage">
+    <canvas id="view" aria-label="容器。タップすると周りの星を弾き飛ばす"></canvas>
+  </div>
+
+  <div id="tiers" aria-label="合体の段階"></div>
+
+  <div id="controls">
+    <button id="btnShuffle" type="button">🌀 シャッフル</button>
+    <button id="btnSpeed" type="button" aria-label="速度">1x</button>
+    <button id="btnRestart" type="button" aria-label="リスタート">↻</button>
+    <button id="btnMute" type="button" aria-label="効果音">🔊</button>
+  </div>
+
+  <div class="overlay" id="ovStart">
+    <div class="card">
+      <h1 class="title" style="font-size:24px">COSMO FUSION</h1>
+      <p>上の筒から落ちてくる星は、<b class="big">同じ種類どうしが触れ合うと合体</b>して、1段階大きい星になります（くっついて光ってから合体）。だんだん落ちてくるのが速くなります。</p>
+      <ul>
+        <li>岩のかけら → 月 → 水星 → 火星 → 地球 → 土星 → 木星 → <b class="big">太陽</b></li>
+        <li>容器をタップすると、周りの星を弾き飛ばせます</li>
+        <li>🌀 シャッフルで、容器ごと揺らしてかき混ぜます</li>
+        <li>点線より上で星が<b class="big">2秒止まると</b>ゲームオーバー</li>
+      </ul>
+      <button class="primary" id="btnStart" type="button">スタート</button>
+    </div>
+  </div>
+
+  <div class="overlay" id="ovClear" hidden>
+    <div class="card clear">
+      <h2>☀ 太陽が生まれた！</h2>
+      <div class="result">
+        <div><small>かかった時間</small><b id="clearTime">0:00</b></div>
+        <div><small>合体した回数</small><b id="clearMerges">0</b></div>
+      </div>
+      <button class="primary" id="btnAgainClear" type="button">もう一度</button>
+    </div>
+  </div>
+
+  <div class="overlay" id="ovOver" hidden>
+    <div class="card over">
+      <h2>ゲームオーバー</h2>
+      <p>星がラインより上で止まってしまいました。</p>
+      <div class="result">
+        <div><small>最高段階</small><b id="overMax">—</b></div>
+        <div><small>経過時間</small><b id="overTime">0:00</b></div>
+      </div>
+      <button class="primary" id="btnAgainOver" type="button">もう一度</button>
+    </div>
+  </div>
+</div>
+
+<script id="engine">
+/* COSMO FUSION — 物理と合体のルール（画面にも音にも依存しない）。
+ * 座標は容器の半径を 1 とした単位。容器の中心が (0,0)、y は下向き。
+ * Node のテストからもこのまま読み込むので、DOM には触らないこと。 */
+(function (root) {
+  'use strict';
+
+  /** 8段階。r は容器の半径に対する星の半径 */
+  const TIERS = [
+    { tier: 1, name: '岩のかけら', r: 0.060, color: '#c9b49a' },
+    { tier: 2, name: '月',         r: 0.082, color: '#e9edf2' },
+    { tier: 3, name: '水星',       r: 0.110, color: '#c7b7a8' },
+    { tier: 4, name: '火星',       r: 0.142, color: '#ff7a4a' },
+    { tier: 5, name: '地球',       r: 0.180, color: '#4fb0ff' },
+    { tier: 6, name: '土星',       r: 0.226, color: '#f3d58c' },
+    { tier: 7, name: '木星',       r: 0.284, color: '#e8ab7c' },
+    { tier: 8, name: '太陽',       r: 0.360, color: '#ffc93a' }
+  ];
+  const MAX_TIER = TIERS.length;
+
+  const DEFAULTS = {
+    dt: 1 / 240,          // 物理の1歩（秒）
+    iterations: 3,        // 1歩あたりの押し戻しの回数
+    gravity: 5,           // 重力（半径/秒²）
+    damping: 0.9993,      // 空気抵抗
+    maxSpeed: 7,          // 押し戻しで飛び出さないように速さを抑える（半径/秒）
+    tubeHalf: 0.2,        // 供給用の筒の半分の幅（直径の1/5 = 半径の0.4）
+    tubeTop: -1.78,       // 筒の天井
+    spawnY: -1.68,        // 星が出てくる高さ
+    spawnInterval: 0.25,  // 星が出てくる間隔（秒）
+    spawnJitter: 0.035,   // 出てくる位置の左右のぶれ
+    spawnWeights: [1],    // 出てくる星の段階ごとの重み（[段階1, 段階2, …]）
+    spawnMinInterval: 0.11, // 時間がたつと間隔が縮んでいく下限
+    spawnRamp: 0.0025,    // 1秒あたりに縮む間隔（秒）。終盤ほど忙しくなる
+    lineY: -1,            // ゲームオーバーのライン（円の上端）
+    overHold: 2,          // ラインを越えて止まり続けたら負けになる秒数
+    stuckSpeed: 0.4,      // これより遅ければ「止まっている」
+    mergeMinY: -0.97,     // 筒の中では合体しない
+    growTime: 0.14,       // 合体した星が大きくなるまでの秒数
+    tapRadius: 0.6,       // 弾き飛ばしが届く距離
+    tapPower: 4.2,        // 弾き飛ばしの強さ（半径/秒）
+    shufflePower: 3.0,    // シャッフルの強さ
+    mergeDelay: 0.6,      // 触れ続けてから合体するまでの秒数（離れると最初から）
+    merge: true           // テスト用：合体を止められる
+  };
+
+  function mulberry32(seed) {
+    let a = seed >>> 0;
+    return function () {
+      a = (a + 0x6D2B79F5) >>> 0;
+      let t = a;
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+
+  function createGame(options) {
+    const opt = Object.assign({}, DEFAULTS, options || {});
+    const seed = opt.seed == null ? (Math.random() * 2 ** 32) >>> 0 : opt.seed >>> 0;
+    const rand = mulberry32(seed);
+    const DT = opt.dt;
+    const yJoint = -Math.sqrt(1 - opt.tubeHalf * opt.tubeHalf); // 筒と円がつながる高さ
+    const corners = [[-opt.tubeHalf, yJoint], [opt.tubeHalf, yJoint]];
+
+    const g = {
+      seed, opt, yJoint,
+      time: 0,              // 経過時間（ゲーム内の秒）
+      status: 'running',    // running | clear | over
+      balls: [],
+      merges: 0,
+      maxTier: 0,
+      reached: new Array(MAX_TIER + 1).fill(false),
+      overTimer: 0,
+      spawnTimer: 0,
+      spawned: 0,           // 筒から出てきた星の数
+      contact: new Map(),   // 同じ段階どうしが触れ続けている時間
+      events: [],
+      nextId: 1
+    };
+
+    function addBall(tier, x, y, vx, vy, r0) {
+      const t = TIERS[tier - 1];
+      const b = {
+        id: g.nextId++, tier, x, y,
+        px: x - (vx || 0) * DT, py: y - (vy || 0) * DT,
+        r: r0 || t.r, rt: t.r, angle: rand() * Math.PI * 2, age: 0, dead: false
+      };
+      g.balls.push(b);
+      if (tier > g.maxTier) g.maxTier = tier;
+      if (!g.reached[tier]) { g.reached[tier] = true; g.events.push({ type: 'reach', tier }); }
+      return b;
+    }
+
+    function pickTier() {
+      const w = opt.spawnWeights;
+      let sum = 0;
+      for (const v of w) sum += v;
+      let u = rand() * sum;
+      for (let i = 0; i < w.length; i++) { u -= w[i]; if (u < 0) return i + 1; }
+      return 1;
+    }
+
+    /** いまの供給の間隔（秒）。時間がたつほど短くなる */
+    function spawnInterval() {
+      return Math.max(opt.spawnMinInterval, opt.spawnInterval - opt.spawnRamp * g.time);
+    }
+
+    function trySpawn() {
+      const x = (rand() * 2 - 1) * opt.spawnJitter;
+      const y = opt.spawnY;
+      const tier = pickTier();
+      const r = TIERS[tier - 1].r;
+      for (const b of g.balls) {
+        const dx = b.x - x, dy = b.y - y;
+        if (dx * dx + dy * dy < (b.r + r) * (b.r + r)) return false; // 詰まっていたら出さない
+      }
+      addBall(tier, x, y, 0, 0.6);
+      g.spawned++;
+      return true;
+    }
+
+    function merge(a, b, born) {
+      a.dead = b.dead = true;
+      const tier = a.tier + 1;
+      const x = (a.x + b.x) / 2, y = (a.y + b.y) / 2;
+      const vx = ((a.x - a.px) + (b.x - b.px)) / 2 / DT;
+      const vy = ((a.y - a.py) + (b.y - b.py)) / 2 / DT;
+      g.merges++;
+      const nb = addBall(tier, x, y, vx, vy, Math.max(a.r, b.r));
+      nb.angle = (a.angle + b.angle) / 2;
+      born.push(nb);
+      g.events.push({ type: 'merge', tier, x, y, r: nb.rt });
+      if (tier === MAX_TIER && g.status === 'running') {
+        g.status = 'clear';
+        g.events.push({ type: 'clear', time: g.time });
+      }
+    }
+
+    let contactNext = new Map();
+    function solvePairs(list, allowMerge, born) {
+      // 左端の位置で並べて、重なり得る組だけ調べる（ほぼ並んでいるので挿入ソートが速い）
+      for (let i = 1; i < list.length; i++) {
+        const b = list[i], key = b.x - b.r;
+        let j = i - 1;
+        while (j >= 0 && list[j].x - list[j].r > key) { list[j + 1] = list[j]; j--; }
+        list[j + 1] = b;
+      }
+      for (let i = 0; i < list.length; i++) {
+        const a = list[i];
+        if (a.dead) continue;
+        const right = a.x + a.r;
+        for (let j = i + 1; j < list.length; j++) {
+          const b = list[j];
+          if (b.x - b.r > right) break;
+          if (b.dead) continue;
+          const dx = b.x - a.x, dy = b.y - a.y;
+          const rr = a.r + b.r;
+          const d2 = dx * dx + dy * dy;
+          if (allowMerge && a.tier === b.tier && a.tier < MAX_TIER &&
+              a.y > opt.mergeMinY && b.y > opt.mergeMinY && d2 < rr * rr * 1.06) {
+            // 触れ続けて mergeDelay 秒たったら合体（押し戻しで離れるので少しの隙間は「触れている」とみなす）
+            const key = a.id < b.id ? a.id * 1048576 + b.id : b.id * 1048576 + a.id;
+            const t = (g.contact.get(key) || 0) + DT;
+            if (t >= opt.mergeDelay) {
+              merge(a, b, born);
+              break; // a はもう居ない
+            }
+            contactNext.set(key, t);
+          }
+          if (d2 >= rr * rr) continue;
+          let d = Math.sqrt(d2), nx, ny;
+          if (d < 1e-9) { const ang = rand() * Math.PI * 2; nx = Math.cos(ang); ny = Math.sin(ang); d = 0; }
+          else { nx = dx / d; ny = dy / d; }
+          const overlap = rr - d;
+          const ma = a.r * a.r, mb = b.r * b.r, mt = ma + mb;
+          a.x -= nx * overlap * (mb / mt); a.y -= ny * overlap * (mb / mt);
+          b.x += nx * overlap * (ma / mt); b.y += ny * overlap * (ma / mt);
+        }
+      }
+    }
+
+    function solveWalls(b) {
+      const hw = opt.tubeHalf;
+      if (b.y < opt.tubeTop + b.r) b.y = opt.tubeTop + b.r;
+      // 筒の中は左右の壁
+      if (b.y < yJoint) {
+        const lim = hw - b.r;
+        if (lim <= 0) b.x = 0;
+        else if (b.x > lim) b.x = lim;
+        else if (b.x < -lim) b.x = -lim;
+      }
+      // 円の内壁（上の開いているところは除く）
+      const d = Math.hypot(b.x, b.y);
+      if (d + b.r > 1 && d > 1e-9) {
+        const qx = b.x / d, qy = b.y / d;
+        const inOpening = qy < 0 && Math.abs(qx) < hw;
+        if (!inOpening) {
+          const k = (1 - b.r) / d;
+          b.x *= k; b.y *= k;
+        }
+      }
+      // 筒と円のつなぎ目の角
+      for (const c of corners) {
+        const dx = b.x - c[0], dy = b.y - c[1];
+        const d2 = dx * dx + dy * dy;
+        if (d2 < b.r * b.r) {
+          const dd = Math.sqrt(d2) || 1e-9;
+          const nx = dx / dd, ny = dy / dd;
+          const push = b.r - dd;
+          b.x += nx * push; b.y += ny * push;
+        }
+      }
+    }
+
+    function step() {
+      g.time += DT;
+      if (g.status === 'running') {
+        g.spawnTimer -= DT;
+        if (g.spawnTimer <= 0) { trySpawn(); g.spawnTimer += spawnInterval(); }
+      }
+      const gdt2 = opt.gravity * DT * DT;
+      const vmax = opt.maxSpeed * DT;
+      const grow = DT / opt.growTime;
+      for (const b of g.balls) {
+        let vx = (b.x - b.px) * opt.damping, vy = (b.y - b.py) * opt.damping;
+        const sp = Math.hypot(vx, vy);
+        if (sp > vmax) { vx *= vmax / sp; vy *= vmax / sp; }
+        b.px = b.x; b.py = b.y;
+        b.x += vx; b.y += vy + gdt2;
+        if (b.r < b.rt) b.r = Math.min(b.rt, b.r + b.rt * grow);
+        b.angle += vx / b.r * 0.9;
+        b.age += DT;
+      }
+      const born = [];
+      contactNext = new Map();
+      for (let it = 0; it < opt.iterations; it++) {
+        solvePairs(g.balls, opt.merge && it === 0, born);
+        if (it === 0 && (born.length || g.balls.some((b) => b.dead))) {
+          g.balls = g.balls.filter((b) => !b.dead);
+        }
+        for (const b of g.balls) solveWalls(b);
+      }
+      g.contact = contactNext;
+      // ゲームオーバーの判定：ラインより上で止まっている星がいるか
+      if (g.status === 'running') {
+        let stuck = false;
+        const slow = opt.stuckSpeed * DT;
+        for (const b of g.balls) {
+          if (b.y < opt.lineY && b.age > 0.6 && Math.hypot(b.x - b.px, b.y - b.py) < slow) { stuck = true; break; }
+        }
+        g.overTimer = stuck ? g.overTimer + DT : 0;
+        if (g.overTimer >= opt.overHold) {
+          g.status = 'over';
+          g.events.push({ type: 'over', time: g.time });
+        }
+      }
+    }
+
+    function kick(b, vx, vy) { b.px -= vx * DT; b.py -= vy * DT; }
+
+    return {
+      state: g,
+      TIERS, MAX_TIER,
+      step,
+      /** 秒数ぶん進める */
+      advance(seconds) {
+        const n = Math.max(0, Math.round(seconds / DT));
+        for (let i = 0; i < n; i++) step();
+        return n;
+      },
+      /** (x,y) から周りの星を弾き飛ばす。動いた星の数を返す */
+      tap(x, y) {
+        let moved = 0;
+        for (const b of g.balls) {
+          const dx = b.x - x, dy = b.y - y;
+          const d = Math.hypot(dx, dy);
+          if (d > opt.tapRadius + b.r) continue;
+          let nx, ny;
+          if (d < 1e-6) { nx = 0; ny = -1; } else { nx = dx / d; ny = dy / d; }
+          const s = opt.tapPower * Math.max(0.25, 1 - Math.max(0, d - b.r) / opt.tapRadius) / (1 + b.r * 3);
+          kick(b, nx * s, ny * s - s * 0.35);
+          moved++;
+        }
+        g.events.push({ type: 'tap', x, y, moved });
+        return moved;
+      },
+      /** 容器ごと揺らして全部の星をかき混ぜる */
+      shuffle() {
+        for (const b of g.balls) {
+          const ang = -Math.PI / 2 + (rand() * 2 - 1) * 1.2;
+          const s = opt.shufflePower * (0.6 + rand() * 0.6) / (1 + b.r * 2.5);
+          kick(b, Math.cos(ang) * s, Math.sin(ang) * s);
+        }
+        g.events.push({ type: 'shuffle' });
+        return g.balls.length;
+      },
+      /** テストとデバッグ用：好きな段階の星を置く */
+      place(tier, x, y, vx, vy) { return addBall(tier, x, y, vx, vy); },
+      drainEvents() { const e = g.events; g.events = []; return e; }
+    };
+  }
+
+  root.CosmoEngine = { TIERS, MAX_TIER, DEFAULTS, createGame, mulberry32 };
+})(typeof window !== 'undefined' ? window : globalThis);
+</script>
+
+<script>
+(function () {
+  'use strict';
+  const E = window.CosmoEngine;
+  const TIERS = E.TIERS;
+  const params = new URLSearchParams(location.search);
+  const seedParam = params.has('seed') ? Number(params.get('seed')) : null;
+
+  // ---------- 効果音（Web Audio で合成する） ----------
+  const Sound = {
+    ac: null, master: null, muted: false, lastMerge: 0,
+    init() {
+      if (this.ac) { if (this.ac.state === 'suspended') this.ac.resume(); return; }
+      try {
+        const AC = window.AudioContext || window.webkitAudioContext;
+        if (!AC) return;
+        this.ac = new AC();
+        this.master = this.ac.createGain();
+        this.master.gain.value = this.muted ? 0 : 0.5;
+        this.master.connect(this.ac.destination);
+      } catch (e) { this.ac = null; }
+    },
+    setMuted(m) {
+      this.muted = m;
+      if (this.master) this.master.gain.setTargetAtTime(m ? 0 : 0.5, this.ac.currentTime, 0.02);
+    },
+    ok() { return this.ac && !this.muted; },
+    tone(freq, dur, type, vol, slideTo, delay) {
+      const ac = this.ac, t = ac.currentTime + (delay || 0);
+      const o = ac.createOscillator(), gn = ac.createGain();
+      o.type = type; o.frequency.setValueAtTime(freq, t);
+      if (slideTo) o.frequency.exponentialRampToValueAtTime(slideTo, t + dur);
+      gn.gain.setValueAtTime(0.0001, t);
+      gn.gain.exponentialRampToValueAtTime(vol, t + 0.008);
+      gn.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      o.connect(gn); gn.connect(this.master);
+      o.start(t); o.stop(t + dur + 0.02);
+    },
+    noise(dur, vol, type, f0, f1) {
+      const ac = this.ac, t = ac.currentTime;
+      const len = Math.ceil(ac.sampleRate * dur);
+      const buf = ac.createBuffer(1, len, ac.sampleRate);
+      const d = buf.getChannelData(0);
+      for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+      const src = ac.createBufferSource(); src.buffer = buf;
+      const f = ac.createBiquadFilter(); f.type = type; f.frequency.setValueAtTime(f0, t);
+      f.frequency.exponentialRampToValueAtTime(f1, t + dur);
+      const gn = ac.createGain();
+      gn.gain.setValueAtTime(vol, t); gn.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      src.connect(f); f.connect(gn); gn.connect(this.master);
+      src.start(t);
+    },
+    merge(tier) {
+      if (!this.ok()) return;
+      const now = performance.now();
+      if (now - this.lastMerge < 45 && tier < 5) return; // 連鎖の時に音が団子にならないように
+      this.lastMerge = now;
+      const base = 1180 / Math.pow(1.3, tier - 2);
+      this.tone(base, 0.12 + tier * 0.03, 'sine', 0.32, base * 0.55);
+      this.tone(base * 2, 0.07, 'triangle', 0.08);
+      if (tier >= 5) this.tone(70 + (8 - tier) * 15, 0.35 + tier * 0.03, 'sine', 0.45, 38);
+    },
+    sun() {
+      if (!this.ok()) return;
+      [523.25, 659.25, 783.99, 1046.5, 1318.5].forEach((f, i) => {
+        this.tone(f, 0.9, 'triangle', 0.18, null, i * 0.11);
+        this.tone(f / 2, 0.9, 'sine', 0.12, null, i * 0.11);
+      });
+      this.tone(60, 1.4, 'sine', 0.5, 30);
+      this.noise(1.2, 0.12, 'highpass', 3000, 9000);
+    },
+    tap() { if (this.ok()) this.noise(0.18, 0.22, 'bandpass', 500, 2400); },
+    shuffle() {
+      if (!this.ok()) return;
+      this.noise(0.7, 0.35, 'lowpass', 900, 120);
+      this.tone(90, 0.5, 'sine', 0.25, 50);
+    },
+    over() {
+      if (!this.ok()) return;
+      [392, 311.1, 246.9].forEach((f, i) => this.tone(f, 0.45, 'square', 0.07, f * 0.94, i * 0.22));
+    }
+  };
+
+  // ---------- 星の絵（段階ごとに一度だけ描いておく） ----------
+  function mkCanvas(size) {
+    const c = document.createElement('canvas');
+    c.width = c.height = Math.max(2, Math.ceil(size));
+    return c;
+  }
+  function circleClip(c, r) { c.beginPath(); c.arc(0, 0, r, 0, Math.PI * 2); c.clip(); }
+  function radial(c, x0, y0, r0, x1, y1, r1, stops) {
+    const gr = c.createRadialGradient(x0, y0, r0, x1, y1, r1);
+    for (const [o, col] of stops) gr.addColorStop(o, col);
+    return gr;
+  }
+  function craters(c, r, rng, n, dark, light, maxSize) {
+    for (let i = 0; i < n; i++) {
+      const a = rng() * Math.PI * 2, d = Math.sqrt(rng()) * r * 0.85;
+      const cr = r * (0.06 + rng() * maxSize);
+      const x = Math.cos(a) * d, y = Math.sin(a) * d;
+      c.fillStyle = dark; c.beginPath(); c.arc(x, y, cr, 0, Math.PI * 2); c.fill();
+      c.strokeStyle = light; c.lineWidth = Math.max(0.6, cr * 0.25);
+      c.beginPath(); c.arc(x, y, cr, Math.PI * 0.15, Math.PI * 1.05); c.stroke();
+    }
+  }
+  function blob(c, x, y, s, rng) {
+    c.beginPath();
+    const n = 9;
+    for (let i = 0; i <= n; i++) {
+      const a = (i / n) * Math.PI * 2;
+      const rr = s * (0.65 + rng() * 0.5);
+      const px = x + Math.cos(a) * rr, py = y + Math.sin(a) * rr * 0.8;
+      if (i === 0) c.moveTo(px, py); else c.lineTo(px, py);
+    }
+    c.closePath(); c.fill();
+  }
+
+  /** 段階ごとの絵。rotate: 転がって回る / shade: 回らない陰（光の当たる向きを固定する） / ext: 絵の大きさ（半径に対する倍率） */
+  const PAINT = {
+    1(c, r, rng) { // 岩のかけら
+      const pts = [];
+      const n = 10;
+      for (let i = 0; i < n; i++) {
+        const a = (i / n) * Math.PI * 2 + rng() * 0.3;
+        pts.push([Math.cos(a) * r * (0.78 + rng() * 0.2), Math.sin(a) * r * (0.78 + rng() * 0.2)]);
+      }
+      c.beginPath(); pts.forEach((p, i) => (i ? c.lineTo(p[0], p[1]) : c.moveTo(p[0], p[1]))); c.closePath();
+      c.fillStyle = radial(c, -r * 0.3, -r * 0.35, r * 0.05, 0, 0, r, [[0, '#d8c6ad'], [0.55, '#8e7a64'], [1, '#43372c']]);
+      c.fill();
+      c.save(); c.clip();
+      craters(c, r, rng, 4, 'rgba(40,30,22,0.45)', 'rgba(255,240,220,0.25)', 0.12);
+      c.restore();
+      c.strokeStyle = 'rgba(255,235,210,0.35)'; c.lineWidth = Math.max(1, r * 0.06); c.stroke();
+    },
+    2(c, r, rng) { // 月
+      circleClip(c, r);
+      c.fillStyle = radial(c, 0, 0, 0, 0, 0, r, [[0, '#f4f5f7'], [1, '#b9bec7']]);
+      c.fillRect(-r, -r, 2 * r, 2 * r);
+      c.fillStyle = 'rgba(120,128,140,0.35)';
+      blob(c, -r * 0.25, -r * 0.1, r * 0.35, rng); blob(c, r * 0.3, r * 0.3, r * 0.25, rng);
+      craters(c, r, rng, 7, 'rgba(130,136,148,0.55)', 'rgba(255,255,255,0.5)', 0.13);
+    },
+    3(c, r, rng) { // 水星
+      circleClip(c, r);
+      c.fillStyle = radial(c, 0, 0, 0, 0, 0, r, [[0, '#cbbcac'], [1, '#7d6e62']]);
+      c.fillRect(-r, -r, 2 * r, 2 * r);
+      craters(c, r, rng, 14, 'rgba(90,76,66,0.5)', 'rgba(255,240,225,0.35)', 0.1);
+    },
+    4(c, r, rng) { // 火星
+      circleClip(c, r);
+      c.fillStyle = radial(c, 0, 0, 0, 0, 0, r, [[0, '#ff9a62'], [0.7, '#d4552c'], [1, '#9b3318']]);
+      c.fillRect(-r, -r, 2 * r, 2 * r);
+      c.fillStyle = 'rgba(110,35,15,0.45)';
+      for (let i = 0; i < 6; i++) blob(c, (rng() * 2 - 1) * r * 0.7, (rng() * 2 - 1) * r * 0.5, r * (0.15 + rng() * 0.2), rng);
+      c.fillStyle = 'rgba(255,250,245,0.9)';
+      c.beginPath(); c.ellipse(0, -r * 0.92, r * 0.42, r * 0.16, 0, 0, Math.PI * 2); c.fill();
+      c.beginPath(); c.ellipse(0, r * 0.95, r * 0.28, r * 0.1, 0, 0, Math.PI * 2); c.fill();
+    },
+    5(c, r, rng) { // 地球
+      circleClip(c, r);
+      c.fillStyle = radial(c, 0, 0, 0, 0, 0, r, [[0, '#3d93f0'], [1, '#0d3f96']]);
+      c.fillRect(-r, -r, 2 * r, 2 * r);
+      const land = [[-0.35, -0.25, 0.32], [0.3, -0.35, 0.22], [0.25, 0.3, 0.3], [-0.45, 0.4, 0.18], [0.65, 0.05, 0.15]];
+      for (const [x, y, s] of land) {
+        c.fillStyle = rng() < 0.5 ? '#43a85a' : '#6fb24a';
+        blob(c, x * r, y * r, s * r, rng);
+        c.fillStyle = 'rgba(200,170,100,0.5)';
+        blob(c, x * r + s * r * 0.2, y * r, s * r * 0.4, rng);
+      }
+      c.fillStyle = 'rgba(255,255,255,0.95)';
+      c.beginPath(); c.ellipse(0, -r * 0.95, r * 0.5, r * 0.14, 0, 0, Math.PI * 2); c.fill();
+      c.beginPath(); c.ellipse(0, r * 0.96, r * 0.45, r * 0.12, 0, 0, Math.PI * 2); c.fill();
+      c.strokeStyle = 'rgba(255,255,255,0.65)'; c.lineCap = 'round';
+      for (let i = 0; i < 6; i++) {
+        c.lineWidth = r * (0.05 + rng() * 0.06);
+        const y = (rng() * 1.6 - 0.8) * r, x = (rng() * 1.4 - 0.7) * r;
+        c.beginPath(); c.moveTo(x - r * 0.3, y); c.quadraticCurveTo(x, y - r * 0.1, x + r * 0.35, y + r * 0.04); c.stroke();
+      }
+    },
+    6(c, r) { // 土星（輪つき。回らない）
+      const br = r * 0.56;
+      const tilt = -0.38;
+      const ring = (front) => {
+        c.save();
+        c.rotate(tilt);
+        c.beginPath();
+        if (front) c.rect(-r * 1.2, 0, r * 2.4, r * 1.2); else c.rect(-r * 1.2, -r * 1.2, r * 2.4, r * 1.2);
+        c.clip();
+        const bands = [[0.98, 0.05, 'rgba(210,190,150,0.55)'], [0.9, 0.08, 'rgba(240,220,175,0.9)'],
+          [0.8, 0.05, 'rgba(150,130,100,0.6)'], [0.72, 0.07, 'rgba(230,205,160,0.85)']];
+        for (const [k, w, col] of bands) {
+          c.strokeStyle = col; c.lineWidth = r * w;
+          c.beginPath(); c.ellipse(0, 0, r * k, r * k * 0.3, 0, 0, Math.PI * 2); c.stroke();
+        }
+        c.restore();
+      };
+      ring(false);
+      c.save();
+      circleClip(c, br);
+      c.rotate(tilt);
+      const cols = ['#f6e2a8', '#e3c27c', '#f1d99a', '#cfa864', '#ecd394', '#d8b673'];
+      for (let i = 0; i < 9; i++) {
+        c.fillStyle = cols[i % cols.length];
+        c.fillRect(-br * 1.5, -br + i * (2 * br / 9) - 1, br * 3, 2 * br / 9 + 2);
+      }
+      c.rotate(-tilt);
+      c.fillStyle = radial(c, -br * 0.35, -br * 0.4, br * 0.05, 0, 0, br * 1.2,
+        [[0, 'rgba(255,255,255,0.25)'], [0.5, 'rgba(0,0,0,0)'], [1, 'rgba(40,20,0,0.65)']]);
+      c.fillRect(-br, -br, 2 * br, 2 * br);
+      c.restore();
+      ring(true);
+    },
+    7(c, r, rng) { // 木星
+      circleClip(c, r);
+      const cols = ['#f3e2c7', '#d9a77a', '#efd4ae', '#b9784c', '#f1dcbc', '#c98c5e', '#e8c9a0', '#a8663f', '#f0dcc0'];
+      let y = -r;
+      let i = 0;
+      while (y < r) {
+        const h = r * (0.12 + rng() * 0.14);
+        c.fillStyle = cols[i++ % cols.length];
+        c.beginPath();
+        c.moveTo(-r, y);
+        for (let x = -r; x <= r; x += r / 6) c.lineTo(x, y + Math.sin(x / r * 6 + i) * r * 0.025);
+        c.lineTo(r, y + h + 2); c.lineTo(-r, y + h + 2); c.closePath(); c.fill();
+        y += h;
+      }
+      c.fillStyle = '#c4532f';
+      c.beginPath(); c.ellipse(r * 0.3, r * 0.28, r * 0.26, r * 0.14, 0, 0, Math.PI * 2); c.fill();
+      c.strokeStyle = 'rgba(255,230,200,0.6)'; c.lineWidth = r * 0.03; c.stroke();
+    },
+    8(c, r, rng) { // 太陽（回らない。周りがぼんやり光る）
+      c.fillStyle = radial(c, 0, 0, r * 0.9, 0, 0, r * 1.5, [[0, 'rgba(255,190,60,0.55)'], [0.4, 'rgba(255,140,30,0.2)'], [1, 'rgba(255,120,20,0)']]);
+      c.beginPath(); c.arc(0, 0, r * 1.5, 0, Math.PI * 2); c.fill();
+      c.save();
+      circleClip(c, r);
+      c.fillStyle = radial(c, -r * 0.15, -r * 0.15, 0, 0, 0, r, [[0, '#fffbe0'], [0.35, '#ffe27a'], [0.75, '#ffab2e'], [1, '#f0661a']]);
+      c.fillRect(-r, -r, 2 * r, 2 * r);
+      for (let i = 0; i < 40; i++) {
+        const a = rng() * Math.PI * 2, d = Math.sqrt(rng()) * r * 0.95;
+        c.fillStyle = rng() < 0.5 ? 'rgba(255,255,220,0.25)' : 'rgba(230,110,20,0.22)';
+        c.beginPath(); c.arc(Math.cos(a) * d, Math.sin(a) * d, r * (0.04 + rng() * 0.07), 0, Math.PI * 2); c.fill();
+      }
+      c.restore();
+    }
+  };
+  const ROTATES = { 1: true, 2: true, 3: true, 4: true, 5: true, 6: false, 7: true, 8: false };
+  const EXT = { 8: 1.5 };
+
+  /** rp: 半径（実際の画素） */
+  function buildSprite(tier, rp) {
+    const ext = EXT[tier] || 1.02;
+    const tex = mkCanvas(rp * 2 * ext);
+    const c = tex.getContext('2d');
+    c.translate(tex.width / 2, tex.height / 2);
+    PAINT[tier](c, rp, E.mulberry32(tier * 7919));
+    let shade = null;
+    if (tier !== 1 && tier !== 6 && tier !== 8) {
+      shade = mkCanvas(rp * 2.7);
+      const s = shade.getContext('2d');
+      s.translate(shade.width / 2, shade.height / 2);
+      s.fillStyle = radial(s, 0, 0, rp * 0.95, 0, 0, rp * 1.35, [[0, hexA(TIERS[tier - 1].color, 0.35)], [1, hexA(TIERS[tier - 1].color, 0)]]);
+      s.beginPath(); s.arc(0, 0, rp * 1.35, 0, Math.PI * 2); s.fill();
+      s.save();
+      circleClip(s, rp);
+      s.clearRect(-rp, -rp, rp * 2, rp * 2);
+      s.fillStyle = radial(s, -rp * 0.35, -rp * 0.4, rp * 0.05, 0, 0, rp * 1.25,
+        [[0, 'rgba(255,255,255,0.28)'], [0.45, 'rgba(0,0,0,0)'], [1, 'rgba(0,0,10,0.7)']]);
+      s.fillRect(-rp, -rp, rp * 2, rp * 2);
+      s.restore();
+    }
+    return { tex, ext, shade, rotate: ROTATES[tier] };
+  }
+  function hexA(hex, a) {
+    const n = parseInt(hex.slice(1), 16);
+    return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${a})`;
+  }
+
+  // ---------- 画面 ----------
+  const canvas = document.getElementById('view');
+  const ctx = canvas.getContext('2d');
+  const stage = document.getElementById('stage');
+  const $ = (id) => document.getElementById(id);
+  const view = { w: 1, h: 1, dpr: 1, S: 100, cx: 0, cy: 0, sprites: [], stars: [] };
+
+  function resize() {
+    const rect = stage.getBoundingClientRect();
+    view.dpr = Math.min(window.devicePixelRatio || 1, 2);
+    view.w = Math.max(1, rect.width); view.h = Math.max(1, rect.height);
+    canvas.width = Math.round(view.w * view.dpr); canvas.height = Math.round(view.h * view.dpr);
+    const top = E.DEFAULTS.tubeTop - 0.04, bottom = 1.06;
+    view.S = Math.min(view.w / 2.12, view.h / (bottom - top));
+    view.cx = view.w / 2;
+    view.cy = (view.h - (bottom - top) * view.S) / 2 - top * view.S;
+    view.sprites = TIERS.map((t) => buildSprite(t.tier, t.r * view.S * view.dpr));
+    const rng = E.mulberry32(42);
+    view.stars = Array.from({ length: 90 }, () => ({ x: rng() * view.w, y: rng() * view.h, s: rng() * 1.3 + 0.3, p: rng() * 6 }));
+  }
+
+  // 段階の一覧表
+  const tierEls = [];
+  (function buildTierList() {
+    const box = $('tiers');
+    TIERS.forEach((t) => {
+      const el = document.createElement('div');
+      el.className = 'tier';
+      el.dataset.tier = t.tier;
+      const cv = mkCanvas(68);
+      const c = cv.getContext('2d');
+      const sp = buildSprite(t.tier, t.tier === 8 ? 22 : 30);
+      c.drawImage(sp.tex, (68 - sp.tex.width) / 2, (68 - sp.tex.height) / 2);
+      if (sp.shade) c.drawImage(sp.shade, (68 - sp.shade.width) / 2, (68 - sp.shade.height) / 2);
+      const label = document.createElement('span');
+      label.textContent = t.name;
+      el.append(cv, label);
+      el.title = `${t.tier}. ${t.name}`;
+      box.append(el);
+      tierEls.push(el);
+    });
+  })();
+
+  // ---------- 進行 ----------
+  let game = null;
+  let started = false;
+  let speed = 1;
+  let acc = 0;
+  let effects = [];
+  let particles = [];
+  let shake = 0;
+  let flash = 0;
+  let resultTimer = null;
+  const DT = E.DEFAULTS.dt;
+
+  function newGame() {
+    game = E.createGame(seedParam != null ? { seed: seedParam } : {});
+    effects = []; particles = []; shake = 0; flash = 0; acc = 0;
+    clearTimeout(resultTimer);
+    $('ovClear').hidden = true; $('ovOver').hidden = true;
+    tierEls.forEach((el) => el.classList.remove('reached', 'pop'));
+    updateHud(true);
+  }
+
+  function fmtTime(s) {
+    const m = Math.floor(s / 60), r = Math.floor(s % 60);
+    return `${m}:${String(r).padStart(2, '0')}`;
+  }
+  let hudCache = '';
+  function updateHud(force) {
+    const g = game.state;
+    const key = `${Math.floor(g.time)}|${g.merges}|${g.maxTier}`;
+    if (!force && key === hudCache) return;
+    hudCache = key;
+    $('hudTime').textContent = fmtTime(g.time);
+    $('hudMerges').textContent = g.merges;
+    $('hudMax').textContent = g.maxTier ? TIERS[g.maxTier - 1].name : '—';
+  }
+
+  function processEvents() {
+    for (const ev of game.drainEvents()) {
+      if (ev.type === 'merge') {
+        const col = TIERS[ev.tier - 1].color;
+        effects.push({ kind: 'ring', x: ev.x, y: ev.y, r0: ev.r, r1: ev.r * 2.1, t: 0, dur: 0.45, color: '#ffffff' });
+        effects.push({ kind: 'flash', x: ev.x, y: ev.y, r: ev.r, t: 0, dur: 0.25 });
+        const n = 6 + ev.tier * 2;
+        for (let i = 0; i < n; i++) {
+          const a = Math.random() * Math.PI * 2, sp = 0.4 + Math.random() * 0.8 + ev.tier * 0.08;
+          particles.push({ x: ev.x, y: ev.y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, life: 0.5 + Math.random() * 0.4, t: 0, color: col });
+        }
+        if (ev.tier >= 6) shake = Math.max(shake, 0.25 + (ev.tier - 6) * 0.15);
+        if (ev.tier < 8) Sound.merge(ev.tier);
+      } else if (ev.type === 'reach') {
+        const el = tierEls[ev.tier - 1];
+        el.classList.add('reached');
+        if (started) { el.classList.remove('pop'); void el.offsetWidth; el.classList.add('pop'); }
+      } else if (ev.type === 'clear') {
+        Sound.sun();
+        flash = 1; shake = 0.8;
+        for (let k = 0; k < 3; k++) effects.push({ kind: 'ring', x: 0, y: 0.3, r0: 0.3, r1: 1.6 + k * 0.4, t: -k * 0.15, dur: 1.1, color: '#ffd36b' });
+        resultTimer = setTimeout(() => {
+          $('clearTime').textContent = fmtTime(ev.time);
+          $('clearMerges').textContent = game.state.merges;
+          $('ovClear').hidden = false;
+        }, 1600);
+      } else if (ev.type === 'over') {
+        Sound.over();
+        resultTimer = setTimeout(() => {
+          $('overMax').textContent = game.state.maxTier ? TIERS[game.state.maxTier - 1].name : '—';
+          $('overTime').textContent = fmtTime(ev.time);
+          $('ovOver').hidden = false;
+        }, 900);
+      } else if (ev.type === 'tap') {
+        effects.push({ kind: 'ring', x: ev.x, y: ev.y, r0: 0.05, r1: E.DEFAULTS.tapRadius, t: 0, dur: 0.35, color: 'rgba(160,200,255,1)' });
+        Sound.tap();
+      } else if (ev.type === 'shuffle') {
+        shake = Math.max(shake, 0.7);
+        Sound.shuffle();
+      }
+    }
+  }
+
+  // ---------- 描画 ----------
+  const HW = E.DEFAULTS.tubeHalf;
+  const TH = Math.asin(HW);
+  const HUES = [215, 265, 300, 330, 20, 55, 95, 150, 185, 215];
+
+  function draw(now, rdt) {
+    const { S, dpr } = view;
+    const t = now / 1000;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.fillStyle = '#05060a';
+    ctx.fillRect(0, 0, view.w, view.h);
+
+    // 背景の星
+    for (const s of view.stars) {
+      ctx.globalAlpha = 0.25 + 0.25 * Math.sin(t * 1.3 + s.p);
+      ctx.fillStyle = '#cfd8ff';
+      ctx.fillRect(s.x, s.y, s.s, s.s);
+    }
+    ctx.globalAlpha = 1;
+
+    let ox = 0, oy = 0;
+    if (shake > 0) {
+      ox = Math.sin(t * 47) * shake * S * 0.05;
+      oy = Math.cos(t * 39) * shake * S * 0.025;
+    }
+    const cx = view.cx + ox, cy = view.cy + oy;
+    const X = (x) => cx + x * S, Y = (y) => cy + y * S;
+
+    // 透かし文字
+    ctx.fillStyle = 'rgba(255,255,255,0.045)';
+    ctx.font = `800 ${Math.round(S * 0.11)}px system-ui, sans-serif`;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText('COSMO FUSION', cx, cy);
+
+    // 虹色の容器のふち（色が円周に沿って回る）
+    const rot = t * 0.6;
+    let stroke;
+    if (ctx.createConicGradient) {
+      stroke = ctx.createConicGradient(rot, cx, cy);
+      HUES.forEach((h, i) => stroke.addColorStop(i / (HUES.length - 1), `hsl(${h},95%,62%)`));
+    } else {
+      stroke = `hsl(${(t * 40) % 360},95%,62%)`;
+    }
+    const a0 = -Math.PI / 2 + TH, a1 = Math.PI * 1.5 - TH;
+    ctx.strokeStyle = stroke;
+    ctx.lineCap = 'round';
+    [[S * 0.09, 0.12], [S * 0.035, 0.35], [Math.max(2, S * 0.014), 1]].forEach(([w, al]) => {
+      ctx.globalAlpha = al; ctx.lineWidth = w;
+      ctx.beginPath(); ctx.arc(cx, cy, S, a0, a1); ctx.stroke();
+    });
+    ctx.globalAlpha = 1;
+
+    // 筒
+    const yj = Y(game.state.yJoint);
+    const yt = Y(E.DEFAULTS.tubeTop - 0.04);
+    ctx.strokeStyle = 'rgba(255,255,255,0.9)';
+    ctx.lineWidth = Math.max(2, S * 0.014);
+    ctx.shadowColor = 'rgba(255,255,255,0.6)'; ctx.shadowBlur = 8;
+    ctx.beginPath();
+    ctx.moveTo(X(-HW), yt); ctx.lineTo(X(-HW), yj);
+    ctx.moveTo(X(HW), yt); ctx.lineTo(X(HW), yj);
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+
+    // ゲームオーバーのライン
+    const g = game.state;
+    const danger = g.overTimer > 0 && g.status === 'running';
+    ctx.setLineDash([S * 0.035, S * 0.03]);
+    ctx.lineWidth = Math.max(1.5, S * 0.008);
+    ctx.strokeStyle = danger ? `rgba(255,80,100,${0.55 + 0.45 * Math.sin(t * 18)})` : 'rgba(255,255,255,0.3)';
+    ctx.beginPath(); ctx.moveTo(X(-HW - 0.12), Y(E.DEFAULTS.lineY)); ctx.lineTo(X(HW + 0.12), Y(E.DEFAULTS.lineY)); ctx.stroke();
+    ctx.setLineDash([]);
+    if (danger) {
+      ctx.fillStyle = '#ff6b81';
+      ctx.font = `700 ${Math.round(S * 0.075)}px system-ui, sans-serif`;
+      ctx.textAlign = 'left';
+      ctx.fillText(`あと ${Math.max(0, E.DEFAULTS.overHold - g.overTimer).toFixed(1)}秒`, X(HW + 0.16), Y(E.DEFAULTS.lineY));
+    }
+
+    // 星
+    for (const b of g.balls) {
+      const sp = view.sprites[b.tier - 1];
+      const k = b.r / b.rt; // 合体した直後は少し小さい
+      const size = (sp.tex.width / dpr) * k;
+      const x = X(b.x), y = Y(b.y);
+      if (b.tier === 8) {
+        ctx.save();
+        ctx.globalCompositeOperation = 'lighter';
+        ctx.globalAlpha = 0.25 + 0.12 * Math.sin(t * 3);
+        ctx.fillStyle = radial(ctx, x, y, b.r * S * 0.8, x, y, b.r * S * 1.9, [[0, 'rgba(255,170,40,0.8)'], [1, 'rgba(255,120,20,0)']]);
+        ctx.beginPath(); ctx.arc(x, y, b.r * S * 1.9, 0, Math.PI * 2); ctx.fill();
+        ctx.restore();
+      }
+      if (sp.rotate) {
+        ctx.save(); ctx.translate(x, y); ctx.rotate(b.angle);
+        ctx.drawImage(sp.tex, -size / 2, -size / 2, size, size);
+        ctx.restore();
+      } else {
+        ctx.drawImage(sp.tex, x - size / 2, y - size / 2, size, size);
+      }
+      if (sp.shade) {
+        const ss = (sp.shade.width / dpr) * k;
+        ctx.drawImage(sp.shade, x - ss / 2, y - ss / 2, ss, ss);
+      }
+    }
+
+    // 合体しかけの組（触れ続けるほど強く光る）
+    if (g.contact.size) {
+      const byId = new Map();
+      for (const b of g.balls) byId.set(b.id, b);
+      ctx.globalCompositeOperation = 'lighter';
+      for (const [key, tc] of g.contact) {
+        const a = byId.get(Math.floor(key / 1048576)), b = byId.get(key % 1048576);
+        if (!a || !b) continue;
+        const p = Math.min(1, tc / g.opt.mergeDelay);
+        const mx = X((a.x + b.x) / 2), my = Y((a.y + b.y) / 2);
+        const rr = a.r * S * (0.5 + p * 0.7);
+        ctx.globalAlpha = 0.15 + p * 0.65;
+        ctx.fillStyle = radial(ctx, mx, my, 0, mx, my, rr, [[0, 'rgba(255,255,255,0.9)'], [0.4, hexA(TIERS[a.tier - 1].color, 0.6)], [1, hexA(TIERS[a.tier - 1].color, 0)]]);
+        ctx.beginPath(); ctx.arc(mx, my, rr, 0, Math.PI * 2); ctx.fill();
+      }
+      ctx.globalAlpha = 1;
+      ctx.globalCompositeOperation = 'source-over';
+    }
+
+    // 合体の輪・光・かけら
+    ctx.globalCompositeOperation = 'lighter';
+    for (const e of effects) {
+      if (e.t < 0) continue;
+      const p = Math.min(1, e.t / e.dur);
+      if (e.kind === 'ring') {
+        const r = (e.r0 + (e.r1 - e.r0) * (1 - (1 - p) * (1 - p))) * S;
+        ctx.globalAlpha = (1 - p) * 0.85;
+        ctx.strokeStyle = e.color;
+        ctx.lineWidth = Math.max(1, S * 0.012 * (1 - p * 0.6));
+        ctx.beginPath(); ctx.arc(X(e.x), Y(e.y), r, 0, Math.PI * 2); ctx.stroke();
+      } else if (e.kind === 'flash') {
+        const r = e.r * S * (0.6 + p * 0.6);
+        ctx.globalAlpha = 1 - p;
+        ctx.fillStyle = radial(ctx, X(e.x), Y(e.y), 0, X(e.x), Y(e.y), r, [[0, 'rgba(255,255,255,0.95)'], [1, 'rgba(255,255,255,0)']]);
+        ctx.beginPath(); ctx.arc(X(e.x), Y(e.y), r, 0, Math.PI * 2); ctx.fill();
+      }
+    }
+    for (const q of particles) {
+      ctx.globalAlpha = Math.max(0, 1 - q.t / q.life);
+      ctx.fillStyle = q.color;
+      const s = Math.max(1.5, S * 0.012);
+      ctx.fillRect(X(q.x) - s / 2, Y(q.y) - s / 2, s, s);
+    }
+    ctx.globalAlpha = 1;
+    ctx.globalCompositeOperation = 'source-over';
+
+    if (flash > 0) {
+      ctx.fillStyle = `rgba(255,230,160,${flash * 0.4})`;
+      ctx.fillRect(0, 0, view.w, view.h);
+    }
+
+    // 演出の時間を進める（演出は速度切り替えに関係なく実時間）
+    for (const e of effects) e.t += rdt;
+    effects = effects.filter((e) => e.t < e.dur);
+    for (const q of particles) { q.t += rdt; q.x += q.vx * rdt; q.y += q.vy * rdt; q.vx *= 0.96; q.vy *= 0.96; }
+    particles = particles.filter((q) => q.t < q.life);
+    shake = Math.max(0, shake - rdt * 1.4);
+    flash = Math.max(0, flash - rdt * 0.8);
+  }
+
+  let last = performance.now();
+  function frame(now) {
+    const rdt = Math.min(0.05, Math.max(0, (now - last) / 1000));
+    last = now;
+    if (started && document.visibilityState === 'visible') {
+      acc += rdt * speed;
+      let n = 0;
+      const maxSteps = Math.ceil(0.05 * speed / DT);
+      while (acc >= DT && n < maxSteps) { game.step(); acc -= DT; n++; }
+      if (n >= maxSteps) acc = 0;
+      processEvents();
+      updateHud(false);
+    }
+    draw(now, rdt);
+    requestAnimationFrame(frame);
+  }
+
+  // ---------- 操作 ----------
+  function start() {
+    Sound.init();
+    $('ovStart').hidden = true;
+    started = true;
+    processEvents();
+  }
+  function toWorld(ev) {
+    const rect = canvas.getBoundingClientRect();
+    return { x: (ev.clientX - rect.left - view.cx) / view.S, y: (ev.clientY - rect.top - view.cy) / view.S };
+  }
+  canvas.addEventListener('pointerdown', (ev) => {
+    if (!started) return;
+    Sound.init();
+    const p = toWorld(ev);
+    if (Math.hypot(p.x, p.y) > 1.25 && !(Math.abs(p.x) < HW + 0.1 && p.y < 0)) return; // 容器から遠いところは無視
+    game.tap(p.x, p.y);
+    processEvents();
+    ev.preventDefault();
+  });
+  $('btnShuffle').addEventListener('click', () => {
+    if (!started) return;
+    Sound.init();
+    game.shuffle();
+    processEvents();
+  });
+  $('btnSpeed').addEventListener('click', () => {
+    speed = speed === 1 ? 2 : speed === 2 ? 4 : 1;
+    $('btnSpeed').textContent = `${speed}x`;
+  });
+  $('btnRestart').addEventListener('click', () => { newGame(); if (started) processEvents(); });
+  $('btnMute').addEventListener('click', () => {
+    Sound.setMuted(!Sound.muted);
+    $('btnMute').textContent = Sound.muted ? '🔇' : '🔊';
+    $('btnMute').setAttribute('aria-pressed', String(Sound.muted));
+  });
+  $('btnStart').addEventListener('click', start);
+  const again = () => { newGame(); processEvents(); };
+  $('btnAgainClear').addEventListener('click', again);
+  $('btnAgainOver').addEventListener('click', again);
+  window.addEventListener('resize', resize);
+
+  newGame();
+  resize();
+  requestAnimationFrame(frame);
+
+  // テストとデバッグ用の入口
+  window.cosmo = {
+    get game() { return game; },
+    get speed() { return speed; },
+    get view() { return view; },
+    get muted() { return Sound.muted; },
+    start,
+    /** 秒数ぶんを一気に進めて、演出と表示も更新する */
+    advance(sec) { game.advance(sec); processEvents(); updateHud(true); return game.state.status; },
+    place(tier, x, y) { const b = game.place(tier, x, y); processEvents(); return b.id; },
+    toScreen(x, y) {
+      const rect = canvas.getBoundingClientRect();
+      return { x: rect.left + view.cx + x * view.S, y: rect.top + view.cy + y * view.S };
+    }
+  };
+})();
+</script>
+</body>
+</html>

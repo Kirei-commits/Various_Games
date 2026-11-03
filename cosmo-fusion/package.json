@@ -1,0 +1,19 @@
+{
+  "name": "cosmo-fusion",
+  "version": "1.0.0",
+  "private": true,
+  "description": "コスモ・フュージョン — 同じ星どうしが合体して太陽をめざす物理シミュレーション（単一HTML・ビルド不要）",
+  "type": "module",
+  "scripts": {
+    "start": "node tests/serve.mjs",
+    "measure": "node tools/measure.mjs",
+    "lint": "node tests/lint.mjs",
+    "test:logic": "node --test tests/logic/*.test.mjs",
+    "test:e2e": "playwright test",
+    "test": "npm run lint && npm run test:logic && npm run test:e2e"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.63.0"
+  },
+  "engines": { "node": ">=20" }
+}

@@ -13,6 +13,7 @@
 | [eikaiwa-swipe](./eikaiwa-swipe/) | SwipeTalk（英会話フレーズ学習） | 全40章・2000フレーズ（基本編＋アメリカ生活編）。スワイプで仕分け、英→日／日→英テスト、シャドーイング、抑揚つき音声。Google ログインでクラウド保存。 |
 | [pachinko-gokugoku](./pachinko-gokugoku/) | 極極FEVER（パチンコシミュレーター） | 単一HTML。釘・風車の物理、ヘソ入賞時抽選（1/319.6）、RUSH継続率81%、SPリーチ・一撃レバー・全回転・先バレ、Web Audio のBGM、スランプグラフ、デバッグ設定。 |
 | [minigame-rush](./minigame-rush/) | ミニゲームラッシュ（1本目: 武器拾いレギオン） | 単一HTML。英雄をドラッグして得意武器を拾い、列の真上へ投げて大群を撃退。檻の英雄の解放（仲間 or 進化）、合体、22種のゲート、5種の地形、99ステージ＋エンドレス、3難易度、コイン強化、英雄図鑑。 |
+| [cosmo-fusion](./cosmo-fusion/) | コスモ・フュージョン（合体ボール物理シミュレーション） | 単一HTML。筒から落ちてくる星が同じ種類どうしで触れ合うと合体し、岩のかけら→月→水星→火星→地球→土星→木星→太陽の8段階を進む。タップで弾き飛ばし、シャッフル、速度1/2/4倍、Web Audio の効果音。供給はだんだん速くなり、ラインより上で2秒止まるとゲームオーバー。 |
 
 ## 学習アプリ
 
@@ -46,6 +47,7 @@ https://kirei-commits.github.io/Various_Games/quant-trader/    ← Quant Backtes
 
 各ゲームのディレクトリで `npm ci && npm test`。
 god-arena には実ブラウザで通しプレイする `npm run playtest` もあります。
+cosmo-fusion の調整値はエンジン（`index.html` の `<script id="engine">`）の `DEFAULTS` にあり、`npm run measure` で放っておいたときのクリア時間を seed ごとに並べられます。
 eikaiwa-swipe・pachinko-gokugoku・minigame-rush は `src/` から `index.html` を生成するので、変更後は `npm run build` して `index.html` もコミットします（古いままだと lint が落ちます）。
 pachinko-gokugoku の調整値は `src/pure/config.js` に集めてあり、`npm run measure` で理論値と実測値を並べて確かめられます。
 
