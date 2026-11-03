@@ -52,8 +52,9 @@ test('段階の一覧表：8つ並び、出てきた段階だけ光る', async (
 test('太陽が生まれるとクリア画面が出て、もう一度で最初から', async ({ page }) => {
   const errors = await open(page);
   await start(page);
-  await page.evaluate(() => { cosmo.place(7, -0.3, 0.55); cosmo.place(7, 0.3, 0.55); });
-  await page.evaluate(() => cosmo.advance(1.5));
+  // 筒からの星を止めて、木星2つをくっつけて置く
+  await page.evaluate(() => { cosmo.game.state.spawnTimer = Infinity; cosmo.place(7, -0.284, 0.6); cosmo.place(7, 0.284, 0.6); });
+  await page.evaluate(() => cosmo.advance(2.5));
   expect((await state(page)).status).toBe('clear');
   await expect(page.locator('#ovClear')).toBeVisible({ timeout: 4000 });
   await expect(page.locator('#tiers .tier').nth(7)).toHaveClass(/reached/);

@@ -109,7 +109,7 @@
   <div class="overlay" id="ovStart">
     <div class="card">
       <h1 class="title" style="font-size:24px">COSMO FUSION</h1>
-      <p>上の筒から落ちてくる星は、<b class="big">同じ種類どうしが触れると合体</b>して、1段階大きい星になります。</p>
+      <p>上の筒から落ちてくる星は、<b class="big">同じ種類どうしが触れ合うと合体</b>して、1段階大きい星になります（くっついて光ってから合体）。だんだん落ちてくるのが速くなります。</p>
       <ul>
         <li>岩のかけら → 月 → 水星 → 火星 → 地球 → 土星 → 木星 → <b class="big">太陽</b></li>
         <li>容器をタップすると、周りの星を弾き飛ばせます</li>
@@ -175,6 +175,9 @@
     spawnY: -1.68,        // 星が出てくる高さ
     spawnInterval: 0.25,  // 星が出てくる間隔（秒）
     spawnJitter: 0.035,   // 出てくる位置の左右のぶれ
+    spawnWeights: [1],    // 出てくる星の段階ごとの重み（[段階1, 段階2, …]）
+    spawnMinInterval: 0.11, // 時間がたつと間隔が縮んでいく下限
+    spawnRamp: 0.0025,    // 1秒あたりに縮む間隔（秒）。終盤ほど忙しくなる
     lineY: -1,            // ゲームオーバーのライン（円の上端）
     overHold: 2,          // ラインを越えて止まり続けたら負けになる秒数
     stuckSpeed: 0.4,      // これより遅ければ「止まっている」
@@ -183,6 +186,7 @@
     tapRadius: 0.6,       // 弾き飛ばしが届く距離
     tapPower: 4.2,        // 弾き飛ばしの強さ（半径/秒）
     shufflePower: 3.0,    // シャッフルの強さ
+    mergeDelay: 0.6,      // 触れ続けてから合体するまでの秒数（離れると最初から）
     merge: true           // テスト用：合体を止められる
   };
 
@@ -216,6 +220,7 @@
       overTimer: 0,
       spawnTimer: 0,
       spawned: 0,           // 筒から出てきた星の数
+      contact: new Map(),   // 同じ段階どうしが触れ続けている時間
       events: [],
       nextId: 1
     };
@@ -233,15 +238,30 @@
       return b;
     }
 
+    function pickTier() {
+      const w = opt.spawnWeights;
+      let sum = 0;
+      for (const v of w) sum += v;
+      let u = rand() * sum;
+      for (let i = 0; i < w.length; i++) { u -= w[i]; if (u < 0) return i + 1; }
+      return 1;
+    }
+
+    /** いまの供給の間隔（秒）。時間がたつほど短くなる */
+    function spawnInterval() {
+      return Math.max(opt.spawnMinInterval, opt.spawnInterval - opt.spawnRamp * g.time);
+    }
+
     function trySpawn() {
       const x = (rand() * 2 - 1) * opt.spawnJitter;
       const y = opt.spawnY;
-      const r = TIERS[0].r;
+      const tier = pickTier();
+      const r = TIERS[tier - 1].r;
       for (const b of g.balls) {
         const dx = b.x - x, dy = b.y - y;
         if (dx * dx + dy * dy < (b.r + r) * (b.r + r)) return false; // 詰まっていたら出さない
       }
-      addBall(1, x, y, 0, 0.6);
+      addBall(tier, x, y, 0, 0.6);
       g.spawned++;
       return true;
     }
@@ -263,6 +283,7 @@
       }
     }
 
+    let contactNext = new Map();
     function solvePairs(list, allowMerge, born) {
       // 左端の位置で並べて、重なり得る組だけ調べる（ほぼ並んでいるので挿入ソートが速い）
       for (let i = 1; i < list.length; i++) {
@@ -282,12 +303,18 @@
           const dx = b.x - a.x, dy = b.y - a.y;
           const rr = a.r + b.r;
           const d2 = dx * dx + dy * dy;
-          if (d2 >= rr * rr) continue;
           if (allowMerge && a.tier === b.tier && a.tier < MAX_TIER &&
-              a.y > opt.mergeMinY && b.y > opt.mergeMinY) {
-            merge(a, b, born);
-            break; // a はもう居ない
+              a.y > opt.mergeMinY && b.y > opt.mergeMinY && d2 < rr * rr * 1.06) {
+            // 触れ続けて mergeDelay 秒たったら合体（押し戻しで離れるので少しの隙間は「触れている」とみなす）
+            const key = a.id < b.id ? a.id * 1048576 + b.id : b.id * 1048576 + a.id;
+            const t = (g.contact.get(key) || 0) + DT;
+            if (t >= opt.mergeDelay) {
+              merge(a, b, born);
+              break; // a はもう居ない
+            }
+            contactNext.set(key, t);
           }
+          if (d2 >= rr * rr) continue;
           let d = Math.sqrt(d2), nx, ny;
           if (d < 1e-9) { const ang = rand() * Math.PI * 2; nx = Math.cos(ang); ny = Math.sin(ang); d = 0; }
           else { nx = dx / d; ny = dy / d; }
@@ -336,7 +363,7 @@
       g.time += DT;
       if (g.status === 'running') {
         g.spawnTimer -= DT;
-        if (g.spawnTimer <= 0) { trySpawn(); g.spawnTimer += opt.spawnInterval; }
+        if (g.spawnTimer <= 0) { trySpawn(); g.spawnTimer += spawnInterval(); }
       }
       const gdt2 = opt.gravity * DT * DT;
       const vmax = opt.maxSpeed * DT;
@@ -352,6 +379,7 @@
         b.age += DT;
       }
       const born = [];
+      contactNext = new Map();
       for (let it = 0; it < opt.iterations; it++) {
         solvePairs(g.balls, opt.merge && it === 0, born);
         if (it === 0 && (born.length || g.balls.some((b) => b.dead))) {
@@ -359,6 +387,7 @@
         }
         for (const b of g.balls) solveWalls(b);
       }
+      g.contact = contactNext;
       // ゲームオーバーの判定：ラインより上で止まっている星がいるか
       if (g.status === 'running') {
         let stuck = false;
@@ -925,6 +954,25 @@
         const ss = (sp.shade.width / dpr) * k;
         ctx.drawImage(sp.shade, x - ss / 2, y - ss / 2, ss, ss);
       }
+    }
+
+    // 合体しかけの組（触れ続けるほど強く光る）
+    if (g.contact.size) {
+      const byId = new Map();
+      for (const b of g.balls) byId.set(b.id, b);
+      ctx.globalCompositeOperation = 'lighter';
+      for (const [key, tc] of g.contact) {
+        const a = byId.get(Math.floor(key / 1048576)), b = byId.get(key % 1048576);
+        if (!a || !b) continue;
+        const p = Math.min(1, tc / g.opt.mergeDelay);
+        const mx = X((a.x + b.x) / 2), my = Y((a.y + b.y) / 2);
+        const rr = a.r * S * (0.5 + p * 0.7);
+        ctx.globalAlpha = 0.15 + p * 0.65;
+        ctx.fillStyle = radial(ctx, mx, my, 0, mx, my, rr, [[0, 'rgba(255,255,255,0.9)'], [0.4, hexA(TIERS[a.tier - 1].color, 0.6)], [1, hexA(TIERS[a.tier - 1].color, 0)]]);
+        ctx.beginPath(); ctx.arc(mx, my, rr, 0, Math.PI * 2); ctx.fill();
+      }
+      ctx.globalAlpha = 1;
+      ctx.globalCompositeOperation = 'source-over';
     }
 
     // 合体の輪・光・かけら

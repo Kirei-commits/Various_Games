@@ -22,8 +22,12 @@ test('8段階で、名前は太陽系コース、だんだん大きくなる', (
 
 test('同じ段階の2つが触れると、1段階上の1つになる', () => {
   const g = quiet();
-  g.place(1, -0.03, 0.8); g.place(1, 0.03, 0.8);
-  g.advance(0.1);
+  // 底でくっついて並べる（重力で互いに押し合い、触れ続ける）
+  g.place(1, -0.06, 0.935); g.place(1, 0.06, 0.935);
+  g.advance(g.state.opt.mergeDelay * 0.5);
+  assert.equal(count(g, 1), 2, '触れてすぐには合体しない');
+  assert.equal(g.state.contact.size, 1, '合体しかけの組として数えられる');
+  g.advance(g.state.opt.mergeDelay * 0.5 + 0.1);
   assert.equal(count(g, 1), 0);
   assert.equal(count(g, 2), 1);
   assert.equal(g.state.merges, 1);
@@ -48,7 +52,7 @@ test('筒の中では合体しない', () => {
 test('木星2つで太陽になるとクリア。太陽はもう合体しない', () => {
   const g = quiet();
   g.place(7, -0.3, 0.5); g.place(7, 0.3, 0.5);
-  g.advance(1.5);
+  g.advance(2.5);
   assert.equal(g.state.status, 'clear');
   assert.equal(count(g, 8), 1);
   const ev = g.drainEvents().map((e) => e.type);
@@ -62,8 +66,8 @@ test('木星2つで太陽になるとクリア。太陽はもう合体しない'
 
 test('合体した星は2つの真ん中に生まれる', () => {
   const g = quiet({ gravity: 0 });
-  g.place(3, -0.1, 0.2); g.place(3, 0.1, 0.2);
-  g.advance(0.02);
+  g.place(3, -0.11, 0.2); g.place(3, 0.11, 0.2); // ちょうど触れる距離
+  g.advance(g.state.opt.mergeDelay + 0.02);
   const b = g.state.balls[0];
   assert.equal(b.tier, 4);
   assert.ok(Math.abs(b.x) < 0.02 && Math.abs(b.y - 0.2) < 0.02, `位置 ${b.x},${b.y}`);
@@ -76,7 +80,8 @@ test('星は容器と筒の外に出ない（タップとシャッフルを混�
     if (s % 3 === 0) g.tap(0, 0.6);
     if (s % 10 === 5) g.shuffle();
     for (const b of g.state.balls) {
-      const inTube = b.y < g.state.yJoint && Math.abs(b.x) <= g.state.opt.tubeHalf - b.r + 1e-6;
+      // 筒の中か、筒と円のつなぎ目（円の上の開いているところ）
+      const inTube = b.y < 0 && Math.abs(b.x) <= g.state.opt.tubeHalf - b.r + 1e-6;
       const inCircle = Math.hypot(b.x, b.y) <= 1 - b.r + 0.02;
       assert.ok(inTube || inCircle, `はみ出し: tier${b.tier} (${b.x.toFixed(3)}, ${b.y.toFixed(3)})`);
       assert.ok(b.y >= g.state.opt.tubeTop);
@@ -139,10 +144,46 @@ test('同じ seed なら同じ結果になる', () => {
   assert.deepEqual(plain(a.state.balls.map((x) => [x.tier, x.x.toFixed(6)])), plain(b.state.balls.map((x) => [x.tier, x.x.toFixed(6)])));
 });
 
-test('放っておいても2分以内に太陽まで届く（数 seed で確かめる）', () => {
-  for (const seed of [1, 2, 3, 4, 5]) {
+test('離れると合体の待ち時間は最初から', () => {
+  const g = quiet({ gravity: 0 });
+  const a = g.place(2, -0.082, 0.2), b = g.place(2, 0.082, 0.2);
+  g.advance(g.state.opt.mergeDelay * 0.7);
+  assert.equal(g.state.contact.size, 1);
+  a.x = a.px = -0.5; b.x = b.px = 0.5; // 引き離す
+  g.advance(0.05);
+  assert.equal(g.state.contact.size, 0);
+  a.x = a.px = -0.082; b.x = b.px = 0.082; a.y = a.py = b.y = b.py = 0.2; // くっつけ直す
+  g.advance(g.state.opt.mergeDelay * 0.7);
+  assert.equal(count(g, 2), 2, '前の待ち時間が残っていない');
+});
+
+test('だんだん落ちてくるのが速くなる（下限あり）', () => {
+  const g = E.createGame({ seed: 4, spawnWeights: [1] });
+  g.state.opt.merge = false;
+  g.advance(10);
+  const early = g.state.spawned;
+  const h = E.createGame({ seed: 4 });
+  h.state.opt.merge = false;
+  h.state.time = 60; // 60秒たった時点の速さ
+  h.advance(10);
+  assert.ok(h.state.spawned > early, `序盤10秒 ${early} 個 / 60秒後の10秒 ${h.state.spawned} 個`);
+});
+
+test('難しさ：放っておくと失敗することもあるが、ピンチにシャッフルすれば太陽まで届く', () => {
+  const results = { hands: [], helped: [] };
+  for (const seed of [1, 2, 3, 4, 5, 6, 7, 8]) {
     const g = E.createGame({ seed });
-    while (g.state.status === 'running' && g.state.time < 120) g.advance(1);
-    assert.equal(g.state.status, 'clear', `seed ${seed}: ${g.state.status} 最高 ${g.state.maxTier} 段階`);
+    while (g.state.status === 'running' && g.state.time < 200) g.advance(1);
+    results.hands.push(g.state.status);
+    const h = E.createGame({ seed });
+    let last = -9;
+    while (h.state.status === 'running' && h.state.time < 200) {
+      h.advance(0.25);
+      if (h.state.overTimer > 0.3 && h.state.time - last > 0.8) { h.shuffle(); last = h.state.time; }
+    }
+    results.helped.push(h.state.status);
+    assert.ok(h.state.time > 40, `seed ${seed}: 早すぎる ${h.state.time.toFixed(0)}秒`);
   }
+  assert.ok(results.hands.includes('clear'), `放っておいて1度もクリアできない ${results.hands}`);
+  assert.ok(results.helped.filter((s) => s === 'clear').length >= 7, `手助けしてもクリアできない ${results.helped}`);
 });

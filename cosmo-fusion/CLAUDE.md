@@ -26,6 +26,6 @@ npm run measure -- 20 '{"spawnInterval":0.2}'
 
 ## 守ること
 1. エンジン（`<script id="engine">`）では `document` などの画面・音の API を使わない（lint が止める）。
-2. 調整値はエンジンの `DEFAULTS` に集める。変えたら `npm run measure` で、放っておいて2分以内にクリアできるか確かめる
-   （`tests/logic` にも同じ確認がある）。
+2. 調整値はエンジンの `DEFAULTS` に集める。変えたら `npm run measure -- 20` と `npm run measure -- 20 '{}' --help` で、
+   放っておくと時々失敗し、手助けすればほぼクリアできるか確かめる（`tests/logic` の「難しさ」のテストも同じ確認）。
 3. 外部ファイル・CDN を読み込まない。
