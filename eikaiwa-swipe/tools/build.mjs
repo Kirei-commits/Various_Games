@@ -68,10 +68,13 @@ const hash = sourceHash();
 const js = await buildJs({ withCloud: cloudConfig != null, hash });
 // アプリ全体を画面に固定し、iPhone のページの揺れ（ゴムのような上下の動き）や引っぱって更新を止める。
 // スクロールは各画面の中の一覧だけで行い、端に達しても外側へ伝えない（overscroll-behavior）。
+// 英数字の書体（Bricolage Grotesque・OFL）を埋め込む。index.html 1枚で動かすため、外から読み込まない。
+const font = fs.readFileSync(path.join(ROOT, "src/assets/bricolage-grotesque-latin.woff2")).toString("base64");
 const base =
+  `@font-face{font-family:"Bricolage Grotesque";font-style:normal;font-weight:200 800;font-display:swap;src:url(data:font/woff2;base64,${font}) format("woff2")}` +
   "html,body{height:100%;margin:0;overflow:hidden;overscroll-behavior:none}" +
   "#root{position:fixed;inset:0}" +
-  "body{background:#f1f5f9;color:#0f172a;-webkit-tap-highlight-color:transparent}" +
+  "body{background:#E5DED0;color:#141B33;-webkit-tap-highlight-color:transparent}" +
   ".overflow-y-auto{overscroll-behavior:contain}";
 
 const page = `<!doctype html>
@@ -79,7 +82,7 @@ const page = `<!doctype html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#4f46e5">
+<meta name="theme-color" content="#1A3BBB">
 <title>SwipeTalk</title>
 <!-- source-hash: ${hash} -->
 <!-- このファイルは tools/build.mjs が生成します。直接編集せず src/ を編集して npm run build してください。 -->

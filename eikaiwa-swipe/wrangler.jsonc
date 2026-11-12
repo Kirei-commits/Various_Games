@@ -1,0 +1,11 @@
+// Cloudflare（Workers の静的ファイル配信）への公開の設定。
+// 公開は .github/workflows/cloudflare.yml が行う。.cf-site/ はそのワークフローが作る（index.html・audio/・_headers）。
+// 手で試すとき: eikaiwa-swipe/ で `node tools/cf-site.mjs && npx wrangler deploy --dry-run`
+{
+  "name": "swipetalk",
+  "compatibility_date": "2026-11-01",
+  "assets": {
+    "directory": "./.cf-site",
+    "not_found_handling": "404-page"
+  }
+}

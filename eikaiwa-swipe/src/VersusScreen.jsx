@@ -167,13 +167,13 @@ export default function VersusScreen({ header, user, rooms, onSignIn, scopeOptio
   return (
     <div className="h-full overflow-y-auto px-5 pt-4 pb-6" data-testid="versus-home">
       {header}
-      <div className="mt-4 space-y-4 rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
-        <p className="text-xs leading-relaxed text-slate-500">
+      <div className="mt-4 space-y-4 rounded-3xl bg-white p-5 shadow-sm ring-1 ring-ink-200">
+        <p className="text-xs leading-relaxed text-ink-500">
           {tr(
             `英語の意味を4択で早押し！ 問題と選択肢が同時に出るので、わかったらすぐ押そう。${TIME_MS / 1000}秒で答えになり、解説を${REVEAL_MS / 1000}秒見せて次の問題へ。いちばん早く正解した人が1ポイント。`,
             `A quick-fire 4-choice quiz on English meanings! The question and choices appear together — tap as soon as you know. After ${TIME_MS / 1000} seconds the answer is shown, with an explanation for ${REVEAL_MS / 1000} seconds before the next question. The fastest correct answer scores 1 point.`
           )}
-          <span className="mt-1 block font-bold text-indigo-600" data-testid="versus-reward-rule">
+          <span className="mt-1 block font-bold text-brand-600" data-testid="versus-reward-rule">
             {tr(
               `🎁 ガチャポイント: 正解1問 ${VERSUS_POINTS.correct}pt、対戦では早押し1回 +${VERSUS_POINTS.fastest}pt・勝つと +${VERSUS_POINTS.win}pt`,
               `🎁 Gacha points: ${VERSUS_POINTS.correct}pt per correct answer; in versus, +${VERSUS_POINTS.fastest}pt per fastest answer and +${VERSUS_POINTS.win}pt for a win`
@@ -181,14 +181,14 @@ export default function VersusScreen({ header, user, rooms, onSignIn, scopeOptio
           </span>
         </p>
         <div>
-          <label htmlFor="versus-scope" className="text-xs font-bold text-slate-500">
+          <label htmlFor="versus-scope" className="text-xs font-bold text-ink-500">
             {tr("出題範囲", "Question range")}
           </label>
           <select
             id="versus-scope"
             value={config.scope}
             onChange={(e) => setConfig({ ...config, scope: e.target.value })}
-            className="mt-1 w-full rounded-xl bg-white py-2 pl-3 pr-9 text-sm font-semibold text-slate-800 shadow-sm ring-1 ring-slate-200"
+            className="mt-1 w-full rounded-xl bg-white py-2 pl-3 pr-9 text-sm font-semibold text-ink-800 shadow-sm ring-1 ring-ink-200"
           >
             {scopeOptions.map(([v, label]) => (
               <option key={v} value={v}>
@@ -198,8 +198,8 @@ export default function VersusScreen({ header, user, rooms, onSignIn, scopeOptio
           </select>
         </div>
         <div>
-          <p className="text-xs font-bold text-slate-500">{tr("問題数", "Number of questions")}</p>
-          <div className="mt-1 grid grid-cols-3 gap-1 rounded-xl bg-slate-100 p-1" role="radiogroup">
+          <p className="text-xs font-bold text-ink-500">{tr("問題数", "Number of questions")}</p>
+          <div className="mt-1 grid grid-cols-3 gap-1 rounded-xl bg-ink-100 p-1" role="radiogroup">
             {COUNTS.map((n) => (
               <button
                 key={n}
@@ -207,19 +207,19 @@ export default function VersusScreen({ header, user, rooms, onSignIn, scopeOptio
                 role="radio"
                 aria-checked={config.count === n}
                 onClick={() => setConfig({ ...config, count: n })}
-                className={`rounded-lg py-1.5 text-sm font-bold ${config.count === n ? "bg-white text-indigo-600 shadow" : "text-slate-500"}`}
+                className={`rounded-lg py-1.5 text-sm font-bold ${config.count === n ? "bg-white text-brand-600 shadow" : "text-ink-500"}`}
               >
                 {tr(`${n}問`, `${n}`)}
               </button>
             ))}
           </div>
         </div>
-        <button type="button" disabled={items.length < 4} onClick={startSolo} className={`${btn} bg-gradient-to-r from-indigo-500 to-violet-600 text-white`}>
+        <button type="button" disabled={items.length < 4} onClick={startSolo} className={`${btn} key bg-brand-600 text-white`}>
           <User size={18} /> {tr("1人で練習", "Practice solo")}
         </button>
       </div>
 
-      <div className="mt-4 space-y-3 rounded-3xl bg-slate-900 p-5 text-white shadow-lg" data-testid="versus-online">
+      <div className="mt-4 space-y-3 rounded-3xl bg-ink-900 p-5 text-white shadow-lg" data-testid="versus-online">
         <p className="flex items-center gap-2 text-sm font-black">
           <Users size={18} /> {tr("ほかの人と対戦", "Play against others")}
           <span className="text-[11px] font-bold text-white/60">{tr(`（${MAX_PLAYERS}人まで）`, `(up to ${MAX_PLAYERS})`)}</span>
@@ -229,8 +229,8 @@ export default function VersusScreen({ header, user, rooms, onSignIn, scopeOptio
         ) : !user ? (
           <>
             <p className="text-xs leading-relaxed text-white/70">{tr("対戦には Google でのログインが必要です。", "You need to sign in with Google to play against others.")}</p>
-            <button type="button" onClick={onSignIn} className={`${btn} bg-white text-slate-800`}>
-              <span className="font-black text-indigo-600">G</span> {tr("Google でログイン", "Sign in with Google")}
+            <button type="button" onClick={onSignIn} className={`${btn} bg-white text-ink-800`}>
+              <span className="font-black text-brand-600">G</span> {tr("Google でログイン", "Sign in with Google")}
             </button>
           </>
         ) : (
@@ -246,7 +246,7 @@ export default function VersusScreen({ header, user, rooms, onSignIn, scopeOptio
                 inputMode="numeric"
                 maxLength={4}
                 placeholder={tr("部屋の番号（4けた）", "Room number (4 digits)")}
-                className="min-w-0 flex-1 rounded-2xl bg-white px-4 py-3 text-base font-bold tracking-widest text-slate-900"
+                className="min-w-0 flex-1 rounded-2xl bg-white px-4 py-3 text-base font-bold tracking-widest text-ink-900"
               />
               <button type="submit" disabled={busy} className="rounded-2xl bg-amber-400 px-4 text-sm font-extrabold text-amber-950 disabled:opacity-50">
                 {tr("入る", "Join")}
@@ -300,12 +300,12 @@ function OnlineRoom({ code, user, rooms, itemsFor, byId, triviaOf, speech, sound
   // 答えはトランザクションで書く（クラウドに届いた順に処理され、最初に届いた正解が早押し成功。先を越されたら "taken"）
   const sendAnswer = (q, i, ms) => act((r) => submitAnswer(r, user.uid, q, i, ms));
 
-  if (room === undefined) return <p className="p-8 text-center text-sm text-slate-500">{tr("読み込み中…", "Loading…")}</p>;
+  if (room === undefined) return <p className="p-8 text-center text-sm text-ink-500">{tr("読み込み中…", "Loading…")}</p>;
   if (room === null || !room.players?.[user.uid]) {
     return (
       <div className="p-8 text-center">
-        <p className="text-sm text-slate-600">{tr("部屋が見つかりません。", "The room couldn't be found.")}</p>
-        <button type="button" onClick={onExit} className={`${btn} mt-4 bg-slate-800 text-white`}>
+        <p className="text-sm text-ink-600">{tr("部屋が見つかりません。", "The room couldn't be found.")}</p>
+        <button type="button" onClick={onExit} className={`${btn} mt-4 bg-ink-800 text-white`}>
           {tr("もどる", "Back")}
         </button>
       </div>
@@ -315,29 +315,29 @@ function OnlineRoom({ code, user, rooms, itemsFor, byId, triviaOf, speech, sound
     const players = Object.entries(room.players).sort((a, b) => a[1].joined - b[1].joined);
     return (
       <div className="h-full overflow-y-auto px-5 pt-6 pb-6" data-testid="versus-lobby">
-        <p className="text-center text-xs font-bold text-slate-500">{tr("部屋の番号", "Room number")}</p>
-        <p className="text-center text-5xl font-black tracking-[0.3em] text-slate-900" data-testid="versus-code">
+        <p className="text-center text-xs font-bold text-ink-500">{tr("部屋の番号", "Room number")}</p>
+        <p className="text-center text-5xl font-black tracking-[0.3em] text-ink-900" data-testid="versus-code">
           {code}
         </p>
-        <p className="mt-1 text-center text-[11px] text-slate-500">{tr("この番号を相手に伝えてください", "Tell the other player this number")}</p>
-        <div className="mt-4 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200">
-          <p className="text-xs font-bold text-slate-500">
+        <p className="mt-1 text-center text-[11px] text-ink-500">{tr("この番号を相手に伝えてください", "Tell the other player this number")}</p>
+        <div className="mt-4 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-ink-200">
+          <p className="text-xs font-bold text-ink-500">
             {tr("参加者", "Players")} {players.length} / {MAX_PLAYERS}
           </p>
           <ul className="mt-2 space-y-1.5" data-testid="versus-players">
             {players.map(([uid, p]) => (
-              <li key={uid} className="flex items-center gap-2 text-sm font-bold text-slate-800">
-                <User size={16} className="text-indigo-500" /> {p.name}
-                {uid === user.uid && <span className="text-[10px] text-slate-400">{tr("（あなた）", "(you)")}</span>}
+              <li key={uid} className="flex items-center gap-2 text-sm font-bold text-ink-800">
+                <User size={16} className="text-brand-500" /> {p.name}
+                {uid === user.uid && <span className="text-[10px] text-ink-400">{tr("（あなた）", "(you)")}</span>}
               </li>
             ))}
           </ul>
-          {players.length < 2 && <p className="mt-2 text-xs text-slate-500">{tr("相手が入るのを待っています…", "Waiting for others to join…")}</p>}
+          {players.length < 2 && <p className="mt-2 text-xs text-ink-500">{tr("相手が入るのを待っています…", "Waiting for others to join…")}</p>}
         </div>
         <button type="button" disabled={players.length < 2} onClick={() => restart()} className={`${btn} mt-4 bg-gradient-to-r from-rose-500 to-orange-500 text-white`}>
           <Zap size={18} /> {tr("スタート", "Start")}
         </button>
-        <button type="button" onClick={exit} className={`${btn} mt-2 bg-white text-slate-600 ring-1 ring-slate-200`}>
+        <button type="button" onClick={exit} className={`${btn} mt-2 bg-white text-ink-600 ring-1 ring-ink-200`}>
           <LogOut size={16} /> {tr("部屋を出る", "Leave the room")}
         </button>
         {error && <p className="mt-2 text-center text-xs font-bold text-rose-600">{error}</p>}
@@ -449,7 +449,7 @@ function Game({ room, me, sendAnswer, onFinished, byId, triviaOf, speech, sound,
   const label = (id) => byId[id]?.japanese.split("／")[0] || id;
 
   return (
-    <div className="flex h-full flex-col bg-slate-950 px-4 pt-3 pb-3 text-white" data-testid="versus-game">
+    <div className="flex h-full flex-col bg-ink-950 px-4 pt-3 pb-3 text-white" data-testid="versus-game">
       <div className="flex items-center gap-2 text-xs font-bold">
         <button type="button" onClick={onExit} className="rounded-full bg-white/10 px-3 py-1.5 text-white/70">
           {tr("やめる", "Quit")}
@@ -464,7 +464,7 @@ function Game({ room, me, sendAnswer, onFinished, byId, triviaOf, speech, sound,
             return (
               <span
                 key={p.uid}
-                className={`rounded-full px-2 py-0.5 tabular-nums transition ${p.uid === me ? "bg-indigo-500" : "bg-white/15"} ${
+                className={`rounded-full px-2 py-0.5 tabular-nums transition ${p.uid === me ? "bg-brand-500" : "bg-white/15"} ${
                   mark === " ×" ? "ring-2 ring-rose-400" : mark === " ○" ? "ring-2 ring-emerald-300" : ""
                 }`}
                 data-testid="versus-score"
@@ -579,7 +579,7 @@ function Game({ room, me, sendAnswer, onFinished, byId, triviaOf, speech, sound,
           <div className="mt-3 flex items-center gap-2">
             <p className="flex-1 text-[11px] text-white/50 tabular-nums">{tr(`${Math.ceil(revealLeft / 1000)}秒後に次の問題`, `Next question in ${Math.ceil(revealLeft / 1000)}s`)}</p>
             {solo && (
-              <button type="button" onClick={advance} className="flex items-center gap-1 rounded-xl bg-indigo-500 px-4 py-2 text-sm font-extrabold" data-testid="versus-next">
+              <button type="button" onClick={advance} className="flex items-center gap-1 rounded-xl bg-brand-500 px-4 py-2 text-sm font-extrabold" data-testid="versus-next">
                 {q + 1 >= room.questions.length ? tr("結果を見る", "See results") : tr("次の問題へ", "Next question")} <ArrowRight size={16} />
               </button>
             )}
@@ -595,18 +595,18 @@ function Explanation({ item, trivia, speech }) {
   const ex = item.example || String(item.exampleContext || "").split("\n")[0];
   const exJa = item.exampleJa || String(item.exampleJapanese || "").split("\n")[0];
   return (
-    <div className="rounded-2xl bg-white p-4 text-slate-900" data-testid="versus-explain">
+    <div className="rounded-2xl bg-white p-4 text-ink-900" data-testid="versus-explain">
       <p className="flex items-center gap-2 text-xl font-black">
         {item.english}
-        <button type="button" aria-label={tr("読み上げる", "Read aloud")} onClick={() => speech.speak(item.english, null, item.id)} className="text-indigo-500">
+        <button type="button" aria-label={tr("読み上げる", "Read aloud")} onClick={() => speech.speak(item.english, null, item.id)} className="text-brand-500">
           <Volume2 size={18} />
         </button>
       </p>
-      <p className="text-sm font-bold text-indigo-700">{item.japanese}</p>
+      <p className="text-sm font-bold text-brand-700">{item.japanese}</p>
       {ex && (
-        <p className="mt-2 text-xs leading-relaxed text-slate-600">
+        <p className="mt-2 text-xs leading-relaxed text-ink-600">
           {ex.replace(/^[AB]: /, "")}
-          {exJa && <span className="block text-slate-400">{exJa.replace(/^[AB]: /, "")}</span>}
+          {exJa && <span className="block text-ink-400">{exJa.replace(/^[AB]: /, "")}</span>}
         </p>
       )}
       {trivia?.etymology && (
@@ -632,7 +632,7 @@ function Results({ room, me, claim, onRestart, onExit }) {
   const meRow = rows.find((r) => r.uid === me);
   const tie = rows.length > 1 && rows[1].points === top.points && rows[1].correct === top.correct && rows[1].ms === top.ms;
   return (
-    <div className="h-full overflow-y-auto bg-slate-950 px-5 pt-8 pb-6 text-white" data-testid="versus-results">
+    <div className="h-full overflow-y-auto bg-ink-950 px-5 pt-8 pb-6 text-white" data-testid="versus-results">
       <p className="text-center text-2xl font-black">
         {solo
           ? tr(`${room.questions.length}問中 ${meRow.correct}問 正解`, `${meRow.correct} of ${room.questions.length} correct`)
@@ -654,7 +654,7 @@ function Results({ room, me, claim, onRestart, onExit }) {
       {!solo && (
         <ol className="mt-5 space-y-2">
           {rows.map((r, i) => (
-            <li key={r.uid} className={`flex items-center gap-3 rounded-2xl px-4 py-3 ${r.uid === me ? "bg-indigo-600" : "bg-white/10"}`} data-testid="versus-rank">
+            <li key={r.uid} className={`flex items-center gap-3 rounded-2xl px-4 py-3 ${r.uid === me ? "bg-brand-600" : "bg-white/10"}`} data-testid="versus-rank">
               <span className="w-6 text-lg font-black">{i === 0 ? <Crown size={20} className="text-amber-300" /> : i + 1}</span>
               <span className="flex-1 font-bold">{r.name}</span>
               <span className="text-right text-xs tabular-nums">

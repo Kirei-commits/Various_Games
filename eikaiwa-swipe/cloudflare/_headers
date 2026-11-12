@@ -1,0 +1,11 @@
+# Cloudflare が全部のページに付ける、守りのためのヘッダー（GitHub Pages では付けられなかったもの）。
+# 読み込み先を足したら（新しい外部サービスなど）、Content-Security-Policy にも足すこと。足し忘れるとその通信だけ止まる。
+#   script-src の 'unsafe-inline' … index.html に JS を埋め込んでいるので必要
+#   apis.google.com / *.firebaseapp.com / accounts.google.com … Google ログインの画面
+#   *.googleapis.com … Firebase（ログインとクラウド保存・対戦）
+/*
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://apis.google.com https://www.gstatic.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.googleusercontent.com; media-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' https://*.googleapis.com https://*.firebaseapp.com; frame-src https://*.firebaseapp.com https://accounts.google.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: microphone=(self), camera=(), geolocation=(), payment=(), usb=()
