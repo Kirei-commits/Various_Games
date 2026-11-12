@@ -13,7 +13,7 @@ export const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "
 const INPUTS = ["src", "tailwind.config.cjs", "tools/build.mjs", "tools/source-hash.mjs", "package-lock.json"];
 
 // 画像などはバイト列のままハッシュする（文字として読むと壊れたバイトが同じ文字になり、変更に気づけない）
-const BINARY = /\.(webp|png|jpe?g|opus|mp3)$/i;
+const BINARY = /\.(webp|png|jpe?g|opus|mp3|woff2)$/i;
 
 function walk(rel) {
   const abs = path.join(ROOT, rel);

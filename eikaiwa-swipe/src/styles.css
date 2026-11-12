@@ -21,7 +21,7 @@
   bottom: -0.3em;
   transform: translateX(-50%);
   font-weight: 800;
-  color: #818cf8;
+  color: #5B86FB;
   pointer-events: none;
 }
 .lk[data-k="reduction"]::after,
@@ -209,9 +209,36 @@
 @media (prefers-reduced-motion: reduce) { .bt-clear-flash, .bt-clear-text { animation-duration: 0.01s; animation-fill-mode: none; } }
 /* 読み方のルビ（カタカナ）。rt-link はリンキングの読み（まとめた読み） */
 ruby.rb { ruby-position: over; ruby-align: center; }
-ruby.rb rt { font-size: 0.5em; font-weight: 700; letter-spacing: 0; line-height: 1.1; color: #6366f1; user-select: none; }
+ruby.rb rt { font-size: 0.5em; font-weight: 700; letter-spacing: 0; line-height: 1.1; color: #3563F2; user-select: none; }
 ruby.rb rt.rt-link { color: #f43f5e; }
 /* 対戦: 「○○さんが正解！」などの表示（飛び出して、そのまま残る） */
 @keyframes vs-pop { 0% { transform: scale(2); opacity: 0; } 40% { transform: scale(0.92); opacity: 1; } 70% { transform: scale(1.05); } 100% { transform: scale(1); opacity: 1; } }
 .vs-pop { animation: vs-pop 0.5s ease-out both; }
 @media (prefers-reduced-motion: reduce) { .vs-pop { animation: none; } }
+
+/* ---------------------------------------------------------------------------
+ * デザインの土台（色の名前は tailwind.config.cjs）
+ * ------------------------------------------------------------------------- */
+/* 紙の地: 温かい白に、ノートのような細かい点 */
+.app-paper { background-color: #FAF7F1; background-image: radial-gradient(rgba(20, 27, 51, 0.07) 1px, transparent 1px); background-size: 18px 18px; }
+/* 主役のボタン: 下に濃い影をつけて「押せる」形に（shadow-lg より後に書いて勝たせる） */
+.key { box-shadow: 0 4px 0 0 #16286E; }
+.key:active { box-shadow: 0 1px 0 0 #16286E; }
+/* キーボードで操作するときの枠（タップでは出ない） */
+:focus-visible { outline: 3px solid #FFC83D; outline-offset: 2px; }
+/* 数字は幅をそろえる（残り枚数・得点がガタつかない） */
+.tabular-nums { font-feature-settings: "tnum"; }
+
+/* ようこそ画面: 地の模様と、開いたときに1度だけ順番に現れる動き */
+.welcome { background-image: radial-gradient(circle at 85% 8%, rgba(91, 134, 251, 0.55), transparent 45%), radial-gradient(rgba(255, 255, 255, 0.09) 1.5px, transparent 1.5px); background-size: auto, 22px 22px; }
+@keyframes wl-in { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+.wl-in { animation: wl-in 0.5s cubic-bezier(0.2, 0.8, 0.3, 1) var(--d, 0s) both; }
+@keyframes wl-front { from { opacity: 0; transform: translateY(24px) rotate(0); } to { opacity: 1; transform: translateY(0) rotate(-4deg); } }
+@keyframes wl-back { from { opacity: 0; transform: translateY(24px) rotate(0); } to { opacity: 1; transform: translateY(0) rotate(7deg); } }
+.wl-card-front { animation: wl-front 0.6s cubic-bezier(0.2, 0.9, 0.3, 1.2) 0.1s both; }
+.wl-card-back { animation: wl-back 0.6s cubic-bezier(0.2, 0.9, 0.3, 1.2) both; }
+@media (prefers-reduced-motion: reduce) {
+  .wl-in { animation: none; }
+  .wl-card-front { animation: none; transform: rotate(-4deg); }
+  .wl-card-back { animation: none; transform: rotate(7deg); }
+}

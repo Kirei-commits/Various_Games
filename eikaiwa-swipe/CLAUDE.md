@@ -29,6 +29,15 @@ CI はリポジトリ直下の `.github/workflows/ci.yml`（`changes` ジョブ�
 
 7. **画面に出す文字は `tr("日本語", "English")`（`src/i18n.js`）で両方書く。** 設定の「表示の言語」で切り替わる。モジュールの定数に置く名前は getter（`get name() { return tr(...) }`）にする。章を足したら `src/data/titles-en.js` に英語の章名も足す。
 
+8. **色と文字は `tailwind.config.cjs` の名前だけを使う。** 主役の色は `brand-*`（コバルト）、地とグレーは `ink-*`（紙の白〜紺）、差し色は `sun-*`。
+   `indigo-*` `slate-*` と紫のグラデーションは使わない（レア度 SR の紫だけは例外）。主役のボタンは `key bg-brand-600`。
+   英数字の書体は Bricolage Grotesque を `tools/build.mjs` が埋め込む（外から読み込まない）。
+
+## 公開
+
+GitHub Pages（`.github/workflows/pages.yml`）に加えて、Cloudflare（`.github/workflows/cloudflare.yml`）にも出せる。手順は `CLOUDFLARE_SETUP.md`。
+外部の読み込み先を足したら `cloudflare/_headers` の CSP にも足す。
+
 ## コマンド
 
 ```bash

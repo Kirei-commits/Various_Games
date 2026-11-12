@@ -517,7 +517,7 @@ export const initialBonus = () => ({
 
 /** 着せかえ（カードと画面の色）。設定からいつでも無料で選べる */
 export const THEMES = [
-  { id: "default", get name() { return tr("スタンダード", "Standard"); }, colors: ["#6366f1", "#8b5cf6", "#ec4899"] },
+  { id: "default", get name() { return tr("スタンダード", "Standard"); }, colors: ["#16286E", "#1F4AE0", "#5B86FB"] },
   { id: "sakura", get name() { return tr("桜", "Sakura"); }, colors: ["#f9a8d4", "#f472b6", "#fb7185"] },
   { id: "ocean", get name() { return tr("海", "Ocean"); }, colors: ["#38bdf8", "#0ea5e9", "#6366f1"] },
   { id: "forest", get name() { return tr("森", "Forest"); }, colors: ["#4ade80", "#10b981", "#0d9488"] },
