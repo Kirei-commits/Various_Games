@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { highlight } from '../lib/highlight';
+import { CopyButton } from './CopyButton';
+import { highlight, toLines, type Token } from '../lib/highlight';
 import { RoleBadge, type Role } from './RoleBadge';
 
 type Props = {
@@ -8,24 +8,15 @@ type Props = {
   title?: string;
   /** どの役割のファイルか（色つきのラベルが付く） */
   role?: Role;
-  /** 'text' にすると色をつけない（フォルダ構成図など） */
+  /** 'text' にすると色をつけない（ターミナルで打つ内容など） */
   lang?: 'tsx' | 'text';
 };
 
+// コードを表示する。長い行は横スクロールにせず、字下げを保ったまま折り返す。
 export function CodeBlock({ code, title, role, lang = 'tsx' }: Props) {
-  const [copied, setCopied] = useState(false);
   const source = code.replace(/\n+$/, '');
-  const lineCount = source.split('\n').length;
-
-  const copy = async () => {
-    try {
-      await navigator.clipboard.writeText(source);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1500);
-    } catch {
-      setCopied(false);
-    }
-  };
+  const tokens: Token[] = lang === 'text' ? [{ kind: 'plain', text: source }] : highlight(source);
+  const lines = toLines(tokens);
 
   return (
     <figure className="code">
@@ -35,25 +26,31 @@ export function CodeBlock({ code, title, role, lang = 'tsx' }: Props) {
           {title && <span className="code-name">{title}</span>}
         </span>
         <span className="code-meta">
-          {lang === 'tsx' && <span>{lineCount}行</span>}
-          <button type="button" className="btn-mini" onClick={copy}>
-            {copied ? 'コピーした' : 'コピー'}
-          </button>
+          {lang === 'tsx' && <span>{lines.length}行</span>}
+          <CopyButton text={source} />
         </span>
       </figcaption>
       <pre>
         <code>
-          {lang === 'text'
-            ? source
-            : highlight(source).map((token, i) =>
-                token.kind === 'plain' ? (
-                  token.text
-                ) : (
-                  <span key={i} className={`tok-${token.kind}`}>
-                    {token.text}
-                  </span>
-                ),
-              )}
+          {lines.map((line, i) => (
+            <span
+              key={i}
+              className="code-line"
+              style={{ paddingLeft: `${line.indent + 2}ch` }}
+            >
+              {line.tokens.length === 0
+                ? '​'
+                : line.tokens.map((token, j) =>
+                    token.kind === 'plain' ? (
+                      token.text
+                    ) : (
+                      <span key={j} className={`tok-${token.kind}`}>
+                        {token.text}
+                      </span>
+                    ),
+                  )}
+            </span>
+          ))}
         </code>
       </pre>
     </figure>

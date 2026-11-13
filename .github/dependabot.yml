@@ -14,6 +14,14 @@ updates:
       interval: monthly
     open-pull-requests-limit: 3
 
+  # react-training は React を index.html に埋めこんでいる。更新を取りこんだら npm run build し直すこと
+  # （ビルドし直さなくても lint は落ちないが、配っている index.html は古い版のまま）。
+  - package-ecosystem: npm
+    directory: /react-training
+    schedule:
+      interval: monthly
+    open-pull-requests-limit: 3
+
   - package-ecosystem: github-actions
     directory: /
     schedule:

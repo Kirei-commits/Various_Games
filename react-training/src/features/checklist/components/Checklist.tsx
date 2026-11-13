@@ -1,5 +1,3 @@
-import { useProgress } from '../../progress';
-
 export type ChecklistItem = {
   /** 保存に使う名前（変えるとチェックが外れる） */
   id: string;
@@ -9,12 +7,17 @@ export type ChecklistItem = {
   reason: string;
 };
 
-type Props = { title?: string; items: ChecklistItem[] };
+type Props = {
+  title?: string;
+  items: ChecklistItem[];
+  /** チェック済みの印（項目ID → true） */
+  checked: Record<string, boolean>;
+  onToggle: (id: string, value: boolean) => void;
+};
 
-// レビューのときに見る項目の一覧。チェックは保存される。
-export function Checklist({ title = '✅ レビューチェックリスト', items }: Props) {
-  const { progress, actions } = useProgress();
-  const doneCount = items.filter((item) => progress.confirmed[item.id]).length;
+// レビューのときに見る項目の一覧。チェックの保存は外から渡してもらう。
+export function Checklist({ title = '✅ レビューチェックリスト', items, checked, onToggle }: Props) {
+  const doneCount = items.filter((item) => checked[item.id]).length;
 
   return (
     <div className="checklist">
@@ -30,8 +33,8 @@ export function Checklist({ title = '✅ レビューチェックリスト', ite
             <label className="check-row">
               <input
                 type="checkbox"
-                checked={progress.confirmed[item.id] === true}
-                onChange={(e) => actions.setConfirmed(item.id, e.target.checked)}
+                checked={checked[item.id] === true}
+                onChange={(e) => onToggle(item.id, e.target.checked)}
               />
               <span>
                 <strong>{item.text}</strong>

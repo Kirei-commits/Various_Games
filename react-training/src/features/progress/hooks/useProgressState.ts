@@ -5,6 +5,7 @@ import { EMPTY_PROGRESS, loadProgress, saveProgress, type Progress } from '../ap
 export type ProgressActions = {
   answer: (questionId: string, choiceIndex: number) => void;
   setConfirmed: (id: string, value: boolean) => void;
+  setNote: (id: string, text: string) => void;
   completeLesson: (lessonId: number) => void;
   setUnlockAll: (value: boolean) => void;
   reset: () => void;
@@ -23,6 +24,7 @@ export function useProgressState(): { progress: Progress; actions: ProgressActio
       setProgress((p) => ({ ...p, answers: { ...p.answers, [questionId]: choiceIndex } })),
     setConfirmed: (id, value) =>
       setProgress((p) => ({ ...p, confirmed: { ...p.confirmed, [id]: value } })),
+    setNote: (id, text) => setProgress((p) => ({ ...p, notes: { ...p.notes, [id]: text } })),
     completeLesson: (lessonId) =>
       setProgress((p) =>
         p.completedLessons.includes(lessonId)

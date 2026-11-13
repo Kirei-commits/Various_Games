@@ -18,3 +18,11 @@ export function writeJson(key: string, value: unknown): void {
     // 保存できなくても学習は続けられるので、何もしない。
   }
 }
+
+export function removeItem(key: string): void {
+  try {
+    localStorage.removeItem(key);
+  } catch {
+    // 消せなくても困らないので、何もしない。
+  }
+}

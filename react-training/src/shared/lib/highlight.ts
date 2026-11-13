@@ -39,3 +39,30 @@ export function highlight(code: string): Token[] {
   push('plain', code.slice(last));
   return tokens;
 }
+
+export type CodeLine = { indent: number; tokens: Token[] };
+
+/**
+ * 色分けした結果を、1行ずつに分ける。行の頭の字下げ（空白の数）は別に数えておく。
+ * 画面では、折り返した2行目以降も字下げを保てるようにするため。
+ */
+export function toLines(tokens: Token[]): CodeLine[] {
+  const lines: CodeLine[] = [{ indent: 0, tokens: [] }];
+  for (const token of tokens) {
+    const pieces = token.text.split('\n');
+    pieces.forEach((piece, i) => {
+      if (i > 0) lines.push({ indent: 0, tokens: [] });
+      if (piece === '') return;
+      const line = lines[lines.length - 1];
+      let text = piece;
+      if (line.tokens.length === 0 && token.kind === 'plain') {
+        const trimmed = text.replace(/^ +/, '');
+        line.indent += text.length - trimmed.length;
+        text = trimmed;
+        if (text === '') return;
+      }
+      line.tokens.push({ kind: token.kind, text });
+    });
+  }
+  return lines;
+}

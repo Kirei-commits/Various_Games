@@ -8,6 +8,8 @@ export type Progress = {
   answers: Record<string, number>;
   /** チェックリストやミニ課題の「確認した」印 */
   confirmed: Record<string, boolean>;
+  /** ミニ課題に書いた自分の答え（課題ID → 文章） */
+  notes: Record<string, string>;
   /** すべての回を自由に読めるようにするか */
   unlockAll: boolean;
 };
@@ -16,6 +18,7 @@ export const EMPTY_PROGRESS: Progress = {
   completedLessons: [],
   answers: {},
   confirmed: {},
+  notes: {},
   unlockAll: false,
 };
 

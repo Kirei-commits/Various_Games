@@ -4,8 +4,13 @@ import { useState } from 'react';
 import { useShoppingList } from '../hooks/useShoppingList';
 
 export function ShoppingList() {
-  const { items, isLoading, loadError, inputError, addItem } = useShoppingList();
+  const { items, isLoading, loadError, inputError, addItem, clearInputError } = useShoppingList();
   const [text, setText] = useState(''); // 入力中の文字は「画面の都合」なのでここで持つ
+
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setText(event.target.value);
+    clearInputError();
+  };
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
@@ -26,7 +31,7 @@ export function ShoppingList() {
       <form onSubmit={handleSubmit}>
         <input
           value={text}
-          onChange={(event) => setText(event.target.value)}
+          onChange={handleChange}
           placeholder="買うもの"
           aria-label="買うもの"
         />

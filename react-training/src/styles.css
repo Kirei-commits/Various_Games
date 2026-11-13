@@ -198,6 +198,11 @@ code {
 }
 
 /* ---- 回の本文 ---- */
+.lesson {
+  /* 上に貼りつく「回の切りかえ」の下に、本文の頭が隠れないようにする */
+  scroll-margin-top: 72px;
+}
+
 .lesson-head {
   background: var(--surface);
   border: 1px solid var(--line);
@@ -378,8 +383,9 @@ code {
 
 .code pre {
   margin: 0;
-  padding: 14px;
-  overflow-x: auto;
+  padding: 14px 14px 14px 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
   color: var(--code-text);
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   font-size: 0.8rem;
@@ -391,7 +397,66 @@ code {
   background: none;
   padding: 0;
   font-size: inherit;
-  overflow-wrap: normal;
+  overflow-wrap: anywhere;
+}
+
+/* 1行ずつの箱。長い行は、字下げを保ったまま折り返す（2行目以降は少し右にずらす） */
+.code-line {
+  display: block;
+  text-indent: -1ch;
+  margin-left: 1ch;
+}
+
+/* フォルダ構成図：線の列は折り返さない。説明は、広い画面では右の列、せまい画面では次の行 */
+.tree {
+  --tree-note-indent: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  column-gap: 12px;
+  padding: 14px;
+  color: var(--code-text);
+  font-size: 0.8rem;
+  line-height: 1.65;
+}
+
+.tree-with-notes {
+  grid-template-columns: max-content minmax(6em, 1fr);
+}
+
+.tree-path {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  white-space: pre;
+}
+
+.tree-note {
+  color: var(--tok-comment);
+  font-size: 0.78rem;
+}
+
+@media (max-width: 700px) {
+  .code pre,
+  .tree {
+    font-size: 0.72rem;
+  }
+  .tree {
+    padding: 12px 10px;
+  }
+  .tree-with-notes {
+    --tree-note-indent: 1;
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .tree-note {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 0.68rem;
+    line-height: 1.4;
+    margin-bottom: 3px;
+  }
+  .tree-note:empty {
+    display: none;
+  }
+  .tree-note:not(:empty)::before {
+    content: '↑ ';
+  }
 }
 
 .tok-comment {
@@ -458,8 +523,9 @@ code {
 }
 
 .btn-mini {
-  font-size: 0.8rem;
-  padding: 3px 10px;
+  font-size: 0.82rem;
+  padding: 6px 12px;
+  min-height: 40px;
 }
 
 .code-head .btn-mini {
@@ -704,6 +770,7 @@ tr:last-child td {
 }
 
 textarea,
+select,
 input:not([type='checkbox']) {
   font: inherit;
   width: 100%;
@@ -965,9 +1032,112 @@ textarea {
   min-height: 44px;
 }
 
+/* ---- パートの切りかえ ---- */
+.part-steps {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px dashed var(--line);
+}
+
+.part-now {
+  margin: 0 0 8px;
+  font-size: 0.92rem;
+}
+
+.part-steps ol {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 0;
+  margin: 0;
+}
+
+.part-steps li {
+  margin: 0;
+}
+
+.part-dot {
+  font: inherit;
+  font-weight: 700;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  background: var(--bg);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.part-dot.is-current {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-text);
+}
+
+.part-pager {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 40px;
+}
+
+.part-pager .btn {
+  text-align: left;
+  line-height: 1.4;
+}
+
+.part-pager .btn small {
+  display: block;
+  font-weight: 400;
+}
+
+.part-pager .btn-next {
+  text-align: right;
+  background: var(--text);
+  border-color: var(--text);
+  color: var(--bg);
+}
+
+.part-pager .btn-next small {
+  color: inherit;
+  opacity: 0.8;
+}
+
+/* ---- よくある質問 ---- */
+.faq details {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 0 16px;
+  margin-top: 10px;
+}
+
+.faq summary {
+  cursor: pointer;
+  font-weight: 700;
+  padding: 12px 0;
+  min-height: 44px;
+}
+
+.faq details[open] summary {
+  border-bottom: 1px dashed var(--line);
+  margin-bottom: 10px;
+}
+
+.faq p {
+  font-size: 0.95rem;
+}
+
+.slug-preview {
+  font-size: 0.85rem;
+  color: var(--muted);
+  margin: -4px 0 10px;
+}
+
 /* ---- 下 ---- */
 .lesson-footer {
-  margin-top: 40px;
+  margin-top: 16px;
   padding: 18px 16px;
   border-radius: var(--radius);
   background: var(--surface);

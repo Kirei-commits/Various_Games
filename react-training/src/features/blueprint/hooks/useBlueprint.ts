@@ -1,38 +1,8 @@
 // 🍳 キッチン：設計図の入力内容を持ち、足す・直す・消すの操作と、できあがった設計図を渡す。
 import { useEffect, useMemo, useState } from 'react';
 import { loadDraft, saveDraft, type BlueprintDraft } from '../api/blueprintStorage';
-import { generateBlueprint, toSlug, type FeatureInput } from '../logic/generateBlueprint';
-
-export type Preset = { name: string; appName: string; features: Omit<FeatureInput, 'id'>[] };
-
-export const PRESETS: Preset[] = [
-  {
-    name: 'ToDoアプリ',
-    appName: 'やることリスト',
-    features: [
-      { label: 'やることの一覧と追加', slug: 'todo-list', usesServer: true },
-      { label: '絞りこみ（未完了だけ表示など）', slug: 'todo-filter', usesServer: false },
-    ],
-  },
-  {
-    name: '読書記録',
-    appName: '読書ノート',
-    features: [
-      { label: '読んだ本の一覧', slug: 'book-list', usesServer: true },
-      { label: '感想を書く', slug: 'book-review', usesServer: true },
-      { label: '月ごとの冊数グラフ', slug: 'reading-stats', usesServer: true },
-    ],
-  },
-  {
-    name: '家計簿',
-    appName: 'おこづかい帳',
-    features: [
-      { label: '支出を記録する', slug: 'expense-entry', usesServer: true },
-      { label: '月の合計を見る', slug: 'monthly-summary', usesServer: true },
-      { label: 'ログイン', slug: 'login', usesServer: true },
-    ],
-  },
-];
+import { PRESETS, type Preset } from '../logic/presets';
+import { generateBlueprint, guessShape, toSlug, type FeatureInput } from '../logic/generateBlueprint';
 
 let counter = 0;
 const newId = () => `f${Date.now()}-${counter++}`;
@@ -51,7 +21,7 @@ export function useBlueprint() {
   const addFeature = () =>
     setDraft((d) => ({
       ...d,
-      features: [...d.features, { id: newId(), label: '', slug: '', usesServer: true }],
+      features: [...d.features, { id: newId(), label: '', slug: '', shape: 'list' }],
     }));
 
   const updateFeature = (id: string, patch: Partial<Omit<FeatureInput, 'id'>>) =>
@@ -60,11 +30,19 @@ export function useBlueprint() {
       features: d.features.map((f) => (f.id === id ? { ...f, ...patch } : f)),
     }));
 
-  /** フォルダ名は、入力が終わったとき（フォーカスが外れたとき）に形をそろえる */
+  /**
+   * フォルダ名の入力が終わったとき（フォーカスが外れたとき）に、入力欄の文字も整った形にそろえる。
+   * ログインなど「送る」形だと分かる名前なら、形もそれに合わせる（自分で選び直せる）。
+   */
   const tidySlug = (id: string) =>
     setDraft((d) => ({
       ...d,
-      features: d.features.map((f) => (f.id === id ? { ...f, slug: toSlug(f.slug) } : f)),
+      features: d.features.map((f) => {
+        if (f.id !== id) return f;
+        const slug = toSlug(f.slug);
+        const shape = f.shape === 'list' && guessShape(slug) === 'form' ? 'form' : f.shape;
+        return { ...f, slug, shape };
+      }),
     }));
 
   const removeFeature = (id: string) =>
@@ -79,6 +57,7 @@ export function useBlueprint() {
   const clear = () => setDraft({ appName: '', features: [] });
 
   return {
+    presets: PRESETS,
     draft,
     blueprint,
     setAppName,

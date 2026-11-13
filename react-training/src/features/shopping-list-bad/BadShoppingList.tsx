@@ -62,7 +62,10 @@ export function BadShoppingList() {
       >
         <input
           value={text}
-          onChange={(event) => setText(event.target.value)}
+          onChange={(event) => {
+            setText(event.target.value);
+            setInputError(null);
+          }}
           placeholder="買うもの"
           aria-label="買うもの"
         />

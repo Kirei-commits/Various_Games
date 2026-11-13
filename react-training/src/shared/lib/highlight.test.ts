@@ -22,3 +22,20 @@ describe('highlight', () => {
     expect(tokens.some((t) => t.kind === 'comment')).toBe(false);
   });
 });
+
+describe('toLines', () => {
+  it('行ごとに分け、字下げの数を別に数える', async () => {
+    const { toLines } = await import('./highlight');
+    const lines = toLines(highlight('if (a) {\n    return 1; // x\n\n}'));
+    expect(lines.map((l) => l.indent)).toEqual([0, 4, 0, 0]);
+    expect(lines[1].tokens.map((t) => t.text).join('')).toBe('return 1; // x');
+    expect(lines[2].tokens).toEqual([]);
+  });
+
+  it('複数行のコメントも行ごとに分かれる', async () => {
+    const { toLines } = await import('./highlight');
+    const lines = toLines(highlight('/* a\n   b */\nx'));
+    expect(lines).toHaveLength(3);
+    expect(lines[1].tokens[0].kind).toBe('comment');
+  });
+});

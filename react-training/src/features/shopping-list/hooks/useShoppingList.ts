@@ -43,5 +43,8 @@ export function useShoppingList() {
     return true;
   };
 
-  return { items, isLoading, loadError, inputError, addItem };
+  // 入力し直し始めたら、前のエラーは消す
+  const clearInputError = () => setInputError(null);
+
+  return { items, isLoading, loadError, inputError, addItem, clearInputError };
 }

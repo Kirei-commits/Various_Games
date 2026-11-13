@@ -29,7 +29,6 @@ jobs:
       games: ${{ steps.pick.outputs.games }}
       kyozai: ${{ steps.pick.outputs.kyozai }}
       quant: ${{ steps.pick.outputs.quant }}
-      react: ${{ steps.pick.outputs.react }}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -43,7 +42,7 @@ jobs:
           BASE: ${{ github.event.pull_request.base.sha }}
           DEFAULT: ${{ github.event.repository.default_branch }}
         run: |
-          ALL="god-arena gomoku-narabe tsuri-quest eikaiwa-swipe monster-strike pachinko-gokugoku minigame-rush renshu-ginko cosmo-fusion"
+          ALL="god-arena gomoku-narabe tsuri-quest eikaiwa-swipe monster-strike pachinko-gokugoku minigame-rush renshu-ginko cosmo-fusion react-training"
           from=""
           if [ "$EVENT" = pull_request ]; then
             from="$BASE"
@@ -79,10 +78,6 @@ jobs:
           quant=false
           if [ "$changed" = "*" ] || printf '%s\n' "$changed" | grep -q "^quant-trader/"; then quant=true; fi
           echo "quant=$quant" | tee -a "$GITHUB_OUTPUT"
-          # react-training は Vite でビルドする React アプリなので、これも別のジョブ
-          react=false
-          if [ "$changed" = "*" ] || printf '%s\n' "$changed" | grep -q "^react-training/"; then react=true; fi
-          echo "react=$react" | tee -a "$GITHUB_OUTPUT"
 
   checks:
     name: 静的検査とロジックテスト (${{ matrix.game }})
@@ -250,35 +245,6 @@ jobs:
 
       - name: 合成データでパイプラインを最後まで動かす
         run: python main.py
-
-  # React 設計研修の教材アプリ（Vite + React + TypeScript）。型チェック・ロジックテスト・ビルドが通るかを見る。
-  react-training:
-    name: 型チェックとテストとビルド (react-training)
-    needs: changes
-    if: needs.changes.outputs.react == 'true'
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    defaults:
-      run:
-        working-directory: react-training
-    steps:
-      - uses: actions/checkout@v7
-
-      - uses: actions/setup-node@v7
-        with:
-          node-version: '22'
-          cache: npm
-          cache-dependency-path: react-training/package-lock.json
-
-      - name: 依存をインストール
-        run: npm ci
-
-      - name: ロジックテスト
-        run: npm test
-
-      # build は型チェック（tsc --noEmit）のあとに vite build を走らせる
-      - name: 型チェックとビルド
-        run: npm run build
 
   # 教材登録・問題生成アプリ（Python）。Gemini は呼ばず、偽のクライアントで登録〜問題生成まで通す。
   kyozai-quiz:

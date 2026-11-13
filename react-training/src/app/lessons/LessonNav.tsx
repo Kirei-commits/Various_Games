@@ -1,16 +1,17 @@
-import { LESSONS } from '../lessons';
+import type { Lesson } from './lessons';
 
 type Props = {
+  lessons: Lesson[];
   current: number;
   isUnlocked: (lessonId: number) => boolean;
   isCompleted: (lessonId: number) => boolean;
   onSelect: (lessonId: number) => void;
 };
 
-export function LessonNav({ current, isUnlocked, isCompleted, onSelect }: Props) {
+export function LessonNav({ lessons, current, isUnlocked, isCompleted, onSelect }: Props) {
   return (
     <nav className="lesson-nav" aria-label="研修の回">
-      {LESSONS.map((lesson) => {
+      {lessons.map((lesson) => {
         const unlocked = isUnlocked(lesson.id);
         const mark = isCompleted(lesson.id) ? '✔' : unlocked ? '' : '🔒';
         return (

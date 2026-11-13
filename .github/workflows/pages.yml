@@ -1,6 +1,5 @@
 # 静的サイトとして GitHub Pages に公開する。
-# ほとんどはビルド工程が無く、リポジトリの中身をそのまま配る（各ゲームは index.html だけで動く）。
-# react-training だけは Vite でビルドした dist/ を配る。
+# ビルド工程は無く、リポジトリの中身をそのまま配る（各ゲームは index.html だけで動く）。
 #
 # 初回だけ手作業が要る:
 #   リポジトリの Settings → Pages → Build and deployment → Source を
@@ -68,26 +67,13 @@ jobs:
             fi
           done
 
-      # react-training は Vite の React アプリなので、ここでビルドして dist/ を配る
-      - uses: actions/setup-node@v7
-        with:
-          node-version: '22'
-          cache: npm
-          cache-dependency-path: react-training/package-lock.json
-
-      - name: react-training をビルドする
-        working-directory: react-training
-        run: |
-          npm ci
-          npm run build
-
       # 配信物に開発用のものを混ぜない（node_modules やテスト結果）
       - name: 配信するファイルだけを集める
         run: |
           mkdir -p _site
           cp index.html _site/ 2>/dev/null || true
           # eikaiwa-swipe は index.html に CSS/JS・絵をすべて埋め込んである。録音（audio/）だけは大きいので別ファイルで配る
-          for game in god-arena gomoku-narabe tsuri-quest eikaiwa-swipe monster-strike pachinko-gokugoku minigame-rush renshu-ginko cosmo-fusion; do
+          for game in god-arena gomoku-narabe tsuri-quest eikaiwa-swipe monster-strike pachinko-gokugoku minigame-rush renshu-ginko cosmo-fusion react-training; do
             mkdir -p "_site/$game"
             cp -r "$game/index.html" "$game/css" "$game/js" "$game/audio" "_site/$game/" 2>/dev/null || true
           done
@@ -95,9 +81,6 @@ jobs:
           mkdir -p _site/kyozai-quiz/samples
           cp -r kyozai-quiz/web/index.html kyozai-quiz/web/css kyozai-quiz/web/js _site/kyozai-quiz/
           cp kyozai-quiz/samples/southern_all_stars.pptx kyozai-quiz/samples/southern_all_stars.pdf _site/kyozai-quiz/samples/
-          # React 設計研修はビルド結果（dist/）だけを配る
-          mkdir -p _site/react-training
-          cp -r react-training/dist/. _site/react-training/
           # Quant Backtester はページと、ブラウザ（Pyodide）で読み込む Python のパッケージを配る
           mkdir -p _site/quant-trader
           cp quant-trader/index.html _site/quant-trader/
