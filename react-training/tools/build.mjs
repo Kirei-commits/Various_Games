@@ -21,6 +21,8 @@ const META = /<meta name="react-source-hash" content="([0-9a-f]+)">/;
 function listFiles(dir) {
   return fs
     .readdirSync(dir, { withFileTypes: true })
+    // 手元にだけ出来る一時ファイル（テストのキャッシュなど）は、ハッシュに混ぜない
+    .filter((entry) => entry.name !== 'node_modules' && !entry.name.startsWith('.'))
     .flatMap((entry) => {
       const full = path.join(dir, entry.name);
       return entry.isDirectory() ? listFiles(full) : [full];
