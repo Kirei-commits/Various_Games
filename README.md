@@ -20,6 +20,7 @@
 | ディレクトリ | 内容 |
 |---|---|
 | [renshu-ginko](./renshu-ginko/) | 練習銀行アカデミー。新卒〜中堅向けに、架空の銀行アプリを育てながら AI 前提の開発（仕様 → AI実装 → 検証 → 運用）を練習する。AIオフで基礎 → 説明ゲート → AIオンで実践、ブラウザ内の Git・CI、AI利用の監査ログ。L1〜L3 の25単元（L3 は spec-first・AI の PR レビュー・赤チーム演習）、計測ダッシュボード。 |
+| [react-training](./react-training/) | React アプリ設計・実践研修（全4回）。前提知識ゼロから「どこに・どんなファイルを作ればいいか」を決められるようになる。レストランのたとえで3つの役割、機能ごとのフォルダ構成、「お買い物メモ」の悪い例／良い例、自分のアプリの設計図ジェネレーター。各回に設計の理由・見るポイント・レビューチェックリスト・よくある質問・確認クイズ（模範解答つき）。Vite + React + TypeScript（`src/` を1枚の `index.html` にビルドしてコミット）。 |
 
 ## ツール
 
@@ -48,7 +49,7 @@ https://kirei-commits.github.io/Various_Games/quant-trader/    ← Quant Backtes
 各ゲームのディレクトリで `npm ci && npm test`。
 god-arena には実ブラウザで通しプレイする `npm run playtest` もあります。
 cosmo-fusion の調整値はエンジン（`index.html` の `<script id="engine">`）の `DEFAULTS` にあり、`npm run measure` で放っておいたときのクリア時間を seed ごとに並べられます。
-eikaiwa-swipe・pachinko-gokugoku・minigame-rush は `src/` から `index.html` を生成するので、変更後は `npm run build` して `index.html` もコミットします（古いままだと lint が落ちます）。
+eikaiwa-swipe・pachinko-gokugoku・minigame-rush・react-training は `src/` から `index.html` を生成するので、変更後は `npm run build` して `index.html` もコミットします（古いままだと lint が落ちます）。
 pachinko-gokugoku の調整値は `src/pure/config.js` に集めてあり、`npm run measure` で理論値と実測値を並べて確かめられます。
 
 CI はリポジトリ直下の `.github/workflows/ci.yml` だけです（GitHub Actions はリポジトリ直下しか読みません）。
