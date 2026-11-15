@@ -1,0 +1,459 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "items"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "kind",
+          "trigger",
+          "effects"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^skl_[a-z0-9_]+$"
+          },
+          "kind": {
+            "enum": [
+              "normal",
+              "special",
+              "ultimate"
+            ]
+          },
+          "trigger": {
+            "$ref": "#/$defs/trigger"
+          },
+          "effects": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/effect"
+            }
+          },
+          "needsReview": {
+            "type": "boolean"
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "trigger": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type"
+      ],
+      "properties": {
+        "type": {
+          "enum": [
+            "attackInterval",
+            "interval",
+            "onHit",
+            "onCrit",
+            "onDamaged",
+            "onBattleStart",
+            "onDeath",
+            "onKill",
+            "onHpBelow",
+            "always",
+            "cooldown",
+            "unknown"
+          ]
+        },
+        "everySec": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "cooldownSec": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "chancePct": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "pct": {
+          "type": "number"
+        },
+        "once": {
+          "type": "boolean"
+        },
+        "if": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "targetHasAnyStatus": {
+              "type": "array",
+              "items": {
+                "enum": [
+                  "burn",
+                  "paralysis",
+                  "bleed",
+                  "freeze",
+                  "bind",
+                  "silence",
+                  "blind",
+                  "taunt",
+                  "heal_block",
+                  "shield",
+                  "regen",
+                  "blessing_regen",
+                  "invincible",
+                  "cc_barrier",
+                  "crit_shield",
+                  "reflect_shield"
+                ]
+              },
+              "minItems": 1
+            }
+          },
+          "required": [
+            "targetHasAnyStatus"
+          ]
+        }
+      }
+    },
+    "effect": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type"
+      ],
+      "properties": {
+        "type": {
+          "enum": [
+            "damage",
+            "heal",
+            "applyBuff",
+            "gaugeShift",
+            "cleanse",
+            "dispel",
+            "reflect",
+            "elementCountBonus",
+            "debuffCountBonus"
+          ]
+        },
+        "target": {
+          "enum": [
+            "enemy_single",
+            "enemy_area",
+            "enemy_all",
+            "ally_lowest_hp",
+            "ally_all",
+            "ally_element",
+            "self",
+            "attacker",
+            "target"
+          ]
+        },
+        "element": {
+          "enum": [
+            "valor",
+            "skill",
+            "heart",
+            "wisdom"
+          ]
+        },
+        "multiplierPct": {
+          "oneOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "number"
+              },
+              "minItems": 3,
+              "maxItems": 3
+            }
+          ]
+        },
+        "bonusSelfLostHpPct": {
+          "oneOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "number"
+              },
+              "minItems": 3,
+              "maxItems": 3
+            }
+          ]
+        },
+        "bonus": {
+          "type": "boolean"
+        },
+        "buffId": {
+          "enum": [
+            "burn",
+            "paralysis",
+            "bleed",
+            "freeze",
+            "bind",
+            "silence",
+            "blind",
+            "taunt",
+            "heal_block",
+            "shield",
+            "regen",
+            "blessing_regen",
+            "invincible",
+            "cc_barrier",
+            "atk_up",
+            "atk_down",
+            "def_up",
+            "def_down",
+            "crit_rate_up",
+            "crit_rate_down",
+            "crit_dmg_up",
+            "crit_dmg_down",
+            "crit_resist_up",
+            "crit_resist_down",
+            "crit_def_up",
+            "crit_def_down",
+            "accuracy_up",
+            "accuracy_down",
+            "evasion_up",
+            "evasion_down",
+            "crit_shield",
+            "reflect_shield"
+          ]
+        },
+        "tier": {
+          "oneOf": [
+            {
+              "enum": [
+                "supreme",
+                "high",
+                "mid",
+                "low",
+                null
+              ]
+            },
+            {
+              "type": "array",
+              "minItems": 3,
+              "maxItems": 3,
+              "items": {
+                "enum": [
+                  "supreme",
+                  "high",
+                  "mid",
+                  "low"
+                ]
+              }
+            }
+          ]
+        },
+        "durationSec": {
+          "oneOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "number"
+              },
+              "minItems": 3,
+              "maxItems": 3
+            }
+          ]
+        },
+        "chancePct": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "when": {
+          "enum": [
+            "afterHit",
+            "onCrit"
+          ]
+        },
+        "if": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "targetHasAnyStatus": {
+              "type": "array",
+              "items": {
+                "enum": [
+                  "burn",
+                  "paralysis",
+                  "bleed",
+                  "freeze",
+                  "bind",
+                  "silence",
+                  "blind",
+                  "taunt",
+                  "heal_block",
+                  "shield",
+                  "regen",
+                  "blessing_regen",
+                  "invincible",
+                  "cc_barrier",
+                  "crit_shield",
+                  "reflect_shield"
+                ]
+              },
+              "minItems": 1
+            }
+          },
+          "required": [
+            "targetHasAnyStatus"
+          ]
+        },
+        "sec": {
+          "oneOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "number"
+              },
+              "minItems": 3,
+              "maxItems": 3
+            }
+          ]
+        },
+        "pct": {
+          "type": "number"
+        },
+        "max": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "unit": {
+          "enum": [
+            "pct",
+            "sec",
+            null
+          ]
+        },
+        "minRank": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 2
+        },
+        "onTrigger": {
+          "enum": [
+            "onHit",
+            "onCrit"
+          ]
+        },
+        "scope": {
+          "enum": [
+            "enemy_all",
+            "target"
+          ]
+        },
+        "targetElements": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "items": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "enum": [
+                "valor",
+                "skill",
+                "heart",
+                "wisdom"
+              ]
+            }
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "applyBuff"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "buffId",
+              "target"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "gaugeShift"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "sec",
+              "target"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "heal"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "multiplierPct",
+              "target"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "target": {
+                "const": "ally_element"
+              }
+            },
+            "required": [
+              "target"
+            ]
+          },
+          "then": {
+            "required": [
+              "element"
+            ]
+          }
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,258 @@
+{
+  "schemaVersion": 1,
+  "e1": 15000000,
+  "ranks": 32,
+  "areasPerRank": 10,
+  "stagesPerArea": 10,
+  "wavesPerStage": 4,
+  "areaBossMultiplier": 1.15,
+  "growth": [
+    {
+      "fromRank": 1,
+      "toRank": 7,
+      "g": 3.0
+    },
+    {
+      "fromRank": 8,
+      "toRank": 14,
+      "g": 1.68
+    },
+    {
+      "fromRank": 15,
+      "toRank": 32,
+      "gFrom": 1.68,
+      "gTo": 1.3,
+      "interp": "linear"
+    }
+  ],
+  "wavePowerRatio": 0.25,
+  "bossFightPowerRatio": 0.8,
+  "bossShareOfFight": 0.6,
+  "enemyStatShare": {
+    "hp": 0.89,
+    "atk": 0.031,
+    "def": 0.0058
+  },
+  "enemyTypes": {
+    "attacker": {
+      "hp": 0.8,
+      "atk": 1.4,
+      "def": 1.0
+    },
+    "tank": {
+      "hp": 1.3,
+      "atk": 0.6,
+      "def": 1.6
+    },
+    "disrupt": {
+      "hp": 1.0,
+      "atk": 0.9,
+      "def": 1.0
+    },
+    "healer": {
+      "hp": 0.9,
+      "atk": 0.8,
+      "def": 1.0
+    }
+  },
+  "enemySubstats": {
+    "accuracyPct": {
+      "a": 80,
+      "b": 2.5
+    },
+    "evasionPct": {
+      "a": 5,
+      "b": 1.5
+    },
+    "critRatePct": {
+      "a": 20,
+      "b": 2
+    },
+    "critDamagePct": {
+      "a": 200,
+      "b": 250
+    },
+    "critResistPct": {
+      "a": -45,
+      "b": 4,
+      "min": 0
+    },
+    "critDefensePct": {
+      "a": 0,
+      "b": 360
+    }
+  },
+  "enemyScale": [
+    {
+      "rank": 1,
+      "hp": 1.0,
+      "atk": 1.0
+    },
+    {
+      "rank": 2,
+      "hp": 1.0,
+      "atk": 1.0
+    },
+    {
+      "rank": 3,
+      "hp": 1.0,
+      "atk": 1.0
+    },
+    {
+      "rank": 4,
+      "hp": 1.0,
+      "atk": 1.0
+    },
+    {
+      "rank": 5,
+      "hp": 1.0,
+      "atk": 1.0
+    },
+    {
+      "rank": 6,
+      "hp": 1.0,
+      "atk": 1.0
+    },
+    {
+      "rank": 7,
+      "hp": 1.0,
+      "atk": 1.0
+    },
+    {
+      "rank": 8,
+      "hp": 1.0,
+      "atk": 1.0
+    },
+    {
+      "rank": 9,
+      "hp": 1.0,
+      "atk": 1.0
+    },
+    {
+      "rank": 10,
+      "hp": 1.0,
+      "atk": 1.0
+    },
+    {
+      "rank": 11,
+      "hp": 1.0,
+      "atk": 1.0
+    },
+    {
+      "rank": 12,
+      "hp": 1.0,
+      "atk": 1.0
+    },
+    {
+      "rank": 13,
+      "hp": 1.0,
+      "atk": 1.0
+    },
+    {
+      "rank": 14,
+      "hp": 1.0,
+      "atk": 1.0
+    },
+    {
+      "rank": 15,
+      "hp": 1.0,
+      "atk": 1.0
+    },
+    {
+      "rank": 16,
+      "hp": 1.0,
+      "atk": 1.0
+    },
+    {
+      "rank": 17,
+      "hp": 1.0,
+      "atk": 1.0
+    },
+    {
+      "rank": 18,
+      "hp": 1.0,
+      "atk": 1.0
+    },
+    {
+      "rank": 19,
+      "hp": 1.0,
+      "atk": 1.0
+    },
+    {
+      "rank": 20,
+      "hp": 1.0,
+      "atk": 1.0
+    },
+    {
+      "rank": 21,
+      "hp": 1.0,
+      "atk": 1.0
+    },
+    {
+      "rank": 22,
+      "hp": 1.0,
+      "atk": 1.0
+    },
+    {
+      "rank": 23,
+      "hp": 1.0,
+      "atk": 1.0
+    },
+    {
+      "rank": 24,
+      "hp": 1.0,
+      "atk": 1.0
+    },
+    {
+      "rank": 25,
+      "hp": 1.0,
+      "atk": 1.0
+    },
+    {
+      "rank": 26,
+      "hp": 1.0,
+      "atk": 1.0
+    },
+    {
+      "rank": 27,
+      "hp": 1.0,
+      "atk": 1.0
+    },
+    {
+      "rank": 28,
+      "hp": 1.0,
+      "atk": 1.0
+    },
+    {
+      "rank": 29,
+      "hp": 1.0,
+      "atk": 1.0
+    },
+    {
+      "rank": 30,
+      "hp": 1.0,
+      "atk": 1.0
+    },
+    {
+      "rank": 31,
+      "hp": 1.0,
+      "atk": 1.0
+    },
+    {
+      "rank": 32,
+      "hp": 1.0,
+      "atk": 1.0
+    }
+  ],
+  "balanceTarget": {
+    "winRatePct": 80,
+    "bossFightSec": [
+      20,
+      40
+    ],
+    "waveSec": [
+      3,
+      10
+    ]
+  }
+}

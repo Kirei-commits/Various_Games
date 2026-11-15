@@ -1,0 +1,16 @@
+{
+    "name": "Mado.Core",
+    "rootNamespace": "Mado.Core",
+    "references": [
+        "Mado.Data"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": true
+}

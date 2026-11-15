@@ -1,0 +1,72 @@
+{
+  "schemaVersion": 1,
+  "tickSec": 0.1,
+  "baseAttackIntervalSec": 1.0,
+  "enemyAttackSpeed": 1.0,
+  "attackSpeedMax": 5.0,
+  "elementCycle": [
+    "valor",
+    "skill",
+    "heart",
+    "wisdom"
+  ],
+  "elementAdvantagePct": 120,
+  "elementDisadvantagePct": 80,
+  "hitChanceMinPct": 5,
+  "hitChanceMaxPct": 100,
+  "critMultiplierMin": 1.0,
+  "minDamage": 1,
+  "defenseBuffAppliesBeforeSubtract": true,
+  "timeLimitSec": {
+    "stage": 60,
+    "boss": 60,
+    "finalBoss": 180,
+    "trial": 30,
+    "trialLong": 60,
+    "pvp": 60
+  },
+  "skipAvailableAfterSec": 1,
+  "chainLimit": 64,
+  "baseSubstats": {
+    "evasionPct": 5,
+    "accuracyPct": 100,
+    "critRatePct": 30,
+    "critResistPct": 10,
+    "critDamagePct": 1000,
+    "critDefensePct": 1000
+  },
+  "powerFormula": {
+    "hp": 1,
+    "atk": 3,
+    "def": 3
+  },
+  "partySlots": 6,
+  "leaderMinStar": 5,
+  "crystalSlotStars": [
+    2,
+    4,
+    6,
+    8,
+    10
+  ],
+  "starterCharacters": [
+    "chr_101",
+    "chr_102",
+    "chr_103",
+    "chr_104",
+    "chr_105"
+  ],
+  "idleCapHours": 24,
+  "numberUnits": [
+    "",
+    "K",
+    "M",
+    "G",
+    "T",
+    "P",
+    "E",
+    "Z",
+    "Y"
+  ],
+  "devModeCodeSha256": "559aead08264d5795d3909718cdd05abd49572e84fe55590eef31a88a08fdffd"
+}

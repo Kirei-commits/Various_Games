@@ -1,0 +1,27 @@
+# 元ゲームの資料（スクリーンショット・動画・名前の対応表・メモ）はコミットしない
+/dev/
+
+# Unity
+/[Ll]ibrary/
+/[Tt]emp/
+/[Oo]bj/
+/[Bb]uild/
+/[Bb]uilds/
+/[Ll]ogs/
+/[Uu]ser[Ss]ettings/
+/Memory Captures/
+/*.csproj
+/*.sln
+*.pidb
+*.suo
+*.user
+
+# .NET（tools/ と tests/）
+bin/
+obj/
+
+# シミュレーションの出力
+/out/
+
+# セーブのテスト出力
+*.save.tmp

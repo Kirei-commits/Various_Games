@@ -1,0 +1,158 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "items"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "tier",
+          "element",
+          "role",
+          "type",
+          "skills",
+          "substatBonuses",
+          "crystalId",
+          "obtain",
+          "assetIds"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^chr_[a-z0-9_]+$"
+          },
+          "tier": {
+            "enum": [
+              "lr",
+              "kyoku",
+              "ten",
+              "kou",
+              "sai",
+              "tou",
+              "so"
+            ]
+          },
+          "element": {
+            "enum": [
+              "valor",
+              "skill",
+              "heart",
+              "wisdom"
+            ]
+          },
+          "role": {
+            "enum": [
+              "melee",
+              "ranged",
+              "defense",
+              "heal",
+              "disrupt"
+            ]
+          },
+          "type": {
+            "enum": [
+              "melee_attacker",
+              "ranged_attacker",
+              "supporter",
+              "healer",
+              "tank"
+            ]
+          },
+          "skills": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "normal",
+              "special",
+              "ultimate"
+            ],
+            "properties": {
+              "normal": {
+                "type": "string",
+                "pattern": "^skl_[a-z0-9_]+$"
+              },
+              "special": {
+                "type": "string",
+                "pattern": "^skl_[a-z0-9_]+$"
+              },
+              "ultimate": {
+                "type": "string",
+                "pattern": "^skl_[a-z0-9_]+$"
+              }
+            }
+          },
+          "substatBonuses": {
+            "type": "array",
+            "minItems": 4,
+            "maxItems": 4,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "star",
+                "stat",
+                "value"
+              ],
+              "properties": {
+                "star": {
+                  "enum": [
+                    2,
+                    4,
+                    8,
+                    10
+                  ]
+                },
+                "stat": {
+                  "enum": [
+                    "evasionPct",
+                    "accuracyPct",
+                    "critRatePct",
+                    "critResistPct",
+                    "critDamagePct",
+                    "critDefensePct"
+                  ]
+                },
+                "value": {
+                  "type": "number",
+                  "exclusiveMinimum": 0
+                }
+              }
+            }
+          },
+          "crystalId": {
+            "type": "string",
+            "pattern": "^cry_[a-z0-9_]+$"
+          },
+          "obtain": {
+            "enum": [
+              "gacha",
+              "exchange",
+              "boss_first_clear"
+            ]
+          },
+          "assetIds": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string",
+              "pattern": "^art\\.[a-z0-9_.]+$"
+            }
+          },
+          "enabled": {
+            "type": "boolean"
+          }
+        }
+      }
+    }
+  }
+}
