@@ -37,6 +37,18 @@ namespace Mado.Data
             return map.ToText[enumValue];
         }
 
+        /// <summary>JSON の綴りから列挙値を得る。知らない綴りは DataException。</summary>
+        public static T Parse<T>(string text) where T : struct
+        {
+            EnumMap map = GetMap(typeof(T));
+            object value;
+            if (text == null || !map.FromText.TryGetValue(text, out value))
+            {
+                throw new DataException("未知の値 \"" + text + "\"（" + typeof(T).Name + "）");
+            }
+            return (T)value;
+        }
+
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {
             Type enumType = Nullable.GetUnderlyingType(objectType) ?? objectType;

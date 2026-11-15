@@ -12,7 +12,7 @@ import sys
 import jsonschema
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
-DATA = os.path.join(ROOT, "Assets", "Game", "Data", "Json")
+DATA = os.environ.get("MADO_DATA_DIR") or os.path.join(ROOT, "Assets", "Game", "Data", "Json")
 SCHEMAS = os.path.join(ROOT, "Schemas")
 STRICT = "--strict" in sys.argv
 

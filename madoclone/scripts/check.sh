@@ -18,6 +18,9 @@ python3 tools/bootstrap/check_csharp.py
 if command -v dotnet >/dev/null 2>&1 && [ -d tests/Mado.Core.Tests ]; then
   dotnet test tests/Mado.Core.Tests
   if [ -d tools/Mado.Sim ]; then
+    # C# 版の validate。Python 版と合否が食い違わないことも毎回確かめる（Python 版にしか無い検査が残っているので、Python 版も捨てない）。
+    dotnet run --project tools/Mado.Sim -- validate "$@"
+    python3 tools/bootstrap/compare_validate.py
     dotnet run --project tools/Mado.Sim -- golden
   fi
 else

@@ -6,6 +6,7 @@ namespace Mado.Core.Battle
 {
     public enum Side { Ally, Enemy }
 
+    [Newtonsoft.Json.JsonConverter(typeof(Newtonsoft.Json.Converters.StringEnumConverter))]
     public enum Row { Front, Mid, Back }
 
     /// <summary>TimeUp は時間切れ（敗北として扱う）。</summary>
