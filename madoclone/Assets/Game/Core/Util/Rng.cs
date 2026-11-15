@@ -48,6 +48,31 @@ namespace Mado.Core.Util
             }
         }
 
+        /// <summary>内部状態（uint 4つ）を取り出す。セーブ用。</summary>
+        public uint[] GetState()
+        {
+            return new[] { _s0, _s1, _s2, _s3 };
+        }
+
+        /// <summary>GetState の値から続きの列を再現する。</summary>
+        public static Rng FromState(uint[] state)
+        {
+            if (state == null || state.Length != 4)
+            {
+                throw new ArgumentException("状態は uint 4つ");
+            }
+            if ((state[0] | state[1] | state[2] | state[3]) == 0u)
+            {
+                throw new ArgumentException("状態が全部0だと列が止まる");
+            }
+            var r = new Rng(0UL);
+            r._s0 = state[0];
+            r._s1 = state[1];
+            r._s2 = state[2];
+            r._s3 = state[3];
+            return r;
+        }
+
         /// <summary>0 以上 uint.MaxValue 以下の整数。</summary>
         public uint NextUInt()
         {
