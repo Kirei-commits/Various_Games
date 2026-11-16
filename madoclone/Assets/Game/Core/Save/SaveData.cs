@@ -204,6 +204,9 @@ namespace Mado.Core.Save
     public sealed class AchievementState
     {
         public Dictionary<string, int> Claimed { get; set; } = new Dictionary<string, int>();
+
+        /// <summary>周回する実績の、終わった周の数（キーは実績 ID。0 は書かない）。</summary>
+        public Dictionary<string, int> Laps { get; set; } = new Dictionary<string, int>();
     }
 
     public sealed class PartyState

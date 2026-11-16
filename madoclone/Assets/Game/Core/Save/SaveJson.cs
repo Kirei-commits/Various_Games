@@ -18,7 +18,7 @@ namespace Mado.Core.Save
         private static readonly HashSet<string> KnownTop = new HashSet<string>
         {
             "format", "saveVersion", "devMode", "savedAtUtc", "rng", "wallet", "walletCarry",
-            "characters", "leader", "parties", "metrics", "progress", "settings", "memory", "temple", "idle", "plazas", "trials", "supports", "dragonNest", "spiritStones", "research", "gacha", "achievements", "orphans",
+            "characters", "leader", "parties", "metrics", "progress", "settings", "memory", "temple", "idle", "plazas", "trials", "supports", "dragonNest", "spiritStones", "research", "gacha", "achievements", "achievementLaps", "orphans",
         };
 
         // ---------------- 書き出し ----------------
@@ -104,6 +104,9 @@ namespace Mado.Core.Save
             var claimed = new Dictionary<string, JToken>();
             foreach (KeyValuePair<string, int> kv in s.Achievements.Claimed) { claimed[kv.Key] = new JValue(kv.Value); }
             o["achievements"] = Sorted(claimed);
+            var laps = new Dictionary<string, JToken>();
+            foreach (KeyValuePair<string, int> kv in s.Achievements.Laps) { if (kv.Value > 0) { laps[kv.Key] = new JValue(kv.Value); } }
+            o["achievementLaps"] = Sorted(laps);
             o["idle"] = new JObject { ["lastClaimUtc"] = s.Idle.LastClaimUtc ?? "" };
             o["temple"] = new JObject
             {
@@ -272,6 +275,8 @@ namespace Mado.Core.Save
             }
             JObject achievements = Obj(o, "achievements");
             if (achievements != null) { foreach (KeyValuePair<string, JToken> kv in achievements) { s.Achievements.Claimed[kv.Key] = IntOf(kv.Value, "achievements." + kv.Key); } }
+            JObject achievementLaps = Obj(o, "achievementLaps");
+            if (achievementLaps != null) { foreach (KeyValuePair<string, JToken> kv in achievementLaps) { s.Achievements.Laps[kv.Key] = IntOf(kv.Value, "achievementLaps." + kv.Key); } }
             JObject idle = Obj(o, "idle");
             if (idle != null) { s.Idle = new IdleState { LastClaimUtc = Opt(idle, "lastClaimUtc", "") }; }
             JObject temple = Obj(o, "temple");

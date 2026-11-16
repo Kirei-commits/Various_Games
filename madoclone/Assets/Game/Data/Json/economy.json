@@ -1638,7 +1638,117 @@
             }
           ]
         }
-      ]
+      ],
+      "lapScale": 1.2
+    },
+    {
+      "id": "race_lab",
+      "metric": "spent.research_memo",
+      "tiers": [
+        {
+          "target": 200,
+          "reward": [
+            {
+              "currencyId": "gem",
+              "amount": 30
+            }
+          ]
+        },
+        {
+          "target": 400,
+          "reward": [
+            {
+              "currencyId": "gem",
+              "amount": 40
+            }
+          ]
+        },
+        {
+          "target": 700,
+          "reward": [
+            {
+              "currencyId": "gem",
+              "amount": 50
+            },
+            {
+              "currencyId": "merit_medal",
+              "amount": 7
+            }
+          ]
+        },
+        {
+          "target": 1000,
+          "reward": [
+            {
+              "currencyId": "gem",
+              "amount": 60
+            }
+          ]
+        },
+        {
+          "target": 1500,
+          "reward": [
+            {
+              "currencyId": "gem",
+              "amount": 70
+            }
+          ]
+        },
+        {
+          "target": 2200,
+          "reward": [
+            {
+              "currencyId": "gem",
+              "amount": 80
+            },
+            {
+              "currencyId": "merit_medal",
+              "amount": 10
+            }
+          ]
+        },
+        {
+          "target": 3000,
+          "reward": [
+            {
+              "currencyId": "gem",
+              "amount": 90
+            }
+          ]
+        },
+        {
+          "target": 4000,
+          "reward": [
+            {
+              "currencyId": "gem",
+              "amount": 100
+            }
+          ]
+        },
+        {
+          "target": 5200,
+          "reward": [
+            {
+              "currencyId": "gem",
+              "amount": 110
+            },
+            {
+              "currencyId": "merit_medal",
+              "amount": 13
+            }
+          ]
+        },
+        {
+          "target": 6500,
+          "reward": [
+            {
+              "currencyId": "gem",
+              "amount": 120
+            }
+          ]
+        }
+      ],
+      "lapScale": 1.2
     }
   ]
 }

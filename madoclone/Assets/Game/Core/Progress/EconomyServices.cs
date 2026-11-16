@@ -107,14 +107,34 @@ namespace Mado.Core.Progress
 
         public int Claimed(string id) { return _save.Achievements.Claimed.TryGetValue(id ?? "", out int v) ? v : 0; }
 
-        public double Progress(AchievementDef a) { return _metrics.Get(a.Metric); }
+        /// <summary>終わった周の数（周回しない実績は常に 0）。</summary>
+        public int Lap(AchievementDef a) { return _save.Achievements.Laps.TryGetValue(a.Id, out int v) ? v : 0; }
+
+        /// <summary>いまの周での、段 tier（0 始まり）の目標。周が進むたびに LapScale 倍になる（切り上げ）。</summary>
+        public double TargetOf(AchievementDef a, int tier)
+        {
+            double scale = a.LapScale ?? 1.0;
+            return Math.Ceiling(a.Tiers[tier].Target * Math.Pow(scale, Lap(a)));
+        }
+
+        /// <summary>
+        /// いまの周での進み具合。終わった周の最後の目標ぶんは引く（最後の目標を超えた分は次の周に持ち越す）。
+        /// </summary>
+        public double Progress(AchievementDef a)
+        {
+            double v = _metrics.Get(a.Metric);
+            double scale = a.LapScale ?? 1.0, last = a.Tiers[a.Tiers.Count - 1].Target;
+            int laps = Lap(a);
+            for (int k = 0; k < laps; k++) { v -= Math.Ceiling(last * Math.Pow(scale, k)); }
+            return Math.Max(0, v);
+        }
 
         /// <summary>目標に達している段の数（受け取り済みを含む）。</summary>
         public int Reached(AchievementDef a)
         {
             double v = Progress(a);
             int n = 0;
-            foreach (AchievementTier t in a.Tiers) { if (v >= t.Target) { n++; } }
+            for (int i = 0; i < a.Tiers.Count; i++) { if (v >= TargetOf(a, i)) { n++; } }
             return n;
         }
 
@@ -132,6 +152,11 @@ namespace Mado.Core.Progress
             for (int i = from; i < from + ready; i++) { rewards.AddRange(ShopService.Scale(a.Tiers[i].Reward, 1)); }
             _wallet.Grant(new Reward(rewards), new GrantReason(WalletReasons.AchievementReward));
             _save.Achievements.Claimed[id] = from + ready;
+            if (a.LapScale.HasValue && from + ready >= a.Tiers.Count)      // 周回：全部受け取ったら次の周へ（受け取り済みの段を 0 に戻す）
+            {
+                _save.Achievements.Claimed[id] = 0;
+                _save.Achievements.Laps[id] = Lap(a) + 1;
+            }
             claimedTiers = ready;
             return AchievementFailure.None;
         }

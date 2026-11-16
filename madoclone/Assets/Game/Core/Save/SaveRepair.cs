@@ -29,6 +29,12 @@ namespace Mado.Core.Save
                 int tier = Math.Max(0, Math.Min(save.Achievements.Claimed[id], ad.Tiers.Count));
                 if (tier != save.Achievements.Claimed[id]) { Note(done, "実績の段 " + save.Achievements.Claimed[id] + " → " + tier, "achievements." + id); save.Achievements.Claimed[id] = tier; }
             }
+            foreach (string id in new List<string>(save.Achievements.Laps.Keys))
+            {
+                if (!data.Economy.TryAchievement(id, out AchievementDef la)) { continue; }
+                int lap = la.LapScale.HasValue ? Math.Max(0, save.Achievements.Laps[id]) : 0;
+                if (lap != save.Achievements.Laps[id]) { Note(done, "実績の周 " + save.Achievements.Laps[id] + " → " + lap, "achievementLaps." + id); save.Achievements.Laps[id] = lap; }
+            }
             GachaState gs = save.Gacha;
             int pulls = Math.Max(0, gs.TotalPulls), pity = Math.Max(0, Math.Min(gs.PickupPity, data.Gacha.PickupPity)), steps = Math.Max(0, Math.Min(gs.StepsClaimed, data.Gacha.Steps.Count));
             if (pulls != gs.TotalPulls || pity != gs.PickupPity || steps != gs.StepsClaimed)

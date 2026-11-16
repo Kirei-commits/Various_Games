@@ -950,6 +950,7 @@ namespace Mado.Data
             {
                 string where = at + ":achievements/" + a.Id;
                 if (string.IsNullOrEmpty(a.Id) || !achIds.Add(a.Id) || string.IsNullOrEmpty(a.Metric) || a.Tiers.Count == 0) { Error(issues, "ECONOMY", where, "ID・metric・段が必要（ID は重複しない）"); }
+                if (a.LapScale.HasValue && !(a.LapScale.Value > 1.0)) { Error(issues, "ECONOMY", where, "lapScale は1より大きい"); }
                 double prev = 0;
                 foreach (AchievementTier t in a.Tiers)
                 {

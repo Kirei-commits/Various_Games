@@ -51,6 +51,13 @@ namespace Mado.Data
         public string Id { get; init; }
         public string Metric { get; init; }
         public IReadOnlyList<AchievementTier> Tiers { get; init; }
+
+        /// <summary>
+        /// 周回する実績（レース）の、1周ごとの必要量の倍率（1より大きい）。全部の段を受け取ると次の周に進み、目標が倍率ぶん増える。
+        /// 省略（null）は周回しない。
+        /// </summary>
+        [JsonProperty(Required = Required.Default)]
+        public double? LapScale { get; init; }
     }
 
     /// <summary>economy.json：ショップ・交換所、ルーレット、実績。</summary>

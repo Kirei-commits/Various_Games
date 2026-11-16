@@ -107,6 +107,12 @@ namespace Mado.Core.Session
             return (_achievements.Progress(a), _achievements.Reached(a), _achievements.Claimed(achievementId));
         }
 
+        /// <summary>周回する実績の、終わった周の数（周回しないものは 0）。</summary>
+        public int AchievementLap(string achievementId)
+        {
+            return _data.Economy.TryAchievement(achievementId, out AchievementDef a) ? _achievements.Lap(a) : 0;
+        }
+
         /// <summary>NPCギルドのメンバー（名前と見せかけの戦力）。戦力は、渡した「自分の戦力」に対する割合で、毎回同じ（名前から決まる）。ギルドLvはランクに合わせて自動で上がる。</summary>
         public IReadOnlyList<(string Name, double Power)> GuildMembers(double ownPower)
         {

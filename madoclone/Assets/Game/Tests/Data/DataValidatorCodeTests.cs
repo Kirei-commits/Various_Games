@@ -142,6 +142,7 @@ namespace Mado.Data.Tests
             yield return C("ECONOMY", ec, r => ((JArray)r["roulette"]["entries"]).Clear());
             yield return C("ECONOMY", ec, r => r["achievements"][1]["id"] = "pulls");
             yield return C("ECONOMY", ec, r => r["achievements"][0]["metric"] = "");
+            yield return C("ECONOMY", ec, r => r["achievements"][9]["lapScale"] = 1.0);
             yield return C("ECONOMY", ec, r => r["achievements"][0]["tiers"][1]["target"] = 5);       // 昇順でない
             yield return C("ECONOMY", ec, r => ((JArray)r["achievements"][0]["tiers"]).Clear());
 
