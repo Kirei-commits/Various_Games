@@ -208,7 +208,7 @@ namespace Mado.Core.Tests
             SaveData s = Sample();
             s.Characters["chr_002"].Lv = 999;
             Assert.IsTrue(Has(Validate(s), "LV_RANGE"));
-            s.Characters["chr_002"].Star = 12;
+            s.Characters["chr_002"].Star = 17;
             Assert.IsTrue(Has(Validate(s), "STAR_RANGE"));
 
             SaveData p = Sample();

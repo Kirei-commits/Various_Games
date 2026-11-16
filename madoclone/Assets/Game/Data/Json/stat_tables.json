@@ -959,6 +959,646 @@
       "atk": 2097350,
       "hp": 62551500,
       "def": 238324,
+      "expToNext": 89804238,
+      "measured": false
+    },
+    {
+      "lv": 121,
+      "atk": 2150002.0,
+      "hp": 64121795,
+      "def": 244306.9,
+      "expToNext": 92058687,
+      "measured": false
+    },
+    {
+      "lv": 122,
+      "atk": 2203533.3,
+      "hp": 65718317,
+      "def": 250389.7,
+      "expToNext": 94350789,
+      "measured": false
+    },
+    {
+      "lv": 123,
+      "atk": 2257951.4,
+      "hp": 67341286,
+      "def": 256573.3,
+      "expToNext": 96680861,
+      "measured": false
+    },
+    {
+      "lv": 124,
+      "atk": 2313263.7,
+      "hp": 68990924,
+      "def": 262858.5,
+      "expToNext": 99049221,
+      "measured": false
+    },
+    {
+      "lv": 125,
+      "atk": 2369477.6,
+      "hp": 70667452,
+      "def": 269246.1,
+      "expToNext": 101456187,
+      "measured": false
+    },
+    {
+      "lv": 126,
+      "atk": 2426600.6,
+      "hp": 72371092,
+      "def": 275737.0,
+      "expToNext": 103902077,
+      "measured": false
+    },
+    {
+      "lv": 127,
+      "atk": 2484640.1,
+      "hp": 74102065,
+      "def": 282332.1,
+      "expToNext": 106387209,
+      "measured": false
+    },
+    {
+      "lv": 128,
+      "atk": 2543603.5,
+      "hp": 75860593,
+      "def": 289032.2,
+      "expToNext": 108911901,
+      "measured": false
+    },
+    {
+      "lv": 129,
+      "atk": 2603498.2,
+      "hp": 77646897,
+      "def": 295838.1,
+      "expToNext": 111476471,
+      "measured": false
+    },
+    {
+      "lv": 130,
+      "atk": 2664331.7,
+      "hp": 79461199,
+      "def": 302750.7,
+      "expToNext": 114081238,
+      "measured": false
+    },
+    {
+      "lv": 131,
+      "atk": 2726111.4,
+      "hp": 81303721,
+      "def": 309770.8,
+      "expToNext": 116726519,
+      "measured": false
+    },
+    {
+      "lv": 132,
+      "atk": 2788844.8,
+      "hp": 83174685,
+      "def": 316899.3,
+      "expToNext": 119412634,
+      "measured": false
+    },
+    {
+      "lv": 133,
+      "atk": 2852539.3,
+      "hp": 85074313,
+      "def": 324137.0,
+      "expToNext": 122139901,
+      "measured": false
+    },
+    {
+      "lv": 134,
+      "atk": 2917202.3,
+      "hp": 87002826,
+      "def": 331484.7,
+      "expToNext": 124908638,
+      "measured": false
+    },
+    {
+      "lv": 135,
+      "atk": 2982841.3,
+      "hp": 88960447,
+      "def": 338943.3,
+      "expToNext": 127719164,
+      "measured": false
+    },
+    {
+      "lv": 136,
+      "atk": 3049463.7,
+      "hp": 90947397,
+      "def": 346513.7,
+      "expToNext": 130571798,
+      "measured": false
+    },
+    {
+      "lv": 137,
+      "atk": 3117077.0,
+      "hp": 92963899,
+      "def": 354196.7,
+      "expToNext": 133466859,
+      "measured": false
+    },
+    {
+      "lv": 138,
+      "atk": 3185688.6,
+      "hp": 95010175,
+      "def": 361993.1,
+      "expToNext": 136404666,
+      "measured": false
+    },
+    {
+      "lv": 139,
+      "atk": 3255305.9,
+      "hp": 97086447,
+      "def": 369903.8,
+      "expToNext": 139385538,
+      "measured": false
+    },
+    {
+      "lv": 140,
+      "atk": 3325936.5,
+      "hp": 99192938,
+      "def": 377929.6,
+      "expToNext": 142409795,
+      "measured": false
+    },
+    {
+      "lv": 141,
+      "atk": 3397587.8,
+      "hp": 101329869,
+      "def": 386071.4,
+      "expToNext": 145477755,
+      "measured": false
+    },
+    {
+      "lv": 142,
+      "atk": 3470267.2,
+      "hp": 103497464,
+      "def": 394330.0,
+      "expToNext": 148589738,
+      "measured": false
+    },
+    {
+      "lv": 143,
+      "atk": 3543982.2,
+      "hp": 105695944,
+      "def": 402706.3,
+      "expToNext": 151746063,
+      "measured": false
+    },
+    {
+      "lv": 144,
+      "atk": 3618740.3,
+      "hp": 107925533,
+      "def": 411201.1,
+      "expToNext": 154947050,
+      "measured": false
+    },
+    {
+      "lv": 145,
+      "atk": 3694548.9,
+      "hp": 110186453,
+      "def": 419815.3,
+      "expToNext": 158193018,
+      "measured": false
+    },
+    {
+      "lv": 146,
+      "atk": 3771415.5,
+      "hp": 112478926,
+      "def": 428549.7,
+      "expToNext": 161484287,
+      "measured": false
+    },
+    {
+      "lv": 147,
+      "atk": 3849347.5,
+      "hp": 114803176,
+      "def": 437405.2,
+      "expToNext": 164821177,
+      "measured": false
+    },
+    {
+      "lv": 148,
+      "atk": 3928352.5,
+      "hp": 117159425,
+      "def": 446382.6,
+      "expToNext": 168204008,
+      "measured": false
+    },
+    {
+      "lv": 149,
+      "atk": 4008437.9,
+      "hp": 119547896,
+      "def": 455482.8,
+      "expToNext": 171633099,
+      "measured": false
+    },
+    {
+      "lv": 150,
+      "atk": 4089611.1,
+      "hp": 121968811,
+      "def": 464706.6,
+      "expToNext": 175108771,
+      "measured": false
+    },
+    {
+      "lv": 151,
+      "atk": 4171879.7,
+      "hp": 124422394,
+      "def": 474054.9,
+      "expToNext": 178631343,
+      "measured": false
+    },
+    {
+      "lv": 152,
+      "atk": 4255251.1,
+      "hp": 126908868,
+      "def": 483528.5,
+      "expToNext": 182201136,
+      "measured": false
+    },
+    {
+      "lv": 153,
+      "atk": 4339732.8,
+      "hp": 129428456,
+      "def": 493128.2,
+      "expToNext": 185818470,
+      "measured": false
+    },
+    {
+      "lv": 154,
+      "atk": 4425332.3,
+      "hp": 131981381,
+      "def": 502855.0,
+      "expToNext": 189483665,
+      "measured": false
+    },
+    {
+      "lv": 155,
+      "atk": 4512057.1,
+      "hp": 134567866,
+      "def": 512709.6,
+      "expToNext": 193197042,
+      "measured": false
+    },
+    {
+      "lv": 156,
+      "atk": 4599914.6,
+      "hp": 137188134,
+      "def": 522692.9,
+      "expToNext": 196958921,
+      "measured": false
+    },
+    {
+      "lv": 157,
+      "atk": 4688912.4,
+      "hp": 139842409,
+      "def": 532805.8,
+      "expToNext": 200769623,
+      "measured": false
+    },
+    {
+      "lv": 158,
+      "atk": 4779057.9,
+      "hp": 142530913,
+      "def": 543049.1,
+      "expToNext": 204629468,
+      "measured": false
+    },
+    {
+      "lv": 159,
+      "atk": 4870358.6,
+      "hp": 145253871,
+      "def": 553423.7,
+      "expToNext": 208538777,
+      "measured": false
+    },
+    {
+      "lv": 160,
+      "atk": 4962822.0,
+      "hp": 148011505,
+      "def": 563930.4,
+      "expToNext": 212497871,
+      "measured": false
+    },
+    {
+      "lv": 161,
+      "atk": 5056455.6,
+      "hp": 150804039,
+      "def": 574570.1,
+      "expToNext": 216507070,
+      "measured": false
+    },
+    {
+      "lv": 162,
+      "atk": 5151266.9,
+      "hp": 153631697,
+      "def": 585343.6,
+      "expToNext": 220566696,
+      "measured": false
+    },
+    {
+      "lv": 163,
+      "atk": 5247263.4,
+      "hp": 156494702,
+      "def": 596251.8,
+      "expToNext": 224677069,
+      "measured": false
+    },
+    {
+      "lv": 164,
+      "atk": 5344452.6,
+      "hp": 159393278,
+      "def": 607295.5,
+      "expToNext": 228838511,
+      "measured": false
+    },
+    {
+      "lv": 165,
+      "atk": 5442842.0,
+      "hp": 162327649,
+      "def": 618475.6,
+      "expToNext": 233051343,
+      "measured": false
+    },
+    {
+      "lv": 166,
+      "atk": 5542439.1,
+      "hp": 165298038,
+      "def": 629792.9,
+      "expToNext": 237315886,
+      "measured": false
+    },
+    {
+      "lv": 167,
+      "atk": 5643251.4,
+      "hp": 168304669,
+      "def": 641248.3,
+      "expToNext": 241632461,
+      "measured": false
+    },
+    {
+      "lv": 168,
+      "atk": 5745286.4,
+      "hp": 171347766,
+      "def": 652842.6,
+      "expToNext": 246001390,
+      "measured": false
+    },
+    {
+      "lv": 169,
+      "atk": 5848551.6,
+      "hp": 174427553,
+      "def": 664576.7,
+      "expToNext": 250422994,
+      "measured": false
+    },
+    {
+      "lv": 170,
+      "atk": 5953054.5,
+      "hp": 177544254,
+      "def": 676451.5,
+      "expToNext": 254897594,
+      "measured": false
+    },
+    {
+      "lv": 171,
+      "atk": 6058802.6,
+      "hp": 180698093,
+      "def": 688467.8,
+      "expToNext": 259425512,
+      "measured": false
+    },
+    {
+      "lv": 172,
+      "atk": 6165803.5,
+      "hp": 183889293,
+      "def": 700626.4,
+      "expToNext": 264007070,
+      "measured": false
+    },
+    {
+      "lv": 173,
+      "atk": 6274064.6,
+      "hp": 187118079,
+      "def": 712928.2,
+      "expToNext": 268642589,
+      "measured": false
+    },
+    {
+      "lv": 174,
+      "atk": 6383593.5,
+      "hp": 190384675,
+      "def": 725374.1,
+      "expToNext": 273332392,
+      "measured": false
+    },
+    {
+      "lv": 175,
+      "atk": 6494397.7,
+      "hp": 193689305,
+      "def": 737964.9,
+      "expToNext": 278076800,
+      "measured": false
+    },
+    {
+      "lv": 176,
+      "atk": 6606484.7,
+      "hp": 197032194,
+      "def": 750701.5,
+      "expToNext": 282876135,
+      "measured": false
+    },
+    {
+      "lv": 177,
+      "atk": 6719862.0,
+      "hp": 200413565,
+      "def": 763584.7,
+      "expToNext": 287730719,
+      "measured": false
+    },
+    {
+      "lv": 178,
+      "atk": 6834537.1,
+      "hp": 203833643,
+      "def": 776615.4,
+      "expToNext": 292640874,
+      "measured": false
+    },
+    {
+      "lv": 179,
+      "atk": 6950517.6,
+      "hp": 207292653,
+      "def": 789794.4,
+      "expToNext": 297606922,
+      "measured": false
+    },
+    {
+      "lv": 180,
+      "atk": 7067811.0,
+      "hp": 210790818,
+      "def": 803122.6,
+      "expToNext": 302629185,
+      "measured": false
+    },
+    {
+      "lv": 181,
+      "atk": 7186424.8,
+      "hp": 214328364,
+      "def": 816600.8,
+      "expToNext": 307707986,
+      "measured": false
+    },
+    {
+      "lv": 182,
+      "atk": 7306366.6,
+      "hp": 217905514,
+      "def": 830229.9,
+      "expToNext": 312843647,
+      "measured": false
+    },
+    {
+      "lv": 183,
+      "atk": 7427643.8,
+      "hp": 221522494,
+      "def": 844010.8,
+      "expToNext": 318036490,
+      "measured": false
+    },
+    {
+      "lv": 184,
+      "atk": 7550264.0,
+      "hp": 225179528,
+      "def": 857944.3,
+      "expToNext": 323286838,
+      "measured": false
+    },
+    {
+      "lv": 185,
+      "atk": 7674234.8,
+      "hp": 228876840,
+      "def": 872031.2,
+      "expToNext": 328595013,
+      "measured": false
+    },
+    {
+      "lv": 186,
+      "atk": 7799563.7,
+      "hp": 232614655,
+      "def": 886272.4,
+      "expToNext": 333961338,
+      "measured": false
+    },
+    {
+      "lv": 187,
+      "atk": 7926258.2,
+      "hp": 236393198,
+      "def": 900668.8,
+      "expToNext": 339386136,
+      "measured": false
+    },
+    {
+      "lv": 188,
+      "atk": 8054325.8,
+      "hp": 240212694,
+      "def": 915221.3,
+      "expToNext": 344869729,
+      "measured": false
+    },
+    {
+      "lv": 189,
+      "atk": 8183774.1,
+      "hp": 244073368,
+      "def": 929930.6,
+      "expToNext": 350412440,
+      "measured": false
+    },
+    {
+      "lv": 190,
+      "atk": 8314610.6,
+      "hp": 247975444,
+      "def": 944797.7,
+      "expToNext": 356014592,
+      "measured": false
+    },
+    {
+      "lv": 191,
+      "atk": 8446842.9,
+      "hp": 251919147,
+      "def": 959823.4,
+      "expToNext": 361676507,
+      "measured": false
+    },
+    {
+      "lv": 192,
+      "atk": 8580478.5,
+      "hp": 255904703,
+      "def": 975008.5,
+      "expToNext": 367398509,
+      "measured": false
+    },
+    {
+      "lv": 193,
+      "atk": 8715524.9,
+      "hp": 259932336,
+      "def": 990354.0,
+      "expToNext": 373180921,
+      "measured": false
+    },
+    {
+      "lv": 194,
+      "atk": 8851989.7,
+      "hp": 264002271,
+      "def": 1005860.6,
+      "expToNext": 379024066,
+      "measured": false
+    },
+    {
+      "lv": 195,
+      "atk": 8989880.5,
+      "hp": 268114734,
+      "def": 1021529.3,
+      "expToNext": 384928267,
+      "measured": false
+    },
+    {
+      "lv": 196,
+      "atk": 9129204.8,
+      "hp": 272269950,
+      "def": 1037360.9,
+      "expToNext": 390893847,
+      "measured": false
+    },
+    {
+      "lv": 197,
+      "atk": 9269970.1,
+      "hp": 276468143,
+      "def": 1053356.2,
+      "expToNext": 396921130,
+      "measured": false
+    },
+    {
+      "lv": 198,
+      "atk": 9412184.0,
+      "hp": 280709539,
+      "def": 1069516.1,
+      "expToNext": 403010438,
+      "measured": false
+    },
+    {
+      "lv": 199,
+      "atk": 9555854.1,
+      "hp": 284994364,
+      "def": 1085841.5,
+      "expToNext": 409162096,
+      "measured": false
+    },
+    {
+      "lv": 200,
+      "atk": 9700987.9,
+      "hp": 289322842,
+      "def": 1102333.2,
       "expToNext": null,
       "measured": false
     }
@@ -1007,7 +1647,12 @@
     5.0,
     5.5,
     6.0,
-    6.5
+    6.5,
+    7.5,
+    8.5,
+    9.5,
+    10.5,
+    11.5
   ],
   "starMaxLv": [
     50,
@@ -1021,7 +1666,12 @@
     90,
     95,
     110,
-    120
+    120,
+    135,
+    150,
+    165,
+    180,
+    200
   ],
   "awakenCost": [
     0,
@@ -1035,7 +1685,12 @@
     5,
     6,
     6,
-    7
+    7,
+    8,
+    9,
+    10,
+    11,
+    12
   ],
   "skillRankStars": {
     "normal": [

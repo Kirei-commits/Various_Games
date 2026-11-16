@@ -151,7 +151,7 @@ namespace Mado.Core.Tests
             string before = e.Snapshot();
             Assert.IsFalse(e.Roster.TryGrant("chr_nope"));
             Assert.IsFalse(e.Roster.TrySetStar("chr_001", 0));   // 上がらない
-            Assert.IsFalse(e.Roster.TrySetStar("chr_001", 12));  // 範囲外
+            Assert.IsFalse(e.Roster.TrySetStar("chr_001", 17));  // 範囲外
             Assert.IsFalse(e.Roster.TrySetStar("chr_009", 3));   // 未所持
             Assert.IsFalse(e.Roster.TrySetLevel("chr_001", 51)); // ★0 の最大は50
             Assert.AreEqual(before, e.Snapshot());

@@ -22,7 +22,7 @@ namespace Mado.Sim
         /// <summary>01 6.1節の「想定★」。ランクごとの標準的な育ち具合（Lv は★の最大 Lv）。</summary>
         public static int StarFor(int rank)
         {
-            int[] upper = { 2, 4, 7, 10, 12, 15, 18, 20, 23, 26, 28, 32 }; // 各★の最後のランク
+            int[] upper = { 2, 4, 7, 10, 12, 15, 18, 20, 23, 26, 28, 32, 34, 38, 42, 46, 50 }; // 各★の最後のランク（★12〜16 は限界突破。ランク33〜50）
             for (int star = 0; star < upper.Length; star++) { if (rank <= upper[star]) { return star; } }
             return upper.Length;
         }

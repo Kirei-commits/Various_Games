@@ -68,15 +68,15 @@ namespace Mado.Data.Tests
             Assert.AreEqual(64, _data.System.ChainLimit);
             Assert.AreEqual(64, _data.System.DevModeCodeSha256.Length);
             Assert.AreEqual(new[] { 2, 4, 6, 8, 10 }, _data.System.CrystalSlotStars.ToArray());
-            Assert.AreEqual(120, _data.Stats.LevelTable.Count);
+            Assert.AreEqual(200, _data.Stats.LevelTable.Count);
             Assert.AreEqual(225.0, _data.Stats.LevelTable[0].Atk, 1e-9);
             Assert.AreEqual(8500.0, _data.Stats.LevelTable[0].Hp, 1e-9);
             Assert.AreEqual(60.0, _data.Stats.LevelTable[0].Def, 1e-9);
-            Assert.IsNull(_data.Stats.LevelTable[119].ExpToNext, "最大レベルの expToNext は null");
+            Assert.IsNull(_data.Stats.LevelTable[199].ExpToNext, "最大レベル（Lv200）の expToNext は null");
             Assert.AreEqual(0.865, _data.Stats.ForRole(Role.Melee).Atk, 1e-12);
             Assert.AreEqual(new[] { 1, 7 }, _data.Stats.SkillRankStars.Get(SkillKind.Normal).ToArray());
             Assert.AreEqual(15000000.0, _data.Difficulty.E1, 1e-3);
-            Assert.AreEqual(32, _data.Difficulty.EnemyScale.Count);
+            Assert.AreEqual(50, _data.Difficulty.EnemyScale.Count);
             Assert.AreEqual(Element.Valor, _data.System.ElementCycle[0]);
         }
 

@@ -221,7 +221,7 @@ namespace Mado.Core.Tests
             Assert.AreEqual(f.RecommendedPower(1, 5, 9) * 1.0, f.RecommendedPower(1, 5, 9), 0);
             double normal = f.RankStart(1) * Math.Pow(3.0, (10.0 * 4 + 9) / 100.0);
             Assert.AreEqual(normal * 1.15, f.RecommendedPower(1, 5, 10), normal * 1e-9);
-            Assert.Throws<ArgumentException>(() => f.RecommendedPower(33, 1, 1));
+            Assert.Throws<ArgumentException>(() => f.RecommendedPower(51, 1, 1));
         }
 
         [Test]

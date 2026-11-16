@@ -128,7 +128,7 @@ namespace Mado.Core.Tests
             Assert.AreEqual(LevelFailure.UnknownCharacter, e.Level.LevelUp(null).Failure);
             Assert.AreEqual(LevelFailure.NotOwned, e.Level.LevelUp("chr_002").Failure);
             Assert.Throws<ArgumentException>(() => e.Level.CostToNext(0));
-            Assert.Throws<ArgumentException>(() => e.Level.CostToNext(120));   // 最大レベルに次は無い
+            Assert.Throws<ArgumentException>(() => e.Level.CostToNext(200));   // 最大レベルに次は無い
             Assert.Throws<ArgumentNullException>(() => new LevelService(Data, e.Save, null));
         }
 
@@ -166,11 +166,11 @@ namespace Mado.Core.Tests
         }
 
         [Test]
-        public void Awaken_TotalCostToMax_Is46()
+        public void Awaken_TotalCostToMax_Is96()
         {
-            var e = new Env(shards: 46);
+            var e = new Env(shards: 96);
             for (int star = 0; star < e.Awaken.MaxStar; star++) { Assert.IsTrue(e.Awaken.Awaken("chr_001").Success, "★" + star); }
-            Assert.AreEqual(11, e.C.Star);
+            Assert.AreEqual(16, e.C.Star);                              // 限界突破の★16まで（★0〜11 は46枚、★12〜16 は50枚）
             Assert.AreEqual(0, e.Wallet.Balance(CurrencyIds.AwakenShard));
             Assert.AreEqual(AwakenFailure.AtMaxStar, e.Awaken.Awaken("chr_001").Failure);
         }
@@ -200,7 +200,7 @@ namespace Mado.Core.Tests
             var e = new Env(shards: 20);
             Assert.AreEqual(AwakenFailure.UnknownCharacter, e.Awaken.Awaken("chr_nope").Failure);
             Assert.AreEqual(AwakenFailure.NotOwned, e.Awaken.Awaken("chr_002").Failure);
-            Assert.Throws<ArgumentException>(() => e.Awaken.CostToNext(11));
+            Assert.Throws<ArgumentException>(() => e.Awaken.CostToNext(16));
             e.C.Star = 5;
             e.C.Crystals[CharacterState.OwnCrystalSlot] = "cry_chr_002";   // ★6 で開く枠が既に埋まっている（壊れた状態）
             Assert.Throws<InvalidOperationException>(() => e.Awaken.Awaken("chr_001"));
@@ -226,7 +226,7 @@ namespace Mado.Core.Tests
             }
             Assert.IsTrue(calc.ForBattle(1, new BattleResult()).Items.All(m => m.Amount == 0));   // 倒していなければ0
             Assert.Throws<ArgumentException>(() => calc.ExpPerEnemy(0));
-            Assert.Throws<ArgumentException>(() => calc.ExpPerEnemy(33));
+            Assert.Throws<ArgumentException>(() => calc.ExpPerEnemy(51));
             Assert.Throws<ArgumentNullException>(() => calc.ForBattle(1, null));
             Assert.AreEqual(1500, calc.KillsPerRankClear);   // 100 ステージ × (4 ウェーブ × 3 体 ＋ ボス 3 体)
         }

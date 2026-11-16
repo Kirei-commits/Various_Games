@@ -229,7 +229,7 @@ namespace Mado.Core.Tests
             // 105体すべての目標を達成すると、1つのステータスあたり約 4,800％（6.4節 +5,000％ の範囲）
             double perChar = e.Zukan.GoalsPerCharacter;
             double total = perChar * 105 * Data.Research.Zukan.PerGoalPct / 3.0;
-            Assert.LessOrEqual(total, 5200.0);
+            Assert.LessOrEqual(total, 6200.0);      // 元は5,000％。限界突破（★12〜16）の目標ぶんが加わる（docs/decisions/2026-11-16_ランク50までの拡張.md）
             Assert.GreaterOrEqual(total, 4000.0);
         }
 

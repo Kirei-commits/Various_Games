@@ -57,7 +57,7 @@ namespace Mado.Core.Tests
             Assert.AreEqual(row.Atk * Data.Stats.StarMultipliers[4], s.Atk, 1e-6);
             Assert.Throws<ArgumentException>(() => Plain().Resolve(c, 0, 51, false)); // ★0 の最大は50
             Assert.Throws<ArgumentException>(() => Plain().Resolve(c, 0, 0, false));
-            Assert.Throws<ArgumentException>(() => Plain().Resolve(c, 12, 1, false));
+            Assert.Throws<ArgumentException>(() => Plain().Resolve(c, 17, 1, false));
             Assert.Throws<ArgumentException>(() => Plain().Resolve(c, -1, 1, false));
         }
 

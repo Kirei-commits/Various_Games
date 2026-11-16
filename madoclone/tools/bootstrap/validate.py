@@ -145,15 +145,15 @@ for item in list(skills.values()) + list(crystals.values()):
 
 # 5. ステータス表
 lt = stat["levelTable"]
-if [r["lv"] for r in lt] != list(range(1, 121)):
-    err("levelTable が Lv1〜120 ではない")
+if [r["lv"] for r in lt] != list(range(1, 201)):
+    err("levelTable が Lv1〜200 ではない")
 for a, b in zip(lt, lt[1:]):
     if not (b["atk"] > a["atk"] and b["hp"] > a["hp"] and b["def"] > a["def"]):
         err("levelTable が増えていない: Lv%d" % b["lv"])
-if len(stat["starMultipliers"]) != 12 or len(stat["starMaxLv"]) != 12 or len(stat["awakenCost"]) != 12:
-    err("★の表が12個ではない")
-if sum(stat["awakenCost"]) != 46:
-    err("覚醒の必要枚数の合計が46ではない")
+if len(stat["starMultipliers"]) != 17 or len(stat["starMaxLv"]) != 17 or len(stat["awakenCost"]) != 17:
+    err("★の表が17個ではない")
+if sum(stat["awakenCost"][:12]) != 46 or sum(stat["awakenCost"]) != 96:
+    err("覚醒の必要枚数の合計が（★0〜11で46、全体で96）ではない")
 
 # 6. 難易度（仕様書6.1節の表）
 EXP_BOSS = [45.0e6, 135.0e6, 405.0e6, 1.2e9, 3.6e9, 10.9e9, 32.8e9, 55.1e9, 92.6e9, 155.5e9, 261.3e9, 439.0e9,
@@ -177,8 +177,8 @@ for r in range(1, 33):
     # 表は上2〜4桁の表示なので、表示の丸め（最大4%）までを許す
     if abs(E / EXP_BOSS[r - 1] - 1) > 0.04:
         err("ランク%d のボス推奨戦力が仕様書と合わない: %.4g（表は %.4g）" % (r, E, EXP_BOSS[r - 1]))
-if [s["rank"] for s in diff["enemyScale"]] != list(range(1, 33)):
-    err("enemyScale がランク1〜32ではない")
+if [s["rank"] for s in diff["enemyScale"]] != list(range(1, diff["ranks"] + 1)):
+    err("enemyScale がランク1〜ranks ではない")
 
 # 9. 元作品の名前が混ざっていないか（dev/sourcemap.json があるときだけ）
 sm_path = os.path.join(ROOT, "dev", "sourcemap.json")

@@ -111,7 +111,7 @@ namespace Mado.Core.Tests
             Assert.AreEqual(1.68 + (1.30 - 1.68) * (20 - 15) / 17.0, f.Growth(20), 1e-12);   // 15〜32 を直線でつなぐ
             Assert.Greater(f.Growth(20), f.Growth(21));
             Assert.Throws<ArgumentException>(() => f.Growth(0));
-            Assert.Throws<ArgumentException>(() => f.Growth(33));
+            Assert.Throws<ArgumentException>(() => f.Growth(51));
         }
 
         [Test]

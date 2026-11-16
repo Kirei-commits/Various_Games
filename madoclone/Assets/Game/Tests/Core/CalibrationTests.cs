@@ -88,6 +88,8 @@ namespace Mado.Core.Tests
         [TestCase(8)]
         [TestCase(16)]
         [TestCase(32)]
+        [TestCase(40)]
+        [TestCase(50)]
         public void BossAtRecommendedPower_IsWonAboutEightyPercentOfTheTime(int rank)
         {
             SimProfileDef p = Profiles()[rank - 1];

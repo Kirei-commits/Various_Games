@@ -10,13 +10,13 @@ namespace Mado.Data
         public const int CharacterCount = 105;
 
         /// <summary>レベル表の最大レベル。</summary>
-        public const int MaxLevel = 120;
+        public const int MaxLevel = 200;
 
-        /// <summary>★0〜11 の12段階。</summary>
-        public const int StarSteps = 12;
+        /// <summary>★0〜16 の17段階（★0〜11 は元の仕様。★12〜16 は限界突破。自作の終盤の育成）。</summary>
+        public const int StarSteps = 17;
 
-        /// <summary>覚醒のかけらの必要枚数の合計（★0→★11）。</summary>
-        public const int AwakenCostTotal = 46;
+        /// <summary>覚醒のかけらの必要枚数の合計（★0→★11 で46、限界突破の★12〜16 で50）。</summary>
+        public const int AwakenCostTotal = 96;
 
         /// <summary>魔晶の枠の数。</summary>
         public const int CrystalSlotCount = 5;

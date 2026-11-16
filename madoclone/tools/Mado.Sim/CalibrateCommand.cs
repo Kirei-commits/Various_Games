@@ -22,7 +22,7 @@ namespace Mado.Sim
     {
         public static int Run(Options o)
         {
-            int from = 1, to = 32;
+            int from = 1, to = 50;
             string rankArg = o.Get("--rank");
             if (rankArg != null)
             {
