@@ -6,7 +6,7 @@ using Mado.Data;
 
 namespace Mado.Core.Growth
 {
-    public enum MemoryFailure { None, UnknownCard, WrongSlot, AtMaxGachaLv, NotEnough }
+    public enum MemoryFailure { None, UnknownCard, WrongSlot, AtMaxGachaLv, NotEnough, Equipped, InvalidSettings }
 
     public readonly struct PullResult
     {
@@ -132,6 +132,47 @@ namespace Mado.Core.Growth
         private static double Between(Rng rng, double min, double max)
         {
             return min + (max - min) * rng.NextDouble();
+        }
+
+        /// <summary>カードを売ってコインにする。付けているカードは売れない。</summary>
+        public MemoryFailure Sell(string cardId, out double coin)
+        {
+            coin = 0;
+            MemoryState m = _save.Memory;
+            MemoryCardState card = m.Cards.Find(c => c.Id == cardId);
+            if (card == null) { return MemoryFailure.UnknownCard; }
+            if (Array.IndexOf(m.Equipped, cardId) >= 0) { return MemoryFailure.Equipped; }
+            coin = MemoryCardRules.SellPrice(_data, card);
+            m.Cards.Remove(card);
+            _wallet.Grant(new Reward(CurrencyIds.Coin, coin), new GrantReason(WalletReasons.MemorySell));
+            return MemoryFailure.None;
+        }
+
+        /// <summary>
+        /// 自動絆ガチャ：条件に合うカードが出るまで引き続け、合わないカードは売る。合うカードが出たら止める（勝手には装備しない）。
+        /// 絆ハートが尽きるか maxPulls に着いたら止まる。
+        /// </summary>
+        public MemoryFailure AutoPull(AutoGachaSettings settings, int maxPulls, out AutoGachaResult result)
+        {
+            result = new AutoGachaResult { Stop = AutoStop.Limit };
+            if (settings == null || maxPulls < 1 || settings.MinRarityIndex < 0 || settings.MinRarityIndex >= _data.MemoryCards.Rarities.Count
+                || settings.Filter1.Count > 2 || settings.Filter2.Count > 2) { return MemoryFailure.InvalidSettings; }
+            while (result.Pulls < maxPulls)
+            {
+                PullResult r = Pull();
+                if (!r.Success) { result.Stop = AutoStop.NotEnough; break; }
+                result.Pulls++;
+                if (MemoryCardRules.Matches(_data, _save.Memory, r.Card, settings))
+                {
+                    result.Found = r.Card;
+                    result.Stop = AutoStop.Found;
+                    break;
+                }
+                Sell(r.Card.Id, out double coin);
+                result.Sold++;
+                result.CoinGained += coin;
+            }
+            return MemoryFailure.None;
         }
 
         /// <summary>枠の番号：種類 × 2 ＋ 何枚目か（0・1）。</summary>

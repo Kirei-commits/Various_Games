@@ -9,6 +9,7 @@ namespace Mado.Core.Session
         CrystalMoved,         // Id = 魔晶, Detail = "キャラ:枠"（移動先）
         MemoryCardDrawn,      // Id = カード, Detail = レア
         MemoryCardEquipped,   // Id = カード, Value = 枠
+        MemoryCardSold,       // Id = カード（自動のときは空）, Amount = コイン, Value = 売った枚数
         MemoryGachaLevelUp,   // Value = 新しい絆ガチャLv
         LeaderChanged,        // Id = キャラ（解除なら空）
         LeaderLevelUp,        // Value = 新しいリーダーLv

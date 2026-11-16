@@ -25,6 +25,7 @@ namespace Mado.Core.Wallet
         public const string GrowthAwaken = "growth.awaken";
         public const string BattleDrop = "battle.drop";
         public const string MemoryGachaLevel = "memory.gachalevel";
+        public const string MemorySell = "memory.sell";
         public const string IdleClaim = "idle.claim";
         public const string LeaderLevelUp = "leader.levelup";
         public const string LeaderReward = "leader.reward";

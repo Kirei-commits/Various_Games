@@ -201,6 +201,25 @@ namespace Mado.Core.Session
             return Done(new GameEvent(GameEventKind.MemoryCardDrawn, r.Card.Id, 0, r.Card.Lv, r.Card.Rarity));
         }
 
+        public CommandResult SellMemoryCard(string cardId)
+        {
+            MemoryFailure f = _memory.Sell(cardId, out double coin);
+            if (f != MemoryFailure.None) { return Failed(f); }
+            return Done(new GameEvent(GameEventKind.MemoryCardSold, cardId, coin));
+        }
+
+        /// <summary>自動絆ガチャ。合うカードが出たら止まる（装備は View の確認のあと EquipMemoryCard）。</summary>
+        public CommandResult AutoPullMemoryCard(AutoGachaSettings settings, int maxPulls, out AutoGachaResult result)
+        {
+            MemoryFailure f = _memory.AutoPull(settings, maxPulls, out result);
+            if (f != MemoryFailure.None) { return Failed(f); }
+            var evs = new List<GameEvent>();
+            if (result.Found != null) { evs.Add(new GameEvent(GameEventKind.MemoryCardDrawn, result.Found.Id, 0, result.Found.Lv, result.Found.Rarity)); }
+            if (result.Sold > 0) { evs.Add(new GameEvent(GameEventKind.MemoryCardSold, "", result.CoinGained, result.Sold)); }
+            Finish(evs.ToArray());
+            return CommandResult.Ok();
+        }
+
         public CommandResult RaiseMemoryGachaLevel()
         {
             MemoryFailure f = _memory.RaiseGachaLv();

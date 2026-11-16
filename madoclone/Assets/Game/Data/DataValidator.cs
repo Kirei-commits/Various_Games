@@ -496,7 +496,7 @@ namespace Mado.Data
             MemoryCardsConfig m = d.MemoryCards;
             string at = DataLoader.MemoryCardsFile;
             if (m.MaxCardLv < 1 || m.LevelOffset < 0 || m.SubRefLv < 1 || !(m.PullCostBondHeart > 0)
-                || !(m.GachaLvCostBase > 0) || !(m.GachaLvCostGrowth >= 1.0))
+                || !(m.GachaLvCostBase > 0) || !(m.GachaLvCostGrowth >= 1.0) || m.SellCoinBase < 0)
             {
                 Error(issues, "MEMORY_CARDS", at, "maxCardLv・subRefLv は1以上、levelOffset は0以上、費用は正の数（成長率は1以上）");
             }

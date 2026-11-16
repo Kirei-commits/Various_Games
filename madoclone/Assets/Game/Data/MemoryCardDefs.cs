@@ -83,6 +83,9 @@ namespace Mado.Data
         public double GachaLvCostBase { get; init; }
         public double GachaLvCostGrowth { get; init; }
 
+        /// <summary>カードの売値（コイン）＝ SellCoinBase ×（レアの順番＋1）× カードLv。</summary>
+        public double SellCoinBase { get; init; }
+
         public FixedUnitScale FixedUnitScale { get; init; }
         public IReadOnlyList<MemorySubEffectDef> SubEffects { get; init; }
 

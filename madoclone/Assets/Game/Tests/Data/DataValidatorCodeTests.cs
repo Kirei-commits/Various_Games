@@ -147,6 +147,7 @@ namespace Mado.Data.Tests
             // ---- memory_cards.json ----
             string mc = DataLoader.MemoryCardsFile;
             yield return C("MEMORY_CARDS", mc, r => r["maxCardLv"] = 0);
+            yield return C("MEMORY_CARDS", mc, r => r["sellCoinBase"] = -1);
             yield return C("MEMORY_CARDS", mc, r => r["fixedUnitScale"]["hp"] = 0);
             yield return C("MEMORY_CARDS", mc, r => ((JArray)r["rarities"]).Clear());
             yield return C("MEMORY_CARDS", mc, r => r["rarities"][2]["id"] = "N");               // 重複
