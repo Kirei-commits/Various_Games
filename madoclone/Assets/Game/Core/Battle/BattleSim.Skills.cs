@@ -304,7 +304,7 @@ namespace Mado.Core.Battle
                     BonusPct = _mulBonus + _dbgBonus[t],
                     SelfLostHp = c.MaxHp - c.Hp,
                     BonusSelfLostHpPct = e.BonusSelfLostHpPct,
-                    ElementMultiplier = DamageCalc.ElementMultiplier(_k, c.Element, target.Element) * ResistFor(c, target),
+                    ElementMultiplier = (c.IsSupport ? 1.0 : DamageCalc.ElementMultiplier(_k, c.Element, target.Element)) * ResistFor(c, target),
                     Crit = crit,
                     CritMultiplier = DamageCalc.CritMultiplier(_k, c.Eff.CritDamagePct, target.Eff.CritDefensePct),
                 });

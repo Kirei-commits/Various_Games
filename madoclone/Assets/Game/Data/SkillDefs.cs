@@ -93,6 +93,13 @@ namespace Mado.Data
     /// <summary>スキルと魔晶に共通の部分（発動のきっかけ＋効果の並び）。</summary>
     public abstract class SkillDefBase
     {
+        protected SkillDefBase() { }
+
+        protected SkillDefBase(string id, TriggerDef trigger, IReadOnlyList<EffectDef> effects)
+        {
+            Id = id; Trigger = trigger; Effects = effects;
+        }
+
         [JsonProperty(Required = Required.Always)]
         public string Id { get; init; }
 

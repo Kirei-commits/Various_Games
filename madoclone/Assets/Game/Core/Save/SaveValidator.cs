@@ -92,6 +92,17 @@ namespace Mado.Core.Save
                 }
             }
             CheckMemory(save, data, issues);
+            foreach (KeyValuePair<string, int> kv in save.Supports.Stars)
+            {
+                if (!data.Supports.TryGet(kv.Key, out _)) { Add(issues, SaveSeverity.Warning, "SUPPORT_UNKNOWN", "マスタに無いサポート " + kv.Key, "supports.stars." + kv.Key); }
+                else if (kv.Value < 0 || kv.Value > Growth.SupportService.MaxStar) { Add(issues, SaveSeverity.Error, "SUPPORT_STAR", "サポートの★が 0〜" + Growth.SupportService.MaxStar + " の外: " + kv.Value, "supports.stars." + kv.Key); }
+            }
+            foreach (KeyValuePair<string, PartyState> kv in save.Parties)
+            {
+                CheckSupportSlot(data, issues, kv.Key, "familiar", kv.Value.Familiar, SupportKind.Familiar);
+                CheckSupportSlot(data, issues, kv.Key, "spirit", kv.Value.Spirit, SupportKind.Spirit);
+                CheckSupportSlot(data, issues, kv.Key, "dragon", kv.Value.Dragon, SupportKind.Dragon);
+            }
             foreach (KeyValuePair<string, TrialState> kv in save.Trials)
             {
                 string at = "trials." + kv.Key;
@@ -173,6 +184,14 @@ namespace Mado.Core.Save
                     Add(issues, SaveSeverity.Error, "MEMORY_EQUIP_DUP", "同じカード " + id + " を2つの枠に付けている", at);
                 }
             }
+        }
+
+        private static void CheckSupportSlot(GameData data, List<SaveIssue> issues, string party, string slot, string id, SupportKind kind)
+        {
+            if (id == null) { return; }
+            string at = "parties." + party + "." + slot;
+            if (!data.Supports.TryGet(id, out SupportDef def)) { Add(issues, SaveSeverity.Warning, "SUPPORT_UNKNOWN", "マスタに無いサポート " + id, at); }
+            else if (def.Kind != kind) { Add(issues, SaveSeverity.Error, "SUPPORT_KIND", "枠の種類とサポートの種類が違う: " + id, at); }
         }
 
         /// <summary>固有魔晶が現れる★（＝固有魔晶の枠が開く★。いまは 6）。</summary>

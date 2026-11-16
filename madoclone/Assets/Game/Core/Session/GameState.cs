@@ -47,10 +47,11 @@ namespace Mado.Core.Session
         private readonly IdleService _idle;
         private readonly Metrics.MetricCounter _metrics;
         private readonly Growth.TrialService _trials;
+        private readonly Growth.SupportService _supports;
 
-        internal GameState(SaveData save, Wallet.Wallet wallet, IdleService idle, Metrics.MetricCounter metrics, Growth.TrialService trials)
+        internal GameState(SaveData save, Wallet.Wallet wallet, IdleService idle, Metrics.MetricCounter metrics, Growth.TrialService trials, Growth.SupportService supports)
         {
-            _save = save; _wallet = wallet; _idle = idle; _metrics = metrics; _trials = trials;
+            _save = save; _wallet = wallet; _idle = idle; _metrics = metrics; _trials = trials; _supports = supports;
         }
 
         public bool DevMode { get { return _save.DevMode; } }
@@ -84,6 +85,20 @@ namespace Mado.Core.Session
 
         /// <summary>貯まっている報酬の回数（歯止めのない試練は PositiveInfinity）。</summary>
         public double TrialCharges(string trialId) { return _trials.Charges(trialId); }
+
+        public bool OwnsSupport(string supportId) { return _supports.IsOwned(supportId); }
+        public IReadOnlyList<string> OwnedSupports(SupportKind kind) { return _supports.Owned(kind); }
+        public int SupportStar(string supportId) { return _supports.Star(supportId); }
+
+        /// <summary>いまの編成にセットされているサポート（使い魔・契約霊・竜の順。無ければ null）。</summary>
+        public IReadOnlyList<string> EquippedSupports
+        {
+            get
+            {
+                _save.Parties.TryGetValue(Session.GameSession.DefaultParty, out PartyState p);
+                return p == null ? new string[3] : new[] { p.Familiar, p.Spirit, p.Dragon };
+            }
+        }
 
         public int MemoryGachaLv { get { return _save.Memory.GachaLv; } }
 

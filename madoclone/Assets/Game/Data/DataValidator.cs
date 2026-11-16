@@ -32,6 +32,7 @@ namespace Mado.Data
             CheckEnemyKits(d, issues);
             CheckPlazas(d, issues);
             CheckTrials(d, issues);
+            CheckSupports(d, issues);
             return issues;
         }
 
@@ -686,6 +687,32 @@ namespace Mado.Data
                     if (!traitIds.Contains(id)) { Error(issues, "TRIALS", where, "知らない特徴 " + id); }
                 }
             }
+        }
+
+        // ---- supports.json ----
+
+        private static void CheckSupports(GameData d, List<DataIssue> issues)
+        {
+            string at = DataLoader.SupportsFile;
+            var ids = new HashSet<string>();
+            foreach (SupportDef s in d.Supports.Supports)
+            {
+                string where = at + ":" + s.Id;
+                if (string.IsNullOrEmpty(s.Id) || !ids.Add(s.Id)) { Error(issues, "SUPPORTS", where, "ID が空か重複"); }
+                if (!(s.IntervalSec > 0) || s.StarDurationBonusSec < 0 || s.UnlockLv < 1 || s.Effects.Count == 0)
+                {
+                    Error(issues, "SUPPORTS", where, "intervalSec は正、★ごとの延長は0以上、unlockLv は1以上、effects は1つ以上");
+                }
+                if (!d.Trials.TryGet(s.UnlockTrial, out _)) { Error(issues, "SUPPORTS", where, "マスタに無い試練 " + s.UnlockTrial); }
+                // 効果の中身は、スキルと同じ検査（buffId・段階・必須項目）
+                CheckBody(d, new SupportBody(s), where, issues);
+            }
+        }
+
+        /// <summary>サポートの効果を、スキルと同じ検査にかけるための入れ物（interval で発動するスキルとして見る）。</summary>
+        private sealed class SupportBody : SkillDefBase
+        {
+            public SupportBody(SupportDef s) : base(s.Id, new TriggerDef { Type = TriggerType.Interval, EverySec = s.IntervalSec }, s.Effects) { }
         }
 
         // ---- difficulty.json ----

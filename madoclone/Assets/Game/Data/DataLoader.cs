@@ -54,13 +54,14 @@ namespace Mado.Data
         public const string EnemyKitsFile = "enemy_kits.json";
         public const string PlazasFile = "plazas.json";
         public const string TrialsFile = "trials.json";
+        public const string SupportsFile = "supports.json";
         public const string TextFile = "text/ja.json";
 
         /// <summary>読み込むファイルの一覧。</summary>
         public static readonly IReadOnlyList<string> FileNames = new[]
         {
             CharactersFile, SkillsFile, CrystalsFile, BuffsFile, TiersFile,
-            CurrenciesFile, SystemFile, StatTablesFile, DifficultyFile, RewardsFile, MemoryCardsFile, LeaderTempleFile, EnemyKitsFile, PlazasFile, TrialsFile, TextFile,
+            CurrenciesFile, SystemFile, StatTablesFile, DifficultyFile, RewardsFile, MemoryCardsFile, LeaderTempleFile, EnemyKitsFile, PlazasFile, TrialsFile, SupportsFile, TextFile,
         };
 
         private static readonly JsonSerializerSettings Settings = CreateSettings();
@@ -129,6 +130,7 @@ namespace Mado.Data
             EnemyKitsConfig enemyKits = Parse<EnemyKitsConfig>(source, EnemyKitsFile, issues);
             PlazasConfig plazas = Parse<PlazasConfig>(source, PlazasFile, issues);
             TrialsConfig trials = Parse<TrialsConfig>(source, TrialsFile, issues);
+            SupportsConfig supports = Parse<SupportsConfig>(source, SupportsFile, issues);
             Dictionary<string, string> texts = Parse<Dictionary<string, string>>(source, TextFile, issues);
 
             foreach (DataIssue issue in issues)
@@ -141,10 +143,10 @@ namespace Mado.Data
 
             CheckSchemaVersions(issues, characters.SchemaVersion, skills.SchemaVersion, crystals.SchemaVersion,
                 buffs.SchemaVersion, tiers.SchemaVersion, currencies.SchemaVersion,
-                system.SchemaVersion, stats.SchemaVersion, difficulty.SchemaVersion, rewards.SchemaVersion, memoryCards.SchemaVersion, leaderTemple.SchemaVersion, enemyKits.SchemaVersion, plazas.SchemaVersion, trials.SchemaVersion);
+                system.SchemaVersion, stats.SchemaVersion, difficulty.SchemaVersion, rewards.SchemaVersion, memoryCards.SchemaVersion, leaderTemple.SchemaVersion, enemyKits.SchemaVersion, plazas.SchemaVersion, trials.SchemaVersion, supports.SchemaVersion);
 
             var data = new GameData(
-                system, stats, difficulty, rewards, memoryCards, leaderTemple, enemyKits, plazas, trials, buffs,
+                system, stats, difficulty, rewards, memoryCards, leaderTemple, enemyKits, plazas, trials, supports, buffs,
                 tiers.Items, characters.Items, skills.Items, crystals.Items, currencies.Items,
                 new TextTable(texts));
             issues.AddRange(DataValidator.Validate(data));

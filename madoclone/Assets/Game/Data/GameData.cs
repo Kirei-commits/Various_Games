@@ -21,6 +21,7 @@ namespace Mado.Data
         public EnemyKitsConfig EnemyKits { get; }
         public PlazasConfig Plazas { get; }
         public TrialsConfig Trials { get; }
+        public SupportsConfig Supports { get; }
         public BuffTable Buffs { get; }
         public TextTable Text { get; }
 
@@ -44,6 +45,7 @@ namespace Mado.Data
             EnemyKitsConfig enemyKits,
             PlazasConfig plazas,
             TrialsConfig trials,
+            SupportsConfig supports,
             BuffTable buffs,
             IReadOnlyList<TierDef> tiers,
             IReadOnlyList<CharacterDef> characters,
@@ -61,6 +63,7 @@ namespace Mado.Data
             EnemyKits = enemyKits;
             Plazas = plazas;
             Trials = trials;
+            Supports = supports;
             Buffs = buffs;
             Tiers = tiers;
             Characters = characters;

@@ -81,7 +81,7 @@ namespace Mado.Core.Growth
         }
 
         /// <summary>次のLv（クリア済み＋1）に挑む。勝つとLvが上がり、貯まっている回数があれば報酬が出る。味方は呼び出し側が渡す（編成）。</summary>
-        public TrialResult Challenge(string trialId, IReadOnlyList<UnitSetup> allies, ulong seed)
+        public TrialResult Challenge(string trialId, IReadOnlyList<UnitSetup> allies, ulong seed, IReadOnlyList<UnitSetup> supports = null)
         {
             if (!_data.Trials.TryGet(trialId, out TrialDef def)) { return new TrialResult { Failure = TrialFailure.UnknownTrial }; }
             if (allies == null || allies.Count == 0) { return new TrialResult { Failure = TrialFailure.NoParty }; }
@@ -89,7 +89,7 @@ namespace Mado.Core.Growth
             RepeatGate.Accrue(s.Gate, def.Gate, _clock.UtcNow);
 
             int lv = s.ClearedLv + 1;
-            BattleOutcome outcome = Fight(def, lv, allies, seed);
+            BattleOutcome outcome = Fight(def, lv, allies, seed, supports);
             var result = new TrialResult { Outcome = outcome, RewardLv = lv, NewClearedLv = s.ClearedLv };
             if (outcome != BattleOutcome.Win) { return result; }
 
@@ -122,14 +122,14 @@ namespace Mado.Core.Growth
             result.Rewards = rewards;
         }
 
-        private BattleOutcome Fight(TrialDef def, int lv, IReadOnlyList<UnitSetup> allies, ulong seed)
+        private BattleOutcome Fight(TrialDef def, int lv, IReadOnlyList<UnitSetup> allies, ulong seed, IReadOnlyList<UnitSetup> supports)
         {
             double perFight = def.TimeLimitSec / def.Fights;
             for (int i = 0; i < def.Fights; i++)
             {
                 List<UnitSetup> enemies = _stages.BuildTrial(def.StatRank, EnemyPower(def, lv), def.Traits);
                 // 連戦ごとに味方は元の状態から（HP は引き継がない）。味方の UnitSetup は書き換えないので使い回せる。
-                BattleSetup setup = _builder.Assemble(allies, enemies, seed + (ulong)i, perFight);
+                BattleSetup setup = _builder.Assemble(allies, enemies, seed + (ulong)i, perFight, supports);
                 BattleOutcome o = new BattleSim(setup).RunToEnd(null).Outcome;
                 if (o != BattleOutcome.Win) { return o; }
             }

@@ -38,6 +38,8 @@ namespace Mado.Core.Battle
             public double Hp, MaxHp;
             public BattleStats Eff;
             public bool Dirty;
+            public bool IsSupport;
+            public BattleStats Base;   // 基礎ステータス（サポートは発動のたびに平均攻撃力で書き換える。Setup は共有なので触らない）
             public Status[] St = new Status[StatusCapacity];
             public int StCount;
             public double AttackProgress;
@@ -67,7 +69,7 @@ namespace Mado.Core.Battle
         private readonly BattleConstants _k;
         private readonly ResolvedBuff[] _buffs;
         private readonly Unit[] _u;
-        private readonly int _nA, _n;
+        private readonly int _nA, _n, _ns;
         private readonly Rng _rng;
         private readonly IChanceSource _chance;
         private readonly Pending[] _queue = new Pending[QueueCapacity];
@@ -100,14 +102,17 @@ namespace Mado.Core.Battle
             _chance = chance ?? new RngChance(_rng);
             _nA = setup.Allies.Count;
             _n = _nA + setup.Enemies.Count;
-            _u = new Unit[_n];
-            for (int i = 0; i < _n; i++)
+            _ns = setup.Supports.Count;
+            _u = new Unit[_n + _ns];
+            for (int i = 0; i < _n + _ns; i++)
             {
-                UnitSetup us = i < _nA ? setup.Allies[i] : setup.Enemies[i - _nA];
+                // サポートは通常のユニットの後ろに置く（狙う・数える処理は 0.._n だけを見るので、自然に対象外になる）。
+                bool support = i >= _n;
+                UnitSetup us = support ? setup.Supports[i - _n] : (i < _nA ? setup.Allies[i] : setup.Enemies[i - _nA]);
                 var u = new Unit
                 {
-                    Index = i, Side = i < _nA ? Side.Ally : Side.Enemy, Setup = us, Element = us.Element, Row = us.Row,
-                    TauntCaster = -1,
+                    Index = i, Side = support || i < _nA ? Side.Ally : Side.Enemy, Setup = us, Element = us.Element, Row = us.Row,
+                    TauntCaster = -1, IsSupport = support,
                 };
                 int slots = 3 + us.Crystals.Count;
                 u.Slots = new ResolvedSkill[slots];
@@ -132,7 +137,7 @@ namespace Mado.Core.Battle
                 }
                 _u[i] = u;
             }
-            int nn = Math.Max(_n, 1);
+            int nn = Math.Max(_n + _ns, 1);
             _result.DamageDealt = new double[nn];
             _result.DamageTaken = new double[nn];
             _result.Healed = new double[nn];
@@ -162,10 +167,11 @@ namespace Mado.Core.Battle
             _started = true;
             _sink = sink;
             _tick = 0;
-            for (int i = 0; i < _n; i++)
+            for (int i = 0; i < _n + _ns; i++)
             {
                 Unit u = _u[i];
                 u.Alive = true;
+                u.Base = u.Setup.Stats;
                 u.MaxHp = u.Setup.Stats.Hp;
                 u.Hp = u.MaxHp;
                 u.Dirty = true;
@@ -243,8 +249,33 @@ namespace Mado.Core.Battle
                 }
             }
 
+            StepSupports();
             DrainQueue();
             return !CheckEnd();
+        }
+
+        /// <summary>サポートの発動（9.2節の4）。interval の残りを減らし、0 になったら、味方全員の平均攻撃力を基準にして発動する。</summary>
+        private void StepSupports()
+        {
+            for (int i = _n; i < _n + _ns; i++)
+            {
+                Unit u = _u[i];
+                for (int s = 1; s < u.Slots.Length; s++)
+                {
+                    ResolvedSkill sk = u.Slots[s];
+                    if (sk == null || sk.Trigger.Type != TriggerType.Interval) { continue; }
+                    u.Remaining[s]--;
+                    if (u.Remaining[s] > 0) { continue; }
+                    u.Remaining[s] = sk.Trigger.EveryTicks;
+                    double sum = 0;
+                    int count = 0;
+                    for (int a = 0; a < _nA; a++) { if (_u[a].Alive) { sum += EffAtk(a); count++; } }
+                    if (count == 0) { return; }
+                    u.Base.Atk = sum / count;
+                    u.Dirty = true;
+                    RunSkill(i, s, sk, -1, -1, TriggerType.Interval, false);
+                }
+            }
         }
 
         public BattleResult RunToEnd(IBattleEventSink sink)
@@ -386,7 +417,7 @@ namespace Mado.Core.Battle
         {
             if (!u.Dirty) { return; }
             u.Dirty = false;
-            BattleStats b = u.Setup.Stats;
+            BattleStats b = u.Base;
             double atkP = 0, defP = 0, cdP = 0, cfP = 0, cr = 0, crs = 0, acc = 0, ev = 0;
             u.CannotAct = false; u.GaugeStopped = false; u.HealBlocked = false; u.DamageImmune = false; u.CritImmune = false;
             u.ReflectPct = 0; u.TauntCaster = -1; u.ImmuneMask = 0;

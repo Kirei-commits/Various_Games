@@ -34,6 +34,7 @@ namespace Mado.Core.Save
         public IdleState Idle { get; set; } = new IdleState();
         public PlazaState Plazas { get; set; } = new PlazaState();
         public Dictionary<string, TrialState> Trials { get; set; } = new Dictionary<string, TrialState>();
+        public SupportsState Supports { get; set; } = new SupportsState();
 
         /// <summary>マスタに無い ID・未知の項目の中身。捨てずに持ち越す（キーは "characters/ID" など）。</summary>
         public Dictionary<string, JToken> Orphans { get; set; } = new Dictionary<string, JToken>();
@@ -133,6 +134,12 @@ namespace Mado.Core.Save
     {
         public int ClearedLv { get; set; }
         public GateState Gate { get; set; } = new GateState();
+    }
+
+    /// <summary>サポートの★（キーは supports.json の id。無いものは★0）。持っているかは、解放の試練のLvから決まる（保存しない）。</summary>
+    public sealed class SupportsState
+    {
+        public Dictionary<string, int> Stars { get; set; } = new Dictionary<string, int>();
     }
 
     public sealed class PartyState

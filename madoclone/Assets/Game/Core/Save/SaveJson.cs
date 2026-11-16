@@ -18,7 +18,7 @@ namespace Mado.Core.Save
         private static readonly HashSet<string> KnownTop = new HashSet<string>
         {
             "format", "saveVersion", "devMode", "savedAtUtc", "rng", "wallet", "walletCarry",
-            "characters", "leader", "parties", "metrics", "progress", "settings", "memory", "temple", "idle", "plazas", "trials", "orphans",
+            "characters", "leader", "parties", "metrics", "progress", "settings", "memory", "temple", "idle", "plazas", "trials", "supports", "orphans",
         };
 
         // ---------------- 書き出し ----------------
@@ -92,6 +92,9 @@ namespace Mado.Core.Save
                 };
             }
             o["trials"] = Sorted(trials);
+            var stars = new Dictionary<string, JToken>();
+            foreach (KeyValuePair<string, int> kv in s.Supports.Stars) { stars[kv.Key] = new JValue(kv.Value); }
+            o["supports"] = new JObject { ["stars"] = Sorted(stars) };
             o["idle"] = new JObject { ["lastClaimUtc"] = s.Idle.LastClaimUtc ?? "" };
             o["temple"] = new JObject
             {
@@ -225,6 +228,16 @@ namespace Mado.Core.Save
                         ClearedLv = Opt(t, "clearedLv", 0),
                         Gate = new GateState { Charges = Opt(t, "charges", 0.0), LastUtc = Opt(t, "lastUtc", "") },
                     };
+                }
+            }
+            JObject supports = Obj(o, "supports");
+            JObject starObj = supports == null ? null : Obj(supports, "stars");
+            if (starObj != null)
+            {
+                foreach (KeyValuePair<string, JToken> kv in starObj)
+                {
+                    if (kv.Value.Type != JTokenType.Integer) { throw new SaveFormatException("supports.stars." + kv.Key + " が整数ではない"); }
+                    s.Supports.Stars[kv.Key] = kv.Value.Value<int>();
                 }
             }
             JObject idle = Obj(o, "idle");

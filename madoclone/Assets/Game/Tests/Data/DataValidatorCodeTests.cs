@@ -121,6 +121,15 @@ namespace Mado.Data.Tests
             yield return C("REWARDS", rw, r => r["idleCapHours"] = 0);
             yield return C("REWARDS", rw, r => r["idleCoinPerExp"] = -1);
 
+            // ---- supports.json ----
+            string sp = DataLoader.SupportsFile;
+            yield return C("SUPPORTS", sp, r => r["supports"][1]["id"] = "familiar_a");
+            yield return C("SUPPORTS", sp, r => r["supports"][0]["intervalSec"] = 0);
+            yield return C("SUPPORTS", sp, r => r["supports"][0]["unlockLv"] = 0);
+            yield return C("SUPPORTS", sp, r => r["supports"][0]["unlockTrial"] = "nope");
+            yield return C("SUPPORTS", sp, r => ((JArray)r["supports"][0]["effects"]).Clear());
+            yield return C("EFFECT_FIELD_MISSING", sp, r => ((JObject)r["supports"][0]["effects"][0]).Remove("target"));
+
             // ---- trials.json ----
             string tr = DataLoader.TrialsFile;
             yield return C("TRIALS", tr, r => r["trials"][1]["id"] = "phantom");

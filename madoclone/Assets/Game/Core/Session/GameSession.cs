@@ -60,6 +60,7 @@ namespace Mado.Core.Session
         private readonly LeaderTempleService _temple;
         private readonly PlazaService _plazas;
         private readonly TrialService _trials;
+        private readonly SupportService _supports;
         private readonly IdleService _idle;
         private readonly StageFactory _stages;
         private readonly BattleSetupBuilder _builder;
@@ -92,9 +93,10 @@ namespace Mado.Core.Session
             if (extraSources != null) { sources.AddRange(extraSources); }
             _builder = new BattleSetupBuilder(data, new StatResolver(data, sources));
 
+            _supports = new SupportService(data, _save, _builder.Skills);
             _trials = new TrialService(data, _save, _wallet, clock, _stages, _builder);
             _idle.EnsureStarted();
-            State = new GameState(_save, _wallet, _idle, _metrics, _trials);
+            State = new GameState(_save, _wallet, _idle, _metrics, _trials, _supports);
             Debug = new DebugCommands(this);
         }
 
@@ -275,7 +277,7 @@ namespace Mado.Core.Session
             List<UnitSetup> allies = PartyOrEmpty();
             Rng misc = Rng.FromState(_save.Rng.Misc);
             ulong seed = ((ulong)misc.NextUInt() << 32) | misc.NextUInt();
-            TrialResult r = _trials.Challenge(trialId, allies, seed);
+            TrialResult r = _trials.Challenge(trialId, allies, seed, _supports.BuildUnits(DefaultParty));
             if (!r.Success) { Finish(); return r; }
             _save.Rng.Misc = misc.GetState();
             return AfterTrial(trialId, r);
@@ -302,6 +304,23 @@ namespace Mado.Core.Session
         {
             try { return _builder.BuildParty(_save, DefaultParty); }
             catch (ArgumentException) { return new List<UnitSetup>(); }
+        }
+
+        // ---------------- サポート ----------------
+
+        /// <summary>使い魔・契約霊・竜を編成にセットする（持っているものだけ。種類は ID から決まる）。</summary>
+        public CommandResult SetSupport(string supportId)
+        {
+            SupportFailure f = _supports.Set(DefaultParty, supportId);
+            if (f != SupportFailure.None) { return Failed(f); }
+            return Done(new GameEvent(GameEventKind.SupportChanged, supportId));
+        }
+
+        public CommandResult ClearSupport(SupportKind kind)
+        {
+            SupportFailure f = _supports.Clear(DefaultParty, kind);
+            if (f != SupportFailure.None) { return Failed(f); }
+            return Done(new GameEvent(GameEventKind.SupportChanged, "", 0, (int)kind));
         }
 
         // ---------------- 広場 ----------------
@@ -351,7 +370,7 @@ namespace Mado.Core.Session
             ulong seed = ((ulong)misc.NextUInt() << 32) | misc.NextUInt();
             _save.Rng.Misc = misc.GetState();
 
-            BattleSetup setup = _builder.Assemble(allies, enemies, seed, _stages.TimeLimitSec(kind, p.Rank, p.Area, p.Stage));
+            BattleSetup setup = _builder.Assemble(allies, enemies, seed, _stages.TimeLimitSec(kind, p.Rank, p.Area, p.Stage), _supports.BuildUnits(DefaultParty));
             BattleResult result = new BattleSim(setup).RunToEnd(null);
 
             Reward drop = _rewards.ForBattle(p.Rank, result);
@@ -429,6 +448,15 @@ namespace Mado.Core.Session
             {
                 if (currencyId == null || !_s._data.TryCurrency(currencyId, out _) || !(amount > 0)) { return CommandResult.Fail("InvalidCurrency"); }
                 _s._wallet.Grant(new Reward(currencyId, amount), new GrantReason("debug.grant"));
+                return _s.Done();
+            }
+
+            /// <summary>サポートの★を決める（★を上げる経済ができるまでの代わり）。</summary>
+            public CommandResult SetSupportStar(string supportId, int star)
+            {
+                if (supportId == null || !_s._data.Supports.TryGet(supportId, out _)) { return CommandResult.Fail("UnknownSupport"); }
+                if (star < 0 || star > SupportService.MaxStar) { return CommandResult.Fail("InvalidStar"); }
+                _s._save.Supports.Stars[supportId] = star;
                 return _s.Done();
             }
 

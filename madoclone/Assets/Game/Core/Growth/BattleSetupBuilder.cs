@@ -105,7 +105,7 @@ namespace Mado.Core.Growth
             return list;
         }
 
-        public BattleSetup Assemble(IEnumerable<UnitSetup> allies, IEnumerable<UnitSetup> enemies, ulong seed, double timeLimitSec)
+        public BattleSetup Assemble(IEnumerable<UnitSetup> allies, IEnumerable<UnitSetup> enemies, ulong seed, double timeLimitSec, IEnumerable<UnitSetup> supports = null)
         {
             return new BattleSetup
             {
@@ -118,6 +118,7 @@ namespace Mado.Core.Growth
                 Constants = Constants(),
                 Allies = new List<UnitSetup>(allies),
                 Enemies = new List<UnitSetup>(enemies),
+                Supports = supports == null ? new List<UnitSetup>() : new List<UnitSetup>(supports),
                 Buffs = new List<ResolvedBuff>(_book.Buffs),
             };
         }

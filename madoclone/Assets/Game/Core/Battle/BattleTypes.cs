@@ -66,6 +66,12 @@ namespace Mado.Core.Battle
         public List<UnitSetup> Allies { get; set; } = new List<UnitSetup>();
         public List<UnitSetup> Enemies { get; set; } = new List<UnitSetup>();
 
+        /// <summary>
+        /// サポート（使い魔・契約霊・竜。docs/01 3.5節）。パーティの外から、Special の interval で一定周期に発動する。
+        /// 狙われず、倒れず、勝敗に数えない。ダメージ・回復の基準は「生きている味方全員の平均攻撃力」で、属性の有利・不利は無い。
+        /// </summary>
+        public List<UnitSetup> Supports { get; set; } = new List<UnitSetup>();
+
         /// <summary>この戦闘で使うバフの定義の写し（buffs.json の変更にゴールデンが引きずられないように）。</summary>
         public List<ResolvedBuff> Buffs { get; set; } = new List<ResolvedBuff>();
     }

@@ -20,6 +20,18 @@ namespace Mado.Core.Save
             RepairCrystals(save, data, done);
             RepairParties(save, data, done);
             RepairMemory(save, data, done);
+            foreach (string id in new List<string>(save.Supports.Stars.Keys))
+            {
+                if (!data.Supports.TryGet(id, out _)) { continue; }
+                int star = Math.Max(0, Math.Min(save.Supports.Stars[id], Growth.SupportService.MaxStar));
+                if (star != save.Supports.Stars[id]) { Note(done, "サポートの★ " + save.Supports.Stars[id] + " → " + star, "supports.stars." + id); save.Supports.Stars[id] = star; }
+            }
+            foreach (KeyValuePair<string, PartyState> kv in save.Parties)
+            {
+                kv.Value.Familiar = FixSlot(data, done, kv.Key, "familiar", kv.Value.Familiar, SupportKind.Familiar);
+                kv.Value.Spirit = FixSlot(data, done, kv.Key, "spirit", kv.Value.Spirit, SupportKind.Spirit);
+                kv.Value.Dragon = FixSlot(data, done, kv.Key, "dragon", kv.Value.Dragon, SupportKind.Dragon);
+            }
             foreach (KeyValuePair<string, TrialState> kv in save.Trials)
             {
                 if (!data.Trials.TryGet(kv.Key, out TrialDef def)) { continue; }
@@ -47,6 +59,14 @@ namespace Mado.Core.Save
         private static void Note(List<SaveIssue> l, string message, string path)
         {
             l.Add(new SaveIssue(SaveSeverity.Warning, "REPAIRED", message, path));
+        }
+
+        /// <summary>種類の違うサポートは外す（知らないものは警告のまま持ち越す。持っていないものも、試練を進めれば使えるので残す）。</summary>
+        private static string FixSlot(GameData data, List<SaveIssue> done, string party, string slot, string id, SupportKind kind)
+        {
+            if (id == null || !data.Supports.TryGet(id, out SupportDef def) || def.Kind == kind) { return id; }
+            Note(done, "枠の種類が違うサポート " + id + " を外した", "parties." + party + "." + slot);
+            return null;
         }
 
         private static void RepairCharacters(SaveData save, GameData data, List<SaveIssue> done)

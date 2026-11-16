@@ -13,6 +13,7 @@ namespace Mado.Core.Session
         MemoryGachaLevelUp,   // Value = 新しい絆ガチャLv
         LeaderChanged,        // Id = キャラ（解除なら空）
         LeaderLevelUp,        // Value = 新しいリーダーLv
+        SupportChanged,       // Id = サポート（解除なら空）, Value = 解除した種類
         TrialCleared,         // Id = 試練, Value = クリア済みの最高Lv
         TrialRewarded,        // Id = 試練, Value = 報酬の対象になったLv
         PlazaLevelUp,         // Id = 広場, Amount = 上がったLv数, Value = 新しいLv
