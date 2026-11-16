@@ -6,28 +6,28 @@
   },
   "count_bonus": {
     "Outcome": "Lose",
-    "EndSec": 15.0,
-    "AllyDamage": "1.27E+8"
+    "EndSec": 10.0,
+    "AllyDamage": "4.35E+7"
   },
   "crystals": {
     "Outcome": "Lose",
     "EndSec": 16.0,
-    "AllyDamage": "3.52E+8"
+    "AllyDamage": "2.74E+8"
   },
   "disrupt": {
     "Outcome": "Lose",
     "EndSec": 17.0,
-    "AllyDamage": "5.97E+7"
+    "AllyDamage": "4.75E+7"
   },
   "lr_party": {
     "Outcome": "Lose",
     "EndSec": 16.0,
-    "AllyDamage": "6.32E+7"
+    "AllyDamage": "3.10E+7"
   },
   "melee_focus": {
     "Outcome": "Lose",
     "EndSec": 15.0,
-    "AllyDamage": "2.21E+7"
+    "AllyDamage": "2.27E+7"
   },
   "ranged_focus": {
     "Outcome": "Lose",
@@ -37,16 +37,16 @@
   "status_heavy": {
     "Outcome": "Lose",
     "EndSec": 16.0,
-    "AllyDamage": "3.70E+7"
+    "AllyDamage": "3.15E+7"
   },
   "timeout": {
     "Outcome": "TimeUp",
     "EndSec": 30.0,
-    "AllyDamage": "8.24E+8"
+    "AllyDamage": "7.05E+8"
   },
   "with_heal": {
     "Outcome": "TimeUp",
     "EndSec": 60.0,
-    "AllyDamage": "4.95E+7"
+    "AllyDamage": "3.87E+7"
   }
 }

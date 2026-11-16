@@ -112,7 +112,7 @@
         {
           "type": "applyBuff",
           "buffId": "atk_up",
-          "tier": "high",
+          "tier": "mid",
           "target": "self",
           "durationSec": 8
         }
@@ -129,7 +129,7 @@
         {
           "type": "applyBuff",
           "buffId": "atk_up",
-          "tier": "supreme",
+          "tier": "high",
           "target": "self",
           "durationSec": 999
         }
@@ -144,7 +144,7 @@
       "effects": [
         {
           "type": "damage",
-          "multiplierPct": 600,
+          "multiplierPct": 300,
           "target": "enemy_all"
         }
       ]
@@ -202,7 +202,7 @@
         },
         {
           "type": "damage",
-          "multiplierPct": 800,
+          "multiplierPct": 400,
           "target": "enemy_all"
         },
         {
@@ -251,13 +251,13 @@
     },
     {
       "id": "high_crit",
-      "critRatePt": 40,
-      "critDamageMultiplier": 1.5
+      "critRatePt": 25,
+      "critDamageMultiplier": 1.25
     },
     {
       "id": "high_accuracy",
       "accuracyPt": 30,
-      "atkMultiplier": 1.3
+      "atkMultiplier": 1.15
     },
     {
       "id": "cc_barrier",

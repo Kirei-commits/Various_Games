@@ -107,9 +107,10 @@ namespace Mado.Core.Tests
             UnitSetup plain = Boss(3), crit = Boss(11), acc = Boss(14);
             var f = Factory;
             // 同じ式（ランク別の線形）に、特徴の分だけ上乗せされている
-            Assert.AreEqual(40.0, crit.Stats.CritRatePct - Linear(Data.Difficulty.EnemySubstats.CritRatePct, 11), 1e-9);
-            Assert.AreEqual(Linear(Data.Difficulty.EnemySubstats.CritDamagePct, 11) * 1.5, crit.Stats.CritDamagePct, 1e-6);
-            Assert.AreEqual(30.0, acc.Stats.AccuracyPct - Linear(Data.Difficulty.EnemySubstats.AccuracyPct, 14), 1e-9);
+            BossTraitDef hc = Data.EnemyKits.Traits.Single(t => t.Id == "high_crit");
+            Assert.AreEqual(hc.CritRatePt, crit.Stats.CritRatePct - Linear(Data.Difficulty.EnemySubstats.CritRatePct, 11), 1e-9);
+            Assert.AreEqual(Linear(Data.Difficulty.EnemySubstats.CritDamagePct, 11) * hc.CritDamageMultiplier.Value, crit.Stats.CritDamagePct, 1e-6);
+            Assert.AreEqual(Data.EnemyKits.Traits.Single(t => t.Id == "high_accuracy").AccuracyPt, acc.Stats.AccuracyPct - Linear(Data.Difficulty.EnemySubstats.AccuracyPct, 14), 1e-9);
             Assert.AreEqual(Linear(Data.Difficulty.EnemySubstats.AccuracyPct, 3), plain.Stats.AccuracyPct, 1e-9);
         }
 
@@ -123,7 +124,7 @@ namespace Mado.Core.Tests
         public void Ranks16To18_TheBossAlwaysHasACcBarrier_AndRank19To21_HighEvasion()
         {
             CollectionAssert.Contains(SkillIds(Boss(17)), "trait_cc_barrier");
-            Assert.AreEqual(25.0, Boss(20).Stats.EvasionPct - Linear(Data.Difficulty.EnemySubstats.EvasionPct, 20), 1e-9);
+            Assert.AreEqual(Data.EnemyKits.Traits.Single(t => t.Id == "high_evasion").EvasionPt, Boss(20).Stats.EvasionPct - Linear(Data.Difficulty.EnemySubstats.EvasionPct, 20), 1e-9);
             CollectionAssert.DoesNotContain(SkillIds(Boss(20)), "trait_cc_barrier");
         }
 
@@ -133,9 +134,9 @@ namespace Mado.Core.Tests
             CollectionAssert.Contains(SkillIds(Boss(23)), "trait_purge");
             // 25〜26：バリア＋高回避、27〜28：解除＋高クリティカル、29〜：3つ＋HP半分で強化
             CollectionAssert.Contains(SkillIds(Boss(25)), "trait_cc_barrier");
-            Assert.AreEqual(25.0, Boss(25).Stats.EvasionPct - Linear(Data.Difficulty.EnemySubstats.EvasionPct, 25), 1e-9);
+            Assert.AreEqual(Data.EnemyKits.Traits.Single(t => t.Id == "high_evasion").EvasionPt, Boss(25).Stats.EvasionPct - Linear(Data.Difficulty.EnemySubstats.EvasionPct, 25), 1e-9);
             CollectionAssert.Contains(SkillIds(Boss(28)), "trait_purge");
-            Assert.AreEqual(40.0, Boss(28).Stats.CritRatePct - Linear(Data.Difficulty.EnemySubstats.CritRatePct, 28), 1e-9);
+            Assert.AreEqual(Data.EnemyKits.Traits.Single(t => t.Id == "high_crit").CritRatePt, Boss(28).Stats.CritRatePct - Linear(Data.Difficulty.EnemySubstats.CritRatePct, 28), 1e-9);
             List<string> late = SkillIds(Boss(30));
             CollectionAssert.Contains(late, "trait_purge");
             CollectionAssert.Contains(late, "trait_enrage");
