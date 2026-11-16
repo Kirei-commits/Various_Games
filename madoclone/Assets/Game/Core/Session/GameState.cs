@@ -132,6 +132,9 @@ namespace Mado.Core.Session
         public bool IsUnlocked(string featureId) { return _isUnlocked(featureId); }
 
         public ProgressView Progress { get { return new ProgressView(_save.Progress); } }
+        public double BattleSpeed { get { return _save.Settings.BattleSpeed; } }
+        public bool AutoBoss { get { return _save.Settings.AutoBoss; } }
+        public bool SkipGachaAnim { get { return _save.Settings.SkipGachaAnim; } }
         public string Leader { get { return _save.Leader; } }
         public int LeaderLv { get { return _save.Temple.LeaderLv; } }
         public Element? LeaderElement { get { return _save.Temple.LeaderElement; } }

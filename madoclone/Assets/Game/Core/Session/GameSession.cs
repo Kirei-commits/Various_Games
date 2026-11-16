@@ -687,6 +687,28 @@ namespace Mado.Core.Session
             return new FightResult(CommandResult.Ok(), result.Outcome, result.EnemiesDefeated, result.EnemiesDefeated * _rewards.ExpPerEnemy(Math.Min(p.Rank, _data.Difficulty.Ranks)), advanced, cleared, result.EventHash);
         }
 
+        // ---------------- 設定 ----------------
+
+        public const double MinBattleSpeed = 1, MaxBattleSpeed = 5;
+
+        /// <summary>戦闘の速さ（1〜5倍）・自動ボス・ガチャ演出のスキップを設定する。</summary>
+        public CommandResult SetSettings(double battleSpeed, bool autoBoss, bool skipGachaAnim)
+        {
+            if (!(battleSpeed >= MinBattleSpeed && battleSpeed <= MaxBattleSpeed)) { return Failed("InvalidSpeed"); }
+            SettingsState s = _save.Settings;
+            s.BattleSpeed = battleSpeed; s.AutoBoss = autoBoss; s.SkipGachaAnim = skipGachaAnim;
+            return Done(new GameEvent(GameEventKind.SettingsChanged));
+        }
+
+        /// <summary>
+        /// 自動周回の1歩。自動ボスが入っていればボス戦、切れていれば雑魚ウェーブで戦う。
+        /// ボス戦で負けても進行は変わらない（次の1歩でまた挑む）。
+        /// </summary>
+        public FightResult AutoStep()
+        {
+            return Fight(_save.Settings.AutoBoss ? StageKind.Boss : StageKind.Wave);
+        }
+
         /// <summary>次のステージへ。最後のステージなら進まず cleared を立てる。</summary>
         private bool Advance(ProgressState p, out bool cleared)
         {
