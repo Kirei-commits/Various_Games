@@ -38,17 +38,28 @@ namespace Mado.Core.Save
             if (current != null)
             {
                 LoadResult r = SaveCodec.Load(current, data, migrator);
-                if (r.Success) { return new LoadedSave(r.Save, SaveSource.Current, -1, r.Issues, null); }
+                if (r.Success) { return new LoadedSave(r.Save, SaveSource.Current, -1, Repaired(r, data), null); }
                 failure = r.FailureReason;
             }
             var backups = store.ReadBackups();
             for (int i = 0; i < backups.Count; i++)
             {
                 LoadResult r = SaveCodec.Load(backups[i], data, migrator);
-                if (r.Success) { return new LoadedSave(r.Save, SaveSource.Backup, i, r.Issues, failure); }
+                if (r.Success) { return new LoadedSave(r.Save, SaveSource.Backup, i, Repaired(r, data), failure); }
             }
             SaveData fresh = SaveData.CreateNew((migrator ?? new SaveMigrator()).CurrentVersion, nowUtc, newSeed);
             return new LoadedSave(fresh, SaveSource.New, -1, new SaveIssue[0], failure);
+        }
+
+        /// <summary>読めたセーブに不変条件のエラーがあれば直し（SaveRepair）、直した内容を問題の一覧の後ろに足す。</summary>
+        private static System.Collections.Generic.IReadOnlyList<SaveIssue> Repaired(LoadResult r, GameData data)
+        {
+            bool hasError = false;
+            foreach (SaveIssue i in r.Issues) { if (i.Severity == SaveSeverity.Error) { hasError = true; } }
+            if (!hasError) { return r.Issues; }
+            var all = new System.Collections.Generic.List<SaveIssue>(r.Issues);
+            all.AddRange(SaveRepair.Repair(r.Save, data));
+            return all;
         }
 
         /// <summary>保存する。保存時刻を入れて、バイト列にして store に渡す。</summary>
