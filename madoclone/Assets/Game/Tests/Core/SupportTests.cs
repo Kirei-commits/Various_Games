@@ -206,5 +206,75 @@ namespace Mado.Core.Tests
             Assert.IsTrue(s.ClearSupport(SupportKind.Familiar).Success);
             CollectionAssert.AreEqual(new string[3], s.State.EquippedSupports);
         }
+
+        // ---------------- ★上げ・所持効果 ----------------
+
+        private static (SupportService Service, SaveData Save, Mado.Core.Wallet.Wallet Wallet) WithWallet()
+        {
+            SaveData save = SaveData.CreateNew(1, "", 1UL);
+            var wallet = new Mado.Core.Wallet.Wallet(Data.Currencies, new Mado.Core.Wallet.WalletState(), () => false);
+            var builder = new BattleSetupBuilder(Data, new StatResolver(Data));
+            return (new SupportService(Data, save, builder.Skills, wallet), save, wallet);
+        }
+
+        [Test]
+        public void RaiseStar_PaysShardsByStep_AndStopsAtTheMax()
+        {
+            var (svc, save, wallet) = WithWallet();
+            Assert.AreEqual(SupportFailure.NotOwned, svc.RaiseStar("familiar_a"));
+            Assert.AreEqual(SupportFailure.UnknownSupport, svc.RaiseStar("nope"));
+            Unlock(save, "edrasu", 5);
+            Assert.AreEqual(SupportFailure.NotEnough, svc.RaiseStar("familiar_a"));
+            wallet.Grant(new Mado.Core.Wallet.Reward("awaken_shard", 1000), new Mado.Core.Wallet.GrantReason("t"));
+            Assert.AreEqual(SupportFailure.None, svc.RaiseStar("familiar_a"));            // ★0→1：5
+            Assert.AreEqual(SupportFailure.None, svc.RaiseStar("familiar_a"));            // ★1→2：10
+            Assert.AreEqual(2, svc.Star("familiar_a"));
+            Assert.AreEqual(1000 - 15, wallet.Balance("awaken_shard"));
+            SupportDef def = Data.Supports.Supports.First(x => x.Id == "familiar_a");
+            Assert.AreEqual(5.0 * 3, svc.StarCost(def, 2));
+            while (svc.Star("familiar_a") < SupportService.MaxStar) { wallet.Grant(new Mado.Core.Wallet.Reward("awaken_shard", 1000), new Mado.Core.Wallet.GrantReason("t")); Assert.AreEqual(SupportFailure.None, svc.RaiseStar("familiar_a")); }
+            Assert.AreEqual(SupportFailure.AtMaxStar, svc.RaiseStar("familiar_a"));
+            Assert.Throws<ArgumentException>(() => svc.StarCost(def, SupportService.MaxStar));
+        }
+
+        [Test]
+        public void OwnedEffect_AppliesJustByOwning_AndGrowsWithTheStar()
+        {
+            var (svc, save, _) = WithWallet();
+            var src = new SupportOwnedSource(Data, svc);
+            var none = new List<Modifier>();
+            src.Collect(none, default(StatQuery));
+            Assert.IsEmpty(none);
+            Unlock(save, "edrasu", 5);                                                     // 使い魔A を持つ
+            var one = new List<Modifier>();
+            src.Collect(one, default(StatQuery));
+            Assert.AreEqual(50.0, one.Single(m => m.Stat == StatId.Hp).Value);              // 持っているだけで HP +50％（★0）
+            save.Supports.Stars["familiar_a"] = 3;
+            var three = new List<Modifier>();
+            src.Collect(three, default(StatQuery));
+            Assert.AreEqual(200.0, three.Single(m => m.Stat == StatId.Hp).Value);           // ★3 で +200％（docs/01 5.1節の例）
+            Unlock(save, "spirit_king", 5);
+            save.Supports.Stars["spirit_a"] = 2;
+            var both = new List<Modifier>();
+            src.Collect(both, default(StatQuery));
+            Assert.AreEqual(100.0, both.Single(m => m.Stat == StatId.Atk).Value);           // 契約霊 ★2 で攻撃 +100％（5.2節の例）
+        }
+
+        [Test]
+        public void Session_RaisesSupportStars_AndTheOwnedEffectReachesTheStats()
+        {
+            GameSession s = GameSession.LoadOrCreate(Data, new MemorySaveStore(), new FixedClock(T0), 7UL, new IModifierSource[] { new Boost() });
+            s.Debug.GrantCharacter("chr_001");
+            s.Debug.SetParty(new[] { "chr_001" });
+            for (int i = 0; i < 5; i++) { s.ChallengeTrial("edrasu"); }
+            Assert.AreEqual("NotEnough", s.RaiseSupportStar("familiar_a").Failure);
+            s.Debug.GrantCurrency("awaken_shard", 100);
+            s.DrainEvents();
+            Assert.IsTrue(s.RaiseSupportStar("familiar_a").Success);
+            Assert.AreEqual(1, s.State.SupportStar("familiar_a"));
+            Assert.AreEqual(95, s.State.Balance("awaken_shard"));
+            Assert.IsTrue(s.DrainEvents().Any(e => e.Kind == GameEventKind.SupportChanged && e.Value == 1));
+            Assert.AreEqual("NotOwned", s.RaiseSupportStar("dragon_a").Failure);
+        }
     }
 }

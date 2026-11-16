@@ -42,6 +42,7 @@ namespace Mado.Core.Wallet
         public const string RouletteSpin = "roulette.spin";
         public const string RouletteWin = "roulette.win";
         public const string AchievementReward = "achievement.reward";
+        public const string SupportStar = "support.star";
         public const string IdleClaim = "idle.claim";
         public const string LeaderLevelUp = "leader.levelup";
         public const string LeaderReward = "leader.reward";

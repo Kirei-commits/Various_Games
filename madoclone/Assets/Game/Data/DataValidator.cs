@@ -714,6 +714,10 @@ namespace Mado.Data
                 {
                     Error(issues, "SUPPORTS", where, "intervalSec は正、★ごとの延長は0以上、unlockLv は1以上、effects は1つ以上");
                 }
+                if ((s.OwnedStat != "atk" && s.OwnedStat != "hp" && s.OwnedStat != "def") || s.OwnedBasePct < 0 || s.OwnedPerStarPct < 0 || !(s.StarCostShards > 0))
+                {
+                    Error(issues, "SUPPORTS", where, "所持効果：ownedStat は atk・hp・def、％は0以上、starCostShards は正");
+                }
                 if (!d.Trials.TryGet(s.UnlockTrial, out _)) { Error(issues, "SUPPORTS", where, "マスタに無い試練 " + s.UnlockTrial); }
                 // 効果の中身は、スキルと同じ検査（buffId・段階・必須項目）
                 CheckBody(d, new SupportBody(s), where, issues);

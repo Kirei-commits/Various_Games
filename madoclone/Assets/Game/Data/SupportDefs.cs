@@ -17,6 +17,16 @@ namespace Mado.Data
         /// <summary>★1つにつき、付与する効果の時間が何秒延びるか（使い魔は 1 秒。docs/01 5.1節）。</summary>
         public double StarDurationBonusSec { get; init; }
 
+        /// <summary>
+        /// 所持効果：持っているだけで、全キャラの ownedStat（atk・hp・def）が ownedBasePct ＋ ownedPerStarPct × ★ ％ 上がる（docs/01 5.1節：使い魔D SR★3 で HP+200％）。
+        /// </summary>
+        public string OwnedStat { get; init; }
+        public double OwnedBasePct { get; init; }
+        public double OwnedPerStarPct { get; init; }
+
+        /// <summary>★ s → s+1 に要る覚醒の欠片 ＝ starCostShards ×（s＋1）。</summary>
+        public double StarCostShards { get; init; }
+
         public string UnlockTrial { get; init; }
         public int UnlockLv { get; init; }
         public IReadOnlyList<EffectDef> Effects { get; init; }

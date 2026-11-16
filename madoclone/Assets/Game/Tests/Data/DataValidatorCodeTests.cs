@@ -216,6 +216,8 @@ namespace Mado.Data.Tests
             string sp = DataLoader.SupportsFile;
             yield return C("SUPPORTS", sp, r => r["supports"][1]["id"] = "familiar_a");
             yield return C("SUPPORTS", sp, r => r["supports"][0]["intervalSec"] = 0);
+            yield return C("SUPPORTS", sp, r => r["supports"][0]["ownedStat"] = "nope");
+            yield return C("SUPPORTS", sp, r => r["supports"][0]["starCostShards"] = 0);
             yield return C("SUPPORTS", sp, r => r["supports"][0]["unlockLv"] = 0);
             yield return C("SUPPORTS", sp, r => r["supports"][0]["unlockTrial"] = "nope");
             yield return C("SUPPORTS", sp, r => ((JArray)r["supports"][0]["effects"]).Clear());

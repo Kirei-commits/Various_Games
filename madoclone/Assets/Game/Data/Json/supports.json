@@ -16,7 +16,11 @@
           "durationSec": 2,
           "tier": "high"
         }
-      ]
+      ],
+      "ownedStat": "hp",
+      "ownedBasePct": 50.0,
+      "ownedPerStarPct": 50.0,
+      "starCostShards": 5.0
     },
     {
       "id": "familiar_b",
@@ -31,7 +35,11 @@
           "multiplierPct": 200,
           "target": "ally_lowest_hp"
         }
-      ]
+      ],
+      "ownedStat": "hp",
+      "ownedBasePct": 50.0,
+      "ownedPerStarPct": 50.0,
+      "starCostShards": 5.0
     },
     {
       "id": "familiar_c",
@@ -48,7 +56,11 @@
           "durationSec": 2,
           "tier": "high"
         }
-      ]
+      ],
+      "ownedStat": "hp",
+      "ownedBasePct": 50.0,
+      "ownedPerStarPct": 50.0,
+      "starCostShards": 5.0
     },
     {
       "id": "familiar_d",
@@ -65,7 +77,11 @@
           "durationSec": 2,
           "tier": "high"
         }
-      ]
+      ],
+      "ownedStat": "hp",
+      "ownedBasePct": 50.0,
+      "ownedPerStarPct": 50.0,
+      "starCostShards": 5.0
     },
     {
       "id": "familiar_e",
@@ -81,7 +97,11 @@
           "target": "enemy_all",
           "durationSec": 2
         }
-      ]
+      ],
+      "ownedStat": "hp",
+      "ownedBasePct": 50.0,
+      "ownedPerStarPct": 50.0,
+      "starCostShards": 5.0
     },
     {
       "id": "spirit_a",
@@ -110,7 +130,11 @@
           "durationSec": 3,
           "tier": "supreme"
         }
-      ]
+      ],
+      "ownedStat": "atk",
+      "ownedBasePct": 50.0,
+      "ownedPerStarPct": 25.0,
+      "starCostShards": 5.0
     },
     {
       "id": "spirit_b",
@@ -139,7 +163,11 @@
           "durationSec": 3,
           "tier": "supreme"
         }
-      ]
+      ],
+      "ownedStat": "atk",
+      "ownedBasePct": 50.0,
+      "ownedPerStarPct": 25.0,
+      "starCostShards": 5.0
     },
     {
       "id": "spirit_c",
@@ -168,7 +196,11 @@
           "durationSec": 3,
           "tier": "supreme"
         }
-      ]
+      ],
+      "ownedStat": "atk",
+      "ownedBasePct": 50.0,
+      "ownedPerStarPct": 25.0,
+      "starCostShards": 5.0
     },
     {
       "id": "spirit_d",
@@ -197,7 +229,11 @@
           "durationSec": 3,
           "tier": "supreme"
         }
-      ]
+      ],
+      "ownedStat": "atk",
+      "ownedBasePct": 50.0,
+      "ownedPerStarPct": 25.0,
+      "starCostShards": 5.0
     },
     {
       "id": "spirit_e",
@@ -226,7 +262,11 @@
           "durationSec": 3,
           "tier": "supreme"
         }
-      ]
+      ],
+      "ownedStat": "atk",
+      "ownedBasePct": 50.0,
+      "ownedPerStarPct": 25.0,
+      "starCostShards": 5.0
     },
     {
       "id": "spirit_f",
@@ -248,7 +288,11 @@
           "durationSec": 3,
           "tier": "high"
         }
-      ]
+      ],
+      "ownedStat": "atk",
+      "ownedBasePct": 50.0,
+      "ownedPerStarPct": 25.0,
+      "starCostShards": 5.0
     },
     {
       "id": "dragon_a",
@@ -276,7 +320,11 @@
           "target": "enemy_all",
           "durationSec": 5
         }
-      ]
+      ],
+      "ownedStat": "def",
+      "ownedBasePct": 50.0,
+      "ownedPerStarPct": 25.0,
+      "starCostShards": 5.0
     },
     {
       "id": "dragon_b",
@@ -310,7 +358,11 @@
           "target": "enemy_all",
           "durationSec": 5
         }
-      ]
+      ],
+      "ownedStat": "def",
+      "ownedBasePct": 50.0,
+      "ownedPerStarPct": 25.0,
+      "starCostShards": 5.0
     },
     {
       "id": "dragon_c",
@@ -332,7 +384,11 @@
           "durationSec": 3,
           "tier": "high"
         }
-      ]
+      ],
+      "ownedStat": "def",
+      "ownedBasePct": 50.0,
+      "ownedPerStarPct": 25.0,
+      "starCostShards": 5.0
     }
   ]
 }

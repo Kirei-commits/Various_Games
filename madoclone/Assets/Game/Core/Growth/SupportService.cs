@@ -3,11 +3,12 @@ using System.Collections.Generic;
 using Mado.Core.Battle;
 using Mado.Core.Save;
 using Mado.Core.Stats;
+using Mado.Core.Wallet;
 using Mado.Data;
 
 namespace Mado.Core.Growth
 {
-    public enum SupportFailure { None, UnknownSupport, NotOwned, UnknownParty }
+    public enum SupportFailure { None, UnknownSupport, NotOwned, UnknownParty, AtMaxStar, NotEnough }
 
     /// <summary>
     /// サポート（使い魔・契約霊・竜）：持っているか（解放の試練のLv）、編成にセット、戦闘用のユニットの組み立て（docs/01 第5章）。
@@ -21,8 +22,11 @@ namespace Mado.Core.Growth
         private readonly SaveData _save;
         private readonly SkillResolver _skills;
 
-        public SupportService(GameData data, SaveData save, SkillResolver skills)
+        private readonly Wallet.Wallet _wallet;
+
+        public SupportService(GameData data, SaveData save, SkillResolver skills, Wallet.Wallet wallet = null)
         {
+            _wallet = wallet;
             _data = data ?? throw new ArgumentNullException(nameof(data));
             _save = save ?? throw new ArgumentNullException(nameof(save));
             _skills = skills ?? throw new ArgumentNullException(nameof(skills));
@@ -45,6 +49,27 @@ namespace Mado.Core.Growth
         public int Star(string supportId)
         {
             return _save.Supports.Stars.TryGetValue(supportId ?? "", out int v) ? v : 0;
+        }
+
+        /// <summary>★ star → star+1 の覚醒の欠片。</summary>
+        public double StarCost(SupportDef def, int star)
+        {
+            if (star < 0 || star >= MaxStar) { throw new ArgumentException("★が範囲外: " + star); }
+            return def.StarCostShards * (star + 1);
+        }
+
+        /// <summary>サポートの★を1つ上げる（持っているものだけ。覚醒の欠片を払う）。</summary>
+        public SupportFailure RaiseStar(string supportId)
+        {
+            if (!_data.Supports.TryGet(supportId, out SupportDef def)) { return SupportFailure.UnknownSupport; }
+            if (!IsOwned(supportId)) { return SupportFailure.NotOwned; }
+            int star = Star(supportId);
+            if (star >= MaxStar) { return SupportFailure.AtMaxStar; }
+            if (_wallet == null) { throw new InvalidOperationException("財布が無い"); }
+            PayResult pay = _wallet.Pay(new Cost(CurrencyIds.AwakenShard, StarCost(def, star)), new PayReason(WalletReasons.SupportStar));
+            if (!pay.Success) { return SupportFailure.NotEnough; }
+            _save.Supports.Stars[supportId] = star + 1;
+            return SupportFailure.None;
         }
 
         /// <summary>編成にセットする（種類は ID から決まる）。null の種類は解除。</summary>
@@ -127,6 +152,30 @@ namespace Mado.Core.Growth
         private sealed class SupportBody : SkillDefBase
         {
             public SupportBody(SupportDef s) : base(s.Id, new TriggerDef { Type = TriggerType.Interval, EverySec = s.IntervalSec }, s.Effects) { }
+        }
+    }
+
+    /// <summary>サポートの所持効果：持っているサポートの ownedStat が、全キャラ共通で上がる（Global の輪）。</summary>
+    public sealed class SupportOwnedSource : IModifierSource
+    {
+        private readonly GameData _data;
+        private readonly SupportService _service;
+
+        public SupportOwnedSource(GameData data, SupportService service)
+        {
+            _data = data ?? throw new ArgumentNullException(nameof(data));
+            _service = service ?? throw new ArgumentNullException(nameof(service));
+        }
+
+        public void Collect(List<Modifier> sink, StatQuery query)
+        {
+            foreach (SupportDef s in _data.Supports.Supports)
+            {
+                if (!_service.IsOwned(s.Id)) { continue; }
+                double pct = s.OwnedBasePct + s.OwnedPerStarPct * _service.Star(s.Id);
+                StatId stat = s.OwnedStat == "atk" ? StatId.Atk : (s.OwnedStat == "hp" ? StatId.Hp : StatId.Def);
+                sink.Add(new Modifier(stat, ModifierPool.Global, pct));
+            }
         }
     }
 }

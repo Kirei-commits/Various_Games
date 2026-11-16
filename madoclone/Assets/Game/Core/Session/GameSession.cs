@@ -119,11 +119,12 @@ namespace Mado.Core.Session
             _tarot = new TarotService(data, _save, _wallet);
             _collection = new CollectionService(data, _save, _wallet);
             _zukan = new ZukanService(data, _save, _wallet);
-            var sources = new List<IModifierSource> { new MemoryCardSource(data, _save), new LeaderLvSource(data, _save), new PlazaSource(data, _save), new DragonNestSource(_nest, _save), new SpiritStoneSource(data, _save, _stones), new ResearchSource(data, _save) };
+            // サポートの効果（スキル）は、戦闘の BuffBook と同じデータから作った索引で解決する（BuffBook は同じデータなら同じ並び）。
+            _supports = new SupportService(data, _save, new SkillResolver(data, new BuffBook(data)), _wallet);
+            var sources = new List<IModifierSource> { new MemoryCardSource(data, _save), new LeaderLvSource(data, _save), new PlazaSource(data, _save), new DragonNestSource(_nest, _save), new SpiritStoneSource(data, _save, _stones), new ResearchSource(data, _save), new SupportOwnedSource(data, _supports) };
             if (extraSources != null) { sources.AddRange(extraSources); }
             _builder = new BattleSetupBuilder(data, new StatResolver(data, sources));
 
-            _supports = new SupportService(data, _save, _builder.Skills);
             _trials = new TrialService(data, _save, _wallet, clock, _stages, _builder);
             _idle.EnsureStarted();
             State = new GameState(data, _save, _wallet, _idle, _metrics, _trials, _supports, _nest, _stones, _trees, _collection, _zukan, _gacha, _achievements, IsUnlocked);
@@ -435,6 +436,13 @@ namespace Mado.Core.Session
                 if (owned.Count > 0) { _supports.Set(DefaultParty, owned[owned.Count - 1]); }
             }
             return Done(new GameEvent(GameEventKind.SupportChanged, "", 0, -1));
+        }
+
+        /// <summary>サポートの★を1つ上げる（覚醒の欠片）。使い魔は効果時間が1秒延び、持っているだけの所持効果も増える。</summary>
+        public CommandResult RaiseSupportStar(string supportId)
+        {
+            SupportFailure f = _supports.RaiseStar(supportId);
+            return f == SupportFailure.None ? Done(new GameEvent(GameEventKind.SupportChanged, supportId, 0, _supports.Star(supportId))) : Failed(f);
         }
 
         public CommandResult ClearSupport(SupportKind kind)
