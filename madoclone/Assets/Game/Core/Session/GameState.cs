@@ -144,6 +144,16 @@ namespace Mado.Core.Session
         /// <summary>円盤の枠にはまっている石の ID（空は null）。</summary>
         public string StoneAt(int page, int slot) { return _save.SpiritStones.Equipped[_stones.Slot(page, slot)]; }
 
+        /// <summary>編成の6枠（空は null）。</summary>
+        public IReadOnlyList<string> Party
+        {
+            get
+            {
+                _save.Parties.TryGetValue(Session.GameSession.DefaultParty, out PartyState p);
+                return p == null ? new string[6] : (string[])p.Slots.Clone();
+            }
+        }
+
         public bool OwnsSupport(string supportId) { return _supports.IsOwned(supportId); }
         public IReadOnlyList<string> OwnedSupports(SupportKind kind) { return _supports.Owned(kind); }
         public int SupportStar(string supportId) { return _supports.Star(supportId); }

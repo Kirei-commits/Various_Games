@@ -443,5 +443,38 @@ namespace Mado.Core.Tests
             Assert.AreEqual(2100, s.State.Metric("spent.exp"));
             Assert.AreEqual(-2100, s.DrainEvents()[0].Amount);
         }
+
+        // ---------------- 編成・直前の戦闘 ----------------
+
+        [Test]
+        public void SetParty_ValidatesOwnershipDuplicatesAndSize_AndKeepsTheSupports()
+        {
+            GameSession s = NewSession();
+            s.Debug.GrantCharacter("chr_001"); s.Debug.GrantCharacter("chr_002");
+            s.DrainEvents();
+            Assert.IsTrue(s.SetParty(new[] { "chr_001", null, "chr_002" }).Success);
+            CollectionAssert.AreEqual(new[] { "chr_001", null, "chr_002", null, null, null }, s.State.Party);
+            Assert.IsTrue(s.DrainEvents().Any(e => e.Kind == GameEventKind.PartyChanged));
+            Assert.AreEqual("NotOwned", s.SetParty(new[] { "chr_050" }).Failure);
+            Assert.AreEqual("Duplicate", s.SetParty(new[] { "chr_001", "chr_001" }).Failure);
+            Assert.AreEqual("InvalidParty", s.SetParty(new string[7]).Failure);
+            Assert.AreEqual("InvalidParty", s.SetParty(null).Failure);
+            CollectionAssert.AreEqual(new[] { "chr_001", null, "chr_002", null, null, null }, s.State.Party);   // 失敗では変わらない
+            Assert.IsTrue(s.SetParty(new string[0]).Success);
+            CollectionAssert.AreEqual(new string[6], s.State.Party);
+            Assert.AreEqual(6, NewSession().State.Party.Count);                                                  // 何も無くても6枠
+        }
+
+        [Test]
+        public void LastBattleSetup_ReplaysTheSameFightForTheView()
+        {
+            GameSession s = WithParty(boost: 1e9);
+            Assert.IsNull(s.LastBattleSetup);
+            FightResult r = s.Fight(StageKind.Wave);
+            Assert.IsNotNull(s.LastBattleSetup);
+            BattleReplay replay = BattleReplay.Record(s.LastBattleSetup);
+            Assert.AreEqual(r.EventHash, replay.Result.EventHash);
+            Assert.AreEqual(r.Outcome, replay.Result.Outcome);
+        }
     }
 }

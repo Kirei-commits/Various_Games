@@ -83,6 +83,9 @@ namespace Mado.Core.Session
         public GameState State { get; }
         public DebugCommands Debug { get; }
 
+        /// <summary>直前の戦闘（Fight）の BattleSetup。View は BattleReplay.Record(LastBattleSetup) で同じ戦闘を再生できる（決定的なので結果は同じ）。</summary>
+        public BattleSetup LastBattleSetup { get; private set; }
+
         /// <summary>どこから読めたか（View が「バックアップから復元しました」と知らせる）と、読み込みの問題。</summary>
         public LoadedSave Loaded { get; }
 
@@ -171,6 +174,32 @@ namespace Mado.Core.Session
 
         private CommandResult Done(params GameEvent[] mine) { Finish(mine); return CommandResult.Ok(); }
         private CommandResult Failed(object reason) { Finish(); return CommandResult.Fail(reason); }
+
+        // ---------------- 編成 ----------------
+
+        /// <summary>編成の6体を決める（持っているキャラだけ・重複なし・枠の数まで）。空の枠は null。</summary>
+        public CommandResult SetParty(IReadOnlyList<string> characterIds)
+        {
+            int slots = _data.System.PartySlots;
+            if (characterIds == null || characterIds.Count > slots) { return Failed("InvalidParty"); }
+            var seen = new HashSet<string>();
+            var list = new string[slots];
+            for (int i = 0; i < characterIds.Count; i++)
+            {
+                string id = characterIds[i];
+                if (id == null) { continue; }
+                if (!_save.Characters.ContainsKey(id)) { return Failed("NotOwned"); }
+                if (!seen.Add(id)) { return Failed("Duplicate"); }
+                list[i] = id;
+            }
+            _save.Parties[DefaultParty] = new PartyState { Slots = list, Familiar = CurrentParty().Familiar, Spirit = CurrentParty().Spirit, Dragon = CurrentParty().Dragon };
+            return Done(new GameEvent(GameEventKind.PartyChanged));
+        }
+
+        private PartyState CurrentParty()
+        {
+            return _save.Parties.TryGetValue(DefaultParty, out PartyState p) ? p : new PartyState();
+        }
 
         // ---------------- 育成 ----------------
 
@@ -556,6 +585,7 @@ namespace Mado.Core.Session
             _save.Rng.Misc = misc.GetState();
 
             BattleSetup setup = _builder.Assemble(allies, enemies, seed, _stages.TimeLimitSec(kind, p.Rank, p.Area, p.Stage), _supports.BuildUnits(DefaultParty));
+            LastBattleSetup = setup;
             BattleResult result = new BattleSim(setup).RunToEnd(null);
 
             Reward drop = _rewards.ForBattle(p.Rank, result);

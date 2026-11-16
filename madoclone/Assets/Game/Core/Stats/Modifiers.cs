@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Mado.Data;
 
@@ -90,6 +91,35 @@ namespace Mado.Core.Stats
         private static void Add(List<Modifier> sink, StatId stat, double multiplier)
         {
             if (multiplier > 0) { sink.Add(new Modifier(stat, ModifierPool.Global, (multiplier - 1.0) * 100.0)); }
+        }
+    }
+
+    /// <summary>
+    /// 育成の経済の校正（docs/01 第10章 フェーズ5）が済むまでの代用：いまのランクの「標準的に育てた状態」の共通倍率（sim_profiles.json）を足す。
+    /// 実際の育成（広場・研究など）の出どころと掛け算になるので、本物の育成が進むほど簡単になる。製品の最終形では外す [仮]。
+    /// </summary>
+    public sealed class RankProfileSource : IModifierSource
+    {
+        private readonly IReadOnlyList<SimProfileDef> _profiles;
+        private readonly Func<int> _rank;
+        private readonly EnemySubstatFormulas _allySubstats;
+        private readonly BaseSubstats _base;
+
+        public RankProfileSource(IReadOnlyList<SimProfileDef> profiles, Func<int> rankProvider, EnemySubstatFormulas allySubstats, BaseSubstats baseSubstats)
+        {
+            _profiles = profiles ?? throw new ArgumentNullException(nameof(profiles));
+            _rank = rankProvider ?? throw new ArgumentNullException(nameof(rankProvider));
+            _allySubstats = allySubstats;
+            _base = baseSubstats;
+        }
+
+        public void Collect(List<Modifier> sink, StatQuery query)
+        {
+            int rank = _rank();
+            foreach (SimProfileDef p in _profiles)
+            {
+                if (p.Rank == rank) { new ProfileModifierSource(p, _allySubstats, _base).Collect(sink, query); return; }
+            }
         }
     }
 }

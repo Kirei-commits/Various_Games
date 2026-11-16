@@ -22,6 +22,8 @@ if command -v dotnet >/dev/null 2>&1 && [ -d tests/Mado.Core.Tests ]; then
     dotnet run --project tools/Mado.Sim -- validate "$@"
     python3 tools/bootstrap/compare_validate.py
     dotnet run --project tools/Mado.Sim -- golden
+    # Unity の View のコードが、UnityEngine のスタブに対して型として通るか（Unity を開かない確認。tools/UnityStubs）
+    dotnet build tools/Mado.ViewCheck -nologo -v quiet
   fi
 else
   echo "check: dotnet が無いので C# のテストは走らせていない（PC で dotnet を入れて、もう一度 check.sh を流す）"
