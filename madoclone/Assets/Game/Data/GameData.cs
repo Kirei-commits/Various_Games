@@ -24,6 +24,7 @@ namespace Mado.Data
         public SupportsConfig Supports { get; }
         public DragonNestConfig DragonNest { get; }
         public SpiritStonesConfig SpiritStones { get; }
+        public ResearchConfig Research { get; }
         public BuffTable Buffs { get; }
         public TextTable Text { get; }
 
@@ -50,6 +51,7 @@ namespace Mado.Data
             SupportsConfig supports,
             DragonNestConfig dragonNest,
             SpiritStonesConfig spiritStones,
+            ResearchConfig research,
             BuffTable buffs,
             IReadOnlyList<TierDef> tiers,
             IReadOnlyList<CharacterDef> characters,
@@ -70,6 +72,7 @@ namespace Mado.Data
             Supports = supports;
             DragonNest = dragonNest;
             SpiritStones = spiritStones;
+            Research = research;
             Buffs = buffs;
             Tiers = tiers;
             Characters = characters;

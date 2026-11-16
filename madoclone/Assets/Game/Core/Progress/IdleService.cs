@@ -19,14 +19,14 @@ namespace Mado.Core.Progress
         /// <summary>時計が戻っていた（最後の受け取りより前の時刻）。報酬は 0 で、受け取りの基準時刻も動かさない。</summary>
         public readonly bool ClockWentBack;
 
-        public readonly double Exp, Coin, BondHeart;
+        public readonly double Exp, Coin, BondHeart, Wine;
 
-        public IdleReport(TimeSpan elapsed, bool capped, bool clockWentBack, double exp, double coin, double bondHeart)
+        public IdleReport(TimeSpan elapsed, bool capped, bool clockWentBack, double exp, double coin, double bondHeart, double wine = 0)
         {
-            Elapsed = elapsed; Capped = capped; ClockWentBack = clockWentBack; Exp = exp; Coin = coin; BondHeart = bondHeart;
+            Elapsed = elapsed; Capped = capped; ClockWentBack = clockWentBack; Exp = exp; Coin = coin; BondHeart = bondHeart; Wine = wine;
         }
 
-        public bool IsEmpty { get { return !(Exp > 0) && !(Coin > 0) && !(BondHeart > 0); } }
+        public bool IsEmpty { get { return !(Exp > 0) && !(Coin > 0) && !(BondHeart > 0) && !(Wine > 0); } }
     }
 
     /// <summary>
@@ -74,7 +74,7 @@ namespace Mado.Core.Progress
             RewardsConfig r = _data.Rewards;
             double minutes = elapsed.TotalMinutes;
             double exp = _rewards.ExpPerEnemy(_save.Progress.Rank) * r.IdleKillsPerMinute * minutes;
-            return new IdleReport(elapsed, capped, false, exp, exp * r.IdleCoinPerExp, r.IdleBondHeartPerHour * elapsed.TotalHours);
+            return new IdleReport(elapsed, capped, false, exp, exp * r.IdleCoinPerExp, r.IdleBondHeartPerHour * elapsed.TotalHours, r.IdleWinePerMinute * minutes);
         }
 
         /// <summary>受け取る。受け取れた報酬を返す（1分未満・時計が戻っているときは空で、基準時刻も動かさない）。</summary>
@@ -89,6 +89,7 @@ namespace Mado.Core.Progress
                 new Money(CurrencyIds.Exp, report.Exp),
                 new Money(CurrencyIds.Coin, report.Coin),
                 new Money(CurrencyIds.BondHeart, report.BondHeart),
+                new Money(CurrencyIds.Wine, report.Wine),
             };
             _wallet.Grant(new Reward(items), new GrantReason(WalletReasons.IdleClaim));
             _save.Idle.LastClaimUtc = Format(_clock.UtcNow);

@@ -13,6 +13,10 @@ namespace Mado.Core.Session
         MemoryGachaLevelUp,   // Value = 新しい絆ガチャLv
         LeaderChanged,        // Id = キャラ（解除なら空）
         LeaderLevelUp,        // Value = 新しいリーダーLv
+        TreeNodeLevelUp,      // Id = "ツリー/ノード", Value = 新しいLv
+        TarotChanged,         // Id = 効果, Value = 枠, Detail = レア
+        CollectionStarUp,     // Id = セット, Value = 新しい★
+        ZukanAchieved,        // Value = 新しく達成した目標の数
         StoneEquipped,        // Id = 石, Value = 円盤の枠の番号
         StoneLevelUp,         // Id = 石, Value = 新しいLv
         StoneDismantled,      // Id = 石（まとめてなら空）, Amount = 星の砂, Value = 枚数

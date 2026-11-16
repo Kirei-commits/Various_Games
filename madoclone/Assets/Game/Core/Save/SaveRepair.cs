@@ -22,6 +22,7 @@ namespace Mado.Core.Save
             RepairParties(save, data, done);
             RepairMemory(save, data, done);
             RepairStones(save, data, done);
+            RepairResearch(save, data, done);
             Dictionary<string, int> nestMax = SaveValidator.NestMaxLevels(data);
             foreach (string id in new List<string>(save.DragonNest.Levels.Keys))
             {
@@ -70,6 +71,44 @@ namespace Mado.Core.Save
         private static void Note(List<SaveIssue> l, string message, string path)
         {
             l.Add(new SaveIssue(SaveSeverity.Warning, "REPAIRED", message, path));
+        }
+
+        private static void RepairResearch(SaveData save, GameData data, List<SaveIssue> done)
+        {
+            ResearchState r = save.Research;
+            var max = new Dictionary<string, int>();
+            foreach (TreeDef t in data.Research.Trees) { foreach (TreeNodeDef n in t.Nodes) { max[t.Id + "/" + n.Id] = n.MaxLv; } }
+            foreach (string key in new List<string>(r.Nodes.Keys))
+            {
+                if (!max.TryGetValue(key, out int m)) { continue; }
+                int lv = Math.Max(0, Math.Min(r.Nodes[key], m));
+                if (lv == r.Nodes[key]) { continue; }
+                Note(done, "ノードLv " + r.Nodes[key] + " → " + lv, "research.nodes." + key);
+                if (lv == 0) { r.Nodes.Remove(key); } else { r.Nodes[key] = lv; }
+            }
+            foreach (string id in new List<string>(r.Collection.Keys))
+            {
+                CollectionSetDef set = data.Research.Collection.Sets.FirstOrDefault(x => x.Id == id);
+                if (set == null) { continue; }
+                int star = Math.Max(0, Math.Min(r.Collection[id], set.Values.Count));
+                if (star != r.Collection[id]) { Note(done, "セットの★ " + r.Collection[id] + " → " + star, "research.collection." + id); r.Collection[id] = star; }
+            }
+            for (int i = 0; i < r.Tarot.Count; i++)
+            {
+                TarotSlotState t = r.Tarot[i];
+                if (t.Effect == null && t.Rarity == null) { continue; }
+                bool ok = t.Effect != null && t.Rarity != null && data.Research.Tarot.Effects.Any(e => e == t.Effect) && data.Research.Tarot.Rarities.Any(x => x.Id == t.Rarity);
+                if (!ok) { r.Tarot[i] = new TarotSlotState(); Note(done, "壊れたタロットの枠を空にした", "research.tarot[" + i + "]"); }
+            }
+            if (r.Tarot.Count > data.Research.Tarot.Slots)
+            {
+                r.Tarot.RemoveRange(data.Research.Tarot.Slots, r.Tarot.Count - data.Research.Tarot.Slots);
+                Note(done, "タロットの余分な枠を捨てた", "research.tarot");
+            }
+            var unique = new List<string>();
+            var seen = new HashSet<string>();
+            foreach (string g in r.Zukan) { if (seen.Add(g)) { unique.Add(g); } }
+            if (unique.Count != r.Zukan.Count) { r.Zukan = unique; Note(done, "図鑑の重複を除いた", "research.zukan"); }
         }
 
         private static void RepairStones(SaveData save, GameData data, List<SaveIssue> done)

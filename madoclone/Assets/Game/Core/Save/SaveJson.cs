@@ -18,7 +18,7 @@ namespace Mado.Core.Save
         private static readonly HashSet<string> KnownTop = new HashSet<string>
         {
             "format", "saveVersion", "devMode", "savedAtUtc", "rng", "wallet", "walletCarry",
-            "characters", "leader", "parties", "metrics", "progress", "settings", "memory", "temple", "idle", "plazas", "trials", "supports", "dragonNest", "spiritStones", "orphans",
+            "characters", "leader", "parties", "metrics", "progress", "settings", "memory", "temple", "idle", "plazas", "trials", "supports", "dragonNest", "spiritStones", "research", "orphans",
         };
 
         // ---------------- 書き出し ----------------
@@ -99,6 +99,7 @@ namespace Mado.Core.Save
             foreach (KeyValuePair<string, int> kv in s.DragonNest.Levels) { nest[kv.Key] = new JValue(kv.Value); }
             o["dragonNest"] = Sorted(nest);
             o["spiritStones"] = StonesToJson(s.SpiritStones);
+            o["research"] = ResearchToJson(s.Research);
             o["idle"] = new JObject { ["lastClaimUtc"] = s.Idle.LastClaimUtc ?? "" };
             o["temple"] = new JObject
             {
@@ -254,6 +255,7 @@ namespace Mado.Core.Save
                 }
             }
             s.SpiritStones = ReadStones(Obj(o, "spiritStones"));
+            s.Research = ReadResearch(Obj(o, "research"));
             JObject idle = Obj(o, "idle");
             if (idle != null) { s.Idle = new IdleState { LastClaimUtc = Opt(idle, "lastClaimUtc", "") }; }
             JObject temple = Obj(o, "temple");
@@ -292,6 +294,54 @@ namespace Mado.Core.Save
                 Copies = Opt(o, "copies", 0),
                 Crystals = StrArray(o["crystals"], at + ".crystals", CharacterState.CrystalSlots),
             };
+        }
+
+        private static JObject ResearchToJson(ResearchState r)
+        {
+            var nodes = new Dictionary<string, JToken>();
+            foreach (KeyValuePair<string, int> kv in r.Nodes) { nodes[kv.Key] = new JValue(kv.Value); }
+            var tarot = new JArray();
+            foreach (TarotSlotState t in r.Tarot) { tarot.Add(new JObject { ["effect"] = Str(t.Effect), ["rarity"] = Str(t.Rarity) }); }
+            var coll = new Dictionary<string, JToken>();
+            foreach (KeyValuePair<string, int> kv in r.Collection) { coll[kv.Key] = new JValue(kv.Value); }
+            var zukan = new JArray();
+            var sorted = new List<string>(r.Zukan);
+            sorted.Sort(StringComparer.Ordinal);
+            foreach (string g in sorted) { zukan.Add(g); }
+            return new JObject { ["nodes"] = Sorted(nodes), ["tarot"] = tarot, ["collection"] = Sorted(coll), ["zukan"] = zukan };
+        }
+
+        private static ResearchState ReadResearch(JObject o)
+        {
+            var r = new ResearchState();
+            if (o == null) { return r; }
+            JObject nodes = Obj(o, "nodes");
+            if (nodes != null) { foreach (KeyValuePair<string, JToken> kv in nodes) { r.Nodes[kv.Key] = IntOf(kv.Value, "research.nodes." + kv.Key); } }
+            JObject coll = Obj(o, "collection");
+            if (coll != null) { foreach (KeyValuePair<string, JToken> kv in coll) { r.Collection[kv.Key] = IntOf(kv.Value, "research.collection." + kv.Key); } }
+            if (o["tarot"] is JArray tarot)
+            {
+                for (int i = 0; i < tarot.Count; i++)
+                {
+                    var t = tarot[i] as JObject ?? throw new SaveFormatException("research.tarot[" + i + "] がオブジェクトではない");
+                    r.Tarot.Add(new TarotSlotState { Effect = OptStr(t, "effect"), Rarity = OptStr(t, "rarity") });
+                }
+            }
+            if (o["zukan"] is JArray z)
+            {
+                foreach (JToken g in z)
+                {
+                    if (g.Type != JTokenType.String) { throw new SaveFormatException("research.zukan が文字列の配列ではない"); }
+                    r.Zukan.Add(g.Value<string>());
+                }
+            }
+            return r;
+        }
+
+        private static int IntOf(JToken t, string at)
+        {
+            if (t.Type != JTokenType.Integer) { throw new SaveFormatException(at + " が整数ではない"); }
+            return t.Value<int>();
         }
 
         private static JObject StonesToJson(SpiritStoneState st)

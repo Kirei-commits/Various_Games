@@ -28,6 +28,9 @@ namespace Mado.Data
         /// <summary>放置で毎時たまる絆ハート（実測：毎時 380）。</summary>
         public double IdleBondHeartPerHour { get; init; }
 
+        /// <summary>放置で毎分たまるワイン（docs/01 7.5節：制作Lv50相当の約62,000本／日）。</summary>
+        public double IdleWinePerMinute { get; init; }
+
         /// <summary>ランク1〜32 の、敵1体を倒したときの経験値。</summary>
         public IReadOnlyList<double> ExpPerEnemy { get; init; }
     }

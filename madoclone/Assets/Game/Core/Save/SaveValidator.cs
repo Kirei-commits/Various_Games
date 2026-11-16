@@ -94,6 +94,7 @@ namespace Mado.Core.Save
             }
             CheckMemory(save, data, issues);
             CheckStones(save, data, issues);
+            CheckResearch(save, data, issues);
             var nestMax = NestMaxLevels(data);
             foreach (KeyValuePair<string, int> kv in save.DragonNest.Levels)
             {
@@ -193,6 +194,36 @@ namespace Mado.Core.Save
                     Add(issues, SaveSeverity.Error, "MEMORY_EQUIP_DUP", "同じカード " + id + " を2つの枠に付けている", at);
                 }
             }
+        }
+
+        private static void CheckResearch(SaveData save, GameData data, List<SaveIssue> issues)
+        {
+            ResearchState r = save.Research;
+            var max = new Dictionary<string, int>();
+            foreach (TreeDef t in data.Research.Trees) { foreach (TreeNodeDef n in t.Nodes) { max[t.Id + "/" + n.Id] = n.MaxLv; } }
+            foreach (KeyValuePair<string, int> kv in r.Nodes)
+            {
+                if (!max.TryGetValue(kv.Key, out int m)) { Add(issues, SaveSeverity.Warning, "RESEARCH_UNKNOWN", "マスタに無いノード " + kv.Key, "research.nodes." + kv.Key); }
+                else if (kv.Value < 0 || kv.Value > m) { Add(issues, SaveSeverity.Error, "RESEARCH_LV", "ノードのLv が 0〜" + m + " の外: " + kv.Value, "research.nodes." + kv.Key); }
+            }
+            foreach (KeyValuePair<string, int> kv in r.Collection)
+            {
+                CollectionSetDef set = data.Research.Collection.Sets.FirstOrDefault(x => x.Id == kv.Key);
+                if (set == null) { Add(issues, SaveSeverity.Warning, "COLLECTION_UNKNOWN", "マスタに無いセット " + kv.Key, "research.collection." + kv.Key); }
+                else if (kv.Value < 0 || kv.Value > set.Values.Count) { Add(issues, SaveSeverity.Error, "COLLECTION_STAR", "セットの★が 0〜" + set.Values.Count + " の外: " + kv.Value, "research.collection." + kv.Key); }
+            }
+            for (int i = 0; i < r.Tarot.Count; i++)
+            {
+                TarotSlotState t = r.Tarot[i];
+                if (t.Effect == null && t.Rarity == null) { continue; }
+                string at = "research.tarot[" + i + "]";
+                bool effectOk = t.Effect != null && data.Research.Tarot.Effects.Any(e => e == t.Effect);
+                bool rarityOk = t.Rarity != null && data.Research.Tarot.Rarities.Any(x => x.Id == t.Rarity);
+                if (!effectOk || !rarityOk) { Add(issues, SaveSeverity.Error, "TAROT_SLOT", "タロットの枠が壊れている（効果かレアが無い・不明）", at); }
+            }
+            if (r.Tarot.Count > data.Research.Tarot.Slots) { Add(issues, SaveSeverity.Error, "TAROT_SLOT", "タロットの枠が多すぎる: " + r.Tarot.Count, "research.tarot"); }
+            var seen = new HashSet<string>();
+            foreach (string g in r.Zukan) { if (!seen.Add(g)) { Add(issues, SaveSeverity.Error, "ZUKAN_DUP", "図鑑の目標が重複: " + g, "research.zukan"); } }
         }
 
         private static void CheckStones(SaveData save, GameData data, List<SaveIssue> issues)

@@ -1,0 +1,1004 @@
+{
+  "schemaVersion": 1,
+  "trees": [
+    {
+      "id": "lab",
+      "currencyId": "research_memo",
+      "nodes": [
+        {
+          "id": "lab_atk_01",
+          "stat": "atk",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 10.0,
+          "costStep": 10.0,
+          "requires": []
+        },
+        {
+          "id": "lab_atk_02",
+          "stat": "atk",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 20.0,
+          "costStep": 20.0,
+          "requires": [
+            "lab_atk_01"
+          ]
+        },
+        {
+          "id": "lab_atk_03",
+          "stat": "atk",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 30.0,
+          "costStep": 30.0,
+          "requires": [
+            "lab_atk_02"
+          ]
+        },
+        {
+          "id": "lab_atk_04",
+          "stat": "atk",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 40.0,
+          "costStep": 40.0,
+          "requires": [
+            "lab_atk_03"
+          ]
+        },
+        {
+          "id": "lab_atk_05",
+          "stat": "atk",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 50.0,
+          "costStep": 50.0,
+          "requires": [
+            "lab_atk_04"
+          ]
+        },
+        {
+          "id": "lab_atk_06",
+          "stat": "atk",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 60.0,
+          "costStep": 60.0,
+          "requires": [
+            "lab_atk_05"
+          ]
+        },
+        {
+          "id": "lab_atk_07",
+          "stat": "atk",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 70.0,
+          "costStep": 70.0,
+          "requires": [
+            "lab_atk_06"
+          ]
+        },
+        {
+          "id": "lab_atk_08",
+          "stat": "atk",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 80.0,
+          "costStep": 80.0,
+          "requires": [
+            "lab_atk_07"
+          ]
+        },
+        {
+          "id": "lab_atk_09",
+          "stat": "atk",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 90.0,
+          "costStep": 90.0,
+          "requires": [
+            "lab_atk_08"
+          ]
+        },
+        {
+          "id": "lab_atk_10",
+          "stat": "atk",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 100.0,
+          "costStep": 100.0,
+          "requires": [
+            "lab_atk_09"
+          ]
+        },
+        {
+          "id": "lab_atk_11",
+          "stat": "atk",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 110.0,
+          "costStep": 110.0,
+          "requires": [
+            "lab_atk_10"
+          ]
+        },
+        {
+          "id": "lab_atk_12",
+          "stat": "atk",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 120.0,
+          "costStep": 120.0,
+          "requires": [
+            "lab_atk_11"
+          ]
+        },
+        {
+          "id": "lab_atk_13",
+          "stat": "atk",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 130.0,
+          "costStep": 130.0,
+          "requires": [
+            "lab_atk_12"
+          ]
+        },
+        {
+          "id": "lab_atk_14",
+          "stat": "atk",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 140.0,
+          "costStep": 140.0,
+          "requires": [
+            "lab_atk_13"
+          ]
+        },
+        {
+          "id": "lab_atk_15",
+          "stat": "atk",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 150.0,
+          "costStep": 150.0,
+          "requires": [
+            "lab_atk_14"
+          ]
+        },
+        {
+          "id": "lab_atk_16",
+          "stat": "atk",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 160.0,
+          "costStep": 160.0,
+          "requires": [
+            "lab_atk_15"
+          ]
+        },
+        {
+          "id": "lab_atk_17",
+          "stat": "atk",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 170.0,
+          "costStep": 170.0,
+          "requires": [
+            "lab_atk_16"
+          ]
+        },
+        {
+          "id": "lab_atk_18",
+          "stat": "atk",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 180.0,
+          "costStep": 180.0,
+          "requires": [
+            "lab_atk_17"
+          ]
+        },
+        {
+          "id": "lab_atk_19",
+          "stat": "atk",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 190.0,
+          "costStep": 190.0,
+          "requires": [
+            "lab_atk_18"
+          ]
+        },
+        {
+          "id": "lab_atk_20",
+          "stat": "atk",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 200.0,
+          "costStep": 200.0,
+          "requires": [
+            "lab_atk_19"
+          ]
+        },
+        {
+          "id": "lab_hp_01",
+          "stat": "hp",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 10.0,
+          "costStep": 10.0,
+          "requires": []
+        },
+        {
+          "id": "lab_hp_02",
+          "stat": "hp",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 20.0,
+          "costStep": 20.0,
+          "requires": [
+            "lab_hp_01"
+          ]
+        },
+        {
+          "id": "lab_hp_03",
+          "stat": "hp",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 30.0,
+          "costStep": 30.0,
+          "requires": [
+            "lab_hp_02"
+          ]
+        },
+        {
+          "id": "lab_hp_04",
+          "stat": "hp",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 40.0,
+          "costStep": 40.0,
+          "requires": [
+            "lab_hp_03"
+          ]
+        },
+        {
+          "id": "lab_hp_05",
+          "stat": "hp",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 50.0,
+          "costStep": 50.0,
+          "requires": [
+            "lab_hp_04"
+          ]
+        },
+        {
+          "id": "lab_hp_06",
+          "stat": "hp",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 60.0,
+          "costStep": 60.0,
+          "requires": [
+            "lab_hp_05"
+          ]
+        },
+        {
+          "id": "lab_hp_07",
+          "stat": "hp",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 70.0,
+          "costStep": 70.0,
+          "requires": [
+            "lab_hp_06"
+          ]
+        },
+        {
+          "id": "lab_hp_08",
+          "stat": "hp",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 80.0,
+          "costStep": 80.0,
+          "requires": [
+            "lab_hp_07"
+          ]
+        },
+        {
+          "id": "lab_hp_09",
+          "stat": "hp",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 90.0,
+          "costStep": 90.0,
+          "requires": [
+            "lab_hp_08"
+          ]
+        },
+        {
+          "id": "lab_hp_10",
+          "stat": "hp",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 100.0,
+          "costStep": 100.0,
+          "requires": [
+            "lab_hp_09"
+          ]
+        },
+        {
+          "id": "lab_hp_11",
+          "stat": "hp",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 110.0,
+          "costStep": 110.0,
+          "requires": [
+            "lab_hp_10"
+          ]
+        },
+        {
+          "id": "lab_hp_12",
+          "stat": "hp",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 120.0,
+          "costStep": 120.0,
+          "requires": [
+            "lab_hp_11"
+          ]
+        },
+        {
+          "id": "lab_hp_13",
+          "stat": "hp",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 130.0,
+          "costStep": 130.0,
+          "requires": [
+            "lab_hp_12"
+          ]
+        },
+        {
+          "id": "lab_hp_14",
+          "stat": "hp",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 140.0,
+          "costStep": 140.0,
+          "requires": [
+            "lab_hp_13"
+          ]
+        },
+        {
+          "id": "lab_hp_15",
+          "stat": "hp",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 150.0,
+          "costStep": 150.0,
+          "requires": [
+            "lab_hp_14"
+          ]
+        },
+        {
+          "id": "lab_hp_16",
+          "stat": "hp",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 160.0,
+          "costStep": 160.0,
+          "requires": [
+            "lab_hp_15"
+          ]
+        },
+        {
+          "id": "lab_hp_17",
+          "stat": "hp",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 170.0,
+          "costStep": 170.0,
+          "requires": [
+            "lab_hp_16"
+          ]
+        },
+        {
+          "id": "lab_hp_18",
+          "stat": "hp",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 180.0,
+          "costStep": 180.0,
+          "requires": [
+            "lab_hp_17"
+          ]
+        },
+        {
+          "id": "lab_hp_19",
+          "stat": "hp",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 190.0,
+          "costStep": 190.0,
+          "requires": [
+            "lab_hp_18"
+          ]
+        },
+        {
+          "id": "lab_hp_20",
+          "stat": "hp",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 200.0,
+          "costStep": 200.0,
+          "requires": [
+            "lab_hp_19"
+          ]
+        },
+        {
+          "id": "lab_def_01",
+          "stat": "def",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 10.0,
+          "costStep": 10.0,
+          "requires": []
+        },
+        {
+          "id": "lab_def_02",
+          "stat": "def",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 20.0,
+          "costStep": 20.0,
+          "requires": [
+            "lab_def_01"
+          ]
+        },
+        {
+          "id": "lab_def_03",
+          "stat": "def",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 30.0,
+          "costStep": 30.0,
+          "requires": [
+            "lab_def_02"
+          ]
+        },
+        {
+          "id": "lab_def_04",
+          "stat": "def",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 40.0,
+          "costStep": 40.0,
+          "requires": [
+            "lab_def_03"
+          ]
+        },
+        {
+          "id": "lab_def_05",
+          "stat": "def",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 50.0,
+          "costStep": 50.0,
+          "requires": [
+            "lab_def_04"
+          ]
+        },
+        {
+          "id": "lab_def_06",
+          "stat": "def",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 60.0,
+          "costStep": 60.0,
+          "requires": [
+            "lab_def_05"
+          ]
+        },
+        {
+          "id": "lab_def_07",
+          "stat": "def",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 70.0,
+          "costStep": 70.0,
+          "requires": [
+            "lab_def_06"
+          ]
+        },
+        {
+          "id": "lab_def_08",
+          "stat": "def",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 80.0,
+          "costStep": 80.0,
+          "requires": [
+            "lab_def_07"
+          ]
+        },
+        {
+          "id": "lab_def_09",
+          "stat": "def",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 90.0,
+          "costStep": 90.0,
+          "requires": [
+            "lab_def_08"
+          ]
+        },
+        {
+          "id": "lab_def_10",
+          "stat": "def",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 100.0,
+          "costStep": 100.0,
+          "requires": [
+            "lab_def_09"
+          ]
+        },
+        {
+          "id": "lab_def_11",
+          "stat": "def",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 110.0,
+          "costStep": 110.0,
+          "requires": [
+            "lab_def_10"
+          ]
+        },
+        {
+          "id": "lab_def_12",
+          "stat": "def",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 120.0,
+          "costStep": 120.0,
+          "requires": [
+            "lab_def_11"
+          ]
+        },
+        {
+          "id": "lab_def_13",
+          "stat": "def",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 130.0,
+          "costStep": 130.0,
+          "requires": [
+            "lab_def_12"
+          ]
+        },
+        {
+          "id": "lab_def_14",
+          "stat": "def",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 140.0,
+          "costStep": 140.0,
+          "requires": [
+            "lab_def_13"
+          ]
+        },
+        {
+          "id": "lab_def_15",
+          "stat": "def",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 150.0,
+          "costStep": 150.0,
+          "requires": [
+            "lab_def_14"
+          ]
+        },
+        {
+          "id": "lab_def_16",
+          "stat": "def",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 160.0,
+          "costStep": 160.0,
+          "requires": [
+            "lab_def_15"
+          ]
+        },
+        {
+          "id": "lab_def_17",
+          "stat": "def",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 170.0,
+          "costStep": 170.0,
+          "requires": [
+            "lab_def_16"
+          ]
+        },
+        {
+          "id": "lab_def_18",
+          "stat": "def",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 180.0,
+          "costStep": 180.0,
+          "requires": [
+            "lab_def_17"
+          ]
+        },
+        {
+          "id": "lab_def_19",
+          "stat": "def",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 190.0,
+          "costStep": 190.0,
+          "requires": [
+            "lab_def_18"
+          ]
+        },
+        {
+          "id": "lab_def_20",
+          "stat": "def",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 200.0,
+          "costStep": 200.0,
+          "requires": [
+            "lab_def_19"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "leader",
+      "currencyId": "mana_crystal",
+      "nodes": [
+        {
+          "id": "leader_atk",
+          "stat": "atk",
+          "perLv": 600.0,
+          "maxLv": 20,
+          "costBase": 14.0,
+          "costStep": 28.0,
+          "requires": []
+        },
+        {
+          "id": "leader_hp",
+          "stat": "hp",
+          "perLv": 600.0,
+          "maxLv": 20,
+          "costBase": 4.0,
+          "costStep": 8.0,
+          "requires": []
+        },
+        {
+          "id": "leader_def",
+          "stat": "def",
+          "perLv": 600.0,
+          "maxLv": 20,
+          "costBase": 4.0,
+          "costStep": 8.0,
+          "requires": []
+        },
+        {
+          "id": "leader_critDefensePct",
+          "stat": "critDefensePct",
+          "perLv": 100.0,
+          "maxLv": 10,
+          "costBase": 20.0,
+          "costStep": 20.0,
+          "requires": [
+            "leader_atk",
+            "leader_hp",
+            "leader_def"
+          ]
+        },
+        {
+          "id": "leader_critDamagePct",
+          "stat": "critDamagePct",
+          "perLv": 100.0,
+          "maxLv": 10,
+          "costBase": 20.0,
+          "costStep": 20.0,
+          "requires": [
+            "leader_atk",
+            "leader_hp",
+            "leader_def"
+          ]
+        },
+        {
+          "id": "leader_critRatePct",
+          "stat": "critRatePct",
+          "perLv": 0.5,
+          "maxLv": 10,
+          "costBase": 20.0,
+          "costStep": 20.0,
+          "requires": [
+            "leader_atk",
+            "leader_hp",
+            "leader_def"
+          ]
+        },
+        {
+          "id": "leader_accuracyPct",
+          "stat": "accuracyPct",
+          "perLv": 0.5,
+          "maxLv": 10,
+          "costBase": 20.0,
+          "costStep": 20.0,
+          "requires": [
+            "leader_atk",
+            "leader_hp",
+            "leader_def"
+          ]
+        },
+        {
+          "id": "leader_evasionPct",
+          "stat": "evasionPct",
+          "perLv": 0.5,
+          "maxLv": 10,
+          "costBase": 20.0,
+          "costStep": 20.0,
+          "requires": [
+            "leader_atk",
+            "leader_hp",
+            "leader_def"
+          ]
+        },
+        {
+          "id": "leader_critResistPct",
+          "stat": "critResistPct",
+          "perLv": 0.5,
+          "maxLv": 10,
+          "costBase": 20.0,
+          "costStep": 20.0,
+          "requires": [
+            "leader_atk",
+            "leader_hp",
+            "leader_def"
+          ]
+        }
+      ]
+    }
+  ],
+  "tarot": {
+    "slots": 6,
+    "effects": [
+      "hp",
+      "atk",
+      "def",
+      "critDamagePct",
+      "critDefensePct"
+    ],
+    "rarities": [
+      {
+        "id": "N",
+        "maxPct": 20,
+        "wineCost": 50
+      },
+      {
+        "id": "N+",
+        "maxPct": 30,
+        "wineCost": 100
+      },
+      {
+        "id": "R",
+        "maxPct": 42,
+        "wineCost": 200
+      },
+      {
+        "id": "R+",
+        "maxPct": 58,
+        "wineCost": 400
+      },
+      {
+        "id": "SR",
+        "maxPct": 100,
+        "wineCost": 800
+      },
+      {
+        "id": "SR+",
+        "maxPct": 112,
+        "wineCost": 1600
+      },
+      {
+        "id": "SSR",
+        "maxPct": 130,
+        "wineCost": 3200
+      },
+      {
+        "id": "SSR+",
+        "maxPct": 210,
+        "wineCost": 9600
+      },
+      {
+        "id": "UR",
+        "maxPct": 350,
+        "wineCost": 28800
+      },
+      {
+        "id": "UR+",
+        "maxPct": 460,
+        "wineCost": 86400
+      },
+      {
+        "id": "EX",
+        "maxPct": 600,
+        "wineCost": 259200
+      }
+    ]
+  },
+  "collection": {
+    "currencyId": "collection_medal",
+    "sets": [
+      {
+        "id": "silver",
+        "stat": "critDefensePct",
+        "values": [
+          200,
+          400,
+          600,
+          800,
+          1000
+        ],
+        "starCost": [
+          100,
+          200,
+          400,
+          800,
+          1600
+        ]
+      },
+      {
+        "id": "gold",
+        "stat": "def",
+        "values": [
+          500,
+          700,
+          900,
+          1200,
+          1500
+        ],
+        "starCost": [
+          100,
+          200,
+          400,
+          800,
+          1600
+        ]
+      },
+      {
+        "id": "arcane",
+        "stat": "critDamagePct",
+        "values": [
+          200,
+          400,
+          600,
+          800,
+          1000
+        ],
+        "starCost": [
+          100,
+          200,
+          400,
+          800,
+          1600
+        ]
+      },
+      {
+        "id": "diamond",
+        "stat": "atk",
+        "values": [
+          1000,
+          1400,
+          1800,
+          2400,
+          3000
+        ],
+        "starCost": [
+          100,
+          200,
+          400,
+          800,
+          1600
+        ]
+      },
+      {
+        "id": "green",
+        "stat": "hp",
+        "values": [
+          1000,
+          1400,
+          1800,
+          2400,
+          3000
+        ],
+        "starCost": [
+          100,
+          200,
+          400,
+          800,
+          1600
+        ]
+      },
+      {
+        "id": "kingdom",
+        "stat": "evasionPct",
+        "values": [
+          10,
+          13,
+          16,
+          18,
+          20
+        ],
+        "starCost": [
+          100,
+          200,
+          400,
+          800,
+          1600
+        ]
+      },
+      {
+        "id": "star",
+        "stat": "accuracyPct",
+        "values": [
+          15,
+          18,
+          21,
+          23,
+          25
+        ],
+        "starCost": [
+          100,
+          200,
+          400,
+          800,
+          1600
+        ]
+      },
+      {
+        "id": "crystal",
+        "stat": "critRatePct",
+        "values": [
+          15,
+          20,
+          25,
+          28,
+          30
+        ],
+        "starCost": [
+          100,
+          200,
+          400,
+          800,
+          1600
+        ]
+      }
+    ]
+  },
+  "zukan": {
+    "levelGoals": [
+      20,
+      40,
+      60,
+      80,
+      100,
+      120
+    ],
+    "perGoalPct": 8.0,
+    "gemReward": 70.0
+  }
+}

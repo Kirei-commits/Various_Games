@@ -59,10 +59,13 @@ namespace Mado.Core.Session
         private readonly Growth.SupportService _supports;
         private readonly Growth.DragonNestService _nest;
         private readonly Growth.SpiritStoneService _stones;
+        private readonly Growth.TreeService _trees;
+        private readonly Growth.CollectionService _collection;
+        private readonly Growth.ZukanService _zukan;
 
-        internal GameState(SaveData save, Wallet.Wallet wallet, IdleService idle, Metrics.MetricCounter metrics, Growth.TrialService trials, Growth.SupportService supports, Growth.DragonNestService nest, Growth.SpiritStoneService stones)
+        internal GameState(SaveData save, Wallet.Wallet wallet, IdleService idle, Metrics.MetricCounter metrics, Growth.TrialService trials, Growth.SupportService supports, Growth.DragonNestService nest, Growth.SpiritStoneService stones, Growth.TreeService trees, Growth.CollectionService collection, Growth.ZukanService zukan)
         {
-            _nest = nest; _stones = stones;
+            _nest = nest; _stones = stones; _trees = trees; _collection = collection; _zukan = zukan;
             _save = save; _wallet = wallet; _idle = idle; _metrics = metrics; _trials = trials; _supports = supports;
         }
 
@@ -100,6 +103,18 @@ namespace Mado.Core.Session
 
         public int DragonNodeLv(string nodeId) { return _nest.Lv(nodeId); }
         public bool IsDragonNodeUnlocked(string nodeId) { return _nest.TryNode(nodeId, out Growth.NestNode n) && _nest.IsUnlocked(n); }
+        public int TreeNodeLv(string treeId, string nodeId) { return _trees.Lv(treeId, nodeId); }
+        public bool IsTreeNodeUnlocked(string treeId, string nodeId) { return _trees.IsUnlocked(treeId, nodeId); }
+        public int CollectionStar(string setId) { return _collection.Star(setId); }
+        public bool ZukanAchieved(string goal) { return _zukan.IsAchieved(goal); }
+
+        /// <summary>タロットの枠（効果・レア。空は null）。</summary>
+        public (string Effect, string Rarity) TarotAt(int slot)
+        {
+            TarotSlotState t = _save.Research.Tarot.Count > slot && slot >= 0 ? _save.Research.Tarot[slot] : null;
+            return t == null ? (null, null) : (t.Effect, t.Rarity);
+        }
+
         public int StoneCount { get { return _stones.Count; } }
 
         /// <summary>持っている石（写し）。</summary>

@@ -35,6 +35,7 @@ namespace Mado.Data
             CheckSupports(d, issues);
             CheckDragonNest(d, issues);
             CheckSpiritStones(d, issues);
+            CheckResearch(d, issues);
             return issues;
         }
 
@@ -488,7 +489,7 @@ namespace Mado.Data
             {
                 Error(issues, "REWARDS", at, "paceSlack は正の数、enemiesPerWave・enemiesPerBoss は1以上");
             }
-            if (!(r.IdleCapHours > 0) || !(r.IdleKillsPerMinute > 0) || r.IdleCoinPerExp < 0 || r.IdleBondHeartPerHour < 0)
+            if (!(r.IdleCapHours > 0) || !(r.IdleKillsPerMinute > 0) || r.IdleCoinPerExp < 0 || r.IdleBondHeartPerHour < 0 || r.IdleWinePerMinute < 0)
             {
                 Error(issues, "REWARDS", at, "idleCapHours・idleKillsPerMinute は正の数、idleCoinPerExp・idleBondHeartPerHour は0以上");
             }
@@ -795,6 +796,62 @@ namespace Mado.Data
                 }
             }
             if (c.Constellations.Count == 0) { Error(issues, "SPIRIT_STONES", at + ":constellations", "星座が1つも無い"); }
+        }
+
+        // ---- research.json ----
+
+        private static void CheckResearch(GameData d, List<DataIssue> issues)
+        {
+            ResearchConfig r = d.Research;
+            string at = DataLoader.ResearchFile;
+            var known = new HashSet<string>(DragonStatKeys);
+            var treeIds = new HashSet<string>();
+            foreach (TreeDef t in r.Trees)
+            {
+                string where = at + ":" + t.Id;
+                if (string.IsNullOrEmpty(t.Id) || !treeIds.Add(t.Id)) { Error(issues, "RESEARCH", where, "ツリーの ID が空か重複"); }
+                if (!d.TryCurrency(t.CurrencyId, out _)) { Error(issues, "RESEARCH", where, "マスタに無い通貨 " + t.CurrencyId); }
+                var nodeIds = new HashSet<string>();
+                foreach (TreeNodeDef n in t.Nodes)
+                {
+                    string nw = where + "/" + n.Id;
+                    if (string.IsNullOrEmpty(n.Id) || !nodeIds.Add(n.Id)) { Error(issues, "RESEARCH", nw, "ノードの ID が空か、前に出てきた ID と重複"); }
+                    if (!known.Contains(n.Stat) || !(n.PerLv > 0) || n.MaxLv < 1 || n.CostBase < 0 || n.CostStep < 0) { Error(issues, "RESEARCH", nw, "ステータスが不明、perLv は正、maxLv は1以上、費用は0以上"); }
+                    foreach (string req in n.Requires)
+                    {
+                        if (req == n.Id || !nodeIds.Contains(req)) { Error(issues, "RESEARCH", nw, "requires は先に書いた別のノードだけ: " + req); }
+                    }
+                }
+            }
+            if (r.Tarot.Slots < 1 || r.Tarot.Effects.Count == 0 || r.Tarot.Rarities.Count == 0) { Error(issues, "RESEARCH", at + ":tarot", "枠・効果・レアが1つ以上"); }
+            foreach (string e in r.Tarot.Effects) { if (!known.Contains(e)) { Error(issues, "RESEARCH", at + ":tarot", "知らない効果 " + e); } }
+            var rarIds = new HashSet<string>();
+            double prev = 0;
+            foreach (TarotRarityDef t in r.Tarot.Rarities)
+            {
+                if (string.IsNullOrEmpty(t.Id) || !rarIds.Add(t.Id) || !(t.MaxPct > 0) || !(t.WineCost >= 0) || t.MaxPct < prev) { Error(issues, "RESEARCH", at + ":tarot/" + t.Id, "ID の空・重複、値は正、弱いほうから強いほうへ並べる"); }
+                prev = t.MaxPct;
+            }
+            if (!d.TryCurrency(r.Collection.CurrencyId, out _)) { Error(issues, "RESEARCH", at + ":collection", "マスタに無い通貨"); }
+            var setIds = new HashSet<string>();
+            foreach (CollectionSetDef s in r.Collection.Sets)
+            {
+                string sw = at + ":collection/" + s.Id;
+                if (string.IsNullOrEmpty(s.Id) || !setIds.Add(s.Id) || !known.Contains(s.Stat)) { Error(issues, "RESEARCH", sw, "ID の空・重複か、不明なステータス"); }
+                if (s.Values.Count == 0 || s.StarCost.Count != s.Values.Count) { Error(issues, "RESEARCH", sw, "values と starCost は同じ数（★の数）"); }
+                else
+                {
+                    for (int i = 0; i < s.Values.Count; i++)
+                    {
+                        if (!(s.Values[i] > 0) || s.StarCost[i] < 0 || (i > 0 && s.Values[i] < s.Values[i - 1])) { Error(issues, "RESEARCH", sw, "values は正で★が上がるほど大きく、starCost は0以上"); break; }
+                    }
+                }
+            }
+            if (r.Zukan.LevelGoals.Count == 0 || !(r.Zukan.PerGoalPct > 0) || r.Zukan.GemReward < 0) { Error(issues, "RESEARCH", at + ":zukan", "Lv の目標が1つ以上、perGoalPct は正、gemReward は0以上"); }
+            for (int i = 1; i < r.Zukan.LevelGoals.Count; i++)
+            {
+                if (r.Zukan.LevelGoals[i] <= r.Zukan.LevelGoals[i - 1]) { Error(issues, "RESEARCH", at + ":zukan", "Lv の目標が昇順でない"); break; }
+            }
         }
 
         // ---- difficulty.json ----

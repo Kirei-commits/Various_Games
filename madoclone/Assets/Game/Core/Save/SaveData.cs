@@ -37,6 +37,7 @@ namespace Mado.Core.Save
         public SupportsState Supports { get; set; } = new SupportsState();
         public DragonNestState DragonNest { get; set; } = new DragonNestState();
         public SpiritStoneState SpiritStones { get; set; } = new SpiritStoneState();
+        public ResearchState Research { get; set; } = new ResearchState();
 
         /// <summary>マスタに無い ID・未知の項目の中身。捨てずに持ち越す（キーは "characters/ID" など）。</summary>
         public Dictionary<string, JToken> Orphans { get; set; } = new Dictionary<string, JToken>();
@@ -165,6 +166,27 @@ namespace Mado.Core.Save
         public int NextNumber { get; set; } = 1;
         public List<StoneState> Stones { get; set; } = new List<StoneState>();
         public string[] Equipped { get; set; } = new string[0];
+    }
+
+    /// <summary>タロットの枠1つ。空は Effect が null。</summary>
+    public sealed class TarotSlotState
+    {
+        public string Effect { get; set; }
+        public string Rarity { get; set; }
+    }
+
+    /// <summary>研究ツリー（研究所・リーダー特殊ツリー）、タロット、コレクション、図鑑の状態。</summary>
+    public sealed class ResearchState
+    {
+        /// <summary>ノードのLv。キーは "ツリー/ノード"（0 のノードは持たない）。</summary>
+        public Dictionary<string, int> Nodes { get; set; } = new Dictionary<string, int>();
+        public List<TarotSlotState> Tarot { get; set; } = new List<TarotSlotState>();
+
+        /// <summary>コレクションのセットの★（キーはセット ID）。</summary>
+        public Dictionary<string, int> Collection { get; set; } = new Dictionary<string, int>();
+
+        /// <summary>達成した図鑑の目標（"キャラ.lv60"、"キャラ.star3"）。昇順で保存。</summary>
+        public List<string> Zukan { get; set; } = new List<string>();
     }
 
     public sealed class PartyState

@@ -121,6 +121,28 @@ namespace Mado.Data.Tests
             yield return C("REWARDS", rw, r => r["idleCapHours"] = 0);
             yield return C("REWARDS", rw, r => r["idleCoinPerExp"] = -1);
 
+            // ---- research.json ----
+            string rs = DataLoader.ResearchFile;
+            yield return C("RESEARCH", rs, r => r["trees"][1]["id"] = "lab");
+            yield return C("RESEARCH", rs, r => r["trees"][0]["currencyId"] = "nope");
+            yield return C("RESEARCH", rs, r => r["trees"][0]["nodes"][1]["id"] = "lab_atk_01");        // ノード ID の重複
+            yield return C("RESEARCH", rs, r => r["trees"][0]["nodes"][0]["stat"] = "nope");
+            yield return C("RESEARCH", rs, r => r["trees"][0]["nodes"][0]["perLv"] = 0);
+            yield return C("RESEARCH", rs, r => r["trees"][0]["nodes"][1]["requires"][0] = "lab_hp_05");   // 後ろのノード
+            yield return C("RESEARCH", rs, r => r["trees"][0]["nodes"][1]["requires"][0] = "lab_atk_02");  // 自分自身
+            yield return C("RESEARCH", rs, r => r["tarot"]["slots"] = 0);
+            yield return C("RESEARCH", rs, r => r["tarot"]["effects"][0] = "nope");
+            yield return C("RESEARCH", rs, r => r["tarot"]["rarities"][1]["id"] = "N");
+            yield return C("RESEARCH", rs, r => r["tarot"]["rarities"][2]["maxPct"] = 1);              // 並びが逆
+            yield return C("RESEARCH", rs, r => r["collection"]["currencyId"] = "nope");
+            yield return C("RESEARCH", rs, r => r["collection"]["sets"][1]["id"] = "silver");
+            yield return C("RESEARCH", rs, r => r["collection"]["sets"][0]["stat"] = "nope");
+            yield return C("RESEARCH", rs, r => ((JArray)r["collection"]["sets"][0]["starCost"]).RemoveAt(0));
+            yield return C("RESEARCH", rs, r => r["collection"]["sets"][0]["values"][2] = 1);          // ★が上がるのに小さくなる
+            yield return C("RESEARCH", rs, r => ((JArray)r["zukan"]["levelGoals"]).Clear());
+            yield return C("RESEARCH", rs, r => r["zukan"]["levelGoals"][1] = 20);                     // 昇順でない
+            yield return C("RESEARCH", rs, r => r["zukan"]["perGoalPct"] = 0);
+
             // ---- spirit_stones.json ----
             string ss = DataLoader.SpiritStonesFile;
             yield return C("SPIRIT_STONES", ss, r => r["maxStones"] = 0);

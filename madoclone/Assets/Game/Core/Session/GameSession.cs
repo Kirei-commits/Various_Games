@@ -64,6 +64,10 @@ namespace Mado.Core.Session
         private readonly SupportService _supports;
         private readonly DragonNestService _nest;
         private readonly SpiritStoneService _stones;
+        private readonly TreeService _trees;
+        private readonly TarotService _tarot;
+        private readonly CollectionService _collection;
+        private readonly ZukanService _zukan;
         private readonly IdleService _idle;
         private readonly StageFactory _stages;
         private readonly BattleSetupBuilder _builder;
@@ -94,14 +98,18 @@ namespace Mado.Core.Session
 
             _nest = new DragonNestService(data, _save, _wallet);
             _stones = new SpiritStoneService(data, _save, _wallet);
-            var sources = new List<IModifierSource> { new MemoryCardSource(data, _save), new LeaderLvSource(data, _save), new PlazaSource(data, _save), new DragonNestSource(_nest, _save), new SpiritStoneSource(data, _save, _stones) };
+            _trees = new TreeService(data, _save, _wallet);
+            _tarot = new TarotService(data, _save, _wallet);
+            _collection = new CollectionService(data, _save, _wallet);
+            _zukan = new ZukanService(data, _save, _wallet);
+            var sources = new List<IModifierSource> { new MemoryCardSource(data, _save), new LeaderLvSource(data, _save), new PlazaSource(data, _save), new DragonNestSource(_nest, _save), new SpiritStoneSource(data, _save, _stones), new ResearchSource(data, _save) };
             if (extraSources != null) { sources.AddRange(extraSources); }
             _builder = new BattleSetupBuilder(data, new StatResolver(data, sources));
 
             _supports = new SupportService(data, _save, _builder.Skills);
             _trials = new TrialService(data, _save, _wallet, clock, _stages, _builder);
             _idle.EnsureStarted();
-            State = new GameState(_save, _wallet, _idle, _metrics, _trials, _supports, _nest, _stones);
+            State = new GameState(_save, _wallet, _idle, _metrics, _trials, _supports, _nest, _stones, _trees, _collection, _zukan);
             Debug = new DebugCommands(this);
         }
 
@@ -331,6 +339,44 @@ namespace Mado.Core.Session
             SupportFailure f = _supports.Clear(DefaultParty, kind);
             if (f != SupportFailure.None) { return Failed(f); }
             return Done(new GameEvent(GameEventKind.SupportChanged, "", 0, (int)kind));
+        }
+
+        // ---------------- 研究・リーダー特殊ツリー・タロット・コレクション・図鑑 ----------------
+
+        /// <summary>ツリーのノードを1つ上げる（treeId は "lab"＝研究所、"leader"＝リーダー特殊ツリー）。</summary>
+        public CommandResult LevelUpTreeNode(string treeId, string nodeId)
+        {
+            ResearchFailure f = _trees.LevelUp(treeId, nodeId);
+            if (f != ResearchFailure.None) { return Failed(f); }
+            return Done(new GameEvent(GameEventKind.TreeNodeLevelUp, treeId + "/" + nodeId, 0, _trees.Lv(treeId, nodeId)));
+        }
+
+        public CommandResult SetTarot(int slot, string effect, string rarityId)
+        {
+            ResearchFailure f = _tarot.Set(slot, effect, rarityId);
+            if (f != ResearchFailure.None) { return Failed(f); }
+            return Done(new GameEvent(GameEventKind.TarotChanged, effect, 0, slot, rarityId));
+        }
+
+        public CommandResult ClearTarot(int slot)
+        {
+            ResearchFailure f = _tarot.Clear(slot);
+            if (f != ResearchFailure.None) { return Failed(f); }
+            return Done();
+        }
+
+        public CommandResult RaiseCollectionSet(string setId)
+        {
+            ResearchFailure f = _collection.Raise(setId);
+            if (f != ResearchFailure.None) { return Failed(f); }
+            return Done(new GameEvent(GameEventKind.CollectionStarUp, setId, 0, _collection.Star(setId)));
+        }
+
+        /// <summary>図鑑の新しい達成を拾う（報酬のジェムは自動）。View は画面を開くときと育成のあとに呼ぶ。</summary>
+        public CommandResult SyncZukan(out int newGoals)
+        {
+            newGoals = _zukan.Sync();
+            return newGoals == 0 ? Done() : Done(new GameEvent(GameEventKind.ZukanAchieved, "", 0, newGoals));
         }
 
         // ---------------- 霊石版 ----------------
