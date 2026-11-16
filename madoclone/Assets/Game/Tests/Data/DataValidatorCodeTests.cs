@@ -118,6 +118,16 @@ namespace Mado.Data.Tests
             yield return C("REWARDS", rw, r => r["expPerEnemy"][3] = 0);
             yield return C("REWARDS", rw, r => r["paceSlack"] = 0);
             yield return C("REWARDS", rw, r => r["enemiesPerWave"] = 0);
+            yield return C("REWARDS", rw, r => r["idleCapHours"] = 0);
+            yield return C("REWARDS", rw, r => r["idleCoinPerExp"] = -1);
+
+            // ---- leader_temple.json ----
+            string lt = DataLoader.LeaderTempleFile;
+            yield return C("LEADER_TEMPLE", lt, r => ((JArray)r["lvPct"]).RemoveAt(0));
+            yield return C("LEADER_TEMPLE", lt, r => r["lvPct"][5] = -1);
+            yield return C("LEADER_TEMPLE", lt, r => r["lvPct"][5] = 99999);                // 次のLvより大きい
+            yield return C("LEADER_TEMPLE", lt, r => r["expCostGrowth"] = 0.5);
+            yield return C("LEADER_TEMPLE", lt, r => r["shardCostPerLv"] = 0);
 
             // ---- memory_cards.json ----
             string mc = DataLoader.MemoryCardsFile;

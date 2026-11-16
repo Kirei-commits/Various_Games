@@ -27,8 +27,6 @@ namespace Mado.Core.Growth
     /// </summary>
     public sealed class MemoryCardService
     {
-        public const string BondHeart = "bond_heart";
-
         private readonly GameData _data;
         private readonly SaveData _save;
         private readonly Wallet.Wallet _wallet;
@@ -65,7 +63,7 @@ namespace Mado.Core.Growth
         public PullResult Pull()
         {
             MemoryCardsConfig cfg = _data.MemoryCards;
-            PayResult pay = _wallet.Pay(new Cost(BondHeart, cfg.PullCostBondHeart), new PayReason(WalletReasons.GachaPull));
+            PayResult pay = _wallet.Pay(new Cost(CurrencyIds.BondHeart, cfg.PullCostBondHeart), new PayReason(WalletReasons.GachaPull));
             if (!pay.Success) { return new PullResult(false, MemoryFailure.NotEnough, null, pay.ShortBy); }
 
             MemoryState m = _save.Memory;

@@ -17,6 +17,7 @@ namespace Mado.Data
         public DifficultyConfig Difficulty { get; }
         public RewardsConfig Rewards { get; }
         public MemoryCardsConfig MemoryCards { get; }
+        public LeaderTempleConfig LeaderTemple { get; }
         public BuffTable Buffs { get; }
         public TextTable Text { get; }
 
@@ -36,6 +37,7 @@ namespace Mado.Data
             DifficultyConfig difficulty,
             RewardsConfig rewards,
             MemoryCardsConfig memoryCards,
+            LeaderTempleConfig leaderTemple,
             BuffTable buffs,
             IReadOnlyList<TierDef> tiers,
             IReadOnlyList<CharacterDef> characters,
@@ -49,6 +51,7 @@ namespace Mado.Data
             Difficulty = difficulty;
             Rewards = rewards;
             MemoryCards = memoryCards;
+            LeaderTemple = leaderTemple;
             Buffs = buffs;
             Tiers = tiers;
             Characters = characters;

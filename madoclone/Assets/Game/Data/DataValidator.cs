@@ -28,6 +28,7 @@ namespace Mado.Data
             CheckDifficulty(d, issues);
             CheckRewards(d, issues);
             CheckMemoryCards(d, issues);
+            CheckLeaderTemple(d, issues);
             return issues;
         }
 
@@ -481,6 +482,10 @@ namespace Mado.Data
             {
                 Error(issues, "REWARDS", at, "paceSlack は正の数、enemiesPerWave・enemiesPerBoss は1以上");
             }
+            if (!(r.IdleCapHours > 0) || !(r.IdleKillsPerMinute > 0) || r.IdleCoinPerExp < 0 || r.IdleBondHeartPerHour < 0)
+            {
+                Error(issues, "REWARDS", at, "idleCapHours・idleKillsPerMinute は正の数、idleCoinPerExp・idleBondHeartPerHour は0以上");
+            }
         }
 
         // ---- memory_cards.json ----
@@ -536,6 +541,33 @@ namespace Mado.Data
                 {
                     Error(issues, "MEMORY_CARDS", where, "排出率はレアリティと同じ数で、負でなく、合計100");
                 }
+            }
+        }
+
+        // ---- leader_temple.json ----
+
+        private static void CheckLeaderTemple(GameData d, List<DataIssue> issues)
+        {
+            LeaderTempleConfig t = d.LeaderTemple;
+            string at = DataLoader.LeaderTempleFile;
+            if (t.LvPct.Count != t.MaxLv || t.MaxLv < 2)
+            {
+                Error(issues, "LEADER_TEMPLE", at + ":lvPct", "lvPct の長さが maxLv（2以上）と違う: " + t.LvPct.Count);
+            }
+            else
+            {
+                for (int i = 0; i < t.LvPct.Count; i++)
+                {
+                    if (t.LvPct[i] < 0 || (i > 0 && t.LvPct[i] < t.LvPct[i - 1]))
+                    {
+                        Error(issues, "LEADER_TEMPLE", at + ":lvPct[" + i + "]", "負か、前のLvより小さい");
+                    }
+                }
+            }
+            if (!(t.ExpCostBase > 0) || !(t.ExpCostGrowth >= 1.0) || t.ExpCostBaseLv < 1 || t.ShardCostPerLv < 1
+                || t.RewardEveryLv < 1 || t.RewardMinLv < 1 || t.RewardCrystalPerLv < 1)
+            {
+                Error(issues, "LEADER_TEMPLE", at, "費用・報酬の数値は正（成長率は1以上）");
             }
         }
 

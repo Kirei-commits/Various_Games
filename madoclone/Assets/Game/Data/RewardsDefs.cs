@@ -16,6 +16,18 @@ namespace Mado.Data
         public int EnemiesPerWave { get; init; }
         public int EnemiesPerBoss { get; init; }
 
+        /// <summary>放置報酬：たまる上限の時間（docs/01 第8章の置き換え一覧で 24 時間。実測は 8 時間）。</summary>
+        public double IdleCapHours { get; init; }
+
+        /// <summary>放置中、1分に敵を何体ぶん倒したことにするか。経験値は 敵1体の経験値 × この数 ×（分）。</summary>
+        public double IdleKillsPerMinute { get; init; }
+
+        /// <summary>放置のコインは、放置の経験値のこの割合（実測：コイン 4,600万 ／ 経験値 4.6 億）。</summary>
+        public double IdleCoinPerExp { get; init; }
+
+        /// <summary>放置で毎時たまる絆ハート（実測：毎時 380）。</summary>
+        public double IdleBondHeartPerHour { get; init; }
+
         /// <summary>ランク1〜32 の、敵1体を倒したときの経験値。</summary>
         public IReadOnlyList<double> ExpPerEnemy { get; init; }
     }

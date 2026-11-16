@@ -30,6 +30,8 @@ namespace Mado.Core.Save
         public ProgressState Progress { get; set; } = new ProgressState();
         public SettingsState Settings { get; set; } = new SettingsState();
         public MemoryState Memory { get; set; } = new MemoryState();
+        public TempleState Temple { get; set; } = new TempleState();
+        public IdleState Idle { get; set; } = new IdleState();
 
         /// <summary>マスタに無い ID・未知の項目の中身。捨てずに持ち越す（キーは "characters/ID" など）。</summary>
         public Dictionary<string, JToken> Orphans { get; set; } = new Dictionary<string, JToken>();
@@ -96,6 +98,19 @@ namespace Mado.Core.Save
 
         /// <summary>長さ8。空の枠は null。</summary>
         public string[] Equipped { get; set; } = new string[SlotCount];
+    }
+
+    /// <summary>リーダー神殿：リーダーLv と、変えた属性（null なら元の属性）。</summary>
+    public sealed class TempleState
+    {
+        public int LeaderLv { get; set; } = 1;
+        public Element? LeaderElement { get; set; }
+    }
+
+    /// <summary>放置報酬：最後に受け取った（数え始めた）時刻（UTC、ISO 8601）。空なら、まだ数え始めていない。</summary>
+    public sealed class IdleState
+    {
+        public string LastClaimUtc { get; set; } = "";
     }
 
     public sealed class PartyState

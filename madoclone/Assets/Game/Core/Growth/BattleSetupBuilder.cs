@@ -96,7 +96,12 @@ namespace Mado.Core.Growth
             {
                 if (id != null) { list.Add(BuildAlly(id, save.Characters[id], false)); }
             }
-            if (save.Leader != null) { list.Add(BuildAlly(save.Leader, save.Characters[save.Leader], true)); }
+            if (save.Leader != null)
+            {
+                UnitSetup leader = BuildAlly(save.Leader, save.Characters[save.Leader], true);
+                if (save.Temple.LeaderElement.HasValue) { leader.Element = save.Temple.LeaderElement.Value; }   // リーダー神殿で変えた属性
+                list.Add(leader);
+            }
             return list;
         }
 

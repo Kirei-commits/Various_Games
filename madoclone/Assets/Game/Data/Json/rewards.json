@@ -3,6 +3,10 @@
   "paceSlack": 1.25,
   "enemiesPerWave": 3,
   "enemiesPerBoss": 3,
+  "idleCapHours": 24,
+  "idleKillsPerMinute": 1.0,
+  "idleCoinPerExp": 0.1,
+  "idleBondHeartPerHour": 380,
   "expPerEnemy": [
     141000.0,
     141000.0,

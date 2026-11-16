@@ -18,7 +18,7 @@ namespace Mado.Core.Save
         private static readonly HashSet<string> KnownTop = new HashSet<string>
         {
             "format", "saveVersion", "devMode", "savedAtUtc", "rng", "wallet", "walletCarry",
-            "characters", "leader", "parties", "metrics", "progress", "settings", "memory", "orphans",
+            "characters", "leader", "parties", "metrics", "progress", "settings", "memory", "temple", "idle", "orphans",
         };
 
         // ---------------- 書き出し ----------------
@@ -78,6 +78,12 @@ namespace Mado.Core.Save
             };
 
             o["memory"] = MemoryToJson(s.Memory);
+            o["idle"] = new JObject { ["lastClaimUtc"] = s.Idle.LastClaimUtc ?? "" };
+            o["temple"] = new JObject
+            {
+                ["leaderLv"] = s.Temple.LeaderLv,
+                ["leaderElement"] = s.Temple.LeaderElement.HasValue ? new JValue(EnumStringConverter.Text(s.Temple.LeaderElement.Value)) : JValue.CreateNull(),
+            };
 
             // 孤児。"top/X" は最上位の未知の項目 X をそのまま戻す。それ以外は orphans の中に置く。
             var orphans = new Dictionary<string, JToken>();
@@ -185,6 +191,18 @@ namespace Mado.Core.Save
             }
 
             s.Memory = ReadMemory(Obj(o, "memory"));
+            JObject idle = Obj(o, "idle");
+            if (idle != null) { s.Idle = new IdleState { LastClaimUtc = Opt(idle, "lastClaimUtc", "") }; }
+            JObject temple = Obj(o, "temple");
+            if (temple != null)
+            {
+                string el = OptStr(temple, "leaderElement");
+                s.Temple = new TempleState
+                {
+                    LeaderLv = Opt(temple, "leaderLv", 1),
+                    LeaderElement = el == null ? (Element?)null : ParseEnum<Element>(el, "temple.leaderElement"),
+                };
+            }
 
             foreach (KeyValuePair<string, JToken> kv in o)
             {

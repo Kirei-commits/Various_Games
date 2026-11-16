@@ -92,6 +92,10 @@ namespace Mado.Core.Save
                 }
             }
             CheckMemory(save, data, issues);
+            if (save.Temple.LeaderLv < 1 || save.Temple.LeaderLv > data.LeaderTemple.MaxLv)
+            {
+                Add(issues, SaveSeverity.Error, "TEMPLE_LV", "リーダーLv が 1〜" + data.LeaderTemple.MaxLv + " の外: " + save.Temple.LeaderLv, "temple.leaderLv");
+            }
             return issues;
         }
 

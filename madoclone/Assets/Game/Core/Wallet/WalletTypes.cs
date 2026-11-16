@@ -25,6 +25,9 @@ namespace Mado.Core.Wallet
         public const string GrowthAwaken = "growth.awaken";
         public const string BattleDrop = "battle.drop";
         public const string MemoryGachaLevel = "memory.gachalevel";
+        public const string IdleClaim = "idle.claim";
+        public const string LeaderLevelUp = "leader.levelup";
+        public const string LeaderReward = "leader.reward";
     }
 
     /// <summary>通貨 ID（currencies.json の id）。コードから使うものだけ。</summary>
@@ -34,6 +37,9 @@ namespace Mado.Core.Wallet
         public const string Coin = "coin";
         public const string Exp = "exp";
         public const string AwakenShard = "awaken_shard";
+        public const string BondHeart = "bond_heart";
+        public const string ManaShard = "mana_shard";
+        public const string ManaCrystal = "mana_crystal";
     }
 
     /// <summary>Pay の結果。失敗のとき、足りない通貨（通貨マスタの並びで最初の1つ）を持つ。</summary>
