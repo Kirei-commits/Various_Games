@@ -91,7 +91,67 @@ namespace Mado.Core.Save
                     Add(issues, SaveSeverity.Warning, "LEADER_STAR", "リーダーは★" + data.System.LeaderMinStar + " 以上", "leader");
                 }
             }
+            CheckMemory(save, data, issues);
             return issues;
+        }
+
+        private static void CheckMemory(SaveData save, GameData data, List<SaveIssue> issues)
+        {
+            MemoryState m = save.Memory;
+            MemoryCardsConfig cfg = data.MemoryCards;
+            if (m.GachaLv < 1 || m.GachaLv > cfg.MaxCardLv)
+            {
+                Add(issues, SaveSeverity.Error, "MEMORY_GACHA_LV", "絆ガチャLv が 1〜" + cfg.MaxCardLv + " の外: " + m.GachaLv, "memory.gachaLv");
+            }
+            var byId = new Dictionary<string, MemoryCardState>();
+            for (int i = 0; i < m.Cards.Count; i++)
+            {
+                MemoryCardState c = m.Cards[i];
+                string at = "memory.cards[" + i + "]";
+                if (string.IsNullOrEmpty(c.Id) || byId.ContainsKey(c.Id))
+                {
+                    Add(issues, SaveSeverity.Error, "MEMORY_CARD_ID", "カード ID が空か重複: " + c.Id, at + ".id");
+                    continue;
+                }
+                byId[c.Id] = c;
+                if (Growth.MemoryCardEffects.RarityIndex(data, c.Rarity) < 0)
+                {
+                    Add(issues, SaveSeverity.Error, "MEMORY_RARITY", "マスタに無いレアリティ " + c.Rarity, at + ".rarity");
+                }
+                if (c.Lv < 1 || c.Lv > cfg.MaxCardLv)
+                {
+                    Add(issues, SaveSeverity.Error, "MEMORY_CARD_LV", "カードLv が 1〜" + cfg.MaxCardLv + " の外: " + c.Lv, at + ".lv");
+                }
+                int extra = c.Extra == null ? 0 : c.Extra.Length;
+                if (extra != (c.Kind == MemoryKind.Speed ? 3 : 0) || c.Subs.Count != 2)
+                {
+                    Add(issues, SaveSeverity.Error, "MEMORY_CARD_SHAPE", "スピードカードは extra が3つ、他は0。サブは2つ", at);
+                }
+                else if (c.Subs[0].Stat == c.Subs[1].Stat)
+                {
+                    Add(issues, SaveSeverity.Error, "MEMORY_CARD_SHAPE", "サブ効果が同じ種類", at + ".subs");
+                }
+            }
+            if (m.NextCardNumber < 1) { Add(issues, SaveSeverity.Error, "MEMORY_NEXT_ID", "nextCardNumber が1未満", "memory.nextCardNumber"); }
+            var used = new HashSet<string>();
+            for (int slot = 0; slot < m.Equipped.Length; slot++)
+            {
+                string id = m.Equipped[slot];
+                if (id == null) { continue; }
+                string at = "memory.equipped[" + slot + "]";
+                if (!byId.TryGetValue(id, out MemoryCardState card))
+                {
+                    Add(issues, SaveSeverity.Error, "MEMORY_EQUIP_UNKNOWN", "持っていないカード " + id + " を装備している", at);
+                }
+                else if ((int)card.Kind != slot / 2)
+                {
+                    Add(issues, SaveSeverity.Error, "MEMORY_EQUIP_KIND", "枠の種類とカードの種類が違う: " + id, at);
+                }
+                else if (!used.Add(id))
+                {
+                    Add(issues, SaveSeverity.Error, "MEMORY_EQUIP_DUP", "同じカード " + id + " を2つの枠に付けている", at);
+                }
+            }
         }
 
         /// <summary>固有魔晶が現れる★（＝固有魔晶の枠が開く★。いまは 6）。</summary>

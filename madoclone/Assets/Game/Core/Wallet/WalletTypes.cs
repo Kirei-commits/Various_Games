@@ -24,6 +24,7 @@ namespace Mado.Core.Wallet
         public const string GrowthLevelUp = "growth.levelup";
         public const string GrowthAwaken = "growth.awaken";
         public const string BattleDrop = "battle.drop";
+        public const string MemoryGachaLevel = "memory.gachalevel";
     }
 
     /// <summary>通貨 ID（currencies.json の id）。コードから使うものだけ。</summary>

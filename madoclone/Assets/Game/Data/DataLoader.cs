@@ -49,13 +49,14 @@ namespace Mado.Data
         public const string StatTablesFile = "stat_tables.json";
         public const string DifficultyFile = "difficulty.json";
         public const string RewardsFile = "rewards.json";
+        public const string MemoryCardsFile = "memory_cards.json";
         public const string TextFile = "text/ja.json";
 
         /// <summary>読み込むファイルの一覧。</summary>
         public static readonly IReadOnlyList<string> FileNames = new[]
         {
             CharactersFile, SkillsFile, CrystalsFile, BuffsFile, TiersFile,
-            CurrenciesFile, SystemFile, StatTablesFile, DifficultyFile, RewardsFile, TextFile,
+            CurrenciesFile, SystemFile, StatTablesFile, DifficultyFile, RewardsFile, MemoryCardsFile, TextFile,
         };
 
         private static readonly JsonSerializerSettings Settings = CreateSettings();
@@ -119,6 +120,7 @@ namespace Mado.Data
             StatTables stats = Parse<StatTables>(source, StatTablesFile, issues);
             DifficultyConfig difficulty = Parse<DifficultyConfig>(source, DifficultyFile, issues);
             RewardsConfig rewards = Parse<RewardsConfig>(source, RewardsFile, issues);
+            MemoryCardsConfig memoryCards = Parse<MemoryCardsConfig>(source, MemoryCardsFile, issues);
             Dictionary<string, string> texts = Parse<Dictionary<string, string>>(source, TextFile, issues);
 
             foreach (DataIssue issue in issues)
@@ -131,10 +133,10 @@ namespace Mado.Data
 
             CheckSchemaVersions(issues, characters.SchemaVersion, skills.SchemaVersion, crystals.SchemaVersion,
                 buffs.SchemaVersion, tiers.SchemaVersion, currencies.SchemaVersion,
-                system.SchemaVersion, stats.SchemaVersion, difficulty.SchemaVersion, rewards.SchemaVersion);
+                system.SchemaVersion, stats.SchemaVersion, difficulty.SchemaVersion, rewards.SchemaVersion, memoryCards.SchemaVersion);
 
             var data = new GameData(
-                system, stats, difficulty, rewards, buffs,
+                system, stats, difficulty, rewards, memoryCards, buffs,
                 tiers.Items, characters.Items, skills.Items, crystals.Items, currencies.Items,
                 new TextTable(texts));
             issues.AddRange(DataValidator.Validate(data));

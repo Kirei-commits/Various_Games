@@ -69,9 +69,10 @@ namespace Mado.Core.Stats
             double speed = 1.0 + flat[(int)StatId.AttackSpeed] / 100.0;
             return new BattleStats
             {
-                Atk = atk * Mult(pool, StatId.Atk),
-                Hp = hp * Mult(pool, StatId.Hp),
-                Def = def * Mult(pool, StatId.Def),
+                // Atk・Hp・Def の Flat は「固定値」（基礎の単位）。基礎に足してから輪を掛ける。
+                Atk = (atk + flat[(int)StatId.Atk]) * Mult(pool, StatId.Atk),
+                Hp = (hp + flat[(int)StatId.Hp]) * Mult(pool, StatId.Hp),
+                Def = (def + flat[(int)StatId.Def]) * Mult(pool, StatId.Def),
                 EvasionPct = evasion + flat[(int)StatId.Evasion],
                 AccuracyPct = accuracy + flat[(int)StatId.Accuracy],
                 CritRatePct = critRate + flat[(int)StatId.CritRate],

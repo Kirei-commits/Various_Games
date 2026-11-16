@@ -18,7 +18,7 @@ namespace Mado.Core.Save
         private static readonly HashSet<string> KnownTop = new HashSet<string>
         {
             "format", "saveVersion", "devMode", "savedAtUtc", "rng", "wallet", "walletCarry",
-            "characters", "leader", "parties", "metrics", "progress", "settings", "orphans",
+            "characters", "leader", "parties", "metrics", "progress", "settings", "memory", "orphans",
         };
 
         // ---------------- 書き出し ----------------
@@ -76,6 +76,8 @@ namespace Mado.Core.Save
             {
                 ["battleSpeed"] = s.Settings.BattleSpeed, ["autoBoss"] = s.Settings.AutoBoss, ["skipGachaAnim"] = s.Settings.SkipGachaAnim,
             };
+
+            o["memory"] = MemoryToJson(s.Memory);
 
             // 孤児。"top/X" は最上位の未知の項目 X をそのまま戻す。それ以外は orphans の中に置く。
             var orphans = new Dictionary<string, JToken>();
@@ -182,6 +184,8 @@ namespace Mado.Core.Save
                 };
             }
 
+            s.Memory = ReadMemory(Obj(o, "memory"));
+
             foreach (KeyValuePair<string, JToken> kv in o)
             {
                 if (!KnownTop.Contains(kv.Key)) { s.Orphans["top/" + kv.Key] = kv.Value.DeepClone(); }
@@ -207,6 +211,75 @@ namespace Mado.Core.Save
                 Copies = Opt(o, "copies", 0),
                 Crystals = StrArray(o["crystals"], at + ".crystals", CharacterState.CrystalSlots),
             };
+        }
+
+        private static JObject MemoryToJson(MemoryState m)
+        {
+            var cards = new JArray();
+            foreach (MemoryCardState c in m.Cards)
+            {
+                var subs = new JArray();
+                foreach (MemorySubState sub in c.Subs) { subs.Add(new JObject { ["stat"] = EnumStringConverter.Text(sub.Stat), ["value"] = sub.Value }); }
+                var extra = new JArray();
+                foreach (double e in c.Extra ?? new double[0]) { extra.Add(e); }
+                cards.Add(new JObject
+                {
+                    ["id"] = c.Id, ["rarity"] = c.Rarity, ["kind"] = EnumStringConverter.Text(c.Kind), ["lv"] = c.Lv,
+                    ["main"] = c.Main, ["extra"] = extra, ["subs"] = subs,
+                });
+            }
+            var equipped = new JArray();
+            foreach (string id in m.Equipped ?? new string[MemoryState.SlotCount]) { equipped.Add(Str(id)); }
+            return new JObject { ["gachaLv"] = m.GachaLv, ["nextCardNumber"] = m.NextCardNumber, ["cards"] = cards, ["equipped"] = equipped };
+        }
+
+        private static MemoryState ReadMemory(JObject o)
+        {
+            var m = new MemoryState();
+            if (o == null) { return m; }
+            m.GachaLv = Opt(o, "gachaLv", 1);
+            m.NextCardNumber = Opt(o, "nextCardNumber", 1);
+            m.Equipped = StrArray(o["equipped"], "memory.equipped", MemoryState.SlotCount);
+            if (o["cards"] == null || o["cards"].Type == JTokenType.Null) { return m; }
+            var cards = o["cards"] as JArray ?? throw new SaveFormatException("memory.cards が配列ではない");
+            for (int i = 0; i < cards.Count; i++)
+            {
+                string at = "memory.cards[" + i + "]";
+                var c = cards[i] as JObject ?? throw new SaveFormatException(at + " がオブジェクトではない");
+                var card = new MemoryCardState
+                {
+                    Id = Req<string>(c, "id", at + ".id"),
+                    Rarity = Req<string>(c, "rarity", at + ".rarity"),
+                    Kind = ParseEnum<MemoryKind>(Req<string>(c, "kind", at + ".kind"), at + ".kind"),
+                    Lv = Req<int>(c, "lv", at + ".lv"),
+                    Main = Opt(c, "main", 0.0),
+                };
+                if (c["extra"] is JArray ex)
+                {
+                    card.Extra = new double[ex.Count];
+                    for (int k = 0; k < ex.Count; k++) { card.Extra[k] = Num(ex[k], at + ".extra[" + k + "]"); }
+                }
+                if (c["subs"] is JArray subs)
+                {
+                    for (int k = 0; k < subs.Count; k++)
+                    {
+                        var so = subs[k] as JObject ?? throw new SaveFormatException(at + ".subs[" + k + "] がオブジェクトではない");
+                        card.Subs.Add(new MemorySubState
+                        {
+                            Stat = ParseEnum<SubstatKey>(Req<string>(so, "stat", at + ".subs[" + k + "].stat"), at + ".subs[" + k + "].stat"),
+                            Value = Req<double>(so, "value", at + ".subs[" + k + "].value"),
+                        });
+                    }
+                }
+                m.Cards.Add(card);
+            }
+            return m;
+        }
+
+        private static T ParseEnum<T>(string text, string at) where T : struct
+        {
+            try { return EnumStringConverter.Parse<T>(text); }
+            catch (DataException) { throw new SaveFormatException(at + " が未知の値: " + text); }
         }
 
         // ---------------- 小さな道具 ----------------

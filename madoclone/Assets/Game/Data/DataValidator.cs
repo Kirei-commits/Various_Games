@@ -27,6 +27,7 @@ namespace Mado.Data
             CheckStatTables(d, issues);
             CheckDifficulty(d, issues);
             CheckRewards(d, issues);
+            CheckMemoryCards(d, issues);
             return issues;
         }
 
@@ -479,6 +480,62 @@ namespace Mado.Data
             if (!(r.PaceSlack > 0) || r.EnemiesPerWave < 1 || r.EnemiesPerBoss < 1)
             {
                 Error(issues, "REWARDS", at, "paceSlack は正の数、enemiesPerWave・enemiesPerBoss は1以上");
+            }
+        }
+
+        // ---- memory_cards.json ----
+
+        private static void CheckMemoryCards(GameData d, List<DataIssue> issues)
+        {
+            MemoryCardsConfig m = d.MemoryCards;
+            string at = DataLoader.MemoryCardsFile;
+            if (m.MaxCardLv < 1 || m.LevelOffset < 0 || m.SubRefLv < 1 || !(m.PullCostBondHeart > 0)
+                || !(m.GachaLvCostBase > 0) || !(m.GachaLvCostGrowth >= 1.0))
+            {
+                Error(issues, "MEMORY_CARDS", at, "maxCardLv・subRefLv は1以上、levelOffset は0以上、費用は正の数（成長率は1以上）");
+            }
+            FixedUnitScale u = m.FixedUnitScale;
+            if (!(u.Hp > 0) || !(u.Atk > 0) || !(u.Def > 0))
+            {
+                Error(issues, "MEMORY_CARDS", at + ":fixedUnitScale", "単位換算は正の数");
+            }
+            if (m.Rarities.Count == 0) { Error(issues, "MEMORY_CARDS", at + ":rarities", "レアリティが1つも無い"); }
+            var seen = new HashSet<string>();
+            double prevMain = 0;
+            for (int i = 0; i < m.Rarities.Count; i++)
+            {
+                MemoryRarityDef r = m.Rarities[i];
+                string where = at + ":rarities[" + i + "]";
+                if (string.IsNullOrEmpty(r.Id) || !seen.Add(r.Id)) { Error(issues, "MEMORY_CARDS", where, "レアリティの ID が空か重複: " + r.Id); }
+                if (!(r.MainCoefMin > 0) || r.MainCoefMax < r.MainCoefMin || !(r.SpeedCoef > 0)
+                    || !(r.SpeedStatCoefMin > 0) || r.SpeedStatCoefMax < r.SpeedStatCoefMin || !(r.SubScale > 0)
+                    || !(r.FixedHp > 0) || !(r.FixedAtk > 0) || !(r.FixedDef > 0))
+                {
+                    Error(issues, "MEMORY_CARDS", where, "係数は正の数で、Min ≤ Max");
+                }
+                if (r.MainCoefMin < prevMain) { Error(issues, "MEMORY_CARDS", where, "メイン係数が弱いほうから強いほうへ並んでいない"); }
+                prevMain = r.MainCoefMin;
+            }
+            if (m.SubEffects.Count < 2) { Error(issues, "MEMORY_CARDS", at + ":subEffects", "サブ効果は2種類以上要る（カードに2つ付く）"); }
+            var subSeen = new HashSet<SubstatKey>();
+            foreach (MemorySubEffectDef s in m.SubEffects)
+            {
+                if (!subSeen.Add(s.Stat) || !(s.Min > 0) || s.Max < s.Min) { Error(issues, "MEMORY_CARDS", at + ":subEffects", "サブ効果が重複か、幅が正しくない: " + s.Stat); }
+            }
+            if (m.GachaBands.Count == 0 || m.GachaBands[0].MinLv != 1) { Error(issues, "MEMORY_CARDS", at + ":gachaBands", "最初の帯は minLv 1"); }
+            for (int i = 0; i < m.GachaBands.Count; i++)
+            {
+                GachaBand b = m.GachaBands[i];
+                string where = at + ":gachaBands[" + i + "]";
+                if (i > 0 && b.MinLv <= m.GachaBands[i - 1].MinLv) { Error(issues, "MEMORY_CARDS", where, "minLv が昇順ではない"); }
+                if (b.MinLv > m.MaxCardLv) { Error(issues, "MEMORY_CARDS", where, "minLv が上限より大きい"); }
+                double sum = 0;
+                bool negative = false;
+                foreach (double w in b.Weights) { sum += w; negative |= w < 0; }
+                if (b.Weights.Count != m.Rarities.Count || negative || System.Math.Abs(sum - 100.0) > 1e-6)
+                {
+                    Error(issues, "MEMORY_CARDS", where, "排出率はレアリティと同じ数で、負でなく、合計100");
+                }
             }
         }
 

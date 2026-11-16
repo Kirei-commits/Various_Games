@@ -8,7 +8,7 @@ namespace Mado.Core.Stats
 
     /// <summary>
     /// Global・DragonNest・LeaderLv は割合の3つの輪（Atk・Hp・Def にだけ。輪どうしは掛け算）。
-    /// Flat は副ステータスの％ポイントと、AttackSpeed の％の足し算。
+    /// Flat は副ステータスの％ポイント、AttackSpeed の％の足し算、Atk・Hp・Def の固定値（基礎の単位）。
     /// </summary>
     public enum ModifierPool { Global, DragonNest, LeaderLv, Flat }
 

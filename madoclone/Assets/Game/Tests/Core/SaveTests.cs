@@ -27,6 +27,14 @@ namespace Mado.Core.Tests
             s.Metrics["pull_done"] = 3;
             s.Progress = new ProgressState { Rank = 2, Area = 3, Stage = 4 };
             s.Settings = new SettingsState { BattleSpeed = 2, AutoBoss = true, SkipGachaAnim = false };
+            s.Memory.GachaLv = 12;
+            s.Memory.NextCardNumber = 2;
+            s.Memory.Cards.Add(new MemoryCardState
+            {
+                Id = "mc_00001", Rarity = "SR", Kind = MemoryKind.Atk, Lv = 12, Main = 1.75,
+                Subs = new List<MemorySubState> { new MemorySubState { Stat = SubstatKey.CritRatePct, Value = 2.5 }, new MemorySubState { Stat = SubstatKey.AccuracyPct, Value = 2.4 } },
+            });
+            s.Memory.Equipped[2] = "mc_00001";
             return s;
         }
 

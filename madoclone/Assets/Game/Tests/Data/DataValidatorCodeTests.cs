@@ -118,6 +118,21 @@ namespace Mado.Data.Tests
             yield return C("REWARDS", rw, r => r["expPerEnemy"][3] = 0);
             yield return C("REWARDS", rw, r => r["paceSlack"] = 0);
             yield return C("REWARDS", rw, r => r["enemiesPerWave"] = 0);
+
+            // ---- memory_cards.json ----
+            string mc = DataLoader.MemoryCardsFile;
+            yield return C("MEMORY_CARDS", mc, r => r["maxCardLv"] = 0);
+            yield return C("MEMORY_CARDS", mc, r => r["fixedUnitScale"]["hp"] = 0);
+            yield return C("MEMORY_CARDS", mc, r => ((JArray)r["rarities"]).Clear());
+            yield return C("MEMORY_CARDS", mc, r => r["rarities"][2]["id"] = "N");               // 重複
+            yield return C("MEMORY_CARDS", mc, r => r["rarities"][2]["mainCoefMax"] = 0.1);       // Min > Max
+            yield return C("MEMORY_CARDS", mc, r => r["rarities"][3]["mainCoefMin"] = 0.2);       // 並びが逆
+            yield return C("MEMORY_CARDS", mc, r => { var a = (JArray)r["subEffects"]; while (a.Count > 1) { a.RemoveAt(1); } });   // 1種類だけ
+            yield return C("MEMORY_CARDS", mc, r => r["subEffects"][1]["stat"] = "critRatePct");  // 種類の重複
+            yield return C("MEMORY_CARDS", mc, r => r["gachaBands"][0]["minLv"] = 2);
+            yield return C("MEMORY_CARDS", mc, r => r["gachaBands"][2]["minLv"] = 1);            // 昇順でない
+            yield return C("MEMORY_CARDS", mc, r => r["gachaBands"][5]["minLv"] = 999);          // 上限より大きい
+            yield return C("MEMORY_CARDS", mc, r => r["gachaBands"][1]["weights"][0] = 99);      // 合計が100でない
         }
 
         [TestCaseSource(nameof(Cases))]

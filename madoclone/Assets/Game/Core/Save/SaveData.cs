@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Mado.Core.Util;
 using Mado.Core.Wallet;
+using Mado.Data;
 using Newtonsoft.Json.Linq;
 
 namespace Mado.Core.Save
@@ -28,6 +29,7 @@ namespace Mado.Core.Save
         public Dictionary<string, double> Metrics { get; set; } = new Dictionary<string, double>();
         public ProgressState Progress { get; set; } = new ProgressState();
         public SettingsState Settings { get; set; } = new SettingsState();
+        public MemoryState Memory { get; set; } = new MemoryState();
 
         /// <summary>マスタに無い ID・未知の項目の中身。捨てずに持ち越す（キーは "characters/ID" など）。</summary>
         public Dictionary<string, JToken> Orphans { get; set; } = new Dictionary<string, JToken>();
@@ -52,6 +54,48 @@ namespace Mado.Core.Save
 
         /// <summary>長さ5。無い枠は null。</summary>
         public string[] Crystals { get; set; } = new string[CrystalSlots];
+    }
+
+    /// <summary>サブ効果1つ。Value は、レア UR・カードLv＋3 が subRefLv のときの値（レアの倍率とLvの伸びは計算時に掛ける）。</summary>
+    public sealed class MemorySubState
+    {
+        public SubstatKey Stat { get; set; }
+        public double Value { get; set; }
+    }
+
+    /// <summary>記憶カード1枚（持ち物）。係数はガチャで引いたときに決まる。</summary>
+    public sealed class MemoryCardState
+    {
+        public string Id { get; set; }
+        public string Rarity { get; set; }
+        public MemoryKind Kind { get; set; }
+        public int Lv { get; set; }
+
+        /// <summary>メイン％の係数（スピードカードでは使わない）。</summary>
+        public double Main { get; set; }
+
+        /// <summary>スピードカードの HP・攻撃・防御％の係数（長さ3）。他の種類では空。</summary>
+        public double[] Extra { get; set; } = new double[0];
+
+        /// <summary>サブ効果（2つ）。</summary>
+        public List<MemorySubState> Subs { get; set; } = new List<MemorySubState>();
+    }
+
+    /// <summary>記憶カード：持っているカード・装備・絆ガチャLv。</summary>
+    public sealed class MemoryState
+    {
+        /// <summary>種類4つ × 各2枚。枠の番号は (int)Kind × 2 ＋ 0 か 1。</summary>
+        public const int SlotCount = 8;
+
+        public int GachaLv { get; set; } = 1;
+
+        /// <summary>次に付けるカード ID の連番。</summary>
+        public int NextCardNumber { get; set; } = 1;
+
+        public List<MemoryCardState> Cards { get; set; } = new List<MemoryCardState>();
+
+        /// <summary>長さ8。空の枠は null。</summary>
+        public string[] Equipped { get; set; } = new string[SlotCount];
     }
 
     public sealed class PartyState
