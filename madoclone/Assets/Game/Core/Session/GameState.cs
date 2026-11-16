@@ -127,6 +127,27 @@ namespace Mado.Core.Session
 
         public int DragonNodeLv(string nodeId) { return _nest.Lv(nodeId); }
         public bool IsDragonNodeUnlocked(string nodeId) { return _nest.TryNode(nodeId, out Growth.NestNode n) && _nest.IsUnlocked(n); }
+        /// <summary>ツリーで次に強化できるノード（解放済みで最大Lv でない最初のもの）。無ければ null。View の「おまかせ強化」が使う。</summary>
+        public string NextTreeNode(string treeId)
+        {
+            if (!_data.Research.TryTree(treeId, out TreeDef tree)) { return null; }
+            foreach (TreeNodeDef n in tree.Nodes)
+            {
+                if (_trees.Lv(treeId, n.Id) < n.MaxLv && _trees.IsUnlocked(treeId, n.Id)) { return n.Id; }
+            }
+            return null;
+        }
+
+        /// <summary>竜の巣のその属性で、次に強化できるノード。無ければ null。</summary>
+        public string NextDragonNode(Element element)
+        {
+            foreach (Growth.NestNode n in _nest.Nodes)
+            {
+                if (n.Element == element && _nest.Lv(n.Id) < n.Tier.MaxLv && _nest.IsUnlocked(n)) { return n.Id; }
+            }
+            return null;
+        }
+
         public int TreeNodeLv(string treeId, string nodeId) { return _trees.Lv(treeId, nodeId); }
         public bool IsTreeNodeUnlocked(string treeId, string nodeId) { return _trees.IsUnlocked(treeId, nodeId); }
         public int CollectionStar(string setId) { return _collection.Star(setId); }

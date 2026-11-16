@@ -46,8 +46,13 @@ namespace Mado.View
             _screens[ScreenId.Trial] = new TrialScreen(this, content);
             _screens[ScreenId.Home] = new HomeScreen(this, content);
             _screens[ScreenId.Guild] = new NoticeScreen(this, content, "Guild", "ui.guild.title", "ui.guild.hint");
-            _screens[ScreenId.Garden] = new NoticeScreen(this, content, "Garden", "ui.garden.title", "ui.garden.hint");
-            _screens[ScreenId.Gacha] = new GachaScreen(this, content);
+            _screens[ScreenId.Garden] = new GardenScreen(this, content);
+            _screens[ScreenId.Gacha] = new HubScreen(this, content, "GachaHub",
+                new[] { "ui.sub.gacha", "ui.sub.roulette", "ui.sub.shop", "ui.sub.achievement" },
+                new Func<Transform, GameScreen>[]
+                {
+                    t => new GachaScreen(this, t), t => new RouletteScreen(this, t), t => new ShopScreen(this, t), t => new AchievementScreen(this, t),
+                });
             _battle = new BattleScreen(this, _root);
 
             _tabBar = UiKit.Box(_root, "TabBar", 0f, 0f, 1f, TabHeight);

@@ -336,5 +336,21 @@ namespace Mado.Core.Tests
             Assert.IsTrue(evs.Any(x => x.Kind == GameEventKind.CollectionStarUp));
             Assert.IsTrue(evs.Any(x => x.Kind == GameEventKind.ZukanAchieved));
         }
+
+        [Test]
+        public void State_NextNodeHelpers_FollowTheUnlockOrder()
+        {
+            GameSession s = GameSession.LoadOrCreate(Data, new MemorySaveStore(), new FixedClock(T0), 2UL);
+            Assert.AreEqual("leader_atk", s.State.NextTreeNode("leader"));
+            Assert.AreEqual("lab_atk_01", s.State.NextTreeNode("lab"));
+            Assert.IsNull(s.State.NextTreeNode("nope"));
+            Assert.AreEqual("valor.1.t1.atk", s.State.NextDragonNode(Element.Valor));
+            s.Debug.SetDevMode(true);
+            for (int i = 0; i < 20; i++) { Assert.IsTrue(s.LevelUpDragonNode("valor.1.t1.atk").Success); }
+            Assert.AreEqual("valor.1.t1.hp", s.State.NextDragonNode(Element.Valor));       // 満タンの次のノードへ
+            Assert.AreEqual("skill.1.t1.atk", s.State.NextDragonNode(Element.Skill));      // 別の属性は別
+            for (int i = 0; i < 20; i++) { s.LevelUpTreeNode("leader", "leader_atk"); }
+            Assert.AreEqual("leader_hp", s.State.NextTreeNode("leader"));
+        }
     }
 }
