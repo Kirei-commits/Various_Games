@@ -115,6 +115,9 @@ namespace Mado.Sim
         private int _day;
         public long PlayTicks, SpendTicks, InvestTicks;
 
+        /// <summary>1日終わるたびに呼ぶ（長い実行の途中経過を出すため）。</summary>
+        public Action<DayPoint> OnDay;
+
         /// <summary>
         /// days 日遊ぶ。1日に activeHours 時間ぶんの「毎分の遊び」をして、残りの時間は放っておく（放置報酬は上限まで貯まる）。
         /// 1日の終わりに記録を取る。
@@ -141,6 +144,7 @@ namespace Mado.Sim
                     PlayTicks += t1 - t0; SpendTicks += t2 - t1;
                 }
                 points.Add(Day(d));
+                if (OnDay != null) { OnDay(points[points.Count - 1]); }
             }
             return points;
         }
@@ -172,7 +176,7 @@ namespace Mado.Sim
                 else { _s.ChallengeTrial(t.Id); }
             }
             // ガチャ：チケットがあれば10連（まず所持を増やす）
-            while (_s.State.Balance("gacha_ticket") >= 10 && _pulls < 600)
+            while (_s.State.Balance("gacha_ticket") >= 10 && (_pulls < 600 || _real))
             {
                 if (!_s.PullCharacterGacha(Mado.Core.Growth.GachaBanner.Normal, 10, out _).Success) { break; }
                 _pulls += 10;
@@ -216,8 +220,10 @@ namespace Mado.Sim
             }
             for (int slot = 0; slot < _data.Research.Tarot.Slots; slot++)
             {
-                if (_s.State.TarotAt(slot).Effect != null) { continue; }
-                for (int r = _data.Research.Tarot.Rarities.Count - 1; r >= 0; r--)
+                (string effect, string rarity) cur = _s.State.TarotAt(slot);
+                int curIndex = -1;
+                for (int r = 0; r < _data.Research.Tarot.Rarities.Count; r++) { if (_data.Research.Tarot.Rarities[r].Id == cur.rarity) { curIndex = r; } }
+                for (int r = _data.Research.Tarot.Rarities.Count - 1; r > curIndex; r--)       // 払える最上位のレアへ（いまより上のときだけ）
                 {
                     if (_s.SetTarot(slot, TarotEffects[slot % TarotEffects.Length], _data.Research.Tarot.Rarities[r].Id).Success) { break; }
                 }
@@ -227,6 +233,8 @@ namespace Mado.Sim
                 while (_s.State.CollectionStar(set.Id) < set.Values.Count && _s.RaiseCollectionSet(set.Id).Success) { }
             }
             _s.SyncZukan(out _);
+            InvestStones();
+            foreach (string item in new[] { "tp_ticket", "gc_ticket", "medal_flame", "dp_shard", "ms_sand", "mm_shard" }) { while (_s.BuyShopItem(item, 1).Success) { } }
             for (int i = 0; i < 200 && _s.PullMemoryCard(out _).Success; i++) { }
             _s.RaiseMemoryGachaLevel();
             _s.EquipBestMemoryCards();
@@ -236,6 +244,31 @@ namespace Mado.Sim
             foreach (string id in _s.State.EquippedSupports) { if (id != null) { _s.RaiseSupportStar(id); } }
             if (_s.State.Balance("roulette_coin") >= 10) { _s.SpinRoulette((int)_s.State.Balance("roulette_coin"), out _); }
             _s.DrainEvents();
+        }
+
+        /// <summary>霊石版：レアの高い・Lv の高い順に枠へ入れ、持っている星の砂で装備中の石を強化する。</summary>
+        private void InvestStones()
+        {
+            SpiritStonesConfig cfg = _data.SpiritStones;
+            int pages = cfg.Pages, perPage = cfg.SlotMainStat.Count;
+            var rank = new Dictionary<string, int>();
+            for (int i = 0; i < cfg.Rarities.Count; i++) { rank[cfg.Rarities[i].Id] = i; }
+            var free = _s.State.Stones.Where(x => !x.Equipped).OrderByDescending(x => rank[x.Rarity]).ThenByDescending(x => x.Lv).ToList();
+            int next = 0;
+            for (int page = 0; page < pages && next < free.Count; page++)
+            {
+                for (int slot = 0; slot < perPage && next < free.Count; slot++)
+                {
+                    if (_s.State.StoneAt(page, slot) != null) { continue; }
+                    if (_s.EquipStone(page, slot, free[next].Id).Success) { next++; }
+                }
+            }
+            bool any = true;
+            for (int round = 0; round < 30 && any; round++)
+            {
+                any = false;
+                foreach (StoneView st in _s.State.Stones.Where(x => x.Equipped)) { if (_s.LevelUpStone(st.Id).Success) { any = true; } }
+            }
         }
 
         /// <summary>強さの目安（格の倍率 × ★の倍率 × Lv）が高い順に6体を編成に入れる。</summary>

@@ -39,6 +39,7 @@ namespace Mado.Sim
             int days = o.GetInt("--days", 30);
             double hours = o.GetInt("--hours-x10", 20) / 10.0;
             int every = Math.Max(1, o.GetInt("--every", Math.Max(1, days / 20)));
+            bot.OnDay = p => { if (p.Day % every == 0) { Console.Error.WriteLine(string.Format(CultureInfo.InvariantCulture, "  [{0} 日] ランク{1} {2} ★{3} Lv{4}", p.Day, p.Rank, p.Stage, p.MaxStar, p.PartyAvgLv)); } };
             List<DayPoint> points = bot.RunDays(days, hours);
             string[] cols = { "gem", "gacha_ticket", "coin", "bond_heart", "wine", "research_memo", "awaken_shard", "guild_coin" };
             Console.WriteLine(string.Format(CultureInfo.InvariantCulture, "1日 {0} 時間、{1} 日", hours, days));

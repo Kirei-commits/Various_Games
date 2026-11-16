@@ -160,6 +160,54 @@
           "amount": 50
         }
       ]
+    },
+    {
+      "id": "dp_shard",
+      "tab": "exchange",
+      "cost": [
+        {
+          "currencyId": "dragon_power",
+          "amount": 1000
+        }
+      ],
+      "reward": [
+        {
+          "currencyId": "awaken_shard",
+          "amount": 10
+        }
+      ]
+    },
+    {
+      "id": "ms_sand",
+      "tab": "exchange",
+      "cost": [
+        {
+          "currencyId": "mana_shard",
+          "amount": 1000
+        }
+      ],
+      "reward": [
+        {
+          "currencyId": "star_sand",
+          "amount": 500
+        }
+      ]
+    },
+    {
+      "id": "mm_shard",
+      "tab": "exchange",
+      "cost": [
+        {
+          "currencyId": "merit_medal",
+          "amount": 10
+        }
+      ],
+      "reward": [
+        {
+          "currencyId": "awaken_shard",
+          "amount": 10
+        }
+      ]
     }
   ],
   "roulette": {

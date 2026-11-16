@@ -53,5 +53,34 @@ namespace Mado.Sim.Tests
             Assert.AreEqual(30, pts[0].GachaPulls);                    // 最初のチケット30枚ぶんだけ引く
             Assert.GreaterOrEqual(pts[0].Owned, 6);
         }
+
+        private static EconomyBot Bot(bool real)
+        {
+            var source = new FileDataSource(TestData.FindDataDir());
+            SimProfilesFile profiles = SimProfiles.LoadFile(source);
+            return new EconomyBot(Data, profiles.Items, profiles.AllySubstats, 2UL, real);
+        }
+
+        [Test]
+        public void RunDays_RecordsEachDay_AndTheIdleHoursPayOut()
+        {
+            EconomyBot bot = Bot(false);
+            var seen = new List<int>();
+            bot.OnDay = p => seen.Add(p.Day);
+            List<DayPoint> days = bot.RunDays(2, 0.2);
+            CollectionAssert.AreEqual(new[] { 1, 2 }, seen);
+            Assert.AreEqual(2, days.Count);
+            Assert.GreaterOrEqual(days[1].Rank, days[0].Rank);
+            Assert.IsTrue(days[0].Balances.ContainsKey("gem"));
+            Assert.Greater(bot.Flow("exp").Key, 0, "経験値が入っている（戦闘・放置）");
+        }
+
+        [Test]
+        public void TheRealGrowthBot_UsesTheGrowthSystems_InsteadOfTheStandInProfile()
+        {
+            EconomyBot bot = Bot(true);
+            bot.RunDays(2, 2.0);
+            Assert.Greater(bot.Flow("coin").Value, 0, "育成にコインを使っている（記憶カード・竜の巣など）");
+        }
     }
 }
