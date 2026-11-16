@@ -285,12 +285,17 @@ namespace Mado.Core.Battle
 
         // ---------------- イベント ----------------
 
+        /// <summary>
+        /// イベントを1件出す（ハッシュに足し、受け手に渡す）。上限（EventLimit）に達したら警告を1件だけ出して、
+        /// 以後は記録しない。ただし BattleEnd は必ず出す（受け手が戦闘の終わりを知るため）。
+        /// </summary>
         private void Emit(BattleEventType type, int source, int target, double value, int aux)
         {
-            if (_eventCount >= EventLimit)
+            if (_eventCount >= EventLimit && type != BattleEventType.BattleEnd)
             {
-                if (!_eventLimitWarned) { _eventLimitWarned = true; }
-                return;
+                if (_eventLimitWarned) { return; }
+                _eventLimitWarned = true;
+                type = BattleEventType.Warning; source = -1; target = -1; value = EventLimit; aux = WarningCode.EventLimit;
             }
             _eventCount++;
             int t = _tick;
