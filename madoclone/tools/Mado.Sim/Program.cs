@@ -9,6 +9,7 @@ namespace Mado.Sim
 @"Mado.Sim — 開発用のコンソール
   validate [--strict] [--data DIR] [--schemas DIR]   マスタ JSON の検証（スキーマ＋型への読み込み＋DataValidator）
   golden [--update] [--generate]                      ゴールデン（解決済み BattleSetup のハッシュ）の確認・更新
+  calibrate [--rank A..B] [--runs 200] [--write]     標準編成の共通倍率と敵の倍率（enemyScale）を求める
   battle (--setup FILE | --case NAME) [--n 1000] [--seed0 1] [--factor X]   1,000戦（--case では敵の戦力倍率を上書きできる）などを回して勝率・決着時間・ダメージを表示
 ";
 
@@ -24,6 +25,7 @@ namespace Mado.Sim
                     case "validate": return ValidateCommand.Run(opts);
                     case "golden": return GoldenCommand.Run(opts);
                     case "battle": return BattleCommand.Run(opts);
+                    case "calibrate": return CalibrateCommand.Run(opts);
                     default:
                         Console.Error.Write(Usage);
                         return 2;

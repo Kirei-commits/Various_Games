@@ -75,34 +75,38 @@ namespace Mado.Core.Growth
         /// <summary>敵の合計戦力を直接決めて作る（ゴールデンや、味方の戦力に合わせたシミュレーション用）。</summary>
         public List<UnitSetup> BuildWithPower(int rank, double totalPower, StageKind kind)
         {
+            EnemyScaleRow row = null;
+            foreach (EnemyScaleRow r in _data.Difficulty.EnemyScale) { if (r.Rank == rank) { row = r; } }
+            return BuildWithPower(rank, totalPower, kind, row != null ? row.Hp : 1.0, row != null ? row.Atk : 1.0);
+        }
+
+        /// <summary>enemyScale の代わりに、HP・攻撃の倍率を直接渡す（calibrate が倍率を探すのに使う）。</summary>
+        public List<UnitSetup> BuildWithPower(int rank, double totalPower, StageKind kind, double hpScale, double atkScale)
+        {
             DifficultyConfig d = _data.Difficulty;
             var units = new List<UnitSetup>();
             if (kind == StageKind.Wave)
             {
                 double each = totalPower / 3.0;
-                units.Add(Enemy(rank, "tank", each, 0));
-                units.Add(Enemy(rank, "attacker", each, 1));
-                units.Add(Enemy(rank, "healer", each, 2));
+                units.Add(Enemy(rank, "tank", each, 0, hpScale, atkScale));
+                units.Add(Enemy(rank, "attacker", each, 1, hpScale, atkScale));
+                units.Add(Enemy(rank, "healer", each, 2, hpScale, atkScale));
             }
             else
             {
                 double boss = totalPower * d.BossShareOfFight;
                 double rest = (totalPower - boss) / 2.0;
-                units.Add(Enemy(rank, "attacker", boss, 0));
-                units.Add(Enemy(rank, "tank", rest, 1));
-                units.Add(Enemy(rank, "healer", rest, 2));
+                units.Add(Enemy(rank, "attacker", boss, 0, hpScale, atkScale));
+                units.Add(Enemy(rank, "tank", rest, 1, hpScale, atkScale));
+                units.Add(Enemy(rank, "healer", rest, 2, hpScale, atkScale));
             }
             return units;
         }
 
-        private UnitSetup Enemy(int rank, string type, double power, int index)
+        private UnitSetup Enemy(int rank, string type, double power, int index, double hpScale, double atkScale)
         {
             DifficultyConfig d = _data.Difficulty;
             EnemyTypeMultiplier m = d.EnemyTypes[type];
-            EnemyScaleRow scale = null;
-            foreach (EnemyScaleRow row in d.EnemyScale) { if (row.Rank == rank) { scale = row; } }
-            double hpScale = scale != null ? scale.Hp : 1.0;
-            double atkScale = scale != null ? scale.Atk : 1.0;
             EnemySubstatFormulas f = d.EnemySubstats;
             Role role = type == "tank" ? Role.Defense : (type == "healer" ? Role.Heal : (type == "disrupt" ? Role.Disrupt : Role.Ranged));
             var normal = new ResolvedSkill
