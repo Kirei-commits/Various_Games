@@ -250,7 +250,27 @@ namespace Mado.Core.Growth
             AddZukan(sink);
         }
 
+        // 図鑑の達成済み目標は多い（最大 105体×約24）ので、文字列の解析は目標の一覧が変わったときだけ行う。
+        private List<string> _zukanKey;
+        private int _zukanKeyCount = -1;
+        private double[] _zukanPct = new double[3];
+
         private void AddZukan(List<Modifier> sink)
+        {
+            List<string> goals = _save.Research.Zukan;
+            if (!ReferenceEquals(goals, _zukanKey) || goals.Count != _zukanKeyCount)
+            {
+                _zukanPct = ComputeZukanPct();
+                _zukanKey = goals;
+                _zukanKeyCount = goals.Count;
+            }
+            double[] pct = _zukanPct;
+            if (pct[0] > 0) { sink.Add(new Modifier(StatId.Atk, ModifierPool.Global, pct[0])); }
+            if (pct[1] > 0) { sink.Add(new Modifier(StatId.Hp, ModifierPool.Global, pct[1])); }
+            if (pct[2] > 0) { sink.Add(new Modifier(StatId.Def, ModifierPool.Global, pct[2])); }
+        }
+
+        private double[] ComputeZukanPct()
         {
             double[] pct = new double[3];
             IReadOnlyList<int> lvGoals = _data.Research.Zukan.LevelGoals;
@@ -271,9 +291,7 @@ namespace Mado.Core.Growth
                 string stat = ZukanService.StatOf(star, index);
                 pct[stat == "atk" ? 0 : (stat == "hp" ? 1 : 2)] += _data.Research.Zukan.PerGoalPct;
             }
-            if (pct[0] > 0) { sink.Add(new Modifier(StatId.Atk, ModifierPool.Global, pct[0])); }
-            if (pct[1] > 0) { sink.Add(new Modifier(StatId.Hp, ModifierPool.Global, pct[1])); }
-            if (pct[2] > 0) { sink.Add(new Modifier(StatId.Def, ModifierPool.Global, pct[2])); }
+            return pct;
         }
 
         private static void Add(List<Modifier> sink, string stat, double value)

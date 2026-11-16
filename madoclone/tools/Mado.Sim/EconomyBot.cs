@@ -53,12 +53,19 @@ namespace Mado.Sim
         public const int StarterTickets = 30;
 
         private readonly bool _real;
+        private readonly MemorySaveStore _store;
+
+        /// <summary>いまの状態のセーブ（続きから再開するための記録。長い実行が途中で止まっても、ここから続けられる）。</summary>
+        public byte[] Checkpoint() { _s.Save(); _s.DrainEvents(); return _store.Read(); }
+
+        /// <summary>最終ボスを倒した日を引き継ぐ（再開のとき）。</summary>
+        public void RestoreFinalBossDay(int day) { FinalBossDay = day; }
 
         /// <summary>
         /// real が true なら、強さの代用品（RankProfileSource）を使わず、広場・竜の巣・研究・記憶カードなど本物の育成だけで強くなる。
         /// そのぶん育成に素材を使う（Invest）。長い遊びで、素材の入りと使い道が釣り合うかを見る。
         /// </summary>
-        public EconomyBot(GameData data, IReadOnlyList<SimProfileDef> profiles, EnemySubstatFormulas allySubstats, ulong seed, bool real = false)
+        public EconomyBot(GameData data, IReadOnlyList<SimProfileDef> profiles, EnemySubstatFormulas allySubstats, ulong seed, bool real = false, byte[] resumeSave = null, int resumeDay = 0)
         {
             _real = real;
             _data = data;
@@ -66,9 +73,11 @@ namespace Mado.Sim
             GameSession session = null;
             var sources = new List<IModifierSource>();
             if (!real) { sources.Add(new RankProfileSource(profiles, () => session == null ? 1 : session.State.Progress.Rank, allySubstats, data.System.BaseSubstats)); }
-            session = GameSession.LoadOrCreate(data, new MemorySaveStore(), _clock, seed, sources, unlockAll: false);
+            _store = new MemorySaveStore();
+            if (resumeSave != null) { _store.Write(resumeSave); _clock.Advance(TimeSpan.FromDays(resumeDay)); }
+            session = GameSession.LoadOrCreate(data, _store, _clock, seed, sources, unlockAll: false);
             _s = session;
-            GiveStarterSet();
+            if (resumeSave == null) { GiveStarterSet(); }
         }
 
         public GameSession Session { get { return _s; } }
@@ -122,11 +131,11 @@ namespace Mado.Sim
         /// days 日遊ぶ。1日に activeHours 時間ぶんの「毎分の遊び」をして、残りの時間は放っておく（放置報酬は上限まで貯まる）。
         /// 1日の終わりに記録を取る。
         /// </summary>
-        public List<DayPoint> RunDays(int days, double activeHours)
+        public List<DayPoint> RunDays(int days, double activeHours, int startDay = 1)
         {
             var points = new List<DayPoint>();
             int activeMinutes = (int)Math.Round(activeHours * 60);
-            for (int d = 1; d <= days; d++)
+            for (int d = startDay; d <= days; d++)
             {
                 _day = d;
                 _clock.Advance(TimeSpan.FromMinutes(24 * 60 - activeMinutes));        // 遊んでいない時間
@@ -188,7 +197,7 @@ namespace Mado.Sim
             foreach (string id in _s.State.OwnedCharacterIds)
             {
                 _s.LevelUpMax(id);
-                for (int i = 0; i < 11; i++) { if (!_s.Awaken(id).Success) { break; } }
+                for (int i = 0; i < 16; i++) { if (!_s.Awaken(id).Success) { break; } }
             }
         }
 
@@ -235,7 +244,11 @@ namespace Mado.Sim
             _s.SyncZukan(out _);
             InvestStones();
             foreach (string item in new[] { "tp_ticket", "gc_ticket", "medal_flame", "dp_shard", "ms_sand", "mm_shard" }) { while (_s.BuyShopItem(item, 1).Success) { } }
-            for (int i = 0; i < 200 && _s.PullMemoryCard(out _).Success; i++) { }
+            for (int i = 0; i < 20; i++)         // 自動絆ガチャ：いまより強いカードが出るまで引き、出たら付け替える（余りは自動で売る）
+            {
+                if (!_s.AutoPullMemoryCard(new AutoGachaSettings { RequirePowerUp = true }, 500, out AutoGachaResult auto).Success || auto.Found == null) { break; }
+                _s.EquipBestMemoryCards();
+            }
             _s.RaiseMemoryGachaLevel();
             _s.EquipBestMemoryCards();
             _s.SetBestLeader();
