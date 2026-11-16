@@ -199,6 +199,9 @@ namespace Mado.Core.Save
 
         /// <summary>達成した図鑑の目標（"キャラ.lv60"、"キャラ.star3"）。昇順で保存。</summary>
         public List<string> Zukan { get; set; } = new List<string>();
+
+        /// <summary>タロットを入れ替えた回数（払った回数）。多いほど、次の入れ替えのワインが高くなる。</summary>
+        public int TarotChanges { get; set; }
     }
 
     /// <summary>キャラガチャ：累計の引き数、ピックアップの天井までの数、選んだピックアップ、受け取り済みのステップの数。</summary>

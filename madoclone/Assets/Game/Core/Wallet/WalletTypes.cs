@@ -26,6 +26,7 @@ namespace Mado.Core.Wallet
         public const string BattleDrop = "battle.drop";
         public const string MemoryGachaLevel = "memory.gachalevel";
         public const string MemorySell = "memory.sell";
+        public const string MemoryConvert = "memory.convert";
         public const string PlazaLevelUp = "plaza.levelup";
         public const string TrialReward = "trial.reward";
         public const string ArenaSeason = "arena.season";

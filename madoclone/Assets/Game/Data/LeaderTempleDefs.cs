@@ -18,7 +18,11 @@ namespace Mado.Data
         public int ExpCostBaseLv { get; init; }
         public double ExpCostGrowth { get; init; }
 
-        /// <summary>Lv L → L+1 に要る魔力の欠片 ＝ ShardCostPerLv × L。</summary>
+        /// <summary>LateFromLv 以降は、1レベルごとの倍率が LateExpGrowth に変わる（終盤の経験値の使い道。上のほうは緩やかに伸びる）。</summary>
+        public int LateFromLv { get; init; }
+        public double LateExpGrowth { get; init; }
+
+        /// <summary>Lv L → L+1 に要る魔力の欠片 ＝ ShardCostPerLv × min(L, LateFromLv)（終盤は増えない）。</summary>
         public int ShardCostPerLv { get; init; }
 
         /// <summary>レベル報酬：RewardMinLv 以上で RewardEveryLv の倍数の Lv に着いたとき、魔力の結晶を RewardCrystalPerLv × Lv だけもらう。</summary>

@@ -97,6 +97,14 @@ namespace Mado.Core.Growth
             return false;
         }
 
+        /// <summary>いま入れ替えるときのワイン ＝ レアの基準 ×（1 ＋ これまでの入れ替え回数 × changeCostStep）。</summary>
+        public double Cost(TarotRarityDef rarity) { return CostOf(_data, _save.Research.TarotChanges, rarity); }
+
+        public static double CostOf(GameData data, int changes, TarotRarityDef rarity)
+        {
+            return rarity.WineCost * (1.0 + changes * data.Research.Tarot.ChangeCostStep);
+        }
+
         public ResearchFailure Set(int slot, string effect, string rarityId)
         {
             TarotConfig c = _data.Research.Tarot;
@@ -104,8 +112,9 @@ namespace Mado.Core.Growth
             if (slot < 0 || slot >= c.Slots || rarity == null || !HasEffect(c, effect)) { return ResearchFailure.InvalidChoice; }
             TarotSlotState s = _save.Research.Tarot[slot];
             if (s.Effect == effect && s.Rarity == rarityId) { return ResearchFailure.None; }     // 同じなら払わない
-            PayResult pay = _wallet.Pay(new Cost(CurrencyIds.Wine, rarity.WineCost), new PayReason(WalletReasons.TarotSet));
+            PayResult pay = _wallet.Pay(new Cost(CurrencyIds.Wine, Cost(rarity)), new PayReason(WalletReasons.TarotSet));
             if (!pay.Success) { return ResearchFailure.NotEnough; }
+            _save.Research.TarotChanges++;
             s.Effect = effect; s.Rarity = rarityId;
             return ResearchFailure.None;
         }

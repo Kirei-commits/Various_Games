@@ -157,9 +157,21 @@ namespace Mado.Core.Tests
             Assert.AreEqual(StoneFailure.UnknownStone, e.Stones.LevelUp("nope"));
             var poor = new Env(sand: 1);
             Assert.AreEqual(StoneFailure.NotEnough, poor.Stones.LevelUp(poor.Stones.Add("blue", "leo").Id));
-            StoneState max = e.Stones.Add("blue", "leo", 20);
+            StoneState max = e.Stones.Add("blue", "leo", 40);
             Assert.AreEqual(StoneFailure.AtMaxLv, e.Stones.LevelUp(max.Id));
             Assert.Throws<ArgumentException>(() => e.Stones.LevelCost(max));
+        }
+
+        [Test]
+        public void LevelCost_GrowsByTheRateAboveTheGrowthLv()
+        {
+            var e = new Env();
+            SpiritStonesConfig c = Data.SpiritStones;
+            double at20 = e.Stones.LevelCost(e.Stones.Add("red", "leo", c.LevelCostGrowthFromLv));
+            double at21 = e.Stones.LevelCost(e.Stones.Add("red", "leo", c.LevelCostGrowthFromLv + 1));
+            Assert.AreEqual(c.LevelCostBase * 5 * 20, at20);                                // 境目までは元の式
+            Assert.AreEqual(c.LevelCostBase * 5 * 21 * c.LevelCostGrowth, at21, 1e-6);       // それより上は 1Lv ごとに倍率が掛かる
+            Assert.Greater(e.Stones.LevelCost(e.Stones.Add("red", "leo", c.MaxLv - 1)), at21 * 10);
         }
 
         [Test]

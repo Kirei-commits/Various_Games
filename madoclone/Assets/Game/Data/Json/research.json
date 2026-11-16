@@ -837,6 +837,1326 @@
           ]
         }
       ]
+    },
+    {
+      "id": "deep",
+      "currencyId": "research_memo",
+      "nodes": [
+        {
+          "id": "deep_atk_01",
+          "stat": "atk",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 300.0,
+          "costStep": 300.0,
+          "requires": []
+        },
+        {
+          "id": "deep_atk_02",
+          "stat": "atk",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 600.0,
+          "costStep": 600.0,
+          "requires": [
+            "deep_atk_01"
+          ]
+        },
+        {
+          "id": "deep_atk_03",
+          "stat": "atk",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 900.0,
+          "costStep": 900.0,
+          "requires": [
+            "deep_atk_02"
+          ]
+        },
+        {
+          "id": "deep_atk_04",
+          "stat": "atk",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 1200.0,
+          "costStep": 1200.0,
+          "requires": [
+            "deep_atk_03"
+          ]
+        },
+        {
+          "id": "deep_atk_05",
+          "stat": "atk",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 1500.0,
+          "costStep": 1500.0,
+          "requires": [
+            "deep_atk_04"
+          ]
+        },
+        {
+          "id": "deep_atk_06",
+          "stat": "atk",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 1800.0,
+          "costStep": 1800.0,
+          "requires": [
+            "deep_atk_05"
+          ]
+        },
+        {
+          "id": "deep_atk_07",
+          "stat": "atk",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 2100.0,
+          "costStep": 2100.0,
+          "requires": [
+            "deep_atk_06"
+          ]
+        },
+        {
+          "id": "deep_atk_08",
+          "stat": "atk",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 2400.0,
+          "costStep": 2400.0,
+          "requires": [
+            "deep_atk_07"
+          ]
+        },
+        {
+          "id": "deep_atk_09",
+          "stat": "atk",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 2700.0,
+          "costStep": 2700.0,
+          "requires": [
+            "deep_atk_08"
+          ]
+        },
+        {
+          "id": "deep_atk_10",
+          "stat": "atk",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 3000.0,
+          "costStep": 3000.0,
+          "requires": [
+            "deep_atk_09"
+          ]
+        },
+        {
+          "id": "deep_atk_11",
+          "stat": "atk",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 3300.0,
+          "costStep": 3300.0,
+          "requires": [
+            "deep_atk_10"
+          ]
+        },
+        {
+          "id": "deep_atk_12",
+          "stat": "atk",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 3600.0,
+          "costStep": 3600.0,
+          "requires": [
+            "deep_atk_11"
+          ]
+        },
+        {
+          "id": "deep_atk_13",
+          "stat": "atk",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 3900.0,
+          "costStep": 3900.0,
+          "requires": [
+            "deep_atk_12"
+          ]
+        },
+        {
+          "id": "deep_atk_14",
+          "stat": "atk",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 4200.0,
+          "costStep": 4200.0,
+          "requires": [
+            "deep_atk_13"
+          ]
+        },
+        {
+          "id": "deep_atk_15",
+          "stat": "atk",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 4500.0,
+          "costStep": 4500.0,
+          "requires": [
+            "deep_atk_14"
+          ]
+        },
+        {
+          "id": "deep_atk_16",
+          "stat": "atk",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 4800.0,
+          "costStep": 4800.0,
+          "requires": [
+            "deep_atk_15"
+          ]
+        },
+        {
+          "id": "deep_atk_17",
+          "stat": "atk",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 5100.0,
+          "costStep": 5100.0,
+          "requires": [
+            "deep_atk_16"
+          ]
+        },
+        {
+          "id": "deep_atk_18",
+          "stat": "atk",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 5400.0,
+          "costStep": 5400.0,
+          "requires": [
+            "deep_atk_17"
+          ]
+        },
+        {
+          "id": "deep_atk_19",
+          "stat": "atk",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 5700.0,
+          "costStep": 5700.0,
+          "requires": [
+            "deep_atk_18"
+          ]
+        },
+        {
+          "id": "deep_atk_20",
+          "stat": "atk",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 6000.0,
+          "costStep": 6000.0,
+          "requires": [
+            "deep_atk_19"
+          ]
+        },
+        {
+          "id": "deep_hp_01",
+          "stat": "hp",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 300.0,
+          "costStep": 300.0,
+          "requires": []
+        },
+        {
+          "id": "deep_hp_02",
+          "stat": "hp",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 600.0,
+          "costStep": 600.0,
+          "requires": [
+            "deep_hp_01"
+          ]
+        },
+        {
+          "id": "deep_hp_03",
+          "stat": "hp",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 900.0,
+          "costStep": 900.0,
+          "requires": [
+            "deep_hp_02"
+          ]
+        },
+        {
+          "id": "deep_hp_04",
+          "stat": "hp",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 1200.0,
+          "costStep": 1200.0,
+          "requires": [
+            "deep_hp_03"
+          ]
+        },
+        {
+          "id": "deep_hp_05",
+          "stat": "hp",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 1500.0,
+          "costStep": 1500.0,
+          "requires": [
+            "deep_hp_04"
+          ]
+        },
+        {
+          "id": "deep_hp_06",
+          "stat": "hp",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 1800.0,
+          "costStep": 1800.0,
+          "requires": [
+            "deep_hp_05"
+          ]
+        },
+        {
+          "id": "deep_hp_07",
+          "stat": "hp",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 2100.0,
+          "costStep": 2100.0,
+          "requires": [
+            "deep_hp_06"
+          ]
+        },
+        {
+          "id": "deep_hp_08",
+          "stat": "hp",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 2400.0,
+          "costStep": 2400.0,
+          "requires": [
+            "deep_hp_07"
+          ]
+        },
+        {
+          "id": "deep_hp_09",
+          "stat": "hp",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 2700.0,
+          "costStep": 2700.0,
+          "requires": [
+            "deep_hp_08"
+          ]
+        },
+        {
+          "id": "deep_hp_10",
+          "stat": "hp",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 3000.0,
+          "costStep": 3000.0,
+          "requires": [
+            "deep_hp_09"
+          ]
+        },
+        {
+          "id": "deep_hp_11",
+          "stat": "hp",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 3300.0,
+          "costStep": 3300.0,
+          "requires": [
+            "deep_hp_10"
+          ]
+        },
+        {
+          "id": "deep_hp_12",
+          "stat": "hp",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 3600.0,
+          "costStep": 3600.0,
+          "requires": [
+            "deep_hp_11"
+          ]
+        },
+        {
+          "id": "deep_hp_13",
+          "stat": "hp",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 3900.0,
+          "costStep": 3900.0,
+          "requires": [
+            "deep_hp_12"
+          ]
+        },
+        {
+          "id": "deep_hp_14",
+          "stat": "hp",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 4200.0,
+          "costStep": 4200.0,
+          "requires": [
+            "deep_hp_13"
+          ]
+        },
+        {
+          "id": "deep_hp_15",
+          "stat": "hp",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 4500.0,
+          "costStep": 4500.0,
+          "requires": [
+            "deep_hp_14"
+          ]
+        },
+        {
+          "id": "deep_hp_16",
+          "stat": "hp",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 4800.0,
+          "costStep": 4800.0,
+          "requires": [
+            "deep_hp_15"
+          ]
+        },
+        {
+          "id": "deep_hp_17",
+          "stat": "hp",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 5100.0,
+          "costStep": 5100.0,
+          "requires": [
+            "deep_hp_16"
+          ]
+        },
+        {
+          "id": "deep_hp_18",
+          "stat": "hp",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 5400.0,
+          "costStep": 5400.0,
+          "requires": [
+            "deep_hp_17"
+          ]
+        },
+        {
+          "id": "deep_hp_19",
+          "stat": "hp",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 5700.0,
+          "costStep": 5700.0,
+          "requires": [
+            "deep_hp_18"
+          ]
+        },
+        {
+          "id": "deep_hp_20",
+          "stat": "hp",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 6000.0,
+          "costStep": 6000.0,
+          "requires": [
+            "deep_hp_19"
+          ]
+        },
+        {
+          "id": "deep_def_01",
+          "stat": "def",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 300.0,
+          "costStep": 300.0,
+          "requires": []
+        },
+        {
+          "id": "deep_def_02",
+          "stat": "def",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 600.0,
+          "costStep": 600.0,
+          "requires": [
+            "deep_def_01"
+          ]
+        },
+        {
+          "id": "deep_def_03",
+          "stat": "def",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 900.0,
+          "costStep": 900.0,
+          "requires": [
+            "deep_def_02"
+          ]
+        },
+        {
+          "id": "deep_def_04",
+          "stat": "def",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 1200.0,
+          "costStep": 1200.0,
+          "requires": [
+            "deep_def_03"
+          ]
+        },
+        {
+          "id": "deep_def_05",
+          "stat": "def",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 1500.0,
+          "costStep": 1500.0,
+          "requires": [
+            "deep_def_04"
+          ]
+        },
+        {
+          "id": "deep_def_06",
+          "stat": "def",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 1800.0,
+          "costStep": 1800.0,
+          "requires": [
+            "deep_def_05"
+          ]
+        },
+        {
+          "id": "deep_def_07",
+          "stat": "def",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 2100.0,
+          "costStep": 2100.0,
+          "requires": [
+            "deep_def_06"
+          ]
+        },
+        {
+          "id": "deep_def_08",
+          "stat": "def",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 2400.0,
+          "costStep": 2400.0,
+          "requires": [
+            "deep_def_07"
+          ]
+        },
+        {
+          "id": "deep_def_09",
+          "stat": "def",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 2700.0,
+          "costStep": 2700.0,
+          "requires": [
+            "deep_def_08"
+          ]
+        },
+        {
+          "id": "deep_def_10",
+          "stat": "def",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 3000.0,
+          "costStep": 3000.0,
+          "requires": [
+            "deep_def_09"
+          ]
+        },
+        {
+          "id": "deep_def_11",
+          "stat": "def",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 3300.0,
+          "costStep": 3300.0,
+          "requires": [
+            "deep_def_10"
+          ]
+        },
+        {
+          "id": "deep_def_12",
+          "stat": "def",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 3600.0,
+          "costStep": 3600.0,
+          "requires": [
+            "deep_def_11"
+          ]
+        },
+        {
+          "id": "deep_def_13",
+          "stat": "def",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 3900.0,
+          "costStep": 3900.0,
+          "requires": [
+            "deep_def_12"
+          ]
+        },
+        {
+          "id": "deep_def_14",
+          "stat": "def",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 4200.0,
+          "costStep": 4200.0,
+          "requires": [
+            "deep_def_13"
+          ]
+        },
+        {
+          "id": "deep_def_15",
+          "stat": "def",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 4500.0,
+          "costStep": 4500.0,
+          "requires": [
+            "deep_def_14"
+          ]
+        },
+        {
+          "id": "deep_def_16",
+          "stat": "def",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 4800.0,
+          "costStep": 4800.0,
+          "requires": [
+            "deep_def_15"
+          ]
+        },
+        {
+          "id": "deep_def_17",
+          "stat": "def",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 5100.0,
+          "costStep": 5100.0,
+          "requires": [
+            "deep_def_16"
+          ]
+        },
+        {
+          "id": "deep_def_18",
+          "stat": "def",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 5400.0,
+          "costStep": 5400.0,
+          "requires": [
+            "deep_def_17"
+          ]
+        },
+        {
+          "id": "deep_def_19",
+          "stat": "def",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 5700.0,
+          "costStep": 5700.0,
+          "requires": [
+            "deep_def_18"
+          ]
+        },
+        {
+          "id": "deep_def_20",
+          "stat": "def",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 6000.0,
+          "costStep": 6000.0,
+          "requires": [
+            "deep_def_19"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "vault",
+      "currencyId": "coin",
+      "nodes": [
+        {
+          "id": "vault_atk_01",
+          "stat": "atk",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 70000000.0,
+          "costStep": 70000000.0,
+          "requires": []
+        },
+        {
+          "id": "vault_atk_02",
+          "stat": "atk",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 140000000.0,
+          "costStep": 140000000.0,
+          "requires": [
+            "vault_atk_01"
+          ]
+        },
+        {
+          "id": "vault_atk_03",
+          "stat": "atk",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 210000000.0,
+          "costStep": 210000000.0,
+          "requires": [
+            "vault_atk_02"
+          ]
+        },
+        {
+          "id": "vault_atk_04",
+          "stat": "atk",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 280000000.0,
+          "costStep": 280000000.0,
+          "requires": [
+            "vault_atk_03"
+          ]
+        },
+        {
+          "id": "vault_atk_05",
+          "stat": "atk",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 350000000.0,
+          "costStep": 350000000.0,
+          "requires": [
+            "vault_atk_04"
+          ]
+        },
+        {
+          "id": "vault_atk_06",
+          "stat": "atk",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 420000000.0,
+          "costStep": 420000000.0,
+          "requires": [
+            "vault_atk_05"
+          ]
+        },
+        {
+          "id": "vault_atk_07",
+          "stat": "atk",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 490000000.0,
+          "costStep": 490000000.0,
+          "requires": [
+            "vault_atk_06"
+          ]
+        },
+        {
+          "id": "vault_atk_08",
+          "stat": "atk",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 560000000.0,
+          "costStep": 560000000.0,
+          "requires": [
+            "vault_atk_07"
+          ]
+        },
+        {
+          "id": "vault_atk_09",
+          "stat": "atk",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 630000000.0,
+          "costStep": 630000000.0,
+          "requires": [
+            "vault_atk_08"
+          ]
+        },
+        {
+          "id": "vault_atk_10",
+          "stat": "atk",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 700000000.0,
+          "costStep": 700000000.0,
+          "requires": [
+            "vault_atk_09"
+          ]
+        },
+        {
+          "id": "vault_atk_11",
+          "stat": "atk",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 770000000.0,
+          "costStep": 770000000.0,
+          "requires": [
+            "vault_atk_10"
+          ]
+        },
+        {
+          "id": "vault_atk_12",
+          "stat": "atk",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 840000000.0,
+          "costStep": 840000000.0,
+          "requires": [
+            "vault_atk_11"
+          ]
+        },
+        {
+          "id": "vault_atk_13",
+          "stat": "atk",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 910000000.0,
+          "costStep": 910000000.0,
+          "requires": [
+            "vault_atk_12"
+          ]
+        },
+        {
+          "id": "vault_atk_14",
+          "stat": "atk",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 980000000.0,
+          "costStep": 980000000.0,
+          "requires": [
+            "vault_atk_13"
+          ]
+        },
+        {
+          "id": "vault_atk_15",
+          "stat": "atk",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 1050000000.0,
+          "costStep": 1050000000.0,
+          "requires": [
+            "vault_atk_14"
+          ]
+        },
+        {
+          "id": "vault_atk_16",
+          "stat": "atk",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 1120000000.0,
+          "costStep": 1120000000.0,
+          "requires": [
+            "vault_atk_15"
+          ]
+        },
+        {
+          "id": "vault_atk_17",
+          "stat": "atk",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 1190000000.0,
+          "costStep": 1190000000.0,
+          "requires": [
+            "vault_atk_16"
+          ]
+        },
+        {
+          "id": "vault_atk_18",
+          "stat": "atk",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 1260000000.0,
+          "costStep": 1260000000.0,
+          "requires": [
+            "vault_atk_17"
+          ]
+        },
+        {
+          "id": "vault_atk_19",
+          "stat": "atk",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 1330000000.0,
+          "costStep": 1330000000.0,
+          "requires": [
+            "vault_atk_18"
+          ]
+        },
+        {
+          "id": "vault_atk_20",
+          "stat": "atk",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 1400000000.0,
+          "costStep": 1400000000.0,
+          "requires": [
+            "vault_atk_19"
+          ]
+        },
+        {
+          "id": "vault_hp_01",
+          "stat": "hp",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 70000000.0,
+          "costStep": 70000000.0,
+          "requires": []
+        },
+        {
+          "id": "vault_hp_02",
+          "stat": "hp",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 140000000.0,
+          "costStep": 140000000.0,
+          "requires": [
+            "vault_hp_01"
+          ]
+        },
+        {
+          "id": "vault_hp_03",
+          "stat": "hp",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 210000000.0,
+          "costStep": 210000000.0,
+          "requires": [
+            "vault_hp_02"
+          ]
+        },
+        {
+          "id": "vault_hp_04",
+          "stat": "hp",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 280000000.0,
+          "costStep": 280000000.0,
+          "requires": [
+            "vault_hp_03"
+          ]
+        },
+        {
+          "id": "vault_hp_05",
+          "stat": "hp",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 350000000.0,
+          "costStep": 350000000.0,
+          "requires": [
+            "vault_hp_04"
+          ]
+        },
+        {
+          "id": "vault_hp_06",
+          "stat": "hp",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 420000000.0,
+          "costStep": 420000000.0,
+          "requires": [
+            "vault_hp_05"
+          ]
+        },
+        {
+          "id": "vault_hp_07",
+          "stat": "hp",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 490000000.0,
+          "costStep": 490000000.0,
+          "requires": [
+            "vault_hp_06"
+          ]
+        },
+        {
+          "id": "vault_hp_08",
+          "stat": "hp",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 560000000.0,
+          "costStep": 560000000.0,
+          "requires": [
+            "vault_hp_07"
+          ]
+        },
+        {
+          "id": "vault_hp_09",
+          "stat": "hp",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 630000000.0,
+          "costStep": 630000000.0,
+          "requires": [
+            "vault_hp_08"
+          ]
+        },
+        {
+          "id": "vault_hp_10",
+          "stat": "hp",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 700000000.0,
+          "costStep": 700000000.0,
+          "requires": [
+            "vault_hp_09"
+          ]
+        },
+        {
+          "id": "vault_hp_11",
+          "stat": "hp",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 770000000.0,
+          "costStep": 770000000.0,
+          "requires": [
+            "vault_hp_10"
+          ]
+        },
+        {
+          "id": "vault_hp_12",
+          "stat": "hp",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 840000000.0,
+          "costStep": 840000000.0,
+          "requires": [
+            "vault_hp_11"
+          ]
+        },
+        {
+          "id": "vault_hp_13",
+          "stat": "hp",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 910000000.0,
+          "costStep": 910000000.0,
+          "requires": [
+            "vault_hp_12"
+          ]
+        },
+        {
+          "id": "vault_hp_14",
+          "stat": "hp",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 980000000.0,
+          "costStep": 980000000.0,
+          "requires": [
+            "vault_hp_13"
+          ]
+        },
+        {
+          "id": "vault_hp_15",
+          "stat": "hp",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 1050000000.0,
+          "costStep": 1050000000.0,
+          "requires": [
+            "vault_hp_14"
+          ]
+        },
+        {
+          "id": "vault_hp_16",
+          "stat": "hp",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 1120000000.0,
+          "costStep": 1120000000.0,
+          "requires": [
+            "vault_hp_15"
+          ]
+        },
+        {
+          "id": "vault_hp_17",
+          "stat": "hp",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 1190000000.0,
+          "costStep": 1190000000.0,
+          "requires": [
+            "vault_hp_16"
+          ]
+        },
+        {
+          "id": "vault_hp_18",
+          "stat": "hp",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 1260000000.0,
+          "costStep": 1260000000.0,
+          "requires": [
+            "vault_hp_17"
+          ]
+        },
+        {
+          "id": "vault_hp_19",
+          "stat": "hp",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 1330000000.0,
+          "costStep": 1330000000.0,
+          "requires": [
+            "vault_hp_18"
+          ]
+        },
+        {
+          "id": "vault_hp_20",
+          "stat": "hp",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 1400000000.0,
+          "costStep": 1400000000.0,
+          "requires": [
+            "vault_hp_19"
+          ]
+        },
+        {
+          "id": "vault_def_01",
+          "stat": "def",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 70000000.0,
+          "costStep": 70000000.0,
+          "requires": []
+        },
+        {
+          "id": "vault_def_02",
+          "stat": "def",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 140000000.0,
+          "costStep": 140000000.0,
+          "requires": [
+            "vault_def_01"
+          ]
+        },
+        {
+          "id": "vault_def_03",
+          "stat": "def",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 210000000.0,
+          "costStep": 210000000.0,
+          "requires": [
+            "vault_def_02"
+          ]
+        },
+        {
+          "id": "vault_def_04",
+          "stat": "def",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 280000000.0,
+          "costStep": 280000000.0,
+          "requires": [
+            "vault_def_03"
+          ]
+        },
+        {
+          "id": "vault_def_05",
+          "stat": "def",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 350000000.0,
+          "costStep": 350000000.0,
+          "requires": [
+            "vault_def_04"
+          ]
+        },
+        {
+          "id": "vault_def_06",
+          "stat": "def",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 420000000.0,
+          "costStep": 420000000.0,
+          "requires": [
+            "vault_def_05"
+          ]
+        },
+        {
+          "id": "vault_def_07",
+          "stat": "def",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 490000000.0,
+          "costStep": 490000000.0,
+          "requires": [
+            "vault_def_06"
+          ]
+        },
+        {
+          "id": "vault_def_08",
+          "stat": "def",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 560000000.0,
+          "costStep": 560000000.0,
+          "requires": [
+            "vault_def_07"
+          ]
+        },
+        {
+          "id": "vault_def_09",
+          "stat": "def",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 630000000.0,
+          "costStep": 630000000.0,
+          "requires": [
+            "vault_def_08"
+          ]
+        },
+        {
+          "id": "vault_def_10",
+          "stat": "def",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 700000000.0,
+          "costStep": 700000000.0,
+          "requires": [
+            "vault_def_09"
+          ]
+        },
+        {
+          "id": "vault_def_11",
+          "stat": "def",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 770000000.0,
+          "costStep": 770000000.0,
+          "requires": [
+            "vault_def_10"
+          ]
+        },
+        {
+          "id": "vault_def_12",
+          "stat": "def",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 840000000.0,
+          "costStep": 840000000.0,
+          "requires": [
+            "vault_def_11"
+          ]
+        },
+        {
+          "id": "vault_def_13",
+          "stat": "def",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 910000000.0,
+          "costStep": 910000000.0,
+          "requires": [
+            "vault_def_12"
+          ]
+        },
+        {
+          "id": "vault_def_14",
+          "stat": "def",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 980000000.0,
+          "costStep": 980000000.0,
+          "requires": [
+            "vault_def_13"
+          ]
+        },
+        {
+          "id": "vault_def_15",
+          "stat": "def",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 1050000000.0,
+          "costStep": 1050000000.0,
+          "requires": [
+            "vault_def_14"
+          ]
+        },
+        {
+          "id": "vault_def_16",
+          "stat": "def",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 1120000000.0,
+          "costStep": 1120000000.0,
+          "requires": [
+            "vault_def_15"
+          ]
+        },
+        {
+          "id": "vault_def_17",
+          "stat": "def",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 1190000000.0,
+          "costStep": 1190000000.0,
+          "requires": [
+            "vault_def_16"
+          ]
+        },
+        {
+          "id": "vault_def_18",
+          "stat": "def",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 1260000000.0,
+          "costStep": 1260000000.0,
+          "requires": [
+            "vault_def_17"
+          ]
+        },
+        {
+          "id": "vault_def_19",
+          "stat": "def",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 1330000000.0,
+          "costStep": 1330000000.0,
+          "requires": [
+            "vault_def_18"
+          ]
+        },
+        {
+          "id": "vault_def_20",
+          "stat": "def",
+          "perLv": 8.0,
+          "maxLv": 5,
+          "costBase": 1400000000.0,
+          "costStep": 1400000000.0,
+          "requires": [
+            "vault_def_19"
+          ]
+        }
+      ]
     }
   ],
   "tarot": {
@@ -903,8 +2223,24 @@
         "id": "EX",
         "maxPct": 600,
         "wineCost": 259200
+      },
+      {
+        "id": "EX+",
+        "maxPct": 700,
+        "wineCost": 777600
+      },
+      {
+        "id": "XR",
+        "maxPct": 800,
+        "wineCost": 2332800
+      },
+      {
+        "id": "XR+",
+        "maxPct": 900,
+        "wineCost": 6998400
       }
-    ]
+    ],
+    "changeCostStep": 0.25
   },
   "collection": {
     "currencyId": "collection_medal",

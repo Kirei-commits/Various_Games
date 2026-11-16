@@ -219,7 +219,7 @@ namespace Mado.Sim
                     if (next == null || !_s.LevelUpDragonNode(next).Success) { break; }
                 }
             }
-            foreach (string tree in new[] { "lab", "leader" })
+            foreach (string tree in new[] { "lab", "leader", "deep", "vault" })
             {
                 for (int i = 0; i < 100; i++)
                 {

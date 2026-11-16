@@ -332,7 +332,7 @@ namespace Mado.Core.Save
             var sorted = new List<string>(r.Zukan);
             sorted.Sort(StringComparer.Ordinal);
             foreach (string g in sorted) { zukan.Add(g); }
-            return new JObject { ["nodes"] = Sorted(nodes), ["tarot"] = tarot, ["collection"] = Sorted(coll), ["zukan"] = zukan };
+            return new JObject { ["nodes"] = Sorted(nodes), ["tarot"] = tarot, ["collection"] = Sorted(coll), ["zukan"] = zukan, ["tarotChanges"] = r.TarotChanges };
         }
 
         private static ResearchState ReadResearch(JObject o)
@@ -341,6 +341,7 @@ namespace Mado.Core.Save
             if (o == null) { return r; }
             JObject nodes = Obj(o, "nodes");
             if (nodes != null) { foreach (KeyValuePair<string, JToken> kv in nodes) { r.Nodes[kv.Key] = IntOf(kv.Value, "research.nodes." + kv.Key); } }
+            if (o["tarotChanges"] != null) { r.TarotChanges = Math.Max(0, IntOf(o["tarotChanges"], "research.tarotChanges")); }
             JObject coll = Obj(o, "collection");
             if (coll != null) { foreach (KeyValuePair<string, JToken> kv in coll) { r.Collection[kv.Key] = IntOf(kv.Value, "research.collection." + kv.Key); } }
             if (o["tarot"] is JArray tarot)

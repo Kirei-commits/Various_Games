@@ -86,6 +86,9 @@ namespace Mado.Data
         /// <summary>カードの売値（コイン）＝ SellCoinBase ×（レアの順番＋1）× カードLv。</summary>
         public double SellCoinBase { get; init; }
 
+        /// <summary>還元のとき、売値のコイン1枚につき経験値がいくつ付くか（0 なら付かない）。</summary>
+        public double SellExpPerCoin { get; init; }
+
         public FixedUnitScale FixedUnitScale { get; init; }
         public IReadOnlyList<MemorySubEffectDef> SubEffects { get; init; }
 

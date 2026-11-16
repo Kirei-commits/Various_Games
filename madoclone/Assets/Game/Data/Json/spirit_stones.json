@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "maxStones": 500,
-  "maxLv": 20,
+  "maxLv": 40,
   "pages": 6,
   "slotMainStat": [
     "atk",
@@ -100,5 +100,7 @@
       "set2": 2.0,
       "set4": 5.0
     }
-  ]
+  ],
+  "levelCostGrowthFromLv": 20,
+  "levelCostGrowth": 1.15
 }

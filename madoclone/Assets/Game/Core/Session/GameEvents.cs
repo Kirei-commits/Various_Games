@@ -7,9 +7,9 @@ namespace Mado.Core.Session
         CharacterLevelUp,     // Id = キャラ, Amount = 上がったLv数, Value = 新しいLv
         CharacterAwakened,    // Id = キャラ, Value = 新しい★
         CrystalMoved,         // Id = 魔晶, Detail = "キャラ:枠"（移動先）
-        MemoryCardDrawn,      // Id = カード, Detail = レア
+        MemoryCardDrawn,      // Id = カード, Amount = 1 なら装備した（0 は還元）, Value = カードLv, Detail = レア
         MemoryCardEquipped,   // Id = カード, Value = 枠
-        MemoryCardSold,       // Id = カード（自動のときは空）, Amount = コイン, Value = 売った枚数
+        MemoryCardSold,       // Id = カード（まとめてなら空）, Amount = コイン, Value = 売った・還元した枚数
         MemoryGachaLevelUp,   // Value = 新しい絆ガチャLv
         LeaderChanged,        // Id = キャラ（解除なら空）
         LeaderLevelUp,        // Value = 新しいリーダーLv

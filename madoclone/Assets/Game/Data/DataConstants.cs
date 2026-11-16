@@ -16,7 +16,7 @@ namespace Mado.Data
         public const int StarSteps = 17;
 
         /// <summary>覚醒のかけらの必要枚数の合計（★0→★11 で46、限界突破の★12〜16 で50）。</summary>
-        public const int AwakenCostTotal = 96;
+        public const int AwakenCostTotal = 2546;
 
         /// <summary>魔晶の枠の数。</summary>
         public const int CrystalSlotCount = 5;

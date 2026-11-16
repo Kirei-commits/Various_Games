@@ -121,7 +121,7 @@ namespace Mado.Core.Tests
         // ---------------- 自動ガチャ ----------------
 
         [Test]
-        public void AutoPull_StopsOnAMatch_SellsTheRest_AndLeavesTheMatchUnequipped()
+        public void AutoPull_StopsOnAMatch_ConvertsTheRest_AndEquipsTheMatch()
         {
             var e = new Env(hearts: 5000);
             e.Save.Memory.GachaLv = 140;
@@ -132,9 +132,11 @@ namespace Mado.Core.Tests
             Assert.GreaterOrEqual(MemoryCardEffects.RarityIndex(Data, r.Found.Rarity), s.MinRarityIndex);
             Assert.AreEqual(r.Pulls - 1, r.Sold);
             Assert.AreEqual(1, e.Save.Memory.Cards.Count);                                  // 合うカードだけが残る
-            Assert.IsTrue(e.Save.Memory.Equipped.All(x => x == null));                     // 勝手には装備しない
+            Assert.AreEqual(1, e.Save.Memory.Equipped.Count(x => x == r.Found.Id));        // 空き枠に自動で装備される
             Assert.Greater(r.CoinGained, 0);
             Assert.AreEqual(r.CoinGained, e.Wallet.Balance("coin"), 1e-6);
+            Assert.AreEqual(r.ExpGained, e.Wallet.Balance("exp"), 1e-3);
+            Assert.AreEqual(r.CoinGained * Data.MemoryCards.SellExpPerCoin, r.ExpGained, 1e-3);
             Assert.AreEqual(5000 - r.Pulls, e.Wallet.Balance("bond_heart"));
         }
 

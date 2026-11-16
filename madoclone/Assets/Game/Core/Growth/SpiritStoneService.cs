@@ -129,7 +129,9 @@ namespace Mado.Core.Growth
         public double LevelCost(StoneState stone)
         {
             if (stone.Lv >= _data.SpiritStones.MaxLv) { throw new ArgumentException("最大Lv では次の費用が無い"); }
-            return _data.SpiritStones.LevelCostBase * (RarityIndex(stone.Rarity) + 1) * stone.Lv;
+            SpiritStonesConfig c = _data.SpiritStones;
+            double growth = stone.Lv > c.LevelCostGrowthFromLv ? Math.Pow(c.LevelCostGrowth, stone.Lv - c.LevelCostGrowthFromLv) : 1.0;
+            return c.LevelCostBase * (RarityIndex(stone.Rarity) + 1) * stone.Lv * growth;
         }
 
         public StoneFailure LevelUp(string stoneId)

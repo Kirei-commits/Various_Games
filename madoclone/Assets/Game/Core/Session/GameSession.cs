@@ -274,7 +274,10 @@ namespace Mado.Core.Session
             PullResult r = _memory.Pull();
             if (!r.Success) { return Failed(r.Failure); }
             card = new MemoryCardView(r.Card);
-            return Done(new GameEvent(GameEventKind.MemoryCardDrawn, r.Card.Id, 0, r.Card.Lv, r.Card.Rarity));
+            var evs = new List<GameEvent> { new GameEvent(GameEventKind.MemoryCardDrawn, r.Card.Id, r.Kept ? 1 : 0, r.Card.Lv, r.Card.Rarity) };
+            if (r.Converted > 0) { evs.Add(new GameEvent(GameEventKind.MemoryCardSold, r.Kept ? "" : r.Card.Id, r.Coin, r.Converted)); }
+            Finish(evs.ToArray());
+            return CommandResult.Ok();
         }
 
         public CommandResult SellMemoryCard(string cardId)
@@ -285,14 +288,14 @@ namespace Mado.Core.Session
             return Done(new GameEvent(GameEventKind.MemoryCardSold, cardId, coin));
         }
 
-        /// <summary>自動絆ガチャ。合うカードが出たら止まる（装備は View の確認のあと EquipMemoryCard）。</summary>
+        /// <summary>自動絆ガチャ。いまより強い（条件に合う）カードが出たら、装備して止まる。余りはその場で還元される。</summary>
         public CommandResult AutoPullMemoryCard(AutoGachaSettings settings, int maxPulls, out AutoGachaResult result)
         {
             if (!IsUnlocked("memory_card")) { result = null; Finish(); return CommandResult.Fail(LockedReason); }
             MemoryFailure f = _memory.AutoPull(settings, maxPulls, out result);
             if (f != MemoryFailure.None) { return Failed(f); }
             var evs = new List<GameEvent>();
-            if (result.Found != null) { evs.Add(new GameEvent(GameEventKind.MemoryCardDrawn, result.Found.Id, 0, result.Found.Lv, result.Found.Rarity)); }
+            if (result.Found != null) { evs.Add(new GameEvent(GameEventKind.MemoryCardDrawn, result.Found.Id, 1, result.Found.Lv, result.Found.Rarity)); }
             if (result.Sold > 0) { evs.Add(new GameEvent(GameEventKind.MemoryCardSold, "", result.CoinGained, result.Sold)); }
             Finish(evs.ToArray());
             return CommandResult.Ok();

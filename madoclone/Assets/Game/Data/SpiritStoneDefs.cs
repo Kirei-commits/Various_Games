@@ -55,6 +55,10 @@ namespace Mado.Data
         /// <summary>Lv L → L+1 の星の砂 ＝ levelCostBase ×（レアの順番＋1）× L。</summary>
         public double LevelCostBase { get; init; }
 
+        /// <summary>LevelCostGrowthFromLv 以上の Lv では、1Lv ごとに費用がこの倍率ずつ増える（終盤の星の砂の使い道）。</summary>
+        public int LevelCostGrowthFromLv { get; init; }
+        public double LevelCostGrowth { get; init; }
+
         /// <summary>星霊王の稽古の報酬1回で出る枚数（実測：24）。</summary>
         public int DropsPerClear { get; init; }
 

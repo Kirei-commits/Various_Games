@@ -119,12 +119,13 @@ namespace Mado.Core.Tests
             Assert.AreEqual(ResearchFailure.None, e.Tarot.Set(0, "atk", "UR"));                    // 同じなら払わない
             Assert.AreEqual(100000 - 28800, e.Wallet.Balance("wine"));
             Assert.AreEqual(ResearchFailure.None, e.Tarot.Set(1, "critDamagePct", "SR"));
-            Assert.AreEqual(100000 - 28800 - 800, e.Wallet.Balance("wine"));
+            Assert.AreEqual(100000 - 28800 - 1000, e.Wallet.Balance("wine"));   // 2回目の入れ替え：基準 × (1 ＋ 1 × 0.25)
             List<Modifier> mods = e.Mods();
             Assert.AreEqual(350.0, Sum(mods, StatId.Atk, ModifierPool.Global));
             Assert.AreEqual(100.0, Sum(mods, StatId.CritDamage, ModifierPool.Flat));
             Assert.AreEqual(ResearchFailure.None, e.Tarot.Set(0, "hp", "N"));                      // 枠を変える：新しいレアの費用を払う（返金なし）
-            Assert.AreEqual(100000 - 28800 - 800 - 50, e.Wallet.Balance("wine"));
+            Assert.AreEqual(100000 - 28800 - 1000 - 75, e.Wallet.Balance("wine"));   // 3回目：× 1.5
+            Assert.AreEqual(3, e.Save.Research.TarotChanges);
             Assert.AreEqual(0.0, Sum(e.Mods(), StatId.Atk, ModifierPool.Global));
             Assert.AreEqual(ResearchFailure.None, e.Tarot.Clear(0));
             Assert.AreEqual(0.0, Sum(e.Mods(), StatId.Hp, ModifierPool.Global));
@@ -138,6 +139,33 @@ namespace Mado.Core.Tests
             Assert.AreEqual(2100.0, Sum(e.Mods(), StatId.Hp, ModifierPool.Global));
             for (int i = 0; i < 6; i++) { e.Tarot.Set(i, "hp", "EX"); }
             Assert.AreEqual(3600.0, Sum(e.Mods(), StatId.Hp, ModifierPool.Global));
+        }
+
+        [Test]
+        public void Tarot_CostRisesWithEveryChange_AndTheSessionShowsIt()
+        {
+            var e = new Env();
+            TarotRarityDef ex = e.Tarot.Rarity("EX");
+            double step = Data.Research.Tarot.ChangeCostStep;
+            Assert.AreEqual(ex.WineCost, e.Tarot.Cost(ex));
+            e.Give("wine", 1e9);
+            for (int i = 0; i < 4; i++) { Assert.AreEqual(ResearchFailure.None, e.Tarot.Set(i, "atk", "N")); }
+            Assert.AreEqual(4, e.Save.Research.TarotChanges);
+            Assert.AreEqual(ex.WineCost * (1 + 4 * step), e.Tarot.Cost(ex), 1e-6);
+            Assert.AreEqual(ex.WineCost * (1 + 7 * step), TarotService.CostOf(Data, 7, ex), 1e-6);
+            Assert.AreEqual(ResearchFailure.None, e.Tarot.Set(0, "atk", "N"));            // 同じなら数えない
+            Assert.AreEqual(4, e.Save.Research.TarotChanges);
+            Assert.AreEqual(ResearchFailure.None, e.Tarot.Clear(0));                       // 外すのは数えない
+            Assert.AreEqual(4, e.Save.Research.TarotChanges);
+        }
+
+        [Test]
+        public void TarotChanges_SurviveTheSaveRoundTrip()
+        {
+            var save = Mado.Core.Save.SaveData.CreateNew(1, "", 1UL);
+            save.Research.TarotChanges = 12;
+            Mado.Core.Save.LoadResult back = Mado.Core.Save.SaveCodec.Load(Mado.Core.Save.SaveCodec.Serialize(save), Data);
+            Assert.AreEqual(12, back.Save.Research.TarotChanges);
         }
 
         [Test]

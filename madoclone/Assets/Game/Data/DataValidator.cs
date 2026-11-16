@@ -507,7 +507,7 @@ namespace Mado.Data
             MemoryCardsConfig m = d.MemoryCards;
             string at = DataLoader.MemoryCardsFile;
             if (m.MaxCardLv < 1 || m.LevelOffset < 0 || m.SubRefLv < 1 || !(m.PullCostBondHeart > 0)
-                || !(m.GachaLvCostBase > 0) || !(m.GachaLvCostGrowth >= 1.0) || m.SellCoinBase < 0)
+                || !(m.GachaLvCostBase > 0) || !(m.GachaLvCostGrowth >= 1.0) || m.SellCoinBase < 0 || m.SellExpPerCoin < 0)
             {
                 Error(issues, "MEMORY_CARDS", at, "maxCardLv・subRefLv は1以上、levelOffset は0以上、費用は正の数（成長率は1以上）");
             }
@@ -576,7 +576,7 @@ namespace Mado.Data
                     }
                 }
             }
-            if (!(t.ExpCostBase > 0) || !(t.ExpCostGrowth >= 1.0) || t.ExpCostBaseLv < 1 || t.ShardCostPerLv < 1
+            if (!(t.ExpCostBase > 0) || !(t.ExpCostGrowth >= 1.0) || !(t.LateExpGrowth >= 1.0) || t.LateFromLv < t.ExpCostBaseLv || t.ExpCostBaseLv < 1 || t.ShardCostPerLv < 1
                 || t.RewardEveryLv < 1 || t.RewardMinLv < 1 || t.RewardCrystalPerLv < 1)
             {
                 Error(issues, "LEADER_TEMPLE", at, "費用・報酬の数値は正（成長率は1以上）");
@@ -775,6 +775,10 @@ namespace Mado.Data
             {
                 Error(issues, "SPIRIT_STONES", at, "maxStones・pages・dropsPerClear は1以上、maxLv は2以上、levelCostBase は正、slotMainStat が1つ以上");
             }
+            if (!(c.LevelCostGrowth >= 1.0) || c.LevelCostGrowthFromLv < 1)
+            {
+                Error(issues, "SPIRIT_STONES", at, "levelCostGrowth は1以上、levelCostGrowthFromLv は1以上");
+            }
             foreach (string stat in c.SlotMainStat)
             {
                 if (stat != "atk" && stat != "hp" && stat != "def") { Error(issues, "SPIRIT_STONES", at + ":slotMainStat", "メイン効果は atk・hp・def: " + stat); }
@@ -837,6 +841,7 @@ namespace Mado.Data
             }
             if (r.Tarot.Slots < 1 || r.Tarot.Effects.Count == 0 || r.Tarot.Rarities.Count == 0) { Error(issues, "RESEARCH", at + ":tarot", "枠・効果・レアが1つ以上"); }
             foreach (string e in r.Tarot.Effects) { if (!known.Contains(e)) { Error(issues, "RESEARCH", at + ":tarot", "知らない効果 " + e); } }
+            if (!(r.Tarot.ChangeCostStep >= 0)) { Error(issues, "RESEARCH", at + ":tarot", "changeCostStep は0以上"); }
             var rarIds = new HashSet<string>();
             double prev = 0;
             foreach (TarotRarityDef t in r.Tarot.Rarities)

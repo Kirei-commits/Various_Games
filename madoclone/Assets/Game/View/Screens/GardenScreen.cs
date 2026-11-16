@@ -39,6 +39,9 @@ namespace Mado.View.Screens
             string lab = State.NextTreeNode("lab"), leader = State.NextTreeNode("leader");
             Row(T("ui.garden.lab"), T("ui.garden.auto"), () => Do(lab == null ? CommandResult.Fail("None") : Session.LevelUpTreeNode("lab", lab)));
             Row(T("ui.garden.leader_tree"), T("ui.garden.auto"), () => Do(leader == null ? CommandResult.Fail("None") : Session.LevelUpTreeNode("leader", leader)));
+            string deep = State.NextTreeNode("deep"), vault = State.NextTreeNode("vault");
+            Row(T("ui.garden.deep"), T("ui.garden.auto"), () => Do(deep == null ? CommandResult.Fail("None") : Session.LevelUpTreeNode("deep", deep)));
+            Row(T("ui.garden.vault"), T("ui.garden.auto"), () => Do(vault == null ? CommandResult.Fail("None") : Session.LevelUpTreeNode("vault", vault)));
             int filled = 0;
             for (int s = 0; s < Data.Research.Tarot.Slots; s++) { if (State.TarotAt(s).Effect != null) { filled++; } }
             Row(T("ui.garden.tarot", filled, Data.Research.Tarot.Slots), T("ui.garden.tarot_fill"), FillTarot);
@@ -89,7 +92,7 @@ namespace Mado.View.Screens
                 string effect = TarotEffects[slot % TarotEffects.Length];
                 for (int r = Data.Research.Tarot.Rarities.Count - 1; r >= 0; r--)
                 {
-                    if (!State.DevMode && State.Balance("wine") < Data.Research.Tarot.Rarities[r].WineCost) { continue; }
+                    if (!State.DevMode && State.Balance("wine") < State.TarotCost(Data.Research.Tarot.Rarities[r].Id)) { continue; }
                     if (Session.SetTarot(slot, effect, Data.Research.Tarot.Rarities[r].Id).Success) { fill++; }
                     break;
                 }

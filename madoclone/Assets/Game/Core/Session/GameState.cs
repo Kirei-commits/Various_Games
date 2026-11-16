@@ -196,6 +196,15 @@ namespace Mado.Core.Session
             return t == null ? (null, null) : (t.Effect, t.Rarity);
         }
 
+        /// <summary>タロットをそのレアにするいまのワイン（入れ替えるたびに高くなる）。</summary>
+        public double TarotCost(string rarityId)
+        {
+            foreach (TarotRarityDef r in _data.Research.Tarot.Rarities) { if (r.Id == rarityId) { return Growth.TarotService.CostOf(_data, _save.Research.TarotChanges, r); } }
+            return 0;
+        }
+
+        public int TarotChanges { get { return _save.Research.TarotChanges; } }
+
         public int StoneCount { get { return _stones.Count; } }
 
         /// <summary>持っている石（写し）。</summary>

@@ -62,13 +62,14 @@ namespace Mado.Core.Growth
         {
             CheckCostLv(lv);
             LeaderTempleConfig t = _data.LeaderTemple;
-            return t.ExpCostBase * Math.Pow(t.ExpCostGrowth, lv - t.ExpCostBaseLv);
+            if (lv < t.LateFromLv) { return t.ExpCostBase * Math.Pow(t.ExpCostGrowth, lv - t.ExpCostBaseLv); }
+            return t.ExpCostBase * Math.Pow(t.ExpCostGrowth, t.LateFromLv - t.ExpCostBaseLv) * Math.Pow(t.LateExpGrowth, lv - t.LateFromLv);
         }
 
         public double ShardCost(int lv)
         {
             CheckCostLv(lv);
-            return (double)_data.LeaderTemple.ShardCostPerLv * lv;
+            return (double)_data.LeaderTemple.ShardCostPerLv * Math.Min(lv, _data.LeaderTemple.LateFromLv);      // 終盤は欠片の要求が増えず、経験値だけが重くなる
         }
 
         /// <summary>リーダーLv が lv に着いたときにもらえる魔力の結晶（もらえない Lv は 0）。</summary>
@@ -101,7 +102,7 @@ namespace Mado.Core.Growth
             _save.Temple.LeaderElement = element;
         }
 
-        /// <summary>リーダーLv を1つ上げる。経験値と魔力の欠片の両方を払い、足りなければ何も変えない。</summary>
+        /// <summary>リーダーLv を1つ上げる（Lv50 以降は経験値が重い「リーダー強化」の段階）。経験値と魔力の欠片の両方を払い、足りなければ何も変えない。</summary>
         public TempleLevelResult LevelUp()
         {
             int lv = _save.Temple.LeaderLv;

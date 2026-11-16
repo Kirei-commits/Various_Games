@@ -46,9 +46,10 @@ namespace Mado.Core.Tests
             Assert.AreEqual(160.0, e.Temple.Pct(18) - e.Temple.Pct(17), 1e-9);   // 1Lv あたり +160％
             Assert.AreEqual(8000.0, e.Temple.Pct(50), 1e-9);                       // 6.4節の上限（リーダーLv Lv50）
             Assert.AreEqual(0.0, e.Temple.Pct(1));
-            for (int lv = 2; lv <= 50; lv++) { Assert.GreaterOrEqual(e.Temple.Pct(lv), e.Temple.Pct(lv - 1)); }
+            for (int lv = 2; lv <= 150; lv++) { Assert.GreaterOrEqual(e.Temple.Pct(lv), e.Temple.Pct(lv - 1)); }
             Assert.Throws<ArgumentException>(() => e.Temple.Pct(0));
-            Assert.Throws<ArgumentException>(() => e.Temple.Pct(51));
+            Assert.AreEqual(18000.0, e.Temple.Pct(150), 1e-9);                     // 終盤の延長：Lv50 以降は1Lv あたり +100％
+            Assert.Throws<ArgumentException>(() => e.Temple.Pct(151));
         }
 
         [Test]
@@ -58,7 +59,7 @@ namespace Mado.Core.Tests
             Assert.AreEqual(4.419e9, e.Temple.ExpCost(17), 1.0);
             Assert.Greater(e.Temple.ExpCost(18), e.Temple.ExpCost(17));
             Assert.Less(e.Temple.ExpCost(1), e.Temple.ExpCost(17));
-            Assert.Throws<ArgumentException>(() => e.Temple.ExpCost(50));
+            Assert.Throws<ArgumentException>(() => e.Temple.ExpCost(150));
             Assert.Throws<ArgumentException>(() => e.Temple.ShardCost(0));
         }
 
@@ -123,6 +124,16 @@ namespace Mado.Core.Tests
         }
 
         [Test]
+        public void ExpCost_AfterTheLateLv_GrowsByTheLateRate()
+        {
+            var e = new Env();
+            double at49 = e.Temple.ExpCost(49), at50 = e.Temple.ExpCost(50), at51 = e.Temple.ExpCost(51);
+            Assert.AreEqual(Data.LeaderTemple.ExpCostGrowth, at50 / at49, 1e-9);          // Lv50 の1つ手前までは元の伸び
+            Assert.AreEqual(Data.LeaderTemple.LateExpGrowth, at51 / at50, 1e-9);          // Lv50 から後は緩やかな伸び
+            Assert.Greater(e.Temple.ExpCost(149), 1e13);                                    // 終盤の経験値の使い道として十分に重い
+        }
+
+        [Test]
         public void LevelUp_GrantsTheCrystalRewardOnArrival_AndStopsAtTheMax()
         {
             var e = new Env { Dev = true };
@@ -133,10 +144,10 @@ namespace Mado.Core.Tests
             Assert.AreEqual(100, e.Wallet.Balance("mana_crystal"));
             Assert.AreEqual(0, e.Temple.LevelUp().CrystalReward);   // Lv11 はなし
 
-            e.Save.Temple.LeaderLv = 50;
+            e.Save.Temple.LeaderLv = 150;
             TempleLevelResult max = e.Temple.LevelUp();
             Assert.AreEqual(TempleFailure.AtMaxLv, max.Failure);
-            Assert.AreEqual(50, e.Temple.Lv);
+            Assert.AreEqual(150, e.Temple.Lv);
         }
 
         [Test]
@@ -237,7 +248,7 @@ namespace Mado.Core.Tests
         {
             var e = new Env();
             Assert.IsEmpty(SaveValidator.Validate(e.Save, Data));
-            foreach (int bad in new[] { 0, 51 })
+            foreach (int bad in new[] { 0, 151 })
             {
                 e.Save.Temple.LeaderLv = bad;
                 Assert.IsTrue(SaveValidator.Validate(e.Save, Data).Any(i => i.Code == "TEMPLE_LV" && i.Severity == SaveSeverity.Error));

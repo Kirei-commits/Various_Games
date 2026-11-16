@@ -166,11 +166,11 @@ namespace Mado.Core.Tests
         }
 
         [Test]
-        public void Awaken_TotalCostToMax_Is96()
+        public void Awaken_TotalCostToMax_Is2546()
         {
-            var e = new Env(shards: 96);
+            var e = new Env(shards: 2546);
             for (int star = 0; star < e.Awaken.MaxStar; star++) { Assert.IsTrue(e.Awaken.Awaken("chr_001").Success, "★" + star); }
-            Assert.AreEqual(16, e.C.Star);                              // 限界突破の★16まで（★0〜11 は46枚、★12〜16 は50枚）
+            Assert.AreEqual(16, e.C.Star);                              // 限界突破の★16まで（★0〜11 は46枚、★12〜16 は2,500枚（終盤の欠片の使い道））
             Assert.AreEqual(0, e.Wallet.Balance(CurrencyIds.AwakenShard));
             Assert.AreEqual(AwakenFailure.AtMaxStar, e.Awaken.Awaken("chr_001").Failure);
         }

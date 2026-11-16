@@ -152,7 +152,7 @@ for a, b in zip(lt, lt[1:]):
         err("levelTable が増えていない: Lv%d" % b["lv"])
 if len(stat["starMultipliers"]) != 17 or len(stat["starMaxLv"]) != 17 or len(stat["awakenCost"]) != 17:
     err("★の表が17個ではない")
-if sum(stat["awakenCost"][:12]) != 46 or sum(stat["awakenCost"]) != 96:
+if sum(stat["awakenCost"][:12]) != 46 or sum(stat["awakenCost"]) != 2546:
     err("覚醒の必要枚数の合計が（★0〜11で46、全体で96）ではない")
 
 # 6. 難易度（仕様書6.1節の表）

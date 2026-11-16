@@ -15,9 +15,16 @@ namespace Mado.Core.Growth
         public readonly MemoryCardState Card;
         public readonly double ShortBy;
 
-        public PullResult(bool success, MemoryFailure failure, MemoryCardState card, double shortBy)
+        /// <summary>true なら、いまより強いカードなので装備した（持ち物に入った）。false なら、引いたその場でコインと経験値に還元した。</summary>
+        public readonly bool Kept;
+
+        /// <summary>この1回で還元したカード（引いたカード、または付け替えで外れたカード）の数と、得たコイン・経験値。</summary>
+        public readonly int Converted;
+        public readonly double Coin, Exp;
+
+        public PullResult(bool success, MemoryFailure failure, MemoryCardState card, double shortBy, bool kept = false, int converted = 0, double coin = 0, double exp = 0)
         {
-            Success = success; Failure = failure; Card = card; ShortBy = shortBy;
+            Success = success; Failure = failure; Card = card; ShortBy = shortBy; Kept = kept; Converted = converted; Coin = coin; Exp = exp;
         }
     }
 
@@ -59,8 +66,12 @@ namespace Mado.Core.Growth
             return MemoryFailure.None;
         }
 
-        /// <summary>絆ガチャを1回引く。引いたカードはいまの絆ガチャLv と同じLvになる（docs/01 7.2節 [推定]）。</summary>
-        public PullResult Pull()
+        /// <summary>
+        /// 絆ガチャを1回引く。引いたカードはいまの絆ガチャLv と同じLvになる（docs/01 7.2節 [推定]）。
+        /// 装備しているものより強い（かつ rule の条件に合う）カードだけ、空き枠か弱いほうの枠に自動で付ける。付け替えで外れたカードも、
+        /// 条件に合わないカードも、持ち物には入れず、その場でコインと経験値に還元する（カードは溜まらない）。rule が null なら「強くなるか」だけで決める。
+        /// </summary>
+        public PullResult Pull(AutoGachaSettings rule = null)
         {
             MemoryCardsConfig cfg = _data.MemoryCards;
             PayResult pay = _wallet.Pay(new Cost(CurrencyIds.BondHeart, cfg.PullCostBondHeart), new PayReason(WalletReasons.GachaPull));
@@ -70,8 +81,63 @@ namespace Mado.Core.Growth
             Rng rng = Rng.FromState(_save.Rng.Gacha);
             MemoryCardState card = Roll(cfg, rng, m);
             _save.Rng.Gacha = rng.GetState();
-            m.Cards.Add(card);
-            return new PullResult(true, MemoryFailure.None, card, 0);
+
+            var judge = new AutoGachaSettings
+            {
+                RequirePowerUp = true,
+                MinRarityIndex = rule == null ? 0 : rule.MinRarityIndex,
+                Filter1 = rule == null ? new SubstatKey[0] : rule.Filter1,
+                Filter2 = rule == null ? new SubstatKey[0] : rule.Filter2,
+            };
+            double coin = 0, exp = 0;
+            int converted = 0;
+            bool kept = MemoryCardRules.Matches(_data, m, card, judge);
+            if (kept)
+            {
+                int slot = WeakestSlot(m, card.Kind);
+                string oldId = m.Equipped[slot];
+                MemoryCardState old = oldId == null ? null : m.Cards.Find(c => c.Id == oldId);
+                if (old != null)
+                {
+                    m.Cards.Remove(old);
+                    Convert(old, ref coin, ref exp);
+                    converted++;
+                }
+                m.Cards.Add(card);
+                m.Equipped[slot] = card.Id;
+            }
+            else
+            {
+                Convert(card, ref coin, ref exp);
+                converted++;
+            }
+            return new PullResult(true, MemoryFailure.None, card, 0, kept, converted, coin, exp);
+        }
+
+        /// <summary>同じ種類の枠のうち、空きの枠、なければ弱いほうの枠の番号。</summary>
+        private int WeakestSlot(MemoryState m, MemoryKind kind)
+        {
+            int best = Slot(kind, 0);
+            double bestScore = double.MaxValue;
+            for (int i = 0; i < 2; i++)
+            {
+                int slot = Slot(kind, i);
+                string id = m.Equipped[slot];
+                MemoryCardState c = id == null ? null : m.Cards.Find(x => x.Id == id);
+                double score = c == null ? -1 : MemoryCardRules.Score(_data, c);
+                if (score < bestScore) { bestScore = score; best = slot; }
+            }
+            return best;
+        }
+
+        /// <summary>カードをコインと経験値に還元する（売値のコイン、その sellExpPerCoin 倍の経験値）。</summary>
+        private void Convert(MemoryCardState card, ref double coin, ref double exp)
+        {
+            double c = MemoryCardRules.SellPrice(_data, card);
+            double e = c * _data.MemoryCards.SellExpPerCoin;
+            coin += c; exp += e;
+            _wallet.Grant(new Reward(CurrencyIds.Coin, c), new GrantReason(WalletReasons.MemoryConvert));
+            if (e > 0) { _wallet.Grant(new Reward(CurrencyIds.Exp, e), new GrantReason(WalletReasons.MemoryConvert)); }
         }
 
         private MemoryCardState Roll(MemoryCardsConfig cfg, Rng rng, MemoryState m)
@@ -149,8 +215,8 @@ namespace Mado.Core.Growth
         }
 
         /// <summary>
-        /// 自動絆ガチャ：条件に合うカードが出るまで引き続け、合わないカードは売る。合うカードが出たら止める（勝手には装備しない）。
-        /// 絆ハートが尽きるか maxPulls に着いたら止まる。
+        /// 自動絆ガチャ：条件に合う（いまより強い）カードが出るまで引き続ける。出たカードは装備され、止まる。
+        /// 合わないカードは引くたびにコインと経験値に還元される。絆ハートが尽きるか maxPulls に着いたら止まる。
         /// </summary>
         public MemoryFailure AutoPull(AutoGachaSettings settings, int maxPulls, out AutoGachaResult result)
         {
@@ -159,18 +225,18 @@ namespace Mado.Core.Growth
                 || settings.Filter1.Count > 2 || settings.Filter2.Count > 2) { return MemoryFailure.InvalidSettings; }
             while (result.Pulls < maxPulls)
             {
-                PullResult r = Pull();
+                PullResult r = Pull(settings);
                 if (!r.Success) { result.Stop = AutoStop.NotEnough; break; }
                 result.Pulls++;
-                if (MemoryCardRules.Matches(_data, _save.Memory, r.Card, settings))
+                result.Sold += r.Converted;
+                result.CoinGained += r.Coin;
+                result.ExpGained += r.Exp;
+                if (r.Kept)
                 {
                     result.Found = r.Card;
                     result.Stop = AutoStop.Found;
                     break;
                 }
-                Sell(r.Card.Id, out double coin);
-                result.Sold++;
-                result.CoinGained += coin;
             }
             return MemoryFailure.None;
         }

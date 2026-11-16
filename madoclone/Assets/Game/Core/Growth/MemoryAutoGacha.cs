@@ -28,8 +28,9 @@ namespace Mado.Core.Growth
         public int Pulls { get; set; }
         public int Sold { get; set; }
         public double CoinGained { get; set; }
+        public double ExpGained { get; set; }
 
-        /// <summary>条件に合ったカード（持ち物に入っている。勝手には装備しない）。Found 以外は null。</summary>
+        /// <summary>条件に合ったカード（装備された）。Found 以外は null。</summary>
         public MemoryCardState Found { get; set; }
         public AutoStop Stop { get; set; }
     }

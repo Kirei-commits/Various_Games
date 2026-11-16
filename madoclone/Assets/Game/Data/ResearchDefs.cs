@@ -44,6 +44,9 @@ namespace Mado.Data
         public int Slots { get; init; }
         public IReadOnlyList<string> Effects { get; init; }
         public IReadOnlyList<TarotRarityDef> Rarities { get; init; }
+
+        /// <summary>これまでにタロットを入れ替えた回数 1回ごとに、ワインの費用が基準の何割ずつ増えるか（費用 ＝ WineCost × (1 ＋ 回数 × この値)）。</summary>
+        public double ChangeCostStep { get; init; }
     }
 
     /// <summary>コレクションのセット1つ。★1〜★5 の効果の値（values）と、その★に上げる費用（starCost、コレクションメダル）。</summary>
