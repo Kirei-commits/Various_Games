@@ -274,7 +274,7 @@ namespace Mado.Core.Session
             ulong seed = ((ulong)misc.NextUInt() << 32) | misc.NextUInt();
             _save.Rng.Misc = misc.GetState();
 
-            BattleSetup setup = _builder.Assemble(allies, enemies, seed, _stages.TimeLimitSec(kind));
+            BattleSetup setup = _builder.Assemble(allies, enemies, seed, _stages.TimeLimitSec(kind, p.Rank, p.Area, p.Stage));
             BattleResult result = new BattleSim(setup).RunToEnd(null);
 
             Reward drop = _rewards.ForBattle(p.Rank, result);

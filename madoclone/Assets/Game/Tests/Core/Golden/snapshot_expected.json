@@ -1,52 +1,52 @@
 {
   "boss_fight": {
     "Outcome": "Lose",
-    "EndSec": 22.0,
-    "AllyDamage": "1.45E+9"
+    "EndSec": 10.0,
+    "AllyDamage": "2.07E+8"
   },
   "count_bonus": {
     "Outcome": "Lose",
-    "EndSec": 7.0,
-    "AllyDamage": "2.85E+8"
+    "EndSec": 11.0,
+    "AllyDamage": "5.88E+8"
   },
   "crystals": {
     "Outcome": "Lose",
     "EndSec": 15.0,
-    "AllyDamage": "1.67E+9"
+    "AllyDamage": "2.29E+9"
   },
   "disrupt": {
     "Outcome": "Lose",
-    "EndSec": 17.0,
-    "AllyDamage": "3.91E+8"
+    "EndSec": 14.0,
+    "AllyDamage": "3.36E+8"
   },
   "lr_party": {
     "Outcome": "Lose",
-    "EndSec": 15.0,
-    "AllyDamage": "1.10E+9"
+    "EndSec": 16.0,
+    "AllyDamage": "9.27E+8"
   },
   "melee_focus": {
     "Outcome": "Lose",
-    "EndSec": 16.0,
-    "AllyDamage": "2.71E+8"
+    "EndSec": 9.0,
+    "AllyDamage": "1.62E+8"
   },
   "ranged_focus": {
     "Outcome": "Lose",
-    "EndSec": 14.0,
-    "AllyDamage": "6.97E+8"
+    "EndSec": 9.0,
+    "AllyDamage": "2.58E+8"
   },
   "status_heavy": {
     "Outcome": "Lose",
-    "EndSec": 21.0,
-    "AllyDamage": "5.99E+8"
+    "EndSec": 16.0,
+    "AllyDamage": "3.88E+8"
   },
   "timeout": {
     "Outcome": "TimeUp",
     "EndSec": 30.0,
-    "AllyDamage": "3.90E+9"
+    "AllyDamage": "3.49E+9"
   },
   "with_heal": {
     "Outcome": "TimeUp",
     "EndSec": 60.0,
-    "AllyDamage": "6.02E+8"
+    "AllyDamage": "1.47E+9"
   }
 }

@@ -18,6 +18,7 @@ namespace Mado.Data
         public RewardsConfig Rewards { get; }
         public MemoryCardsConfig MemoryCards { get; }
         public LeaderTempleConfig LeaderTemple { get; }
+        public EnemyKitsConfig EnemyKits { get; }
         public BuffTable Buffs { get; }
         public TextTable Text { get; }
 
@@ -38,6 +39,7 @@ namespace Mado.Data
             RewardsConfig rewards,
             MemoryCardsConfig memoryCards,
             LeaderTempleConfig leaderTemple,
+            EnemyKitsConfig enemyKits,
             BuffTable buffs,
             IReadOnlyList<TierDef> tiers,
             IReadOnlyList<CharacterDef> characters,
@@ -52,6 +54,7 @@ namespace Mado.Data
             Rewards = rewards;
             MemoryCards = memoryCards;
             LeaderTemple = leaderTemple;
+            EnemyKits = enemyKits;
             Buffs = buffs;
             Tiers = tiers;
             Characters = characters;
@@ -78,6 +81,13 @@ namespace Mado.Data
         public bool TrySkill(string id, out SkillDef value) { return _skills.TryGetValue(id ?? "", out value); }
         public bool TryCrystal(string id, out CrystalDef value) { return _crystals.TryGetValue(id ?? "", out value); }
         public bool TryBuff(string id, out BuffDef value) { return _buffs.TryGetValue(id ?? "", out value); }
+        public bool TryEnemySkill(string id, out EnemySkillDef value)
+        {
+            foreach (EnemySkillDef s in EnemyKits.Skills) { if (s.Id == id) { value = s; return true; } }
+            value = null;
+            return false;
+        }
+
         public bool TryCurrency(string id, out CurrencyDef value) { return _currencies.TryGetValue(id ?? "", out value); }
 
         public TierDef Tier(CharTier id)

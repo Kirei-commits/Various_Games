@@ -79,6 +79,10 @@ namespace Mado.Core.Battle
         public bool IsLeader { get; set; }
         public BattleStats Stats { get; set; }
 
+        /// <summary>この属性の攻撃から受けるダメージに掛ける倍率（ボスの属性耐性。無ければ null・1.0）。</summary>
+        public Element? ResistElement { get; set; }
+        public double ResistMultiplier { get; set; } = 1.0;
+
         /// <summary>敵は null でもよい。</summary>
         public ResolvedSkill Normal { get; set; }
         public ResolvedSkill Special { get; set; }

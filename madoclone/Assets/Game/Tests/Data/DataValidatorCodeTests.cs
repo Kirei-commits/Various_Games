@@ -121,6 +121,21 @@ namespace Mado.Data.Tests
             yield return C("REWARDS", rw, r => r["idleCapHours"] = 0);
             yield return C("REWARDS", rw, r => r["idleCoinPerExp"] = -1);
 
+            // ---- enemy_kits.json ----
+            string ek = DataLoader.EnemyKitsFile;
+            yield return C("ENEMY_KITS", ek, r => r["roleSkills"]["tank"][0] = "nope");
+            yield return C("ENEMY_KITS", ek, r => r["traits"][0]["skills"][0] = "nope");
+            yield return C("ENEMY_KITS", ek, r => ((JObject)r["traits"][1]).Remove("resistMultiplier"));
+            yield return C("ENEMY_KITS", ek, r => r["traits"][1]["resistMultiplier"] = 0);
+            yield return C("ENEMY_KITS", ek, r => r["traits"][5]["atkMultiplier"] = -1);
+            yield return C("ENEMY_KITS", ek, r => r["finalBossTraits"][0] = "nope");
+            yield return C("ENEMY_KITS", ek, r => r["bossPlan"][0]["traits"][0] = "nope");
+            yield return C("ENEMY_KITS", ek, r => r["bossPlan"][0]["toRank"] = 99);
+            yield return C("ENEMY_KITS", ek, r => r["bossPlan"][1]["fromRank"] = 5);              // 前の行と重なる
+            yield return C("ID_DUPLICATE", ek, r => r["skills"][1]["id"] = "enemy_attacker_blast");
+            yield return C("ID_DUPLICATE", ek, r => r["traits"][1]["id"] = "heal_silence");
+            yield return C("EFFECT_FIELD_MISSING", ek, r => ((JObject)r["skills"][2]["effects"][0]).Remove("target"));
+
             // ---- leader_temple.json ----
             string lt = DataLoader.LeaderTempleFile;
             yield return C("LEADER_TEMPLE", lt, r => ((JArray)r["lvPct"]).RemoveAt(0));

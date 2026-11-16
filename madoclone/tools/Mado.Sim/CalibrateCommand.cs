@@ -209,7 +209,7 @@ namespace Mado.Sim
 
         private List<UnitSetup> BossEnemies(int rank, double hpScale, double atkScale)
         {
-            return _stages.BuildWithPower(rank, BossPower(rank) * _data.Difficulty.BossFightPowerRatio, StageKind.Boss, hpScale, atkScale);
+            return _stages.BuildWithPower(rank, BossPower(rank) * _data.Difficulty.BossFightPowerRatio, StageKind.Boss, hpScale, atkScale, rank == _data.Difficulty.Ranks);
         }
 
         private Stat Boss(int rank, List<UnitSetup> allies, double hpScale, double atkScale)

@@ -123,6 +123,13 @@ namespace Mado.Core.Battle
             return t == TargetType.EnemySingle || t == TargetType.EnemyArea || t == TargetType.EnemyAll;
         }
 
+        /// <summary>ボスの属性耐性：攻撃側の属性が耐性の属性なら、その倍率（それ以外は 1.0）。</summary>
+        private static double ResistFor(Unit attacker, Unit target)
+        {
+            UnitSetup t = target.Setup;
+            return t.ResistElement.HasValue && t.ResistElement.Value == attacker.Element ? t.ResistMultiplier : 1.0;
+        }
+
         private static bool HasChanceRoll(ResolvedEffect e) { return e.ChancePct < 100; }
 
         private static bool IsChanceKind(ResolvedEffect e)
@@ -297,7 +304,7 @@ namespace Mado.Core.Battle
                     BonusPct = _mulBonus + _dbgBonus[t],
                     SelfLostHp = c.MaxHp - c.Hp,
                     BonusSelfLostHpPct = e.BonusSelfLostHpPct,
-                    ElementMultiplier = DamageCalc.ElementMultiplier(_k, c.Element, target.Element),
+                    ElementMultiplier = DamageCalc.ElementMultiplier(_k, c.Element, target.Element) * ResistFor(c, target),
                     Crit = crit,
                     CritMultiplier = DamageCalc.CritMultiplier(_k, c.Eff.CritDamagePct, target.Eff.CritDefensePct),
                 });

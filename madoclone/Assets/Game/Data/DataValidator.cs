@@ -29,6 +29,7 @@ namespace Mado.Data
             CheckRewards(d, issues);
             CheckMemoryCards(d, issues);
             CheckLeaderTemple(d, issues);
+            CheckEnemyKits(d, issues);
             return issues;
         }
 
@@ -568,6 +569,69 @@ namespace Mado.Data
                 || t.RewardEveryLv < 1 || t.RewardMinLv < 1 || t.RewardCrystalPerLv < 1)
             {
                 Error(issues, "LEADER_TEMPLE", at, "費用・報酬の数値は正（成長率は1以上）");
+            }
+        }
+
+        // ---- enemy_kits.json ----
+
+        private static void CheckEnemyKits(GameData d, List<DataIssue> issues)
+        {
+            EnemyKitsConfig k = d.EnemyKits;
+            string at = DataLoader.EnemyKitsFile;
+            var skillIds = new HashSet<string>();
+            foreach (EnemySkillDef s in k.Skills)
+            {
+                if (!skillIds.Add(s.Id)) { Error(issues, "ID_DUPLICATE", at + ":" + s.Id, "ID が重複している"); }
+                CheckBody(d, s, at + ":" + s.Id, issues);
+            }
+            foreach (KeyValuePair<string, IReadOnlyList<string>> role in k.RoleSkills)
+            {
+                foreach (string id in role.Value)
+                {
+                    if (!skillIds.Contains(id)) { Error(issues, "ENEMY_KITS", at + ":roleSkills/" + role.Key, "知らないスキル " + id); }
+                }
+            }
+            var traitIds = new HashSet<string>();
+            foreach (BossTraitDef t in k.Traits)
+            {
+                if (!traitIds.Add(t.Id)) { Error(issues, "ID_DUPLICATE", at + ":" + t.Id, "ID が重複している"); }
+                if (t.Skills != null)
+                {
+                    foreach (string id in t.Skills)
+                    {
+                        if (!skillIds.Contains(id)) { Error(issues, "ENEMY_KITS", at + ":" + t.Id, "知らないスキル " + id); }
+                    }
+                }
+                if (t.ResistElement.HasValue != t.ResistMultiplier.HasValue || (t.ResistMultiplier.HasValue && !(t.ResistMultiplier.Value > 0)))
+                {
+                    Error(issues, "ENEMY_KITS", at + ":" + t.Id, "resistElement と resistMultiplier は組で、倍率は正");
+                }
+                if ((t.AtkMultiplier.HasValue && !(t.AtkMultiplier.Value > 0)) || (t.CritDamageMultiplier.HasValue && !(t.CritDamageMultiplier.Value > 0)))
+                {
+                    Error(issues, "ENEMY_KITS", at + ":" + t.Id, "倍率は正");
+                }
+            }
+            foreach (string id in k.FinalBossTraits)
+            {
+                if (!traitIds.Contains(id)) { Error(issues, "ENEMY_KITS", at + ":finalBossTraits", "知らない特徴 " + id); }
+            }
+            for (int i = 0; i < k.BossPlan.Count; i++)
+            {
+                BossPlanRow r = k.BossPlan[i];
+                string where = at + ":bossPlan[" + i + "]";
+                if (r.FromRank < 1 || r.ToRank < r.FromRank || r.ToRank > d.Difficulty.Ranks)
+                {
+                    Error(issues, "ENEMY_KITS", where, "ランクの範囲が正しくない");
+                }
+                foreach (string id in r.Traits)
+                {
+                    if (!traitIds.Contains(id)) { Error(issues, "ENEMY_KITS", where, "知らない特徴 " + id); }
+                }
+                for (int j = 0; j < i; j++)
+                {
+                    BossPlanRow o = k.BossPlan[j];
+                    if (r.FromRank <= o.ToRank && o.FromRank <= r.ToRank) { Error(issues, "ENEMY_KITS", where, "ランクの範囲が他の行と重なる"); }
+                }
             }
         }
 
