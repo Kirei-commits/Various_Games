@@ -38,6 +38,7 @@ namespace Mado.Core.Save
         public DragonNestState DragonNest { get; set; } = new DragonNestState();
         public SpiritStoneState SpiritStones { get; set; } = new SpiritStoneState();
         public ResearchState Research { get; set; } = new ResearchState();
+        public GachaState Gacha { get; set; } = new GachaState();
 
         /// <summary>マスタに無い ID・未知の項目の中身。捨てずに持ち越す（キーは "characters/ID" など）。</summary>
         public Dictionary<string, JToken> Orphans { get; set; } = new Dictionary<string, JToken>();
@@ -187,6 +188,15 @@ namespace Mado.Core.Save
 
         /// <summary>達成した図鑑の目標（"キャラ.lv60"、"キャラ.star3"）。昇順で保存。</summary>
         public List<string> Zukan { get; set; } = new List<string>();
+    }
+
+    /// <summary>キャラガチャ：累計の引き数、ピックアップの天井までの数、選んだピックアップ、受け取り済みのステップの数。</summary>
+    public sealed class GachaState
+    {
+        public int TotalPulls { get; set; }
+        public int PickupPity { get; set; }
+        public string PickupId { get; set; }
+        public int StepsClaimed { get; set; }
     }
 
     public sealed class PartyState

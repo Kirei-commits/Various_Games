@@ -18,7 +18,7 @@ namespace Mado.Core.Save
         private static readonly HashSet<string> KnownTop = new HashSet<string>
         {
             "format", "saveVersion", "devMode", "savedAtUtc", "rng", "wallet", "walletCarry",
-            "characters", "leader", "parties", "metrics", "progress", "settings", "memory", "temple", "idle", "plazas", "trials", "supports", "dragonNest", "spiritStones", "research", "orphans",
+            "characters", "leader", "parties", "metrics", "progress", "settings", "memory", "temple", "idle", "plazas", "trials", "supports", "dragonNest", "spiritStones", "research", "gacha", "orphans",
         };
 
         // ---------------- 書き出し ----------------
@@ -100,6 +100,7 @@ namespace Mado.Core.Save
             o["dragonNest"] = Sorted(nest);
             o["spiritStones"] = StonesToJson(s.SpiritStones);
             o["research"] = ResearchToJson(s.Research);
+            o["gacha"] = new JObject { ["totalPulls"] = s.Gacha.TotalPulls, ["pickupPity"] = s.Gacha.PickupPity, ["pickupId"] = Str(s.Gacha.PickupId), ["stepsClaimed"] = s.Gacha.StepsClaimed };
             o["idle"] = new JObject { ["lastClaimUtc"] = s.Idle.LastClaimUtc ?? "" };
             o["temple"] = new JObject
             {
@@ -256,6 +257,15 @@ namespace Mado.Core.Save
             }
             s.SpiritStones = ReadStones(Obj(o, "spiritStones"));
             s.Research = ReadResearch(Obj(o, "research"));
+            JObject gacha = Obj(o, "gacha");
+            if (gacha != null)
+            {
+                s.Gacha = new GachaState
+                {
+                    TotalPulls = Opt(gacha, "totalPulls", 0), PickupPity = Opt(gacha, "pickupPity", 0),
+                    PickupId = OptStr(gacha, "pickupId"), StepsClaimed = Opt(gacha, "stepsClaimed", 0),
+                };
+            }
             JObject idle = Obj(o, "idle");
             if (idle != null) { s.Idle = new IdleState { LastClaimUtc = Opt(idle, "lastClaimUtc", "") }; }
             JObject temple = Obj(o, "temple");

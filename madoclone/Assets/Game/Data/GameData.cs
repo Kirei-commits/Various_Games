@@ -26,6 +26,7 @@ namespace Mado.Data
         public SpiritStonesConfig SpiritStones { get; }
         public ResearchConfig Research { get; }
         public UnlocksConfig Unlocks { get; }
+        public GachaConfig Gacha { get; }
         public BuffTable Buffs { get; }
         public TextTable Text { get; }
 
@@ -54,6 +55,7 @@ namespace Mado.Data
             SpiritStonesConfig spiritStones,
             ResearchConfig research,
             UnlocksConfig unlocks,
+            GachaConfig gacha,
             BuffTable buffs,
             IReadOnlyList<TierDef> tiers,
             IReadOnlyList<CharacterDef> characters,
@@ -76,6 +78,7 @@ namespace Mado.Data
             SpiritStones = spiritStones;
             Research = research;
             Unlocks = unlocks;
+            Gacha = gacha;
             Buffs = buffs;
             Tiers = tiers;
             Characters = characters;

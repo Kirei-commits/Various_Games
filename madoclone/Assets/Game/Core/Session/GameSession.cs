@@ -64,6 +64,7 @@ namespace Mado.Core.Session
         private readonly SupportService _supports;
         private readonly DragonNestService _nest;
         private readonly SpiritStoneService _stones;
+        private readonly GachaService _gacha;
         private readonly TreeService _trees;
         private readonly TarotService _tarot;
         private readonly CollectionService _collection;
@@ -104,6 +105,7 @@ namespace Mado.Core.Session
 
             _nest = new DragonNestService(data, _save, _wallet);
             _stones = new SpiritStoneService(data, _save, _wallet);
+            _gacha = new GachaService(data, _save, _wallet, _roster);
             _trees = new TreeService(data, _save, _wallet);
             _tarot = new TarotService(data, _save, _wallet);
             _collection = new CollectionService(data, _save, _wallet);
@@ -115,7 +117,7 @@ namespace Mado.Core.Session
             _supports = new SupportService(data, _save, _builder.Skills);
             _trials = new TrialService(data, _save, _wallet, clock, _stages, _builder);
             _idle.EnsureStarted();
-            State = new GameState(_save, _wallet, _idle, _metrics, _trials, _supports, _nest, _stones, _trees, _collection, _zukan, IsUnlocked);
+            State = new GameState(_save, _wallet, _idle, _metrics, _trials, _supports, _nest, _stones, _trees, _collection, _zukan, _gacha, IsUnlocked);
             Debug = new DebugCommands(this);
         }
 
@@ -366,6 +368,37 @@ namespace Mado.Core.Session
             SupportFailure f = _supports.Clear(DefaultParty, kind);
             if (f != SupportFailure.None) { return Failed(f); }
             return Done(new GameEvent(GameEventKind.SupportChanged, "", 0, (int)kind));
+        }
+
+        // ---------------- キャラガチャ ----------------
+
+        /// <summary>count 回引く。チケットが足りなければ何も変えない。引いたキャラは所持に入る（重複はコピー）。</summary>
+        public CommandResult PullCharacterGacha(GachaBanner banner, int count, out GachaResult result)
+        {
+            GachaFailure f = _gacha.Pull(banner, count, _save.Progress.Rank, out result);
+            if (f != GachaFailure.None) { Finish(); return CommandResult.Fail(f); }
+            _metrics.Add(MetricCounter.Keys.GachaPulls, count);
+            var evs = new List<GameEvent>();
+            foreach (GachaDrop d in result.Drops)
+            {
+                if (d.IsNew) { evs.Add(new GameEvent(GameEventKind.CharacterObtained, d.CharacterId)); }
+            }
+            evs.Add(new GameEvent(GameEventKind.GachaPulled, banner.ToString(), count, result.Drops.Count(x => x.IsNew), result.StepsClaimed.ToString()));
+            Finish(evs.ToArray());
+            return CommandResult.Ok();
+        }
+
+        public CommandResult BuyGachaTickets(int count)
+        {
+            GachaFailure f = _gacha.BuyTickets(count);
+            return f == GachaFailure.None ? Done() : Failed(f);
+        }
+
+        /// <summary>ピックアップのキャラを選ぶ（極の格で、いまのランクで解放済みのキャラ。null で解除）。</summary>
+        public CommandResult SetGachaPickup(string characterId)
+        {
+            GachaFailure f = _gacha.SetPickup(characterId, _save.Progress.Rank);
+            return f == GachaFailure.None ? Done() : Failed(f);
         }
 
         // ---------------- 研究・リーダー特殊ツリー・タロット・コレクション・図鑑 ----------------

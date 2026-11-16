@@ -53,6 +53,7 @@ namespace Mado.Core.Metrics
             public const string BattlesWon = "battle.won";
             public const string LevelUps = "growth.level_ups";
             public const string Awakenings = "growth.awakenings";
+            public const string GachaPulls = "gacha.pulls";
         }
     }
 }

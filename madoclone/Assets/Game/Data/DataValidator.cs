@@ -37,6 +37,7 @@ namespace Mado.Data
             CheckSpiritStones(d, issues);
             CheckResearch(d, issues);
             CheckUnlocks(d, issues);
+            CheckGacha(d, issues);
             return issues;
         }
 
@@ -873,6 +874,33 @@ namespace Mado.Data
             foreach (PlazaDef p in d.Plazas.Plazas)
             {
                 if (!ids.Contains("plaza_" + p.Id)) { Error(issues, "UNLOCKS", at, "広場 " + p.Id + " の解放（plaza_" + p.Id + "）が表に無い"); }
+            }
+        }
+
+        // ---- gacha.json ----
+
+        private static void CheckGacha(GameData d, List<DataIssue> issues)
+        {
+            GachaConfig g = d.Gacha;
+            string at = DataLoader.GachaFile;
+            if (!d.TryCurrency(g.TicketCurrency, out _)) { Error(issues, "GACHA", at, "マスタに無い通貨 " + g.TicketCurrency); }
+            if (!(g.TicketGemPrice > 0) || g.PickupPity < 1 || !(g.PickupShare >= 0 && g.PickupShare <= 1)) { Error(issues, "GACHA", at, "チケットの値段は正、天井は1以上、pickupShare は0〜1"); }
+            double sum = 0;
+            var seen = new HashSet<string>();
+            foreach (TierRate r in g.TierRates)
+            {
+                TierDef tier = null;
+                foreach (TierDef t in d.Tiers) { if (EnumStringConverter.Text(t.Id) == r.Tier) { tier = t; } }
+                if (tier == null || !tier.Gacha || !seen.Add(r.Tier) || !(r.Pct > 0)) { Error(issues, "GACHA", at + ":" + r.Tier, "格が無い・ガチャに出ない格・重複・確率が正でない"); }
+                sum += r.Pct;
+            }
+            if (System.Math.Abs(sum - 100.0) > 1e-6) { Error(issues, "GACHA", at + ":tierRates", "確率の合計が100ではない: " + sum); }
+            if (!seen.Contains(g.PickupTier)) { Error(issues, "GACHA", at + ":pickupTier", "ピックアップの格が tierRates に無い"); }
+            int prev = 0;
+            foreach (GachaStep s in g.Steps)
+            {
+                if (s.Count <= prev || !(s.Amount > 0) || !d.TryCurrency(s.CurrencyId, out _)) { Error(issues, "GACHA", at + ":steps", "ステップは昇順、量は正、通貨はマスタにある"); }
+                prev = s.Count;
             }
         }
 

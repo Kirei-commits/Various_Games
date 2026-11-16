@@ -36,6 +36,8 @@ namespace Mado.Core.Wallet
         public const string TarotSet = "tarot.set";
         public const string CollectionStar = "collection.star";
         public const string ZukanReward = "zukan.reward";
+        public const string GachaStep = "gacha.step";
+        public const string GachaTicketBuy = "gacha.ticketbuy";
         public const string IdleClaim = "idle.claim";
         public const string LeaderLevelUp = "leader.levelup";
         public const string LeaderReward = "leader.reward";
@@ -52,6 +54,7 @@ namespace Mado.Core.Wallet
         public const string DragonFlame = "dragon_flame";
         public const string StarSand = "star_sand";
         public const string Wine = "wine";
+        public const string GachaTicket = "gacha_ticket";
         public const string CollectionMedal = "collection_medal";
         public const string ManaShard = "mana_shard";
         public const string ManaCrystal = "mana_crystal";

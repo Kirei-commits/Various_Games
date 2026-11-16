@@ -62,10 +62,12 @@ namespace Mado.Core.Session
         private readonly Growth.TreeService _trees;
         private readonly Growth.CollectionService _collection;
         private readonly Growth.ZukanService _zukan;
+        private readonly Growth.GachaService _gacha;
         private readonly Func<string, bool> _isUnlocked;
 
-        internal GameState(SaveData save, Wallet.Wallet wallet, IdleService idle, Metrics.MetricCounter metrics, Growth.TrialService trials, Growth.SupportService supports, Growth.DragonNestService nest, Growth.SpiritStoneService stones, Growth.TreeService trees, Growth.CollectionService collection, Growth.ZukanService zukan, Func<string, bool> isUnlocked)
+        internal GameState(SaveData save, Wallet.Wallet wallet, IdleService idle, Metrics.MetricCounter metrics, Growth.TrialService trials, Growth.SupportService supports, Growth.DragonNestService nest, Growth.SpiritStoneService stones, Growth.TreeService trees, Growth.CollectionService collection, Growth.ZukanService zukan, Growth.GachaService gacha, Func<string, bool> isUnlocked)
         {
+            _gacha = gacha;
             _isUnlocked = isUnlocked;
             _nest = nest; _stones = stones; _trees = trees; _collection = collection; _zukan = zukan;
             _save = save; _wallet = wallet; _idle = idle; _metrics = metrics; _trials = trials; _supports = supports;
@@ -94,6 +96,12 @@ namespace Mado.Core.Session
         }
 
         /// <summary>機能が使えるか（unlocks.json。例："memory_card"、"trial_dragon"、"plaza_spirit"）。</summary>
+        public int GachaTotalPulls { get { return _gacha.TotalPulls; } }
+
+        /// <summary>ピックアップの天井までの残り回数。</summary>
+        public int GachaPityLeft { get { return _gacha.PityLeft; } }
+        public string GachaPickup { get { return _gacha.PickupId; } }
+
         public bool IsUnlocked(string featureId) { return _isUnlocked(featureId); }
 
         public ProgressView Progress { get { return new ProgressView(_save.Progress); } }

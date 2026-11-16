@@ -121,6 +121,18 @@ namespace Mado.Data.Tests
             yield return C("REWARDS", rw, r => r["idleCapHours"] = 0);
             yield return C("REWARDS", rw, r => r["idleCoinPerExp"] = -1);
 
+            // ---- gacha.json ----
+            string gc = DataLoader.GachaFile;
+            yield return C("GACHA", gc, r => r["ticketCurrency"] = "nope");
+            yield return C("GACHA", gc, r => r["ticketGemPrice"] = 0);
+            yield return C("GACHA", gc, r => r["pickupPity"] = 0);
+            yield return C("GACHA", gc, r => r["tierRates"][0]["pct"] = 50);               // 合計が100でない
+            yield return C("GACHA", gc, r => r["tierRates"][1]["tier"] = "so");            // 重複
+            yield return C("GACHA", gc, r => r["tierRates"][0]["tier"] = "lr");            // ガチャに出ない格
+            yield return C("GACHA", gc, r => r["pickupTier"] = "lr");
+            yield return C("GACHA", gc, r => r["steps"][1]["count"] = 50);                 // 昇順でない
+            yield return C("GACHA", gc, r => r["steps"][0]["currencyId"] = "nope");
+
             // ---- unlocks.json ----
             string ul = DataLoader.UnlocksFile;
             yield return C("UNLOCKS", ul, r => r["features"][1]["id"] = "memory_card");

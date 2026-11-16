@@ -95,6 +95,12 @@ namespace Mado.Core.Save
             CheckMemory(save, data, issues);
             CheckStones(save, data, issues);
             CheckResearch(save, data, issues);
+            GachaState gs = save.Gacha;
+            if (gs.TotalPulls < 0 || gs.PickupPity < 0 || gs.PickupPity > data.Gacha.PickupPity || gs.StepsClaimed < 0 || gs.StepsClaimed > data.Gacha.Steps.Count)
+            {
+                Add(issues, SaveSeverity.Error, "GACHA_STATE", "ガチャの状態が範囲外（引き数・天井・受け取り済みステップ）", "gacha");
+            }
+            if (gs.PickupId != null && !data.TryCharacter(gs.PickupId, out _)) { Add(issues, SaveSeverity.Warning, "GACHA_PICKUP", "ピックアップのキャラがマスタに無い: " + gs.PickupId, "gacha.pickupId"); }
             var nestMax = NestMaxLevels(data);
             foreach (KeyValuePair<string, int> kv in save.DragonNest.Levels)
             {

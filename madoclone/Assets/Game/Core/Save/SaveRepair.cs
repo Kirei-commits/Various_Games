@@ -23,6 +23,13 @@ namespace Mado.Core.Save
             RepairMemory(save, data, done);
             RepairStones(save, data, done);
             RepairResearch(save, data, done);
+            GachaState gs = save.Gacha;
+            int pulls = Math.Max(0, gs.TotalPulls), pity = Math.Max(0, Math.Min(gs.PickupPity, data.Gacha.PickupPity)), steps = Math.Max(0, Math.Min(gs.StepsClaimed, data.Gacha.Steps.Count));
+            if (pulls != gs.TotalPulls || pity != gs.PickupPity || steps != gs.StepsClaimed)
+            {
+                Note(done, "ガチャの状態を範囲内に直した", "gacha");
+                gs.TotalPulls = pulls; gs.PickupPity = pity; gs.StepsClaimed = steps;
+            }
             Dictionary<string, int> nestMax = SaveValidator.NestMaxLevels(data);
             foreach (string id in new List<string>(save.DragonNest.Levels.Keys))
             {
