@@ -11,6 +11,7 @@ namespace Mado.Sim
   golden [--update] [--generate]                      ゴールデン（解決済み BattleSetup のハッシュ）の確認・更新
   calibrate [--rank A..B] [--runs 200] [--write]     標準編成の共通倍率と敵の倍率（enemyScale）を求める
   rewards [--write]                                   敵1体あたりの経験値の表を計算する（rewards.json の expPerEnemy）
+  economy [--minutes 120] [--seed 1]                  遊び手に N 分遊ばせて、育ち具合を10分ごとに表示する（「1〜2時間で★6」の確かめ）
   battle (--setup FILE | --case NAME) [--n 1000] [--seed0 1] [--factor X]   1,000戦（--case では敵の戦力倍率を上書きできる）などを回して勝率・決着時間・ダメージを表示
 ";
 
@@ -28,6 +29,7 @@ namespace Mado.Sim
                     case "battle": return BattleCommand.Run(opts);
                     case "calibrate": return CalibrateCommand.Run(opts);
                     case "rewards": return RewardsCommand.Run(opts);
+                    case "economy": return EconomyCommand.Run(opts);
                     default:
                         Console.Error.Write(Usage);
                         return 2;

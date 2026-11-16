@@ -154,6 +154,70 @@
       "powerGrowth": 1.06,
       "traits": [],
       "dropsStones": false
+    },
+    {
+      "id": "guild_raid",
+      "timeLimitSec": 60,
+      "fights": 1,
+      "levelOnClear": 1,
+      "rewardPerLv": [
+        {
+          "currencyId": "guild_coin",
+          "amount": 3.0
+        }
+      ],
+      "gate": {
+        "chargePerDay": 3
+      },
+      "statRank": 10,
+      "powerBase": 45000000.0,
+      "powerGrowth": 1.06,
+      "traits": [],
+      "dropsStones": false
+    },
+    {
+      "id": "arena",
+      "timeLimitSec": 60,
+      "fights": 1,
+      "levelOnClear": 1,
+      "rewardPerLv": [
+        {
+          "currencyId": "tournament_point",
+          "amount": 19.0
+        }
+      ],
+      "gate": {
+        "chargePerDay": 5
+      },
+      "statRank": 10,
+      "powerBase": 45000000.0,
+      "powerGrowth": 1.06,
+      "traits": [],
+      "dropsStones": false
+    },
+    {
+      "id": "library",
+      "timeLimitSec": 30,
+      "fights": 1,
+      "levelOnClear": 1,
+      "rewardPerLv": [
+        {
+          "currencyId": "research_memo",
+          "amount": 6.0
+        },
+        {
+          "currencyId": "bond_heart",
+          "amount": 2.0
+        }
+      ],
+      "gate": {
+        "chargePerDay": 3
+      },
+      "statRank": 10,
+      "powerBase": 45000000.0,
+      "powerGrowth": 1.06,
+      "traits": [],
+      "dropsStones": false
     }
   ]
 }

@@ -492,6 +492,7 @@ namespace Mado.Data
             {
                 Error(issues, "REWARDS", at, "paceSlack は正の数、enemiesPerWave・enemiesPerBoss は1以上");
             }
+            if (r.AwakenShardPerEnemy < 0) { Error(issues, "REWARDS", at, "awakenShardPerEnemy は0以上"); }
             if (!(r.IdleCapHours > 0) || !(r.IdleKillsPerMinute > 0) || r.IdleCoinPerExp < 0 || r.IdleBondHeartPerHour < 0 || r.IdleWinePerMinute < 0)
             {
                 Error(issues, "REWARDS", at, "idleCapHours・idleKillsPerMinute は正の数、idleCoinPerExp・idleBondHeartPerHour は0以上");

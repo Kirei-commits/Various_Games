@@ -79,7 +79,7 @@ namespace Mado.View
                 }
             }
             session.SetParty(party);
-            session.Debug.GrantCurrency("gacha_ticket", 300);
+            session.Debug.GrantCurrency("gacha_ticket", 30);
             session.DrainEvents();
         }
 

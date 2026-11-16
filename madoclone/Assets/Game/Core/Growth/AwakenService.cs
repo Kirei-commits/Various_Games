@@ -15,9 +15,12 @@ namespace Mado.Core.Growth
         public readonly double ShardsSpent;
         public readonly double ShortBy;
 
-        public AwakenResult(bool success, AwakenFailure failure, int newStar, double shardsSpent, double shortBy)
+        /// <summary>覚醒に使った、そのキャラの余ったコピーの数（欠片より先に使う）。</summary>
+        public readonly int CopiesUsed;
+
+        public AwakenResult(bool success, AwakenFailure failure, int newStar, double shardsSpent, double shortBy, int copiesUsed = 0)
         {
-            Success = success; Failure = failure; NewStar = newStar; ShardsSpent = shardsSpent; ShortBy = shortBy;
+            Success = success; Failure = failure; NewStar = newStar; ShardsSpent = shardsSpent; ShortBy = shortBy; CopiesUsed = copiesUsed;
         }
 
         public static AwakenResult Fail(AwakenFailure f, double shortBy = 0) { return new AwakenResult(false, f, 0, 0, shortBy); }
@@ -56,16 +59,22 @@ namespace Mado.Core.Growth
             if (characterId == null || !_data.TryCharacter(characterId, out _)) { return AwakenResult.Fail(AwakenFailure.UnknownCharacter); }
             if (!_save.Characters.TryGetValue(characterId, out CharacterState c)) { return AwakenResult.Fail(AwakenFailure.NotOwned); }
             if (c.Star >= MaxStar) { return AwakenResult.Fail(AwakenFailure.AtMaxStar); }
-            int cost = CostToNext(c.Star);
+            int total = CostToNext(c.Star);
+            int copies = Math.Min(total, Math.Max(0, c.Copies));      // 余ったコピーを先に使い、足りない分を欠片で払う（docs/01 7.1節の置き換え）
+            int cost = total - copies;
             double have = _wallet.Balance(CurrencyIds.AwakenShard);
             if (!_wallet.Unlimited && have < cost) { return AwakenResult.Fail(AwakenFailure.NotEnoughShards, cost - have); }
 
             // 先に★を上げる（魔晶の置き場が壊れていれば、ここで例外になり、欠片は減らない）。そのあとで払う。
             int newStar = c.Star + 1;
             if (!_roster.TrySetStar(characterId, newStar)) { throw new InvalidOperationException("★を上げられない: " + characterId); }
-            PayResult pay = _wallet.Pay(new Cost(CurrencyIds.AwakenShard, cost), new PayReason(WalletReasons.GrowthAwaken));
-            if (!pay.Success) { throw new InvalidOperationException("残高を確かめたのに払えなかった（プログラムの誤り）"); }
-            return new AwakenResult(true, AwakenFailure.None, newStar, cost, 0);
+            if (cost > 0)
+            {
+                PayResult pay = _wallet.Pay(new Cost(CurrencyIds.AwakenShard, cost), new PayReason(WalletReasons.GrowthAwaken));
+                if (!pay.Success) { throw new InvalidOperationException("残高を確かめたのに払えなかった（プログラムの誤り）"); }
+            }
+            c.Copies -= copies;
+            return new AwakenResult(true, AwakenFailure.None, newStar, cost, 0, copies);
         }
     }
 }

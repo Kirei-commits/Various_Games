@@ -119,6 +119,7 @@ namespace Mado.Data.Tests
             yield return C("REWARDS", rw, r => r["paceSlack"] = 0);
             yield return C("REWARDS", rw, r => r["enemiesPerWave"] = 0);
             yield return C("REWARDS", rw, r => r["idleCapHours"] = 0);
+            yield return C("REWARDS", rw, r => r["awakenShardPerEnemy"] = -1);
             yield return C("REWARDS", rw, r => r["idleCoinPerExp"] = -1);
 
             // ---- economy.json ----

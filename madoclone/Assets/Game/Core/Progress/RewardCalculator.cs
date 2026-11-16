@@ -38,7 +38,8 @@ namespace Mado.Core.Progress
         {
             if (result == null) { throw new ArgumentNullException(nameof(result)); }
             double exp = ExpPerEnemy(rank) * result.EnemiesDefeated;
-            return new Reward(CurrencyIds.Exp, exp);
+            double shards = _data.Rewards.AwakenShardPerEnemy * result.EnemiesDefeated;
+            return new Reward(new[] { new Money(CurrencyIds.Exp, exp), new Money(CurrencyIds.AwakenShard, shards) });
         }
     }
 }

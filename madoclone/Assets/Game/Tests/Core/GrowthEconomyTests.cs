@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Mado.Core.Battle;
 using Mado.Core.Growth;
 using Mado.Core.Metrics;
@@ -217,11 +218,13 @@ namespace Mado.Core.Tests
             for (int rank = 1; rank <= Data.Difficulty.Ranks; rank++)
             {
                 Reward r = calc.ForBattle(rank, result);
-                Assert.AreEqual(1, r.Items.Count);
+                Assert.AreEqual(2, r.Items.Count);
                 Assert.AreEqual(CurrencyIds.Exp, r.Items[0].CurrencyId);
                 Assert.AreEqual(calc.ExpPerEnemy(rank) * 4, r.Items[0].Amount, 1e-6);
+                Assert.AreEqual(CurrencyIds.AwakenShard, r.Items[1].CurrencyId);                       // 覚醒の欠片も確定ドロップ
+                Assert.AreEqual(Data.Rewards.AwakenShardPerEnemy * 4, r.Items[1].Amount, 1e-9);
             }
-            Assert.AreEqual(0, calc.ForBattle(1, new BattleResult()).Items.Count);   // 倒していなければ空
+            Assert.IsTrue(calc.ForBattle(1, new BattleResult()).Items.All(m => m.Amount == 0));   // 倒していなければ0
             Assert.Throws<ArgumentException>(() => calc.ExpPerEnemy(0));
             Assert.Throws<ArgumentException>(() => calc.ExpPerEnemy(33));
             Assert.Throws<ArgumentNullException>(() => calc.ForBattle(1, null));
@@ -289,6 +292,38 @@ namespace Mado.Core.Tests
             new MetricCounter(save).Add(MetricCounter.Keys.EnemiesDefeated, 1234567);
             LoadResult r = SaveCodec.Load(SaveCodec.Serialize(save), Data);
             Assert.AreEqual(1234567, new MetricCounter(r.Save).Get(MetricCounter.Keys.EnemiesDefeated));
+        }
+
+        [Test]
+        public void Awaken_UsesSpareCopiesFirst_ThenShards()
+        {
+            var e = new Env(shards: 10);
+            e.C.Star = 3;                                         // ★3→4 は 3 枚
+            e.C.Copies = 2;
+            AwakenResult r = e.Awaken.Awaken("chr_001");
+            Assert.IsTrue(r.Success);
+            Assert.AreEqual(2, r.CopiesUsed);
+            Assert.AreEqual(1, r.ShardsSpent);                    // 足りない 1 枚だけ欠片
+            Assert.AreEqual(0, e.C.Copies);
+            Assert.AreEqual(9, e.Wallet.Balance(CurrencyIds.AwakenShard));
+
+            var rich = new Env(shards: 0);
+            rich.C.Star = 0;
+            rich.C.Copies = 5;                                    // ★0→1 は 1 枚：コピーだけで足りる
+            AwakenResult only = rich.Awaken.Awaken("chr_001");
+            Assert.IsTrue(only.Success);
+            Assert.AreEqual(1, only.CopiesUsed);
+            Assert.AreEqual(0, only.ShardsSpent);
+            Assert.AreEqual(4, rich.C.Copies);
+            Assert.AreEqual(0, rich.Wallet.Balance(CurrencyIds.AwakenShard));
+
+            var poor = new Env(shards: 0);
+            poor.C.Star = 3; poor.C.Copies = 2;
+            AwakenResult no = poor.Awaken.Awaken("chr_001");       // 3 枚のところ、コピー 2＋欠片 0
+            Assert.AreEqual(AwakenFailure.NotEnoughShards, no.Failure);
+            Assert.AreEqual(1, no.ShortBy);
+            Assert.AreEqual(2, poor.C.Copies);                    // 失敗ではコピーも減らない
+            Assert.AreEqual(3, poor.C.Star);
         }
     }
 }

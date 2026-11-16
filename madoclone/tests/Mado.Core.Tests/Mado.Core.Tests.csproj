@@ -15,6 +15,7 @@
     <!-- dotnet だけのテスト（Unity には入れない開発ツールの部品）。 -->
     <Compile Include="../../tools/Mado.Sim/SimPolicy.cs" Link="Sim/SimPolicy.cs" />
     <Compile Include="../../tools/Mado.Sim/RewardsPlan.cs" Link="Sim/RewardsPlan.cs" />
+    <Compile Include="../../tools/Mado.Sim/EconomyBot.cs" Link="Sim/EconomyBot.cs" />
     <Compile Include="../Sim/**/*.cs" />
   </ItemGroup>
 

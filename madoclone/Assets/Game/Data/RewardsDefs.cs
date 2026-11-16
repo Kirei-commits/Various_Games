@@ -16,6 +16,9 @@ namespace Mado.Data
         public int EnemiesPerWave { get; init; }
         public int EnemiesPerBoss { get; init; }
 
+        /// <summary>敵1体を倒すと落ちる覚醒の欠片（ステージでの確定ドロップ。docs/01 7.1節）。</summary>
+        public double AwakenShardPerEnemy { get; init; }
+
         /// <summary>放置報酬：たまる上限の時間（docs/01 第8章の置き換え一覧で 24 時間。実測は 8 時間）。</summary>
         public double IdleCapHours { get; init; }
 
