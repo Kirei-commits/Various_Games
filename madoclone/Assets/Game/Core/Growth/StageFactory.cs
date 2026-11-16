@@ -205,6 +205,7 @@ namespace Mado.Core.Growth
                 s.CritRatePct += t.CritRatePt;
                 if (t.CritDamageMultiplier.HasValue) { s.CritDamagePct *= t.CritDamageMultiplier.Value; }
                 if (t.AtkMultiplier.HasValue) { s.Atk *= t.AtkMultiplier.Value; }
+                body.Stats = s;   // BattleStats は struct：書き戻さないと変更が消える
                 if (t.ResistElement.HasValue) { body.ResistElement = t.ResistElement; body.ResistMultiplier = t.ResistMultiplier.Value; }
                 if (t.Skills != null) { foreach (string id in t.Skills) { body.Crystals.Add(ResolveEnemySkill(id)); } }
             }
