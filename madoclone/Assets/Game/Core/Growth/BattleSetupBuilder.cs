@@ -66,6 +66,19 @@ namespace Mado.Core.Growth
             return u;
         }
 
+        /// <summary>
+        /// 固有魔晶だけを、もらった直後の場所（★6で開く枠）に付けた状態。★が足りなければ null（魔晶なし）。
+        /// セーブを持たないシミュレーションやゴールデンで使う。
+        /// </summary>
+        public IReadOnlyList<string> OwnCrystalLoadout(string characterId, int star)
+        {
+            int slot = CrystalService.OwnCrystalSlot;
+            if (star < _data.System.CrystalSlotStars[slot]) { return null; }
+            var loadout = new string[CharacterState.CrystalSlots];
+            loadout[slot] = _data.Character(characterId).CrystalId;
+            return loadout;
+        }
+
         public UnitSetup BuildAlly(string characterId, CharacterState s, bool isLeader)
         {
             return BuildAlly(characterId, s.Star, s.Lv, s.Crystals, isLeader);

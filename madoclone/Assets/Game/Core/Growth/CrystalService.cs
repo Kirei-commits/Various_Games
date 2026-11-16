@@ -49,6 +49,9 @@ namespace Mado.Core.Growth
     /// </summary>
     public sealed class CrystalService
     {
+        /// <summary>固有魔晶が最初に入る枠（CharacterState.OwnCrystalSlot と同じ）。</summary>
+        public const int OwnCrystalSlot = CharacterState.OwnCrystalSlot;
+
         private readonly GameData _data;
         private readonly SaveData _save;
         private readonly List<CrystalMoved> _events = new List<CrystalMoved>();
@@ -116,14 +119,14 @@ namespace Mado.Core.Growth
         /// <summary>★が固有魔晶の出る★を跨いだとき、その魔晶を対応する枠に置く。</summary>
         public void OnStarChanged(string characterId, int oldStar, int newStar)
         {
-            int crystalStar = _data.System.CrystalSlotStars[2];
+            int crystalStar = _data.System.CrystalSlotStars[OwnCrystalSlot];
             if (!(oldStar < crystalStar && crystalStar <= newStar)) { return; }
             if (!_save.Characters.TryGetValue(characterId, out CharacterState c))
             {
                 throw new InvalidOperationException("未所持のキャラの★が変わった: " + characterId);
             }
             string crystalId = _data.Character(characterId).CrystalId;
-            if (c.Crystals[2] != null)
+            if (c.Crystals[OwnCrystalSlot] != null)
             {
                 throw new InvalidOperationException("★" + crystalStar + " になった瞬間の枠が空でない: " + characterId);
             }
@@ -131,7 +134,7 @@ namespace Mado.Core.Growth
             {
                 throw new InvalidOperationException("固有魔晶 " + crystalId + " が既に存在する");
             }
-            c.Crystals[2] = crystalId;
+            c.Crystals[OwnCrystalSlot] = crystalId;
         }
 
         public IReadOnlyList<CrystalMoved> DrainEvents()

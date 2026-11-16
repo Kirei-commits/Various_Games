@@ -12,6 +12,9 @@
   <ItemGroup>
     <Compile Include="../../Assets/Game/Tests/Core/**/*.cs" />
     <Compile Include="../../Assets/Game/Tests/Data/**/*.cs" />
+    <!-- dotnet だけのテスト（Unity には入れない開発ツールの部品）。 -->
+    <Compile Include="../../tools/Mado.Sim/SimPolicy.cs" Link="Sim/SimPolicy.cs" />
+    <Compile Include="../Sim/**/*.cs" />
   </ItemGroup>
 
   <ItemGroup>

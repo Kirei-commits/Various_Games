@@ -65,11 +65,7 @@ namespace Mado.Core.Tests.Golden
             for (int i = 0; i < c.Party.Length; i++)
             {
                 string id = "chr_" + c.Party[i];
-                IReadOnlyList<string> crystals = null;
-                if (c.CrystalsAtStar6 && c.Star >= data.System.CrystalSlotStars[2])
-                {
-                    crystals = new[] { null, null, data.Character(id).CrystalId, null, null };
-                }
+                IReadOnlyList<string> crystals = c.CrystalsAtStar6 ? builder.OwnCrystalLoadout(id, c.Star) : null;
                 UnitSetup u = builder.BuildAlly(id, c.Star, lv, crystals, i == c.Party.Length - 1);
                 allies.Add(u);
                 power += u.Stats.Power;

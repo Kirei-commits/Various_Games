@@ -346,8 +346,7 @@ namespace Mado.Core.Tests
             Assert.AreEqual(2, Hits(log, 0).Count);
             Assert.AreEqual(2, hit.Calls.Count);    // 命中と、クリティカルの2回だけ
 
-            var miss = new ScriptedChance { Default = false };
-            Run(S(U("a2"), e, limit: 12), out _, miss);
+            // 外れたとき：追加ダメージも出ず、引くのは命中の1回だけ。
             var a3 = U("a3");
             a3.Normal = a.Normal;
             var missing = new ScriptedChance { Default = false };
@@ -585,7 +584,7 @@ namespace Mado.Core.Tests
             Run(S(a, e, limit: 15), out EventLog log);
             var warn = log.Of(BattleEventType.Warning).FindAll(w => w.Aux == WarningCode.ChainLimit);
             Assert.AreEqual(1, warn.Count);
-            Assert.LessOrEqual(log.Of(BattleEventType.SkillFired).Count, 64 + 4);
+            Assert.LessOrEqual(log.Of(BattleEventType.SkillFired).Count, new BattleConstants().ChainLimit + 4);
         }
 
         // ---------------- 決定性 ----------------

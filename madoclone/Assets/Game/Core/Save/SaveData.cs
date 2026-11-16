@@ -42,6 +42,9 @@ namespace Mado.Core.Save
     {
         public const int CrystalSlots = 5;
 
+        /// <summary>固有魔晶が最初に入る枠（★6で開く枠）。system.crystalSlotStars のこの位置の★で、魔晶が手に入る。</summary>
+        public const int OwnCrystalSlot = 2;
+
         public int Star { get; set; }
         public int Lv { get; set; } = 1;
         public double Exp { get; set; }

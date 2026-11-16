@@ -8,35 +8,6 @@ using NUnit.Framework;
 
 namespace Mado.Core.Tests
 {
-    internal static class TestData
-    {
-        private static GameData _data;
-
-        public static GameData Data
-        {
-            get
-            {
-                if (_data == null) { _data = DataLoader.Load(new FileDataSource(FindDataDir())); }
-                return _data;
-            }
-        }
-
-        public static string FindDataDir() { return FindUp("Assets", "Game", "Data", "Json"); }
-
-        public static string FindUp(params string[] parts)
-        {
-            foreach (string start in new[] { Directory.GetCurrentDirectory(), AppContext.BaseDirectory })
-            {
-                for (DirectoryInfo d = new DirectoryInfo(start); d != null; d = d.Parent)
-                {
-                    string c = Path.Combine(d.FullName, Path.Combine(parts));
-                    if (Directory.Exists(c) || File.Exists(c)) { return c; }
-                }
-            }
-            throw new FileNotFoundException(string.Join("/", parts));
-        }
-    }
-
     public class StatsTests
     {
         private static GameData Data { get { return TestData.Data; } }

@@ -3,7 +3,9 @@
 
 使い方:
   dotnet test tests/Mado.Core.Tests --collect:"XPlat Code Coverage" --results-directory out/cov
-  python3 tools/bootstrap/coverage_report.py out/cov [--lines ファイル名の一部]
+  python3 tools/bootstrap/coverage_report.py out/cov [--lines ファイル名の一部] [--min-line 95] [--min-branch 88]
+
+--min-line・--min-branch を付けると、合計がその値（％）を下回ったとき終了コード1。
 """
 import glob
 import os
@@ -46,8 +48,16 @@ def main():
             part = sorted(n for n, (g, t) in d["br"].items() if g < t and d["lines"][n] > 0)
             print("        通っていない行: " + ", ".join(map(str, miss)))
             print("        片側しか通っていない分岐: " + ", ".join(map(str, part)))
-    print("合計: 行 %.1f%%（%d/%d）  分岐 %.1f%%（%d/%d）" % (100 * tc / tl, tc, tl, 100 * tbc / tb, tbc, tb))
-    return 0
+    line_pct, branch_pct = 100 * tc / tl, 100 * tbc / tb
+    print("合計: 行 %.1f%%（%d/%d）  分岐 %.1f%%（%d/%d）" % (line_pct, tc, tl, branch_pct, tbc, tb))
+    failed = False
+    for flag, actual, label in (("--min-line", line_pct, "行"), ("--min-branch", branch_pct, "分岐")):
+        if flag in sys.argv:
+            floor = float(sys.argv[sys.argv.index(flag) + 1])
+            if actual < floor:
+                print("エラー: %sのカバレッジ %.1f%% が下限 %.1f%% を下回った" % (label, actual, floor))
+                failed = True
+    return 1 if failed else 0
 
 
 if __name__ == "__main__":

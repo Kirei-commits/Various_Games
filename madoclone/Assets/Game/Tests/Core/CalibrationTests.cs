@@ -20,26 +20,14 @@ namespace Mado.Core.Tests
             return SimProfiles.Load(new FileDataSource(TestData.FindDataDir()));
         }
 
+        private static ProfilePartyFactory Parties()
+        {
+            return new ProfilePartyFactory(Data, SimProfiles.LoadFile(new FileDataSource(TestData.FindDataDir())).AllySubstats);
+        }
+
         private static List<UnitSetup> Party(SimProfileDef p, double ratio)
         {
-            var scaled = new SimProfileDef
-            {
-                Rank = p.Rank, Star = p.Star, Lv = p.Lv, PartyCharacterIds = p.PartyCharacterIds,
-                GlobalMultiplier = new GlobalMultiplier
-                {
-                    Atk = p.GlobalMultiplier.Atk * ratio, Hp = p.GlobalMultiplier.Hp * ratio, Def = p.GlobalMultiplier.Def * ratio,
-                },
-            };
-            var b = new BattleSetupBuilder(Data, new StatResolver(Data, new IModifierSource[] { new ProfileModifierSource(scaled, SimProfiles.LoadFile(new FileDataSource(TestData.FindDataDir())).AllySubstats, Data.System.BaseSubstats) }));
-            var list = new List<UnitSetup>();
-            for (int i = 0; i < p.PartyCharacterIds.Count; i++)
-            {
-                string id = p.PartyCharacterIds[i];
-                IReadOnlyList<string> crystals = p.Star >= Data.System.CrystalSlotStars[2]
-                    ? new[] { null, null, Data.Character(id).CrystalId, null, null } : null;
-                list.Add(b.BuildAlly(id, p.Star, p.Lv, crystals, p.Rank >= 4 && i == p.PartyCharacterIds.Count - 1));
-            }
-            return list;
+            return Parties().Build(p, ratio);
         }
 
         private static double WinRate(SimProfileDef p, int runs)

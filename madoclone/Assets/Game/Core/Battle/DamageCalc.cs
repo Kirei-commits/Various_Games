@@ -9,6 +9,26 @@ namespace Mado.Core.Battle
         bool Chance(double percent);
     }
 
+    /// <summary>ダメージ1回の入力。Atk・Def は、バフ・デバフを反映した有効値。</summary>
+    public struct DamageInput
+    {
+        public double Atk, Def;
+
+        /// <summary>スキルの倍率（％）と、人数補正などで足す分（％ポイント）。</summary>
+        public double MultiplierPct, BonusPct;
+
+        /// <summary>攻撃側が失っている HP と、それを基礎に足す割合（％）。</summary>
+        public double SelfLostHp, BonusSelfLostHpPct;
+
+        /// <summary>属性の倍率（有利 1.2、不利 0.8、それ以外 1.0）。</summary>
+        public double ElementMultiplier;
+
+        public bool Crit;
+
+        /// <summary>クリティカルのときの倍率（Crit が false なら使わない）。</summary>
+        public double CritMultiplier;
+    }
+
     /// <summary>ダメージの式を書く、ここ1か所（docs/04 9.4節。docs/01 2.1・2.2節）。純粋関数。</summary>
     public static class DamageCalc
     {
@@ -54,18 +74,17 @@ namespace Mado.Core.Battle
         }
 
         /// <summary>
-        /// 命中した1回ぶんのダメージ。atk・def は増減を反映した有効値。
-        /// 基礎 = atk × (倍率 + 補正)/100 + 失った HP × pct/100（0 未満は 0）。ダメージ = max(最低, (基礎 − 防御) × 属性 × クリ倍率)。
+        /// 命中した1回ぶんのダメージ。
+        /// 基礎 = Atk × (倍率 + 補正)/100 + 失った HP × pct/100（0 未満は 0）。ダメージ = max(最低, (基礎 − 防御) × 属性 × クリ倍率)。
         /// </summary>
-        public static double Damage(BattleConstants k, double atk, double def, double multiplierPct, double bonusPct,
-            double selfLostHp, double bonusSelfLostHpPct, double elementMultiplier, bool crit, double critMultiplier)
+        public static double Damage(BattleConstants k, in DamageInput d)
         {
-            double basis = atk * (multiplierPct + bonusPct) / 100.0;
-            if (bonusSelfLostHpPct > 0) { basis += selfLostHp * bonusSelfLostHpPct / 100.0; }
+            double basis = d.Atk * (d.MultiplierPct + d.BonusPct) / 100.0;
+            if (d.BonusSelfLostHpPct > 0) { basis += d.SelfLostHp * d.BonusSelfLostHpPct / 100.0; }
             if (basis < 0) { basis = 0; }
-            double defense = def < 0 ? 0 : def;
-            double crit1 = crit ? critMultiplier : 1.0;
-            return Math.Max(k.MinDamage, (basis - defense) * elementMultiplier * crit1);
+            double defense = d.Def < 0 ? 0 : d.Def;
+            double critMultiplier = d.Crit ? d.CritMultiplier : 1.0;
+            return Math.Max(k.MinDamage, (basis - defense) * d.ElementMultiplier * critMultiplier);
         }
 
         private static double Clamp(double v, double lo, double hi)

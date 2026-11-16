@@ -12,30 +12,7 @@ namespace Mado.Core.Tests
 {
     public class SaveTests
     {
-        private static GameData _data;
-        private static GameData Data
-        {
-            get
-            {
-                if (_data == null) { _data = DataLoader.Load(new FileDataSource(FindUp("Assets", "Game", "Data", "Json"))); }
-                return _data;
-            }
-        }
-
-        private static string FindUp(params string[] parts)
-        {
-            foreach (string start in new[] { Directory.GetCurrentDirectory(), AppContext.BaseDirectory })
-            {
-                DirectoryInfo dir = new DirectoryInfo(start);
-                while (dir != null)
-                {
-                    string candidate = Path.Combine(dir.FullName, Path.Combine(parts));
-                    if (Directory.Exists(candidate) || File.Exists(candidate)) { return candidate; }
-                    dir = dir.Parent;
-                }
-            }
-            throw new FileNotFoundException(string.Join("/", parts));
-        }
+        private static GameData Data { get { return TestData.Data; } }
 
         private static SaveData Sample()
         {
@@ -87,7 +64,7 @@ namespace Mado.Core.Tests
         [Test]
         public void Fixture_V1_CanBeRead()
         {
-            byte[] bytes = File.ReadAllBytes(FindUp("Assets", "Game", "Tests", "Fixtures", "save_v1.json"));
+            byte[] bytes = File.ReadAllBytes(TestData.Fixture("save_v1.json"));
             LoadResult r = SaveCodec.Load(bytes, Data);
             Assert.IsTrue(r.Success, r.FailureReason);
             Assert.IsFalse(r.HasErrors, string.Join("\n", r.Issues));
@@ -106,7 +83,7 @@ namespace Mado.Core.Tests
                 [2] = o => { o["metrics"]["migrated_2"] = 1; return o; },
             };
             var migrator = new SaveMigrator(3, steps);
-            string v1 = File.ReadAllText(FindUp("Assets", "Game", "Tests", "Fixtures", "save_v1.json"));
+            string v1 = File.ReadAllText(TestData.Fixture("save_v1.json"));
             LoadResult r = SaveCodec.LoadJson(v1, Data, migrator);
             Assert.IsTrue(r.Success, r.FailureReason);
             Assert.AreEqual(3, r.Save.SaveVersion);
@@ -118,7 +95,7 @@ namespace Mado.Core.Tests
         [Test]
         public void Migration_MissingStepOrThrowingStep_FailsWithoutException()
         {
-            string v1 = File.ReadAllText(FindUp("Assets", "Game", "Tests", "Fixtures", "save_v1.json"));
+            string v1 = File.ReadAllText(TestData.Fixture("save_v1.json"));
             Assert.IsFalse(SaveCodec.LoadJson(v1, Data, new SaveMigrator(2, new Dictionary<int, Func<JObject, JObject>>())).Success);
             var bad = new Dictionary<int, Func<JObject, JObject>> { [1] = o => throw new InvalidOperationException("boom") };
             LoadResult r = SaveCodec.LoadJson(v1, Data, new SaveMigrator(2, bad));

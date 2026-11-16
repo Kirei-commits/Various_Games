@@ -8,18 +8,28 @@ namespace Mado.Core.Tests
     {
         private static readonly BattleConstants K = new BattleConstants();
 
+        /// <summary>引数の順：攻撃, 防御, 倍率％, 補正％, 失ったHP, 失ったHPの割合％, 属性倍率, クリティカルか, クリ倍率。</summary>
+        private static double Dmg(double atk, double def, double mult, double bonus, double lostHp, double lostHpPct, double element, bool crit, double critMult)
+        {
+            return DamageCalc.Damage(K, new DamageInput
+            {
+                Atk = atk, Def = def, MultiplierPct = mult, BonusPct = bonus, SelfLostHp = lostHp, BonusSelfLostHpPct = lostHpPct,
+                ElementMultiplier = element, Crit = crit, CritMultiplier = critMult,
+            });
+        }
+
         [Test]
         public void Basic_AtkTimesMultiplier()
         {
-            Assert.AreEqual(100, DamageCalc.Damage(K, 100, 0, 100, 0, 0, 0, 1.0, false, 1.0), 1e-9);
-            Assert.AreEqual(250, DamageCalc.Damage(K, 100, 0, 250, 0, 0, 0, 1.0, false, 1.0), 1e-9);
+            Assert.AreEqual(100, Dmg(100, 0, 100, 0, 0, 0, 1.0, false, 1.0), 1e-9);
+            Assert.AreEqual(250, Dmg(100, 0, 250, 0, 0, 0, 1.0, false, 1.0), 1e-9);
         }
 
         [Test]
         public void Defense_IsSubtractedBeforeElementAndCrit()
         {
             // (100 - 40) × 1.2 × 2.0
-            Assert.AreEqual(144, DamageCalc.Damage(K, 100, 40, 100, 0, 0, 0, 1.2, true, 2.0), 1e-9);
+            Assert.AreEqual(144, Dmg(100, 40, 100, 0, 0, 0, 1.2, true, 2.0), 1e-9);
         }
 
         [Test]
@@ -60,30 +70,30 @@ namespace Mado.Core.Tests
         [Test]
         public void MinimumDamage_WhenDefenseExceedsAttack()
         {
-            Assert.AreEqual(1, DamageCalc.Damage(K, 100, 9999, 100, 0, 0, 0, 1.0, false, 1.0), 1e-9);
+            Assert.AreEqual(1, Dmg(100, 9999, 100, 0, 0, 0, 1.0, false, 1.0), 1e-9);
         }
 
         [Test]
         public void NegativeBasis_ClampsToZero_ThenMinimumDamage()
         {
             // 攻撃力ダウンの重ね掛けで有効 Atk が 0 以下
-            Assert.AreEqual(1, DamageCalc.Damage(K, 0, 0, 100, 0, 0, 0, 1.0, false, 1.0), 1e-9);
-            Assert.AreEqual(1, DamageCalc.Damage(K, -50, 0, 100, 0, 0, 0, 1.0, false, 1.0), 1e-9);
+            Assert.AreEqual(1, Dmg(0, 0, 100, 0, 0, 0, 1.0, false, 1.0), 1e-9);
+            Assert.AreEqual(1, Dmg(-50, 0, 100, 0, 0, 0, 1.0, false, 1.0), 1e-9);
         }
 
         [Test]
         public void SelfLostHp_IsAddedToTheBasis()
         {
             // 100 + 500 × 10% = 150
-            Assert.AreEqual(150, DamageCalc.Damage(K, 100, 0, 100, 0, 500, 10, 1.0, false, 1.0), 1e-9);
+            Assert.AreEqual(150, Dmg(100, 0, 100, 0, 500, 10, 1.0, false, 1.0), 1e-9);
         }
 
         [Test]
         public void CountBonus_AddsToMultiplier()
         {
-            Assert.AreEqual(100, DamageCalc.Damage(K, 100, 0, 100, 0, 0, 0, 1.0, false, 1.0), 1e-9);   // 人数 0
-            Assert.AreEqual(150, DamageCalc.Damage(K, 100, 0, 100, 50, 0, 0, 1.0, false, 1.0), 1e-9);  // 人数 1
-            Assert.AreEqual(200, DamageCalc.Damage(K, 100, 0, 100, 100, 0, 0, 1.0, false, 1.0), 1e-9); // 上限
+            Assert.AreEqual(100, Dmg(100, 0, 100, 0, 0, 0, 1.0, false, 1.0), 1e-9);   // 人数 0
+            Assert.AreEqual(150, Dmg(100, 0, 100, 50, 0, 0, 1.0, false, 1.0), 1e-9);  // 人数 1
+            Assert.AreEqual(200, Dmg(100, 0, 100, 100, 0, 0, 1.0, false, 1.0), 1e-9); // 上限
         }
 
         [Test]

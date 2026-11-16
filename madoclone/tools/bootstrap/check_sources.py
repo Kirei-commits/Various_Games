@@ -25,8 +25,10 @@ CORE_ONLY_FORBIDDEN = [
 ]
 # フォルダ（Core 直下）ごとに、参照してはいけない名前空間
 DEPENDENCY_RULES = {
-    "Battle": ["Mado.Core.Growth", "Mado.Core.Progress", "Mado.Core.Economy", "Mado.Core.Wallet", "Mado.Core.Session"],
-    "Stats": ["Mado.Core.Growth", "Mado.Core.Progress", "Mado.Core.Economy", "Mado.Core.Session"],
+    "Battle": ["Mado.Core.Growth", "Mado.Core.Progress", "Mado.Core.Economy", "Mado.Core.Wallet", "Mado.Core.Session", "Mado.Core.Save"],
+    "Stats": ["Mado.Core.Growth", "Mado.Core.Progress", "Mado.Core.Economy", "Mado.Core.Session", "Mado.Core.Battle"],
+    "Wallet": ["Mado.Core.Battle", "Mado.Core.Growth", "Mado.Core.Stats", "Mado.Core.Save", "Mado.Core.Session"],
+    "Save": ["Mado.Core.Battle", "Mado.Core.Growth", "Mado.Core.Stats", "Mado.Core.Session"],
     "Util": ["Mado.Core.Battle", "Mado.Core.Stats", "Mado.Core.Growth", "Mado.Core.Progress", "Mado.Core.Economy", "Mado.Core.Wallet", "Mado.Core.Session", "Mado.Core.Save", "Mado.Core.Metrics"],
 }
 

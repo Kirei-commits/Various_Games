@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Mado.Data;
 
 namespace Mado.Core.Battle
@@ -129,7 +130,7 @@ namespace Mado.Core.Battle
             return e.Type == EffectType.ApplyBuff || e.Type == EffectType.Heal || e.Type == EffectType.GaugeShift;
         }
 
-        /// <summary>スキル1回の発動（docs/04 9.3節）。準備 → 効果を並びの順に。</summary>
+        /// <summary>スキル1回の発動（docs/04 9.3節）。準備（主対象・スナップショット・人数補正・命中の記録）→ 効果を並びの順に。</summary>
         private void RunSkill(int caster, int slot, ResolvedSkill sk, int ctxTarget, int ctxAttacker, TriggerType cause, bool onTriggerOnly)
         {
             Unit c = _u[caster];
@@ -138,61 +139,11 @@ namespace Mado.Core.Battle
             bool permanent = sk.Trigger.Type == TriggerType.Always;
             var effects = sk.Effects;
 
-            // 準備1：主対象（enemy_* を使うなら1回だけ選ぶ）
-            bool needPrimary = false;
-            for (int i = 0; i < effects.Count; i++)
-            {
-                ResolvedEffect e = effects[i];
-                if (!Included(e, onTriggerOnly, cause)) { continue; }
-                if (UsesEnemy(e.Target) || (e.Target == TargetType.Target && ctxTarget < 0)) { needPrimary = true; break; }
-            }
-            int primary = needPrimary ? SelectPrimary(c) : -1;
+            int primary = NeedsPrimary(effects, ctxTarget, cause, onTriggerOnly) ? SelectPrimary(c) : -1;
+            SnapshotStatuses();
+            ComputeCountBonuses(c, effects, cause, onTriggerOnly);
+            ResetHitRecord(cause, ctxTarget);
 
-            // 準備2：状態のスナップショット
-            for (int i = 0; i < _n; i++) { _snapMask[i] = CurrentMask(i); _snapDebuffs[i] = CountDebuffs(i); }
-
-            // 準備3：人数補正
-            _mulBonus = 0; _durBonusTicks = 0;
-            Array.Clear(_dbgBonus, 0, _dbgBonus.Length);
-            for (int i = 0; i < effects.Count; i++)
-            {
-                ResolvedEffect e = effects[i];
-                if (!Included(e, onTriggerOnly, cause)) { continue; }
-                if (e.Type == EffectType.ElementCountBonus)
-                {
-                    int count = 0;
-                    for (int j = 0; j < _n; j++) { if (_u[j].Alive && _u[j].Side == c.Side && e.Element.HasValue && _u[j].Element == e.Element.Value) { count++; } }
-                    double bonus = Math.Min(e.CountMax, count * e.CountPerUnit);
-                    if (e.CountUnit == CountUnit.Pct) { _mulBonus += bonus; }
-                    else { _durBonusTicks += (int)Math.Round(bonus / _k.TickSec, MidpointRounding.AwayFromZero); }
-                }
-                else if (e.Type == EffectType.DebuffCountBonus)
-                {
-                    if (e.CountScope == CountScope.EnemyAll)
-                    {
-                        int total = 0;
-                        for (int j = 0; j < _n; j++) { if (_u[j].Side != c.Side) { total += _snapDebuffs[j]; } }
-                        double bonus = Math.Min(e.CountMax, total * e.CountPerUnit);
-                        for (int j = 0; j < _n; j++) { if (_u[j].Side != c.Side) { _dbgBonus[j] += bonus; } }
-                    }
-                    else
-                    {
-                        for (int j = 0; j < _n; j++) { if (_u[j].Side != c.Side) { _dbgBonus[j] += Math.Min(e.CountMax, _snapDebuffs[j] * e.CountPerUnit); } }
-                    }
-                }
-            }
-
-            // 準備4：命中の記録
-            Array.Clear(_hitRec, 0, _hitRec.Length);
-            Array.Clear(_critRec, 0, _critRec.Length);
-            _anyHit = false; _anyCrit = false;
-            if ((cause == TriggerType.OnHit || cause == TriggerType.OnCrit) && ctxTarget >= 0)
-            {
-                _hitRec[ctxTarget] = true; _anyHit = true;
-                if (cause == TriggerType.OnCrit) { _critRec[ctxTarget] = true; _anyCrit = true; }
-            }
-
-            // 実行
             ResolvedEffect prev = null;
             for (int i = 0; i < effects.Count; i++)
             {
@@ -206,29 +157,96 @@ namespace Mado.Core.Battle
                     case EffectType.Heal:
                     case EffectType.ApplyBuff:
                     case EffectType.GaugeShift:
-                    {
-                        bool sameGroup = prev != null && IsChanceKind(prev) && prev.Target == e.Target && prev.ChancePct == e.ChancePct && prev.When == e.When;
-                        if (!sameGroup) { Array.Fill(_grp, -1); }
+                        // 隣り合っていて、対象・確率・タイミングが同じ効果は、対象ごとの判定を1回で共有する（9.3.1節）。
+                        if (!SharesChanceRoll(prev, e)) { Array.Fill(_grp, -1); }
                         DoChanceEffect(c, e, primary, ctxTarget, ctxAttacker, permanent);
                         break;
-                    }
                     case EffectType.Cleanse:
-                    {
-                        int n = GetTargets(c, e, primary, ctxTarget, ctxAttacker);
-                        for (int t = 0; t < n; t++) { RemoveByPolarity(_u[_targets[t]], BuffPolarity.Debuff); }
+                        RemoveFromTargets(c, e, primary, ctxTarget, ctxAttacker, BuffPolarity.Debuff);
                         break;
-                    }
                     case EffectType.Dispel:
-                    {
-                        int n = GetTargets(c, e, primary, ctxTarget, ctxAttacker);
-                        for (int t = 0; t < n; t++) { RemoveByPolarity(_u[_targets[t]], BuffPolarity.Buff); }
+                        RemoveFromTargets(c, e, primary, ctxTarget, ctxAttacker, BuffPolarity.Buff);
                         break;
-                    }
                     default:
                         break; // reflect は実装しない／人数補正は準備で処理済み
                 }
                 prev = e;
             }
+        }
+
+        /// <summary>準備1：敵を狙う効果があれば、主対象を1回だけ選ぶ（乱数を引くのはここ）。</summary>
+        private static bool NeedsPrimary(List<ResolvedEffect> effects, int ctxTarget, TriggerType cause, bool onTriggerOnly)
+        {
+            for (int i = 0; i < effects.Count; i++)
+            {
+                ResolvedEffect e = effects[i];
+                if (!Included(e, onTriggerOnly, cause)) { continue; }
+                if (UsesEnemy(e.Target) || (e.Target == TargetType.Target && ctxTarget < 0)) { return true; }
+            }
+            return false;
+        }
+
+        /// <summary>準備2：いま付いている状態を記録する。if の判定とデバフの数は、この記録で行う（このスキルで付けた状態は数えない）。</summary>
+        private void SnapshotStatuses()
+        {
+            for (int i = 0; i < _n; i++) { _snapMask[i] = CurrentMask(i); _snapDebuffs[i] = CountDebuffs(i); }
+        }
+
+        /// <summary>準備3：人数補正（属性の人数・デバフの数）を、このスキルのダメージ・回復の倍率と、バフの効果時間への加算に直す。</summary>
+        private void ComputeCountBonuses(Unit c, List<ResolvedEffect> effects, TriggerType cause, bool onTriggerOnly)
+        {
+            _mulBonus = 0; _durBonusTicks = 0;
+            Array.Clear(_dbgBonus, 0, _dbgBonus.Length);
+            for (int i = 0; i < effects.Count; i++)
+            {
+                ResolvedEffect e = effects[i];
+                if (!Included(e, onTriggerOnly, cause)) { continue; }
+                if (e.Type == EffectType.ElementCountBonus)
+                {
+                    // 出場中（生きている）味方で属性が一致する人数。自分を含む。
+                    int count = 0;
+                    for (int j = 0; j < _n; j++) { if (_u[j].Alive && _u[j].Side == c.Side && e.Element.HasValue && _u[j].Element == e.Element.Value) { count++; } }
+                    double bonus = Math.Min(e.CountMax, count * e.CountPerUnit);
+                    if (e.CountUnit == CountUnit.Pct) { _mulBonus += bonus; }
+                    else { _durBonusTicks += (int)Math.Round(bonus / _k.TickSec, MidpointRounding.AwayFromZero); }
+                }
+                else if (e.Type == EffectType.DebuffCountBonus)
+                {
+                    // target：敵ごとに、その敵のデバフの数。enemy_all：敵全員の合計を、全員に。
+                    int total = 0;
+                    for (int j = 0; j < _n; j++) { if (_u[j].Side != c.Side) { total += _snapDebuffs[j]; } }
+                    for (int j = 0; j < _n; j++)
+                    {
+                        if (_u[j].Side == c.Side) { continue; }
+                        int counted = e.CountScope == CountScope.EnemyAll ? total : _snapDebuffs[j];
+                        _dbgBonus[j] += Math.Min(e.CountMax, counted * e.CountPerUnit);
+                    }
+                }
+            }
+        }
+
+        /// <summary>準備4：命中の記録を空にする。onHit・onCrit がきっかけなら、きっかけの相手は「命中済み（クリティカル済み）」から始める。</summary>
+        private void ResetHitRecord(TriggerType cause, int ctxTarget)
+        {
+            Array.Clear(_hitRec, 0, _hitRec.Length);
+            Array.Clear(_critRec, 0, _critRec.Length);
+            _anyHit = false; _anyCrit = false;
+            if ((cause == TriggerType.OnHit || cause == TriggerType.OnCrit) && ctxTarget >= 0)
+            {
+                _hitRec[ctxTarget] = true; _anyHit = true;
+                if (cause == TriggerType.OnCrit) { _critRec[ctxTarget] = true; _anyCrit = true; }
+            }
+        }
+
+        private static bool SharesChanceRoll(ResolvedEffect prev, ResolvedEffect e)
+        {
+            return prev != null && IsChanceKind(prev) && prev.Target == e.Target && prev.ChancePct == e.ChancePct && prev.When == e.When;
+        }
+
+        private void RemoveFromTargets(Unit c, ResolvedEffect e, int primary, int ctxTarget, int ctxAttacker, BuffPolarity polarity)
+        {
+            int n = GetTargets(c, e, primary, ctxTarget, ctxAttacker);
+            for (int t = 0; t < n; t++) { RemoveByPolarity(_u[_targets[t]], polarity); }
         }
 
         private void RemoveByPolarity(Unit u, BuffPolarity polarity)
@@ -242,7 +260,7 @@ namespace Mado.Core.Battle
         private void DoDamage(Unit c, ResolvedEffect e, int primary, int ctxTarget, int ctxAttacker, bool isNormal)
         {
             int n = GetTargets(c, e, primary, ctxTarget, ctxAttacker);
-            // _targets は DealDamage 中に書き換わらない（作業領域は GetTargets だけが使う）。ただし念のため手元に写す。
+            // _targets は GetTargets だけが書く。DealDamage はキューに積むだけでスキルを走らせないので、ループ中に書き換わらない。
             for (int ti = 0; ti < n; ti++)
             {
                 int t = _targets[ti];
@@ -271,9 +289,18 @@ namespace Mado.Core.Battle
                     _anyHit = true;
                     if (crit) { _anyCrit = true; }
                 }
-                double dmg = DamageCalc.Damage(_k, c.Eff.Atk, target.Eff.Def, e.MultiplierPct, _mulBonus + _dbgBonus[t],
-                    c.MaxHp - c.Hp, e.BonusSelfLostHpPct, DamageCalc.ElementMultiplier(_k, c.Element, target.Element),
-                    crit, DamageCalc.CritMultiplier(_k, c.Eff.CritDamagePct, target.Eff.CritDefensePct));
+                double dmg = DamageCalc.Damage(_k, new DamageInput
+                {
+                    Atk = c.Eff.Atk,
+                    Def = target.Eff.Def,
+                    MultiplierPct = e.MultiplierPct,
+                    BonusPct = _mulBonus + _dbgBonus[t],
+                    SelfLostHp = c.MaxHp - c.Hp,
+                    BonusSelfLostHpPct = e.BonusSelfLostHpPct,
+                    ElementMultiplier = DamageCalc.ElementMultiplier(_k, c.Element, target.Element),
+                    Crit = crit,
+                    CritMultiplier = DamageCalc.CritMultiplier(_k, c.Eff.CritDamagePct, target.Eff.CritDefensePct),
+                });
                 DealDamage(c.Index, t, dmg, crit ? DamageFlags.Crit : 0, true);
                 if (isNormal && !e.Bonus && c.Alive)
                 {
@@ -303,7 +330,7 @@ namespace Mado.Core.Battle
             {
                 int t = _targets[ti];
                 Unit target = _u[t];
-                if (e.Type != EffectType.GaugeShift && !target.Alive && !(e.Target == TargetType.Self)) { continue; }
+                if (!target.Alive) { continue; }   // 戦闘不能のユニットには何も付けない（onDeath の self も含む）
                 // 前提（when・if）。成り立たなければ乱数を引かない。
                 if (e.When == EffectWhen.AfterHit)
                 {
@@ -387,14 +414,7 @@ namespace Mado.Core.Battle
                 DealDamage(tgt, src, dmg * reflectPct / 100.0, DamageFlags.Reflect, false);
             }
             if (!t.Alive) { return; }
-            if (allowReact && src >= 0)
-            {
-                for (int s = 1; s < t.Slots.Length; s++)
-                {
-                    ResolvedSkill sk = t.Slots[s];
-                    if (sk != null && sk.Trigger.Type == TriggerType.OnDamaged) { Enqueue(tgt, s, TriggerType.OnDamaged, -1, src, false); }
-                }
-            }
+            if (allowReact && src >= 0) { EnqueueTriggers(t, TriggerType.OnDamaged, -1, src); }
             CheckHpBelow(t);
         }
 
@@ -411,19 +431,17 @@ namespace Mado.Core.Battle
                     if (o.St[i].Expire == int.MaxValue && o.St[i].Caster == t.Index) { RemoveStatusAt(o, i); } else { i++; }
                 }
             }
-            for (int s = 1; s < t.Slots.Length; s++)
+            EnqueueTriggers(t, TriggerType.OnDeath, -1, killer);
+            if (killer >= 0 && _u[killer].Alive && _u[killer].Side != t.Side) { EnqueueTriggers(_u[killer], TriggerType.OnKill, t.Index, -1); }
+        }
+
+        /// <summary>u の特殊・必殺・魔晶のうち、きっかけが type のものを、枠の順にキューへ積む。</summary>
+        private void EnqueueTriggers(Unit u, TriggerType type, int ctxTarget, int ctxAttacker)
+        {
+            for (int s = 1; s < u.Slots.Length; s++)
             {
-                ResolvedSkill sk = t.Slots[s];
-                if (sk != null && sk.Trigger.Type == TriggerType.OnDeath) { Enqueue(t.Index, s, TriggerType.OnDeath, -1, killer, false); }
-            }
-            if (killer >= 0 && _u[killer].Alive && _u[killer].Side != t.Side)
-            {
-                Unit k = _u[killer];
-                for (int s = 1; s < k.Slots.Length; s++)
-                {
-                    ResolvedSkill sk = k.Slots[s];
-                    if (sk != null && sk.Trigger.Type == TriggerType.OnKill) { Enqueue(killer, s, TriggerType.OnKill, t.Index, -1, false); }
-                }
+                ResolvedSkill sk = u.Slots[s];
+                if (sk != null && sk.Trigger.Type == type) { Enqueue(u.Index, s, type, ctxTarget, ctxAttacker, false); }
             }
         }
     }

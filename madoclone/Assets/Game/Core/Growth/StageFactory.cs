@@ -14,13 +14,14 @@ namespace Mado.Core.Growth
     /// </summary>
     public sealed class StageFactory
     {
+        // difficulty.json の enemyTypes のキー
+        private const string Attacker = "attacker", Tank = "tank", Healer = "healer", Disrupt = "disrupt";
+
         private readonly GameData _data;
-        private readonly BuffBook _book;
 
         public StageFactory(GameData data)
         {
             _data = data ?? throw new ArgumentNullException(nameof(data));
-            _book = new BuffBook(data);
         }
 
         /// <summary>g(r)：区間ごとに一定、または gFrom → gTo の直線。</summary>
@@ -88,17 +89,17 @@ namespace Mado.Core.Growth
             if (kind == StageKind.Wave)
             {
                 double each = totalPower / 3.0;
-                units.Add(Enemy(rank, "tank", each, 0, hpScale, atkScale));
-                units.Add(Enemy(rank, "attacker", each, 1, hpScale, atkScale));
-                units.Add(Enemy(rank, "healer", each, 2, hpScale, atkScale));
+                units.Add(Enemy(rank, Tank, each, 0, hpScale, atkScale));
+                units.Add(Enemy(rank, Attacker, each, 1, hpScale, atkScale));
+                units.Add(Enemy(rank, Healer, each, 2, hpScale, atkScale));
             }
             else
             {
                 double boss = totalPower * d.BossShareOfFight;
                 double rest = (totalPower - boss) / 2.0;
-                units.Add(Enemy(rank, "attacker", boss, 0, hpScale, atkScale));
-                units.Add(Enemy(rank, "tank", rest, 1, hpScale, atkScale));
-                units.Add(Enemy(rank, "healer", rest, 2, hpScale, atkScale));
+                units.Add(Enemy(rank, Attacker, boss, 0, hpScale, atkScale));
+                units.Add(Enemy(rank, Tank, rest, 1, hpScale, atkScale));
+                units.Add(Enemy(rank, Healer, rest, 2, hpScale, atkScale));
             }
             return units;
         }
@@ -108,7 +109,7 @@ namespace Mado.Core.Growth
             DifficultyConfig d = _data.Difficulty;
             EnemyTypeMultiplier m = d.EnemyTypes[type];
             EnemySubstatFormulas f = d.EnemySubstats;
-            Role role = type == "tank" ? Role.Defense : (type == "healer" ? Role.Heal : (type == "disrupt" ? Role.Disrupt : Role.Ranged));
+            Role role = type == Tank ? Role.Defense : (type == Healer ? Role.Heal : (type == Disrupt ? Role.Disrupt : Role.Ranged));
             var normal = new ResolvedSkill
             {
                 Id = "enemy_normal",

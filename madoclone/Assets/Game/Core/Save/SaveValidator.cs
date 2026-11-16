@@ -94,10 +94,10 @@ namespace Mado.Core.Save
             return issues;
         }
 
-        /// <summary>固有魔晶が現れる★（crystalSlotStars の index 2 ＝ 6）。</summary>
+        /// <summary>固有魔晶が現れる★（＝固有魔晶の枠が開く★。いまは 6）。</summary>
         private static int CrystalStar(GameData data)
         {
-            return data.System.CrystalSlotStars[2];
+            return data.System.CrystalSlotStars[CharacterState.OwnCrystalSlot];
         }
 
         private static void Add(List<SaveIssue> l, SaveSeverity sev, string code, string msg, string path)

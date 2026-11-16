@@ -14,26 +14,12 @@ namespace Mado.Sim
 {
     /// <summary>
     /// 戦闘バランスの自動合わせ（docs/02 6.5節、docs/04 10節）。ランクごとに
-    ///   1) 標準編成の共通倍率 globalMultiplier：編成7体の戦力 ＝ ランクボスの推奨戦力 になる倍率 → sim_profiles.json
+    ///   1) 標準編成の共通倍率 globalMultiplier：編成の戦力 ＝ ランクボスの推奨戦力 になる倍率 → sim_profiles.json
     ///   2) 敵の倍率 enemyScale（hp・atk）：推奨ちょうどのボス戦で「勝率 80％、勝った戦闘の決着が 30 秒前後」 → difficulty.json
     /// を求める。手で書かない。--write を付けたときだけファイルを書き換える。
     /// </summary>
     public static class CalibrateCommand
     {
-        private const double TargetWinPct = 80;
-        private const double TargetWinSec = 30;   // 合格ライン 20〜40 秒の真ん中
-
-        // sim_profiles.json の allySubstats（味方の副ステータスの標準値）。Run の最初に読む。
-        private static EnemySubstatFormulas AllySubstats;
-
-        private sealed class Row
-        {
-            public int Rank, Star, Lv;
-            public List<string> Party;
-            public double Multiplier, HpScale, AtkScale;
-            public double Win, WinSec, Win70, WaveWin, WaveSec;
-        }
-
         public static int Run(Options o)
         {
             int from = 1, to = 32;
@@ -44,179 +30,226 @@ namespace Mado.Sim
                 from = int.Parse(parts[0], CultureInfo.InvariantCulture);
                 to = parts.Length > 1 ? int.Parse(parts[1], CultureInfo.InvariantCulture) : from;
             }
-            int runs = o.GetInt("--runs", 200);
-            if (o.Get("--probe") != null) { return Probe(o, from, runs); }
             string dataDir = Paths.Data();
-            GameData data = DataLoader.Load(new FileDataSource(dataDir));
-            AllySubstats = SimProfiles.LoadFile(new FileDataSource(dataDir)).AllySubstats;
-            var results = new Row[to - from + 1];
-            Parallel.For(from, to + 1, r => results[r - from] = CalibrateRank(data, r, runs));
+            var source = new FileDataSource(dataDir);
+            var calibrator = new Calibrator(DataLoader.Load(source), SimProfiles.LoadFile(source).AllySubstats, o.GetInt("--runs", 200));
+
+            string probe = o.Get("--probe");
+            if (probe != null)
+            {
+                string[] p = probe.Split(',');
+                calibrator.Probe(from, Num(p[0]), Num(p[1]), o.Get("--ratio") != null ? Num(o.Get("--ratio")) : 1.0);
+                return 0;
+            }
+
+            var results = new Calibrator.Result[to - from + 1];
+            Parallel.For(from, to + 1, rank => results[rank - from] = calibrator.CalibrateRank(rank));
 
             Console.WriteLine("rank ★/Lv   倍率(戦力→推奨)  敵hp倍  敵atk倍   ボス勝率 決着秒  70%勝率  雑魚勝率 雑魚秒");
-            foreach (Row r in results)
+            foreach (Calibrator.Result r in results)
             {
                 Console.WriteLine(string.Format(CultureInfo.InvariantCulture,
                     "{0,4} {1,2}/{2,-4} {3,14:0.###E+0} {4,8:0.####} {5,8:0.####} {6,8:0.0}% {7,6:0.0} {8,8:0.0}% {9,8:0.0}% {10,6:0.0}",
-                    r.Rank, r.Star, r.Lv, r.Multiplier, r.HpScale, r.AtkScale, r.Win, r.WinSec, r.Win70, r.WaveWin, r.WaveSec));
+                    r.Profile.Rank, r.Profile.Star, r.Profile.Lv, r.Profile.GlobalMultiplier.Atk, r.HpScale, r.AtkScale,
+                    r.Boss.WinPct, r.Boss.WinSec, r.BossAt70.WinPct, r.Wave.WinPct, r.Wave.WinSec));
             }
             if (o.Has("--write")) { Write(dataDir, results); Console.WriteLine("sim_profiles.json と difficulty.json の enemyScale を書き換えた"); }
             else { Console.WriteLine("（書き換えていない。--write を付けると sim_profiles.json と difficulty.json に書く）"); }
             return 0;
         }
 
-        /// <summary>--probe HP倍,ATK倍（--ratio で味方の戦力比）：指定した敵の倍率で、推奨ちょうどのボス戦を runs 戦して結果を出す（原因の切り分け用）。</summary>
-        private static int Probe(Options o, int rank, int runs)
-        {
-            string[] p = o.Get("--probe").Split(',');
-            double hp = double.Parse(p[0], CultureInfo.InvariantCulture), atk = double.Parse(p[1], CultureInfo.InvariantCulture);
-            GameData data = DataLoader.Load(new FileDataSource(Paths.Data()));
-            AllySubstats = SimProfiles.LoadFile(new FileDataSource(Paths.Data())).AllySubstats;
-            var factory = new StageFactory(data);
-            int star = SimPolicy.StarFor(rank);
-            int lv = data.Stats.StarMaxLv[star];
-            List<string> party = SimPolicy.Party(data, rank);
-            double rec = factory.RecommendedPower(rank, data.Difficulty.AreasPerRank, data.Difficulty.StagesPerArea);
-            double p0 = 0;
-            foreach (UnitSetup u in BuildParty(data, rank, star, lv, party, 0)) { p0 += u.Stats.Power; }
-            double ratio = o.Get("--ratio") != null ? double.Parse(o.Get("--ratio"), CultureInfo.InvariantCulture) : 1.0;
-            List<UnitSetup> allies = BuildParty(data, rank, star, lv, party, rec / p0 * ratio);
-            var builder = new BattleSetupBuilder(data, new StatResolver(data));
-            List<UnitSetup> enemies = factory.BuildWithPower(rank, rec * data.Difficulty.BossFightPowerRatio, StageKind.Boss, hp, atk);
-            Console.WriteLine("編成 " + string.Join(",", party) + "  味方の戦力 " + (rec).ToString("0.###E+0", CultureInfo.InvariantCulture));
-            foreach (UnitSetup u in allies) { Console.WriteLine("  味方 " + u.Id + " Atk " + u.Stats.Atk.ToString("0.##E+0", CultureInfo.InvariantCulture) + " Hp " + u.Stats.Hp.ToString("0.##E+0", CultureInfo.InvariantCulture) + " Def " + u.Stats.Def.ToString("0.##E+0", CultureInfo.InvariantCulture) + " 命中 " + u.Stats.AccuracyPct + " クリ率 " + u.Stats.CritRatePct); }
-            foreach (UnitSetup u in enemies) { Console.WriteLine("  敵   " + u.Id + " Atk " + u.Stats.Atk.ToString("0.##E+0", CultureInfo.InvariantCulture) + " Hp " + u.Stats.Hp.ToString("0.##E+0", CultureInfo.InvariantCulture) + " Def " + u.Stats.Def.ToString("0.##E+0", CultureInfo.InvariantCulture) + " 命中 " + u.Stats.AccuracyPct + " 回避 " + u.Stats.EvasionPct + " クリ率 " + u.Stats.CritRatePct + " クリ耐性 " + u.Stats.CritResistPct); }
-            double[] r = Fight(builder, allies, enemies, data.System.TimeLimitSec.Boss, runs);
-            Console.WriteLine("勝率 " + r[0].ToString("0.0", CultureInfo.InvariantCulture) + "%  勝った戦闘の決着(秒) " + r[1].ToString("0.0", CultureInfo.InvariantCulture));
-            return 0;
-        }
+        private static double Num(string text) { return double.Parse(text, CultureInfo.InvariantCulture); }
 
-        private static Row CalibrateRank(GameData data, int rank, int runs)
-        {
-            var factory = new StageFactory(data);
-            int star = SimPolicy.StarFor(rank);
-            int lv = data.Stats.StarMaxLv[star];
-            List<string> party = SimPolicy.Party(data, rank);
-            double rec = factory.RecommendedPower(rank, data.Difficulty.AreasPerRank, data.Difficulty.StagesPerArea);
-
-            // 1) 共通倍率：基礎値のままの戦力 P0 から、推奨ちょうどになる倍率。
-            double p0 = 0;
-            foreach (UnitSetup u in BuildParty(data, rank, star, lv, party, 0)) { p0 += u.Stats.Power; }
-            double multiplier = rec / p0;
-
-            double limit = rank == data.Difficulty.Ranks ? data.System.TimeLimitSec.FinalBoss : data.System.TimeLimitSec.Boss;
-            List<UnitSetup> allies = BuildParty(data, rank, star, lv, party, multiplier);
-            List<UnitSetup> allies70 = BuildParty(data, rank, star, lv, party, multiplier * 0.7);
-            var builder = new BattleSetupBuilder(data, new StatResolver(data));
-
-            Func<List<UnitSetup>, double, double, double[]> boss = (a, hp, atk) =>
-                Fight(builder, a, factory.BuildWithPower(rank, rec * data.Difficulty.BossFightPowerRatio, StageKind.Boss, hp, atk), limit, runs);
-
-            // 2) 敵の倍率：atk で勝率 80％ → hp で決着 30 秒、を数回くり返す。
-            double hpS = 1, atkS = 1;
-            for (int round = 0; round < 4; round++)
-            {
-                atkS = BisectLog(1e-6, 1e4, 12, x => boss(allies, hpS, x)[0], TargetWinPct, false);
-                hpS = BisectLog(1e-6, 1e4, 12, x => boss(allies, x, atkS)[1], TargetWinSec, true);
-            }
-            hpS = Round(hpS); atkS = Round(atkS);
-            double[] fin = boss(allies, hpS, atkS);
-            double[] f70 = boss(allies70, hpS, atkS);
-            double[] wave = Fight(builder, allies, factory.BuildWithPower(rank, rec * data.Difficulty.WavePowerRatio, StageKind.Wave, hpS, atkS), data.System.TimeLimitSec.Stage, runs);
-            return new Row
-            {
-                Rank = rank, Star = star, Lv = lv, Party = party, Multiplier = multiplier, HpScale = hpS, AtkScale = atkS,
-                Win = fin[0], WinSec = fin[1], Win70 = f70[0], WaveWin = wave[0], WaveSec = wave[1],
-            };
-        }
-
-        private static List<UnitSetup> BuildParty(GameData data, int rank, int star, int lv, List<string> party, double multiplier)
-        {
-            var profile = new SimProfileDef
-            {
-                Rank = rank, Star = star, Lv = lv, PartyCharacterIds = party,
-                GlobalMultiplier = new GlobalMultiplier { Atk = multiplier, Hp = multiplier, Def = multiplier },
-            };
-            var sources = new IModifierSource[] { new ProfileModifierSource(profile, AllySubstats, data.System.BaseSubstats) };
-            var b = new BattleSetupBuilder(data, new StatResolver(data, sources));
-            var list = new List<UnitSetup>();
-            for (int i = 0; i < party.Count; i++)
-            {
-                string id = party[i];
-                IReadOnlyList<string> crystals = star >= data.System.CrystalSlotStars[2]
-                    ? new[] { null, null, data.Character(id).CrystalId, null, null } : null;
-                list.Add(b.BuildAlly(id, star, lv, crystals, rank >= 4 && i == party.Count - 1));
-            }
-            return list;
-        }
-
-        /// <summary>runs 戦して { 勝率(％)、勝った戦闘の決着秒の中央値 } を返す。</summary>
-        private static double[] Fight(BattleSetupBuilder b, List<UnitSetup> allies, List<UnitSetup> enemies, double limitSec, int runs)
-        {
-            BattleSetup s = b.Assemble(allies, enemies, 1, limitSec);
-            int wins = 0;
-            var winTicks = new List<int>();
-            for (int i = 0; i < runs; i++)
-            {
-                s.Seed = (ulong)(i + 1);
-                BattleResult r = new BattleSim(s).RunToEnd(null);
-                if (r.Outcome == BattleOutcome.Win) { wins++; winTicks.Add(r.EndTick); }
-            }
-            winTicks.Sort();
-            // 勝てなかったときの決着時間は「無限に長い」として扱う（0 にすると、探索が敵をもっと硬くする向きに進んでしまう）。
-            double sec = winTicks.Count == 0 ? double.PositiveInfinity : winTicks[winTicks.Count / 2] * s.Constants.TickSec;
-            return new[] { 100.0 * wins / runs, sec };
-        }
-
-        /// <summary>対数目盛りの二分探索。f が x について増加（increasing）か減少かで向きを決める。</summary>
-        private static double BisectLog(double lo, double hi, int iters, Func<double, double> f, double target, bool increasing)
-        {
-            for (int i = 0; i < iters; i++)
-            {
-                double mid = Math.Sqrt(lo * hi);
-                double v = f(mid);
-                bool tooLow = increasing ? v < target : v > target;
-                if (tooLow) { lo = mid; } else { hi = mid; }
-            }
-            return Math.Sqrt(lo * hi);
-        }
-
-        private static double Round(double v)
-        {
-            return double.Parse(v.ToString("G4", CultureInfo.InvariantCulture), CultureInfo.InvariantCulture);
-        }
-
-        private static void Write(string dataDir, Row[] rows)
+        private static void Write(string dataDir, Calibrator.Result[] rows)
         {
             var settings = new JsonSerializerSettings { DateParseHandling = DateParseHandling.None };
+
             // difficulty.json：enemyScale だけ書き換える。
-            string diffPath = Path.Combine(dataDir, "difficulty.json");
+            string diffPath = Path.Combine(dataDir, DataLoader.DifficultyFile);
             JObject diff = JsonConvert.DeserializeObject<JObject>(File.ReadAllText(diffPath), settings);
-            foreach (Row r in rows)
+            foreach (Calibrator.Result r in rows)
             {
                 foreach (JToken t in (JArray)diff["enemyScale"])
                 {
-                    if ((int)t["rank"] == r.Rank) { t["hp"] = r.HpScale; t["atk"] = r.AtkScale; }
+                    if ((int)t["rank"] == r.Profile.Rank) { t["hp"] = r.HpScale; t["atk"] = r.AtkScale; }
                 }
             }
             File.WriteAllText(diffPath, diff.ToString(Formatting.Indented) + "\n");
 
-            // sim_profiles.json：ランクごとの標準編成と共通倍率（既存の行は、他のランクの分を残す）。
-            string profPath = Path.Combine(dataDir, "sim_profiles.json");
+            // sim_profiles.json：ランクごとの標準編成と共通倍率（今回求めていないランクの行は残す）。
+            string profPath = Path.Combine(dataDir, SimProfiles.FileName);
             JObject prof = JsonConvert.DeserializeObject<JObject>(File.ReadAllText(profPath), settings);
             var items = new SortedDictionary<int, JToken>();
             foreach (JToken t in (JArray)prof["items"]) { items[(int)t["rank"]] = t; }
-            foreach (Row r in rows)
+            foreach (Calibrator.Result r in rows)
             {
-                double m = double.Parse(r.Multiplier.ToString("G6", CultureInfo.InvariantCulture), CultureInfo.InvariantCulture);
-                items[r.Rank] = new JObject
+                SimProfileDef p = r.Profile;
+                items[p.Rank] = new JObject
                 {
-                    ["rank"] = r.Rank, ["star"] = r.Star, ["lv"] = r.Lv,
-                    ["partyCharacterIds"] = new JArray(r.Party),
-                    ["globalMultiplier"] = new JObject { ["atk"] = m, ["hp"] = m, ["def"] = m },
+                    ["rank"] = p.Rank, ["star"] = p.Star, ["lv"] = p.Lv,
+                    ["partyCharacterIds"] = new JArray(p.PartyCharacterIds),
+                    ["globalMultiplier"] = new JObject { ["atk"] = p.GlobalMultiplier.Atk, ["hp"] = p.GlobalMultiplier.Hp, ["def"] = p.GlobalMultiplier.Def },
                 };
             }
             prof["items"] = new JArray(items.Values);
             File.WriteAllText(profPath, prof.ToString(Formatting.Indented) + "\n");
+        }
+    }
+
+    /// <summary>calibrate の中身（状態を持たない計算。ランクごとに並列で呼べる）。</summary>
+    public sealed class Calibrator
+    {
+        private const double TargetWinPct = 80;
+        private const double TargetWinSec = 30;   // 合格ライン 20〜40 秒の真ん中
+        private const double ScaleMin = 1e-6, ScaleMax = 1e4;
+        private const int BisectSteps = 12;       // 対数目盛りで 10 桁を 2^12 に刻む（約0.6％刻み）
+        private const int Rounds = 4;             // atk → hp の合わせ込みをくり返す回数
+
+        /// <summary>runs 戦の結果。WinSec は勝った戦闘の決着秒の中央値（1回も勝てなければ無限大）。</summary>
+        public readonly struct Stat
+        {
+            public readonly double WinPct, WinSec;
+            public Stat(double winPct, double winSec) { WinPct = winPct; WinSec = winSec; }
+        }
+
+        public sealed class Result
+        {
+            public SimProfileDef Profile;
+            public double HpScale, AtkScale;
+            public Stat Boss, BossAt70, Wave;
+        }
+
+        private readonly GameData _data;
+        private readonly int _runs;
+        private readonly StageFactory _stages;
+        private readonly ProfilePartyFactory _parties;
+        private readonly BattleSetupBuilder _builder;
+
+        public Calibrator(GameData data, EnemySubstatFormulas allySubstats, int runs)
+        {
+            _data = data;
+            _runs = runs;
+            _stages = new StageFactory(data);
+            _parties = new ProfilePartyFactory(data, allySubstats);
+            _builder = new BattleSetupBuilder(data, new StatResolver(data));
+        }
+
+        /// <summary>ランクボス（最後のエリアの最後のステージ）の推奨戦力。</summary>
+        private double BossPower(int rank)
+        {
+            return _stages.RecommendedPower(rank, _data.Difficulty.AreasPerRank, _data.Difficulty.StagesPerArea);
+        }
+
+        private double BossTimeLimit(int rank)
+        {
+            return rank == _data.Difficulty.Ranks ? _data.System.TimeLimitSec.FinalBoss : _data.System.TimeLimitSec.Boss;
+        }
+
+        /// <summary>標準編成（SimPolicy）と、その戦力が推奨ちょうどになる共通倍率。</summary>
+        public SimProfileDef StandardProfile(int rank)
+        {
+            int star = SimPolicy.StarFor(rank);
+            var bare = new SimProfileDef
+            {
+                Rank = rank, Star = star, Lv = _data.Stats.StarMaxLv[star], PartyCharacterIds = SimPolicy.Party(_data, rank),
+                GlobalMultiplier = new GlobalMultiplier { Atk = 1, Hp = 1, Def = 1 },
+            };
+            double m = RoundTo(BossPower(rank) / _parties.Power(bare), 6);
+            return new SimProfileDef
+            {
+                Rank = rank, Star = bare.Star, Lv = bare.Lv, PartyCharacterIds = bare.PartyCharacterIds,
+                GlobalMultiplier = new GlobalMultiplier { Atk = m, Hp = m, Def = m },
+            };
+        }
+
+        public Result CalibrateRank(int rank)
+        {
+            SimProfileDef profile = StandardProfile(rank);
+            List<UnitSetup> allies = _parties.Build(profile);
+
+            // 敵の攻撃倍率で勝率 80％ → HP 倍率で決着 30 秒、を数回くり返す（片方を動かすと、もう片方もずれるため）。
+            double hp = 1, atk = 1;
+            for (int round = 0; round < Rounds; round++)
+            {
+                atk = BisectLog(x => Boss(rank, allies, hp, x).WinPct, TargetWinPct, increasing: false);
+                hp = BisectLog(x => Boss(rank, allies, x, atk).WinSec, TargetWinSec, increasing: true);
+            }
+            hp = RoundTo(hp, 4);
+            atk = RoundTo(atk, 4);
+            return new Result
+            {
+                Profile = profile, HpScale = hp, AtkScale = atk,
+                Boss = Boss(rank, allies, hp, atk),
+                BossAt70 = Boss(rank, _parties.Build(profile, 0.7), hp, atk),
+                Wave = Fight(allies, _stages.BuildWithPower(rank, BossPower(rank) * _data.Difficulty.WavePowerRatio, StageKind.Wave, hp, atk), _data.System.TimeLimitSec.Stage),
+            };
+        }
+
+        /// <summary>指定した敵の倍率と味方の戦力比で、推奨ちょうどのボス戦を流して中身を出す（原因の切り分け用）。</summary>
+        public void Probe(int rank, double hpScale, double atkScale, double powerRatio)
+        {
+            SimProfileDef profile = StandardProfile(rank);
+            List<UnitSetup> allies = _parties.Build(profile, powerRatio);
+            List<UnitSetup> enemies = BossEnemies(rank, hpScale, atkScale);
+            Console.WriteLine("ランク" + rank + "  編成 " + string.Join(",", profile.PartyCharacterIds) + "  推奨戦力 " + Sci(BossPower(rank)) + "  戦力比 " + powerRatio.ToString(CultureInfo.InvariantCulture));
+            foreach (UnitSetup u in allies) { Console.WriteLine("  味方 " + Describe(u)); }
+            foreach (UnitSetup u in enemies) { Console.WriteLine("  敵   " + Describe(u)); }
+            Stat s = Fight(allies, enemies, BossTimeLimit(rank));
+            Console.WriteLine("勝率 " + s.WinPct.ToString("0.0", CultureInfo.InvariantCulture) + "%  勝った戦闘の決着(秒) " + s.WinSec.ToString("0.0", CultureInfo.InvariantCulture));
+        }
+
+        private static string Sci(double v) { return v.ToString("0.##E+0", CultureInfo.InvariantCulture); }
+
+        private static string Describe(UnitSetup u)
+        {
+            BattleStats s = u.Stats;
+            return u.Id + " Atk " + Sci(s.Atk) + " Hp " + Sci(s.Hp) + " Def " + Sci(s.Def) + " 命中 " + s.AccuracyPct + " 回避 " + s.EvasionPct
+                + " クリ率 " + s.CritRatePct + " クリ耐性 " + s.CritResistPct + " クリダメ " + s.CritDamagePct + " クリ防御 " + s.CritDefensePct;
+        }
+
+        private List<UnitSetup> BossEnemies(int rank, double hpScale, double atkScale)
+        {
+            return _stages.BuildWithPower(rank, BossPower(rank) * _data.Difficulty.BossFightPowerRatio, StageKind.Boss, hpScale, atkScale);
+        }
+
+        private Stat Boss(int rank, List<UnitSetup> allies, double hpScale, double atkScale)
+        {
+            return Fight(allies, BossEnemies(rank, hpScale, atkScale), BossTimeLimit(rank));
+        }
+
+        private Stat Fight(List<UnitSetup> allies, List<UnitSetup> enemies, double limitSec)
+        {
+            BattleSetup s = _builder.Assemble(allies, enemies, 1, limitSec);
+            var winTicks = new List<int>();
+            for (int i = 0; i < _runs; i++)
+            {
+                s.Seed = (ulong)(i + 1);
+                BattleResult r = new BattleSim(s).RunToEnd(null);
+                if (r.Outcome == BattleOutcome.Win) { winTicks.Add(r.EndTick); }
+            }
+            winTicks.Sort();
+            // 1回も勝てないときの決着時間は「無限に長い」とする（0 にすると、探索が敵をもっと硬くする向きに進んでしまう）。
+            double sec = winTicks.Count == 0 ? double.PositiveInfinity : winTicks[winTicks.Count / 2] * s.Constants.TickSec;
+            return new Stat(100.0 * winTicks.Count / _runs, sec);
+        }
+
+        /// <summary>対数目盛りの二分探索。f(x) が target になる x を探す。increasing は、f が x について増えるか。</summary>
+        private static double BisectLog(Func<double, double> f, double target, bool increasing)
+        {
+            double lo = ScaleMin, hi = ScaleMax;
+            for (int i = 0; i < BisectSteps; i++)
+            {
+                double mid = Math.Sqrt(lo * hi);
+                bool below = increasing ? f(mid) < target : f(mid) > target;
+                if (below) { lo = mid; } else { hi = mid; }
+            }
+            return Math.Sqrt(lo * hi);
+        }
+
+        /// <summary>有効数字 digits 桁に丸める（JSON に書く値を読みやすくする）。</summary>
+        private static double RoundTo(double v, int digits)
+        {
+            return double.Parse(v.ToString("G" + digits, CultureInfo.InvariantCulture), CultureInfo.InvariantCulture);
         }
     }
 }

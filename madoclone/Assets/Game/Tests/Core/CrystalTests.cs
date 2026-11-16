@@ -12,27 +12,7 @@ namespace Mado.Core.Tests
 {
     public class CrystalTests
     {
-        private static GameData _data;
-        private static GameData Data
-        {
-            get
-            {
-                if (_data == null)
-                {
-                    string dir = null;
-                    foreach (string start in new[] { Directory.GetCurrentDirectory(), AppContext.BaseDirectory })
-                    {
-                        for (DirectoryInfo d = new DirectoryInfo(start); d != null && dir == null; d = d.Parent)
-                        {
-                            string c = Path.Combine(d.FullName, "Assets", "Game", "Data", "Json");
-                            if (Directory.Exists(c)) { dir = c; }
-                        }
-                    }
-                    _data = DataLoader.Load(new FileDataSource(dir));
-                }
-                return _data;
-            }
-        }
+        private static GameData Data { get { return TestData.Data; } }
 
         private sealed class Env
         {
@@ -78,7 +58,6 @@ namespace Mado.Core.Tests
             var e = new Env("chr_001", "chr_002");
             e.SetStar("chr_001", 6);
             e.SetStar("chr_002", 6);
-            e.Crystals.Move(Cry("chr_002"), "chr_002", 2); // 既に枠2にあるので SamePlace
             // chr_002 の枠0（★2 で解放）はまだ空。chr_001 の固有魔晶を chr_002 の枠0へ。
             MoveResult r = e.Crystals.Move(Cry("chr_001"), "chr_002", 0);
             Assert.IsTrue(r.Success);

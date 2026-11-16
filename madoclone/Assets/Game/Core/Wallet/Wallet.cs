@@ -89,19 +89,8 @@ namespace Mado.Core.Wallet
             for (int i = 0; i < add.Length; i++)
             {
                 if (add[i] <= 0) { continue; }
-                double gained = add[i];
-                if (_integer[i])
-                {
-                    double whole = Math.Floor(add[i] + Eps);
-                    _carry[i] += add[i] - whole;
-                    double fromCarry = Math.Floor(_carry[i] + Eps);
-                    if (fromCarry >= 1)
-                    {
-                        _carry[i] -= fromCarry;
-                        if (_carry[i] < Eps) { _carry[i] = 0; }
-                    }
-                    gained = whole + Math.Max(0, fromCarry);
-                }
+                // 個数の通貨は切り捨てて、端数を繰り越す。繰り越しが1以上たまったら、その整数分も渡す。
+                double gained = _integer[i] ? TakeWhole(ref _carry[i], add[i]) : add[i];
                 _balance[i] += gained;
                 if (gained > 0)
                 {
@@ -128,6 +117,16 @@ namespace Mado.Core.Wallet
                 s.Carry[_ids[i]] = _carry[i];
             }
             return s;
+        }
+
+        /// <summary>carry に amount を足し、整数になった分を取り出して返す（carry には端数が残る）。</summary>
+        private static double TakeWhole(ref double carry, double amount)
+        {
+            double total = carry + amount;
+            double whole = Math.Floor(total + Eps);
+            carry = Math.Max(0, total - whole);
+            if (carry < Eps) { carry = 0; }
+            return whole;
         }
 
         private int Index(string currencyId)
