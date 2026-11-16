@@ -20,6 +20,12 @@ namespace Mado.Core.Save
             RepairCrystals(save, data, done);
             RepairParties(save, data, done);
             RepairMemory(save, data, done);
+            foreach (string id in new List<string>(save.Plazas.Levels.Keys))
+            {
+                if (!data.Plazas.TryGet(id, out PlazaDef def)) { continue; }   // 知らない広場は警告のまま持ち越す
+                int lv = Math.Max(1, Math.Min(save.Plazas.Levels[id], def.MaxLv));
+                if (lv != save.Plazas.Levels[id]) { Note(done, "広場Lv " + save.Plazas.Levels[id] + " → " + lv, "plazas." + id); save.Plazas.Levels[id] = lv; }
+            }
             if (save.Temple.LeaderLv < 1 || save.Temple.LeaderLv > data.LeaderTemple.MaxLv)
             {
                 int fixedLv = Math.Max(1, Math.Min(save.Temple.LeaderLv, data.LeaderTemple.MaxLv));

@@ -78,6 +78,7 @@ namespace Mado.Core.Session
         public string Leader { get { return _save.Leader; } }
         public int LeaderLv { get { return _save.Temple.LeaderLv; } }
         public Element? LeaderElement { get { return _save.Temple.LeaderElement; } }
+        public int PlazaLv(string plazaId) { return _save.Plazas.Levels.TryGetValue(plazaId ?? "", out int lv) ? lv : 1; }
         public int MemoryGachaLv { get { return _save.Memory.GachaLv; } }
 
         public IReadOnlyList<MemoryCardView> MemoryCards

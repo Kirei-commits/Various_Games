@@ -30,6 +30,7 @@ namespace Mado.Data
             CheckMemoryCards(d, issues);
             CheckLeaderTemple(d, issues);
             CheckEnemyKits(d, issues);
+            CheckPlazas(d, issues);
             return issues;
         }
 
@@ -631,6 +632,24 @@ namespace Mado.Data
                 {
                     BossPlanRow o = k.BossPlan[j];
                     if (r.FromRank <= o.ToRank && o.FromRank <= r.ToRank) { Error(issues, "ENEMY_KITS", where, "ランクの範囲が他の行と重なる"); }
+                }
+            }
+        }
+
+        // ---- plazas.json ----
+
+        private static void CheckPlazas(GameData d, List<DataIssue> issues)
+        {
+            string at = DataLoader.PlazasFile;
+            var ids = new HashSet<string>();
+            foreach (PlazaDef p in d.Plazas.Plazas)
+            {
+                string where = at + ":" + p.Id;
+                if (string.IsNullOrEmpty(p.Id) || !ids.Add(p.Id)) { Error(issues, "PLAZAS", where, "ID が空か重複"); }
+                if (!d.TryCurrency(p.CurrencyId, out _)) { Error(issues, "PLAZAS", where, "マスタに無い通貨 " + p.CurrencyId); }
+                if (p.MaxLv < 2 || !(p.PctPerLv > 0) || !(p.CostAtLv > 0) || p.CostLv < 1 || p.CostLv >= p.MaxLv || !(p.CostGrowth >= 1.0) || p.KnotLv < 2 || p.KnotLv > p.MaxLv || !(p.KnotPct > 0))
+                {
+                    Error(issues, "PLAZAS", where, "maxLv は2以上、増加％・費用は正、costLv は 1 以上 maxLv 未満、成長率は1以上、knotLv は 2〜maxLv、knotPct は正");
                 }
             }
         }

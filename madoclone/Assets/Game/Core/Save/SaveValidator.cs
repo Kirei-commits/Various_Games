@@ -92,6 +92,12 @@ namespace Mado.Core.Save
                 }
             }
             CheckMemory(save, data, issues);
+            foreach (KeyValuePair<string, int> kv in save.Plazas.Levels)
+            {
+                data.Plazas.TryGet(kv.Key, out PlazaDef def);
+                if (def == null) { Add(issues, SaveSeverity.Warning, "PLAZA_UNKNOWN", "マスタに無い広場 " + kv.Key, "plazas." + kv.Key); }
+                else if (kv.Value < 1 || kv.Value > def.MaxLv) { Add(issues, SaveSeverity.Error, "PLAZA_LV", "広場Lv が 1〜" + def.MaxLv + " の外: " + kv.Value, "plazas." + kv.Key); }
+            }
             if (save.Temple.LeaderLv < 1 || save.Temple.LeaderLv > data.LeaderTemple.MaxLv)
             {
                 Add(issues, SaveSeverity.Error, "TEMPLE_LV", "リーダーLv が 1〜" + data.LeaderTemple.MaxLv + " の外: " + save.Temple.LeaderLv, "temple.leaderLv");

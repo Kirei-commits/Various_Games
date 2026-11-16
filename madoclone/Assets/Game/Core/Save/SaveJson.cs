@@ -18,7 +18,7 @@ namespace Mado.Core.Save
         private static readonly HashSet<string> KnownTop = new HashSet<string>
         {
             "format", "saveVersion", "devMode", "savedAtUtc", "rng", "wallet", "walletCarry",
-            "characters", "leader", "parties", "metrics", "progress", "settings", "memory", "temple", "idle", "orphans",
+            "characters", "leader", "parties", "metrics", "progress", "settings", "memory", "temple", "idle", "plazas", "orphans",
         };
 
         // ---------------- 書き出し ----------------
@@ -78,6 +78,9 @@ namespace Mado.Core.Save
             };
 
             o["memory"] = MemoryToJson(s.Memory);
+            var plazaLv = new Dictionary<string, JToken>();
+            foreach (KeyValuePair<string, int> kv in s.Plazas.Levels) { plazaLv[kv.Key] = new JValue(kv.Value); }
+            o["plazas"] = Sorted(plazaLv);
             o["idle"] = new JObject { ["lastClaimUtc"] = s.Idle.LastClaimUtc ?? "" };
             o["temple"] = new JObject
             {
@@ -191,6 +194,15 @@ namespace Mado.Core.Save
             }
 
             s.Memory = ReadMemory(Obj(o, "memory"));
+            JObject plazas = Obj(o, "plazas");
+            if (plazas != null)
+            {
+                foreach (KeyValuePair<string, JToken> kv in plazas)
+                {
+                    if (kv.Value.Type != JTokenType.Integer) { throw new SaveFormatException("plazas." + kv.Key + " が整数ではない"); }
+                    s.Plazas.Levels[kv.Key] = kv.Value.Value<int>();
+                }
+            }
             JObject idle = Obj(o, "idle");
             if (idle != null) { s.Idle = new IdleState { LastClaimUtc = Opt(idle, "lastClaimUtc", "") }; }
             JObject temple = Obj(o, "temple");

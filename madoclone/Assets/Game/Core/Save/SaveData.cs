@@ -32,6 +32,7 @@ namespace Mado.Core.Save
         public MemoryState Memory { get; set; } = new MemoryState();
         public TempleState Temple { get; set; } = new TempleState();
         public IdleState Idle { get; set; } = new IdleState();
+        public PlazaState Plazas { get; set; } = new PlazaState();
 
         /// <summary>マスタに無い ID・未知の項目の中身。捨てずに持ち越す（キーは "characters/ID" など）。</summary>
         public Dictionary<string, JToken> Orphans { get; set; } = new Dictionary<string, JToken>();
@@ -111,6 +112,12 @@ namespace Mado.Core.Save
     public sealed class IdleState
     {
         public string LastClaimUtc { get; set; } = "";
+    }
+
+    /// <summary>広場のLv（キーは plazas.json の id。無い広場は Lv1）。</summary>
+    public sealed class PlazaState
+    {
+        public Dictionary<string, int> Levels { get; set; } = new Dictionary<string, int>();
     }
 
     public sealed class PartyState

@@ -121,6 +121,16 @@ namespace Mado.Data.Tests
             yield return C("REWARDS", rw, r => r["idleCapHours"] = 0);
             yield return C("REWARDS", rw, r => r["idleCoinPerExp"] = -1);
 
+            // ---- plazas.json ----
+            string pz = DataLoader.PlazasFile;
+            yield return C("PLAZAS", pz, r => r["plazas"][1]["id"] = "familiar");
+            yield return C("PLAZAS", pz, r => r["plazas"][0]["currencyId"] = "nope");
+            yield return C("PLAZAS", pz, r => r["plazas"][0]["maxLv"] = 1);
+            yield return C("PLAZAS", pz, r => r["plazas"][0]["costLv"] = 500);
+            yield return C("PLAZAS", pz, r => r["plazas"][0]["costGrowth"] = 0.5);
+            yield return C("PLAZAS", pz, r => r["plazas"][0]["knotLv"] = 1);
+            yield return C("PLAZAS", pz, r => r["plazas"][1]["knotPct"] = 0);
+
             // ---- enemy_kits.json ----
             string ek = DataLoader.EnemyKitsFile;
             yield return C("ENEMY_KITS", ek, r => r["roleSkills"]["tank"][0] = "nope");

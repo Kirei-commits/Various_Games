@@ -13,6 +13,7 @@ namespace Mado.Core.Session
         MemoryGachaLevelUp,   // Value = 新しい絆ガチャLv
         LeaderChanged,        // Id = キャラ（解除なら空）
         LeaderLevelUp,        // Value = 新しいリーダーLv
+        PlazaLevelUp,         // Id = 広場, Amount = 上がったLv数, Value = 新しいLv
         IdleClaimed,          // Amount = 経験値, Value = 経過時間（時間）
         BattleFinished,       // Id = 勝敗, Amount = 倒した敵の数
         ProgressAdvanced,     // Value = ランク, Detail = "エリア-ステージ"

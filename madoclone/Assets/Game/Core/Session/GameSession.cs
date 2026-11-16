@@ -58,6 +58,7 @@ namespace Mado.Core.Session
         private readonly AwakenService _awaken;
         private readonly MemoryCardService _memory;
         private readonly LeaderTempleService _temple;
+        private readonly PlazaService _plazas;
         private readonly IdleService _idle;
         private readonly StageFactory _stages;
         private readonly BattleSetupBuilder _builder;
@@ -81,11 +82,12 @@ namespace Mado.Core.Session
             _awaken = new AwakenService(data, _save, _wallet, _roster);
             _memory = new MemoryCardService(data, _save, _wallet);
             _temple = new LeaderTempleService(data, _save, _wallet);
+            _plazas = new PlazaService(data, _save, _wallet);
             _idle = new IdleService(data, _save, _wallet, clock);
             _stages = new StageFactory(data);
             _rewards = new RewardCalculator(data);
 
-            var sources = new List<IModifierSource> { new MemoryCardSource(data, _save), new LeaderLvSource(data, _save) };
+            var sources = new List<IModifierSource> { new MemoryCardSource(data, _save), new LeaderLvSource(data, _save), new PlazaSource(data, _save) };
             if (extraSources != null) { sources.AddRange(extraSources); }
             _builder = new BattleSetupBuilder(data, new StatResolver(data, sources));
 
@@ -261,6 +263,23 @@ namespace Mado.Core.Session
             TempleLevelResult r = _temple.LevelUp();
             if (!r.Success) { return Failed(r.Failure); }
             return Done(new GameEvent(GameEventKind.LeaderLevelUp, "", 0, r.NewLv));
+        }
+
+        // ---------------- 広場 ----------------
+
+        public CommandResult LevelUpPlaza(string plazaId)
+        {
+            PlazaResult r = _plazas.LevelUp(plazaId);
+            if (!r.Success) { return Failed(r.Failure); }
+            return Done(new GameEvent(GameEventKind.PlazaLevelUp, plazaId, r.LevelsGained, r.NewLv));
+        }
+
+        /// <summary>払える所まで上げる。</summary>
+        public CommandResult LevelUpPlazaMax(string plazaId)
+        {
+            PlazaResult r = _plazas.LevelUpMax(plazaId);
+            if (!r.Success) { return Failed(r.Failure); }
+            return Done(new GameEvent(GameEventKind.PlazaLevelUp, plazaId, r.LevelsGained, r.NewLv));
         }
 
         // ---------------- 放置報酬 ----------------
