@@ -95,6 +95,11 @@ namespace Mado.Core.Save
             CheckMemory(save, data, issues);
             CheckStones(save, data, issues);
             CheckResearch(save, data, issues);
+            foreach (KeyValuePair<string, int> kv in save.Achievements.Claimed)
+            {
+                if (!data.Economy.TryAchievement(kv.Key, out AchievementDef ad)) { Add(issues, SaveSeverity.Warning, "ACHIEVEMENT_UNKNOWN", "マスタに無い実績 " + kv.Key, "achievements." + kv.Key); }
+                else if (kv.Value < 0 || kv.Value > ad.Tiers.Count) { Add(issues, SaveSeverity.Error, "ACHIEVEMENT_TIER", "受け取り済みの段が 0〜" + ad.Tiers.Count + " の外: " + kv.Value, "achievements." + kv.Key); }
+            }
             GachaState gs = save.Gacha;
             if (gs.TotalPulls < 0 || gs.PickupPity < 0 || gs.PickupPity > data.Gacha.PickupPity || gs.StepsClaimed < 0 || gs.StepsClaimed > data.Gacha.Steps.Count)
             {

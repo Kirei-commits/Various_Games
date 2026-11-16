@@ -18,7 +18,7 @@ namespace Mado.Core.Save
         private static readonly HashSet<string> KnownTop = new HashSet<string>
         {
             "format", "saveVersion", "devMode", "savedAtUtc", "rng", "wallet", "walletCarry",
-            "characters", "leader", "parties", "metrics", "progress", "settings", "memory", "temple", "idle", "plazas", "trials", "supports", "dragonNest", "spiritStones", "research", "gacha", "orphans",
+            "characters", "leader", "parties", "metrics", "progress", "settings", "memory", "temple", "idle", "plazas", "trials", "supports", "dragonNest", "spiritStones", "research", "gacha", "achievements", "orphans",
         };
 
         // ---------------- 書き出し ----------------
@@ -101,6 +101,9 @@ namespace Mado.Core.Save
             o["spiritStones"] = StonesToJson(s.SpiritStones);
             o["research"] = ResearchToJson(s.Research);
             o["gacha"] = new JObject { ["totalPulls"] = s.Gacha.TotalPulls, ["pickupPity"] = s.Gacha.PickupPity, ["pickupId"] = Str(s.Gacha.PickupId), ["stepsClaimed"] = s.Gacha.StepsClaimed };
+            var claimed = new Dictionary<string, JToken>();
+            foreach (KeyValuePair<string, int> kv in s.Achievements.Claimed) { claimed[kv.Key] = new JValue(kv.Value); }
+            o["achievements"] = Sorted(claimed);
             o["idle"] = new JObject { ["lastClaimUtc"] = s.Idle.LastClaimUtc ?? "" };
             o["temple"] = new JObject
             {
@@ -266,6 +269,8 @@ namespace Mado.Core.Save
                     PickupId = OptStr(gacha, "pickupId"), StepsClaimed = Opt(gacha, "stepsClaimed", 0),
                 };
             }
+            JObject achievements = Obj(o, "achievements");
+            if (achievements != null) { foreach (KeyValuePair<string, JToken> kv in achievements) { s.Achievements.Claimed[kv.Key] = IntOf(kv.Value, "achievements." + kv.Key); } }
             JObject idle = Obj(o, "idle");
             if (idle != null) { s.Idle = new IdleState { LastClaimUtc = Opt(idle, "lastClaimUtc", "") }; }
             JObject temple = Obj(o, "temple");

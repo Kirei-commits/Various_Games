@@ -65,6 +65,9 @@ namespace Mado.Core.Session
         private readonly DragonNestService _nest;
         private readonly SpiritStoneService _stones;
         private readonly GachaService _gacha;
+        private readonly ShopService _shop;
+        private readonly RouletteService _roulette;
+        private readonly AchievementService _achievements;
         private readonly TreeService _trees;
         private readonly TarotService _tarot;
         private readonly CollectionService _collection;
@@ -109,6 +112,9 @@ namespace Mado.Core.Session
             _nest = new DragonNestService(data, _save, _wallet);
             _stones = new SpiritStoneService(data, _save, _wallet);
             _gacha = new GachaService(data, _save, _wallet, _roster);
+            _shop = new ShopService(data, _wallet);
+            _roulette = new RouletteService(data, _save, _wallet);
+            _achievements = new AchievementService(data, _save, _wallet, _metrics);
             _trees = new TreeService(data, _save, _wallet);
             _tarot = new TarotService(data, _save, _wallet);
             _collection = new CollectionService(data, _save, _wallet);
@@ -120,7 +126,7 @@ namespace Mado.Core.Session
             _supports = new SupportService(data, _save, _builder.Skills);
             _trials = new TrialService(data, _save, _wallet, clock, _stages, _builder);
             _idle.EnsureStarted();
-            State = new GameState(_save, _wallet, _idle, _metrics, _trials, _supports, _nest, _stones, _trees, _collection, _zukan, _gacha, IsUnlocked);
+            State = new GameState(data, _save, _wallet, _idle, _metrics, _trials, _supports, _nest, _stones, _trees, _collection, _zukan, _gacha, _achievements, IsUnlocked);
             Debug = new DebugCommands(this);
         }
 
@@ -397,6 +403,36 @@ namespace Mado.Core.Session
             SupportFailure f = _supports.Clear(DefaultParty, kind);
             if (f != SupportFailure.None) { return Failed(f); }
             return Done(new GameEvent(GameEventKind.SupportChanged, "", 0, (int)kind));
+        }
+
+        // ---------------- ショップ・ルーレット・実績 ----------------
+
+        /// <summary>ショップ・交換所で買う（回数の制限は無い）。</summary>
+        public CommandResult BuyShopItem(string itemId, int count)
+        {
+            ShopFailure f = _shop.Buy(itemId, count);
+            return f == ShopFailure.None ? Done(new GameEvent(GameEventKind.ShopBought, itemId, count)) : Failed(f);
+        }
+
+        /// <summary>ルーレットを count 回回す。当たりの番号（economy.json の roulette.entries の順）を result に返す。</summary>
+        public CommandResult SpinRoulette(int count, out RouletteResult result)
+        {
+            RouletteFailure f = _roulette.Spin(count, out result);
+            if (f != RouletteFailure.None) { Finish(); return CommandResult.Fail(f); }
+            return Done(new GameEvent(GameEventKind.RouletteSpun, "", count));
+        }
+
+        /// <summary>実績の報酬を、受け取れる段まで全部受け取る。</summary>
+        public CommandResult ClaimAchievement(string achievementId, out int tiers)
+        {
+            AchievementFailure f = _achievements.Claim(achievementId, out tiers);
+            return f == AchievementFailure.None ? Done(new GameEvent(GameEventKind.AchievementClaimed, achievementId, 0, tiers)) : Failed(f);
+        }
+
+        public CommandResult ClaimAllAchievements(out int tiers)
+        {
+            tiers = _achievements.ClaimAll();
+            return tiers == 0 ? Failed(AchievementFailure.NothingToClaim) : Done(new GameEvent(GameEventKind.AchievementClaimed, "", 0, tiers));
         }
 
         // ---------------- キャラガチャ ----------------

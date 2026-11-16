@@ -39,6 +39,7 @@ namespace Mado.Core.Save
         public SpiritStoneState SpiritStones { get; set; } = new SpiritStoneState();
         public ResearchState Research { get; set; } = new ResearchState();
         public GachaState Gacha { get; set; } = new GachaState();
+        public AchievementState Achievements { get; set; } = new AchievementState();
 
         /// <summary>マスタに無い ID・未知の項目の中身。捨てずに持ち越す（キーは "characters/ID" など）。</summary>
         public Dictionary<string, JToken> Orphans { get; set; } = new Dictionary<string, JToken>();
@@ -197,6 +198,12 @@ namespace Mado.Core.Save
         public int PickupPity { get; set; }
         public string PickupId { get; set; }
         public int StepsClaimed { get; set; }
+    }
+
+    /// <summary>実績：受け取り済みの段の数（キーは実績 ID）。</summary>
+    public sealed class AchievementState
+    {
+        public Dictionary<string, int> Claimed { get; set; } = new Dictionary<string, int>();
     }
 
     public sealed class PartyState

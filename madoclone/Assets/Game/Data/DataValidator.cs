@@ -38,6 +38,7 @@ namespace Mado.Data
             CheckResearch(d, issues);
             CheckUnlocks(d, issues);
             CheckGacha(d, issues);
+            CheckEconomy(d, issues);
             return issues;
         }
 
@@ -901,6 +902,52 @@ namespace Mado.Data
             {
                 if (s.Count <= prev || !(s.Amount > 0) || !d.TryCurrency(s.CurrencyId, out _)) { Error(issues, "GACHA", at + ":steps", "ステップは昇順、量は正、通貨はマスタにある"); }
                 prev = s.Count;
+            }
+        }
+
+        // ---- economy.json ----
+
+        private static void CheckMoney(GameData d, IReadOnlyList<MoneyDef> list, string where, List<DataIssue> issues)
+        {
+            if (list.Count == 0) { Error(issues, "ECONOMY", where, "費用・報酬が空"); }
+            foreach (MoneyDef m in list)
+            {
+                if (!d.TryCurrency(m.CurrencyId, out _) || !(m.Amount > 0)) { Error(issues, "ECONOMY", where, "通貨がマスタに無いか、量が正でない: " + m.CurrencyId); }
+            }
+        }
+
+        private static void CheckEconomy(GameData d, List<DataIssue> issues)
+        {
+            EconomyConfig e = d.Economy;
+            string at = DataLoader.EconomyFile;
+            var shopIds = new HashSet<string>();
+            foreach (ShopItemDef s in e.Shop)
+            {
+                string where = at + ":shop/" + s.Id;
+                if (string.IsNullOrEmpty(s.Id) || !shopIds.Add(s.Id)) { Error(issues, "ECONOMY", where, "ID が空か重複"); }
+                if (s.Tab != "item" && s.Tab != "exchange") { Error(issues, "ECONOMY", where, "tab は item か exchange"); }
+                CheckMoney(d, s.Cost, where + "/cost", issues);
+                CheckMoney(d, s.Reward, where + "/reward", issues);
+            }
+            RouletteDef r = e.Roulette;
+            if (!d.TryCurrency(r.CurrencyId, out _) || !(r.CostPerSpin > 0) || r.Entries.Count == 0) { Error(issues, "ECONOMY", at + ":roulette", "通貨・1回の費用・当たりの表を確かめる"); }
+            foreach (RouletteEntry en in r.Entries)
+            {
+                if (!(en.Weight > 0)) { Error(issues, "ECONOMY", at + ":roulette", "重みは正"); }
+                CheckMoney(d, en.Reward, at + ":roulette/reward", issues);
+            }
+            var achIds = new HashSet<string>();
+            foreach (AchievementDef a in e.Achievements)
+            {
+                string where = at + ":achievements/" + a.Id;
+                if (string.IsNullOrEmpty(a.Id) || !achIds.Add(a.Id) || string.IsNullOrEmpty(a.Metric) || a.Tiers.Count == 0) { Error(issues, "ECONOMY", where, "ID・metric・段が必要（ID は重複しない）"); }
+                double prev = 0;
+                foreach (AchievementTier t in a.Tiers)
+                {
+                    if (!(t.Target > prev)) { Error(issues, "ECONOMY", where, "target が昇順で正でない"); }
+                    prev = t.Target;
+                    CheckMoney(d, t.Reward, where + "/reward", issues);
+                }
             }
         }
 

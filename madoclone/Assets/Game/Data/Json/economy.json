@@ -1,0 +1,470 @@
+{
+  "schemaVersion": 1,
+  "shop": [
+    {
+      "id": "gem_ticket",
+      "tab": "item",
+      "cost": [
+        {
+          "currencyId": "gem",
+          "amount": 300
+        }
+      ],
+      "reward": [
+        {
+          "currencyId": "gacha_ticket",
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "id": "gem_roulette",
+      "tab": "item",
+      "cost": [
+        {
+          "currencyId": "gem",
+          "amount": 100
+        }
+      ],
+      "reward": [
+        {
+          "currencyId": "roulette_coin",
+          "amount": 5
+        }
+      ]
+    },
+    {
+      "id": "gem_shard",
+      "tab": "item",
+      "cost": [
+        {
+          "currencyId": "gem",
+          "amount": 500
+        }
+      ],
+      "reward": [
+        {
+          "currencyId": "awaken_shard",
+          "amount": 10
+        }
+      ]
+    },
+    {
+      "id": "gem_memo",
+      "tab": "item",
+      "cost": [
+        {
+          "currencyId": "gem",
+          "amount": 200
+        }
+      ],
+      "reward": [
+        {
+          "currencyId": "research_memo",
+          "amount": 100
+        }
+      ]
+    },
+    {
+      "id": "gem_sand",
+      "tab": "item",
+      "cost": [
+        {
+          "currencyId": "gem",
+          "amount": 100
+        }
+      ],
+      "reward": [
+        {
+          "currencyId": "star_sand",
+          "amount": 500
+        }
+      ]
+    },
+    {
+      "id": "gem_wine",
+      "tab": "item",
+      "cost": [
+        {
+          "currencyId": "gem",
+          "amount": 100
+        }
+      ],
+      "reward": [
+        {
+          "currencyId": "wine",
+          "amount": 1000
+        }
+      ]
+    },
+    {
+      "id": "tp_ticket",
+      "tab": "exchange",
+      "cost": [
+        {
+          "currencyId": "tournament_point",
+          "amount": 500
+        }
+      ],
+      "reward": [
+        {
+          "currencyId": "gacha_ticket",
+          "amount": 10
+        }
+      ]
+    },
+    {
+      "id": "gc_ticket",
+      "tab": "exchange",
+      "cost": [
+        {
+          "currencyId": "guild_coin",
+          "amount": 300
+        }
+      ],
+      "reward": [
+        {
+          "currencyId": "gacha_ticket",
+          "amount": 5
+        }
+      ]
+    },
+    {
+      "id": "gc_roulette",
+      "tab": "exchange",
+      "cost": [
+        {
+          "currencyId": "guild_coin",
+          "amount": 100
+        }
+      ],
+      "reward": [
+        {
+          "currencyId": "roulette_coin",
+          "amount": 5
+        }
+      ]
+    },
+    {
+      "id": "medal_flame",
+      "tab": "exchange",
+      "cost": [
+        {
+          "currencyId": "collection_medal",
+          "amount": 200
+        }
+      ],
+      "reward": [
+        {
+          "currencyId": "dragon_flame",
+          "amount": 50
+        }
+      ]
+    }
+  ],
+  "roulette": {
+    "currencyId": "roulette_coin",
+    "costPerSpin": 1,
+    "entries": [
+      {
+        "weight": 40,
+        "reward": [
+          {
+            "currencyId": "gem",
+            "amount": 50
+          }
+        ]
+      },
+      {
+        "weight": 20,
+        "reward": [
+          {
+            "currencyId": "gem",
+            "amount": 200
+          }
+        ]
+      },
+      {
+        "weight": 25,
+        "reward": [
+          {
+            "currencyId": "gacha_ticket",
+            "amount": 1
+          }
+        ]
+      },
+      {
+        "weight": 10,
+        "reward": [
+          {
+            "currencyId": "gacha_ticket",
+            "amount": 5
+          }
+        ]
+      },
+      {
+        "weight": 4,
+        "reward": [
+          {
+            "currencyId": "awaken_shard",
+            "amount": 5
+          }
+        ]
+      },
+      {
+        "weight": 1,
+        "reward": [
+          {
+            "currencyId": "gem",
+            "amount": 1000
+          }
+        ]
+      }
+    ]
+  },
+  "achievements": [
+    {
+      "id": "pulls",
+      "metric": "gacha.pulls",
+      "tiers": [
+        {
+          "target": 10,
+          "reward": [
+            {
+              "currencyId": "gem",
+              "amount": 30
+            }
+          ]
+        },
+        {
+          "target": 100,
+          "reward": [
+            {
+              "currencyId": "gem",
+              "amount": 100
+            }
+          ]
+        },
+        {
+          "target": 1000,
+          "reward": [
+            {
+              "currencyId": "gem",
+              "amount": 300
+            }
+          ]
+        },
+        {
+          "target": 10000,
+          "reward": [
+            {
+              "currencyId": "gem",
+              "amount": 1000
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "kills",
+      "metric": "battle.enemies_defeated",
+      "tiers": [
+        {
+          "target": 50,
+          "reward": [
+            {
+              "currencyId": "gem",
+              "amount": 30
+            }
+          ]
+        },
+        {
+          "target": 200,
+          "reward": [
+            {
+              "currencyId": "gem",
+              "amount": 60
+            }
+          ]
+        },
+        {
+          "target": 1000,
+          "reward": [
+            {
+              "currencyId": "gem",
+              "amount": 150
+            }
+          ]
+        },
+        {
+          "target": 5000,
+          "reward": [
+            {
+              "currencyId": "gem",
+              "amount": 400
+            }
+          ]
+        },
+        {
+          "target": 20000,
+          "reward": [
+            {
+              "currencyId": "gem",
+              "amount": 1000
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "wins",
+      "metric": "battle.won",
+      "tiers": [
+        {
+          "target": 10,
+          "reward": [
+            {
+              "currencyId": "gem",
+              "amount": 30
+            }
+          ]
+        },
+        {
+          "target": 50,
+          "reward": [
+            {
+              "currencyId": "gem",
+              "amount": 80
+            }
+          ]
+        },
+        {
+          "target": 200,
+          "reward": [
+            {
+              "currencyId": "gem",
+              "amount": 200
+            }
+          ]
+        },
+        {
+          "target": 1000,
+          "reward": [
+            {
+              "currencyId": "gem",
+              "amount": 500
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "levelups",
+      "metric": "growth.level_ups",
+      "tiers": [
+        {
+          "target": 10,
+          "reward": [
+            {
+              "currencyId": "gem",
+              "amount": 30
+            }
+          ]
+        },
+        {
+          "target": 50,
+          "reward": [
+            {
+              "currencyId": "gem",
+              "amount": 80
+            }
+          ]
+        },
+        {
+          "target": 200,
+          "reward": [
+            {
+              "currencyId": "gem",
+              "amount": 200
+            }
+          ]
+        },
+        {
+          "target": 1000,
+          "reward": [
+            {
+              "currencyId": "gem",
+              "amount": 500
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "awakenings",
+      "metric": "growth.awakenings",
+      "tiers": [
+        {
+          "target": 1,
+          "reward": [
+            {
+              "currencyId": "gem",
+              "amount": 50
+            }
+          ]
+        },
+        {
+          "target": 5,
+          "reward": [
+            {
+              "currencyId": "gem",
+              "amount": 150
+            }
+          ]
+        },
+        {
+          "target": 20,
+          "reward": [
+            {
+              "currencyId": "gem",
+              "amount": 400
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "gem_spent",
+      "metric": "spent.gem",
+      "tiers": [
+        {
+          "target": 1000,
+          "reward": [
+            {
+              "currencyId": "gem",
+              "amount": 50
+            }
+          ]
+        },
+        {
+          "target": 10000,
+          "reward": [
+            {
+              "currencyId": "gem",
+              "amount": 200
+            }
+          ]
+        },
+        {
+          "target": 100000,
+          "reward": [
+            {
+              "currencyId": "gem",
+              "amount": 600
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

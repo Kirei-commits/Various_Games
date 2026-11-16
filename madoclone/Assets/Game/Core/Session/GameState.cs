@@ -52,6 +52,7 @@ namespace Mado.Core.Session
     public sealed class GameState
     {
         private readonly SaveData _save;
+        private readonly GameData _data;
         private readonly Wallet.Wallet _wallet;
         private readonly IdleService _idle;
         private readonly Metrics.MetricCounter _metrics;
@@ -63,10 +64,13 @@ namespace Mado.Core.Session
         private readonly Growth.CollectionService _collection;
         private readonly Growth.ZukanService _zukan;
         private readonly Growth.GachaService _gacha;
+        private readonly Progress.AchievementService _achievements;
         private readonly Func<string, bool> _isUnlocked;
 
-        internal GameState(SaveData save, Wallet.Wallet wallet, IdleService idle, Metrics.MetricCounter metrics, Growth.TrialService trials, Growth.SupportService supports, Growth.DragonNestService nest, Growth.SpiritStoneService stones, Growth.TreeService trees, Growth.CollectionService collection, Growth.ZukanService zukan, Growth.GachaService gacha, Func<string, bool> isUnlocked)
+        internal GameState(Mado.Data.GameData data, SaveData save, Wallet.Wallet wallet, IdleService idle, Metrics.MetricCounter metrics, Growth.TrialService trials, Growth.SupportService supports, Growth.DragonNestService nest, Growth.SpiritStoneService stones, Growth.TreeService trees, Growth.CollectionService collection, Growth.ZukanService zukan, Growth.GachaService gacha, Progress.AchievementService achievements, Func<string, bool> isUnlocked)
         {
+            _data = data;
+            _achievements = achievements;
             _gacha = gacha;
             _isUnlocked = isUnlocked;
             _nest = nest; _stones = stones; _trees = trees; _collection = collection; _zukan = zukan;
@@ -96,6 +100,13 @@ namespace Mado.Core.Session
         }
 
         /// <summary>機能が使えるか（unlocks.json。例："memory_card"、"trial_dragon"、"plaza_spirit"）。</summary>
+        /// <summary>実績の進み具合：（いまの値、目標に達した段の数、受け取り済みの段の数）。</summary>
+        public (double Value, int Reached, int Claimed) AchievementOf(string achievementId)
+        {
+            if (!_data.Economy.TryAchievement(achievementId, out AchievementDef a)) { return (0, 0, 0); }
+            return (_achievements.Progress(a), _achievements.Reached(a), _achievements.Claimed(achievementId));
+        }
+
         public int GachaTotalPulls { get { return _gacha.TotalPulls; } }
 
         /// <summary>ピックアップの天井までの残り回数。</summary>

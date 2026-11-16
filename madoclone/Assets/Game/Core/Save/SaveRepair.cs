@@ -23,6 +23,12 @@ namespace Mado.Core.Save
             RepairMemory(save, data, done);
             RepairStones(save, data, done);
             RepairResearch(save, data, done);
+            foreach (string id in new List<string>(save.Achievements.Claimed.Keys))
+            {
+                if (!data.Economy.TryAchievement(id, out AchievementDef ad)) { continue; }
+                int tier = Math.Max(0, Math.Min(save.Achievements.Claimed[id], ad.Tiers.Count));
+                if (tier != save.Achievements.Claimed[id]) { Note(done, "実績の段 " + save.Achievements.Claimed[id] + " → " + tier, "achievements." + id); save.Achievements.Claimed[id] = tier; }
+            }
             GachaState gs = save.Gacha;
             int pulls = Math.Max(0, gs.TotalPulls), pity = Math.Max(0, Math.Min(gs.PickupPity, data.Gacha.PickupPity)), steps = Math.Max(0, Math.Min(gs.StepsClaimed, data.Gacha.Steps.Count));
             if (pulls != gs.TotalPulls || pity != gs.PickupPity || steps != gs.StepsClaimed)

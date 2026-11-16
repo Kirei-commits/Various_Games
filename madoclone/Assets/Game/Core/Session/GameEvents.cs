@@ -13,6 +13,9 @@ namespace Mado.Core.Session
         MemoryGachaLevelUp,   // Value = 新しい絆ガチャLv
         LeaderChanged,        // Id = キャラ（解除なら空）
         LeaderLevelUp,        // Value = 新しいリーダーLv
+        ShopBought,           // Id = 商品, Amount = 個数
+        RouletteSpun,         // Amount = 回数
+        AchievementClaimed,   // Id = 実績（まとめてなら空）, Value = 受け取った段の数
         PartyChanged,
         GachaPulled,          // Id = バナー, Amount = 回数, Value = 新しく入手したキャラ数, Detail = 受け取ったステップ報酬の数
         TreeNodeLevelUp,      // Id = "ツリー/ノード", Value = 新しいLv

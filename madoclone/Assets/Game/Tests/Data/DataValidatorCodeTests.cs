@@ -121,6 +121,21 @@ namespace Mado.Data.Tests
             yield return C("REWARDS", rw, r => r["idleCapHours"] = 0);
             yield return C("REWARDS", rw, r => r["idleCoinPerExp"] = -1);
 
+            // ---- economy.json ----
+            string ec = DataLoader.EconomyFile;
+            yield return C("ECONOMY", ec, r => r["shop"][1]["id"] = "gem_ticket");
+            yield return C("ECONOMY", ec, r => r["shop"][0]["tab"] = "zzz");
+            yield return C("ECONOMY", ec, r => ((JArray)r["shop"][0]["cost"]).Clear());
+            yield return C("ECONOMY", ec, r => r["shop"][0]["reward"][0]["currencyId"] = "nope");
+            yield return C("ECONOMY", ec, r => r["shop"][0]["cost"][0]["amount"] = 0);
+            yield return C("ECONOMY", ec, r => r["roulette"]["costPerSpin"] = 0);
+            yield return C("ECONOMY", ec, r => r["roulette"]["entries"][0]["weight"] = 0);
+            yield return C("ECONOMY", ec, r => ((JArray)r["roulette"]["entries"]).Clear());
+            yield return C("ECONOMY", ec, r => r["achievements"][1]["id"] = "pulls");
+            yield return C("ECONOMY", ec, r => r["achievements"][0]["metric"] = "");
+            yield return C("ECONOMY", ec, r => r["achievements"][0]["tiers"][1]["target"] = 5);       // 昇順でない
+            yield return C("ECONOMY", ec, r => ((JArray)r["achievements"][0]["tiers"]).Clear());
+
             // ---- gacha.json ----
             string gc = DataLoader.GachaFile;
             yield return C("GACHA", gc, r => r["ticketCurrency"] = "nope");

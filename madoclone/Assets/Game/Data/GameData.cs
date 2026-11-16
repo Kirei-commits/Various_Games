@@ -27,6 +27,7 @@ namespace Mado.Data
         public ResearchConfig Research { get; }
         public UnlocksConfig Unlocks { get; }
         public GachaConfig Gacha { get; }
+        public EconomyConfig Economy { get; }
         public BuffTable Buffs { get; }
         public TextTable Text { get; }
 
@@ -56,6 +57,7 @@ namespace Mado.Data
             ResearchConfig research,
             UnlocksConfig unlocks,
             GachaConfig gacha,
+            EconomyConfig economy,
             BuffTable buffs,
             IReadOnlyList<TierDef> tiers,
             IReadOnlyList<CharacterDef> characters,
@@ -79,6 +81,7 @@ namespace Mado.Data
             Research = research;
             Unlocks = unlocks;
             Gacha = gacha;
+            Economy = economy;
             Buffs = buffs;
             Tiers = tiers;
             Characters = characters;
