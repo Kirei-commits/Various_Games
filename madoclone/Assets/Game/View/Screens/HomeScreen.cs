@@ -42,17 +42,20 @@ namespace Mado.View.Screens
         private void BuildParty()
         {
             IReadOnlyList<string> party = State.Party;
-            var lines = new List<string>();
-            foreach (string id in party)
+            UiKit.Rect(Root, "PartyBox", 0.04f, 0.6f, 0.96f, 0.86f, UiKit.Panel);
+            int shown = 0;
+            for (int i = 0; i < party.Count; i++)
             {
+                string id = party[i];
                 if (id == null) { continue; }
                 State.TryCharacter(id, out CharacterView v);
-                lines.Add(NameOf(id) + "  ★" + v.Star + " Lv" + v.Lv);
+                float x0 = 0.05f + shown * 0.15f, x1 = x0 + 0.14f;
+                UiKit.Icon(Root, "Icon" + shown, Data.Character(id).AssetIds.Icon, x0, 0.7f, x1, 0.84f, UiKit.PanelLight);
+                UiKit.Label(Root, "IconText" + shown, "★" + v.Star + "\nLv" + v.Lv, 22, x0, 0.62f, x1, 0.7f, TextAnchor.MiddleCenter);
+                shown++;
             }
-            string text = lines.Count == 0 ? T("ui.home.no_party") : string.Join("\n", lines);
-            if (State.Leader != null) { text = T("ui.home.leader", NameOf(State.Leader)) + "\n" + text; }
-            UiKit.Rect(Root, "PartyBox", 0.04f, 0.6f, 0.96f, 0.86f, UiKit.Panel);
-            UiKit.Label(Root, "PartyText", text, 30, 0.06f, 0.6f, 0.94f, 0.86f);
+            if (shown == 0) { UiKit.Label(Root, "PartyText", T("ui.home.no_party"), 30, 0.06f, 0.6f, 0.94f, 0.86f); }
+            else if (State.Leader != null) { UiKit.Label(Root, "Leader", T("ui.home.leader", NameOf(State.Leader)), 24, 0.06f, 0.6f, 0.5f, 0.64f); }
         }
 
         /// <summary>記憶カードの装備枠：2行×4列（左から HP・攻撃・防御・スピード。上段が1枚目、下段が2枚目）。</summary>

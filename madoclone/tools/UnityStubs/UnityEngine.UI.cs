@@ -13,7 +13,11 @@ namespace UnityEngine.UI
 
     public class MaskableGraphic : Graphic { }
 
-    public class Image : MaskableGraphic { }
+    public class Image : MaskableGraphic
+    {
+        public UnityEngine.Sprite sprite { get; set; }
+        public bool preserveAspect { get; set; }
+    }
 
     public class RectMask2D : UIBehaviour { }
 

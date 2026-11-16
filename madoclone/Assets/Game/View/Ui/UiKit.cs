@@ -78,6 +78,15 @@ namespace Mado.View.Ui
             return img;
         }
 
+        /// <summary>絵（ID は ledger/assets.json の id）。見つからなければ fallback の色の四角のまま。</summary>
+        public static Image Icon(Transform parent, string name, string assetId, float minX, float minY, float maxX, float maxY, Color fallback)
+        {
+            Image img = Rect(parent, name, minX, minY, maxX, maxY, fallback);
+            Sprite s = Mado.View.Platform.AssetLibrary.Sprite(assetId);
+            if (s != null) { img.sprite = s; img.color = new Color(1f, 1f, 1f, 1f); img.preserveAspect = true; }
+            return img;
+        }
+
         /// <summary>文字。</summary>
         public static Text Label(Transform parent, string name, string text, int size, float minX, float minY, float maxX, float maxY, TextAnchor anchor = TextAnchor.MiddleLeft)
         {
@@ -100,7 +109,7 @@ namespace Mado.View.Ui
             Image bg = Rect(parent, name, minX, minY, maxX, maxY, color);
             var button = bg.gameObject.AddComponent<Button>();
             button.targetGraphic = bg;
-            if (onClick != null) { button.onClick.AddListener(() => onClick()); }
+            button.onClick.AddListener(() => { Mado.View.Platform.AudioPlayer.Se("tap"); if (onClick != null) { onClick(); } });
             Text label = Label(bg.transform, "Label", text, 36, 0f, 0f, 1f, 1f, TextAnchor.MiddleCenter);
             label.horizontalOverflow = HorizontalWrapMode.Wrap;
             return button;

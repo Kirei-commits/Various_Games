@@ -57,6 +57,33 @@ namespace UnityEngine
 
     public class Font : Object { }
 
+    public class Texture : Object { }
+
+    public class Sprite : Object { }
+
+    public class AudioClip : Object { public float length { get { return 0f; } } }
+
+    public class AudioSource : Behaviour
+    {
+        public AudioClip clip { get; set; }
+        public bool loop { get; set; }
+        public float volume { get; set; }
+        public bool playOnAwake { get; set; }
+        public bool mute { get; set; }
+        public bool isPlaying { get { return false; } }
+        public void Play() { }
+        public void Stop() { }
+        public void PlayOneShot(AudioClip clip, float volumeScale) { }
+        public void PlayOneShot(AudioClip clip) { }
+    }
+
+    public static class PlayerPrefs
+    {
+        public static int GetInt(string key, int defaultValue) { return defaultValue; }
+        public static void SetInt(string key, int value) { }
+        public static void Save() { }
+    }
+
     public static class Resources
     {
         public static T Load<T>(string path) where T : Object { return null; }
@@ -68,6 +95,7 @@ namespace UnityEngine
         public GameObject gameObject { get { return null; } }
         public Transform transform { get { return null; } }
         public T GetComponentInChildren<T>() { return default(T); }
+        public T GetComponent<T>() { return default(T); }
     }
 
     public class Behaviour : Component

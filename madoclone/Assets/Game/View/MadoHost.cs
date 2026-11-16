@@ -54,6 +54,7 @@ namespace Mado.View
                 else if (session.Loaded.Source == SaveSource.Backup) { Debug.LogWarning("セーブを読めなかったので、バックアップから復元した: " + session.Loaded.CurrentFailure); }
                 foreach (SaveIssue issue in session.Loaded.Issues) { Debug.Log("セーブの読み込み: " + issue); }
 
+                Mado.View.Platform.AudioPlayer.Create(gameObject);
                 _app = new MadoApp(gameObject, data, session);
                 if (session.Loaded.Source == SaveSource.Backup) { _app.Toast("バックアップから復元しました"); }
                 _app.SaveNow();

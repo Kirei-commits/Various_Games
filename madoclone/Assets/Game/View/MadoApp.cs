@@ -39,7 +39,8 @@ namespace Mado.View
             Data = data;
             Session = session;
             _root = UiKit.CreateRoot(host);
-            UiKit.Rect(_root, "Background", 0f, 0f, 1f, 1f, UiKit.Background);
+            UiKit.Icon(_root, "Background", "art.bg.home", 0f, 0f, 1f, 1f, UiKit.Background).preserveAspect = false;
+            Mado.View.Platform.AudioPlayer.Bgm("home");
 
             RectTransform content = UiKit.Box(_root, "Content", 0f, TabHeight, 1f, 1f);
             _screens[ScreenId.Party] = new PartyScreen(this, content);
@@ -82,6 +83,7 @@ namespace Mado.View
         public void Show(ScreenId id)
         {
             _battle.Hide();
+            Mado.View.Platform.AudioPlayer.Bgm("home");
             _tabBar.gameObject.SetActive(true);
             if (_current != null) { _current.Hide(); }
             _current = _screens[id];
@@ -93,6 +95,7 @@ namespace Mado.View
         {
             if (_current != null) { _current.Hide(); }
             _tabBar.gameObject.SetActive(false);
+            Mado.View.Platform.AudioPlayer.Bgm("battle");
             _battle.Begin(Session.LastBattleSetup, result);
         }
 
@@ -120,9 +123,10 @@ namespace Mado.View
         /// <summary>コマンドの結果を受ける：失敗ならお知らせを出す。成功なら保存の印を付け、いまの画面を作り直す。</summary>
         public bool Commit(CommandResult result)
         {
-            Session.DrainEvents();
+            Mado.View.Platform.AudioPlayer.ForEvents(Session.DrainEvents());
             if (!result.Success)
             {
+                Mado.View.Platform.AudioPlayer.Se("error");
                 Toast(result.Failure == "Locked" ? Data.Text.Get("ui.locked") : string.Format(Data.Text.Get("ui.failed"), result.Failure));
                 return false;
             }

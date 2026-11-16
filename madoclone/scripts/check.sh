@@ -9,6 +9,9 @@ python3 tools/bootstrap/validate.py "$@"
 # 乱数の期待値（C# のテストが使う）が、Python の参照実装と食い違っていないか。
 python3 tools/bootstrap/rng_reference.py --check
 
+# 絵・音の台帳（ledger/assets.json）：ライセンス・実在・Data からの参照。
+python3 tools/bootstrap/check_assets.py
+
 # Core・Data のソースが、Unity への依存・System.Random・DateTime.Now・向きの違う参照を含んでいないか。
 python3 tools/bootstrap/check_sources.py
 

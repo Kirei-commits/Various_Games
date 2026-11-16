@@ -9,6 +9,22 @@ namespace UnityEditor
         public MenuItemAttribute(string itemName) { }
     }
 
+    public enum TextureImporterType { Default, NormalMap, Sprite }
+
+    public class AssetImporter { public string assetPath { get { return ""; } } }
+
+    public class TextureImporter : AssetImporter
+    {
+        public TextureImporterType textureType { get; set; }
+        public bool mipmapEnabled { get; set; }
+    }
+
+    public class AssetPostprocessor
+    {
+        public string assetPath { get { return ""; } }
+        public AssetImporter assetImporter { get { return null; } }
+    }
+
     public static class AssetDatabase
     {
         public static void Refresh() { }
