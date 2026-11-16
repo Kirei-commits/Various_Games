@@ -36,6 +36,7 @@ namespace Mado.Core.Save
         public Dictionary<string, TrialState> Trials { get; set; } = new Dictionary<string, TrialState>();
         public SupportsState Supports { get; set; } = new SupportsState();
         public DragonNestState DragonNest { get; set; } = new DragonNestState();
+        public SpiritStoneState SpiritStones { get; set; } = new SpiritStoneState();
 
         /// <summary>マスタに無い ID・未知の項目の中身。捨てずに持ち越す（キーは "characters/ID" など）。</summary>
         public Dictionary<string, JToken> Orphans { get; set; } = new Dictionary<string, JToken>();
@@ -147,6 +148,23 @@ namespace Mado.Core.Save
     public sealed class DragonNestState
     {
         public Dictionary<string, int> Levels { get; set; } = new Dictionary<string, int>();
+    }
+
+    /// <summary>霊石版1枚（持ち物）。</summary>
+    public sealed class StoneState
+    {
+        public string Id { get; set; }
+        public string Rarity { get; set; }
+        public string Constellation { get; set; }
+        public int Lv { get; set; } = 1;
+    }
+
+    /// <summary>霊石版：持っている石と、円盤（ページ × 枠。Equipped は ページ×枠数 の長さの1列で、空は null）。</summary>
+    public sealed class SpiritStoneState
+    {
+        public int NextNumber { get; set; } = 1;
+        public List<StoneState> Stones { get; set; } = new List<StoneState>();
+        public string[] Equipped { get; set; } = new string[0];
     }
 
     public sealed class PartyState

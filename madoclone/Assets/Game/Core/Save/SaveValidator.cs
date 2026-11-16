@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using Mado.Data;
 
 namespace Mado.Core.Save
@@ -92,6 +93,7 @@ namespace Mado.Core.Save
                 }
             }
             CheckMemory(save, data, issues);
+            CheckStones(save, data, issues);
             var nestMax = NestMaxLevels(data);
             foreach (KeyValuePair<string, int> kv in save.DragonNest.Levels)
             {
@@ -190,6 +192,33 @@ namespace Mado.Core.Save
                 {
                     Add(issues, SaveSeverity.Error, "MEMORY_EQUIP_DUP", "同じカード " + id + " を2つの枠に付けている", at);
                 }
+            }
+        }
+
+        private static void CheckStones(SaveData save, GameData data, List<SaveIssue> issues)
+        {
+            SpiritStonesConfig c = data.SpiritStones;
+            SpiritStoneState st = save.SpiritStones;
+            var ids = new HashSet<string>();
+            for (int i = 0; i < st.Stones.Count; i++)
+            {
+                StoneState s = st.Stones[i];
+                string at = "spiritStones.stones[" + i + "]";
+                if (string.IsNullOrEmpty(s.Id) || !ids.Add(s.Id)) { Add(issues, SaveSeverity.Error, "STONE_ID", "石の ID が空か重複: " + s.Id, at + ".id"); }
+                if (!c.Rarities.Any(r => r.Id == s.Rarity)) { Add(issues, SaveSeverity.Error, "STONE_RARITY", "マスタに無いレア " + s.Rarity, at + ".rarity"); }
+                if (!c.Constellations.Any(k => k.Id == s.Constellation)) { Add(issues, SaveSeverity.Error, "STONE_CONSTELLATION", "マスタに無い星座 " + s.Constellation, at + ".constellation"); }
+                if (s.Lv < 1 || s.Lv > c.MaxLv) { Add(issues, SaveSeverity.Error, "STONE_LV", "石のLv が 1〜" + c.MaxLv + " の外: " + s.Lv, at + ".lv"); }
+            }
+            if (st.Stones.Count > c.MaxStones) { Add(issues, SaveSeverity.Warning, "STONE_OVER", "石が持てる枚数を超えている: " + st.Stones.Count, "spiritStones.stones"); }
+            if (st.NextNumber < 1) { Add(issues, SaveSeverity.Error, "STONE_NEXT_ID", "nextNumber が1未満", "spiritStones.nextNumber"); }
+            var used = new HashSet<string>();
+            for (int slot = 0; slot < st.Equipped.Length; slot++)
+            {
+                string id = st.Equipped[slot];
+                if (id == null) { continue; }
+                string at = "spiritStones.equipped[" + slot + "]";
+                if (!ids.Contains(id)) { Add(issues, SaveSeverity.Error, "STONE_EQUIP_UNKNOWN", "持っていない石 " + id + " をはめている", at); }
+                else if (!used.Add(id)) { Add(issues, SaveSeverity.Error, "STONE_EQUIP_DUP", "同じ石 " + id + " を2か所にはめている", at); }
             }
         }
 

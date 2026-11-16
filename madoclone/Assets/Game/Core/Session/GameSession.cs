@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Mado.Core.Battle;
 using Mado.Core.Growth;
 using Mado.Core.Metrics;
@@ -62,6 +63,7 @@ namespace Mado.Core.Session
         private readonly TrialService _trials;
         private readonly SupportService _supports;
         private readonly DragonNestService _nest;
+        private readonly SpiritStoneService _stones;
         private readonly IdleService _idle;
         private readonly StageFactory _stages;
         private readonly BattleSetupBuilder _builder;
@@ -91,14 +93,15 @@ namespace Mado.Core.Session
             _rewards = new RewardCalculator(data);
 
             _nest = new DragonNestService(data, _save, _wallet);
-            var sources = new List<IModifierSource> { new MemoryCardSource(data, _save), new LeaderLvSource(data, _save), new PlazaSource(data, _save), new DragonNestSource(_nest, _save) };
+            _stones = new SpiritStoneService(data, _save, _wallet);
+            var sources = new List<IModifierSource> { new MemoryCardSource(data, _save), new LeaderLvSource(data, _save), new PlazaSource(data, _save), new DragonNestSource(_nest, _save), new SpiritStoneSource(data, _save, _stones) };
             if (extraSources != null) { sources.AddRange(extraSources); }
             _builder = new BattleSetupBuilder(data, new StatResolver(data, sources));
 
             _supports = new SupportService(data, _save, _builder.Skills);
             _trials = new TrialService(data, _save, _wallet, clock, _stages, _builder);
             _idle.EnsureStarted();
-            State = new GameState(_save, _wallet, _idle, _metrics, _trials, _supports, _nest);
+            State = new GameState(_save, _wallet, _idle, _metrics, _trials, _supports, _nest, _stones);
             Debug = new DebugCommands(this);
         }
 
@@ -298,6 +301,11 @@ namespace Mado.Core.Session
             var evs = new List<GameEvent>();
             if (r.Cleared) { evs.Add(new GameEvent(GameEventKind.TrialCleared, trialId, 0, r.NewClearedLv)); }
             if (r.RewardGranted) { evs.Add(new GameEvent(GameEventKind.TrialRewarded, trialId, 0, r.RewardLv)); }
+            if (r.RewardGranted && _data.Trials.TryGet(trialId, out TrialDef def) && def.DropsStones)
+            {
+                List<StoneState> dropped = _stones.Drop(_data.SpiritStones.DropsPerClear, out double autoSand);
+                evs.Add(new GameEvent(GameEventKind.StonesDropped, trialId, autoSand, dropped.Count));
+            }
             Finish(evs.ToArray());
             return r;
         }
@@ -323,6 +331,45 @@ namespace Mado.Core.Session
             SupportFailure f = _supports.Clear(DefaultParty, kind);
             if (f != SupportFailure.None) { return Failed(f); }
             return Done(new GameEvent(GameEventKind.SupportChanged, "", 0, (int)kind));
+        }
+
+        // ---------------- 霊石版 ----------------
+
+        public CommandResult EquipStone(int page, int slot, string stoneId)
+        {
+            StoneFailure f = _stones.Equip(page, slot, stoneId);
+            if (f != StoneFailure.None) { return Failed(f); }
+            return Done(new GameEvent(GameEventKind.StoneEquipped, stoneId, 0, page * _stones.SlotsPerPage + slot));
+        }
+
+        public CommandResult UnequipStone(int page, int slot)
+        {
+            StoneFailure f = _stones.Unequip(page, slot);
+            if (f != StoneFailure.None) { return Failed(f); }
+            return Done();
+        }
+
+        public CommandResult LevelUpStone(string stoneId)
+        {
+            StoneFailure f = _stones.LevelUp(stoneId);
+            if (f != StoneFailure.None) { return Failed(f); }
+            return Done(new GameEvent(GameEventKind.StoneLevelUp, stoneId, 0, _stones.Find(stoneId).Lv));
+        }
+
+        public CommandResult DismantleStone(string stoneId)
+        {
+            StoneFailure f = _stones.Dismantle(stoneId, out double sand);
+            if (f != StoneFailure.None) { return Failed(f); }
+            return Done(new GameEvent(GameEventKind.StoneDismantled, stoneId, sand, 1));
+        }
+
+        /// <summary>レアの順番が rarityIndex 以下の、はめていない石を全部分解する。</summary>
+        public CommandResult DismantleStonesUpTo(int rarityIndex, out int count)
+        {
+            count = 0;
+            if (rarityIndex < 0 || rarityIndex >= _data.SpiritStones.Rarities.Count) { return Failed("InvalidRarity"); }
+            count = _stones.DismantleUpTo(rarityIndex, out double sand);
+            return Done(new GameEvent(GameEventKind.StoneDismantled, "", sand, count));
         }
 
         // ---------------- 竜の巣 ----------------
@@ -476,6 +523,13 @@ namespace Mado.Core.Session
                 if (star < 0 || star > SupportService.MaxStar) { return CommandResult.Fail("InvalidStar"); }
                 _s._save.Supports.Stars[supportId] = star;
                 return _s.Done();
+            }
+
+            /// <summary>霊石版を1枚付与する（試練のドロップ以外の入手経路ができるまでの代わり）。</summary>
+            public CommandResult GrantStone(string rarityId, string constellationId, int lv)
+            {
+                if (_s._stones.RarityIndex(rarityId) < 0 || !_s._data.SpiritStones.Constellations.Any(k => k.Id == constellationId)) { return CommandResult.Fail("InvalidStone"); }
+                return _s._stones.Add(rarityId, constellationId, lv) == null ? CommandResult.Fail("InventoryFull") : _s.Done();
             }
 
             public void SetDevMode(bool on) { _s._save.DevMode = on; }

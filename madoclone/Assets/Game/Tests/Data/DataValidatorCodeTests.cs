@@ -121,6 +121,20 @@ namespace Mado.Data.Tests
             yield return C("REWARDS", rw, r => r["idleCapHours"] = 0);
             yield return C("REWARDS", rw, r => r["idleCoinPerExp"] = -1);
 
+            // ---- spirit_stones.json ----
+            string ss = DataLoader.SpiritStonesFile;
+            yield return C("SPIRIT_STONES", ss, r => r["maxStones"] = 0);
+            yield return C("SPIRIT_STONES", ss, r => r["slotMainStat"][0] = "evasionPct");
+            yield return C("SPIRIT_STONES", ss, r => ((JArray)r["rarities"]).Clear());
+            yield return C("SPIRIT_STONES", ss, r => r["rarities"][1]["id"] = "blue");
+            yield return C("SPIRIT_STONES", ss, r => r["rarities"][0]["subBase"] = 0);
+            yield return C("SPIRIT_STONES", ss, r => r["rarities"][2]["mainPerLv"] = 1);          // 並びが逆
+            yield return C("SPIRIT_STONES", ss, r => r["rarities"][0]["dropPct"] = 50);            // 合計が100でない
+            yield return C("SPIRIT_STONES", ss, r => r["subOrder"][0]["stat"] = "nope");
+            yield return C("SPIRIT_STONES", ss, r => r["subOrder"][1]["appearLv"] = 5);           // 昇順でない
+            yield return C("SPIRIT_STONES", ss, r => r["constellations"][0]["set4"] = 1);
+            yield return C("SPIRIT_STONES", ss, r => ((JArray)r["constellations"]).Clear());
+
             // ---- dragon_nest.json ----
             string dn = DataLoader.DragonNestFile;
             yield return C("DRAGON_NEST", dn, r => r["blocks"] = 0);

@@ -30,6 +30,15 @@ namespace Mado.Core.Session
         public MemoryCardView(MemoryCardState c) { Id = c.Id; Rarity = c.Rarity; Kind = c.Kind; Lv = c.Lv; }
     }
 
+    public readonly struct StoneView
+    {
+        public readonly string Id, Rarity, Constellation;
+        public readonly int Lv;
+        public readonly bool Equipped;
+
+        public StoneView(StoneState s, bool equipped) { Id = s.Id; Rarity = s.Rarity; Constellation = s.Constellation; Lv = s.Lv; Equipped = equipped; }
+    }
+
     public readonly struct ProgressView
     {
         public readonly int Rank, Area, Stage;
@@ -49,10 +58,11 @@ namespace Mado.Core.Session
         private readonly Growth.TrialService _trials;
         private readonly Growth.SupportService _supports;
         private readonly Growth.DragonNestService _nest;
+        private readonly Growth.SpiritStoneService _stones;
 
-        internal GameState(SaveData save, Wallet.Wallet wallet, IdleService idle, Metrics.MetricCounter metrics, Growth.TrialService trials, Growth.SupportService supports, Growth.DragonNestService nest)
+        internal GameState(SaveData save, Wallet.Wallet wallet, IdleService idle, Metrics.MetricCounter metrics, Growth.TrialService trials, Growth.SupportService supports, Growth.DragonNestService nest, Growth.SpiritStoneService stones)
         {
-            _nest = nest;
+            _nest = nest; _stones = stones;
             _save = save; _wallet = wallet; _idle = idle; _metrics = metrics; _trials = trials; _supports = supports;
         }
 
@@ -90,6 +100,22 @@ namespace Mado.Core.Session
 
         public int DragonNodeLv(string nodeId) { return _nest.Lv(nodeId); }
         public bool IsDragonNodeUnlocked(string nodeId) { return _nest.TryNode(nodeId, out Growth.NestNode n) && _nest.IsUnlocked(n); }
+        public int StoneCount { get { return _stones.Count; } }
+
+        /// <summary>持っている石（写し）。</summary>
+        public IReadOnlyList<StoneView> Stones
+        {
+            get
+            {
+                var list = new List<StoneView>();
+                foreach (StoneState s in _save.SpiritStones.Stones) { list.Add(new StoneView(s, _stones.IsEquipped(s.Id))); }
+                return list;
+            }
+        }
+
+        /// <summary>円盤の枠にはまっている石の ID（空は null）。</summary>
+        public string StoneAt(int page, int slot) { return _save.SpiritStones.Equipped[_stones.Slot(page, slot)]; }
+
         public bool OwnsSupport(string supportId) { return _supports.IsOwned(supportId); }
         public IReadOnlyList<string> OwnedSupports(SupportKind kind) { return _supports.Owned(kind); }
         public int SupportStar(string supportId) { return _supports.Star(supportId); }

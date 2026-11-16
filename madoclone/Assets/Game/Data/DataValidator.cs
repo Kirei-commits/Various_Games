@@ -34,6 +34,7 @@ namespace Mado.Data
             CheckTrials(d, issues);
             CheckSupports(d, issues);
             CheckDragonNest(d, issues);
+            CheckSpiritStones(d, issues);
             return issues;
         }
 
@@ -747,6 +748,53 @@ namespace Mado.Data
                     else if (t.Kind == "sub" && (!n.SubPerLv.TryGetValue(stat, out double v) || !(v > 0))) { Error(issues, "DRAGON_NEST", where, "subPerLv に無い（か正でない）: " + stat); }
                 }
             }
+        }
+
+        // ---- spirit_stones.json ----
+
+        public static readonly string[] StoneStatKeys = { "evasionPct", "accuracyPct", "critRatePct", "critResistPct", "critDamagePct", "critDefensePct" };
+
+        private static void CheckSpiritStones(GameData d, List<DataIssue> issues)
+        {
+            SpiritStonesConfig c = d.SpiritStones;
+            string at = DataLoader.SpiritStonesFile;
+            if (c.MaxStones < 1 || c.MaxLv < 2 || c.Pages < 1 || !(c.LevelCostBase > 0) || c.DropsPerClear < 1 || c.SlotMainStat.Count == 0)
+            {
+                Error(issues, "SPIRIT_STONES", at, "maxStones・pages・dropsPerClear は1以上、maxLv は2以上、levelCostBase は正、slotMainStat が1つ以上");
+            }
+            foreach (string stat in c.SlotMainStat)
+            {
+                if (stat != "atk" && stat != "hp" && stat != "def") { Error(issues, "SPIRIT_STONES", at + ":slotMainStat", "メイン効果は atk・hp・def: " + stat); }
+            }
+            if (c.Rarities.Count == 0) { Error(issues, "SPIRIT_STONES", at + ":rarities", "レアが1つも無い"); }
+            double drop = 0, prevMain = 0;
+            var ids = new HashSet<string>();
+            foreach (StoneRarityDef r in c.Rarities)
+            {
+                string where = at + ":" + r.Id;
+                if (string.IsNullOrEmpty(r.Id) || !ids.Add(r.Id)) { Error(issues, "SPIRIT_STONES", where, "ID が空か重複"); }
+                if (!(r.MainPerLv > 0) || !(r.SubBase > 0) || r.DropPct < 0 || !(r.SandBase > 0)) { Error(issues, "SPIRIT_STONES", where, "係数は正（ドロップ率は0以上）"); }
+                if (r.MainPerLv < prevMain) { Error(issues, "SPIRIT_STONES", where, "メイン効果が弱いほうから強いほうへ並んでいない"); }
+                prevMain = r.MainPerLv;
+                drop += r.DropPct;
+            }
+            if (c.Rarities.Count > 0 && System.Math.Abs(drop - 100.0) > 1e-6) { Error(issues, "SPIRIT_STONES", at + ":rarities", "ドロップ率の合計が100ではない: " + drop); }
+            var known = new HashSet<string>(StoneStatKeys);
+            int prevLv = 0;
+            foreach (StoneSubDef s in c.SubOrder)
+            {
+                if (!known.Contains(s.Stat) || s.AppearLv <= prevLv || s.AppearLv > c.MaxLv) { Error(issues, "SPIRIT_STONES", at + ":subOrder", "隠し能力が知らないステータスか、現れるLv が昇順・範囲内でない: " + s.Stat); }
+                prevLv = s.AppearLv;
+            }
+            var cons = new HashSet<string>();
+            foreach (ConstellationDef k in c.Constellations)
+            {
+                if (string.IsNullOrEmpty(k.Id) || !cons.Add(k.Id) || !known.Contains(k.SetStat) || !(k.Set2 > 0) || k.Set4 < k.Set2)
+                {
+                    Error(issues, "SPIRIT_STONES", at + ":constellations", "星座が空・重複、ステータスが不明、set4 が set2 未満: " + k.Id);
+                }
+            }
+            if (c.Constellations.Count == 0) { Error(issues, "SPIRIT_STONES", at + ":constellations", "星座が1つも無い"); }
         }
 
         // ---- difficulty.json ----

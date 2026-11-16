@@ -41,6 +41,9 @@ namespace Mado.Data
 
         /// <summary>ボス本体に付ける特徴（enemy_kits.json の traits の id）。</summary>
         public IReadOnlyList<string> Traits { get; init; }
+
+        /// <summary>報酬を受け取るたびに、霊石版が spirit_stones.json の dropsPerClear 枚ドロップする（星霊王の稽古）。</summary>
+        public bool DropsStones { get; init; }
     }
 
     /// <summary>trials.json。</summary>

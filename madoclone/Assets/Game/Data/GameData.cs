@@ -23,6 +23,7 @@ namespace Mado.Data
         public TrialsConfig Trials { get; }
         public SupportsConfig Supports { get; }
         public DragonNestConfig DragonNest { get; }
+        public SpiritStonesConfig SpiritStones { get; }
         public BuffTable Buffs { get; }
         public TextTable Text { get; }
 
@@ -48,6 +49,7 @@ namespace Mado.Data
             TrialsConfig trials,
             SupportsConfig supports,
             DragonNestConfig dragonNest,
+            SpiritStonesConfig spiritStones,
             BuffTable buffs,
             IReadOnlyList<TierDef> tiers,
             IReadOnlyList<CharacterDef> characters,
@@ -67,6 +69,7 @@ namespace Mado.Data
             Trials = trials;
             Supports = supports;
             DragonNest = dragonNest;
+            SpiritStones = spiritStones;
             Buffs = buffs;
             Tiers = tiers;
             Characters = characters;

@@ -13,6 +13,10 @@ namespace Mado.Core.Session
         MemoryGachaLevelUp,   // Value = 新しい絆ガチャLv
         LeaderChanged,        // Id = キャラ（解除なら空）
         LeaderLevelUp,        // Value = 新しいリーダーLv
+        StoneEquipped,        // Id = 石, Value = 円盤の枠の番号
+        StoneLevelUp,         // Id = 石, Value = 新しいLv
+        StoneDismantled,      // Id = 石（まとめてなら空）, Amount = 星の砂, Value = 枚数
+        StonesDropped,        // Id = 試練, Amount = 持てずに星の砂にした分, Value = 手に入れた枚数
         DragonNodeLevelUp,    // Id = ノード, Value = 新しいLv
         DragonNestReset,      // Id = 属性, Amount = 戻った竜の炎
         SupportChanged,       // Id = サポート（解除なら空）, Value = 解除した種類

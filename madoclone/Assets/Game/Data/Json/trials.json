@@ -18,7 +18,8 @@
       "statRank": 10,
       "powerBase": 45000000.0,
       "powerGrowth": 1.06,
-      "traits": []
+      "traits": [],
+      "dropsStones": false
     },
     {
       "id": "battle_rush",
@@ -41,7 +42,8 @@
       "statRank": 10,
       "powerBase": 45000000.0,
       "powerGrowth": 1.06,
-      "traits": []
+      "traits": [],
+      "dropsStones": false
     },
     {
       "id": "edrasu",
@@ -62,7 +64,8 @@
       "powerGrowth": 1.06,
       "traits": [
         "cc_barrier"
-      ]
+      ],
+      "dropsStones": false
     },
     {
       "id": "hades",
@@ -83,7 +86,8 @@
       "powerGrowth": 1.06,
       "traits": [
         "cc_barrier"
-      ]
+      ],
+      "dropsStones": false
     },
     {
       "id": "spirit_king",
@@ -102,7 +106,8 @@
       "statRank": 10,
       "powerBase": 45000000.0,
       "powerGrowth": 1.06,
-      "traits": []
+      "traits": [],
+      "dropsStones": true
     },
     {
       "id": "dragon",
@@ -127,7 +132,8 @@
       "powerGrowth": 1.06,
       "traits": [
         "cc_barrier"
-      ]
+      ],
+      "dropsStones": false
     },
     {
       "id": "zeref",
@@ -146,7 +152,8 @@
       "statRank": 10,
       "powerBase": 45000000.0,
       "powerGrowth": 1.06,
-      "traits": []
+      "traits": [],
+      "dropsStones": false
     }
   ]
 }

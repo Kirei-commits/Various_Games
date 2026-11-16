@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Mado.Data;
 
 namespace Mado.Core.Save
@@ -20,6 +21,7 @@ namespace Mado.Core.Save
             RepairCrystals(save, data, done);
             RepairParties(save, data, done);
             RepairMemory(save, data, done);
+            RepairStones(save, data, done);
             Dictionary<string, int> nestMax = SaveValidator.NestMaxLevels(data);
             foreach (string id in new List<string>(save.DragonNest.Levels.Keys))
             {
@@ -68,6 +70,47 @@ namespace Mado.Core.Save
         private static void Note(List<SaveIssue> l, string message, string path)
         {
             l.Add(new SaveIssue(SaveSeverity.Warning, "REPAIRED", message, path));
+        }
+
+        private static void RepairStones(SaveData save, GameData data, List<SaveIssue> done)
+        {
+            SpiritStonesConfig c = data.SpiritStones;
+            SpiritStoneState st = save.SpiritStones;
+            int need = c.Pages * c.SlotMainStat.Count;
+            if (st.Equipped == null || st.Equipped.Length != need)
+            {
+                var slots = new string[need];
+                if (st.Equipped != null) { Array.Copy(st.Equipped, slots, Math.Min(need, st.Equipped.Length)); }
+                bool wasEmpty = st.Equipped == null || st.Equipped.Length == 0;      // まだ一度も使っていないセーブは、黙って枠を作る
+                st.Equipped = slots;
+                if (!wasEmpty) { Note(done, "円盤の枠の数を直した", "spiritStones.equipped"); }
+            }
+            var kept = new List<StoneState>();
+            var ids = new HashSet<string>();
+            int maxNumber = 0;
+            foreach (StoneState s in st.Stones)
+            {
+                bool broken = string.IsNullOrEmpty(s.Id) || !ids.Add(s.Id)
+                    || !c.Rarities.Any(r => r.Id == s.Rarity) || !c.Constellations.Any(k => k.Id == s.Constellation);
+                if (broken) { Note(done, "壊れた石 " + s.Id + " を捨てた", "spiritStones.stones"); continue; }
+                int lv = Math.Max(1, Math.Min(s.Lv, c.MaxLv));
+                if (lv != s.Lv) { Note(done, "石のLv " + s.Lv + " → " + lv, "spiritStones.stones." + s.Id); s.Lv = lv; }
+                kept.Add(s);
+                if (s.Id.StartsWith("st_", StringComparison.Ordinal) && int.TryParse(s.Id.Substring(3), out int n)) { maxNumber = Math.Max(maxNumber, n); }
+            }
+            st.Stones = kept;
+            if (st.NextNumber <= maxNumber || st.NextNumber < 1)
+            {
+                Note(done, "次の石の番号 " + st.NextNumber + " → " + (maxNumber + 1), "spiritStones.nextNumber");
+                st.NextNumber = maxNumber + 1;
+            }
+            var used = new HashSet<string>();
+            for (int slot = 0; slot < st.Equipped.Length; slot++)
+            {
+                string id = st.Equipped[slot];
+                if (id == null) { continue; }
+                if (!ids.Contains(id) || !used.Add(id)) { st.Equipped[slot] = null; Note(done, "はめた石 " + id + " を外した（無い・重複）", "spiritStones.equipped[" + slot + "]"); }
+            }
         }
 
         /// <summary>種類の違うサポートは外す（知らないものは警告のまま持ち越す。持っていないものも、試練を進めれば使えるので残す）。</summary>

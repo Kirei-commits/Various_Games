@@ -18,7 +18,7 @@ namespace Mado.Core.Save
         private static readonly HashSet<string> KnownTop = new HashSet<string>
         {
             "format", "saveVersion", "devMode", "savedAtUtc", "rng", "wallet", "walletCarry",
-            "characters", "leader", "parties", "metrics", "progress", "settings", "memory", "temple", "idle", "plazas", "trials", "supports", "dragonNest", "orphans",
+            "characters", "leader", "parties", "metrics", "progress", "settings", "memory", "temple", "idle", "plazas", "trials", "supports", "dragonNest", "spiritStones", "orphans",
         };
 
         // ---------------- 書き出し ----------------
@@ -98,6 +98,7 @@ namespace Mado.Core.Save
             var nest = new Dictionary<string, JToken>();
             foreach (KeyValuePair<string, int> kv in s.DragonNest.Levels) { nest[kv.Key] = new JValue(kv.Value); }
             o["dragonNest"] = Sorted(nest);
+            o["spiritStones"] = StonesToJson(s.SpiritStones);
             o["idle"] = new JObject { ["lastClaimUtc"] = s.Idle.LastClaimUtc ?? "" };
             o["temple"] = new JObject
             {
@@ -252,6 +253,7 @@ namespace Mado.Core.Save
                     s.DragonNest.Levels[kv.Key] = kv.Value.Value<int>();
                 }
             }
+            s.SpiritStones = ReadStones(Obj(o, "spiritStones"));
             JObject idle = Obj(o, "idle");
             if (idle != null) { s.Idle = new IdleState { LastClaimUtc = Opt(idle, "lastClaimUtc", "") }; }
             JObject temple = Obj(o, "temple");
@@ -290,6 +292,37 @@ namespace Mado.Core.Save
                 Copies = Opt(o, "copies", 0),
                 Crystals = StrArray(o["crystals"], at + ".crystals", CharacterState.CrystalSlots),
             };
+        }
+
+        private static JObject StonesToJson(SpiritStoneState st)
+        {
+            var stones = new JArray();
+            foreach (StoneState c in st.Stones) { stones.Add(new JObject { ["id"] = c.Id, ["rarity"] = c.Rarity, ["constellation"] = c.Constellation, ["lv"] = c.Lv }); }
+            var eq = new JArray();
+            foreach (string id in st.Equipped ?? new string[0]) { eq.Add(Str(id)); }
+            return new JObject { ["nextNumber"] = st.NextNumber, ["stones"] = stones, ["equipped"] = eq };
+        }
+
+        private static SpiritStoneState ReadStones(JObject o)
+        {
+            var st = new SpiritStoneState();
+            if (o == null) { return st; }
+            st.NextNumber = Opt(o, "nextNumber", 1);
+            st.Equipped = o["equipped"] == null || o["equipped"].Type == JTokenType.Null ? new string[0] : StrArray(o["equipped"], "spiritStones.equipped", -1);
+            if (o["stones"] is JArray arr)
+            {
+                for (int i = 0; i < arr.Count; i++)
+                {
+                    string at = "spiritStones.stones[" + i + "]";
+                    var c = arr[i] as JObject ?? throw new SaveFormatException(at + " がオブジェクトではない");
+                    st.Stones.Add(new StoneState
+                    {
+                        Id = Req<string>(c, "id", at + ".id"), Rarity = Req<string>(c, "rarity", at + ".rarity"),
+                        Constellation = Req<string>(c, "constellation", at + ".constellation"), Lv = Req<int>(c, "lv", at + ".lv"),
+                    });
+                }
+            }
+            return st;
         }
 
         private static JObject MemoryToJson(MemoryState m)
