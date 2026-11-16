@@ -15,6 +15,7 @@ namespace Mado.Data
         public SystemConfig System { get; }
         public StatTables Stats { get; }
         public DifficultyConfig Difficulty { get; }
+        public RewardsConfig Rewards { get; }
         public BuffTable Buffs { get; }
         public TextTable Text { get; }
 
@@ -32,6 +33,7 @@ namespace Mado.Data
             SystemConfig system,
             StatTables stats,
             DifficultyConfig difficulty,
+            RewardsConfig rewards,
             BuffTable buffs,
             IReadOnlyList<TierDef> tiers,
             IReadOnlyList<CharacterDef> characters,
@@ -43,6 +45,7 @@ namespace Mado.Data
             System = system;
             Stats = stats;
             Difficulty = difficulty;
+            Rewards = rewards;
             Buffs = buffs;
             Tiers = tiers;
             Characters = characters;

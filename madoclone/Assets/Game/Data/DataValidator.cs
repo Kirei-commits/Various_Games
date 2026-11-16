@@ -26,6 +26,7 @@ namespace Mado.Data
             CheckSystem(d, issues);
             CheckStatTables(d, issues);
             CheckDifficulty(d, issues);
+            CheckRewards(d, issues);
             return issues;
         }
 
@@ -455,6 +456,29 @@ namespace Mado.Data
                 {
                     Error(issues, "SKILL_RANK_STARS", at + ":skillRankStars", "スキルのランクの境目が [小, 大] の2つではない: " + kind);
                 }
+            }
+        }
+
+        // ---- rewards.json ----
+
+        private static void CheckRewards(GameData d, List<DataIssue> issues)
+        {
+            RewardsConfig r = d.Rewards;
+            string at = DataLoader.RewardsFile;
+            if (r.ExpPerEnemy.Count != d.Difficulty.Ranks)
+            {
+                Error(issues, "REWARDS", at + ":expPerEnemy", "ランク1〜" + d.Difficulty.Ranks + " の行数ではない: " + r.ExpPerEnemy.Count);
+            }
+            for (int i = 0; i < r.ExpPerEnemy.Count; i++)
+            {
+                if (!(r.ExpPerEnemy[i] > 0))
+                {
+                    Error(issues, "REWARDS", at + ":expPerEnemy[" + i + "]", "経験値は正の数");
+                }
+            }
+            if (!(r.PaceSlack > 0) || r.EnemiesPerWave < 1 || r.EnemiesPerBoss < 1)
+            {
+                Error(issues, "REWARDS", at, "paceSlack は正の数、enemiesPerWave・enemiesPerBoss は1以上");
             }
         }
 

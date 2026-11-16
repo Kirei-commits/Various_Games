@@ -111,6 +111,13 @@ namespace Mado.Data.Tests
             yield return C("ENEMY_SCALE", df, r => r["enemyScale"][3]["rank"] = 9);
             yield return C("GROWTH_COVERAGE", df, r => r["growth"][0]["toRank"] = 6);   // ランク7 がどの区間にも入らない
             yield return C("GROWTH_COVERAGE", df, r => r["growth"][0]["toRank"] = 8);   // ランク8 が2つの区間に入る
+
+            // ---- rewards.json ----
+            string rw = DataLoader.RewardsFile;
+            yield return C("REWARDS", rw, r => ((JArray)r["expPerEnemy"]).RemoveAt(0));
+            yield return C("REWARDS", rw, r => r["expPerEnemy"][3] = 0);
+            yield return C("REWARDS", rw, r => r["paceSlack"] = 0);
+            yield return C("REWARDS", rw, r => r["enemiesPerWave"] = 0);
         }
 
         [TestCaseSource(nameof(Cases))]

@@ -259,7 +259,10 @@ namespace Mado.Core.Tests
                     || (t.IsGenericType && t.GetGenericTypeDefinition().Name.StartsWith("IReadOnlyDictionary"));
                 Assert.IsFalse(bad, m.Name + " が残高のコレクションを返している");
             }
-            Assert.AreEqual(0, typeof(Wallet.Wallet).GetProperties(BindingFlags.Public | BindingFlags.Instance).Length);
+            foreach (PropertyInfo p in typeof(Wallet.Wallet).GetProperties(BindingFlags.Public | BindingFlags.Instance))
+            {
+                Assert.AreEqual(typeof(bool), p.PropertyType, p.Name + " は bool だけ許す（残高のコレクションを返さない）");
+            }
             Assert.AreEqual(0, typeof(Wallet.Wallet).GetFields(BindingFlags.Public | BindingFlags.Instance).Length);
         }
     }

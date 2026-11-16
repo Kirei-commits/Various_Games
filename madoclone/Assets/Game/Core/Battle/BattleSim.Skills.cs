@@ -421,6 +421,7 @@ namespace Mado.Core.Battle
         private void Kill(Unit t, int killer)
         {
             t.Alive = false;
+            if (t.Side == Side.Enemy) { _result.EnemiesDefeated++; } else { _result.AlliesLost++; }
             Emit(BattleEventType.Death, killer, t.Index, 0, 0);
             // 期限なしの効果は、発動者が戦闘不能になった刻みに外す
             for (int v = 0; v < _n; v++)

@@ -51,6 +51,9 @@ namespace Mado.Core.Wallet
 
         public double Balance(string currencyId) { return _balance[Index(currencyId)]; }
 
+        /// <summary>開発者モードか（素材が減らない）。「どこまで払えるか」を数える機能（一括レベルアップなど）が、残高ではなく上限まで進めるのに使う。</summary>
+        public bool Unlimited { get { return _isDevMode(); } }
+
         public PayResult Pay(Cost cost, PayReason reason)
         {
             if (cost == null) { throw new ArgumentNullException(nameof(cost)); }

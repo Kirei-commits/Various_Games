@@ -208,5 +208,9 @@ namespace Mado.Core.Battle
         public double[] Healed { get; set; }
         public ulong EventHash { get; set; }
         public int EventCount { get; set; }
+
+        /// <summary>倒した敵の数と、倒された味方の数（経験値などのドロップ・実績の数えに使う）。</summary>
+        public int EnemiesDefeated { get; set; }
+        public int AlliesLost { get; set; }
     }
 }
