@@ -207,4 +207,13 @@ namespace Mado.Data
         [EnumMember(Value = "critDamagePct")] CritDamagePct,
         [EnumMember(Value = "critDefensePct")] CritDefensePct,
     }
+
+    /// <summary>サポートの種類（docs/01 3.5節）。周期は使い魔 6 秒・契約霊 12 秒・竜 15 秒。</summary>
+    [JsonConverter(typeof(EnumStringConverter))]
+    public enum SupportKind
+    {
+        [EnumMember(Value = "familiar")] Familiar,
+        [EnumMember(Value = "spirit")] Spirit,
+        [EnumMember(Value = "dragon")] Dragon,
+    }
 }
