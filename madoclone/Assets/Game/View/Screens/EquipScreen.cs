@@ -24,8 +24,21 @@ namespace Mado.View.Screens
             UiKit.Clear(Root);
             UiKit.Label(Root, "Title", T("ui.equip.title"), 56, 0.04f, 0.93f, 0.96f, 0.995f, TextAnchor.MiddleCenter);
             _y = 0.925f; _row = 0;
+            LeaderSection();
             MemorySection();
             StoneSection();
+        }
+
+        private static readonly Element?[] ElementCycle = { null, Element.Valor, Element.Skill, Element.Heart, Element.Wisdom };
+
+        /// <summary>リーダーの属性：押すたびに 未設定 → 勇 → 技 → 心 → 知 → 未設定 と切り替える。</summary>
+        private void LeaderSection()
+        {
+            Element? now = State.LeaderElement;
+            string name = now == null ? T("ui.equip.leader_none") : T("element." + EnumStringConverter.Text(now.Value));
+            int i = System.Array.IndexOf(ElementCycle, now);
+            Element? next = ElementCycle[(i + 1) % ElementCycle.Length];
+            Row(T("ui.equip.leader_element", name), T("ui.equip.change"), () => { App.Commit(Session.SetLeaderElement(next)); Refresh(); });
         }
 
         private void MemorySection()
