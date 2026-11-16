@@ -18,7 +18,7 @@ namespace Mado.Core.Save
         private static readonly HashSet<string> KnownTop = new HashSet<string>
         {
             "format", "saveVersion", "devMode", "savedAtUtc", "rng", "wallet", "walletCarry",
-            "characters", "leader", "parties", "metrics", "progress", "settings", "memory", "temple", "idle", "plazas", "trials", "supports", "orphans",
+            "characters", "leader", "parties", "metrics", "progress", "settings", "memory", "temple", "idle", "plazas", "trials", "supports", "dragonNest", "orphans",
         };
 
         // ---------------- 書き出し ----------------
@@ -95,6 +95,9 @@ namespace Mado.Core.Save
             var stars = new Dictionary<string, JToken>();
             foreach (KeyValuePair<string, int> kv in s.Supports.Stars) { stars[kv.Key] = new JValue(kv.Value); }
             o["supports"] = new JObject { ["stars"] = Sorted(stars) };
+            var nest = new Dictionary<string, JToken>();
+            foreach (KeyValuePair<string, int> kv in s.DragonNest.Levels) { nest[kv.Key] = new JValue(kv.Value); }
+            o["dragonNest"] = Sorted(nest);
             o["idle"] = new JObject { ["lastClaimUtc"] = s.Idle.LastClaimUtc ?? "" };
             o["temple"] = new JObject
             {
@@ -238,6 +241,15 @@ namespace Mado.Core.Save
                 {
                     if (kv.Value.Type != JTokenType.Integer) { throw new SaveFormatException("supports.stars." + kv.Key + " が整数ではない"); }
                     s.Supports.Stars[kv.Key] = kv.Value.Value<int>();
+                }
+            }
+            JObject nestObj = Obj(o, "dragonNest");
+            if (nestObj != null)
+            {
+                foreach (KeyValuePair<string, JToken> kv in nestObj)
+                {
+                    if (kv.Value.Type != JTokenType.Integer) { throw new SaveFormatException("dragonNest." + kv.Key + " が整数ではない"); }
+                    s.DragonNest.Levels[kv.Key] = kv.Value.Value<int>();
                 }
             }
             JObject idle = Obj(o, "idle");

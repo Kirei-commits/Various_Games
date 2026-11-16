@@ -33,6 +33,7 @@ namespace Mado.Data
             CheckPlazas(d, issues);
             CheckTrials(d, issues);
             CheckSupports(d, issues);
+            CheckDragonNest(d, issues);
             return issues;
         }
 
@@ -713,6 +714,39 @@ namespace Mado.Data
         private sealed class SupportBody : SkillDefBase
         {
             public SupportBody(SupportDef s) : base(s.Id, new TriggerDef { Type = TriggerType.Interval, EverySec = s.IntervalSec }, s.Effects) { }
+        }
+
+        // ---- dragon_nest.json ----
+
+        public static readonly string[] DragonStatKeys = { "atk", "hp", "def", "critRatePct", "accuracyPct", "evasionPct", "critResistPct", "critDamagePct", "critDefensePct" };
+
+        private static void CheckDragonNest(GameData d, List<DataIssue> issues)
+        {
+            DragonNestConfig n = d.DragonNest;
+            string at = DataLoader.DragonNestFile;
+            if (n.Blocks < 1 || !(n.BlockMultiplier >= 1.0) || n.UnlockLv < 1 || n.Tiers.Count == 0)
+            {
+                Error(issues, "DRAGON_NEST", at, "blocks・unlockLv は1以上、blockMultiplier は1以上、tiers が1つ以上");
+            }
+            var known = new HashSet<string>(DragonStatKeys);
+            var ids = new HashSet<string>();
+            foreach (DragonTierDef t in n.Tiers)
+            {
+                string where = at + ":" + t.Id;
+                if (string.IsNullOrEmpty(t.Id) || !ids.Add(t.Id)) { Error(issues, "DRAGON_NEST", where, "ID が空か重複"); }
+                if (t.Kind != "pct" && t.Kind != "sub") { Error(issues, "DRAGON_NEST", where, "kind は pct か sub"); }
+                if (!(t.PerLv > 0) || t.MaxLv < 1 || t.CostBase < 0 || t.CostStep < 0 || (t.FirstLv.HasValue && !(t.FirstLv.Value > 0)))
+                {
+                    Error(issues, "DRAGON_NEST", where, "perLv は正、maxLv は1以上、費用は0以上");
+                }
+                if (t.Stats.Count == 0) { Error(issues, "DRAGON_NEST", where, "stats が空"); }
+                foreach (string stat in t.Stats)
+                {
+                    if (!known.Contains(stat)) { Error(issues, "DRAGON_NEST", where, "知らないステータス " + stat); }
+                    else if (t.Kind == "pct" && stat != "atk" && stat != "hp" && stat != "def") { Error(issues, "DRAGON_NEST", where, "pct の段は atk・hp・def だけ: " + stat); }
+                    else if (t.Kind == "sub" && (!n.SubPerLv.TryGetValue(stat, out double v) || !(v > 0))) { Error(issues, "DRAGON_NEST", where, "subPerLv に無い（か正でない）: " + stat); }
+                }
+            }
         }
 
         // ---- difficulty.json ----

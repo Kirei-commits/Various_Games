@@ -61,6 +61,7 @@ namespace Mado.Core.Session
         private readonly PlazaService _plazas;
         private readonly TrialService _trials;
         private readonly SupportService _supports;
+        private readonly DragonNestService _nest;
         private readonly IdleService _idle;
         private readonly StageFactory _stages;
         private readonly BattleSetupBuilder _builder;
@@ -89,14 +90,15 @@ namespace Mado.Core.Session
             _stages = new StageFactory(data);
             _rewards = new RewardCalculator(data);
 
-            var sources = new List<IModifierSource> { new MemoryCardSource(data, _save), new LeaderLvSource(data, _save), new PlazaSource(data, _save) };
+            _nest = new DragonNestService(data, _save, _wallet);
+            var sources = new List<IModifierSource> { new MemoryCardSource(data, _save), new LeaderLvSource(data, _save), new PlazaSource(data, _save), new DragonNestSource(_nest, _save) };
             if (extraSources != null) { sources.AddRange(extraSources); }
             _builder = new BattleSetupBuilder(data, new StatResolver(data, sources));
 
             _supports = new SupportService(data, _save, _builder.Skills);
             _trials = new TrialService(data, _save, _wallet, clock, _stages, _builder);
             _idle.EnsureStarted();
-            State = new GameState(_save, _wallet, _idle, _metrics, _trials, _supports);
+            State = new GameState(_save, _wallet, _idle, _metrics, _trials, _supports, _nest);
             Debug = new DebugCommands(this);
         }
 
@@ -321,6 +323,22 @@ namespace Mado.Core.Session
             SupportFailure f = _supports.Clear(DefaultParty, kind);
             if (f != SupportFailure.None) { return Failed(f); }
             return Done(new GameEvent(GameEventKind.SupportChanged, "", 0, (int)kind));
+        }
+
+        // ---------------- 竜の巣 ----------------
+
+        public CommandResult LevelUpDragonNode(string nodeId)
+        {
+            NestFailure f = _nest.LevelUp(nodeId);
+            if (f != NestFailure.None) { return Failed(f); }
+            return Done(new GameEvent(GameEventKind.DragonNodeLevelUp, nodeId, 0, _nest.Lv(nodeId)));
+        }
+
+        /// <summary>その属性のツリーを振り直す（無料。使った竜の炎は全額戻る）。</summary>
+        public CommandResult ResetDragonNest(Element element)
+        {
+            _nest.Reset(element, out double refunded);
+            return Done(new GameEvent(GameEventKind.DragonNestReset, DragonNestService.Text(element), refunded));
         }
 
         // ---------------- 広場 ----------------

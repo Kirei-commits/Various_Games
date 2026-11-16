@@ -20,6 +20,15 @@ namespace Mado.Core.Save
             RepairCrystals(save, data, done);
             RepairParties(save, data, done);
             RepairMemory(save, data, done);
+            Dictionary<string, int> nestMax = SaveValidator.NestMaxLevels(data);
+            foreach (string id in new List<string>(save.DragonNest.Levels.Keys))
+            {
+                if (!nestMax.TryGetValue(id, out int max)) { continue; }
+                int lv = Math.Max(0, Math.Min(save.DragonNest.Levels[id], max));
+                if (lv == save.DragonNest.Levels[id]) { continue; }
+                Note(done, "竜の巣のノードLv " + save.DragonNest.Levels[id] + " → " + lv, "dragonNest." + id);
+                if (lv == 0) { save.DragonNest.Levels.Remove(id); } else { save.DragonNest.Levels[id] = lv; }
+            }
             foreach (string id in new List<string>(save.Supports.Stars.Keys))
             {
                 if (!data.Supports.TryGet(id, out _)) { continue; }

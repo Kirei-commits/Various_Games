@@ -121,6 +121,17 @@ namespace Mado.Data.Tests
             yield return C("REWARDS", rw, r => r["idleCapHours"] = 0);
             yield return C("REWARDS", rw, r => r["idleCoinPerExp"] = -1);
 
+            // ---- dragon_nest.json ----
+            string dn = DataLoader.DragonNestFile;
+            yield return C("DRAGON_NEST", dn, r => r["blocks"] = 0);
+            yield return C("DRAGON_NEST", dn, r => r["tiers"][1]["id"] = "t1");
+            yield return C("DRAGON_NEST", dn, r => r["tiers"][0]["kind"] = "zzz");
+            yield return C("DRAGON_NEST", dn, r => r["tiers"][0]["perLv"] = 0);
+            yield return C("DRAGON_NEST", dn, r => r["tiers"][0]["stats"][0] = "nope");
+            yield return C("DRAGON_NEST", dn, r => r["tiers"][0]["stats"][0] = "critRatePct");        // pct の段に副ステータス
+            yield return C("DRAGON_NEST", dn, r => ((Newtonsoft.Json.Linq.JObject)r["subPerLv"]).Remove("critRatePct"));
+            yield return C("DRAGON_NEST", dn, r => ((JArray)r["tiers"][0]["stats"]).Clear());
+
             // ---- supports.json ----
             string sp = DataLoader.SupportsFile;
             yield return C("SUPPORTS", sp, r => r["supports"][1]["id"] = "familiar_a");

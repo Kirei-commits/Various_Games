@@ -28,6 +28,8 @@ namespace Mado.Core.Wallet
         public const string MemorySell = "memory.sell";
         public const string PlazaLevelUp = "plaza.levelup";
         public const string TrialReward = "trial.reward";
+        public const string DragonNestLevelUp = "dragonnest.levelup";
+        public const string DragonNestRefund = "dragonnest.refund";
         public const string IdleClaim = "idle.claim";
         public const string LeaderLevelUp = "leader.levelup";
         public const string LeaderReward = "leader.reward";
@@ -41,6 +43,7 @@ namespace Mado.Core.Wallet
         public const string Exp = "exp";
         public const string AwakenShard = "awaken_shard";
         public const string BondHeart = "bond_heart";
+        public const string DragonFlame = "dragon_flame";
         public const string ManaShard = "mana_shard";
         public const string ManaCrystal = "mana_crystal";
     }

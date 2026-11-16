@@ -48,9 +48,11 @@ namespace Mado.Core.Session
         private readonly Metrics.MetricCounter _metrics;
         private readonly Growth.TrialService _trials;
         private readonly Growth.SupportService _supports;
+        private readonly Growth.DragonNestService _nest;
 
-        internal GameState(SaveData save, Wallet.Wallet wallet, IdleService idle, Metrics.MetricCounter metrics, Growth.TrialService trials, Growth.SupportService supports)
+        internal GameState(SaveData save, Wallet.Wallet wallet, IdleService idle, Metrics.MetricCounter metrics, Growth.TrialService trials, Growth.SupportService supports, Growth.DragonNestService nest)
         {
+            _nest = nest;
             _save = save; _wallet = wallet; _idle = idle; _metrics = metrics; _trials = trials; _supports = supports;
         }
 
@@ -86,6 +88,8 @@ namespace Mado.Core.Session
         /// <summary>貯まっている報酬の回数（歯止めのない試練は PositiveInfinity）。</summary>
         public double TrialCharges(string trialId) { return _trials.Charges(trialId); }
 
+        public int DragonNodeLv(string nodeId) { return _nest.Lv(nodeId); }
+        public bool IsDragonNodeUnlocked(string nodeId) { return _nest.TryNode(nodeId, out Growth.NestNode n) && _nest.IsUnlocked(n); }
         public bool OwnsSupport(string supportId) { return _supports.IsOwned(supportId); }
         public IReadOnlyList<string> OwnedSupports(SupportKind kind) { return _supports.Owned(kind); }
         public int SupportStar(string supportId) { return _supports.Star(supportId); }

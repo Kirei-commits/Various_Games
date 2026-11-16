@@ -92,6 +92,13 @@ namespace Mado.Core.Save
                 }
             }
             CheckMemory(save, data, issues);
+            var nestMax = NestMaxLevels(data);
+            foreach (KeyValuePair<string, int> kv in save.DragonNest.Levels)
+            {
+                string at = "dragonNest." + kv.Key;
+                if (!nestMax.TryGetValue(kv.Key, out int max)) { Add(issues, SaveSeverity.Warning, "NEST_UNKNOWN", "マスタに無い竜の巣のノード " + kv.Key, at); }
+                else if (kv.Value < 0 || kv.Value > max) { Add(issues, SaveSeverity.Error, "NEST_LV", "ノードのLv が 0〜" + max + " の外: " + kv.Value, at); }
+            }
             foreach (KeyValuePair<string, int> kv in save.Supports.Stars)
             {
                 if (!data.Supports.TryGet(kv.Key, out _)) { Add(issues, SaveSeverity.Warning, "SUPPORT_UNKNOWN", "マスタに無いサポート " + kv.Key, "supports.stars." + kv.Key); }
@@ -184,6 +191,23 @@ namespace Mado.Core.Save
                     Add(issues, SaveSeverity.Error, "MEMORY_EQUIP_DUP", "同じカード " + id + " を2つの枠に付けている", at);
                 }
             }
+        }
+
+        /// <summary>竜の巣のノードID → 最大Lv。</summary>
+        internal static Dictionary<string, int> NestMaxLevels(GameData data)
+        {
+            var map = new Dictionary<string, int>();
+            foreach (Element el in new[] { Element.Valor, Element.Skill, Element.Heart, Element.Wisdom })
+            {
+                for (int b = 1; b <= data.DragonNest.Blocks; b++)
+                {
+                    foreach (DragonTierDef t in data.DragonNest.Tiers)
+                    {
+                        foreach (string stat in t.Stats) { map[EnumStringConverter.Text(el) + "." + b + "." + t.Id + "." + stat] = t.MaxLv; }
+                    }
+                }
+            }
+            return map;
         }
 
         private static void CheckSupportSlot(GameData data, List<SaveIssue> issues, string party, string slot, string id, SupportKind kind)

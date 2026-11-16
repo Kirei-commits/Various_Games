@@ -13,6 +13,8 @@ namespace Mado.Core.Session
         MemoryGachaLevelUp,   // Value = 新しい絆ガチャLv
         LeaderChanged,        // Id = キャラ（解除なら空）
         LeaderLevelUp,        // Value = 新しいリーダーLv
+        DragonNodeLevelUp,    // Id = ノード, Value = 新しいLv
+        DragonNestReset,      // Id = 属性, Amount = 戻った竜の炎
         SupportChanged,       // Id = サポート（解除なら空）, Value = 解除した種類
         TrialCleared,         // Id = 試練, Value = クリア済みの最高Lv
         TrialRewarded,        // Id = 試練, Value = 報酬の対象になったLv
