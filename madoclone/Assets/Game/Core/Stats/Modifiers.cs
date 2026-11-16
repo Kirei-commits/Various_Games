@@ -48,10 +48,22 @@ namespace Mado.Core.Stats
     public sealed class ProfileModifierSource : IModifierSource
     {
         private readonly GlobalMultiplier _m;
+        private readonly int _rank;
+        private readonly EnemySubstatFormulas _substats;
+        private readonly BaseSubstats _base;
 
         public ProfileModifierSource(SimProfileDef profile)
         {
             _m = profile.GlobalMultiplier;
+        }
+
+        /// <summary>副ステータスの標準値（allySubstats の A + B×ランク）も、基本値より大きい分だけ Flat で足す。</summary>
+        public ProfileModifierSource(SimProfileDef profile, EnemySubstatFormulas allySubstats, BaseSubstats baseSubstats)
+        {
+            _m = profile.GlobalMultiplier;
+            _rank = profile.Rank;
+            _substats = allySubstats;
+            _base = baseSubstats;
         }
 
         public void Collect(List<Modifier> sink, StatQuery query)
@@ -59,6 +71,20 @@ namespace Mado.Core.Stats
             Add(sink, StatId.Atk, _m.Atk);
             Add(sink, StatId.Hp, _m.Hp);
             Add(sink, StatId.Def, _m.Def);
+            if (_substats == null) { return; }
+            Flat(sink, StatId.Accuracy, _substats.AccuracyPct, _base.AccuracyPct);
+            Flat(sink, StatId.Evasion, _substats.EvasionPct, _base.EvasionPct);
+            Flat(sink, StatId.CritRate, _substats.CritRatePct, _base.CritRatePct);
+            Flat(sink, StatId.CritDamage, _substats.CritDamagePct, _base.CritDamagePct);
+            Flat(sink, StatId.CritResist, _substats.CritResistPct, _base.CritResistPct);
+            Flat(sink, StatId.CritDefense, _substats.CritDefensePct, _base.CritDefensePct);
+        }
+
+        private void Flat(List<Modifier> sink, StatId stat, LinearCoefficient c, double baseValue)
+        {
+            double standard = c.A + c.B * _rank;
+            if (c.Min.HasValue && standard < c.Min.Value) { standard = c.Min.Value; }
+            if (standard > baseValue) { sink.Add(new Modifier(stat, ModifierPool.Flat, standard - baseValue)); }
         }
 
         private static void Add(List<Modifier> sink, StatId stat, double multiplier)

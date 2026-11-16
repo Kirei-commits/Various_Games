@@ -27,6 +27,13 @@ namespace Mado.Data
     public sealed class SimProfilesFile
     {
         public int SchemaVersion { get; init; }
+
+        /// <summary>
+        /// 味方が各ランクで標準的に持つ副ステータス（全体強化の共通値の代わり。docs/01 6.2節の表）：値 = A + B×ランク。
+        /// 基本値（system.json の baseSubstats）より大きい分だけを Flat として足す。
+        /// </summary>
+        public EnemySubstatFormulas AllySubstats { get; init; }
+
         public IReadOnlyList<SimProfileDef> Items { get; init; }
     }
 
@@ -37,11 +44,16 @@ namespace Mado.Data
 
         public static IReadOnlyList<SimProfileDef> Load(IDataSource source)
         {
+            return LoadFile(source).Items;
+        }
+
+        public static SimProfilesFile LoadFile(IDataSource source)
+        {
             string text = source.ReadText(FileName);
             try
             {
                 var settings = new JsonSerializerSettings { MissingMemberHandling = MissingMemberHandling.Error };
-                return JsonConvert.DeserializeObject<SimProfilesFile>(text, settings).Items;
+                return JsonConvert.DeserializeObject<SimProfilesFile>(text, settings);
             }
             catch (JsonException e)
             {

@@ -1,5 +1,31 @@
 {
   "schemaVersion": 1,
+  "allySubstats": {
+    "accuracyPct": {
+      "a": 100,
+      "b": 1.5
+    },
+    "evasionPct": {
+      "a": 5,
+      "b": 2.5
+    },
+    "critRatePct": {
+      "a": 15,
+      "b": 4
+    },
+    "critDamagePct": {
+      "a": 0,
+      "b": 600
+    },
+    "critResistPct": {
+      "a": 0,
+      "b": 2
+    },
+    "critDefensePct": {
+      "a": 0,
+      "b": 250
+    }
+  },
   "items": [
     {
       "rank": 1,

@@ -23,6 +23,9 @@ namespace Mado.Sim
         private const double TargetWinPct = 80;
         private const double TargetWinSec = 30;   // 合格ライン 20〜40 秒の真ん中
 
+        // sim_profiles.json の allySubstats（味方の副ステータスの標準値）。Run の最初に読む。
+        private static EnemySubstatFormulas AllySubstats;
+
         private sealed class Row
         {
             public int Rank, Star, Lv;
@@ -45,6 +48,7 @@ namespace Mado.Sim
             if (o.Get("--probe") != null) { return Probe(o, from, runs); }
             string dataDir = Paths.Data();
             GameData data = DataLoader.Load(new FileDataSource(dataDir));
+            AllySubstats = SimProfiles.LoadFile(new FileDataSource(dataDir)).AllySubstats;
             var results = new Row[to - from + 1];
             Parallel.For(from, to + 1, r => results[r - from] = CalibrateRank(data, r, runs));
 
@@ -66,6 +70,7 @@ namespace Mado.Sim
             string[] p = o.Get("--probe").Split(',');
             double hp = double.Parse(p[0], CultureInfo.InvariantCulture), atk = double.Parse(p[1], CultureInfo.InvariantCulture);
             GameData data = DataLoader.Load(new FileDataSource(Paths.Data()));
+            AllySubstats = SimProfiles.LoadFile(new FileDataSource(Paths.Data())).AllySubstats;
             var factory = new StageFactory(data);
             int star = SimPolicy.StarFor(rank);
             int lv = data.Stats.StarMaxLv[star];
@@ -131,7 +136,7 @@ namespace Mado.Sim
                 Rank = rank, Star = star, Lv = lv, PartyCharacterIds = party,
                 GlobalMultiplier = new GlobalMultiplier { Atk = multiplier, Hp = multiplier, Def = multiplier },
             };
-            var sources = new IModifierSource[] { new ProfileModifierSource(profile) };
+            var sources = new IModifierSource[] { new ProfileModifierSource(profile, AllySubstats, data.System.BaseSubstats) };
             var b = new BattleSetupBuilder(data, new StatResolver(data, sources));
             var list = new List<UnitSetup>();
             for (int i = 0; i < party.Count; i++)

@@ -30,7 +30,7 @@ namespace Mado.Core.Tests
                     Atk = p.GlobalMultiplier.Atk * ratio, Hp = p.GlobalMultiplier.Hp * ratio, Def = p.GlobalMultiplier.Def * ratio,
                 },
             };
-            var b = new BattleSetupBuilder(Data, new StatResolver(Data, new IModifierSource[] { new ProfileModifierSource(scaled) }));
+            var b = new BattleSetupBuilder(Data, new StatResolver(Data, new IModifierSource[] { new ProfileModifierSource(scaled, SimProfiles.LoadFile(new FileDataSource(TestData.FindDataDir())).AllySubstats, Data.System.BaseSubstats) }));
             var list = new List<UnitSetup>();
             for (int i = 0; i < p.PartyCharacterIds.Count; i++)
             {

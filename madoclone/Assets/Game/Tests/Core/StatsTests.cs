@@ -174,6 +174,27 @@ namespace Mado.Core.Tests
         }
 
         [Test]
+        public void ProfileModifierSource_AddsStandardSubstats_OnlyAboveTheBaseValue()
+        {
+            SimProfilesFile file = SimProfiles.LoadFile(new FileDataSource(TestData.FindDataDir()));
+            BaseSubstats b = Data.System.BaseSubstats;
+            Func<int, BattleStats> at = rank =>
+            {
+                var profile = new SimProfileDef { Rank = rank, Star = 0, Lv = 1, PartyCharacterIds = new string[0], GlobalMultiplier = new GlobalMultiplier() };
+                var r = new StatResolver(Data, new IModifierSource[] { new ProfileModifierSource(profile, file.AllySubstats, b) });
+                return r.Resolve(Data.Character("chr_102"), 0, 1, false);
+            };
+            BattleStats r10 = at(10);
+            Assert.AreEqual(5 + 2.5 * 10, r10.EvasionPct, 1e-9);          // 標準値 A + B×r が基本値 5 を上回る分
+            Assert.AreEqual(100 + 1.5 * 10, r10.AccuracyPct, 1e-9);
+            Assert.AreEqual(600 * 10, r10.CritDamagePct, 1e-9);
+            Assert.AreEqual(250 * 10, r10.CritDefensePct, 1e-9);
+            BattleStats r1 = at(1);
+            Assert.AreEqual(b.CritResistPct, r1.CritResistPct, 1e-9);     // 標準値 2 は基本値 10 より小さいので足さない
+            Assert.AreEqual(b.CritDamagePct, r1.CritDamagePct, 1e-9);     // 600 < 1000
+        }
+
+        [Test]
         public void Resolve_IsPure_SameInputSameOutput()
         {
             CharacterDef c = Data.Character("chr_001");
