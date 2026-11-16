@@ -128,6 +128,27 @@ namespace Mado.View.Ui
             fillRect.anchorMax = new Vector2(Mathf.Clamp01(value), 1f);
         }
 
+        /// <summary>
+        /// 縦にスクロールできる一覧。content の高さは contentHeight（ピクセル）で、中の行は content に対する割合（0〜1）で並べる。
+        /// 行 i（全 n 行）は、縦の割合が 1 - (i+1)/n 〜 1 - i/n。
+        /// </summary>
+        public static RectTransform ScrollList(Transform parent, string name, float minX, float minY, float maxX, float maxY, float contentHeight)
+        {
+            Image viewport = Rect(parent, name, minX, minY, maxX, maxY, new Color(0f, 0f, 0f, 0.01f));   // ほぼ透明（ドラッグを受け取るため、描画は残す）
+            viewport.gameObject.AddComponent<RectMask2D>();
+            RectTransform content = Box(viewport.transform, "Content", 0f, 1f, 1f, 1f);
+            content.pivot = new Vector2(0.5f, 1f);
+            content.sizeDelta = new Vector2(0f, contentHeight);
+            content.anchoredPosition = Vector2.zero;
+            var scroll = viewport.gameObject.AddComponent<ScrollRect>();
+            scroll.content = content;
+            scroll.viewport = (RectTransform)viewport.transform;
+            scroll.horizontal = false;
+            scroll.vertical = true;
+            scroll.movementType = ScrollRect.MovementType.Clamped;
+            return content;
+        }
+
         /// <summary>子をすべて消す。</summary>
         public static void Clear(Transform parent)
         {

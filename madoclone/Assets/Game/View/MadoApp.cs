@@ -46,12 +46,13 @@ namespace Mado.View
             _screens[ScreenId.Trial] = new TrialScreen(this, content, "Trial", new[] { "phantom", "battle_rush", "edrasu", "hades", "spirit_king", "dragon", "zeref" });
             _screens[ScreenId.Home] = new HomeScreen(this, content);
             _screens[ScreenId.Guild] = new HubScreen(this, content, "GuildHub",
-                new[] { "ui.guild.sub_info", "ui.guild.sub_raid", "ui.guild.sub_arena", "ui.guild.sub_library", "ui.guild.sub_shop" },
+                new[] { "ui.guild.sub_info", "ui.guild.sub_raid", "ui.guild.sub_arena", "ui.guild.sub_rank", "ui.guild.sub_library", "ui.guild.sub_shop" },
                 new Func<Transform, GameScreen>[]
                 {
                     t => new GuildInfoScreen(this, t),
                     t => new TrialScreen(this, t, "Raid", new[] { "guild_raid" }, "ui.guild.sub_raid"),
                     t => new TrialScreen(this, t, "Arena", new[] { "arena" }, "ui.guild.sub_arena"),
+                    t => new ArenaRankScreen(this, t),
                     t => new TrialScreen(this, t, "Library", new[] { "library" }, "ui.guild.sub_library"),
                     t => new ShopScreen(this, t, "exchange"),
                 });

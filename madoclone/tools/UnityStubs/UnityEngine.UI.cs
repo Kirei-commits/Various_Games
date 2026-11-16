@@ -15,6 +15,18 @@ namespace UnityEngine.UI
 
     public class Image : MaskableGraphic { }
 
+    public class RectMask2D : UIBehaviour { }
+
+    public class ScrollRect : UIBehaviour
+    {
+        public enum MovementType { Unrestricted, Elastic, Clamped }
+        public UnityEngine.RectTransform content { get; set; }
+        public UnityEngine.RectTransform viewport { get; set; }
+        public bool horizontal { get; set; }
+        public bool vertical { get; set; }
+        public MovementType movementType { get; set; }
+    }
+
     public class Text : MaskableGraphic
     {
         public Font font { get; set; }

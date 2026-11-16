@@ -28,6 +28,7 @@ namespace Mado.Core.Wallet
         public const string MemorySell = "memory.sell";
         public const string PlazaLevelUp = "plaza.levelup";
         public const string TrialReward = "trial.reward";
+        public const string ArenaSeason = "arena.season";
         public const string DragonNestLevelUp = "dragonnest.levelup";
         public const string DragonNestRefund = "dragonnest.refund";
         public const string StoneLevelUp = "stone.levelup";

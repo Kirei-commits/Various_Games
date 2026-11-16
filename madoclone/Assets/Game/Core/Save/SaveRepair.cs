@@ -35,6 +35,14 @@ namespace Mado.Core.Save
                 int lap = la.LapScale.HasValue ? Math.Max(0, save.Achievements.Laps[id]) : 0;
                 if (lap != save.Achievements.Laps[id]) { Note(done, "実績の周 " + save.Achievements.Laps[id] + " → " + lap, "achievementLaps." + id); save.Achievements.Laps[id] = lap; }
             }
+            ArenaState ar = save.Arena;
+            ArenaConfig ac = data.Guild.Arena;
+            int aSeason = Math.Max(1, ar.Season), aBattles = Math.Max(0, Math.Min(ar.Battles, ac.SeasonBattles - 1)), aPoints = Math.Max(0, ar.Points), aPending = Math.Max(0, Math.Min(ar.PendingRank, ac.Rivals.Count + 1));
+            if (aSeason != ar.Season || aBattles != ar.Battles || aPoints != ar.Points || aPending != ar.PendingRank)
+            {
+                Note(done, "闘技のシーズンの値を範囲内に直した", "arena");
+                ar.Season = aSeason; ar.Battles = aBattles; ar.Points = aPoints; ar.PendingRank = aPending;
+            }
             GachaState gs = save.Gacha;
             int pulls = Math.Max(0, gs.TotalPulls), pity = Math.Max(0, Math.Min(gs.PickupPity, data.Gacha.PickupPity)), steps = Math.Max(0, Math.Min(gs.StepsClaimed, data.Gacha.Steps.Count));
             if (pulls != gs.TotalPulls || pity != gs.PickupPity || steps != gs.StepsClaimed)

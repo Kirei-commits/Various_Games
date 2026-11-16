@@ -105,6 +105,11 @@ namespace Mado.Core.Save
                 if (!data.Economy.TryAchievement(kv.Key, out AchievementDef la)) { Add(issues, SaveSeverity.Warning, "ACHIEVEMENT_UNKNOWN", "マスタに無い実績 " + kv.Key, "achievementLaps." + kv.Key); }
                 else if (kv.Value < 0 || (kv.Value > 0 && !la.LapScale.HasValue)) { Add(issues, SaveSeverity.Error, "ACHIEVEMENT_LAP", "周の数が負か、周回しない実績に周がある: " + kv.Value, "achievementLaps." + kv.Key); }
             }
+            ArenaState ar = save.Arena;
+            if (ar.Season < 1 || ar.Battles < 0 || ar.Battles >= data.Guild.Arena.SeasonBattles || ar.Points < 0 || ar.PendingRank < 0 || ar.PendingRank > data.Guild.Arena.Rivals.Count + 1)
+            {
+                Add(issues, SaveSeverity.Error, "ARENA_STATE", "闘技のシーズンの値が範囲外", "arena");
+            }
             GachaState gs = save.Gacha;
             if (gs.TotalPulls < 0 || gs.PickupPity < 0 || gs.PickupPity > data.Gacha.PickupPity || gs.StepsClaimed < 0 || gs.StepsClaimed > data.Gacha.Steps.Count)
             {

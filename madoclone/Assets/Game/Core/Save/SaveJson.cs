@@ -18,7 +18,7 @@ namespace Mado.Core.Save
         private static readonly HashSet<string> KnownTop = new HashSet<string>
         {
             "format", "saveVersion", "devMode", "savedAtUtc", "rng", "wallet", "walletCarry",
-            "characters", "leader", "parties", "metrics", "progress", "settings", "memory", "temple", "idle", "plazas", "trials", "supports", "dragonNest", "spiritStones", "research", "gacha", "achievements", "achievementLaps", "orphans",
+            "characters", "leader", "parties", "metrics", "progress", "settings", "memory", "temple", "idle", "plazas", "trials", "supports", "dragonNest", "spiritStones", "research", "gacha", "achievements", "achievementLaps", "arena", "orphans",
         };
 
         // ---------------- 書き出し ----------------
@@ -107,6 +107,7 @@ namespace Mado.Core.Save
             var laps = new Dictionary<string, JToken>();
             foreach (KeyValuePair<string, int> kv in s.Achievements.Laps) { if (kv.Value > 0) { laps[kv.Key] = new JValue(kv.Value); } }
             o["achievementLaps"] = Sorted(laps);
+            o["arena"] = new JObject { ["season"] = s.Arena.Season, ["battles"] = s.Arena.Battles, ["points"] = s.Arena.Points, ["pendingRank"] = s.Arena.PendingRank };
             o["idle"] = new JObject { ["lastClaimUtc"] = s.Idle.LastClaimUtc ?? "" };
             o["temple"] = new JObject
             {
@@ -277,6 +278,8 @@ namespace Mado.Core.Save
             if (achievements != null) { foreach (KeyValuePair<string, JToken> kv in achievements) { s.Achievements.Claimed[kv.Key] = IntOf(kv.Value, "achievements." + kv.Key); } }
             JObject achievementLaps = Obj(o, "achievementLaps");
             if (achievementLaps != null) { foreach (KeyValuePair<string, JToken> kv in achievementLaps) { s.Achievements.Laps[kv.Key] = IntOf(kv.Value, "achievementLaps." + kv.Key); } }
+            JObject arena = Obj(o, "arena");
+            if (arena != null) { s.Arena = new ArenaState { Season = Opt(arena, "season", 1), Battles = Opt(arena, "battles", 0), Points = Opt(arena, "points", 0), PendingRank = Opt(arena, "pendingRank", 0) }; }
             JObject idle = Obj(o, "idle");
             if (idle != null) { s.Idle = new IdleState { LastClaimUtc = Opt(idle, "lastClaimUtc", "") }; }
             JObject temple = Obj(o, "temple");

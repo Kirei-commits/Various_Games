@@ -129,6 +129,12 @@ namespace Mado.Data.Tests
             yield return C("GUILD", gd, r => r["memberCount"] = 99);
             yield return C("GUILD", gd, r => r["memberCount"] = 0);
             yield return C("GUILD", gd, r => r["powerMin"] = 2);
+            yield return C("GUILD", gd, r => r["arena"]["seasonBattles"] = 0);
+            yield return C("GUILD", gd, r => r["arena"]["rivals"][1] = r["arena"]["rivals"][0]);
+            yield return C("GUILD", gd, r => ((JArray)r["arena"]["rivals"]).Clear());
+            yield return C("GUILD", gd, r => r["arena"]["rewardTiers"][0]["maxRank"] = 0);
+            yield return C("ECONOMY", gd, r => r["arena"]["rewardTiers"][0]["reward"][0]["currencyId"] = "nope");
+            yield return C("GUILD", gd, r => r["arena"]["rewardTiers"][5]["maxRank"] = 50);
 
             // ---- economy.json ----
             string ec = DataLoader.EconomyFile;

@@ -61,6 +61,7 @@ namespace Mado.Core.Session
         private readonly LeaderTempleService _temple;
         private readonly PlazaService _plazas;
         private readonly TrialService _trials;
+        private readonly ArenaService _arena;
         private readonly SupportService _supports;
         private readonly DragonNestService _nest;
         private readonly SpiritStoneService _stones;
@@ -126,8 +127,9 @@ namespace Mado.Core.Session
             _builder = new BattleSetupBuilder(data, new StatResolver(data, sources));
 
             _trials = new TrialService(data, _save, _wallet, clock, _stages, _builder);
+            _arena = new ArenaService(data, _save, _wallet);
             _idle.EnsureStarted();
-            State = new GameState(data, _save, _wallet, _idle, _metrics, _trials, _supports, _nest, _stones, _trees, _collection, _zukan, _gacha, _achievements, IsUnlocked);
+            State = new GameState(data, _save, _wallet, _idle, _metrics, _trials, _supports, _nest, _stones, _trees, _collection, _zukan, _gacha, _achievements, _arena, IsUnlocked);
             Debug = new DebugCommands(this);
         }
 
@@ -385,7 +387,7 @@ namespace Mado.Core.Session
             TrialResult r = _trials.Challenge(trialId, allies, seed, _supports.BuildUnits(DefaultParty));
             if (!r.Success) { Finish(); return r; }
             _save.Rng.Misc = misc.GetState();
-            return AfterTrial(trialId, r);
+            return AfterTrial(trialId, r, true);
         }
 
         /// <summary>クリア済みの最高Lvの報酬を、戦わずに受け取る。</summary>
@@ -394,12 +396,31 @@ namespace Mado.Core.Session
             if (!IsUnlocked("trial_" + trialId)) { Finish(); return new TrialResult { Failure = TrialFailure.Locked }; }
             TrialResult r = _trials.Sweep(trialId);
             if (!r.Success) { Finish(); return r; }
-            return AfterTrial(trialId, r);
+            return AfterTrial(trialId, r, false);
         }
 
-        private TrialResult AfterTrial(string trialId, TrialResult r)
+        /// <summary>闘技の試練の ID（挑戦のたびに、シーズンの1戦として数える）。</summary>
+        public const string ArenaTrialId = "arena";
+
+        /// <summary>闘技のシーズンの受け取り待ちの報酬を受け取る。</summary>
+        public CommandResult ClaimArenaSeason()
+        {
+            int rank = _arena.PendingRank;
+            if (rank <= 0) { return Failed("NothingToClaim"); }
+            _arena.ClaimPending();
+            return Done(new GameEvent(GameEventKind.ArenaSeasonClaimed, "", 0, rank));
+        }
+
+        private TrialResult AfterTrial(string trialId, TrialResult r, bool countsForArena)
         {
             var evs = new List<GameEvent>();
+            if (countsForArena && trialId == ArenaTrialId)
+            {
+                int seasonBefore = _arena.Season;
+                ArenaBattleResult ab = _arena.RecordBattle(r.Outcome == BattleOutcome.Win);
+                evs.Add(new GameEvent(GameEventKind.ArenaBattle, "", ab.PointsDelta, _arena.Points));
+                if (ab.SeasonEnded) { evs.Add(new GameEvent(GameEventKind.ArenaSeasonEnded, "", 0, ab.FinalRank, seasonBefore.ToString())); }
+            }
             if (r.Cleared) { evs.Add(new GameEvent(GameEventKind.TrialCleared, trialId, 0, r.NewClearedLv)); }
             if (r.RewardGranted) { evs.Add(new GameEvent(GameEventKind.TrialRewarded, trialId, 0, r.RewardLv)); }
             if (r.RewardGranted && _data.Trials.TryGet(trialId, out TrialDef def) && def.DropsStones)

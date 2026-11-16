@@ -32,6 +32,7 @@ namespace Mado.Core.Save
         public MemoryState Memory { get; set; } = new MemoryState();
         public TempleState Temple { get; set; } = new TempleState();
         public IdleState Idle { get; set; } = new IdleState();
+        public ArenaState Arena { get; set; } = new ArenaState();
         public PlazaState Plazas { get; set; } = new PlazaState();
         public Dictionary<string, TrialState> Trials { get; set; } = new Dictionary<string, TrialState>();
         public SupportsState Supports { get; set; } = new SupportsState();
@@ -116,6 +117,15 @@ namespace Mado.Core.Save
     }
 
     /// <summary>放置報酬：最後に受け取った（数え始めた）時刻（UTC、ISO 8601）。空なら、まだ数え始めていない。</summary>
+    /// <summary>大魔闘演武のシーズン：いまのシーズン（1始まり）、そこで戦った数、いまのポイント、受け取り待ちの順位（0 は無し）。</summary>
+    public sealed class ArenaState
+    {
+        public int Season { get; set; } = 1;
+        public int Battles { get; set; }
+        public int Points { get; set; }
+        public int PendingRank { get; set; }
+    }
+
     public sealed class IdleState
     {
         public string LastClaimUtc { get; set; } = "";

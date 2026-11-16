@@ -971,6 +971,19 @@ namespace Mado.Data
             foreach (string n in g.Names) { if (string.IsNullOrEmpty(n) || !seen.Add(n)) { Error(issues, "GUILD", at + ":names", "名前が空か重複: " + n); } }
             if (g.MemberCount < 1 || g.Names.Count < g.MemberCount) { Error(issues, "GUILD", at, "メンバーは1人以上で、名前の数がメンバー数以上"); }
             if (!(g.PowerMin > 0) || g.PowerMax < g.PowerMin) { Error(issues, "GUILD", at, "戦力の幅：powerMin は正で powerMax 以上"); }
+            ArenaConfig a = g.Arena;
+            if (a.SeasonBattles < 1 || a.WinPoints < 1 || a.LosePoints < 0 || !(a.RivalMaxPoints > 0)) { Error(issues, "GUILD", at + ":arena", "seasonBattles・winPoints は1以上、losePoints は0以上、rivalMaxPoints は正"); }
+            var rivalSeen = new HashSet<string>();
+            foreach (string n in a.Rivals) { if (string.IsNullOrEmpty(n) || !rivalSeen.Add(n)) { Error(issues, "GUILD", at + ":arena/rivals", "ライバルの名前が空か重複: " + n); } }
+            if (a.Rivals.Count < 1) { Error(issues, "GUILD", at + ":arena/rivals", "ライバルが1人もいない"); }
+            int prevRank = 0;
+            foreach (ArenaRewardTier t in a.RewardTiers)
+            {
+                if (t.MaxRank <= prevRank) { Error(issues, "GUILD", at + ":arena/rewardTiers", "maxRank が昇順で正でない"); }
+                prevRank = t.MaxRank;
+                CheckMoney(d, t.Reward, at + ":arena/rewardTiers/reward", issues);
+            }
+            if (a.RewardTiers.Count == 0 || a.RewardTiers[a.RewardTiers.Count - 1].MaxRank < a.Rivals.Count + 1) { Error(issues, "GUILD", at + ":arena/rewardTiers", "最後の maxRank が、全参加者数（ライバル＋自分）に届かない"); }
         }
 
         // ---- difficulty.json ----

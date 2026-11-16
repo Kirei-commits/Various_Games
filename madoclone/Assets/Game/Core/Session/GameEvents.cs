@@ -18,6 +18,9 @@ namespace Mado.Core.Session
         AchievementClaimed,   // Id = 実績（まとめてなら空）, Value = 受け取った段の数
         PartyChanged,
         SettingsChanged,
+        ArenaBattle,          // Amount = ポイントの増減, Value = いまのポイント
+        ArenaSeasonEnded,     // Value = 最終順位, Detail = 終わったシーズン
+        ArenaSeasonClaimed,   // Value = 順位
         GachaPulled,          // Id = バナー, Amount = 回数, Value = 新しく入手したキャラ数, Detail = 受け取ったステップ報酬の数
         TreeNodeLevelUp,      // Id = "ツリー/ノード", Value = 新しいLv
         TarotChanged,         // Id = 効果, Value = 枠, Detail = レア

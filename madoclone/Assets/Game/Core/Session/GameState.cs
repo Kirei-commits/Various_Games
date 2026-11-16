@@ -65,12 +65,14 @@ namespace Mado.Core.Session
         private readonly Growth.ZukanService _zukan;
         private readonly Growth.GachaService _gacha;
         private readonly Progress.AchievementService _achievements;
+        private readonly Progress.ArenaService _arena;
         private readonly Func<string, bool> _isUnlocked;
 
-        internal GameState(Mado.Data.GameData data, SaveData save, Wallet.Wallet wallet, IdleService idle, Metrics.MetricCounter metrics, Growth.TrialService trials, Growth.SupportService supports, Growth.DragonNestService nest, Growth.SpiritStoneService stones, Growth.TreeService trees, Growth.CollectionService collection, Growth.ZukanService zukan, Growth.GachaService gacha, Progress.AchievementService achievements, Func<string, bool> isUnlocked)
+        internal GameState(Mado.Data.GameData data, SaveData save, Wallet.Wallet wallet, IdleService idle, Metrics.MetricCounter metrics, Growth.TrialService trials, Growth.SupportService supports, Growth.DragonNestService nest, Growth.SpiritStoneService stones, Growth.TreeService trees, Growth.CollectionService collection, Growth.ZukanService zukan, Growth.GachaService gacha, Progress.AchievementService achievements, Progress.ArenaService arena, Func<string, bool> isUnlocked)
         {
             _data = data;
             _achievements = achievements;
+            _arena = arena;
             _gacha = gacha;
             _isUnlocked = isUnlocked;
             _nest = nest; _stones = stones; _trees = trees; _collection = collection; _zukan = zukan;
@@ -140,6 +142,14 @@ namespace Mado.Core.Session
         public ProgressView Progress { get { return new ProgressView(_save.Progress); } }
         public double BattleSpeed { get { return _save.Settings.BattleSpeed; } }
         public double GrowthSpeed { get { return _save.Settings.GrowthSpeed; } }
+        public int ArenaSeason { get { return _save.Arena.Season; } }
+        public int ArenaBattles { get { return _save.Arena.Battles; } }
+        public int ArenaPoints { get { return _save.Arena.Points; } }
+        public int ArenaPendingRank { get { return _save.Arena.PendingRank; } }
+        public int ArenaSeasonBattles { get { return _data.Guild.Arena.SeasonBattles; } }
+        public IReadOnlyList<Progress.ArenaStanding> ArenaStandings { get { return _arena.Standings(); } }
+        public int ArenaRank { get { return _arena.PlayerRank(); } }
+        public IReadOnlyList<Mado.Core.Wallet.Money> ArenaRewardForRank(int rank) { return _arena.RewardForRank(rank); }
         public bool AutoBoss { get { return _save.Settings.AutoBoss; } }
         public bool SkipGachaAnim { get { return _save.Settings.SkipGachaAnim; } }
         public string Leader { get { return _save.Leader; } }

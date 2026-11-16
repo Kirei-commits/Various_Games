@@ -101,6 +101,9 @@ namespace UnityEngine
         public Vector2 anchorMax { get; set; }
         public Vector2 offsetMin { get; set; }
         public Vector2 offsetMax { get; set; }
+        public Vector2 pivot { get; set; }
+        public Vector2 sizeDelta { get; set; }
+        public Vector2 anchoredPosition { get; set; }
     }
 
     public enum TextAnchor { UpperLeft, UpperCenter, UpperRight, MiddleLeft, MiddleCenter, MiddleRight, LowerLeft, LowerCenter, LowerRight }
