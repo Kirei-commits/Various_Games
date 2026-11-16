@@ -74,14 +74,20 @@ namespace Mado.Core.Session
         private readonly RewardCalculator _rewards;
         private readonly List<GameEvent> _events = new List<GameEvent>();
 
+        /// <summary>テストと Mado.Sim 用：true にすると、LoadOrCreate の unlockAll を省いたときに全機能を開く。製品では false のまま。</summary>
+        public static bool UnlockAllByDefault { get; set; }
+
+        private readonly bool _unlockAll;
+
         public GameState State { get; }
         public DebugCommands Debug { get; }
 
         /// <summary>どこから読めたか（View が「バックアップから復元しました」と知らせる）と、読み込みの問題。</summary>
         public LoadedSave Loaded { get; }
 
-        private GameSession(GameData data, LoadedSave loaded, ISaveStore store, IClock clock, IReadOnlyList<IModifierSource> extraSources)
+        private GameSession(GameData data, LoadedSave loaded, ISaveStore store, IClock clock, IReadOnlyList<IModifierSource> extraSources, bool unlockAll)
         {
+            _unlockAll = unlockAll;
             _data = data; Loaded = loaded; _save = loaded.Save; _store = store; _clock = clock;
             _wallet = new Wallet.Wallet(data.Currencies, _save.Wallet, () => _save.DevMode);
             _metrics = new MetricCounter(_save);
@@ -109,7 +115,7 @@ namespace Mado.Core.Session
             _supports = new SupportService(data, _save, _builder.Skills);
             _trials = new TrialService(data, _save, _wallet, clock, _stages, _builder);
             _idle.EnsureStarted();
-            State = new GameState(_save, _wallet, _idle, _metrics, _trials, _supports, _nest, _stones, _trees, _collection, _zukan);
+            State = new GameState(_save, _wallet, _idle, _metrics, _trials, _supports, _nest, _stones, _trees, _collection, _zukan, IsUnlocked);
             Debug = new DebugCommands(this);
         }
 
@@ -117,16 +123,26 @@ namespace Mado.Core.Session
         /// 読み込んで始める。壊れたセーブは SaveRepair で直して遊べる形にする。
         /// extraSources は、全体強化の本物の出どころ（広場・研究など）がまだ無い間の代わり（ProfileModifierSource など）。
         /// </summary>
-        public static GameSession LoadOrCreate(GameData data, ISaveStore store, IClock clock, ulong newSeed, IReadOnlyList<IModifierSource> extraSources = null)
+        public static GameSession LoadOrCreate(GameData data, ISaveStore store, IClock clock, ulong newSeed, IReadOnlyList<IModifierSource> extraSources = null, bool? unlockAll = null)
         {
             if (data == null) { throw new ArgumentNullException(nameof(data)); }
             if (store == null) { throw new ArgumentNullException(nameof(store)); }
             if (clock == null) { throw new ArgumentNullException(nameof(clock)); }
             LoadedSave loaded = SaveLoader.LoadOrCreate(store, data, newSeed, Iso(clock.UtcNow));
-            return new GameSession(data, loaded, store, clock, extraSources);
+            return new GameSession(data, loaded, store, clock, extraSources, unlockAll ?? UnlockAllByDefault);
         }
 
         private static string Iso(DateTime utc) { return utc.ToUniversalTime().ToString("o", System.Globalization.CultureInfo.InvariantCulture); }
+
+        // ---------------- 機能の解放 ----------------
+
+        /// <summary>機能が使えるか。ランクが unlocks.json の解放ランクに着いている（開発者モードでは全部使える）。</summary>
+        public bool IsUnlocked(string featureId)
+        {
+            return _unlockAll || _save.DevMode || _save.Progress.Rank >= _data.Unlocks.RankOf(featureId);
+        }
+
+        private const string LockedReason = "Locked";
 
         // ---------------- イベント ----------------
 
@@ -214,6 +230,7 @@ namespace Mado.Core.Session
         public CommandResult PullMemoryCard(out MemoryCardView card)
         {
             card = default(MemoryCardView);
+            if (!IsUnlocked("memory_card")) { Finish(); return CommandResult.Fail(LockedReason); }
             PullResult r = _memory.Pull();
             if (!r.Success) { return Failed(r.Failure); }
             card = new MemoryCardView(r.Card);
@@ -222,6 +239,7 @@ namespace Mado.Core.Session
 
         public CommandResult SellMemoryCard(string cardId)
         {
+            if (!IsUnlocked("memory_card")) { Finish(); return CommandResult.Fail(LockedReason); }
             MemoryFailure f = _memory.Sell(cardId, out double coin);
             if (f != MemoryFailure.None) { return Failed(f); }
             return Done(new GameEvent(GameEventKind.MemoryCardSold, cardId, coin));
@@ -230,6 +248,7 @@ namespace Mado.Core.Session
         /// <summary>自動絆ガチャ。合うカードが出たら止まる（装備は View の確認のあと EquipMemoryCard）。</summary>
         public CommandResult AutoPullMemoryCard(AutoGachaSettings settings, int maxPulls, out AutoGachaResult result)
         {
+            if (!IsUnlocked("memory_card")) { result = null; Finish(); return CommandResult.Fail(LockedReason); }
             MemoryFailure f = _memory.AutoPull(settings, maxPulls, out result);
             if (f != MemoryFailure.None) { return Failed(f); }
             var evs = new List<GameEvent>();
@@ -241,6 +260,7 @@ namespace Mado.Core.Session
 
         public CommandResult RaiseMemoryGachaLevel()
         {
+            if (!IsUnlocked("memory_card")) { Finish(); return CommandResult.Fail(LockedReason); }
             MemoryFailure f = _memory.RaiseGachaLv();
             if (f != MemoryFailure.None) { return Failed(f); }
             return Done(new GameEvent(GameEventKind.MemoryGachaLevelUp, "", 0, _memory.GachaLv));
@@ -248,6 +268,7 @@ namespace Mado.Core.Session
 
         public CommandResult EquipMemoryCard(string cardId, int slot)
         {
+            if (!IsUnlocked("memory_card")) { Finish(); return CommandResult.Fail(LockedReason); }
             MemoryFailure f = _memory.Equip(cardId, slot);
             if (f != MemoryFailure.None) { return Failed(f); }
             return Done(new GameEvent(GameEventKind.MemoryCardEquipped, cardId, 0, slot));
@@ -255,6 +276,7 @@ namespace Mado.Core.Session
 
         public CommandResult UnequipMemoryCard(int slot)
         {
+            if (!IsUnlocked("memory_card")) { Finish(); return CommandResult.Fail(LockedReason); }
             if (slot < 0 || slot >= MemoryState.SlotCount) { return Failed(MemoryFailure.WrongSlot); }
             _memory.Unequip(slot);
             return Done();
@@ -264,6 +286,7 @@ namespace Mado.Core.Session
 
         public CommandResult SetLeader(string characterId)
         {
+            if (!IsUnlocked("leader_temple")) { Finish(); return CommandResult.Fail(LockedReason); }
             TempleFailure f = _temple.SetLeader(characterId);
             if (f != TempleFailure.None) { return Failed(f); }
             return Done(new GameEvent(GameEventKind.LeaderChanged, characterId ?? ""));
@@ -271,12 +294,14 @@ namespace Mado.Core.Session
 
         public CommandResult SetLeaderElement(Element? element)
         {
+            if (!IsUnlocked("leader_temple")) { Finish(); return CommandResult.Fail(LockedReason); }
             _temple.SetLeaderElement(element);
             return Done();
         }
 
         public CommandResult LevelUpLeader()
         {
+            if (!IsUnlocked("leader_temple")) { Finish(); return CommandResult.Fail(LockedReason); }
             TempleLevelResult r = _temple.LevelUp();
             if (!r.Success) { return Failed(r.Failure); }
             return Done(new GameEvent(GameEventKind.LeaderLevelUp, "", 0, r.NewLv));
@@ -287,6 +312,7 @@ namespace Mado.Core.Session
         /// <summary>試練の次のLvに挑む。編成が空なら NoParty。勝てばLvが上がり、貯まっている回数があれば報酬が出る。</summary>
         public TrialResult ChallengeTrial(string trialId)
         {
+            if (!IsUnlocked("trial_" + trialId)) { Finish(); return new TrialResult { Failure = TrialFailure.Locked }; }
             List<UnitSetup> allies = PartyOrEmpty();
             Rng misc = Rng.FromState(_save.Rng.Misc);
             ulong seed = ((ulong)misc.NextUInt() << 32) | misc.NextUInt();
@@ -299,6 +325,7 @@ namespace Mado.Core.Session
         /// <summary>クリア済みの最高Lvの報酬を、戦わずに受け取る。</summary>
         public TrialResult SweepTrial(string trialId)
         {
+            if (!IsUnlocked("trial_" + trialId)) { Finish(); return new TrialResult { Failure = TrialFailure.Locked }; }
             TrialResult r = _trials.Sweep(trialId);
             if (!r.Success) { Finish(); return r; }
             return AfterTrial(trialId, r);
@@ -346,6 +373,7 @@ namespace Mado.Core.Session
         /// <summary>ツリーのノードを1つ上げる（treeId は "lab"＝研究所、"leader"＝リーダー特殊ツリー）。</summary>
         public CommandResult LevelUpTreeNode(string treeId, string nodeId)
         {
+            if (!IsUnlocked(treeId == "leader" ? "leader_tree" : "research")) { Finish(); return CommandResult.Fail(LockedReason); }
             ResearchFailure f = _trees.LevelUp(treeId, nodeId);
             if (f != ResearchFailure.None) { return Failed(f); }
             return Done(new GameEvent(GameEventKind.TreeNodeLevelUp, treeId + "/" + nodeId, 0, _trees.Lv(treeId, nodeId)));
@@ -353,6 +381,7 @@ namespace Mado.Core.Session
 
         public CommandResult SetTarot(int slot, string effect, string rarityId)
         {
+            if (!IsUnlocked("research")) { Finish(); return CommandResult.Fail(LockedReason); }
             ResearchFailure f = _tarot.Set(slot, effect, rarityId);
             if (f != ResearchFailure.None) { return Failed(f); }
             return Done(new GameEvent(GameEventKind.TarotChanged, effect, 0, slot, rarityId));
@@ -360,6 +389,7 @@ namespace Mado.Core.Session
 
         public CommandResult ClearTarot(int slot)
         {
+            if (!IsUnlocked("research")) { Finish(); return CommandResult.Fail(LockedReason); }
             ResearchFailure f = _tarot.Clear(slot);
             if (f != ResearchFailure.None) { return Failed(f); }
             return Done();
@@ -367,6 +397,7 @@ namespace Mado.Core.Session
 
         public CommandResult RaiseCollectionSet(string setId)
         {
+            if (!IsUnlocked("research")) { Finish(); return CommandResult.Fail(LockedReason); }
             ResearchFailure f = _collection.Raise(setId);
             if (f != ResearchFailure.None) { return Failed(f); }
             return Done(new GameEvent(GameEventKind.CollectionStarUp, setId, 0, _collection.Star(setId)));
@@ -375,6 +406,7 @@ namespace Mado.Core.Session
         /// <summary>図鑑の新しい達成を拾う（報酬のジェムは自動）。View は画面を開くときと育成のあとに呼ぶ。</summary>
         public CommandResult SyncZukan(out int newGoals)
         {
+            if (!IsUnlocked("zukan")) { newGoals = 0; Finish(); return CommandResult.Fail(LockedReason); }
             newGoals = _zukan.Sync();
             return newGoals == 0 ? Done() : Done(new GameEvent(GameEventKind.ZukanAchieved, "", 0, newGoals));
         }
@@ -383,6 +415,7 @@ namespace Mado.Core.Session
 
         public CommandResult EquipStone(int page, int slot, string stoneId)
         {
+            if (!IsUnlocked("stones")) { Finish(); return CommandResult.Fail(LockedReason); }
             StoneFailure f = _stones.Equip(page, slot, stoneId);
             if (f != StoneFailure.None) { return Failed(f); }
             return Done(new GameEvent(GameEventKind.StoneEquipped, stoneId, 0, page * _stones.SlotsPerPage + slot));
@@ -390,6 +423,7 @@ namespace Mado.Core.Session
 
         public CommandResult UnequipStone(int page, int slot)
         {
+            if (!IsUnlocked("stones")) { Finish(); return CommandResult.Fail(LockedReason); }
             StoneFailure f = _stones.Unequip(page, slot);
             if (f != StoneFailure.None) { return Failed(f); }
             return Done();
@@ -397,6 +431,7 @@ namespace Mado.Core.Session
 
         public CommandResult LevelUpStone(string stoneId)
         {
+            if (!IsUnlocked("stones")) { Finish(); return CommandResult.Fail(LockedReason); }
             StoneFailure f = _stones.LevelUp(stoneId);
             if (f != StoneFailure.None) { return Failed(f); }
             return Done(new GameEvent(GameEventKind.StoneLevelUp, stoneId, 0, _stones.Find(stoneId).Lv));
@@ -404,6 +439,7 @@ namespace Mado.Core.Session
 
         public CommandResult DismantleStone(string stoneId)
         {
+            if (!IsUnlocked("stones")) { Finish(); return CommandResult.Fail(LockedReason); }
             StoneFailure f = _stones.Dismantle(stoneId, out double sand);
             if (f != StoneFailure.None) { return Failed(f); }
             return Done(new GameEvent(GameEventKind.StoneDismantled, stoneId, sand, 1));
@@ -413,6 +449,7 @@ namespace Mado.Core.Session
         public CommandResult DismantleStonesUpTo(int rarityIndex, out int count)
         {
             count = 0;
+            if (!IsUnlocked("stones")) { Finish(); return CommandResult.Fail(LockedReason); }
             if (rarityIndex < 0 || rarityIndex >= _data.SpiritStones.Rarities.Count) { return Failed("InvalidRarity"); }
             count = _stones.DismantleUpTo(rarityIndex, out double sand);
             return Done(new GameEvent(GameEventKind.StoneDismantled, "", sand, count));
@@ -422,6 +459,7 @@ namespace Mado.Core.Session
 
         public CommandResult LevelUpDragonNode(string nodeId)
         {
+            if (!IsUnlocked("dragon_nest")) { Finish(); return CommandResult.Fail(LockedReason); }
             NestFailure f = _nest.LevelUp(nodeId);
             if (f != NestFailure.None) { return Failed(f); }
             return Done(new GameEvent(GameEventKind.DragonNodeLevelUp, nodeId, 0, _nest.Lv(nodeId)));
@@ -430,6 +468,7 @@ namespace Mado.Core.Session
         /// <summary>その属性のツリーを振り直す（無料。使った竜の炎は全額戻る）。</summary>
         public CommandResult ResetDragonNest(Element element)
         {
+            if (!IsUnlocked("dragon_nest")) { Finish(); return CommandResult.Fail(LockedReason); }
             _nest.Reset(element, out double refunded);
             return Done(new GameEvent(GameEventKind.DragonNestReset, DragonNestService.Text(element), refunded));
         }
@@ -438,6 +477,7 @@ namespace Mado.Core.Session
 
         public CommandResult LevelUpPlaza(string plazaId)
         {
+            if (!IsUnlocked("plaza_" + plazaId)) { Finish(); return CommandResult.Fail(LockedReason); }
             PlazaResult r = _plazas.LevelUp(plazaId);
             if (!r.Success) { return Failed(r.Failure); }
             return Done(new GameEvent(GameEventKind.PlazaLevelUp, plazaId, r.LevelsGained, r.NewLv));
@@ -446,6 +486,7 @@ namespace Mado.Core.Session
         /// <summary>払える所まで上げる。</summary>
         public CommandResult LevelUpPlazaMax(string plazaId)
         {
+            if (!IsUnlocked("plaza_" + plazaId)) { Finish(); return CommandResult.Fail(LockedReason); }
             PlazaResult r = _plazas.LevelUpMax(plazaId);
             if (!r.Success) { return Failed(r.Failure); }
             return Done(new GameEvent(GameEventKind.PlazaLevelUp, plazaId, r.LevelsGained, r.NewLv));

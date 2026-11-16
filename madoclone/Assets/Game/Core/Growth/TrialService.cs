@@ -9,7 +9,7 @@ using Mado.Data;
 
 namespace Mado.Core.Growth
 {
-    public enum TrialFailure { None, UnknownTrial, NoCharge, NothingToSweep, NoParty }
+    public enum TrialFailure { None, UnknownTrial, NoCharge, NothingToSweep, NoParty, Locked }
 
     public sealed class TrialResult
     {

@@ -36,6 +36,7 @@ namespace Mado.Data
             CheckDragonNest(d, issues);
             CheckSpiritStones(d, issues);
             CheckResearch(d, issues);
+            CheckUnlocks(d, issues);
             return issues;
         }
 
@@ -851,6 +852,27 @@ namespace Mado.Data
             for (int i = 1; i < r.Zukan.LevelGoals.Count; i++)
             {
                 if (r.Zukan.LevelGoals[i] <= r.Zukan.LevelGoals[i - 1]) { Error(issues, "RESEARCH", at + ":zukan", "Lv の目標が昇順でない"); break; }
+            }
+        }
+
+        // ---- unlocks.json ----
+
+        private static void CheckUnlocks(GameData d, List<DataIssue> issues)
+        {
+            string at = DataLoader.UnlocksFile;
+            var ids = new HashSet<string>();
+            foreach (UnlockDef f in d.Unlocks.Features)
+            {
+                if (string.IsNullOrEmpty(f.Id) || !ids.Add(f.Id)) { Error(issues, "UNLOCKS", at + ":" + f.Id, "ID が空か重複"); }
+                if (f.Rank < 1 || f.Rank > d.Difficulty.Ranks) { Error(issues, "UNLOCKS", at + ":" + f.Id, "ランクが 1〜" + d.Difficulty.Ranks + " の外: " + f.Rank); }
+            }
+            foreach (TrialDef t in d.Trials.Trials)
+            {
+                if (!ids.Contains("trial_" + t.Id)) { Error(issues, "UNLOCKS", at, "試練 " + t.Id + " の解放（trial_" + t.Id + "）が表に無い"); }
+            }
+            foreach (PlazaDef p in d.Plazas.Plazas)
+            {
+                if (!ids.Contains("plaza_" + p.Id)) { Error(issues, "UNLOCKS", at, "広場 " + p.Id + " の解放（plaza_" + p.Id + "）が表に無い"); }
             }
         }
 

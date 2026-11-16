@@ -121,6 +121,14 @@ namespace Mado.Data.Tests
             yield return C("REWARDS", rw, r => r["idleCapHours"] = 0);
             yield return C("REWARDS", rw, r => r["idleCoinPerExp"] = -1);
 
+            // ---- unlocks.json ----
+            string ul = DataLoader.UnlocksFile;
+            yield return C("UNLOCKS", ul, r => r["features"][1]["id"] = "memory_card");
+            yield return C("UNLOCKS", ul, r => r["features"][0]["rank"] = 0);
+            yield return C("UNLOCKS", ul, r => r["features"][0]["rank"] = 99);
+            yield return C("UNLOCKS", ul, r => r["features"][9]["id"] = "trial_nope");          // 試練の解放が足りなくなる
+            yield return C("UNLOCKS", ul, r => r["features"][2]["id"] = "plaza_nope");         // 広場の解放が足りなくなる
+
             // ---- research.json ----
             string rs = DataLoader.ResearchFile;
             yield return C("RESEARCH", rs, r => r["trees"][1]["id"] = "lab");
