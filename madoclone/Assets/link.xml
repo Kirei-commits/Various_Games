@@ -1,0 +1,6 @@
+<linker>
+  <!-- Newtonsoft.Json は型変換にリフレクションを使うので、IL2CPP のビルドで削られないようにする（docs/02 第2節） -->
+  <assembly fullname="Newtonsoft.Json" preserve="all"/>
+  <assembly fullname="Mado.Data" preserve="all"/>
+  <assembly fullname="Mado.Core" preserve="all"/>
+</linker>

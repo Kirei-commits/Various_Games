@@ -25,3 +25,7 @@ obj/
 
 # セーブのテスト出力
 *.save.tmp
+
+# 生成物：マスタ JSON の実行時用コピー（Mado/データを同期）
+/Assets/Game/View/Resources/MadoData/
+/Assets/Game/View/Resources/MadoData.meta
