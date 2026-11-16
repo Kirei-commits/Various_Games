@@ -28,6 +28,7 @@ namespace Mado.Data
         public UnlocksConfig Unlocks { get; }
         public GachaConfig Gacha { get; }
         public EconomyConfig Economy { get; }
+        public GuildConfig Guild { get; }
         public BuffTable Buffs { get; }
         public TextTable Text { get; }
 
@@ -58,6 +59,7 @@ namespace Mado.Data
             UnlocksConfig unlocks,
             GachaConfig gacha,
             EconomyConfig economy,
+            GuildConfig guild,
             BuffTable buffs,
             IReadOnlyList<TierDef> tiers,
             IReadOnlyList<CharacterDef> characters,
@@ -82,6 +84,7 @@ namespace Mado.Data
             Unlocks = unlocks;
             Gacha = gacha;
             Economy = economy;
+            Guild = guild;
             Buffs = buffs;
             Tiers = tiers;
             Characters = characters;

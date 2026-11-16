@@ -292,5 +292,89 @@ namespace Mado.Core.Tests
             Assert.AreEqual(1, again.State.TrialClearedLv("phantom"));
             Assert.AreEqual(1, again.State.TrialCharges("phantom"), 1e-9);
         }
+
+        // ---------------- damage 型（vsマスターハデス型） ----------------
+
+        [Test]
+        public void DamageLevel_MatchesTheMeasuredHadesRecord()
+        {
+            TrialDef hades = Data.Trials.Trials.First(t => t.Id == "hades");
+            Assert.IsTrue(hades.IsDamageKind);
+            Assert.AreEqual(0, TrialService.DamageLevel(hades, 1));
+            Assert.AreEqual(1, TrialService.DamageLevel(hades, hades.DamageBase));
+            Assert.AreEqual(148, TrialService.DamageLevel(hades, 537e12), 1);        // 実測：最高記録 537T が Lv148
+            Assert.AreEqual(144, TrialService.DamageLevel(hades, 356e12), 2);        // 今回のダメージ 356T が Lv144
+            for (double d = 1e6; d < 1e18; d *= 3) { Assert.GreaterOrEqual(TrialService.DamageLevel(hades, d * 3), TrialService.DamageLevel(hades, d)); }
+        }
+
+        [Test]
+        public void DamageTrial_LevelFollowsTheDamage_TheRecordOnlyRises_AndRewardsUseTheRecord()
+        {
+            var e = new Env();
+            TrialResult r = e.Trials.Challenge("hades", e.Strong, 1);
+            Assert.IsTrue(r.Success);
+            Assert.Greater(r.Damage, 0);
+            Assert.IsTrue(r.Cleared);
+            int record = e.Trials.ClearedLv("hades");
+            Assert.AreEqual(TrialService.DamageLevel(Data.Trials.Trials.First(t => t.Id == "hades"), r.Damage), record);
+            Assert.IsTrue(r.RewardGranted);
+            Assert.AreEqual(0.5 * record, e.Wallet.Balance("collection_medal"), 1e-6);          // 報酬は Lv に比例（メダル 0.5/Lv）
+            TrialResult weaker = e.Trials.Challenge("hades", e.Weak, 2);                       // 弱い編成：記録は下がらない
+            Assert.IsFalse(weaker.Cleared);
+            Assert.AreEqual(record, e.Trials.ClearedLv("hades"));
+            Assert.AreEqual(record, weaker.RewardLv);                                          // 報酬は記録のLvぶん
+        }
+
+        [Test]
+        public void DamageTrial_WithNoDamage_GivesNothing()
+        {
+            var e = new Env();
+            var idle = new List<UnitSetup> { new UnitSetup { Id = "idle", Stats = new Mado.Core.Stats.BattleStats { Hp = 1e9, AttackSpeed = 1 }, Row = Row.Front } };
+            TrialResult r = e.Trials.Challenge("hades", idle, 1);
+            Assert.IsTrue(r.Success);
+            Assert.AreEqual(0, r.Damage);
+            Assert.IsFalse(r.Cleared);
+            Assert.IsFalse(r.RewardGranted);
+            Assert.AreEqual(0, e.Trials.ClearedLv("hades"));
+        }
+
+        // ---------------- mirror 型（大魔闘演武の対戦） ----------------
+
+        [Test]
+        public void MirrorPower_StaysWithinTenPercentOfTheOwnParty_AndFollowsTheSeed()
+        {
+            var e = new Env();
+            TrialDef arena = Data.Trials.Trials.First(t => t.Id == "arena");
+            Assert.IsTrue(arena.IsMirrorKind);
+            double own = e.Strong.Sum(u => u.Stats.Power);
+            double lo = double.MaxValue, hi = 0;
+            for (ulong seed = 1; seed <= 200; seed++)
+            {
+                double p = TrialService.MirrorPower(arena, e.Strong, seed);
+                Assert.GreaterOrEqual(p, own * 0.9 - 1e-6);
+                Assert.LessOrEqual(p, own * 1.1 + 1e-6);
+                lo = Math.Min(lo, p); hi = Math.Max(hi, p);
+            }
+            Assert.Greater(hi - lo, own * 0.1, "シードで値が散らばっている");
+            Assert.AreEqual(TrialService.MirrorPower(arena, e.Strong, 5), TrialService.MirrorPower(arena, e.Strong, 5));
+        }
+
+        [Test]
+        public void TheArena_PaysAFixedAmountPerWin_AndKeepsCountingWins()
+        {
+            var e = new Env();
+            TrialResult r = e.Trials.Challenge("arena", e.Strong, 1);
+            Assert.IsTrue(r.Success);
+            if (r.Cleared)
+            {
+                Assert.AreEqual(190.0, e.Wallet.Balance("tournament_point"), 1e-9);          // 19 × 固定Lv10 ＝ 190（実測：勝つと魔闘ポイント190）
+                Assert.AreEqual(1, e.Trials.ClearedLv("arena"));
+                Assert.AreEqual(10, r.RewardLv);
+            }
+            var weak = new Env();
+            TrialResult lost = weak.Trials.Challenge("arena", weak.Weak, 1);                 // 同じ戦力の相手には、弱い編成でも互角に戦える
+            Assert.IsTrue(lost.Success);
+            Assert.AreEqual(5, weak.Trials.Charges("arena") + (lost.RewardGranted ? 1 : 0), 1e-9);   // 1日5回
+        }
     }
 }

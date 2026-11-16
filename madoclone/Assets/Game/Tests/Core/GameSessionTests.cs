@@ -522,5 +522,20 @@ namespace Mado.Core.Tests
             Assert.AreEqual("familiar_b", s.State.EquippedSupports[0]);         // Lv10 までで解放された使い魔A・Bのうち、後のもの
             Assert.IsNull(s.State.EquippedSupports[1]);                         // 契約霊・竜はまだ持っていない
         }
+
+        [Test]
+        public void GuildMembers_AreThirtyNpcs_WithPowersInTheConfiguredRange_AndTheGuildLvFollowsTheRank()
+        {
+            GameSession s = NewSession();
+            IReadOnlyList<(string Name, double Power)> members = s.State.GuildMembers(1000);
+            Assert.AreEqual(30, members.Count);
+            Assert.AreEqual(30, members.Select(m => m.Name).Distinct().Count());
+            Assert.IsTrue(members.All(m => m.Power >= 1000 * Data.Guild.PowerMin - 1e-6 && m.Power <= 1000 * Data.Guild.PowerMax + 1e-6));
+            Assert.AreEqual(30, members.Select(m => m.Power).Distinct().Count(), "戦力がばらけている");
+            CollectionAssert.AreEqual(members.Select(m => m.Power).ToList(), s.State.GuildMembers(1000).Select(m => m.Power).ToList());
+            Assert.AreEqual(1, s.State.GuildLv);
+            s.Debug.SetProgress(9, 1, 1);
+            Assert.AreEqual(9, s.State.GuildLv);
+        }
     }
 }

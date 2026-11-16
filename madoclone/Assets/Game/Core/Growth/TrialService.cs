@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Mado.Core.Battle;
 using Mado.Core.Progress;
 using Mado.Core.Save;
+using Mado.Core.Stats;
 using Mado.Core.Util;
 using Mado.Core.Wallet;
 using Mado.Data;
@@ -27,6 +28,9 @@ namespace Mado.Core.Growth
         public bool RewardGranted { get; set; }
         public IReadOnlyList<Money> Rewards { get; set; } = new Money[0];
         public int NewClearedLv { get; set; }
+
+        /// <summary>damage 型の試練で与えたダメージ。</summary>
+        public double Damage { get; set; }
     }
 
     /// <summary>
@@ -73,6 +77,15 @@ namespace Mado.Core.Growth
             return def.PowerBase * Math.Pow(def.PowerGrowth, lv - 1);
         }
 
+        /// <summary>mirror 型の敵の戦力：自分の編成の戦力 ×（1 ± mirrorSpread のうち、シードで決まる値）。</summary>
+        public static double MirrorPower(TrialDef def, IReadOnlyList<UnitSetup> allies, ulong seed)
+        {
+            double sum = 0;
+            foreach (UnitSetup a in allies) { sum += a.Stats.Power; }
+            double u = Rng.Create(seed, RngStream.Misc).NextDouble();
+            return sum * (1.0 - def.MirrorSpread + 2.0 * def.MirrorSpread * u);
+        }
+
         public IReadOnlyList<Money> RewardFor(TrialDef def, int lv)
         {
             var list = new List<Money>();
@@ -88,6 +101,7 @@ namespace Mado.Core.Growth
             TrialState s = State(trialId);
             RepeatGate.Accrue(s.Gate, def.Gate, _clock.UtcNow);
 
+            if (def.IsDamageKind) { return ChallengeDamage(def, s, allies, seed, supports); }
             int lv = s.ClearedLv + 1;
             BattleOutcome outcome = Fight(def, lv, allies, seed, supports);
             var result = new TrialResult { Outcome = outcome, RewardLv = lv, NewClearedLv = s.ClearedLv };
@@ -98,6 +112,35 @@ namespace Mado.Core.Growth
             result.NewClearedLv = s.ClearedLv;
             if (RepeatGate.CanConsume(s.Gate, def.Gate)) { Grant(def, s, lv, result); }
             return result;
+        }
+
+        /// <summary>damage 型：倒れない的に制限時間のあいだ攻撃し、与えたダメージでLvが決まる。記録を更新したらクリア扱い。報酬は到達Lv（記録）ぶん。</summary>
+        private TrialResult ChallengeDamage(TrialDef def, TrialState s, IReadOnlyList<UnitSetup> allies, ulong seed, IReadOnlyList<UnitSetup> supports)
+        {
+            List<UnitSetup> dummies = _stages.BuildTrial(def.StatRank, EnemyPower(def, 1), def.Traits);
+            foreach (UnitSetup d in dummies)
+            {
+                BattleStats st = d.Stats;
+                st.Hp = double.MaxValue / 1e6;       // 倒れない（時間切れまで殴り続けられる）
+                d.Stats = st;
+            }
+            BattleSetup setup = _builder.Assemble(allies, dummies, seed, def.TimeLimitSec, supports);
+            BattleResult br = new BattleSim(setup).RunToEnd(null);
+            double damage = 0;
+            for (int i = 0; i < allies.Count; i++) { damage += br.DamageDealt[i]; }
+            for (int i = 0; i < (supports == null ? 0 : supports.Count); i++) { damage += br.DamageDealt[allies.Count + dummies.Count + i]; }
+            int reached = DamageLevel(def, damage);
+            var result = new TrialResult { Outcome = br.Outcome, RewardLv = Math.Max(s.ClearedLv, reached), NewClearedLv = s.ClearedLv, Damage = damage };
+            if (reached > s.ClearedLv) { s.ClearedLv = reached; result.NewClearedLv = reached; result.Cleared = true; result.RewardLv = reached; }
+            if (result.RewardLv >= 1 && RepeatGate.CanConsume(s.Gate, def.Gate)) { Grant(def, s, result.RewardLv, result); }
+            return result;
+        }
+
+        /// <summary>与えたダメージが届いたLv（damageBase に届かなければ 0）。</summary>
+        public static int DamageLevel(TrialDef def, double damage)
+        {
+            if (!(damage >= def.DamageBase)) { return 0; }
+            return 1 + (int)Math.Floor(Math.Log(damage / def.DamageBase) / Math.Log(def.DamageGrowth) + 1e-9);
         }
 
         /// <summary>クリア済みの最高Lv の報酬を、戦わずにもう一度受け取る（掃討）。貯まっている回数を1回使う。</summary>
@@ -116,7 +159,7 @@ namespace Mado.Core.Growth
         private void Grant(TrialDef def, TrialState s, int lv, TrialResult result)
         {
             RepeatGate.Consume(s.Gate, def.Gate);
-            IReadOnlyList<Money> rewards = RewardFor(def, lv);
+            IReadOnlyList<Money> rewards = RewardFor(def, def.FixedRewardLv > 0 ? def.FixedRewardLv : lv);
             _wallet.Grant(new Reward(rewards), new GrantReason(WalletReasons.TrialReward));
             result.RewardGranted = true;
             result.Rewards = rewards;
@@ -127,7 +170,7 @@ namespace Mado.Core.Growth
             double perFight = def.TimeLimitSec / def.Fights;
             for (int i = 0; i < def.Fights; i++)
             {
-                List<UnitSetup> enemies = _stages.BuildTrial(def.StatRank, EnemyPower(def, lv), def.Traits);
+                List<UnitSetup> enemies = _stages.BuildTrial(def.StatRank, def.IsMirrorKind ? MirrorPower(def, allies, seed + (ulong)i) : EnemyPower(def, lv), def.Traits);
                 // 連戦ごとに味方は元の状態から（HP は引き継がない）。味方の UnitSetup は書き換えないので使い回せる。
                 BattleSetup setup = _builder.Assemble(allies, enemies, seed + (ulong)i, perFight, supports);
                 BattleOutcome o = new BattleSim(setup).RunToEnd(null).Outcome;

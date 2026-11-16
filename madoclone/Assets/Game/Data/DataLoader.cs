@@ -61,13 +61,14 @@ namespace Mado.Data
         public const string UnlocksFile = "unlocks.json";
         public const string GachaFile = "gacha.json";
         public const string EconomyFile = "economy.json";
+        public const string GuildFile = "guild.json";
         public const string TextFile = "text/ja.json";
 
         /// <summary>読み込むファイルの一覧。</summary>
         public static readonly IReadOnlyList<string> FileNames = new[]
         {
             CharactersFile, SkillsFile, CrystalsFile, BuffsFile, TiersFile,
-            CurrenciesFile, SystemFile, StatTablesFile, DifficultyFile, RewardsFile, MemoryCardsFile, LeaderTempleFile, EnemyKitsFile, PlazasFile, TrialsFile, SupportsFile, DragonNestFile, SpiritStonesFile, ResearchFile, UnlocksFile, GachaFile, EconomyFile, TextFile,
+            CurrenciesFile, SystemFile, StatTablesFile, DifficultyFile, RewardsFile, MemoryCardsFile, LeaderTempleFile, EnemyKitsFile, PlazasFile, TrialsFile, SupportsFile, DragonNestFile, SpiritStonesFile, ResearchFile, UnlocksFile, GachaFile, EconomyFile, GuildFile, TextFile,
         };
 
         private static readonly JsonSerializerSettings Settings = CreateSettings();
@@ -143,6 +144,7 @@ namespace Mado.Data
             UnlocksConfig unlocks = Parse<UnlocksConfig>(source, UnlocksFile, issues);
             GachaConfig gacha = Parse<GachaConfig>(source, GachaFile, issues);
             EconomyConfig economy = Parse<EconomyConfig>(source, EconomyFile, issues);
+            GuildConfig guild = Parse<GuildConfig>(source, GuildFile, issues);
             Dictionary<string, string> texts = Parse<Dictionary<string, string>>(source, TextFile, issues);
 
             foreach (DataIssue issue in issues)
@@ -155,10 +157,10 @@ namespace Mado.Data
 
             CheckSchemaVersions(issues, characters.SchemaVersion, skills.SchemaVersion, crystals.SchemaVersion,
                 buffs.SchemaVersion, tiers.SchemaVersion, currencies.SchemaVersion,
-                system.SchemaVersion, stats.SchemaVersion, difficulty.SchemaVersion, rewards.SchemaVersion, memoryCards.SchemaVersion, leaderTemple.SchemaVersion, enemyKits.SchemaVersion, plazas.SchemaVersion, trials.SchemaVersion, supports.SchemaVersion, dragonNest.SchemaVersion, spiritStones.SchemaVersion, research.SchemaVersion, unlocks.SchemaVersion, gacha.SchemaVersion, economy.SchemaVersion);
+                system.SchemaVersion, stats.SchemaVersion, difficulty.SchemaVersion, rewards.SchemaVersion, memoryCards.SchemaVersion, leaderTemple.SchemaVersion, enemyKits.SchemaVersion, plazas.SchemaVersion, trials.SchemaVersion, supports.SchemaVersion, dragonNest.SchemaVersion, spiritStones.SchemaVersion, research.SchemaVersion, unlocks.SchemaVersion, gacha.SchemaVersion, economy.SchemaVersion, guild.SchemaVersion);
 
             var data = new GameData(
-                system, stats, difficulty, rewards, memoryCards, leaderTemple, enemyKits, plazas, trials, supports, dragonNest, spiritStones, research, unlocks, gacha, economy, buffs,
+                system, stats, difficulty, rewards, memoryCards, leaderTemple, enemyKits, plazas, trials, supports, dragonNest, spiritStones, research, unlocks, gacha, economy, guild, buffs,
                 tiers.Items, characters.Items, skills.Items, crystals.Items, currencies.Items,
                 new TextTable(texts));
             issues.AddRange(DataValidator.Validate(data));

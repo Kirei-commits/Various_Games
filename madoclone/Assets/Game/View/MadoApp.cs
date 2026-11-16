@@ -43,9 +43,18 @@ namespace Mado.View
 
             RectTransform content = UiKit.Box(_root, "Content", 0f, TabHeight, 1f, 1f);
             _screens[ScreenId.Party] = new PartyScreen(this, content);
-            _screens[ScreenId.Trial] = new TrialScreen(this, content);
+            _screens[ScreenId.Trial] = new TrialScreen(this, content, "Trial", new[] { "phantom", "battle_rush", "edrasu", "hades", "spirit_king", "dragon", "zeref" });
             _screens[ScreenId.Home] = new HomeScreen(this, content);
-            _screens[ScreenId.Guild] = new NoticeScreen(this, content, "Guild", "ui.guild.title", "ui.guild.hint");
+            _screens[ScreenId.Guild] = new HubScreen(this, content, "GuildHub",
+                new[] { "ui.guild.sub_info", "ui.guild.sub_raid", "ui.guild.sub_arena", "ui.guild.sub_library", "ui.guild.sub_shop" },
+                new Func<Transform, GameScreen>[]
+                {
+                    t => new GuildInfoScreen(this, t),
+                    t => new TrialScreen(this, t, "Raid", new[] { "guild_raid" }, "ui.guild.sub_raid"),
+                    t => new TrialScreen(this, t, "Arena", new[] { "arena" }, "ui.guild.sub_arena"),
+                    t => new TrialScreen(this, t, "Library", new[] { "library" }, "ui.guild.sub_library"),
+                    t => new ShopScreen(this, t, "exchange"),
+                });
             _screens[ScreenId.Garden] = new GardenScreen(this, content);
             _screens[ScreenId.Gacha] = new HubScreen(this, content, "GachaHub",
                 new[] { "ui.sub.gacha", "ui.sub.roulette", "ui.sub.shop", "ui.sub.achievement" },

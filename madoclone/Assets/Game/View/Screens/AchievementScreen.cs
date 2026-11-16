@@ -17,7 +17,7 @@ namespace Mado.View.Screens
             foreach (AchievementDef a in Data.Economy.Achievements)
             {
                 var (value, reached, claimed) = State.AchievementOf(a.Id);
-                float y1 = 0.88f - i * 0.1f, y0 = y1 - 0.09f;
+                float y1 = 0.88f - i * 0.078f, y0 = y1 - 0.07f;
                 UiKit.Rect(Root, "Row" + i, 0.03f, y0, 0.97f, y1, reached > claimed ? UiKit.PanelLight : UiKit.Panel);
                 UiKit.Label(Root, "Name" + i, T("ui.ach.row", T("ach." + a.Id), Num(value), reached, claimed), 26, 0.05f, y0, 0.7f, y1);
                 string id = a.Id;

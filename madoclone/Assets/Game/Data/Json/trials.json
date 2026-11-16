@@ -87,7 +87,10 @@
       "traits": [
         "cc_barrier"
       ],
-      "dropsStones": false
+      "dropsStones": false,
+      "kind": "damage",
+      "damageBase": 1000000.0,
+      "damageGrowth": 1.146
     },
     {
       "id": "spirit_king",
@@ -193,7 +196,10 @@
       "powerBase": 45000000.0,
       "powerGrowth": 1.06,
       "traits": [],
-      "dropsStones": false
+      "dropsStones": false,
+      "kind": "mirror",
+      "mirrorSpread": 0.1,
+      "fixedRewardLv": 10
     },
     {
       "id": "library",

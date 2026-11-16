@@ -107,6 +107,22 @@ namespace Mado.Core.Session
             return (_achievements.Progress(a), _achievements.Reached(a), _achievements.Claimed(achievementId));
         }
 
+        /// <summary>NPCギルドのメンバー（名前と見せかけの戦力）。戦力は、渡した「自分の戦力」に対する割合で、毎回同じ（名前から決まる）。ギルドLvはランクに合わせて自動で上がる。</summary>
+        public IReadOnlyList<(string Name, double Power)> GuildMembers(double ownPower)
+        {
+            var list = new List<(string, double)>();
+            GuildConfig g = _data.Guild;
+            for (int i = 0; i < g.MemberCount; i++)
+            {
+                double t = g.MemberCount == 1 ? 1.0 : (double)((i * 7) % g.MemberCount) / (g.MemberCount - 1);    // 7 は人数（30）と互いに素な並び替え
+                list.Add((g.Names[i], ownPower * (g.PowerMin + (g.PowerMax - g.PowerMin) * t)));
+            }
+            return list;
+        }
+
+        /// <summary>ギルドLv（ランクに合わせて自動で上がる）。</summary>
+        public int GuildLv { get { return Math.Max(1, _save.Progress.Rank); } }
+
         public int GachaTotalPulls { get { return _gacha.TotalPulls; } }
 
         /// <summary>ピックアップの天井までの残り回数。</summary>

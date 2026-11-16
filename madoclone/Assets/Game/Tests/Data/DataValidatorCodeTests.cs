@@ -122,6 +122,14 @@ namespace Mado.Data.Tests
             yield return C("REWARDS", rw, r => r["awakenShardPerEnemy"] = -1);
             yield return C("REWARDS", rw, r => r["idleCoinPerExp"] = -1);
 
+            // ---- guild.json ----
+            string gd = DataLoader.GuildFile;
+            yield return C("GUILD", gd, r => r["names"][1] = r["names"][0]);
+            yield return C("GUILD", gd, r => r["names"][0] = "");
+            yield return C("GUILD", gd, r => r["memberCount"] = 99);
+            yield return C("GUILD", gd, r => r["memberCount"] = 0);
+            yield return C("GUILD", gd, r => r["powerMin"] = 2);
+
             // ---- economy.json ----
             string ec = DataLoader.EconomyFile;
             yield return C("ECONOMY", ec, r => r["shop"][1]["id"] = "gem_ticket");
@@ -217,6 +225,11 @@ namespace Mado.Data.Tests
             string tr = DataLoader.TrialsFile;
             yield return C("TRIALS", tr, r => r["trials"][1]["id"] = "phantom");
             yield return C("TRIALS", tr, r => r["trials"][0]["timeLimitSec"] = 0);
+            yield return C("TRIALS", tr, r => r["trials"][0]["kind"] = "zzz");
+            yield return C("TRIALS", tr, r => r["trials"][8]["mirrorSpread"] = 1);          // arena は mirror 型
+            yield return C("TRIALS", tr, r => r["trials"][8]["fixedRewardLv"] = 0);
+            yield return C("TRIALS", tr, r => r["trials"][3]["damageGrowth"] = 1);          // hades は damage 型
+            yield return C("TRIALS", tr, r => r["trials"][3]["damageBase"] = 0);
             yield return C("TRIALS", tr, r => r["trials"][0]["powerGrowth"] = 0.9);
             yield return C("TRIALS", tr, r => r["trials"][0]["statRank"] = 99);
             yield return C("TRIALS", tr, r => ((JArray)r["trials"][0]["rewardPerLv"]).Clear());

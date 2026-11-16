@@ -465,6 +465,1180 @@
           ]
         }
       ]
+    },
+    {
+      "id": "pass_battle",
+      "metric": "battle.won",
+      "tiers": [
+        {
+          "target": 10,
+          "reward": [
+            {
+              "currencyId": "gem",
+              "amount": 50
+            }
+          ]
+        },
+        {
+          "target": 20,
+          "reward": [
+            {
+              "currencyId": "gem",
+              "amount": 50
+            }
+          ]
+        },
+        {
+          "target": 30,
+          "reward": [
+            {
+              "currencyId": "gem",
+              "amount": 50
+            }
+          ]
+        },
+        {
+          "target": 40,
+          "reward": [
+            {
+              "currencyId": "gem",
+              "amount": 50
+            }
+          ]
+        },
+        {
+          "target": 50,
+          "reward": [
+            {
+              "currencyId": "gem",
+              "amount": 50
+            },
+            {
+              "currencyId": "gacha_ticket",
+              "amount": 5
+            }
+          ]
+        },
+        {
+          "target": 60,
+          "reward": [
+            {
+              "currencyId": "gem",
+              "amount": 50
+            }
+          ]
+        },
+        {
+          "target": 70,
+          "reward": [
+            {
+              "currencyId": "gem",
+              "amount": 50
+            }
+          ]
+        },
+        {
+          "target": 80,
+          "reward": [
+            {
+              "currencyId": "gem",
+              "amount": 50
+            }
+          ]
+        },
+        {
+          "target": 90,
+          "reward": [
+            {
+              "currencyId": "gem",
+              "amount": 50
+            }
+          ]
+        },
+        {
+          "target": 100,
+          "reward": [
+            {
+              "currencyId": "gem",
+              "amount": 50
+            },
+            {
+              "currencyId": "gacha_ticket",
+              "amount": 5
+            }
+          ]
+        },
+        {
+          "target": 110,
+          "reward": [
+            {
+              "currencyId": "gem",
+              "amount": 50
+            }
+          ]
+        },
+        {
+          "target": 120,
+          "reward": [
+            {
+              "currencyId": "gem",
+              "amount": 50
+            }
+          ]
+        },
+        {
+          "target": 130,
+          "reward": [
+            {
+              "currencyId": "gem",
+              "amount": 50
+            }
+          ]
+        },
+        {
+          "target": 140,
+          "reward": [
+            {
+              "currencyId": "gem",
+              "amount": 50
+            }
+          ]
+        },
+        {
+          "target": 150,
+          "reward": [
+            {
+              "currencyId": "gem",
+              "amount": 50
+            },
+            {
+              "currencyId": "gacha_ticket",
+              "amount": 5
+            }
+          ]
+        },
+        {
+          "target": 160,
+          "reward": [
+            {
+              "currencyId": "gem",
+              "amount": 50
+            }
+          ]
+        },
+        {
+          "target": 170,
+          "reward": [
+            {
+              "currencyId": "gem",
+              "amount": 50
+            }
+          ]
+        },
+        {
+          "target": 180,
+          "reward": [
+            {
+              "currencyId": "gem",
+              "amount": 50
+            }
+          ]
+        },
+        {
+          "target": 190,
+          "reward": [
+            {
+              "currencyId": "gem",
+              "amount": 50
+            }
+          ]
+        },
+        {
+          "target": 200,
+          "reward": [
+            {
+              "currencyId": "gem",
+              "amount": 50
+            },
+            {
+              "currencyId": "gacha_ticket",
+              "amount": 5
+            }
+          ]
+        },
+        {
+          "target": 210,
+          "reward": [
+            {
+              "currencyId": "gem",
+              "amount": 50
+            }
+          ]
+        },
+        {
+          "target": 220,
+          "reward": [
+            {
+              "currencyId": "gem",
+              "amount": 50
+            }
+          ]
+        },
+        {
+          "target": 230,
+          "reward": [
+            {
+              "currencyId": "gem",
+              "amount": 50
+            }
+          ]
+        },
+        {
+          "target": 240,
+          "reward": [
+            {
+              "currencyId": "gem",
+              "amount": 50
+            }
+          ]
+        },
+        {
+          "target": 250,
+          "reward": [
+            {
+              "currencyId": "gem",
+              "amount": 50
+            },
+            {
+              "currencyId": "gacha_ticket",
+              "amount": 5
+            }
+          ]
+        },
+        {
+          "target": 260,
+          "reward": [
+            {
+              "currencyId": "gem",
+              "amount": 50
+            }
+          ]
+        },
+        {
+          "target": 270,
+          "reward": [
+            {
+              "currencyId": "gem",
+              "amount": 50
+            }
+          ]
+        },
+        {
+          "target": 280,
+          "reward": [
+            {
+              "currencyId": "gem",
+              "amount": 50
+            }
+          ]
+        },
+        {
+          "target": 290,
+          "reward": [
+            {
+              "currencyId": "gem",
+              "amount": 50
+            }
+          ]
+        },
+        {
+          "target": 300,
+          "reward": [
+            {
+              "currencyId": "gem",
+              "amount": 50
+            },
+            {
+              "currencyId": "gacha_ticket",
+              "amount": 5
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "pass_bond",
+      "metric": "spent.bond_heart",
+      "tiers": [
+        {
+          "target": 100,
+          "reward": [
+            {
+              "currencyId": "coin",
+              "amount": 100000
+            }
+          ]
+        },
+        {
+          "target": 200,
+          "reward": [
+            {
+              "currencyId": "coin",
+              "amount": 200000
+            }
+          ]
+        },
+        {
+          "target": 300,
+          "reward": [
+            {
+              "currencyId": "coin",
+              "amount": 300000
+            }
+          ]
+        },
+        {
+          "target": 400,
+          "reward": [
+            {
+              "currencyId": "coin",
+              "amount": 400000
+            }
+          ]
+        },
+        {
+          "target": 500,
+          "reward": [
+            {
+              "currencyId": "coin",
+              "amount": 500000
+            },
+            {
+              "currencyId": "gacha_ticket",
+              "amount": 5
+            }
+          ]
+        },
+        {
+          "target": 600,
+          "reward": [
+            {
+              "currencyId": "coin",
+              "amount": 600000
+            }
+          ]
+        },
+        {
+          "target": 700,
+          "reward": [
+            {
+              "currencyId": "coin",
+              "amount": 700000
+            }
+          ]
+        },
+        {
+          "target": 800,
+          "reward": [
+            {
+              "currencyId": "coin",
+              "amount": 800000
+            }
+          ]
+        },
+        {
+          "target": 900,
+          "reward": [
+            {
+              "currencyId": "coin",
+              "amount": 900000
+            }
+          ]
+        },
+        {
+          "target": 1000,
+          "reward": [
+            {
+              "currencyId": "coin",
+              "amount": 1000000
+            },
+            {
+              "currencyId": "gacha_ticket",
+              "amount": 5
+            }
+          ]
+        },
+        {
+          "target": 1100,
+          "reward": [
+            {
+              "currencyId": "coin",
+              "amount": 1100000
+            }
+          ]
+        },
+        {
+          "target": 1200,
+          "reward": [
+            {
+              "currencyId": "coin",
+              "amount": 1200000
+            }
+          ]
+        },
+        {
+          "target": 1300,
+          "reward": [
+            {
+              "currencyId": "coin",
+              "amount": 1300000
+            }
+          ]
+        },
+        {
+          "target": 1400,
+          "reward": [
+            {
+              "currencyId": "coin",
+              "amount": 1400000
+            }
+          ]
+        },
+        {
+          "target": 1500,
+          "reward": [
+            {
+              "currencyId": "coin",
+              "amount": 1500000
+            },
+            {
+              "currencyId": "gacha_ticket",
+              "amount": 5
+            }
+          ]
+        },
+        {
+          "target": 1600,
+          "reward": [
+            {
+              "currencyId": "coin",
+              "amount": 1600000
+            }
+          ]
+        },
+        {
+          "target": 1700,
+          "reward": [
+            {
+              "currencyId": "coin",
+              "amount": 1700000
+            }
+          ]
+        },
+        {
+          "target": 1800,
+          "reward": [
+            {
+              "currencyId": "coin",
+              "amount": 1800000
+            }
+          ]
+        },
+        {
+          "target": 1900,
+          "reward": [
+            {
+              "currencyId": "coin",
+              "amount": 1900000
+            }
+          ]
+        },
+        {
+          "target": 2000,
+          "reward": [
+            {
+              "currencyId": "coin",
+              "amount": 2000000
+            },
+            {
+              "currencyId": "gacha_ticket",
+              "amount": 5
+            }
+          ]
+        },
+        {
+          "target": 2100,
+          "reward": [
+            {
+              "currencyId": "coin",
+              "amount": 2100000
+            }
+          ]
+        },
+        {
+          "target": 2200,
+          "reward": [
+            {
+              "currencyId": "coin",
+              "amount": 2200000
+            }
+          ]
+        },
+        {
+          "target": 2300,
+          "reward": [
+            {
+              "currencyId": "coin",
+              "amount": 2300000
+            }
+          ]
+        },
+        {
+          "target": 2400,
+          "reward": [
+            {
+              "currencyId": "coin",
+              "amount": 2400000
+            }
+          ]
+        },
+        {
+          "target": 2500,
+          "reward": [
+            {
+              "currencyId": "coin",
+              "amount": 2500000
+            },
+            {
+              "currencyId": "gacha_ticket",
+              "amount": 5
+            }
+          ]
+        },
+        {
+          "target": 2600,
+          "reward": [
+            {
+              "currencyId": "coin",
+              "amount": 2600000
+            }
+          ]
+        },
+        {
+          "target": 2700,
+          "reward": [
+            {
+              "currencyId": "coin",
+              "amount": 2700000
+            }
+          ]
+        },
+        {
+          "target": 2800,
+          "reward": [
+            {
+              "currencyId": "coin",
+              "amount": 2800000
+            }
+          ]
+        },
+        {
+          "target": 2900,
+          "reward": [
+            {
+              "currencyId": "coin",
+              "amount": 2900000
+            }
+          ]
+        },
+        {
+          "target": 3000,
+          "reward": [
+            {
+              "currencyId": "coin",
+              "amount": 3000000
+            },
+            {
+              "currencyId": "gacha_ticket",
+              "amount": 5
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "pass_awaken",
+      "metric": "growth.awakenings",
+      "tiers": [
+        {
+          "target": 2,
+          "reward": [
+            {
+              "currencyId": "awaken_shard",
+              "amount": 5
+            }
+          ]
+        },
+        {
+          "target": 4,
+          "reward": [
+            {
+              "currencyId": "awaken_shard",
+              "amount": 5
+            }
+          ]
+        },
+        {
+          "target": 6,
+          "reward": [
+            {
+              "currencyId": "awaken_shard",
+              "amount": 5
+            }
+          ]
+        },
+        {
+          "target": 8,
+          "reward": [
+            {
+              "currencyId": "awaken_shard",
+              "amount": 5
+            }
+          ]
+        },
+        {
+          "target": 10,
+          "reward": [
+            {
+              "currencyId": "awaken_shard",
+              "amount": 5
+            },
+            {
+              "currencyId": "gacha_ticket",
+              "amount": 5
+            }
+          ]
+        },
+        {
+          "target": 12,
+          "reward": [
+            {
+              "currencyId": "awaken_shard",
+              "amount": 5
+            }
+          ]
+        },
+        {
+          "target": 14,
+          "reward": [
+            {
+              "currencyId": "awaken_shard",
+              "amount": 5
+            }
+          ]
+        },
+        {
+          "target": 16,
+          "reward": [
+            {
+              "currencyId": "awaken_shard",
+              "amount": 5
+            }
+          ]
+        },
+        {
+          "target": 18,
+          "reward": [
+            {
+              "currencyId": "awaken_shard",
+              "amount": 5
+            }
+          ]
+        },
+        {
+          "target": 20,
+          "reward": [
+            {
+              "currencyId": "awaken_shard",
+              "amount": 5
+            },
+            {
+              "currencyId": "gacha_ticket",
+              "amount": 5
+            }
+          ]
+        },
+        {
+          "target": 22,
+          "reward": [
+            {
+              "currencyId": "awaken_shard",
+              "amount": 5
+            }
+          ]
+        },
+        {
+          "target": 24,
+          "reward": [
+            {
+              "currencyId": "awaken_shard",
+              "amount": 5
+            }
+          ]
+        },
+        {
+          "target": 26,
+          "reward": [
+            {
+              "currencyId": "awaken_shard",
+              "amount": 5
+            }
+          ]
+        },
+        {
+          "target": 28,
+          "reward": [
+            {
+              "currencyId": "awaken_shard",
+              "amount": 5
+            }
+          ]
+        },
+        {
+          "target": 30,
+          "reward": [
+            {
+              "currencyId": "awaken_shard",
+              "amount": 5
+            },
+            {
+              "currencyId": "gacha_ticket",
+              "amount": 5
+            }
+          ]
+        },
+        {
+          "target": 32,
+          "reward": [
+            {
+              "currencyId": "awaken_shard",
+              "amount": 5
+            }
+          ]
+        },
+        {
+          "target": 34,
+          "reward": [
+            {
+              "currencyId": "awaken_shard",
+              "amount": 5
+            }
+          ]
+        },
+        {
+          "target": 36,
+          "reward": [
+            {
+              "currencyId": "awaken_shard",
+              "amount": 5
+            }
+          ]
+        },
+        {
+          "target": 38,
+          "reward": [
+            {
+              "currencyId": "awaken_shard",
+              "amount": 5
+            }
+          ]
+        },
+        {
+          "target": 40,
+          "reward": [
+            {
+              "currencyId": "awaken_shard",
+              "amount": 5
+            },
+            {
+              "currencyId": "gacha_ticket",
+              "amount": 5
+            }
+          ]
+        },
+        {
+          "target": 42,
+          "reward": [
+            {
+              "currencyId": "awaken_shard",
+              "amount": 5
+            }
+          ]
+        },
+        {
+          "target": 44,
+          "reward": [
+            {
+              "currencyId": "awaken_shard",
+              "amount": 5
+            }
+          ]
+        },
+        {
+          "target": 46,
+          "reward": [
+            {
+              "currencyId": "awaken_shard",
+              "amount": 5
+            }
+          ]
+        },
+        {
+          "target": 48,
+          "reward": [
+            {
+              "currencyId": "awaken_shard",
+              "amount": 5
+            }
+          ]
+        },
+        {
+          "target": 50,
+          "reward": [
+            {
+              "currencyId": "awaken_shard",
+              "amount": 5
+            },
+            {
+              "currencyId": "gacha_ticket",
+              "amount": 5
+            }
+          ]
+        },
+        {
+          "target": 52,
+          "reward": [
+            {
+              "currencyId": "awaken_shard",
+              "amount": 5
+            }
+          ]
+        },
+        {
+          "target": 54,
+          "reward": [
+            {
+              "currencyId": "awaken_shard",
+              "amount": 5
+            }
+          ]
+        },
+        {
+          "target": 56,
+          "reward": [
+            {
+              "currencyId": "awaken_shard",
+              "amount": 5
+            }
+          ]
+        },
+        {
+          "target": 58,
+          "reward": [
+            {
+              "currencyId": "awaken_shard",
+              "amount": 5
+            }
+          ]
+        },
+        {
+          "target": 60,
+          "reward": [
+            {
+              "currencyId": "awaken_shard",
+              "amount": 5
+            },
+            {
+              "currencyId": "gacha_ticket",
+              "amount": 5
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "race_familiar",
+      "metric": "spent.familiar_power",
+      "tiers": [
+        {
+          "target": 120,
+          "reward": [
+            {
+              "currencyId": "gem",
+              "amount": 40
+            }
+          ]
+        },
+        {
+          "target": 160,
+          "reward": [
+            {
+              "currencyId": "gem",
+              "amount": 50
+            }
+          ]
+        },
+        {
+          "target": 200,
+          "reward": [
+            {
+              "currencyId": "gem",
+              "amount": 60
+            }
+          ]
+        },
+        {
+          "target": 250,
+          "reward": [
+            {
+              "currencyId": "gem",
+              "amount": 70
+            }
+          ]
+        },
+        {
+          "target": 310,
+          "reward": [
+            {
+              "currencyId": "gem",
+              "amount": 80
+            }
+          ]
+        },
+        {
+          "target": 380,
+          "reward": [
+            {
+              "currencyId": "gem",
+              "amount": 90
+            }
+          ]
+        },
+        {
+          "target": 460,
+          "reward": [
+            {
+              "currencyId": "gem",
+              "amount": 100
+            },
+            {
+              "currencyId": "gacha_ticket",
+              "amount": 10
+            }
+          ]
+        },
+        {
+          "target": 550,
+          "reward": [
+            {
+              "currencyId": "gem",
+              "amount": 110
+            }
+          ]
+        },
+        {
+          "target": 650,
+          "reward": [
+            {
+              "currencyId": "gem",
+              "amount": 120
+            }
+          ]
+        },
+        {
+          "target": 760,
+          "reward": [
+            {
+              "currencyId": "gem",
+              "amount": 130
+            }
+          ]
+        },
+        {
+          "target": 880,
+          "reward": [
+            {
+              "currencyId": "gem",
+              "amount": 140
+            }
+          ]
+        },
+        {
+          "target": 1010,
+          "reward": [
+            {
+              "currencyId": "gem",
+              "amount": 150
+            }
+          ]
+        },
+        {
+          "target": 1150,
+          "reward": [
+            {
+              "currencyId": "gem",
+              "amount": 160
+            }
+          ]
+        },
+        {
+          "target": 1300,
+          "reward": [
+            {
+              "currencyId": "gem",
+              "amount": 170
+            },
+            {
+              "currencyId": "gacha_ticket",
+              "amount": 10
+            }
+          ]
+        },
+        {
+          "target": 1460,
+          "reward": [
+            {
+              "currencyId": "gem",
+              "amount": 180
+            }
+          ]
+        },
+        {
+          "target": 1630,
+          "reward": [
+            {
+              "currencyId": "gem",
+              "amount": 190
+            }
+          ]
+        },
+        {
+          "target": 1810,
+          "reward": [
+            {
+              "currencyId": "gem",
+              "amount": 200
+            }
+          ]
+        },
+        {
+          "target": 2000,
+          "reward": [
+            {
+              "currencyId": "gem",
+              "amount": 210
+            }
+          ]
+        },
+        {
+          "target": 2200,
+          "reward": [
+            {
+              "currencyId": "gem",
+              "amount": 220
+            }
+          ]
+        },
+        {
+          "target": 2410,
+          "reward": [
+            {
+              "currencyId": "gem",
+              "amount": 230
+            }
+          ]
+        },
+        {
+          "target": 2630,
+          "reward": [
+            {
+              "currencyId": "gem",
+              "amount": 240
+            },
+            {
+              "currencyId": "gacha_ticket",
+              "amount": 10
+            }
+          ]
+        },
+        {
+          "target": 2860,
+          "reward": [
+            {
+              "currencyId": "gem",
+              "amount": 250
+            }
+          ]
+        },
+        {
+          "target": 3100,
+          "reward": [
+            {
+              "currencyId": "gem",
+              "amount": 260
+            }
+          ]
+        },
+        {
+          "target": 3350,
+          "reward": [
+            {
+              "currencyId": "gem",
+              "amount": 270
+            }
+          ]
+        },
+        {
+          "target": 3610,
+          "reward": [
+            {
+              "currencyId": "gem",
+              "amount": 280
+            }
+          ]
+        },
+        {
+          "target": 3880,
+          "reward": [
+            {
+              "currencyId": "gem",
+              "amount": 290
+            }
+          ]
+        },
+        {
+          "target": 4160,
+          "reward": [
+            {
+              "currencyId": "gem",
+              "amount": 300
+            }
+          ]
+        },
+        {
+          "target": 4450,
+          "reward": [
+            {
+              "currencyId": "gem",
+              "amount": 310
+            },
+            {
+              "currencyId": "gacha_ticket",
+              "amount": 10
+            }
+          ]
+        }
+      ]
     }
   ]
 }

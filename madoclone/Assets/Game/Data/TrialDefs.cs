@@ -44,6 +44,32 @@ namespace Mado.Data
 
         /// <summary>報酬を受け取るたびに、霊石版が spirit_stones.json の dropsPerClear 枚ドロップする（星霊王の稽古）。</summary>
         public bool DropsStones { get; init; }
+
+        /// <summary>
+        /// 試練の種類：boss（敵を倒すとLvが上がる。省略時）／mirror（自分の戦力 ±mirrorSpread のNPCと対戦。勝つと1つ進む）／damage（敵は倒れない的で、制限時間のあいだに与えたダメージがLvになる。vsマスターハデス型）。
+        /// damage のLv ＝ 1 ＋ floor( log(与えたダメージ ÷ damageBase) ÷ log(damageGrowth) )（damageBase に届かなければ 0）。
+        /// </summary>
+        [JsonProperty(Required = Required.Default)]
+        public string Kind { get; init; }
+
+        [JsonProperty(Required = Required.Default)]
+        public double DamageBase { get; init; }
+
+        [JsonProperty(Required = Required.Default)]
+        public double DamageGrowth { get; init; }
+
+        /// <summary>mirror 型（大魔闘演武の対戦）：敵は自分の編成の戦力の ±mirrorSpread のNPC編成。0 より大きいとき、報酬は常に fixedRewardLv ぶん。</summary>
+        [JsonProperty(Required = Required.Default)]
+        public double MirrorSpread { get; init; }
+
+        [JsonProperty(Required = Required.Default)]
+        public int FixedRewardLv { get; init; }
+
+        [JsonIgnore]
+        public bool IsMirrorKind { get { return Kind == "mirror"; } }
+
+        [JsonIgnore]
+        public bool IsDamageKind { get { return Kind == "damage"; } }
     }
 
     /// <summary>trials.json。</summary>

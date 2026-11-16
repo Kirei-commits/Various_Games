@@ -39,6 +39,7 @@ namespace Mado.Data
             CheckUnlocks(d, issues);
             CheckGacha(d, issues);
             CheckEconomy(d, issues);
+            CheckGuild(d, issues);
             return issues;
         }
 
@@ -680,6 +681,9 @@ namespace Mado.Data
                 {
                     Error(issues, "TRIALS", where, "制限時間・戦力は正、連戦・Lv上昇は1以上、成長率は1以上、statRank は1〜ランク数");
                 }
+                if (t.Kind != null && t.Kind != "boss" && t.Kind != "damage" && t.Kind != "mirror") { Error(issues, "TRIALS", where, "kind は boss か damage"); }
+                if (t.IsDamageKind && (!(t.DamageBase > 0) || !(t.DamageGrowth > 1.0))) { Error(issues, "TRIALS", where, "damage の試練は damageBase が正、damageGrowth が1より大きい"); }
+                if (t.IsMirrorKind && (!(t.MirrorSpread >= 0 && t.MirrorSpread < 1) || t.FixedRewardLv < 1)) { Error(issues, "TRIALS", where, "mirror の試練は mirrorSpread が 0〜1 未満、fixedRewardLv が1以上"); }
                 if (t.RewardPerLv.Count == 0) { Error(issues, "TRIALS", where, "報酬が無い"); }
                 foreach (TrialReward r in t.RewardPerLv)
                 {
@@ -950,6 +954,18 @@ namespace Mado.Data
                     CheckMoney(d, t.Reward, where + "/reward", issues);
                 }
             }
+        }
+
+        // ---- guild.json ----
+
+        private static void CheckGuild(GameData d, List<DataIssue> issues)
+        {
+            GuildConfig g = d.Guild;
+            string at = DataLoader.GuildFile;
+            var seen = new HashSet<string>();
+            foreach (string n in g.Names) { if (string.IsNullOrEmpty(n) || !seen.Add(n)) { Error(issues, "GUILD", at + ":names", "名前が空か重複: " + n); } }
+            if (g.MemberCount < 1 || g.Names.Count < g.MemberCount) { Error(issues, "GUILD", at, "メンバーは1人以上で、名前の数がメンバー数以上"); }
+            if (!(g.PowerMin > 0) || g.PowerMax < g.PowerMin) { Error(issues, "GUILD", at, "戦力の幅：powerMin は正で powerMax 以上"); }
         }
 
         // ---- difficulty.json ----

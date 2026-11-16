@@ -8,16 +8,22 @@ namespace Mado.View.Screens
     /// <summary>ショップ（アイテム）と交換所。商品を1つ買う。購入回数の制限は無い。</summary>
     public sealed class ShopScreen : GameScreen
     {
-        private string _tab = "item";
+        private string _tab;
+        private readonly bool _fixed;
 
-        public ShopScreen(MadoApp app, Transform parent) : base(app, parent, "Shop") { }
+        /// <summary>fixedTab を渡すと、そのタブだけを出す（ギルドのショップは交換所だけ）。</summary>
+        public ShopScreen(MadoApp app, Transform parent, string fixedTab = null) : base(app, parent, "Shop")
+        {
+            _tab = fixedTab ?? "item";
+            _fixed = fixedTab != null;
+        }
 
         public override void Refresh()
         {
             UiKit.Clear(Root);
             UiKit.Label(Root, "Title", T("ui.shop.title"), 56, 0.04f, 0.9f, 0.96f, 0.99f, TextAnchor.MiddleCenter);
-            UiKit.Button(Root, "TabItem", T("ui.shop.tab_item"), 0.04f, 0.82f, 0.48f, 0.9f, _tab == "item" ? UiKit.Accent : UiKit.Panel, () => { _tab = "item"; Refresh(); });
-            UiKit.Button(Root, "TabEx", T("ui.shop.tab_exchange"), 0.52f, 0.82f, 0.96f, 0.9f, _tab == "exchange" ? UiKit.Accent : UiKit.Panel, () => { _tab = "exchange"; Refresh(); });
+            if (!_fixed) { UiKit.Button(Root, "TabItem", T("ui.shop.tab_item"), 0.04f, 0.82f, 0.48f, 0.9f, _tab == "item" ? UiKit.Accent : UiKit.Panel, () => { _tab = "item"; Refresh(); }); }
+            if (!_fixed) { UiKit.Button(Root, "TabEx", T("ui.shop.tab_exchange"), 0.52f, 0.82f, 0.96f, 0.9f, _tab == "exchange" ? UiKit.Accent : UiKit.Panel, () => { _tab = "exchange"; Refresh(); }); }
             int i = 0;
             foreach (ShopItemDef item in Data.Economy.Shop)
             {

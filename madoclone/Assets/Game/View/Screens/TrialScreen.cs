@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Globalization;
 using Mado.Core.Growth;
 using Mado.Data;
@@ -10,16 +11,24 @@ namespace Mado.View.Screens
     public sealed class TrialScreen : GameScreen
     {
         private string _message = "";
+        private readonly HashSet<string> _only;
+        private readonly string _titleKey;
 
-        public TrialScreen(MadoApp app, Transform parent) : base(app, parent, "Trial") { }
+        /// <summary>only が null なら全部の試練。指定すれば、その ID の試練だけを並べる（ギルドの討伐・闘技・書庫に使う）。</summary>
+        public TrialScreen(MadoApp app, Transform parent, string name = "Trial", string[] only = null, string titleKey = "ui.trial.title") : base(app, parent, name)
+        {
+            _only = only == null ? null : new HashSet<string>(only);
+            _titleKey = titleKey;
+        }
 
         public override void Refresh()
         {
             UiKit.Clear(Root);
-            UiKit.Label(Root, "Title", T("ui.trial.title"), 56, 0.04f, 0.92f, 0.96f, 0.99f, TextAnchor.MiddleCenter);
+            UiKit.Label(Root, "Title", T(_titleKey), 56, 0.04f, 0.92f, 0.96f, 0.99f, TextAnchor.MiddleCenter);
             int i = 0;
             foreach (TrialDef def in Data.Trials.Trials)
             {
+                if (_only != null && !_only.Contains(def.Id)) { continue; }
                 float y1 = 0.89f - i * 0.11f, y0 = y1 - 0.1f;
                 string feature = "trial_" + def.Id;
                 bool open = State.IsUnlocked(feature);
