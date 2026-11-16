@@ -33,6 +33,7 @@ namespace Mado.Core.Save
         public TempleState Temple { get; set; } = new TempleState();
         public IdleState Idle { get; set; } = new IdleState();
         public PlazaState Plazas { get; set; } = new PlazaState();
+        public Dictionary<string, TrialState> Trials { get; set; } = new Dictionary<string, TrialState>();
 
         /// <summary>マスタに無い ID・未知の項目の中身。捨てずに持ち越す（キーは "characters/ID" など）。</summary>
         public Dictionary<string, JToken> Orphans { get; set; } = new Dictionary<string, JToken>();
@@ -118,6 +119,20 @@ namespace Mado.Core.Save
     public sealed class PlazaState
     {
         public Dictionary<string, int> Levels { get; set; } = new Dictionary<string, int>();
+    }
+
+    /// <summary>繰り返せる収入の歯止めの状態（貯まっている回数と、最後に数えた時刻）。試練・ギルドレイドなどで共通。</summary>
+    public sealed class GateState
+    {
+        public double Charges { get; set; }
+        public string LastUtc { get; set; } = "";
+    }
+
+    /// <summary>試練1つの進み具合：クリア済みの最高Lv と、報酬の歯止め。</summary>
+    public sealed class TrialState
+    {
+        public int ClearedLv { get; set; }
+        public GateState Gate { get; set; } = new GateState();
     }
 
     public sealed class PartyState

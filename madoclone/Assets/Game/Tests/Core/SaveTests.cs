@@ -135,21 +135,21 @@ namespace Mado.Core.Tests
             JObject o = JObject.Parse(Encoding.UTF8.GetString(SaveCodec.Serialize(Sample())));
             o["characters"]["chr_zzz"] = new JObject { ["star"] = 1, ["lv"] = 1, ["exp"] = 0, ["copies"] = 0, ["crystals"] = new JArray(null, null, null, null, null) };
             o["wallet"]["old_coin"] = 5;
-            o["trials"] = new JObject { ["trl_rush"] = new JObject { ["level"] = 4 } };
+            o["guild_raid"] = new JObject { ["raid_a"] = new JObject { ["level"] = 4 } };
 
             LoadResult r = SaveCodec.LoadJson(o.ToString(), Data, new SaveMigrator());
             Assert.IsTrue(r.Success, r.FailureReason);
             Assert.IsFalse(r.Save.Characters.ContainsKey("chr_zzz"));
             Assert.IsTrue(r.Save.Orphans.ContainsKey("characters/chr_zzz"));
             Assert.IsTrue(r.Save.Orphans.ContainsKey("wallet/old_coin"));
-            Assert.IsTrue(r.Save.Orphans.ContainsKey("top/trials"));
-            Assert.AreEqual(2, CountCode(r, "ORPHAN")); // キャラと通貨の2件（trials は黙って持ち越す）
+            Assert.IsTrue(r.Save.Orphans.ContainsKey("top/guild_raid"));
+            Assert.AreEqual(2, CountCode(r, "ORPHAN")); // キャラと通貨の2件（guild_raid は黙って持ち越す）
 
             // 保存し直しても残る。
             LoadResult r2 = Reload(r.Save);
             Assert.IsTrue(r2.Save.Orphans.ContainsKey("characters/chr_zzz"));
             JObject out2 = JObject.Parse(Encoding.UTF8.GetString(SaveCodec.Serialize(r2.Save)));
-            Assert.AreEqual(4, (int)out2["trials"]["trl_rush"]["level"]);
+            Assert.AreEqual(4, (int)out2["guild_raid"]["raid_a"]["level"]);
 
             // マスタが戻れば復活する（chr_003 を孤児として持っていたセーブ）。
             SaveData withOrphan = Sample();

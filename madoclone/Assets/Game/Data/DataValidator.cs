@@ -31,6 +31,7 @@ namespace Mado.Data
             CheckLeaderTemple(d, issues);
             CheckEnemyKits(d, issues);
             CheckPlazas(d, issues);
+            CheckTrials(d, issues);
             return issues;
         }
 
@@ -650,6 +651,39 @@ namespace Mado.Data
                 if (p.MaxLv < 2 || !(p.PctPerLv > 0) || !(p.CostAtLv > 0) || p.CostLv < 1 || p.CostLv >= p.MaxLv || !(p.CostGrowth >= 1.0) || p.KnotLv < 2 || p.KnotLv > p.MaxLv || !(p.KnotPct > 0))
                 {
                     Error(issues, "PLAZAS", where, "maxLv は2以上、増加％・費用は正、costLv は 1 以上 maxLv 未満、成長率は1以上、knotLv は 2〜maxLv、knotPct は正");
+                }
+            }
+        }
+
+        // ---- trials.json ----
+
+        private static void CheckTrials(GameData d, List<DataIssue> issues)
+        {
+            string at = DataLoader.TrialsFile;
+            var ids = new HashSet<string>();
+            var traitIds = new HashSet<string>();
+            foreach (BossTraitDef t in d.EnemyKits.Traits) { traitIds.Add(t.Id); }
+            foreach (TrialDef t in d.Trials.Trials)
+            {
+                string where = at + ":" + t.Id;
+                if (string.IsNullOrEmpty(t.Id) || !ids.Add(t.Id)) { Error(issues, "TRIALS", where, "ID が空か重複"); }
+                if (!(t.TimeLimitSec > 0) || t.Fights < 1 || t.LevelOnClear < 1 || !(t.PowerBase > 0) || !(t.PowerGrowth >= 1.0)
+                    || t.StatRank < 1 || t.StatRank > d.Difficulty.Ranks)
+                {
+                    Error(issues, "TRIALS", where, "制限時間・戦力は正、連戦・Lv上昇は1以上、成長率は1以上、statRank は1〜ランク数");
+                }
+                if (t.RewardPerLv.Count == 0) { Error(issues, "TRIALS", where, "報酬が無い"); }
+                foreach (TrialReward r in t.RewardPerLv)
+                {
+                    if (!d.TryCurrency(r.CurrencyId, out _) || !(r.Amount > 0)) { Error(issues, "TRIALS", where, "報酬の通貨が無いか、量が正でない: " + r.CurrencyId); }
+                }
+                if (t.Gate != null && (!(t.Gate.ChargePerDay > 0) || (t.Gate.Cap.HasValue && t.Gate.Cap.Value < 1)))
+                {
+                    Error(issues, "TRIALS", where, "gate：chargePerDay は正、cap は1以上");
+                }
+                foreach (string id in t.Traits)
+                {
+                    if (!traitIds.Contains(id)) { Error(issues, "TRIALS", where, "知らない特徴 " + id); }
                 }
             }
         }

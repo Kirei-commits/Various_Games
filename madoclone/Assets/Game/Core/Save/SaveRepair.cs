@@ -20,6 +20,15 @@ namespace Mado.Core.Save
             RepairCrystals(save, data, done);
             RepairParties(save, data, done);
             RepairMemory(save, data, done);
+            foreach (KeyValuePair<string, TrialState> kv in save.Trials)
+            {
+                if (!data.Trials.TryGet(kv.Key, out TrialDef def)) { continue; }
+                if (kv.Value.ClearedLv < 0) { Note(done, "クリア済みLv " + kv.Value.ClearedLv + " → 0", "trials." + kv.Key + ".clearedLv"); kv.Value.ClearedLv = 0; }
+                double c = kv.Value.Gate.Charges;
+                double fixedC = (double.IsNaN(c) || double.IsInfinity(c) || c < 0) ? 0 : c;
+                if (def.Gate != null && def.Gate.Cap.HasValue) { fixedC = Math.Min(fixedC, def.Gate.Cap.Value); }
+                if (fixedC != c && !(double.IsNaN(c) && double.IsNaN(fixedC))) { Note(done, "貯まっている回数 " + c + " → " + fixedC, "trials." + kv.Key + ".charges"); kv.Value.Gate.Charges = fixedC; }
+            }
             foreach (string id in new List<string>(save.Plazas.Levels.Keys))
             {
                 if (!data.Plazas.TryGet(id, out PlazaDef def)) { continue; }   // 知らない広場は警告のまま持ち越す

@@ -92,6 +92,17 @@ namespace Mado.Core.Save
                 }
             }
             CheckMemory(save, data, issues);
+            foreach (KeyValuePair<string, TrialState> kv in save.Trials)
+            {
+                string at = "trials." + kv.Key;
+                if (!data.Trials.TryGet(kv.Key, out TrialDef def)) { Add(issues, SaveSeverity.Warning, "TRIAL_UNKNOWN", "マスタに無い試練 " + kv.Key, at); continue; }
+                if (kv.Value.ClearedLv < 0) { Add(issues, SaveSeverity.Error, "TRIAL_LV", "クリア済みLv が負: " + kv.Value.ClearedLv, at + ".clearedLv"); }
+                double c = kv.Value.Gate.Charges;
+                if (double.IsNaN(c) || double.IsInfinity(c) || c < 0 || (def.Gate != null && def.Gate.Cap.HasValue && c > def.Gate.Cap.Value + 1e-9))
+                {
+                    Add(issues, SaveSeverity.Error, "TRIAL_CHARGES", "貯まっている回数が不正: " + c, at + ".charges");
+                }
+            }
             foreach (KeyValuePair<string, int> kv in save.Plazas.Levels)
             {
                 data.Plazas.TryGet(kv.Key, out PlazaDef def);

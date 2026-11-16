@@ -20,6 +20,7 @@ namespace Mado.Data
         public LeaderTempleConfig LeaderTemple { get; }
         public EnemyKitsConfig EnemyKits { get; }
         public PlazasConfig Plazas { get; }
+        public TrialsConfig Trials { get; }
         public BuffTable Buffs { get; }
         public TextTable Text { get; }
 
@@ -42,6 +43,7 @@ namespace Mado.Data
             LeaderTempleConfig leaderTemple,
             EnemyKitsConfig enemyKits,
             PlazasConfig plazas,
+            TrialsConfig trials,
             BuffTable buffs,
             IReadOnlyList<TierDef> tiers,
             IReadOnlyList<CharacterDef> characters,
@@ -58,6 +60,7 @@ namespace Mado.Data
             LeaderTemple = leaderTemple;
             EnemyKits = enemyKits;
             Plazas = plazas;
+            Trials = trials;
             Buffs = buffs;
             Tiers = tiers;
             Characters = characters;

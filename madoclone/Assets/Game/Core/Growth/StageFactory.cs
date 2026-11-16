@@ -95,6 +95,17 @@ namespace Mado.Core.Growth
             return BuildWithPower(rank, totalPower, kind, row != null ? row.Hp : 1.0, row != null ? row.Atk : 1.0);
         }
 
+        /// <summary>試練の敵（ボス戦の3体組）。合計戦力 power、副ステータス・倍率は statRank のもの。ボス本体に traitIds の特徴を付ける。</summary>
+        public List<UnitSetup> BuildTrial(int statRank, double power, IReadOnlyList<string> traitIds)
+        {
+            EnemyScaleRow row = ScaleRow(statRank);
+            DifficultyConfig d = _data.Difficulty;
+            List<UnitSetup> units = BuildWithPower(statRank, power, StageKind.Boss, row != null ? row.Hp : 1.0, row != null ? row.Atk : 1.0, false);
+            // ボスの特徴は、ランクの割り当て（BuildWithPower が付けたもの）の上に、試練ごとの特徴を足す。
+            foreach (string id in traitIds) { ApplyTrait(units[0], id); }
+            return units;
+        }
+
         private EnemyScaleRow ScaleRow(int rank)
         {
             foreach (EnemyScaleRow r in _data.Difficulty.EnemyScale) { if (r.Rank == rank) { return r; } }

@@ -59,6 +59,7 @@ namespace Mado.Core.Session
         private readonly MemoryCardService _memory;
         private readonly LeaderTempleService _temple;
         private readonly PlazaService _plazas;
+        private readonly TrialService _trials;
         private readonly IdleService _idle;
         private readonly StageFactory _stages;
         private readonly BattleSetupBuilder _builder;
@@ -91,8 +92,9 @@ namespace Mado.Core.Session
             if (extraSources != null) { sources.AddRange(extraSources); }
             _builder = new BattleSetupBuilder(data, new StatResolver(data, sources));
 
+            _trials = new TrialService(data, _save, _wallet, clock, _stages, _builder);
             _idle.EnsureStarted();
-            State = new GameState(_save, _wallet, _idle, _metrics);
+            State = new GameState(_save, _wallet, _idle, _metrics, _trials);
             Debug = new DebugCommands(this);
         }
 
@@ -263,6 +265,43 @@ namespace Mado.Core.Session
             TempleLevelResult r = _temple.LevelUp();
             if (!r.Success) { return Failed(r.Failure); }
             return Done(new GameEvent(GameEventKind.LeaderLevelUp, "", 0, r.NewLv));
+        }
+
+        // ---------------- 試練 ----------------
+
+        /// <summary>試練の次のLvに挑む。編成が空なら NoParty。勝てばLvが上がり、貯まっている回数があれば報酬が出る。</summary>
+        public TrialResult ChallengeTrial(string trialId)
+        {
+            List<UnitSetup> allies = PartyOrEmpty();
+            Rng misc = Rng.FromState(_save.Rng.Misc);
+            ulong seed = ((ulong)misc.NextUInt() << 32) | misc.NextUInt();
+            TrialResult r = _trials.Challenge(trialId, allies, seed);
+            if (!r.Success) { Finish(); return r; }
+            _save.Rng.Misc = misc.GetState();
+            return AfterTrial(trialId, r);
+        }
+
+        /// <summary>クリア済みの最高Lvの報酬を、戦わずに受け取る。</summary>
+        public TrialResult SweepTrial(string trialId)
+        {
+            TrialResult r = _trials.Sweep(trialId);
+            if (!r.Success) { Finish(); return r; }
+            return AfterTrial(trialId, r);
+        }
+
+        private TrialResult AfterTrial(string trialId, TrialResult r)
+        {
+            var evs = new List<GameEvent>();
+            if (r.Cleared) { evs.Add(new GameEvent(GameEventKind.TrialCleared, trialId, 0, r.NewClearedLv)); }
+            if (r.RewardGranted) { evs.Add(new GameEvent(GameEventKind.TrialRewarded, trialId, 0, r.RewardLv)); }
+            Finish(evs.ToArray());
+            return r;
+        }
+
+        private List<UnitSetup> PartyOrEmpty()
+        {
+            try { return _builder.BuildParty(_save, DefaultParty); }
+            catch (ArgumentException) { return new List<UnitSetup>(); }
         }
 
         // ---------------- 広場 ----------------

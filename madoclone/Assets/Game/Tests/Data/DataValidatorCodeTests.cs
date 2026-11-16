@@ -121,6 +121,18 @@ namespace Mado.Data.Tests
             yield return C("REWARDS", rw, r => r["idleCapHours"] = 0);
             yield return C("REWARDS", rw, r => r["idleCoinPerExp"] = -1);
 
+            // ---- trials.json ----
+            string tr = DataLoader.TrialsFile;
+            yield return C("TRIALS", tr, r => r["trials"][1]["id"] = "phantom");
+            yield return C("TRIALS", tr, r => r["trials"][0]["timeLimitSec"] = 0);
+            yield return C("TRIALS", tr, r => r["trials"][0]["powerGrowth"] = 0.9);
+            yield return C("TRIALS", tr, r => r["trials"][0]["statRank"] = 99);
+            yield return C("TRIALS", tr, r => ((JArray)r["trials"][0]["rewardPerLv"]).Clear());
+            yield return C("TRIALS", tr, r => r["trials"][0]["rewardPerLv"][0]["currencyId"] = "nope");
+            yield return C("TRIALS", tr, r => r["trials"][0]["gate"]["chargePerDay"] = 0);
+            yield return C("TRIALS", tr, r => r["trials"][0]["gate"]["cap"] = 0);
+            yield return C("TRIALS", tr, r => r["trials"][2]["traits"][0] = "nope");
+
             // ---- plazas.json ----
             string pz = DataLoader.PlazasFile;
             yield return C("PLAZAS", pz, r => r["plazas"][1]["id"] = "familiar");

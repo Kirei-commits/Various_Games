@@ -18,7 +18,7 @@ namespace Mado.Core.Save
         private static readonly HashSet<string> KnownTop = new HashSet<string>
         {
             "format", "saveVersion", "devMode", "savedAtUtc", "rng", "wallet", "walletCarry",
-            "characters", "leader", "parties", "metrics", "progress", "settings", "memory", "temple", "idle", "plazas", "orphans",
+            "characters", "leader", "parties", "metrics", "progress", "settings", "memory", "temple", "idle", "plazas", "trials", "orphans",
         };
 
         // ---------------- 書き出し ----------------
@@ -81,6 +81,17 @@ namespace Mado.Core.Save
             var plazaLv = new Dictionary<string, JToken>();
             foreach (KeyValuePair<string, int> kv in s.Plazas.Levels) { plazaLv[kv.Key] = new JValue(kv.Value); }
             o["plazas"] = Sorted(plazaLv);
+            var trials = new Dictionary<string, JToken>();
+            foreach (KeyValuePair<string, TrialState> kv in s.Trials)
+            {
+                trials[kv.Key] = new JObject
+                {
+                    ["clearedLv"] = kv.Value.ClearedLv,
+                    ["charges"] = kv.Value.Gate.Charges,
+                    ["lastUtc"] = kv.Value.Gate.LastUtc ?? "",
+                };
+            }
+            o["trials"] = Sorted(trials);
             o["idle"] = new JObject { ["lastClaimUtc"] = s.Idle.LastClaimUtc ?? "" };
             o["temple"] = new JObject
             {
@@ -201,6 +212,19 @@ namespace Mado.Core.Save
                 {
                     if (kv.Value.Type != JTokenType.Integer) { throw new SaveFormatException("plazas." + kv.Key + " が整数ではない"); }
                     s.Plazas.Levels[kv.Key] = kv.Value.Value<int>();
+                }
+            }
+            JObject trials = Obj(o, "trials");
+            if (trials != null)
+            {
+                foreach (KeyValuePair<string, JToken> kv in trials)
+                {
+                    var t = kv.Value as JObject ?? throw new SaveFormatException("trials." + kv.Key + " がオブジェクトではない");
+                    s.Trials[kv.Key] = new TrialState
+                    {
+                        ClearedLv = Opt(t, "clearedLv", 0),
+                        Gate = new GateState { Charges = Opt(t, "charges", 0.0), LastUtc = Opt(t, "lastUtc", "") },
+                    };
                 }
             }
             JObject idle = Obj(o, "idle");

@@ -46,10 +46,11 @@ namespace Mado.Core.Session
         private readonly Wallet.Wallet _wallet;
         private readonly IdleService _idle;
         private readonly Metrics.MetricCounter _metrics;
+        private readonly Growth.TrialService _trials;
 
-        internal GameState(SaveData save, Wallet.Wallet wallet, IdleService idle, Metrics.MetricCounter metrics)
+        internal GameState(SaveData save, Wallet.Wallet wallet, IdleService idle, Metrics.MetricCounter metrics, Growth.TrialService trials)
         {
-            _save = save; _wallet = wallet; _idle = idle; _metrics = metrics;
+            _save = save; _wallet = wallet; _idle = idle; _metrics = metrics; _trials = trials;
         }
 
         public bool DevMode { get { return _save.DevMode; } }
@@ -79,6 +80,11 @@ namespace Mado.Core.Session
         public int LeaderLv { get { return _save.Temple.LeaderLv; } }
         public Element? LeaderElement { get { return _save.Temple.LeaderElement; } }
         public int PlazaLv(string plazaId) { return _save.Plazas.Levels.TryGetValue(plazaId ?? "", out int lv) ? lv : 1; }
+        public int TrialClearedLv(string trialId) { return _trials.ClearedLv(trialId); }
+
+        /// <summary>貯まっている報酬の回数（歯止めのない試練は PositiveInfinity）。</summary>
+        public double TrialCharges(string trialId) { return _trials.Charges(trialId); }
+
         public int MemoryGachaLv { get { return _save.Memory.GachaLv; } }
 
         public IReadOnlyList<MemoryCardView> MemoryCards
