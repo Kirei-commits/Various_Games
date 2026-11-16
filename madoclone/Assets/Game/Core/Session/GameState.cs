@@ -133,6 +133,7 @@ namespace Mado.Core.Session
 
         public ProgressView Progress { get { return new ProgressView(_save.Progress); } }
         public double BattleSpeed { get { return _save.Settings.BattleSpeed; } }
+        public double GrowthSpeed { get { return _save.Settings.GrowthSpeed; } }
         public bool AutoBoss { get { return _save.Settings.AutoBoss; } }
         public bool SkipGachaAnim { get { return _save.Settings.SkipGachaAnim; } }
         public string Leader { get { return _save.Leader; } }

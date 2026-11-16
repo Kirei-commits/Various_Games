@@ -816,7 +816,7 @@ namespace Mado.Data
         {
             ResearchConfig r = d.Research;
             string at = DataLoader.ResearchFile;
-            var known = new HashSet<string>(DragonStatKeys);
+            var known = new HashSet<string>(DragonStatKeys) { "attackSpeedPct" };      // 研究所の攻撃スピード（％の足し算）
             var treeIds = new HashSet<string>();
             foreach (TreeDef t in r.Trees)
             {

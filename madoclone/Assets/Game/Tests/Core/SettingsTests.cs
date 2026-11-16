@@ -45,5 +45,63 @@ namespace Mado.Core.Tests
             GameSession s = New();
             Assert.IsFalse(s.AutoStep().Command.Success);
         }
+
+        private static GameSession NewAt(FixedClock clock) { return GameSession.LoadOrCreate(TestData.Data, new MemorySaveStore(), clock, 5UL, null); }
+        private static readonly System.DateTime T0 = new System.DateTime(2026, 11, 16, 0, 0, 0, System.DateTimeKind.Utc);
+
+        [Test]
+        public void GrowthSpeed_MultipliesIdleRewards_ButNotTheTimeCap()
+        {
+            var clock = new FixedClock(T0);
+            GameSession a = NewAt(clock), b = NewAt(clock);
+            Assert.IsTrue(b.SetGrowthSpeed(5).Success);
+            clock.Advance(System.TimeSpan.FromHours(2));
+            Assert.AreEqual(a.State.PendingIdle.Exp * 5, b.State.PendingIdle.Exp, 1e-6);
+            Assert.AreEqual(a.State.PendingIdle.Elapsed, b.State.PendingIdle.Elapsed);
+        }
+
+        [Test]
+        public void GrowthSpeed_MultipliesTheGateCharges()
+        {
+            var clock = new FixedClock(T0);
+            GameSession a = NewAt(clock), b = NewAt(clock);
+            b.SetGrowthSpeed(4);
+            double a0 = a.State.TrialCharges("battle_rush"), b0 = b.State.TrialCharges("battle_rush");
+            clock.Advance(System.TimeSpan.FromDays(1));
+            double da = a.State.TrialCharges("battle_rush") - a0, db = b.State.TrialCharges("battle_rush") - b0;
+            Assert.Greater(da, 0);
+            Assert.AreEqual(da * 4, db, 1e-6);
+        }
+
+        [Test]
+        public void ChangingTheSpeedDoesNotMultiplyThePast()
+        {
+            var clock = new FixedClock(T0);
+            GameSession a = NewAt(clock), b = NewAt(clock);
+            clock.Advance(System.TimeSpan.FromHours(10));
+            double before = a.State.TrialCharges("battle_rush");
+            Assert.IsTrue(b.SetGrowthSpeed(5).Success);                    // 10時間たってから変える：それまでの分は元の速さ
+            Assert.AreEqual(before, b.State.TrialCharges("battle_rush"), 1e-6);
+            Assert.IsTrue(b.State.PendingIdle.IsEmpty || b.State.PendingIdle.Exp < 1e-6, "変える前の放置報酬は受け取り済み");
+        }
+
+        [TestCase(0)]
+        [TestCase(6)]
+        public void GrowthSpeed_RejectsOutOfRange(int v)
+        {
+            GameSession s = New();
+            Assert.AreEqual("InvalidSpeed", s.SetGrowthSpeed(v).Failure);
+            Assert.AreEqual(1, s.State.GrowthSpeed);
+        }
+
+        [Test]
+        public void GrowthSpeed_SurvivesSaveAndLoad()
+        {
+            var store = new MemorySaveStore();
+            GameSession s = New(store);
+            s.SetGrowthSpeed(3);
+            s.Save();
+            Assert.AreEqual(3, New(store).State.GrowthSpeed);
+        }
     }
 }

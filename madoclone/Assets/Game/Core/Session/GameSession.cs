@@ -701,6 +701,20 @@ namespace Mado.Core.Session
         }
 
         /// <summary>
+        /// 成長速度の倍率（整数の1〜5）を変える。変える前に、それまでの放置報酬を受け取り、試練の回数を元の速さで確定させる
+        /// （変えた分を過去にさかのぼって掛けられないように）。
+        /// </summary>
+        public CommandResult SetGrowthSpeed(int speed)
+        {
+            if (speed < 1 || speed > 5) { return Failed("InvalidSpeed"); }
+            IdleReport r = _idle.Claim();
+            _trials.AccrueAll();
+            _save.Settings.GrowthSpeed = speed;
+            if (r.IsEmpty) { return Done(new GameEvent(GameEventKind.SettingsChanged)); }
+            return Done(new GameEvent(GameEventKind.IdleClaimed, "", r.Exp, r.Elapsed.TotalHours), new GameEvent(GameEventKind.SettingsChanged));
+        }
+
+        /// <summary>
         /// 自動周回の1歩。自動ボスが入っていればボス戦、切れていれば雑魚ウェーブで戦う。
         /// ボス戦で負けても進行は変わらない（次の1歩でまた挑む）。
         /// </summary>

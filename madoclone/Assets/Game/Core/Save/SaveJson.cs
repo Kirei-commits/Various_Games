@@ -74,7 +74,7 @@ namespace Mado.Core.Save
             o["progress"] = new JObject { ["rank"] = s.Progress.Rank, ["area"] = s.Progress.Area, ["stage"] = s.Progress.Stage };
             o["settings"] = new JObject
             {
-                ["battleSpeed"] = s.Settings.BattleSpeed, ["autoBoss"] = s.Settings.AutoBoss, ["skipGachaAnim"] = s.Settings.SkipGachaAnim,
+                ["battleSpeed"] = s.Settings.BattleSpeed, ["autoBoss"] = s.Settings.AutoBoss, ["skipGachaAnim"] = s.Settings.SkipGachaAnim, ["growthSpeed"] = s.Settings.GrowthSpeed,
             };
 
             o["memory"] = MemoryToJson(s.Memory);
@@ -213,6 +213,7 @@ namespace Mado.Core.Save
                 s.Settings = new SettingsState
                 {
                     BattleSpeed = Opt(settings, "battleSpeed", 1.0), AutoBoss = Opt(settings, "autoBoss", false), SkipGachaAnim = Opt(settings, "skipGachaAnim", true),
+                    GrowthSpeed = Math.Max(1.0, Math.Min(5.0, Opt(settings, "growthSpeed", 1.0))),
                 };
             }
 

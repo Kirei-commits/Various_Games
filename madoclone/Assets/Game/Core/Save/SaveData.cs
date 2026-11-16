@@ -226,6 +226,9 @@ namespace Mado.Core.Save
         public double BattleSpeed { get; set; } = 1;
         public bool AutoBoss { get; set; }
         public bool SkipGachaAnim { get; set; } = true;
+
+        /// <summary>成長速度の倍率（1〜5）。放置報酬と、試練の回数が貯まる速さに掛ける。</summary>
+        public double GrowthSpeed { get; set; } = 1;
     }
 
     /// <summary>乱数の状態（ガチャ用・その他用の4つずつ）。戦闘の乱数は戦闘のシードから作るので持たない。</summary>

@@ -67,8 +67,17 @@ namespace Mado.Core.Growth
             if (!_data.Trials.TryGet(trialId, out TrialDef def)) { throw new ArgumentException("試練が無い: " + trialId); }
             if (def.Gate == null) { return double.PositiveInfinity; }
             TrialState s = State(trialId);
-            RepeatGate.Accrue(s.Gate, def.Gate, _clock.UtcNow);
+            RepeatGate.Accrue(s.Gate, def.Gate, _clock.UtcNow, _save.Settings.GrowthSpeed);
             return s.Gate.Charges;
+        }
+
+        /// <summary>全試練の回数を、いまの時刻まで貯める（成長速度を変える前に、それまでの分を元の速さで確定させる）。</summary>
+        public void AccrueAll()
+        {
+            foreach (TrialDef def in _data.Trials.Trials)
+            {
+                if (def.Gate != null) { RepeatGate.Accrue(State(def.Id).Gate, def.Gate, _clock.UtcNow, _save.Settings.GrowthSpeed); }
+            }
         }
 
         /// <summary>試練Lv lv の敵の合計戦力。</summary>
@@ -99,7 +108,7 @@ namespace Mado.Core.Growth
             if (!_data.Trials.TryGet(trialId, out TrialDef def)) { return new TrialResult { Failure = TrialFailure.UnknownTrial }; }
             if (allies == null || allies.Count == 0) { return new TrialResult { Failure = TrialFailure.NoParty }; }
             TrialState s = State(trialId);
-            RepeatGate.Accrue(s.Gate, def.Gate, _clock.UtcNow);
+            RepeatGate.Accrue(s.Gate, def.Gate, _clock.UtcNow, _save.Settings.GrowthSpeed);
 
             if (def.IsDamageKind) { return ChallengeDamage(def, s, allies, seed, supports); }
             int lv = s.ClearedLv + 1;
@@ -149,7 +158,7 @@ namespace Mado.Core.Growth
             if (!_data.Trials.TryGet(trialId, out TrialDef def)) { return new TrialResult { Failure = TrialFailure.UnknownTrial }; }
             TrialState s = State(trialId);
             if (s.ClearedLv < 1) { return new TrialResult { Failure = TrialFailure.NothingToSweep }; }
-            RepeatGate.Accrue(s.Gate, def.Gate, _clock.UtcNow);
+            RepeatGate.Accrue(s.Gate, def.Gate, _clock.UtcNow, _save.Settings.GrowthSpeed);
             if (!RepeatGate.CanConsume(s.Gate, def.Gate)) { return new TrialResult { Failure = TrialFailure.NoCharge, RewardLv = s.ClearedLv }; }
             var result = new TrialResult { Cleared = false, Outcome = BattleOutcome.Win, RewardLv = s.ClearedLv, NewClearedLv = s.ClearedLv };
             Grant(def, s, s.ClearedLv, result);

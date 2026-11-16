@@ -19,7 +19,17 @@ namespace Mado.View.Screens
             UiKit.Button(Root, "SpeedDown", "-", 0.04f, 0.68f, 0.3f, 0.77f, UiKit.Panel, () => Apply(speed - 1, auto, skip));
             UiKit.Button(Root, "SpeedUp", "+", 0.7f, 0.68f, 0.96f, 0.77f, UiKit.Panel, () => Apply(speed + 1, auto, skip));
             UiKit.Button(Root, "Auto", T(auto ? "ui.settings.auto_on" : "ui.settings.auto_off"), 0.04f, 0.54f, 0.96f, 0.65f, UiKit.Accent, () => Apply(speed, !auto, skip));
+            int growth = (int)State.GrowthSpeed;
+            UiKit.Label(Root, "Growth", T("ui.settings.growth", growth), 36, 0.04f, 0.3f, 0.96f, 0.38f);
+            UiKit.Button(Root, "GrowthDown", "-", 0.04f, 0.2f, 0.3f, 0.29f, UiKit.Panel, () => SetGrowth(growth - 1));
+            UiKit.Button(Root, "GrowthUp", "+", 0.7f, 0.2f, 0.96f, 0.29f, UiKit.Panel, () => SetGrowth(growth + 1));
             UiKit.Button(Root, "Skip", T(skip ? "ui.settings.skip_on" : "ui.settings.skip_off"), 0.04f, 0.4f, 0.96f, 0.51f, UiKit.Accent, () => Apply(speed, auto, !skip));
+        }
+
+        private void SetGrowth(int v)
+        {
+            if (v < 1 || v > 5) { return; }
+            if (App.Commit(Session.SetGrowthSpeed(v))) { Refresh(); }
         }
 
         private void Apply(double speed, bool auto, bool skip)

@@ -103,6 +103,7 @@ namespace Mado.Core.Tests
             foreach (TreeNodeDef n in Data.Research.Trees.First(t => t.Id == "lab").Nodes) { for (int i = 0; i < n.MaxLv; i++) { e.Trees.LevelUp("lab", n.Id); } }
             double atk = Sum(e.Mods(), StatId.Atk, ModifierPool.Global);
             Assert.AreEqual(800.0, atk, 1e-6);                                                    // 20ノード × 5Lv × 8％
+            Assert.AreEqual(30.0, Sum(e.Mods(), StatId.AttackSpeed, ModifierPool.Flat), 1e-6);   // 攻撃スピードのノード6本 × 5Lv × 1％（上限 +30％）
             Assert.LessOrEqual(atk + 3600.0, 5000.0, "研究所＋タロット（全枠EX）が 6.4節の +5,000％ に収まる");
         }
 

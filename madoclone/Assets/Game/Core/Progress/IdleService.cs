@@ -73,8 +73,9 @@ namespace Mado.Core.Progress
 
             RewardsConfig r = _data.Rewards;
             double minutes = elapsed.TotalMinutes;
-            double exp = _rewards.ExpPerEnemy(_save.Progress.Rank) * r.IdleKillsPerMinute * minutes;
-            return new IdleReport(elapsed, capped, false, exp, exp * r.IdleCoinPerExp, r.IdleBondHeartPerHour * elapsed.TotalHours, r.IdleWinePerMinute * minutes);
+            double k = _save.Settings.GrowthSpeed;                       // 成長速度の倍率（時間の上限は変えず、量に掛ける）
+            double exp = _rewards.ExpPerEnemy(_save.Progress.Rank) * r.IdleKillsPerMinute * minutes * k;
+            return new IdleReport(elapsed, capped, false, exp, exp * r.IdleCoinPerExp, r.IdleBondHeartPerHour * elapsed.TotalHours * k, r.IdleWinePerMinute * minutes * k);
         }
 
         /// <summary>受け取る。受け取れた報酬を返す（1分未満・時計が戻っているときは空で、基準時刻も動かさない）。</summary>

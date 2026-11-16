@@ -287,6 +287,7 @@ namespace Mado.Core.Growth
                 case "accuracyPct": sink.Add(new Modifier(StatId.Accuracy, ModifierPool.Flat, value)); break;
                 case "evasionPct": sink.Add(new Modifier(StatId.Evasion, ModifierPool.Flat, value)); break;
                 case "critResistPct": sink.Add(new Modifier(StatId.CritResist, ModifierPool.Flat, value)); break;
+                case "attackSpeedPct": sink.Add(new Modifier(StatId.AttackSpeed, ModifierPool.Flat, value)); break;
                 case "critDamagePct": sink.Add(new Modifier(StatId.CritDamage, ModifierPool.Flat, value)); break;
                 default: sink.Add(new Modifier(StatId.CritDefense, ModifierPool.Flat, value)); break;
             }

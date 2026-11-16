@@ -658,6 +658,72 @@
           "requires": [
             "lab_def_19"
           ]
+        },
+        {
+          "id": "lab_aspd_01",
+          "stat": "attackSpeedPct",
+          "perLv": 1.0,
+          "maxLv": 5,
+          "costBase": 150.0,
+          "costStep": 150.0,
+          "requires": [
+            "lab_atk_20"
+          ]
+        },
+        {
+          "id": "lab_aspd_02",
+          "stat": "attackSpeedPct",
+          "perLv": 1.0,
+          "maxLv": 5,
+          "costBase": 300.0,
+          "costStep": 300.0,
+          "requires": [
+            "lab_aspd_01"
+          ]
+        },
+        {
+          "id": "lab_aspd_03",
+          "stat": "attackSpeedPct",
+          "perLv": 1.0,
+          "maxLv": 5,
+          "costBase": 450.0,
+          "costStep": 450.0,
+          "requires": [
+            "lab_aspd_02"
+          ]
+        },
+        {
+          "id": "lab_aspd_04",
+          "stat": "attackSpeedPct",
+          "perLv": 1.0,
+          "maxLv": 5,
+          "costBase": 600.0,
+          "costStep": 600.0,
+          "requires": [
+            "lab_aspd_03"
+          ]
+        },
+        {
+          "id": "lab_aspd_05",
+          "stat": "attackSpeedPct",
+          "perLv": 1.0,
+          "maxLv": 5,
+          "costBase": 750.0,
+          "costStep": 750.0,
+          "requires": [
+            "lab_aspd_04"
+          ]
+        },
+        {
+          "id": "lab_aspd_06",
+          "stat": "attackSpeedPct",
+          "perLv": 1.0,
+          "maxLv": 5,
+          "costBase": 900.0,
+          "costStep": 900.0,
+          "requires": [
+            "lab_aspd_05"
+          ]
         }
       ]
     },
