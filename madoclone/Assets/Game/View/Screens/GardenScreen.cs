@@ -51,14 +51,23 @@ namespace Mado.View.Screens
                 CommandResult r = Session.SyncZukan(out int n);
                 if (App.Commit(r)) { _message = T("ui.garden.zukan_result", n); Refresh(); }
             });
-            UiKit.Label(Root, "Message", _message, 30, 0.04f, 0.0f, 0.96f, 0.05f, TextAnchor.MiddleCenter);
+            Row(T("ui.garden.memory", State.MemoryCards.Count, State.MemoryGachaLv), T("ui.garden.memory_pull"), PullMemory);
+            Row(T("ui.garden.memory", State.MemoryCards.Count, State.MemoryGachaLv), T("ui.garden.memory_best"), () => App.Commit(Session.EquipBestMemoryCards()));
+            Row(T("ui.garden.memory", State.MemoryCards.Count, State.MemoryGachaLv), T("ui.garden.memory_lv"), () => App.Commit(Session.RaiseMemoryGachaLevel()));
+            string leaderName = State.Leader == null ? T("ui.garden.leader_none") : NameOf(State.Leader);
+            Row(T("ui.garden.leader", State.LeaderLv, leaderName), T("ui.garden.leader_pick"), () => App.Commit(Session.SetBestLeader()));
+            Row(T("ui.garden.leader", State.LeaderLv, leaderName), T("ui.garden.leader_lv"), () => App.Commit(Session.LevelUpLeader()));
+            var supports = new List<string>();
+            foreach (string id in State.EquippedSupports) { if (id != null) { supports.Add(T("support." + id)); } }
+            Row(T("ui.garden.support", supports.Count == 0 ? T("ui.garden.support_none") : string.Join("・", supports)), T("ui.garden.support_best"), () => App.Commit(Session.EquipBestSupports()));
+            UiKit.Label(Root, "Message", _message, 30, 0.04f, 0.0f, 0.96f, 0.03f, TextAnchor.MiddleCenter);
         }
 
         private void Row(string label, string buttonText, System.Action onClick)
         {
-            float y1 = _y - _row * 0.072f, y0 = y1 - 0.065f;
+            float y1 = _y - _row * 0.05f, y0 = y1 - 0.045f;
             UiKit.Rect(Root, "Row" + _row, 0.03f, y0, 0.97f, y1, UiKit.Panel);
-            UiKit.Label(Root, "Label" + _row, label, 28, 0.05f, y0, 0.62f, y1);
+            UiKit.Label(Root, "Label" + _row, label, 24, 0.05f, y0, 0.62f, y1);
             UiKit.Button(Root, "Btn" + _row, buttonText, 0.64f, y0 + 0.006f, 0.96f, y1 - 0.006f, UiKit.Accent, onClick);
             _row++;
         }
@@ -86,6 +95,16 @@ namespace Mado.View.Screens
             }
             Session.DrainEvents();
             if (fill == 0) { App.Toast(T("ui.not_enough")); return; }
+            App.Changed();
+        }
+
+        private void PullMemory()
+        {
+            for (int i = 0; i < 10; i++)
+            {
+                if (!Session.PullMemoryCard(out _).Success) { if (i == 0) { App.Toast(T("ui.not_enough")); } break; }
+            }
+            Session.DrainEvents();
             App.Changed();
         }
 

@@ -295,6 +295,19 @@ namespace Mado.Core.Session
             return CommandResult.Ok();
         }
 
+        /// <summary>種類ごとに、強い（メイン効果の合計が大きい）カードを2枚ずつ装備する。</summary>
+        public CommandResult EquipBestMemoryCards()
+        {
+            if (!IsUnlocked("memory_card")) { Finish(); return CommandResult.Fail(LockedReason); }
+            MemoryState m = _save.Memory;
+            foreach (MemoryKind kind in new[] { MemoryKind.Hp, MemoryKind.Atk, MemoryKind.Def, MemoryKind.Speed })
+            {
+                List<MemoryCardState> best = m.Cards.Where(c => c.Kind == kind).OrderByDescending(c => MemoryCardRules.Score(_data, c)).ThenBy(c => c.Id, StringComparer.Ordinal).Take(2).ToList();
+                for (int i = 0; i < 2; i++) { m.Equipped[MemoryCardService.Slot(kind, i)] = i < best.Count ? best[i].Id : null; }
+            }
+            return Done(new GameEvent(GameEventKind.MemoryCardEquipped, "", 0, -1));
+        }
+
         public CommandResult RaiseMemoryGachaLevel()
         {
             if (!IsUnlocked("memory_card")) { Finish(); return CommandResult.Fail(LockedReason); }
@@ -327,6 +340,21 @@ namespace Mado.Core.Session
             TempleFailure f = _temple.SetLeader(characterId);
             if (f != TempleFailure.None) { return Failed(f); }
             return Done(new GameEvent(GameEventKind.LeaderChanged, characterId ?? ""));
+        }
+
+        /// <summary>リーダーにできるキャラ（★が足りている）のうち、★とLvが最も高いものを選ぶ。</summary>
+        public CommandResult SetBestLeader()
+        {
+            if (!IsUnlocked("leader_temple")) { Finish(); return CommandResult.Fail(LockedReason); }
+            string best = null; int bestKey = -1;
+            foreach (KeyValuePair<string, CharacterState> kv in _save.Characters.OrderBy(x => x.Key, StringComparer.Ordinal))
+            {
+                if (kv.Value.Star < _data.System.LeaderMinStar) { continue; }
+                int key = kv.Value.Star * 1000 + kv.Value.Lv;
+                if (key > bestKey) { best = kv.Key; bestKey = key; }
+            }
+            if (best == null) { Finish(); return CommandResult.Fail("NoCandidate"); }
+            return SetLeader(best);
         }
 
         public CommandResult SetLeaderElement(Element? element)
@@ -396,6 +424,17 @@ namespace Mado.Core.Session
             SupportFailure f = _supports.Set(DefaultParty, supportId);
             if (f != SupportFailure.None) { return Failed(f); }
             return Done(new GameEvent(GameEventKind.SupportChanged, supportId));
+        }
+
+        /// <summary>持っているサポートのうち、解放が最も後のもの（強い）を、種類ごとにセットする。</summary>
+        public CommandResult EquipBestSupports()
+        {
+            foreach (SupportKind kind in new[] { SupportKind.Familiar, SupportKind.Spirit, SupportKind.Dragon })
+            {
+                IReadOnlyList<string> owned = _supports.Owned(kind);
+                if (owned.Count > 0) { _supports.Set(DefaultParty, owned[owned.Count - 1]); }
+            }
+            return Done(new GameEvent(GameEventKind.SupportChanged, "", 0, -1));
         }
 
         public CommandResult ClearSupport(SupportKind kind)

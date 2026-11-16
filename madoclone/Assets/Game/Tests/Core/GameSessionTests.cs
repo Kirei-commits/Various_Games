@@ -476,5 +476,51 @@ namespace Mado.Core.Tests
             Assert.AreEqual(r.EventHash, replay.Result.EventHash);
             Assert.AreEqual(r.Outcome, replay.Result.Outcome);
         }
+
+        // ---------------- おまかせ（View のボタン用） ----------------
+
+        [Test]
+        public void EquipBestMemoryCards_PicksTheTwoStrongestOfEachKind()
+        {
+            GameSession s = NewSession();
+            s.Debug.GrantCurrency("bond_heart", 400);
+            for (int i = 0; i < 300; i++) { s.PullMemoryCard(out _); }
+            s.DrainEvents();
+            Assert.IsTrue(s.EquipBestMemoryCards().Success);
+            IReadOnlyList<string> eq = s.State.EquippedMemoryCards;
+            IReadOnlyList<MemoryCardView> cards = s.State.MemoryCards;
+            for (int kind = 0; kind < 4; kind++)
+            {
+                int have = cards.Count(c => (int)c.Kind == kind);
+                int equipped = new[] { eq[kind * 2], eq[kind * 2 + 1] }.Count(x => x != null);
+                Assert.AreEqual(Math.Min(2, have), equipped, "種類" + kind);
+                foreach (string id in new[] { eq[kind * 2], eq[kind * 2 + 1] }.Where(x => x != null)) { Assert.AreEqual(kind, (int)cards.First(c => c.Id == id).Kind); }
+            }
+            Assert.AreEqual(eq.Where(x => x != null).Distinct().Count(), eq.Count(x => x != null), "同じカードを2枠に付けない");
+            GameSession locked = GameSession.LoadOrCreate(Data, new MemorySaveStore(), new FixedClock(T0), 1UL, null, unlockAll: false);
+            Assert.AreEqual("Locked", locked.EquipBestMemoryCards().Failure);
+        }
+
+        [Test]
+        public void EquipBestSupports_AndSetBestLeader_PickTheStrongestAvailable()
+        {
+            GameSession s = NewSession(boost: 1e12);
+            Assert.IsTrue(s.EquipBestSupports().Success);                       // 何も持っていなくても成功（何もしない）
+            CollectionAssert.AreEqual(new string[3], s.State.EquippedSupports);
+            Assert.AreEqual("NoCandidate", s.SetBestLeader().Failure);
+            s.Debug.GrantCharacter("chr_001"); s.Debug.GrantCharacter("chr_002");
+            s.Debug.SetStar("chr_001", 5); s.Debug.SetLevel("chr_001", 10);
+            s.Debug.SetStar("chr_002", 6); s.Debug.SetLevel("chr_002", 3);
+            Assert.IsTrue(s.SetBestLeader().Success);
+            Assert.AreEqual("chr_002", s.State.Leader);                         // ★が高いほうが先
+            s.Debug.SetStar("chr_001", 6); s.Debug.SetLevel("chr_001", 20);
+            Assert.IsTrue(s.SetBestLeader().Success);
+            Assert.AreEqual("chr_001", s.State.Leader);                         // ★が同じならLvが高いほう
+            s.Debug.SetParty(new[] { "chr_001" });
+            for (int i = 0; i < 10; i++) { Assert.IsTrue(s.ChallengeTrial("edrasu").Cleared, "Lv" + (i + 1)); }
+            Assert.IsTrue(s.EquipBestSupports().Success);
+            Assert.AreEqual("familiar_b", s.State.EquippedSupports[0]);         // Lv10 までで解放された使い魔A・Bのうち、後のもの
+            Assert.IsNull(s.State.EquippedSupports[1]);                         // 契約霊・竜はまだ持っていない
+        }
     }
 }
