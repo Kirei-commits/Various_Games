@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Mado.Core.Save;
 using Mado.Core.Stats;
 using Mado.Core.Wallet;
@@ -20,8 +21,10 @@ namespace Mado.Core.Growth
         public IReadOnlyList<SubstatKey> Filter1 { get; set; } = new SubstatKey[0];
         public IReadOnlyList<SubstatKey> Filter2 { get; set; } = new SubstatKey[0];
 
-        /// <summary>true（既定）なら、条件に合うカードが出た時点で止まる。false ならまとめ引き：回数ぶん引き切る（絆ハートが尽きたら止まる）。</summary>
-        public bool StopOnFound { get; set; } = true;
+        public static AutoGachaSettings From(MemoryRuleState r)
+        {
+            return new AutoGachaSettings { RequirePowerUp = r.RequirePowerUp, MinRarityIndex = r.MinRarityIndex, Filter1 = r.Filter1.ToArray(), Filter2 = r.Filter2.ToArray() };
+        }
     }
 
     public enum AutoStop { Found, NotEnough, Limit }
@@ -31,12 +34,10 @@ namespace Mado.Core.Growth
         public int Pulls { get; set; }
         public int Sold { get; set; }
 
-        /// <summary>装備に入れた（強くなった）カードの数。</summary>
-        public int Kept { get; set; }
         public double CoinGained { get; set; }
         public double ExpGained { get; set; }
 
-        /// <summary>条件に合ったカード（装備された）。Found 以外は null。</summary>
+        /// <summary>条件に合って返事待ちになったカード（まだ装備していない）。Found 以外は null。</summary>
         public MemoryCardState Found { get; set; }
         public AutoStop Stop { get; set; }
     }
@@ -88,6 +89,21 @@ namespace Mado.Core.Growth
                 if (!has) { return false; }
             }
             return true;
+        }
+
+        /// <summary>確認の条件が範囲内か。</summary>
+        public static bool IsRuleValid(GameData data, MemoryRuleState r)
+        {
+            return r.MinRarityIndex >= 0 && r.MinRarityIndex < data.MemoryCards.Rarities.Count && r.Filter1.Count <= 2 && r.Filter2.Count <= 2;
+        }
+
+        /// <summary>カード1枚の形が正しいか（レア・Lv・スピードカードの extra・サブ2つ・ID が空でなく、持ち物と重ならない）。</summary>
+        public static bool IsWellFormed(GameData data, MemoryCardState c, IReadOnlyDictionary<string, MemoryCardState> owned)
+        {
+            int extra = c.Extra == null ? 0 : c.Extra.Length;
+            return !string.IsNullOrEmpty(c.Id) && !owned.ContainsKey(c.Id) && MemoryCardEffects.RarityIndex(data, c.Rarity) >= 0
+                && c.Lv >= 1 && c.Lv <= data.MemoryCards.MaxCardLv && extra == (c.Kind == MemoryKind.Speed ? 3 : 0)
+                && c.Subs != null && c.Subs.Count == 2 && c.Subs[0].Stat != c.Subs[1].Stat;
         }
 
         public static double SellPrice(GameData data, MemoryCardState card)

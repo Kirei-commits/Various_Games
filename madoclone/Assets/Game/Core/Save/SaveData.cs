@@ -107,6 +107,21 @@ namespace Mado.Core.Save
 
         /// <summary>長さ8。空の枠は null。</summary>
         public string[] Equipped { get; set; } = new string[SlotCount];
+
+        /// <summary>引いたあと、ユーザーの返事（交換する／しない）を待っているカード。無ければ null。待っている間は新しく引けない。</summary>
+        public MemoryCardState Pending { get; set; }
+
+        /// <summary>「確認を出す条件」（条件に合うカードが出たら、引くのを止めて確認する）。</summary>
+        public MemoryRuleState Rule { get; set; } = new MemoryRuleState();
+    }
+
+    /// <summary>確認を出す条件：レアが minRarityIndex 以上、サブ効果の絞り込み（2組。それぞれ最大2つ）、いま付けているより強いこと（任意）。条件を全部満たしたカードだけが確認に回る。</summary>
+    public sealed class MemoryRuleState
+    {
+        public int MinRarityIndex { get; set; }
+        public List<SubstatKey> Filter1 { get; set; } = new List<SubstatKey>();
+        public List<SubstatKey> Filter2 { get; set; } = new List<SubstatKey>();
+        public bool RequirePowerUp { get; set; } = true;
     }
 
     /// <summary>リーダー神殿：リーダーLv と、変えた属性（null なら元の属性）。</summary>

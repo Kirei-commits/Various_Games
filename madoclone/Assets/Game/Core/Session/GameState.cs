@@ -27,7 +27,15 @@ namespace Mado.Core.Session
         public readonly MemoryKind Kind;
         public readonly int Lv;
 
-        public MemoryCardView(MemoryCardState c) { Id = c.Id; Rarity = c.Rarity; Kind = c.Kind; Lv = c.Lv; }
+        public readonly double Power;
+        public readonly (SubstatKey Stat, double Value)[] Subs;
+
+        public MemoryCardView(MemoryCardState c, double power = 0)
+        {
+            Id = c.Id; Rarity = c.Rarity; Kind = c.Kind; Lv = c.Lv; Power = power;
+            Subs = new (SubstatKey, double)[c.Subs.Count];
+            for (int i = 0; i < Subs.Length; i++) { Subs[i] = (c.Subs[i].Stat, c.Subs[i].Value); }
+        }
     }
 
     public readonly struct StoneView
@@ -256,6 +264,15 @@ namespace Mado.Core.Session
             }
         }
 
+        /// <summary>引いたあと、交換するかの返事を待っているカード。無ければ null。</summary>
+        public MemoryCardView? MemoryPending
+        {
+            get { return _save.Memory.Pending == null ? (MemoryCardView?)null : new MemoryCardView(_save.Memory.Pending, Growth.MemoryCardRules.Score(_data, _save.Memory.Pending)); }
+        }
+
+        /// <summary>確認の条件（写し）。</summary>
+        public Growth.AutoGachaSettings MemoryRule { get { return Growth.AutoGachaSettings.From(_save.Memory.Rule); } }
+
         public int MemoryGachaLv { get { return _save.Memory.GachaLv; } }
 
         public IReadOnlyList<MemoryCardView> MemoryCards
@@ -263,7 +280,7 @@ namespace Mado.Core.Session
             get
             {
                 var list = new List<MemoryCardView>();
-                foreach (MemoryCardState c in _save.Memory.Cards) { list.Add(new MemoryCardView(c)); }
+                foreach (MemoryCardState c in _save.Memory.Cards) { list.Add(new MemoryCardView(c, Growth.MemoryCardRules.Score(_data, c))); }
                 return list;
             }
         }

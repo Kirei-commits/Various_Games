@@ -6,7 +6,7 @@ using Mado.Data;
 
 namespace Mado.Core.Growth
 {
-    public enum MemoryFailure { None, UnknownCard, WrongSlot, AtMaxGachaLv, NotEnough, Equipped, InvalidSettings }
+    public enum MemoryFailure { None, UnknownCard, WrongSlot, AtMaxGachaLv, NotEnough, Equipped, InvalidSettings, HasPending, NoPending }
 
     public readonly struct PullResult
     {
@@ -15,16 +15,16 @@ namespace Mado.Core.Growth
         public readonly MemoryCardState Card;
         public readonly double ShortBy;
 
-        /// <summary>true なら、いまより強いカードなので装備した（持ち物に入った）。false なら、引いたその場でコインと経験値に還元した。</summary>
-        public readonly bool Kept;
+        /// <summary>true なら、確認の条件に合うカードなので、返事待ちにした（まだ装備も還元もしていない）。false なら、引いたその場でコインと経験値に還元した。</summary>
+        public readonly bool Pending;
 
         /// <summary>この1回で還元したカード（引いたカード、または付け替えで外れたカード）の数と、得たコイン・経験値。</summary>
         public readonly int Converted;
         public readonly double Coin, Exp;
 
-        public PullResult(bool success, MemoryFailure failure, MemoryCardState card, double shortBy, bool kept = false, int converted = 0, double coin = 0, double exp = 0)
+        public PullResult(bool success, MemoryFailure failure, MemoryCardState card, double shortBy, bool pending = false, int converted = 0, double coin = 0, double exp = 0)
         {
-            Success = success; Failure = failure; Card = card; ShortBy = shortBy; Kept = kept; Converted = converted; Coin = coin; Exp = exp;
+            Success = success; Failure = failure; Card = card; ShortBy = shortBy; Pending = pending; Converted = converted; Coin = coin; Exp = exp;
         }
     }
 
@@ -68,50 +68,64 @@ namespace Mado.Core.Growth
 
         /// <summary>
         /// 絆ガチャを1回引く。引いたカードはいまの絆ガチャLv と同じLvになる（docs/01 7.2節 [推定]）。
-        /// 装備しているものより強い（かつ rule の条件に合う）カードだけ、空き枠か弱いほうの枠に自動で付ける。付け替えで外れたカードも、
-        /// 条件に合わないカードも、持ち物には入れず、その場でコインと経験値に還元する（カードは溜まらない）。rule が null なら「強くなるか」だけで決める。
+        /// 確認の条件（セーブの memory.rule）に合うカードは、返事待ちにする（勝手に装備しない。<see cref="Resolve"/> で交換するかを決める）。
+        /// 合わないカードは、持ち物に入れず、その場でコインと経験値に還元する（カードは溜まらない）。返事待ちがあるうちは引けない。
         /// </summary>
-        public PullResult Pull(AutoGachaSettings rule = null)
+        public PullResult Pull()
         {
+            MemoryState m = _save.Memory;
+            if (m.Pending != null) { return new PullResult(false, MemoryFailure.HasPending, null, 0); }
             MemoryCardsConfig cfg = _data.MemoryCards;
             PayResult pay = _wallet.Pay(new Cost(CurrencyIds.BondHeart, cfg.PullCostBondHeart), new PayReason(WalletReasons.GachaPull));
             if (!pay.Success) { return new PullResult(false, MemoryFailure.NotEnough, null, pay.ShortBy); }
 
-            MemoryState m = _save.Memory;
             Rng rng = Rng.FromState(_save.Rng.Gacha);
             MemoryCardState card = Roll(cfg, rng, m);
             _save.Rng.Gacha = rng.GetState();
 
-            var judge = new AutoGachaSettings
+            if (MemoryCardRules.Matches(_data, m, card, AutoGachaSettings.From(m.Rule)))
             {
-                RequirePowerUp = true,
-                MinRarityIndex = rule == null ? 0 : rule.MinRarityIndex,
-                Filter1 = rule == null ? new SubstatKey[0] : rule.Filter1,
-                Filter2 = rule == null ? new SubstatKey[0] : rule.Filter2,
-            };
-            double coin = 0, exp = 0;
-            int converted = 0;
-            bool kept = MemoryCardRules.Matches(_data, m, card, judge);
-            if (kept)
-            {
-                int slot = WeakestSlot(m, card.Kind);
-                string oldId = m.Equipped[slot];
-                MemoryCardState old = oldId == null ? null : m.Cards.Find(c => c.Id == oldId);
-                if (old != null)
-                {
-                    m.Cards.Remove(old);
-                    Convert(old, ref coin, ref exp);
-                    converted++;
-                }
-                m.Cards.Add(card);
-                m.Equipped[slot] = card.Id;
+                m.Pending = card;
+                return new PullResult(true, MemoryFailure.None, card, 0, true);
             }
-            else
+            double coin = 0, exp = 0;
+            Convert(card, ref coin, ref exp);
+            return new PullResult(true, MemoryFailure.None, card, 0, false, 1, coin, exp);
+        }
+
+        /// <summary>
+        /// 返事待ちのカードに答える。equip が true なら装備する（slot が負なら、同じ種類の空き枠か弱いほうの枠。外れたカードは還元）。
+        /// false なら、そのカードをコインと経験値に還元する。
+        /// </summary>
+        public MemoryFailure Resolve(bool equip, int slot, out double coin, out double exp)
+        {
+            coin = 0; exp = 0;
+            MemoryState m = _save.Memory;
+            MemoryCardState card = m.Pending;
+            if (card == null) { return MemoryFailure.NoPending; }
+            if (!equip)
             {
                 Convert(card, ref coin, ref exp);
-                converted++;
+                m.Pending = null;
+                return MemoryFailure.None;
             }
-            return new PullResult(true, MemoryFailure.None, card, 0, kept, converted, coin, exp);
+            if (slot >= 0 && (slot >= MemoryState.SlotCount || slot / 2 != (int)card.Kind)) { return MemoryFailure.WrongSlot; }
+            if (slot < 0) { slot = WeakestSlot(m, card.Kind); }
+            string oldId = m.Equipped[slot];
+            MemoryCardState old = oldId == null ? null : m.Cards.Find(c => c.Id == oldId);
+            if (old != null) { m.Cards.Remove(old); Convert(old, ref coin, ref exp); }
+            m.Cards.Add(card);
+            m.Equipped[slot] = card.Id;
+            m.Pending = null;
+            return MemoryFailure.None;
+        }
+
+        /// <summary>確認の条件を変える（範囲外は InvalidSettings で、何も変えない）。</summary>
+        public MemoryFailure SetRule(AutoGachaSettings s)
+        {
+            if (s == null || s.MinRarityIndex < 0 || s.MinRarityIndex >= _data.MemoryCards.Rarities.Count || s.Filter1.Count > 2 || s.Filter2.Count > 2) { return MemoryFailure.InvalidSettings; }
+            _save.Memory.Rule = new MemoryRuleState { MinRarityIndex = s.MinRarityIndex, Filter1 = new System.Collections.Generic.List<SubstatKey>(s.Filter1), Filter2 = new System.Collections.Generic.List<SubstatKey>(s.Filter2), RequirePowerUp = s.RequirePowerUp };
+            return MemoryFailure.None;
         }
 
         /// <summary>同じ種類の枠のうち、空きの枠、なければ弱いほうの枠の番号。</summary>
@@ -215,26 +229,23 @@ namespace Mado.Core.Growth
         }
 
         /// <summary>
-        /// 自動絆ガチャ：条件に合う（いまより強い）カードが出るまで引き続ける。出たカードは装備され、止まる。
-        /// 合わないカードは引くたびにコインと経験値に還元される。絆ハートが尽きるか maxPulls に着いたら止まる。
+        /// まとめ引き（自動絆ガチャ）：確認の条件に合うカードが出る（＝返事待ちになる）か、絆ハートが尽きるか、maxPulls に着くまで引き続ける。
+        /// 合わないカードは引くたびにコインと経験値に還元される。返事待ちで止まったとき、そのカードは result.Found に入る。
         /// </summary>
-        public MemoryFailure AutoPull(AutoGachaSettings settings, int maxPulls, out AutoGachaResult result)
+        public MemoryFailure AutoPull(int maxPulls, out AutoGachaResult result)
         {
             result = new AutoGachaResult { Stop = AutoStop.Limit };
-            if (settings == null || maxPulls < 1 || settings.MinRarityIndex < 0 || settings.MinRarityIndex >= _data.MemoryCards.Rarities.Count
-                || settings.Filter1.Count > 2 || settings.Filter2.Count > 2) { return MemoryFailure.InvalidSettings; }
+            if (maxPulls < 1) { return MemoryFailure.InvalidSettings; }
+            if (_save.Memory.Pending != null) { return MemoryFailure.HasPending; }
             while (result.Pulls < maxPulls)
             {
-                PullResult r = Pull(settings);
+                PullResult r = Pull();
                 if (!r.Success) { result.Stop = AutoStop.NotEnough; break; }
                 result.Pulls++;
                 result.Sold += r.Converted;
                 result.CoinGained += r.Coin;
                 result.ExpGained += r.Exp;
-                if (!r.Kept) { continue; }
-                result.Kept++;
-                result.Found = r.Card;
-                if (settings.StopOnFound) { result.Stop = AutoStop.Found; break; }
+                if (r.Pending) { result.Found = r.Card; result.Stop = AutoStop.Found; break; }
             }
             return MemoryFailure.None;
         }

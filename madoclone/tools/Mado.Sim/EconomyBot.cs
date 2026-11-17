@@ -244,11 +244,13 @@ namespace Mado.Sim
             _s.SyncZukan(out _);
             InvestStones();
             foreach (string item in new[] { "tp_ticket", "gc_ticket", "medal_flame", "dp_shard", "ms_sand", "mm_shard" }) { while (_s.BuyShopItem(item, 1).Success) { } }
-            for (int i = 0; i < 20; i++)         // 自動絆ガチャ：いまより強いカードが出るまで引き、出たら付け替える（余りは自動で売る）
+            for (int i = 0; i < 400; i++)         // まとめ引き：いまより強いカードが出たら（確認の初期条件）交換して続ける。余りは自動で還元される
             {
                 IReadOnlyList<int> counts = _s.State.MemoryPullCounts;
-                if (!_s.PullMemoryCards(counts[counts.Count - 1], out AutoGachaResult batch).Success || batch.Kept == 0) { break; }
-                _s.EquipBestMemoryCards();
+                if (_s.State.MemoryPending != null) { _s.ResolveMemoryCard(true); }
+                if (!_s.PullMemoryCards(counts[counts.Count - 1], out AutoGachaResult batch).Success) { break; }
+                if (batch.Found == null) { break; }
+                _s.ResolveMemoryCard(true);
             }
             _s.RaiseMemoryGachaLevel();
             _s.EquipBestMemoryCards();

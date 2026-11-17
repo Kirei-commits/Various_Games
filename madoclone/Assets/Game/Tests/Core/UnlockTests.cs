@@ -48,7 +48,7 @@ namespace Mado.Core.Tests
             Assert.IsTrue(s.State.IsUnlocked("trial_battle_rush"));     // ランク1から
             var locked = new List<string>
             {
-                s.PullMemoryCard(out _).Failure, s.SellMemoryCard("x").Failure, s.AutoPullMemoryCard(new AutoGachaSettings(), 1, out _).Failure,
+                s.PullMemoryCard(out _).Failure, s.SellMemoryCard("x").Failure, s.PullMemoryCards(1, out _).Failure, s.ResolveMemoryCard(true).Failure,
                 s.RaiseMemoryGachaLevel().Failure, s.EquipMemoryCard("x", 0).Failure, s.UnequipMemoryCard(0).Failure,
                 s.SetLeader("chr_001").Failure, s.SetLeaderElement(null).Failure, s.LevelUpLeader().Failure,
                 s.LevelUpPlaza("familiar").Failure, s.LevelUpPlazaMax("spirit").Failure,

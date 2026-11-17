@@ -267,6 +267,7 @@ namespace Mado.Core.Session
 
         // ---------------- 記憶カード ----------------
 
+        /// <summary>1回引く。条件に合うカードなら返事待ち（<see cref="GameState.MemoryPending"/>。ResolveMemoryCard で答える）、合わなければその場で還元。</summary>
         public CommandResult PullMemoryCard(out MemoryCardView card)
         {
             card = default(MemoryCardView);
@@ -274,10 +275,28 @@ namespace Mado.Core.Session
             PullResult r = _memory.Pull();
             if (!r.Success) { return Failed(r.Failure); }
             card = new MemoryCardView(r.Card);
-            var evs = new List<GameEvent> { new GameEvent(GameEventKind.MemoryCardDrawn, r.Card.Id, r.Kept ? 1 : 0, r.Card.Lv, r.Card.Rarity) };
-            if (r.Converted > 0) { evs.Add(new GameEvent(GameEventKind.MemoryCardSold, r.Kept ? "" : r.Card.Id, r.Coin, r.Converted)); }
+            var evs = new List<GameEvent> { new GameEvent(r.Pending ? GameEventKind.MemoryCardPending : GameEventKind.MemoryCardDrawn, r.Card.Id, 0, r.Card.Lv, r.Card.Rarity) };
+            if (r.Converted > 0) { evs.Add(new GameEvent(GameEventKind.MemoryCardSold, r.Card.Id, r.Coin, r.Converted)); }
             Finish(evs.ToArray());
             return CommandResult.Ok();
+        }
+
+        /// <summary>返事待ちのカードに答える。equip が true なら装備（slot が負なら自動で枠を選ぶ）、false なら還元。</summary>
+        public CommandResult ResolveMemoryCard(bool equip, int slot = -1)
+        {
+            if (!IsUnlocked("memory_card")) { Finish(); return CommandResult.Fail(LockedReason); }
+            string id = _save.Memory.Pending == null ? "" : _save.Memory.Pending.Id;
+            MemoryFailure f = _memory.Resolve(equip, slot, out double coin, out _);
+            if (f != MemoryFailure.None) { return Failed(f); }
+            return Done(equip ? new GameEvent(GameEventKind.MemoryCardEquipped, id, coin, slot) : new GameEvent(GameEventKind.MemoryCardSold, id, coin, 1));
+        }
+
+        /// <summary>確認の条件（レア以上・サブ効果の絞り込み・いまより強いこと）を変える。</summary>
+        public CommandResult SetMemoryRule(AutoGachaSettings rule)
+        {
+            if (!IsUnlocked("memory_card")) { Finish(); return CommandResult.Fail(LockedReason); }
+            MemoryFailure f = _memory.SetRule(rule);
+            return f == MemoryFailure.None ? Done(new GameEvent(GameEventKind.SettingsChanged, "memory_rule")) : Failed(f);
         }
 
         public CommandResult SellMemoryCard(string cardId)
@@ -292,33 +311,21 @@ namespace Mado.Core.Session
         public static string MemoryPullFeature(int count) { return "memory_pull_" + count; }
 
         /// <summary>
-        /// 絆ガチャをまとめて引く（count は memory_cards.json の pullCounts のうち、解放済みのもの）。
-        /// 途中で止まらず引き切る。いまより強いカードは装備し、それ以外はその場でコインと経験値に還元する。絆ハートが尽きたらそこまで。
+        /// 絆ガチャをまとめて引く（自動で回る）。count は 1 以上、解放済みの最大の回数まで。確認の条件に合うカードが出たら、そこで止まって返事待ちになる
+        /// （result.Stop が Found。残りの回数は result.Pulls から数える）。合わないカードはその場でコインと経験値に還元する。絆ハートが尽きたらそこまで。
         /// </summary>
         public CommandResult PullMemoryCards(int count, out AutoGachaResult result)
         {
             result = null;
             if (!IsUnlocked("memory_card")) { Finish(); return CommandResult.Fail(LockedReason); }
-            if (!_data.MemoryCards.PullCounts.Contains(count)) { Finish(); return CommandResult.Fail(MemoryFailure.InvalidSettings); }
-            if (!IsUnlocked(MemoryPullFeature(count))) { Finish(); return CommandResult.Fail(LockedReason); }
-            MemoryFailure f = _memory.AutoPull(new AutoGachaSettings { RequirePowerUp = true, StopOnFound = false }, count, out result);
+            if (count < 1) { Finish(); return CommandResult.Fail(MemoryFailure.InvalidSettings); }
+            IReadOnlyList<int> open = State.MemoryPullCounts;
+            if (count > open[open.Count - 1]) { Finish(); return CommandResult.Fail(LockedReason); }
+            MemoryFailure f = _memory.AutoPull(count, out result);
             if (f != MemoryFailure.None) { return Failed(f); }
             if (result.Pulls == 0) { return Failed(MemoryFailure.NotEnough); }
             var evs = new List<GameEvent>();
-            if (result.Kept > 0) { evs.Add(new GameEvent(GameEventKind.MemoryCardEquipped, result.Found.Id, result.Kept, -1)); }
-            if (result.Sold > 0) { evs.Add(new GameEvent(GameEventKind.MemoryCardSold, "", result.CoinGained, result.Sold)); }
-            Finish(evs.ToArray());
-            return CommandResult.Ok();
-        }
-
-        /// <summary>自動絆ガチャ。いまより強い（条件に合う）カードが出たら、装備して止まる。余りはその場で還元される。</summary>
-        public CommandResult AutoPullMemoryCard(AutoGachaSettings settings, int maxPulls, out AutoGachaResult result)
-        {
-            if (!IsUnlocked("memory_card")) { result = null; Finish(); return CommandResult.Fail(LockedReason); }
-            MemoryFailure f = _memory.AutoPull(settings, maxPulls, out result);
-            if (f != MemoryFailure.None) { return Failed(f); }
-            var evs = new List<GameEvent>();
-            if (result.Found != null) { evs.Add(new GameEvent(GameEventKind.MemoryCardDrawn, result.Found.Id, 1, result.Found.Lv, result.Found.Rarity)); }
+            if (result.Found != null) { evs.Add(new GameEvent(GameEventKind.MemoryCardPending, result.Found.Id, 0, result.Found.Lv, result.Found.Rarity)); }
             if (result.Sold > 0) { evs.Add(new GameEvent(GameEventKind.MemoryCardSold, "", result.CoinGained, result.Sold)); }
             Finish(evs.ToArray());
             return CommandResult.Ok();

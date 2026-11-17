@@ -196,6 +196,14 @@ namespace Mado.Core.Save
                 }
             }
             if (m.NextCardNumber < 1) { Add(issues, SaveSeverity.Error, "MEMORY_NEXT_ID", "nextCardNumber が1未満", "memory.nextCardNumber"); }
+            if (m.Pending != null && !Growth.MemoryCardRules.IsWellFormed(data, m.Pending, byId))
+            {
+                Add(issues, SaveSeverity.Error, "MEMORY_PENDING", "返事待ちのカードが壊れている（レア・Lv・形・ID）", "memory.pending");
+            }
+            if (!Growth.MemoryCardRules.IsRuleValid(data, m.Rule))
+            {
+                Add(issues, SaveSeverity.Error, "MEMORY_RULE", "確認の条件が範囲外（レアの順番、サブの絞り込みは各2つまで）", "memory.rule");
+            }
             var used = new HashSet<string>();
             for (int slot = 0; slot < m.Equipped.Length; slot++)
             {

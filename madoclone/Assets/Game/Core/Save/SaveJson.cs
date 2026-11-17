@@ -400,24 +400,77 @@ namespace Mado.Core.Save
             return st;
         }
 
+        private static JObject CardToJson(MemoryCardState c)
+        {
+            var subs = new JArray();
+            foreach (MemorySubState sub in c.Subs) { subs.Add(new JObject { ["stat"] = EnumStringConverter.Text(sub.Stat), ["value"] = sub.Value }); }
+            var extra = new JArray();
+            foreach (double e in c.Extra ?? new double[0]) { extra.Add(e); }
+            return new JObject
+            {
+                ["id"] = c.Id, ["rarity"] = c.Rarity, ["kind"] = EnumStringConverter.Text(c.Kind), ["lv"] = c.Lv,
+                ["main"] = c.Main, ["extra"] = extra, ["subs"] = subs,
+            };
+        }
+
+        private static JArray KeysToJson(List<SubstatKey> keys)
+        {
+            var a = new JArray();
+            foreach (SubstatKey k in keys) { a.Add(EnumStringConverter.Text(k)); }
+            return a;
+        }
+
         private static JObject MemoryToJson(MemoryState m)
         {
             var cards = new JArray();
-            foreach (MemoryCardState c in m.Cards)
-            {
-                var subs = new JArray();
-                foreach (MemorySubState sub in c.Subs) { subs.Add(new JObject { ["stat"] = EnumStringConverter.Text(sub.Stat), ["value"] = sub.Value }); }
-                var extra = new JArray();
-                foreach (double e in c.Extra ?? new double[0]) { extra.Add(e); }
-                cards.Add(new JObject
-                {
-                    ["id"] = c.Id, ["rarity"] = c.Rarity, ["kind"] = EnumStringConverter.Text(c.Kind), ["lv"] = c.Lv,
-                    ["main"] = c.Main, ["extra"] = extra, ["subs"] = subs,
-                });
-            }
+            foreach (MemoryCardState c in m.Cards) { cards.Add(CardToJson(c)); }
             var equipped = new JArray();
             foreach (string id in m.Equipped ?? new string[MemoryState.SlotCount]) { equipped.Add(Str(id)); }
-            return new JObject { ["gachaLv"] = m.GachaLv, ["nextCardNumber"] = m.NextCardNumber, ["cards"] = cards, ["equipped"] = equipped };
+            var o = new JObject { ["gachaLv"] = m.GachaLv, ["nextCardNumber"] = m.NextCardNumber, ["cards"] = cards, ["equipped"] = equipped };
+            if (m.Pending != null) { o["pending"] = CardToJson(m.Pending); }
+            o["rule"] = new JObject
+            {
+                ["minRarityIndex"] = m.Rule.MinRarityIndex, ["filter1"] = KeysToJson(m.Rule.Filter1), ["filter2"] = KeysToJson(m.Rule.Filter2),
+                ["requirePowerUp"] = m.Rule.RequirePowerUp,
+            };
+            return o;
+        }
+
+        private static MemoryCardState ReadCard(JObject c, string at)
+        {
+            var card = new MemoryCardState
+            {
+                Id = Req<string>(c, "id", at + ".id"),
+                Rarity = Req<string>(c, "rarity", at + ".rarity"),
+                Kind = ParseEnum<MemoryKind>(Req<string>(c, "kind", at + ".kind"), at + ".kind"),
+                Lv = Req<int>(c, "lv", at + ".lv"),
+                Main = Opt(c, "main", 0.0),
+            };
+            if (c["extra"] is JArray ex)
+            {
+                card.Extra = new double[ex.Count];
+                for (int k = 0; k < ex.Count; k++) { card.Extra[k] = Num(ex[k], at + ".extra[" + k + "]"); }
+            }
+            if (c["subs"] is JArray subs)
+            {
+                for (int k = 0; k < subs.Count; k++)
+                {
+                    var so = subs[k] as JObject ?? throw new SaveFormatException(at + ".subs[" + k + "] がオブジェクトではない");
+                    card.Subs.Add(new MemorySubState
+                    {
+                        Stat = ParseEnum<SubstatKey>(Req<string>(so, "stat", at + ".subs[" + k + "].stat"), at + ".subs[" + k + "].stat"),
+                        Value = Req<double>(so, "value", at + ".subs[" + k + "].value"),
+                    });
+                }
+            }
+            return card;
+        }
+
+        private static List<SubstatKey> ReadKeys(JToken t, string at)
+        {
+            var list = new List<SubstatKey>();
+            if (t is JArray a) { for (int i = 0; i < a.Count; i++) { list.Add(ParseEnum<SubstatKey>(a[i].ToString(), at + "[" + i + "]")); } }
+            return list;
         }
 
         private static MemoryState ReadMemory(JObject o)
@@ -427,38 +480,23 @@ namespace Mado.Core.Save
             m.GachaLv = Opt(o, "gachaLv", 1);
             m.NextCardNumber = Opt(o, "nextCardNumber", 1);
             m.Equipped = StrArray(o["equipped"], "memory.equipped", MemoryState.SlotCount);
+            if (o["pending"] is JObject pending) { m.Pending = ReadCard(pending, "memory.pending"); }
+            if (o["rule"] is JObject rule)
+            {
+                m.Rule = new MemoryRuleState
+                {
+                    MinRarityIndex = Opt(rule, "minRarityIndex", 0),
+                    Filter1 = ReadKeys(rule["filter1"], "memory.rule.filter1"),
+                    Filter2 = ReadKeys(rule["filter2"], "memory.rule.filter2"),
+                    RequirePowerUp = Opt(rule, "requirePowerUp", true),
+                };
+            }
             if (o["cards"] == null || o["cards"].Type == JTokenType.Null) { return m; }
             var cards = o["cards"] as JArray ?? throw new SaveFormatException("memory.cards が配列ではない");
             for (int i = 0; i < cards.Count; i++)
             {
                 string at = "memory.cards[" + i + "]";
-                var c = cards[i] as JObject ?? throw new SaveFormatException(at + " がオブジェクトではない");
-                var card = new MemoryCardState
-                {
-                    Id = Req<string>(c, "id", at + ".id"),
-                    Rarity = Req<string>(c, "rarity", at + ".rarity"),
-                    Kind = ParseEnum<MemoryKind>(Req<string>(c, "kind", at + ".kind"), at + ".kind"),
-                    Lv = Req<int>(c, "lv", at + ".lv"),
-                    Main = Opt(c, "main", 0.0),
-                };
-                if (c["extra"] is JArray ex)
-                {
-                    card.Extra = new double[ex.Count];
-                    for (int k = 0; k < ex.Count; k++) { card.Extra[k] = Num(ex[k], at + ".extra[" + k + "]"); }
-                }
-                if (c["subs"] is JArray subs)
-                {
-                    for (int k = 0; k < subs.Count; k++)
-                    {
-                        var so = subs[k] as JObject ?? throw new SaveFormatException(at + ".subs[" + k + "] がオブジェクトではない");
-                        card.Subs.Add(new MemorySubState
-                        {
-                            Stat = ParseEnum<SubstatKey>(Req<string>(so, "stat", at + ".subs[" + k + "].stat"), at + ".subs[" + k + "].stat"),
-                            Value = Req<double>(so, "value", at + ".subs[" + k + "].value"),
-                        });
-                    }
-                }
-                m.Cards.Add(card);
+                m.Cards.Add(ReadCard(cards[i] as JObject ?? throw new SaveFormatException(at + " がオブジェクトではない"), at));
             }
             return m;
         }

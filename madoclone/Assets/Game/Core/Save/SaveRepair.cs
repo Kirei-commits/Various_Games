@@ -325,6 +325,16 @@ namespace Mado.Core.Save
 
             var byId = new Dictionary<string, MemoryCardState>();
             foreach (MemoryCardState c in m.Cards) { byId[c.Id] = c; }
+            if (m.Pending != null && !Growth.MemoryCardRules.IsWellFormed(data, m.Pending, byId))
+            {
+                Note(done, "壊れた返事待ちのカードを捨てた", "memory.pending");
+                m.Pending = null;
+            }
+            if (m.Rule == null || !Growth.MemoryCardRules.IsRuleValid(data, m.Rule))
+            {
+                Note(done, "確認の条件を初期値に戻した", "memory.rule");
+                m.Rule = new MemoryRuleState();
+            }
             var used = new HashSet<string>();
             for (int slot = 0; slot < m.Equipped.Length; slot++)
             {

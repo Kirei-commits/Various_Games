@@ -139,7 +139,9 @@ namespace Mado.Core.Tests
             PullResult r = e.Service.Pull();
             Assert.IsTrue(r.Success);
             Assert.AreEqual(4, e.Wallet.Balance("bond_heart"));
-            Assert.AreEqual(1, e.Save.Memory.Cards.Count);
+            Assert.IsTrue(r.Pending);                                                           // 空き枠だらけなので、条件（いまより強い）に合う
+            Assert.AreSame(r.Card, e.Save.Memory.Pending);
+            Assert.IsEmpty(e.Save.Memory.Cards);                                                // 返事をするまで持ち物に入れない
             MemoryCardState c = r.Card;
             Assert.AreEqual("mc_00001", c.Id);
             Assert.AreEqual(50, c.Lv);
@@ -149,6 +151,18 @@ namespace Mado.Core.Tests
             Assert.GreaterOrEqual(MemoryCardEffects.RarityIndex(Data, c.Rarity), 0);
             Assert.IsEmpty(SaveValidator.Validate(e.Save, Data).Where(i => i.Severity == SaveSeverity.Error).ToList());
             Assert.AreEqual(2, e.Save.Memory.NextCardNumber);
+            Assert.AreEqual(MemoryFailure.None, e.Service.Resolve(true, -1, out _, out _));
+            Assert.AreEqual(1, e.Save.Memory.Cards.Count);
+            Assert.AreEqual(c.Id, e.Save.Memory.Equipped[(int)c.Kind * 2]);
+        }
+
+        /// <summary>1回引いて、確認が出たら装備する（テスト用）。引いたカードを返す。</summary>
+        private static MemoryCardState PullAndAccept(Env e)
+        {
+            PullResult r = e.Service.Pull();
+            Assert.IsTrue(r.Success);
+            if (r.Pending) { Assert.AreEqual(MemoryFailure.None, e.Service.Resolve(true, -1, out _, out _)); }
+            return r.Card;
         }
 
         [Test]
@@ -159,7 +173,7 @@ namespace Mado.Core.Tests
             uint[] before = (uint[])a.Save.Rng.Gacha.Clone();
             var seqA = new List<string>();
             var seqB = new List<string>();
-            for (int i = 0; i < 20; i++) { MemoryCardState x = a.Service.Pull().Card, y = b.Service.Pull().Card; seqA.Add(x.Rarity + x.Kind + x.Main); seqB.Add(y.Rarity + y.Kind + y.Main); }
+            for (int i = 0; i < 20; i++) { MemoryCardState x = PullAndAccept(a), y = PullAndAccept(b); seqA.Add(x.Rarity + x.Kind + x.Main); seqB.Add(y.Rarity + y.Kind + y.Main); }
             CollectionAssert.AreEqual(b.Save.Rng.Gacha, a.Save.Rng.Gacha);
             CollectionAssert.AreNotEqual(before, a.Save.Rng.Gacha);
             CollectionAssert.AreEqual(seqB, seqA);
@@ -167,7 +181,7 @@ namespace Mado.Core.Tests
             Assert.AreEqual(b.Wallet.Balance("coin"), a.Wallet.Balance("coin"));
             var other = new Env(seed: 100UL);
             var seqO = new List<string>();
-            for (int i = 0; i < 20; i++) { MemoryCardState x = other.Service.Pull().Card; seqO.Add(x.Rarity + x.Kind + x.Main); }
+            for (int i = 0; i < 20; i++) { MemoryCardState x = PullAndAccept(other); seqO.Add(x.Rarity + x.Kind + x.Main); }
             Assert.IsFalse(seqA.SequenceEqual(seqO));
         }
 
@@ -202,7 +216,7 @@ namespace Mado.Core.Tests
             var counts = new Dictionary<string, int>();
             for (int i = 0; i < n; i++)
             {
-                string r = e.Service.Pull().Card.Rarity;
+                string r = PullAndAccept(e).Rarity;
                 counts[r] = counts.TryGetValue(r, out int v) ? v + 1 : 1;
             }
             // 実測：N〜R は 0％。R+ 42.38％ ± 3、SR 42.5％ ± 3、SR+ 12％ ± 2
@@ -218,7 +232,7 @@ namespace Mado.Core.Tests
         {
             var e = new Env(hearts: 0) { Dev = true };
             var drawn = new List<MemoryCardState>();
-            for (int i = 0; i < 400; i++) { drawn.Add(e.Service.Pull().Card); }
+            for (int i = 0; i < 400; i++) { drawn.Add(PullAndAccept(e)); }
             foreach (MemoryKind k in Enum.GetValues(typeof(MemoryKind)))
             {
                 Assert.Greater(drawn.Count(c => c.Kind == k), 50, k.ToString());
@@ -229,29 +243,33 @@ namespace Mado.Core.Tests
         }
 
         [Test]
-        public void Pull_KeepsOnlyPowerUps_AndConvertsTheRestIntoCoinAndExp()
+        public void Pull_AsksAboutMatchingCards_AndConvertsTheRestIntoCoinAndExp()
         {
             var e = new Env(hearts: 0) { Dev = true };
             e.Save.Memory.GachaLv = 100;
             double coin = 0, exp = 0;
-            int keptCount = 0;
+            int asked = 0;
             for (int i = 0; i < 300; i++)
             {
                 PullResult r = e.Service.Pull();
                 coin += r.Coin; exp += r.Exp;
-                if (r.Kept) { keptCount++; }
-                Assert.AreEqual(r.Kept, e.Save.Memory.Cards.Any(c => c.Id == r.Card.Id));   // 残るのは装備した分だけ
-                Assert.AreEqual(r.Kept ? Array.IndexOf(e.Save.Memory.Equipped, r.Card.Id) >= 0 : true, true);
+                if (r.Pending)
+                {
+                    asked++;
+                    Assert.AreSame(r.Card, e.Save.Memory.Pending);
+                    Assert.IsEmpty(e.Save.Memory.Cards.Where(c => c.Id == r.Card.Id));        // まだ持ち物に入れない
+                    Assert.AreEqual(MemoryFailure.None, e.Service.Resolve(true, -1, out double c2, out double x2));   // 答えると装備（外れたカードは還元）
+                    coin += c2; exp += x2;
+                }
             }
-            Assert.Greater(keptCount, 8);                                                  // 付け替えが起きている
-            Assert.LessOrEqual(e.Save.Memory.Cards.Count, MemoryState.SlotCount);         // 溜まらない
+            Assert.Greater(asked, 8);                                                          // 付け替えの確認が何度も出る
+            Assert.LessOrEqual(e.Save.Memory.Cards.Count, MemoryState.SlotCount);              // 溜まらない
             Assert.AreEqual(e.Save.Memory.Cards.Count, e.Save.Memory.Equipped.Count(x => x != null));
             Assert.AreEqual(coin, e.Wallet.Balance("coin"), 1e-3);
-            Assert.AreEqual(coin * Data.MemoryCards.SellExpPerCoin, exp, 1e-3);
             Assert.AreEqual(exp, e.Wallet.Balance("exp"), 1e-3);
             foreach (MemoryKind k in new[] { MemoryKind.Hp, MemoryKind.Atk, MemoryKind.Def, MemoryKind.Speed })
             {
-                Assert.IsNotNull(e.Save.Memory.Equipped[(int)k * 2]);                      // 300回引けば両方の枠が埋まる
+                Assert.IsNotNull(e.Save.Memory.Equipped[(int)k * 2]);                          // 300回引けば両方の枠が埋まる
                 Assert.IsNotNull(e.Save.Memory.Equipped[(int)k * 2 + 1]);
             }
         }

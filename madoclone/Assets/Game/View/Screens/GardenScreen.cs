@@ -54,12 +54,6 @@ namespace Mado.View.Screens
                 CommandResult r = Session.SyncZukan(out int n);
                 if (App.Commit(r)) { _message = T("ui.garden.zukan_result", n); Refresh(); }
             });
-            Row(T("ui.garden.memory", State.MemoryCards.Count, State.MemoryGachaLv), T("ui.garden.memory_pull"), PullMemory);
-            foreach (int count in State.MemoryPullCounts)
-            {
-                int n = count;
-                Row(T("ui.garden.memory", State.MemoryCards.Count, State.MemoryGachaLv), T("ui.garden.memory_batch", n), () => PullMemoryBatch(n));
-            }
             Row(T("ui.garden.memory", State.MemoryCards.Count, State.MemoryGachaLv), T("ui.garden.memory_best"), () => App.Commit(Session.EquipBestMemoryCards()));
             Row(T("ui.garden.memory", State.MemoryCards.Count, State.MemoryGachaLv), T("ui.garden.memory_lv"), () => App.Commit(Session.RaiseMemoryGachaLevel()));
             string leaderName = State.Leader == null ? T("ui.garden.leader_none") : NameOf(State.Leader);
@@ -117,25 +111,6 @@ namespace Mado.View.Screens
             }
             if (target == null) { App.Toast(T("ui.garden.done")); return; }
             App.Commit(Session.RaiseSupportStar(target));
-        }
-
-        private void PullMemory()
-        {
-            for (int i = 0; i < 10; i++)
-            {
-                if (!Session.PullMemoryCard(out _).Success) { if (i == 0) { App.Toast(T("ui.not_enough")); } break; }
-            }
-            Session.DrainEvents();
-            App.Changed();
-        }
-
-        private void PullMemoryBatch(int count)
-        {
-            CommandResult r = Session.PullMemoryCards(count, out Mado.Core.Growth.AutoGachaResult result);
-            if (!r.Success) { App.Toast(T("ui.not_enough")); }
-            else { App.Toast(T("ui.garden.memory_batch_result", result.Pulls, result.Kept, result.CoinGained.ToString("N0"))); }
-            Session.DrainEvents();
-            App.Changed();
         }
 
         private void RaiseCollection()

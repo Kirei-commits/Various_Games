@@ -194,9 +194,15 @@ namespace Mado.Core.Tests
             Grant(s, "coin", 1e6);
             s.DrainEvents();
             Assert.IsTrue(s.PullMemoryCard(out MemoryCardView card).Success);
+            Assert.AreEqual(card.Id, s.State.MemoryPending.Value.Id);                       // 確認の条件に合うので、返事待ち
+            Assert.IsTrue(s.DrainEvents().Any(e => e.Kind == GameEventKind.MemoryCardPending && e.Id == card.Id));
+            Assert.IsTrue(s.ResolveMemoryCard(false).Success);                               // 交換しない → 還元
+            Assert.IsEmpty(s.State.MemoryCards);
+            Assert.IsTrue(s.State.Balance("coin") > 1e6);
+            Assert.IsTrue(s.PullMemoryCard(out card).Success);
+            Assert.IsTrue(s.ResolveMemoryCard(true).Success);                                // 交換する → 装備
             Assert.AreEqual(1, s.State.MemoryCards.Count);
             Assert.AreEqual(card.Id, s.State.MemoryCards[0].Id);
-            Assert.IsTrue(s.DrainEvents().Any(e => e.Kind == GameEventKind.MemoryCardDrawn && e.Id == card.Id));
 
             Assert.IsTrue(s.RaiseMemoryGachaLevel().Success);
             Assert.AreEqual(2, s.State.MemoryGachaLv);
@@ -268,7 +274,7 @@ namespace Mado.Core.Tests
             Assert.AreEqual(2, Lv(b, "chr_001"));
             Assert.AreEqual(3, b.State.Progress.Rank);
             Assert.AreEqual(4, b.State.Progress.Area);
-            Assert.AreEqual(card.Id, b.State.MemoryCards[0].Id);
+            Assert.AreEqual(card.Id, b.State.MemoryPending.Value.Id);                      // 返事待ちも保存される
             Assert.AreEqual(a.State.Balance("bond_heart"), b.State.Balance("bond_heart"));
             Assert.AreEqual(a.State.Metric("spent.exp"), b.State.Metric("spent.exp"));
         }

@@ -59,10 +59,10 @@ namespace Mado.View
                 });
             _screens[ScreenId.Garden] = new GardenScreen(this, content);
             _screens[ScreenId.Gacha] = new HubScreen(this, content, "GachaHub",
-                new[] { "ui.sub.gacha", "ui.sub.roulette", "ui.sub.shop", "ui.sub.achievement", "ui.sub.equip", "ui.sub.settings" },
+                new[] { "ui.sub.gacha", "ui.sub.roulette", "ui.sub.shop", "ui.sub.achievement", "ui.sub.memory", "ui.sub.equip", "ui.sub.settings" },
                 new Func<Transform, GameScreen>[]
                 {
-                    t => new GachaScreen(this, t), t => new RouletteScreen(this, t), t => new ShopScreen(this, t), t => new AchievementScreen(this, t), t => new EquipScreen(this, t), t => new SettingsScreen(this, t),
+                    t => new GachaScreen(this, t), t => new RouletteScreen(this, t), t => new ShopScreen(this, t), t => new AchievementScreen(this, t), t => new MemoryScreen(this, t), t => new EquipScreen(this, t), t => new SettingsScreen(this, t),
                 });
             _battle = new BattleScreen(this, _root);
 
