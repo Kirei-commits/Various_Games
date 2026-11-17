@@ -193,5 +193,30 @@ namespace Mado.Core.Tests
             }
             Assert.AreEqual("UnknownCard", s.SellMemoryCard("zzz").Failure);
         }
+
+        [Test]
+        public void Batch_UnlocksByRank_AndPullsToTheEndWithoutStopping()
+        {
+            GameSession s = GameSession.LoadOrCreate(Data, new MemorySaveStore(), new FixedClock(new DateTime(2026, 11, 16, 0, 0, 0, DateTimeKind.Utc)), 5UL, null, unlockAll: false);
+            s.Debug.GrantCurrency("bond_heart", 5000);
+            s.Debug.SetProgress(2, 1, 1);
+            CollectionAssert.AreEqual(new[] { 20 }, s.State.MemoryPullCounts.ToArray());
+            Assert.AreEqual("Locked", s.PullMemoryCards(100, out _).Failure);                   // まだ解放されていない回数
+            Assert.AreEqual("InvalidSettings", s.PullMemoryCards(30, out _).Failure);           // 選択肢に無い回数
+            Assert.IsTrue(s.PullMemoryCards(20, out AutoGachaResult r).Success);
+            Assert.AreEqual(20, r.Pulls);                                                       // 条件に合うカードが出ても止まらない
+            Assert.Greater(r.Kept, 0);
+            Assert.AreEqual(5000 - 20, s.State.Balance("bond_heart"), 1e-9);
+            s.Debug.SetProgress(36, 1, 1);
+            CollectionAssert.AreEqual(new[] { 20, 100, 250, 500, 1000 }, s.State.MemoryPullCounts.ToArray());
+            Assert.IsTrue(s.PullMemoryCards(1000, out r).Success);
+            Assert.AreEqual(1000, r.Pulls);
+            Assert.LessOrEqual(s.State.MemoryCards.Count, 8);
+            Assert.AreEqual(5000 - 1020, s.State.Balance("bond_heart"), 1e-9);
+            int total = 1020;
+            while (s.PullMemoryCards(1000, out r).Success) { total += r.Pulls; }                // 絆ハートが尽きたら、引けた分で止まる（最後は端数）
+            Assert.AreEqual(5000, total);
+            Assert.AreEqual(0, s.State.Balance("bond_heart"), 1e-9);
+        }
     }
 }

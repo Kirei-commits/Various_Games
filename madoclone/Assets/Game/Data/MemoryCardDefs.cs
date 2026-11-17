@@ -89,6 +89,9 @@ namespace Mado.Data
         /// <summary>還元のとき、売値のコイン1枚につき経験値がいくつ付くか（0 なら付かない）。</summary>
         public double SellExpPerCoin { get; init; }
 
+        /// <summary>まとめ引きの回数の選択肢（小さい順）。各回数 N を使えるのは、機能「memory_pull_N」が解放されるランク（unlocks.json）から。最初の 20 は、元のゲームの最大回数。</summary>
+        public IReadOnlyList<int> PullCounts { get; init; }
+
         public FixedUnitScale FixedUnitScale { get; init; }
         public IReadOnlyList<MemorySubEffectDef> SubEffects { get; init; }
 

@@ -245,6 +245,17 @@ namespace Mado.Core.Session
             }
         }
 
+        /// <summary>いま使えるまとめ引きの回数（小さい順。ランクで増える）。</summary>
+        public IReadOnlyList<int> MemoryPullCounts
+        {
+            get
+            {
+                var list = new List<int>();
+                foreach (int n in _data.MemoryCards.PullCounts) { if (_isUnlocked(Session.GameSession.MemoryPullFeature(n))) { list.Add(n); } }
+                return list;
+            }
+        }
+
         public int MemoryGachaLv { get { return _save.Memory.GachaLv; } }
 
         public IReadOnlyList<MemoryCardView> MemoryCards

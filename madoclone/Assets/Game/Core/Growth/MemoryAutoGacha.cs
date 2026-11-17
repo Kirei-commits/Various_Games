@@ -19,6 +19,9 @@ namespace Mado.Core.Growth
         /// <summary>サブ効果のフィルター。それぞれ最大2つ。空なら条件なし。フィルターのキーを全部持つカードだけが合う。</summary>
         public IReadOnlyList<SubstatKey> Filter1 { get; set; } = new SubstatKey[0];
         public IReadOnlyList<SubstatKey> Filter2 { get; set; } = new SubstatKey[0];
+
+        /// <summary>true（既定）なら、条件に合うカードが出た時点で止まる。false ならまとめ引き：回数ぶん引き切る（絆ハートが尽きたら止まる）。</summary>
+        public bool StopOnFound { get; set; } = true;
     }
 
     public enum AutoStop { Found, NotEnough, Limit }
@@ -27,6 +30,9 @@ namespace Mado.Core.Growth
     {
         public int Pulls { get; set; }
         public int Sold { get; set; }
+
+        /// <summary>装備に入れた（強くなった）カードの数。</summary>
+        public int Kept { get; set; }
         public double CoinGained { get; set; }
         public double ExpGained { get; set; }
 

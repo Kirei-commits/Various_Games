@@ -246,7 +246,8 @@ namespace Mado.Sim
             foreach (string item in new[] { "tp_ticket", "gc_ticket", "medal_flame", "dp_shard", "ms_sand", "mm_shard" }) { while (_s.BuyShopItem(item, 1).Success) { } }
             for (int i = 0; i < 20; i++)         // 自動絆ガチャ：いまより強いカードが出るまで引き、出たら付け替える（余りは自動で売る）
             {
-                if (!_s.AutoPullMemoryCard(new AutoGachaSettings { RequirePowerUp = true }, 500, out AutoGachaResult auto).Success || auto.Found == null) { break; }
+                IReadOnlyList<int> counts = _s.State.MemoryPullCounts;
+                if (!_s.PullMemoryCards(counts[counts.Count - 1], out AutoGachaResult batch).Success || batch.Kept == 0) { break; }
                 _s.EquipBestMemoryCards();
             }
             _s.RaiseMemoryGachaLevel();

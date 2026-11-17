@@ -231,12 +231,10 @@ namespace Mado.Core.Growth
                 result.Sold += r.Converted;
                 result.CoinGained += r.Coin;
                 result.ExpGained += r.Exp;
-                if (r.Kept)
-                {
-                    result.Found = r.Card;
-                    result.Stop = AutoStop.Found;
-                    break;
-                }
+                if (!r.Kept) { continue; }
+                result.Kept++;
+                result.Found = r.Card;
+                if (settings.StopOnFound) { result.Stop = AutoStop.Found; break; }
             }
             return MemoryFailure.None;
         }

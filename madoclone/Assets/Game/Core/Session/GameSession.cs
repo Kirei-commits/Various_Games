@@ -288,6 +288,29 @@ namespace Mado.Core.Session
             return Done(new GameEvent(GameEventKind.MemoryCardSold, cardId, coin));
         }
 
+        /// <summary>まとめ引きの機能の ID（最小の回数は、絆ガチャそのものと同じ時期から使える）。</summary>
+        public static string MemoryPullFeature(int count) { return "memory_pull_" + count; }
+
+        /// <summary>
+        /// 絆ガチャをまとめて引く（count は memory_cards.json の pullCounts のうち、解放済みのもの）。
+        /// 途中で止まらず引き切る。いまより強いカードは装備し、それ以外はその場でコインと経験値に還元する。絆ハートが尽きたらそこまで。
+        /// </summary>
+        public CommandResult PullMemoryCards(int count, out AutoGachaResult result)
+        {
+            result = null;
+            if (!IsUnlocked("memory_card")) { Finish(); return CommandResult.Fail(LockedReason); }
+            if (!_data.MemoryCards.PullCounts.Contains(count)) { Finish(); return CommandResult.Fail(MemoryFailure.InvalidSettings); }
+            if (!IsUnlocked(MemoryPullFeature(count))) { Finish(); return CommandResult.Fail(LockedReason); }
+            MemoryFailure f = _memory.AutoPull(new AutoGachaSettings { RequirePowerUp = true, StopOnFound = false }, count, out result);
+            if (f != MemoryFailure.None) { return Failed(f); }
+            if (result.Pulls == 0) { return Failed(MemoryFailure.NotEnough); }
+            var evs = new List<GameEvent>();
+            if (result.Kept > 0) { evs.Add(new GameEvent(GameEventKind.MemoryCardEquipped, result.Found.Id, result.Kept, -1)); }
+            if (result.Sold > 0) { evs.Add(new GameEvent(GameEventKind.MemoryCardSold, "", result.CoinGained, result.Sold)); }
+            Finish(evs.ToArray());
+            return CommandResult.Ok();
+        }
+
         /// <summary>自動絆ガチャ。いまより強い（条件に合う）カードが出たら、装備して止まる。余りはその場で還元される。</summary>
         public CommandResult AutoPullMemoryCard(AutoGachaSettings settings, int maxPulls, out AutoGachaResult result)
         {

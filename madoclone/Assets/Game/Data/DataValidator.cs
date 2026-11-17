@@ -511,6 +511,13 @@ namespace Mado.Data
             {
                 Error(issues, "MEMORY_CARDS", at, "maxCardLv・subRefLv は1以上、levelOffset は0以上、費用は正の数（成長率は1以上）");
             }
+            int prevCount = 0;
+            foreach (int n in m.PullCounts)
+            {
+                if (n <= prevCount) { Error(issues, "MEMORY_CARDS", at + ":pullCounts", "まとめ引きの回数は正で、小さい順: " + n); }
+                prevCount = n;
+            }
+            if (m.PullCounts.Count == 0) { Error(issues, "MEMORY_CARDS", at + ":pullCounts", "まとめ引きの回数が1つも無い"); }
             FixedUnitScale u = m.FixedUnitScale;
             if (!(u.Hp > 0) || !(u.Atk > 0) || !(u.Def > 0))
             {
