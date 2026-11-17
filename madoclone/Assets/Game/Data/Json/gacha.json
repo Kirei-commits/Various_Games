@@ -1,0 +1,76 @@
+{
+  "schemaVersion": 1,
+  "ticketCurrency": "gacha_ticket",
+  "ticketGemPrice": 300.0,
+  "tierRates": [
+    {
+      "tier": "so",
+      "pct": 20.0
+    },
+    {
+      "tier": "tou",
+      "pct": 25.0
+    },
+    {
+      "tier": "sai",
+      "pct": 25.0
+    },
+    {
+      "tier": "kou",
+      "pct": 20.0
+    },
+    {
+      "tier": "ten",
+      "pct": 5.0
+    },
+    {
+      "tier": "kyoku",
+      "pct": 5.0
+    }
+  ],
+  "pickupTier": "kyoku",
+  "pickupShare": 0.5,
+  "pickupPity": 100,
+  "steps": [
+    {
+      "count": 100,
+      "currencyId": "gacha_ticket",
+      "amount": 10
+    },
+    {
+      "count": 200,
+      "currencyId": "gacha_ticket",
+      "amount": 10
+    },
+    {
+      "count": 300,
+      "currencyId": "gacha_ticket",
+      "amount": 20
+    },
+    {
+      "count": 500,
+      "currencyId": "gacha_ticket",
+      "amount": 30
+    },
+    {
+      "count": 700,
+      "currencyId": "gacha_ticket",
+      "amount": 40
+    },
+    {
+      "count": 1000,
+      "currencyId": "gacha_ticket",
+      "amount": 60
+    },
+    {
+      "count": 1250,
+      "currencyId": "gacha_ticket",
+      "amount": 80
+    },
+    {
+      "count": 1500,
+      "currencyId": "gacha_ticket",
+      "amount": 100
+    }
+  ]
+}

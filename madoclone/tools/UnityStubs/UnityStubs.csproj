@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    UnityEngine・UnityEngine.UI・UnityEditor の「型の形だけ」のスタブ。Unity をこのクラウドで開けないので、
+    View のコード（Assets/Game/View）が型として通るかを dotnet で確かめるためだけに使う（tools/Mado.ViewCheck）。
+    実際の Unity の API と食い違わないよう、使っているものだけを、実物と同じ名前・引数で書く。動作はしない。
+  -->
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <LangVersion>9.0</LangVersion>
+    <Nullable>disable</Nullable>
+    <AssemblyName>UnityStubs</AssemblyName>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+
+</Project>

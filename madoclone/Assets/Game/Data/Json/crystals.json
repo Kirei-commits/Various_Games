@@ -1,0 +1,2285 @@
+{
+  "schemaVersion": 1,
+  "items": [
+    {
+      "id": "cry_chr_001",
+      "kind": "crystal",
+      "trigger": {
+        "type": "onDamaged",
+        "chancePct": 30
+      },
+      "effects": [
+        {
+          "type": "applyBuff",
+          "buffId": "accuracy_down",
+          "tier": "supreme",
+          "target": "attacker",
+          "durationSec": 3
+        }
+      ],
+      "ownerId": "chr_001",
+      "slot": "rainbow"
+    },
+    {
+      "id": "cry_chr_002",
+      "kind": "crystal",
+      "trigger": {
+        "type": "always"
+      },
+      "effects": [
+        {
+          "type": "applyBuff",
+          "buffId": "accuracy_down",
+          "tier": "mid",
+          "target": "enemy_all"
+        }
+      ],
+      "ownerId": "chr_002",
+      "slot": "rainbow"
+    },
+    {
+      "id": "cry_chr_003",
+      "kind": "crystal",
+      "trigger": {
+        "type": "onBattleStart"
+      },
+      "effects": [
+        {
+          "type": "applyBuff",
+          "buffId": "shield",
+          "tier": "supreme",
+          "target": "self",
+          "durationSec": 4
+        }
+      ],
+      "ownerId": "chr_003",
+      "slot": "normal"
+    },
+    {
+      "id": "cry_chr_004",
+      "kind": "crystal",
+      "trigger": {
+        "type": "onHit",
+        "chancePct": 20
+      },
+      "effects": [
+        {
+          "type": "cleanse",
+          "target": "ally_all"
+        }
+      ],
+      "ownerId": "chr_004",
+      "slot": "normal"
+    },
+    {
+      "id": "cry_chr_005",
+      "kind": "crystal",
+      "trigger": {
+        "type": "onDamaged",
+        "chancePct": 100
+      },
+      "effects": [
+        {
+          "type": "applyBuff",
+          "buffId": "shield",
+          "tier": "supreme",
+          "target": "ally_all",
+          "durationSec": 3,
+          "chancePct": 20
+        }
+      ],
+      "ownerId": "chr_005",
+      "slot": "normal"
+    },
+    {
+      "id": "cry_chr_006",
+      "kind": "crystal",
+      "trigger": {
+        "type": "onDamaged",
+        "chancePct": 30
+      },
+      "effects": [
+        {
+          "type": "applyBuff",
+          "buffId": "burn",
+          "tier": "low",
+          "target": "target",
+          "durationSec": 2
+        },
+        {
+          "type": "applyBuff",
+          "buffId": "paralysis",
+          "tier": "low",
+          "target": "target",
+          "durationSec": 2
+        },
+        {
+          "type": "applyBuff",
+          "buffId": "atk_down",
+          "tier": "mid",
+          "target": "target",
+          "durationSec": 2
+        }
+      ],
+      "ownerId": "chr_006",
+      "slot": "normal"
+    },
+    {
+      "id": "cry_chr_007",
+      "kind": "crystal",
+      "trigger": {
+        "type": "onDamaged",
+        "chancePct": 20
+      },
+      "effects": [
+        {
+          "type": "applyBuff",
+          "buffId": "burn",
+          "tier": "high",
+          "target": "target",
+          "durationSec": 2
+        },
+        {
+          "type": "applyBuff",
+          "buffId": "paralysis",
+          "tier": "high",
+          "target": "target",
+          "durationSec": 2
+        }
+      ],
+      "ownerId": "chr_007",
+      "slot": "normal"
+    },
+    {
+      "id": "cry_chr_008",
+      "kind": "crystal",
+      "trigger": {
+        "type": "onDamaged",
+        "chancePct": 20
+      },
+      "effects": [
+        {
+          "type": "applyBuff",
+          "buffId": "silence",
+          "target": "attacker",
+          "durationSec": 2
+        }
+      ],
+      "ownerId": "chr_008",
+      "slot": "normal"
+    },
+    {
+      "id": "cry_chr_009",
+      "kind": "crystal",
+      "trigger": {
+        "type": "always"
+      },
+      "effects": [
+        {
+          "type": "applyBuff",
+          "buffId": "atk_up",
+          "tier": "mid",
+          "target": "ally_all"
+        },
+        {
+          "type": "applyBuff",
+          "buffId": "crit_rate_up",
+          "tier": "mid",
+          "target": "ally_all"
+        }
+      ],
+      "ownerId": "chr_009",
+      "slot": "normal"
+    },
+    {
+      "id": "cry_chr_010",
+      "kind": "crystal",
+      "trigger": {
+        "type": "always"
+      },
+      "effects": [
+        {
+          "type": "applyBuff",
+          "buffId": "burn",
+          "tier": "mid",
+          "target": "enemy_all"
+        },
+        {
+          "type": "applyBuff",
+          "buffId": "def_down",
+          "tier": "mid",
+          "target": "enemy_all"
+        },
+        {
+          "type": "applyBuff",
+          "buffId": "atk_down",
+          "tier": "mid",
+          "target": "enemy_all"
+        }
+      ],
+      "ownerId": "chr_010",
+      "slot": "normal"
+    },
+    {
+      "id": "cry_chr_011",
+      "kind": "crystal",
+      "trigger": {
+        "type": "onBattleStart"
+      },
+      "effects": [
+        {
+          "type": "applyBuff",
+          "buffId": "shield",
+          "tier": "high",
+          "target": "ally_all",
+          "durationSec": 3
+        },
+        {
+          "type": "applyBuff",
+          "buffId": "crit_dmg_up",
+          "tier": "high",
+          "target": "ally_all",
+          "durationSec": 3
+        }
+      ],
+      "ownerId": "chr_011",
+      "slot": "normal"
+    },
+    {
+      "id": "cry_chr_012",
+      "kind": "crystal",
+      "trigger": {
+        "type": "always"
+      },
+      "effects": [
+        {
+          "type": "applyBuff",
+          "buffId": "regen",
+          "tier": "low",
+          "target": "ally_all"
+        },
+        {
+          "type": "applyBuff",
+          "buffId": "def_up",
+          "tier": "mid",
+          "target": "ally_all"
+        }
+      ],
+      "ownerId": "chr_012",
+      "slot": "normal"
+    },
+    {
+      "id": "cry_chr_013",
+      "kind": "crystal",
+      "trigger": {
+        "type": "onDeath"
+      },
+      "effects": [
+        {
+          "type": "applyBuff",
+          "buffId": "bleed",
+          "tier": "supreme",
+          "target": "enemy_all",
+          "durationSec": 3
+        }
+      ],
+      "ownerId": "chr_013",
+      "slot": "normal"
+    },
+    {
+      "id": "cry_chr_014",
+      "kind": "crystal",
+      "trigger": {
+        "type": "onBattleStart"
+      },
+      "effects": [
+        {
+          "type": "applyBuff",
+          "buffId": "evasion_up",
+          "tier": "mid",
+          "target": "ally_all",
+          "durationSec": 5
+        }
+      ],
+      "ownerId": "chr_014",
+      "slot": "normal"
+    },
+    {
+      "id": "cry_chr_015",
+      "kind": "crystal",
+      "trigger": {
+        "type": "onDamaged",
+        "chancePct": 20
+      },
+      "effects": [
+        {
+          "type": "applyBuff",
+          "buffId": "silence",
+          "target": "target",
+          "durationSec": 2
+        }
+      ],
+      "ownerId": "chr_015",
+      "slot": "normal"
+    },
+    {
+      "id": "cry_chr_016",
+      "kind": "crystal",
+      "trigger": {
+        "type": "onBattleStart"
+      },
+      "effects": [
+        {
+          "type": "applyBuff",
+          "buffId": "paralysis",
+          "tier": "supreme",
+          "target": "enemy_all",
+          "durationSec": 5
+        },
+        {
+          "type": "applyBuff",
+          "buffId": "heal_block",
+          "target": "enemy_all",
+          "durationSec": 5
+        }
+      ],
+      "ownerId": "chr_016",
+      "slot": "normal"
+    },
+    {
+      "id": "cry_chr_017",
+      "kind": "crystal",
+      "trigger": {
+        "type": "onDeath"
+      },
+      "effects": [
+        {
+          "type": "applyBuff",
+          "buffId": "bind",
+          "target": "enemy_all",
+          "durationSec": 3
+        }
+      ],
+      "ownerId": "chr_017",
+      "slot": "normal"
+    },
+    {
+      "id": "cry_chr_018",
+      "kind": "crystal",
+      "trigger": {
+        "type": "always"
+      },
+      "effects": [
+        {
+          "type": "applyBuff",
+          "buffId": "def_up",
+          "tier": "mid",
+          "target": "ally_all"
+        },
+        {
+          "type": "applyBuff",
+          "buffId": "crit_resist_up",
+          "tier": "mid",
+          "target": "ally_all"
+        }
+      ],
+      "ownerId": "chr_018",
+      "slot": "normal"
+    },
+    {
+      "id": "cry_chr_019",
+      "kind": "crystal",
+      "trigger": {
+        "type": "interval",
+        "everySec": 5
+      },
+      "effects": [
+        {
+          "type": "applyBuff",
+          "buffId": "atk_down",
+          "tier": "high",
+          "target": "enemy_all",
+          "durationSec": 3
+        },
+        {
+          "type": "applyBuff",
+          "buffId": "def_down",
+          "tier": "high",
+          "target": "enemy_all",
+          "durationSec": 3
+        },
+        {
+          "type": "applyBuff",
+          "buffId": "bleed",
+          "tier": "high",
+          "target": "enemy_all",
+          "durationSec": 3
+        }
+      ],
+      "ownerId": "chr_019",
+      "slot": "normal"
+    },
+    {
+      "id": "cry_chr_020",
+      "kind": "crystal",
+      "trigger": {
+        "type": "onDeath"
+      },
+      "effects": [
+        {
+          "type": "applyBuff",
+          "buffId": "burn",
+          "tier": "supreme",
+          "target": "enemy_all",
+          "durationSec": 2
+        }
+      ],
+      "ownerId": "chr_020",
+      "slot": "normal"
+    },
+    {
+      "id": "cry_chr_021",
+      "kind": "crystal",
+      "trigger": {
+        "type": "always"
+      },
+      "effects": [
+        {
+          "type": "applyBuff",
+          "buffId": "def_down",
+          "tier": "mid",
+          "target": "enemy_all"
+        }
+      ],
+      "ownerId": "chr_021",
+      "slot": "normal"
+    },
+    {
+      "id": "cry_chr_022",
+      "kind": "crystal",
+      "trigger": {
+        "type": "onBattleStart"
+      },
+      "effects": [
+        {
+          "type": "applyBuff",
+          "buffId": "burn",
+          "tier": "high",
+          "target": "enemy_all",
+          "durationSec": 6
+        },
+        {
+          "type": "applyBuff",
+          "buffId": "def_down",
+          "tier": "high",
+          "target": "enemy_all",
+          "durationSec": 6
+        }
+      ],
+      "ownerId": "chr_022",
+      "slot": "normal"
+    },
+    {
+      "id": "cry_chr_023",
+      "kind": "crystal",
+      "trigger": {
+        "type": "onHit",
+        "chancePct": 10
+      },
+      "effects": [
+        {
+          "type": "applyBuff",
+          "buffId": "bind",
+          "target": "target",
+          "durationSec": 3
+        }
+      ],
+      "ownerId": "chr_023",
+      "slot": "normal"
+    },
+    {
+      "id": "cry_chr_024",
+      "kind": "crystal",
+      "trigger": {
+        "type": "onHit",
+        "chancePct": 100
+      },
+      "effects": [
+        {
+          "type": "gaugeShift",
+          "sec": -0.5,
+          "target": "target",
+          "if": {
+            "targetHasAnyStatus": [
+              "burn"
+            ]
+          }
+        }
+      ],
+      "ownerId": "chr_024",
+      "slot": "normal"
+    },
+    {
+      "id": "cry_chr_025",
+      "kind": "crystal",
+      "trigger": {
+        "type": "onDamaged",
+        "chancePct": 30
+      },
+      "effects": [
+        {
+          "type": "applyBuff",
+          "buffId": "burn",
+          "tier": "supreme",
+          "target": "target",
+          "durationSec": 3
+        }
+      ],
+      "ownerId": "chr_025",
+      "slot": "normal"
+    },
+    {
+      "id": "cry_chr_026",
+      "kind": "crystal",
+      "trigger": {
+        "type": "always"
+      },
+      "effects": [
+        {
+          "type": "applyBuff",
+          "buffId": "atk_down",
+          "tier": "mid",
+          "target": "enemy_all"
+        }
+      ],
+      "ownerId": "chr_026",
+      "slot": "normal"
+    },
+    {
+      "id": "cry_chr_027",
+      "kind": "crystal",
+      "trigger": {
+        "type": "onDamaged",
+        "chancePct": 30
+      },
+      "effects": [
+        {
+          "type": "applyBuff",
+          "buffId": "silence",
+          "target": "target",
+          "durationSec": 2
+        },
+        {
+          "type": "applyBuff",
+          "buffId": "atk_down",
+          "tier": "mid",
+          "target": "target",
+          "durationSec": 2
+        },
+        {
+          "type": "applyBuff",
+          "buffId": "crit_rate_down",
+          "tier": "mid",
+          "target": "target",
+          "durationSec": 2
+        }
+      ],
+      "ownerId": "chr_027",
+      "slot": "normal"
+    },
+    {
+      "id": "cry_chr_028",
+      "kind": "crystal",
+      "trigger": {
+        "type": "always"
+      },
+      "effects": [
+        {
+          "type": "applyBuff",
+          "buffId": "regen",
+          "tier": "low",
+          "target": "ally_all"
+        },
+        {
+          "type": "applyBuff",
+          "buffId": "crit_def_up",
+          "tier": "mid",
+          "target": "ally_all"
+        }
+      ],
+      "ownerId": "chr_028",
+      "slot": "normal"
+    },
+    {
+      "id": "cry_chr_029",
+      "kind": "crystal",
+      "trigger": {
+        "type": "onBattleStart"
+      },
+      "effects": [
+        {
+          "type": "applyBuff",
+          "buffId": "paralysis",
+          "tier": "mid",
+          "target": "enemy_all",
+          "durationSec": 5
+        },
+        {
+          "type": "applyBuff",
+          "buffId": "atk_down",
+          "tier": "high",
+          "target": "enemy_all",
+          "durationSec": 5
+        },
+        {
+          "type": "applyBuff",
+          "buffId": "crit_rate_down",
+          "tier": "high",
+          "target": "enemy_all",
+          "durationSec": 5
+        }
+      ],
+      "ownerId": "chr_029",
+      "slot": "normal"
+    },
+    {
+      "id": "cry_chr_030",
+      "kind": "crystal",
+      "trigger": {
+        "type": "onDeath"
+      },
+      "effects": [
+        {
+          "type": "applyBuff",
+          "buffId": "silence",
+          "target": "enemy_all",
+          "durationSec": 3
+        }
+      ],
+      "ownerId": "chr_030",
+      "slot": "normal"
+    },
+    {
+      "id": "cry_chr_031",
+      "kind": "crystal",
+      "trigger": {
+        "type": "onDamaged",
+        "chancePct": 30
+      },
+      "effects": [
+        {
+          "type": "applyBuff",
+          "buffId": "freeze",
+          "tier": "high",
+          "target": "target",
+          "durationSec": 2
+        },
+        {
+          "type": "applyBuff",
+          "buffId": "def_down",
+          "tier": "high",
+          "target": "target",
+          "durationSec": 2
+        }
+      ],
+      "ownerId": "chr_031",
+      "slot": "normal"
+    },
+    {
+      "id": "cry_chr_032",
+      "kind": "crystal",
+      "trigger": {
+        "type": "always"
+      },
+      "effects": [
+        {
+          "type": "applyBuff",
+          "buffId": "def_down",
+          "tier": "mid",
+          "target": "enemy_all"
+        },
+        {
+          "type": "applyBuff",
+          "buffId": "evasion_down",
+          "tier": "mid",
+          "target": "enemy_all"
+        }
+      ],
+      "ownerId": "chr_032",
+      "slot": "normal"
+    },
+    {
+      "id": "cry_chr_033",
+      "kind": "crystal",
+      "trigger": {
+        "type": "interval",
+        "everySec": 5
+      },
+      "effects": [
+        {
+          "type": "applyBuff",
+          "buffId": "atk_up",
+          "tier": "supreme",
+          "target": "self",
+          "durationSec": 3
+        },
+        {
+          "type": "applyBuff",
+          "buffId": "crit_dmg_up",
+          "tier": "supreme",
+          "target": "self",
+          "durationSec": 3
+        }
+      ],
+      "ownerId": "chr_033",
+      "slot": "normal"
+    },
+    {
+      "id": "cry_chr_034",
+      "kind": "crystal",
+      "trigger": {
+        "type": "onDeath"
+      },
+      "effects": [
+        {
+          "type": "applyBuff",
+          "buffId": "silence",
+          "target": "enemy_all",
+          "durationSec": 2
+        },
+        {
+          "type": "applyBuff",
+          "buffId": "heal_block",
+          "target": "enemy_all",
+          "durationSec": 2
+        }
+      ],
+      "ownerId": "chr_034",
+      "slot": "normal"
+    },
+    {
+      "id": "cry_chr_035",
+      "kind": "crystal",
+      "trigger": {
+        "type": "always"
+      },
+      "effects": [
+        {
+          "type": "applyBuff",
+          "buffId": "crit_rate_up",
+          "tier": "high",
+          "target": "ally_all"
+        },
+        {
+          "type": "applyBuff",
+          "buffId": "atk_up",
+          "tier": "mid",
+          "target": "ally_all"
+        },
+        {
+          "type": "applyBuff",
+          "buffId": "accuracy_up",
+          "tier": "mid",
+          "target": "ally_all"
+        }
+      ],
+      "ownerId": "chr_035",
+      "slot": "normal"
+    },
+    {
+      "id": "cry_chr_036",
+      "kind": "crystal",
+      "trigger": {
+        "type": "always"
+      },
+      "effects": [
+        {
+          "type": "applyBuff",
+          "buffId": "atk_up",
+          "tier": "mid",
+          "target": "ally_all"
+        },
+        {
+          "type": "applyBuff",
+          "buffId": "def_up",
+          "tier": "mid",
+          "target": "ally_all"
+        },
+        {
+          "type": "applyBuff",
+          "buffId": "regen",
+          "tier": "mid",
+          "target": "ally_all"
+        }
+      ],
+      "ownerId": "chr_036",
+      "slot": "normal"
+    },
+    {
+      "id": "cry_chr_037",
+      "kind": "crystal",
+      "trigger": {
+        "type": "interval",
+        "everySec": 5
+      },
+      "effects": [
+        {
+          "type": "applyBuff",
+          "buffId": "silence",
+          "target": "enemy_all",
+          "durationSec": 3
+        },
+        {
+          "type": "applyBuff",
+          "buffId": "atk_down",
+          "tier": "mid",
+          "target": "enemy_all",
+          "durationSec": 3
+        }
+      ],
+      "ownerId": "chr_037",
+      "slot": "normal"
+    },
+    {
+      "id": "cry_chr_038",
+      "kind": "crystal",
+      "trigger": {
+        "type": "onDeath"
+      },
+      "effects": [
+        {
+          "type": "applyBuff",
+          "buffId": "burn",
+          "tier": "high",
+          "target": "enemy_all",
+          "durationSec": 2
+        },
+        {
+          "type": "applyBuff",
+          "buffId": "paralysis",
+          "tier": "high",
+          "target": "enemy_all",
+          "durationSec": 2
+        }
+      ],
+      "ownerId": "chr_038",
+      "slot": "normal"
+    },
+    {
+      "id": "cry_chr_039",
+      "kind": "crystal",
+      "trigger": {
+        "type": "onDeath"
+      },
+      "effects": [
+        {
+          "type": "applyBuff",
+          "buffId": "freeze",
+          "tier": "supreme",
+          "target": "enemy_all",
+          "durationSec": 3
+        }
+      ],
+      "ownerId": "chr_039",
+      "slot": "normal"
+    },
+    {
+      "id": "cry_chr_040",
+      "kind": "crystal",
+      "trigger": {
+        "type": "always"
+      },
+      "effects": [
+        {
+          "type": "applyBuff",
+          "buffId": "atk_down",
+          "tier": "mid",
+          "target": "enemy_all"
+        },
+        {
+          "type": "applyBuff",
+          "buffId": "crit_dmg_down",
+          "tier": "mid",
+          "target": "enemy_all"
+        }
+      ],
+      "ownerId": "chr_040",
+      "slot": "normal"
+    },
+    {
+      "id": "cry_chr_041",
+      "kind": "crystal",
+      "trigger": {
+        "type": "onBattleStart"
+      },
+      "effects": [
+        {
+          "type": "applyBuff",
+          "buffId": "bleed",
+          "tier": "high",
+          "target": "enemy_all",
+          "durationSec": 5
+        },
+        {
+          "type": "applyBuff",
+          "buffId": "crit_rate_down",
+          "tier": "high",
+          "target": "enemy_all",
+          "durationSec": 5
+        }
+      ],
+      "ownerId": "chr_041",
+      "slot": "normal"
+    },
+    {
+      "id": "cry_chr_042",
+      "kind": "crystal",
+      "trigger": {
+        "type": "onDamaged",
+        "chancePct": 20
+      },
+      "effects": [
+        {
+          "type": "applyBuff",
+          "buffId": "bleed",
+          "tier": "high",
+          "target": "target",
+          "durationSec": 2
+        },
+        {
+          "type": "applyBuff",
+          "buffId": "silence",
+          "target": "target",
+          "durationSec": 2
+        }
+      ],
+      "ownerId": "chr_042",
+      "slot": "normal"
+    },
+    {
+      "id": "cry_chr_043",
+      "kind": "crystal",
+      "trigger": {
+        "type": "onHit",
+        "chancePct": 20
+      },
+      "effects": [
+        {
+          "type": "applyBuff",
+          "buffId": "silence",
+          "target": "target",
+          "durationSec": 3
+        },
+        {
+          "type": "applyBuff",
+          "buffId": "crit_resist_down",
+          "tier": "mid",
+          "target": "target",
+          "durationSec": 3
+        }
+      ],
+      "ownerId": "chr_043",
+      "slot": "normal"
+    },
+    {
+      "id": "cry_chr_044",
+      "kind": "crystal",
+      "trigger": {
+        "type": "onBattleStart"
+      },
+      "effects": [
+        {
+          "type": "applyBuff",
+          "buffId": "shield",
+          "tier": "mid",
+          "target": "ally_all",
+          "durationSec": 5
+        },
+        {
+          "type": "applyBuff",
+          "buffId": "atk_up",
+          "tier": "mid",
+          "target": "ally_all",
+          "durationSec": 5
+        }
+      ],
+      "ownerId": "chr_044",
+      "slot": "normal"
+    },
+    {
+      "id": "cry_chr_045",
+      "kind": "crystal",
+      "trigger": {
+        "type": "always"
+      },
+      "effects": [
+        {
+          "type": "applyBuff",
+          "buffId": "atk_up",
+          "tier": "mid",
+          "target": "ally_all"
+        },
+        {
+          "type": "applyBuff",
+          "buffId": "accuracy_up",
+          "tier": "mid",
+          "target": "ally_all"
+        }
+      ],
+      "ownerId": "chr_045",
+      "slot": "normal"
+    },
+    {
+      "id": "cry_chr_046",
+      "kind": "crystal",
+      "trigger": {
+        "type": "onHit",
+        "chancePct": 20
+      },
+      "effects": [
+        {
+          "type": "applyBuff",
+          "buffId": "shield",
+          "tier": "mid",
+          "target": "ally_all",
+          "durationSec": 3
+        }
+      ],
+      "ownerId": "chr_046",
+      "slot": "normal"
+    },
+    {
+      "id": "cry_chr_047",
+      "kind": "crystal",
+      "trigger": {
+        "type": "onBattleStart"
+      },
+      "effects": [
+        {
+          "type": "applyBuff",
+          "buffId": "shield",
+          "tier": "supreme",
+          "target": "ally_all",
+          "durationSec": 4
+        },
+        {
+          "type": "applyBuff",
+          "buffId": "crit_rate_up",
+          "tier": "high",
+          "target": "ally_all",
+          "durationSec": 4
+        }
+      ],
+      "ownerId": "chr_047",
+      "slot": "normal"
+    },
+    {
+      "id": "cry_chr_048",
+      "kind": "crystal",
+      "trigger": {
+        "type": "onDamaged",
+        "chancePct": 20
+      },
+      "effects": [
+        {
+          "type": "applyBuff",
+          "buffId": "heal_block",
+          "target": "target",
+          "durationSec": 2
+        }
+      ],
+      "ownerId": "chr_048",
+      "slot": "normal"
+    },
+    {
+      "id": "cry_chr_049",
+      "kind": "crystal",
+      "trigger": {
+        "type": "onBattleStart"
+      },
+      "effects": [
+        {
+          "type": "applyBuff",
+          "buffId": "bleed",
+          "tier": "high",
+          "target": "enemy_all",
+          "durationSec": 5
+        },
+        {
+          "type": "applyBuff",
+          "buffId": "heal_block",
+          "target": "enemy_all",
+          "durationSec": 5
+        }
+      ],
+      "ownerId": "chr_049",
+      "slot": "normal"
+    },
+    {
+      "id": "cry_chr_050",
+      "kind": "crystal",
+      "trigger": {
+        "type": "onDamaged",
+        "chancePct": 30
+      },
+      "effects": [
+        {
+          "type": "applyBuff",
+          "buffId": "paralysis",
+          "tier": "supreme",
+          "target": "target",
+          "durationSec": 2
+        }
+      ],
+      "ownerId": "chr_050",
+      "slot": "normal"
+    },
+    {
+      "id": "cry_chr_051",
+      "kind": "crystal",
+      "trigger": {
+        "type": "onBattleStart"
+      },
+      "effects": [
+        {
+          "type": "applyBuff",
+          "buffId": "paralysis",
+          "tier": "supreme",
+          "target": "enemy_all",
+          "durationSec": 3
+        }
+      ],
+      "ownerId": "chr_051",
+      "slot": "normal"
+    },
+    {
+      "id": "cry_chr_052",
+      "kind": "crystal",
+      "trigger": {
+        "type": "onDamaged",
+        "chancePct": 30
+      },
+      "effects": [
+        {
+          "type": "applyBuff",
+          "buffId": "paralysis",
+          "tier": "supreme",
+          "target": "target",
+          "durationSec": 2
+        }
+      ],
+      "ownerId": "chr_052",
+      "slot": "normal"
+    },
+    {
+      "id": "cry_chr_053",
+      "kind": "crystal",
+      "trigger": {
+        "type": "onHit",
+        "chancePct": 20
+      },
+      "effects": [
+        {
+          "type": "applyBuff",
+          "buffId": "regen",
+          "tier": "high",
+          "target": "ally_all",
+          "durationSec": 3
+        }
+      ],
+      "ownerId": "chr_053",
+      "slot": "normal"
+    },
+    {
+      "id": "cry_chr_054",
+      "kind": "crystal",
+      "trigger": {
+        "type": "onBattleStart"
+      },
+      "effects": [
+        {
+          "type": "applyBuff",
+          "buffId": "burn",
+          "tier": "mid",
+          "target": "enemy_all",
+          "durationSec": 5
+        },
+        {
+          "type": "applyBuff",
+          "buffId": "heal_block",
+          "target": "enemy_all",
+          "durationSec": 5
+        }
+      ],
+      "ownerId": "chr_054",
+      "slot": "normal"
+    },
+    {
+      "id": "cry_chr_055",
+      "kind": "crystal",
+      "trigger": {
+        "type": "always"
+      },
+      "effects": [
+        {
+          "type": "applyBuff",
+          "buffId": "def_down",
+          "tier": "high",
+          "target": "enemy_all"
+        },
+        {
+          "type": "applyBuff",
+          "buffId": "accuracy_down",
+          "tier": "low",
+          "target": "enemy_all"
+        }
+      ],
+      "ownerId": "chr_055",
+      "slot": "normal"
+    },
+    {
+      "id": "cry_chr_056",
+      "kind": "crystal",
+      "trigger": {
+        "type": "always"
+      },
+      "effects": [
+        {
+          "type": "applyBuff",
+          "buffId": "def_up",
+          "tier": "mid",
+          "target": "ally_all"
+        }
+      ],
+      "ownerId": "chr_056",
+      "slot": "normal"
+    },
+    {
+      "id": "cry_chr_057",
+      "kind": "crystal",
+      "trigger": {
+        "type": "onDeath"
+      },
+      "effects": [
+        {
+          "type": "applyBuff",
+          "buffId": "paralysis",
+          "tier": "high",
+          "target": "enemy_all",
+          "durationSec": 3
+        },
+        {
+          "type": "applyBuff",
+          "buffId": "def_down",
+          "tier": "high",
+          "target": "enemy_all",
+          "durationSec": 3
+        }
+      ],
+      "ownerId": "chr_057",
+      "slot": "normal"
+    },
+    {
+      "id": "cry_chr_058",
+      "kind": "crystal",
+      "trigger": {
+        "type": "onHit",
+        "chancePct": 20
+      },
+      "effects": [
+        {
+          "type": "applyBuff",
+          "buffId": "burn",
+          "tier": "supreme",
+          "target": "target",
+          "durationSec": 3
+        }
+      ],
+      "ownerId": "chr_058",
+      "slot": "normal"
+    },
+    {
+      "id": "cry_chr_059",
+      "kind": "crystal",
+      "trigger": {
+        "type": "onDamaged",
+        "chancePct": 30
+      },
+      "effects": [
+        {
+          "type": "applyBuff",
+          "buffId": "atk_down",
+          "tier": "supreme",
+          "target": "target",
+          "durationSec": 3
+        },
+        {
+          "type": "applyBuff",
+          "buffId": "burn",
+          "tier": "high",
+          "target": "target",
+          "durationSec": 3
+        }
+      ],
+      "ownerId": "chr_059",
+      "slot": "normal"
+    },
+    {
+      "id": "cry_chr_060",
+      "kind": "crystal",
+      "trigger": {
+        "type": "onDeath"
+      },
+      "effects": [
+        {
+          "type": "applyBuff",
+          "buffId": "atk_down",
+          "tier": "supreme",
+          "target": "enemy_all",
+          "durationSec": 3
+        },
+        {
+          "type": "applyBuff",
+          "buffId": "silence",
+          "target": "enemy_all",
+          "durationSec": 3
+        }
+      ],
+      "ownerId": "chr_060",
+      "slot": "normal"
+    },
+    {
+      "id": "cry_chr_061",
+      "kind": "crystal",
+      "trigger": {
+        "type": "onHit",
+        "chancePct": 100
+      },
+      "effects": [
+        {
+          "type": "gaugeShift",
+          "sec": -0.5,
+          "target": "target",
+          "if": {
+            "targetHasAnyStatus": [
+              "freeze"
+            ]
+          }
+        }
+      ],
+      "ownerId": "chr_061",
+      "slot": "normal"
+    },
+    {
+      "id": "cry_chr_062",
+      "kind": "crystal",
+      "trigger": {
+        "type": "onDeath"
+      },
+      "effects": [
+        {
+          "type": "applyBuff",
+          "buffId": "def_up",
+          "tier": "supreme",
+          "target": "ally_all",
+          "durationSec": 3
+        },
+        {
+          "type": "applyBuff",
+          "buffId": "crit_def_up",
+          "tier": "supreme",
+          "target": "ally_all",
+          "durationSec": 3
+        }
+      ],
+      "ownerId": "chr_062",
+      "slot": "normal"
+    },
+    {
+      "id": "cry_chr_063",
+      "kind": "crystal",
+      "trigger": {
+        "type": "interval",
+        "everySec": 5
+      },
+      "effects": [
+        {
+          "type": "applyBuff",
+          "buffId": "atk_up",
+          "tier": "supreme",
+          "target": "self",
+          "durationSec": 3
+        },
+        {
+          "type": "applyBuff",
+          "buffId": "crit_dmg_up",
+          "tier": "supreme",
+          "target": "self",
+          "durationSec": 3
+        }
+      ],
+      "ownerId": "chr_063",
+      "slot": "normal"
+    },
+    {
+      "id": "cry_chr_064",
+      "kind": "crystal",
+      "trigger": {
+        "type": "always"
+      },
+      "effects": [
+        {
+          "type": "applyBuff",
+          "buffId": "atk_up",
+          "tier": "mid",
+          "target": "ally_all"
+        },
+        {
+          "type": "applyBuff",
+          "buffId": "accuracy_up",
+          "tier": "mid",
+          "target": "ally_all"
+        }
+      ],
+      "ownerId": "chr_064",
+      "slot": "normal"
+    },
+    {
+      "id": "cry_chr_065",
+      "kind": "crystal",
+      "trigger": {
+        "type": "onDamaged",
+        "chancePct": 30
+      },
+      "effects": [
+        {
+          "type": "applyBuff",
+          "buffId": "silence",
+          "target": "target",
+          "durationSec": 2
+        }
+      ],
+      "ownerId": "chr_065",
+      "slot": "normal"
+    },
+    {
+      "id": "cry_chr_066",
+      "kind": "crystal",
+      "trigger": {
+        "type": "always"
+      },
+      "effects": [
+        {
+          "type": "applyBuff",
+          "buffId": "crit_rate_down",
+          "tier": "mid",
+          "target": "enemy_all"
+        },
+        {
+          "type": "applyBuff",
+          "buffId": "crit_resist_down",
+          "tier": "mid",
+          "target": "enemy_all"
+        }
+      ],
+      "ownerId": "chr_066",
+      "slot": "normal"
+    },
+    {
+      "id": "cry_chr_067",
+      "kind": "crystal",
+      "trigger": {
+        "type": "always"
+      },
+      "effects": [
+        {
+          "type": "applyBuff",
+          "buffId": "bleed",
+          "tier": "mid",
+          "target": "enemy_all"
+        },
+        {
+          "type": "applyBuff",
+          "buffId": "atk_down",
+          "tier": "mid",
+          "target": "enemy_all"
+        },
+        {
+          "type": "applyBuff",
+          "buffId": "def_down",
+          "tier": "mid",
+          "target": "enemy_all"
+        }
+      ],
+      "ownerId": "chr_067",
+      "slot": "normal"
+    },
+    {
+      "id": "cry_chr_068",
+      "kind": "crystal",
+      "trigger": {
+        "type": "onHit",
+        "chancePct": 10
+      },
+      "effects": [
+        {
+          "type": "applyBuff",
+          "buffId": "blind",
+          "target": "target",
+          "durationSec": 3
+        }
+      ],
+      "ownerId": "chr_068",
+      "slot": "normal"
+    },
+    {
+      "id": "cry_chr_069",
+      "kind": "crystal",
+      "trigger": {
+        "type": "interval",
+        "everySec": 7
+      },
+      "effects": [
+        {
+          "type": "applyBuff",
+          "buffId": "regen",
+          "tier": "mid",
+          "target": "ally_all",
+          "durationSec": 3
+        }
+      ],
+      "ownerId": "chr_069",
+      "slot": "normal"
+    },
+    {
+      "id": "cry_chr_070",
+      "kind": "crystal",
+      "trigger": {
+        "type": "onBattleStart"
+      },
+      "effects": [
+        {
+          "type": "applyBuff",
+          "buffId": "burn",
+          "tier": "supreme",
+          "target": "enemy_all",
+          "durationSec": 3
+        }
+      ],
+      "ownerId": "chr_070",
+      "slot": "normal"
+    },
+    {
+      "id": "cry_chr_071",
+      "kind": "crystal",
+      "trigger": {
+        "type": "onDamaged",
+        "chancePct": 100
+      },
+      "effects": [
+        {
+          "type": "applyBuff",
+          "buffId": "bleed",
+          "tier": "supreme",
+          "target": "attacker",
+          "durationSec": 3
+        }
+      ],
+      "ownerId": "chr_071",
+      "slot": "normal"
+    },
+    {
+      "id": "cry_chr_072",
+      "kind": "crystal",
+      "trigger": {
+        "type": "onDamaged",
+        "chancePct": 30
+      },
+      "effects": [
+        {
+          "type": "applyBuff",
+          "buffId": "atk_down",
+          "tier": "supreme",
+          "target": "target",
+          "durationSec": 3
+        },
+        {
+          "type": "applyBuff",
+          "buffId": "crit_dmg_down",
+          "tier": "supreme",
+          "target": "target",
+          "durationSec": 3
+        }
+      ],
+      "ownerId": "chr_072",
+      "slot": "normal"
+    },
+    {
+      "id": "cry_chr_073",
+      "kind": "crystal",
+      "trigger": {
+        "type": "onBattleStart"
+      },
+      "effects": [
+        {
+          "type": "applyBuff",
+          "buffId": "shield",
+          "tier": "high",
+          "target": "ally_all",
+          "durationSec": 5
+        },
+        {
+          "type": "applyBuff",
+          "buffId": "crit_resist_up",
+          "tier": "mid",
+          "target": "ally_all",
+          "durationSec": 5
+        }
+      ],
+      "ownerId": "chr_073",
+      "slot": "normal"
+    },
+    {
+      "id": "cry_chr_074",
+      "kind": "crystal",
+      "trigger": {
+        "type": "onDeath"
+      },
+      "effects": [
+        {
+          "type": "applyBuff",
+          "buffId": "blind",
+          "target": "enemy_all",
+          "durationSec": 3
+        }
+      ],
+      "ownerId": "chr_074",
+      "slot": "normal"
+    },
+    {
+      "id": "cry_chr_075",
+      "kind": "crystal",
+      "trigger": {
+        "type": "always"
+      },
+      "effects": [
+        {
+          "type": "applyBuff",
+          "buffId": "crit_dmg_down",
+          "tier": "mid",
+          "target": "enemy_all"
+        }
+      ],
+      "ownerId": "chr_075",
+      "slot": "normal"
+    },
+    {
+      "id": "cry_chr_076",
+      "kind": "crystal",
+      "trigger": {
+        "type": "interval",
+        "everySec": 5
+      },
+      "effects": [
+        {
+          "type": "applyBuff",
+          "buffId": "crit_dmg_up",
+          "tier": "mid",
+          "target": "ally_all",
+          "durationSec": 3
+        }
+      ],
+      "ownerId": "chr_076",
+      "slot": "normal"
+    },
+    {
+      "id": "cry_chr_077",
+      "kind": "crystal",
+      "trigger": {
+        "type": "onHit",
+        "chancePct": 20
+      },
+      "effects": [
+        {
+          "type": "cleanse",
+          "target": "ally_all"
+        }
+      ],
+      "ownerId": "chr_077",
+      "slot": "normal"
+    },
+    {
+      "id": "cry_chr_078",
+      "kind": "crystal",
+      "trigger": {
+        "type": "onHit",
+        "chancePct": 20
+      },
+      "effects": [
+        {
+          "type": "heal",
+          "multiplierPct": 300,
+          "target": "self"
+        }
+      ],
+      "ownerId": "chr_078",
+      "slot": "normal"
+    },
+    {
+      "id": "cry_chr_079",
+      "kind": "crystal",
+      "trigger": {
+        "type": "onHit",
+        "chancePct": 10
+      },
+      "effects": [
+        {
+          "type": "applyBuff",
+          "buffId": "freeze",
+          "tier": "mid",
+          "target": "target",
+          "durationSec": 2
+        },
+        {
+          "type": "applyBuff",
+          "buffId": "atk_down",
+          "tier": "mid",
+          "target": "target",
+          "durationSec": 2
+        }
+      ],
+      "ownerId": "chr_079",
+      "slot": "normal"
+    },
+    {
+      "id": "cry_chr_080",
+      "kind": "crystal",
+      "trigger": {
+        "type": "always"
+      },
+      "effects": [
+        {
+          "type": "applyBuff",
+          "buffId": "burn",
+          "tier": "mid",
+          "target": "enemy_all"
+        },
+        {
+          "type": "applyBuff",
+          "buffId": "accuracy_down",
+          "tier": "low",
+          "target": "enemy_all"
+        }
+      ],
+      "ownerId": "chr_080",
+      "slot": "normal"
+    },
+    {
+      "id": "cry_chr_081",
+      "kind": "crystal",
+      "trigger": {
+        "type": "onHit",
+        "chancePct": 20
+      },
+      "effects": [
+        {
+          "type": "gaugeShift",
+          "sec": 0.5,
+          "target": "self"
+        }
+      ],
+      "ownerId": "chr_081",
+      "slot": "normal"
+    },
+    {
+      "id": "cry_chr_082",
+      "kind": "crystal",
+      "trigger": {
+        "type": "onDeath"
+      },
+      "effects": [
+        {
+          "type": "applyBuff",
+          "buffId": "atk_up",
+          "tier": "supreme",
+          "target": "ally_all",
+          "durationSec": 3
+        }
+      ],
+      "ownerId": "chr_082",
+      "slot": "normal"
+    },
+    {
+      "id": "cry_chr_083",
+      "kind": "crystal",
+      "trigger": {
+        "type": "onBattleStart"
+      },
+      "effects": [
+        {
+          "type": "applyBuff",
+          "buffId": "atk_up",
+          "tier": "mid",
+          "target": "ally_all",
+          "durationSec": 3
+        }
+      ],
+      "ownerId": "chr_083",
+      "slot": "normal"
+    },
+    {
+      "id": "cry_chr_084",
+      "kind": "crystal",
+      "trigger": {
+        "type": "onBattleStart"
+      },
+      "effects": [
+        {
+          "type": "applyBuff",
+          "buffId": "shield",
+          "tier": "mid",
+          "target": "self",
+          "durationSec": 5
+        }
+      ],
+      "ownerId": "chr_084",
+      "slot": "normal"
+    },
+    {
+      "id": "cry_chr_085",
+      "kind": "crystal",
+      "trigger": {
+        "type": "interval",
+        "everySec": 5
+      },
+      "effects": [
+        {
+          "type": "applyBuff",
+          "buffId": "crit_rate_up",
+          "tier": "mid",
+          "target": "self",
+          "durationSec": 3
+        },
+        {
+          "type": "applyBuff",
+          "buffId": "crit_dmg_up",
+          "tier": "mid",
+          "target": "self",
+          "durationSec": 3
+        }
+      ],
+      "ownerId": "chr_085",
+      "slot": "normal"
+    },
+    {
+      "id": "cry_chr_086",
+      "kind": "crystal",
+      "trigger": {
+        "type": "onHit",
+        "chancePct": 20
+      },
+      "effects": [
+        {
+          "type": "applyBuff",
+          "buffId": "atk_up",
+          "tier": "mid",
+          "target": "self",
+          "durationSec": 3
+        },
+        {
+          "type": "applyBuff",
+          "buffId": "accuracy_up",
+          "tier": "mid",
+          "target": "self",
+          "durationSec": 3
+        }
+      ],
+      "ownerId": "chr_086",
+      "slot": "normal"
+    },
+    {
+      "id": "cry_chr_087",
+      "kind": "crystal",
+      "trigger": {
+        "type": "onDamaged",
+        "chancePct": 10
+      },
+      "effects": [
+        {
+          "type": "applyBuff",
+          "buffId": "freeze",
+          "tier": "supreme",
+          "target": "target",
+          "durationSec": 2
+        }
+      ],
+      "ownerId": "chr_087",
+      "slot": "normal"
+    },
+    {
+      "id": "cry_chr_088",
+      "kind": "crystal",
+      "trigger": {
+        "type": "onHit",
+        "chancePct": 20
+      },
+      "effects": [
+        {
+          "type": "applyBuff",
+          "buffId": "crit_dmg_up",
+          "tier": "supreme",
+          "target": "self",
+          "durationSec": 3
+        }
+      ],
+      "ownerId": "chr_088",
+      "slot": "normal"
+    },
+    {
+      "id": "cry_chr_089",
+      "kind": "crystal",
+      "trigger": {
+        "type": "onHit",
+        "chancePct": 20
+      },
+      "effects": [
+        {
+          "type": "applyBuff",
+          "buffId": "paralysis",
+          "tier": "supreme",
+          "target": "target",
+          "durationSec": 3
+        }
+      ],
+      "ownerId": "chr_089",
+      "slot": "normal"
+    },
+    {
+      "id": "cry_chr_090",
+      "kind": "crystal",
+      "trigger": {
+        "type": "interval",
+        "everySec": 5
+      },
+      "effects": [
+        {
+          "type": "applyBuff",
+          "buffId": "atk_up",
+          "tier": "supreme",
+          "target": "self",
+          "durationSec": 3
+        }
+      ],
+      "ownerId": "chr_090",
+      "slot": "normal"
+    },
+    {
+      "id": "cry_chr_091",
+      "kind": "crystal",
+      "trigger": {
+        "type": "onBattleStart"
+      },
+      "effects": [
+        {
+          "type": "applyBuff",
+          "buffId": "atk_up",
+          "tier": "mid",
+          "target": "ally_all",
+          "durationSec": 3
+        }
+      ],
+      "ownerId": "chr_091",
+      "slot": "normal"
+    },
+    {
+      "id": "cry_chr_092",
+      "kind": "crystal",
+      "trigger": {
+        "type": "onHit",
+        "chancePct": 20
+      },
+      "effects": [
+        {
+          "type": "applyBuff",
+          "buffId": "burn",
+          "tier": "mid",
+          "target": "target",
+          "durationSec": 3
+        },
+        {
+          "type": "applyBuff",
+          "buffId": "def_down",
+          "tier": "mid",
+          "target": "target",
+          "durationSec": 3
+        }
+      ],
+      "ownerId": "chr_092",
+      "slot": "normal"
+    },
+    {
+      "id": "cry_chr_093",
+      "kind": "crystal",
+      "trigger": {
+        "type": "interval",
+        "everySec": 5
+      },
+      "effects": [
+        {
+          "type": "applyBuff",
+          "buffId": "crit_rate_up",
+          "tier": "supreme",
+          "target": "self",
+          "durationSec": 3
+        }
+      ],
+      "ownerId": "chr_093",
+      "slot": "normal"
+    },
+    {
+      "id": "cry_chr_094",
+      "kind": "crystal",
+      "trigger": {
+        "type": "onHit",
+        "chancePct": 20
+      },
+      "effects": [
+        {
+          "type": "applyBuff",
+          "buffId": "atk_up",
+          "tier": "supreme",
+          "target": "self",
+          "durationSec": 3
+        }
+      ],
+      "ownerId": "chr_094",
+      "slot": "normal"
+    },
+    {
+      "id": "cry_chr_095",
+      "kind": "crystal",
+      "trigger": {
+        "type": "onBattleStart"
+      },
+      "effects": [
+        {
+          "type": "applyBuff",
+          "buffId": "atk_up",
+          "tier": "supreme",
+          "target": "self",
+          "durationSec": 5
+        },
+        {
+          "type": "applyBuff",
+          "buffId": "crit_dmg_up",
+          "tier": "supreme",
+          "target": "self",
+          "durationSec": 5
+        }
+      ],
+      "ownerId": "chr_095",
+      "slot": "normal"
+    },
+    {
+      "id": "cry_chr_096",
+      "kind": "crystal",
+      "trigger": {
+        "type": "onHit",
+        "chancePct": 10
+      },
+      "effects": [
+        {
+          "type": "applyBuff",
+          "buffId": "freeze",
+          "tier": "supreme",
+          "target": "target",
+          "durationSec": 2
+        }
+      ],
+      "ownerId": "chr_096",
+      "slot": "normal"
+    },
+    {
+      "id": "cry_chr_097",
+      "kind": "crystal",
+      "trigger": {
+        "type": "onHit",
+        "chancePct": 10
+      },
+      "effects": [
+        {
+          "type": "applyBuff",
+          "buffId": "shield",
+          "tier": "mid",
+          "target": "ally_all",
+          "durationSec": 3
+        }
+      ],
+      "ownerId": "chr_097",
+      "slot": "normal"
+    },
+    {
+      "id": "cry_chr_098",
+      "kind": "crystal",
+      "trigger": {
+        "type": "onHit",
+        "chancePct": 20
+      },
+      "effects": [
+        {
+          "type": "applyBuff",
+          "buffId": "crit_rate_up",
+          "tier": "supreme",
+          "target": "self",
+          "durationSec": 3
+        }
+      ],
+      "ownerId": "chr_098",
+      "slot": "normal"
+    },
+    {
+      "id": "cry_chr_099",
+      "kind": "crystal",
+      "trigger": {
+        "type": "onHit",
+        "chancePct": 10
+      },
+      "effects": [
+        {
+          "type": "applyBuff",
+          "buffId": "bind",
+          "target": "target",
+          "durationSec": 3
+        }
+      ],
+      "ownerId": "chr_099",
+      "slot": "normal"
+    },
+    {
+      "id": "cry_chr_100",
+      "kind": "crystal",
+      "trigger": {
+        "type": "onHit",
+        "chancePct": 20
+      },
+      "effects": [
+        {
+          "type": "applyBuff",
+          "buffId": "silence",
+          "target": "target",
+          "durationSec": 3
+        },
+        {
+          "type": "applyBuff",
+          "buffId": "def_down",
+          "tier": "supreme",
+          "target": "target",
+          "durationSec": 3
+        }
+      ],
+      "ownerId": "chr_100",
+      "slot": "normal"
+    },
+    {
+      "id": "cry_chr_101",
+      "kind": "crystal",
+      "trigger": {
+        "type": "onHit",
+        "chancePct": 20
+      },
+      "effects": [
+        {
+          "type": "applyBuff",
+          "buffId": "shield",
+          "tier": "high",
+          "target": "self",
+          "durationSec": 3
+        }
+      ],
+      "ownerId": "chr_101",
+      "slot": "normal"
+    },
+    {
+      "id": "cry_chr_102",
+      "kind": "crystal",
+      "trigger": {
+        "type": "onDamaged",
+        "chancePct": 10
+      },
+      "effects": [
+        {
+          "type": "applyBuff",
+          "buffId": "bind",
+          "target": "target",
+          "durationSec": 2
+        }
+      ],
+      "ownerId": "chr_102",
+      "slot": "normal"
+    },
+    {
+      "id": "cry_chr_103",
+      "kind": "crystal",
+      "trigger": {
+        "type": "interval",
+        "everySec": 5
+      },
+      "effects": [
+        {
+          "type": "applyBuff",
+          "buffId": "atk_up",
+          "tier": "mid",
+          "target": "self",
+          "durationSec": 3
+        },
+        {
+          "type": "applyBuff",
+          "buffId": "accuracy_up",
+          "tier": "mid",
+          "target": "self",
+          "durationSec": 3
+        }
+      ],
+      "ownerId": "chr_103",
+      "slot": "normal"
+    },
+    {
+      "id": "cry_chr_104",
+      "kind": "crystal",
+      "trigger": {
+        "type": "onHit",
+        "chancePct": 20
+      },
+      "effects": [
+        {
+          "type": "applyBuff",
+          "buffId": "def_down",
+          "tier": "supreme",
+          "target": "target",
+          "durationSec": 3
+        }
+      ],
+      "ownerId": "chr_104",
+      "slot": "normal"
+    },
+    {
+      "id": "cry_chr_105",
+      "kind": "crystal",
+      "trigger": {
+        "type": "onHit",
+        "chancePct": 20
+      },
+      "effects": [
+        {
+          "type": "applyBuff",
+          "buffId": "bleed",
+          "tier": "supreme",
+          "target": "target",
+          "durationSec": 3
+        }
+      ],
+      "ownerId": "chr_105",
+      "slot": "normal"
+    }
+  ]
+}

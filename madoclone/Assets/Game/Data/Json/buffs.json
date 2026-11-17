@@ -1,0 +1,1057 @@
+{
+  "schemaVersion": 1,
+  "stackRule": {
+    "sameId": "keepHigherTier",
+    "sameTier": "replace",
+    "lowerTier": "ignore",
+    "differentId": "add"
+  },
+  "items": [
+    {
+      "id": "atk_up",
+      "category": "buff",
+      "polarity": "buff",
+      "tiers": {
+        "supreme": {
+          "statMods": [
+            {
+              "stat": "atk",
+              "op": "pct",
+              "value": 50
+            }
+          ]
+        },
+        "high": {
+          "statMods": [
+            {
+              "stat": "atk",
+              "op": "pct",
+              "value": 35
+            }
+          ]
+        },
+        "mid": {
+          "statMods": [
+            {
+              "stat": "atk",
+              "op": "pct",
+              "value": 20
+            }
+          ],
+          "provisional": true
+        },
+        "low": {
+          "statMods": [
+            {
+              "stat": "atk",
+              "op": "pct",
+              "value": 10
+            }
+          ],
+          "provisional": true
+        }
+      }
+    },
+    {
+      "id": "atk_down",
+      "category": "buff",
+      "polarity": "debuff",
+      "tiers": {
+        "supreme": {
+          "statMods": [
+            {
+              "stat": "atk",
+              "op": "pct",
+              "value": -50
+            }
+          ]
+        },
+        "high": {
+          "statMods": [
+            {
+              "stat": "atk",
+              "op": "pct",
+              "value": -35
+            }
+          ]
+        },
+        "mid": {
+          "statMods": [
+            {
+              "stat": "atk",
+              "op": "pct",
+              "value": -20
+            }
+          ],
+          "provisional": true
+        },
+        "low": {
+          "statMods": [
+            {
+              "stat": "atk",
+              "op": "pct",
+              "value": -10
+            }
+          ],
+          "provisional": true
+        }
+      }
+    },
+    {
+      "id": "def_up",
+      "category": "buff",
+      "polarity": "buff",
+      "tiers": {
+        "supreme": {
+          "statMods": [
+            {
+              "stat": "def",
+              "op": "pct",
+              "value": 50
+            }
+          ]
+        },
+        "high": {
+          "statMods": [
+            {
+              "stat": "def",
+              "op": "pct",
+              "value": 35
+            }
+          ]
+        },
+        "mid": {
+          "statMods": [
+            {
+              "stat": "def",
+              "op": "pct",
+              "value": 20
+            }
+          ],
+          "provisional": true
+        },
+        "low": {
+          "statMods": [
+            {
+              "stat": "def",
+              "op": "pct",
+              "value": 10
+            }
+          ],
+          "provisional": true
+        }
+      }
+    },
+    {
+      "id": "def_down",
+      "category": "buff",
+      "polarity": "debuff",
+      "tiers": {
+        "supreme": {
+          "statMods": [
+            {
+              "stat": "def",
+              "op": "pct",
+              "value": -50
+            }
+          ]
+        },
+        "high": {
+          "statMods": [
+            {
+              "stat": "def",
+              "op": "pct",
+              "value": -35
+            }
+          ]
+        },
+        "mid": {
+          "statMods": [
+            {
+              "stat": "def",
+              "op": "pct",
+              "value": -20
+            }
+          ],
+          "provisional": true
+        },
+        "low": {
+          "statMods": [
+            {
+              "stat": "def",
+              "op": "pct",
+              "value": -10
+            }
+          ],
+          "provisional": true
+        }
+      }
+    },
+    {
+      "id": "crit_rate_up",
+      "category": "buff",
+      "polarity": "buff",
+      "tiers": {
+        "supreme": {
+          "statMods": [
+            {
+              "stat": "crit_rate",
+              "op": "pt",
+              "value": 30
+            }
+          ]
+        },
+        "high": {
+          "statMods": [
+            {
+              "stat": "crit_rate",
+              "op": "pt",
+              "value": 20
+            }
+          ]
+        },
+        "mid": {
+          "statMods": [
+            {
+              "stat": "crit_rate",
+              "op": "pt",
+              "value": 10
+            }
+          ]
+        },
+        "low": {
+          "statMods": [
+            {
+              "stat": "crit_rate",
+              "op": "pt",
+              "value": 5
+            }
+          ],
+          "provisional": true
+        }
+      }
+    },
+    {
+      "id": "crit_rate_down",
+      "category": "buff",
+      "polarity": "debuff",
+      "tiers": {
+        "supreme": {
+          "statMods": [
+            {
+              "stat": "crit_rate",
+              "op": "pt",
+              "value": -30
+            }
+          ]
+        },
+        "high": {
+          "statMods": [
+            {
+              "stat": "crit_rate",
+              "op": "pt",
+              "value": -20
+            }
+          ]
+        },
+        "mid": {
+          "statMods": [
+            {
+              "stat": "crit_rate",
+              "op": "pt",
+              "value": -10
+            }
+          ]
+        },
+        "low": {
+          "statMods": [
+            {
+              "stat": "crit_rate",
+              "op": "pt",
+              "value": -5
+            }
+          ],
+          "provisional": true
+        }
+      }
+    },
+    {
+      "id": "crit_dmg_up",
+      "category": "buff",
+      "polarity": "buff",
+      "tiers": {
+        "supreme": {
+          "statMods": [
+            {
+              "stat": "crit_dmg",
+              "op": "pct",
+              "value": 50
+            }
+          ]
+        },
+        "high": {
+          "statMods": [
+            {
+              "stat": "crit_dmg",
+              "op": "pct",
+              "value": 40
+            }
+          ]
+        },
+        "mid": {
+          "statMods": [
+            {
+              "stat": "crit_dmg",
+              "op": "pct",
+              "value": 25
+            }
+          ],
+          "provisional": true
+        },
+        "low": {
+          "statMods": [
+            {
+              "stat": "crit_dmg",
+              "op": "pct",
+              "value": 15
+            }
+          ],
+          "provisional": true
+        }
+      }
+    },
+    {
+      "id": "crit_dmg_down",
+      "category": "buff",
+      "polarity": "debuff",
+      "tiers": {
+        "supreme": {
+          "statMods": [
+            {
+              "stat": "crit_dmg",
+              "op": "pct",
+              "value": -50
+            }
+          ]
+        },
+        "high": {
+          "statMods": [
+            {
+              "stat": "crit_dmg",
+              "op": "pct",
+              "value": -40
+            }
+          ]
+        },
+        "mid": {
+          "statMods": [
+            {
+              "stat": "crit_dmg",
+              "op": "pct",
+              "value": -25
+            }
+          ],
+          "provisional": true
+        },
+        "low": {
+          "statMods": [
+            {
+              "stat": "crit_dmg",
+              "op": "pct",
+              "value": -15
+            }
+          ],
+          "provisional": true
+        }
+      }
+    },
+    {
+      "id": "crit_resist_up",
+      "category": "buff",
+      "polarity": "buff",
+      "tiers": {
+        "supreme": {
+          "statMods": [
+            {
+              "stat": "crit_resist",
+              "op": "pt",
+              "value": 30
+            }
+          ]
+        },
+        "high": {
+          "statMods": [
+            {
+              "stat": "crit_resist",
+              "op": "pt",
+              "value": 20
+            }
+          ]
+        },
+        "mid": {
+          "statMods": [
+            {
+              "stat": "crit_resist",
+              "op": "pt",
+              "value": 10
+            }
+          ],
+          "provisional": true
+        },
+        "low": {
+          "statMods": [
+            {
+              "stat": "crit_resist",
+              "op": "pt",
+              "value": 5
+            }
+          ],
+          "provisional": true
+        }
+      }
+    },
+    {
+      "id": "crit_resist_down",
+      "category": "buff",
+      "polarity": "debuff",
+      "tiers": {
+        "supreme": {
+          "statMods": [
+            {
+              "stat": "crit_resist",
+              "op": "pt",
+              "value": -30
+            }
+          ]
+        },
+        "high": {
+          "statMods": [
+            {
+              "stat": "crit_resist",
+              "op": "pt",
+              "value": -20
+            }
+          ]
+        },
+        "mid": {
+          "statMods": [
+            {
+              "stat": "crit_resist",
+              "op": "pt",
+              "value": -10
+            }
+          ],
+          "provisional": true
+        },
+        "low": {
+          "statMods": [
+            {
+              "stat": "crit_resist",
+              "op": "pt",
+              "value": -5
+            }
+          ],
+          "provisional": true
+        }
+      }
+    },
+    {
+      "id": "crit_def_up",
+      "category": "buff",
+      "polarity": "buff",
+      "tiers": {
+        "supreme": {
+          "statMods": [
+            {
+              "stat": "crit_def",
+              "op": "pct",
+              "value": 50
+            }
+          ]
+        },
+        "high": {
+          "statMods": [
+            {
+              "stat": "crit_def",
+              "op": "pct",
+              "value": 40
+            }
+          ]
+        },
+        "mid": {
+          "statMods": [
+            {
+              "stat": "crit_def",
+              "op": "pct",
+              "value": 25
+            }
+          ],
+          "provisional": true
+        },
+        "low": {
+          "statMods": [
+            {
+              "stat": "crit_def",
+              "op": "pct",
+              "value": 15
+            }
+          ],
+          "provisional": true
+        }
+      }
+    },
+    {
+      "id": "crit_def_down",
+      "category": "buff",
+      "polarity": "debuff",
+      "tiers": {
+        "supreme": {
+          "statMods": [
+            {
+              "stat": "crit_def",
+              "op": "pct",
+              "value": -50
+            }
+          ]
+        },
+        "high": {
+          "statMods": [
+            {
+              "stat": "crit_def",
+              "op": "pct",
+              "value": -40
+            }
+          ]
+        },
+        "mid": {
+          "statMods": [
+            {
+              "stat": "crit_def",
+              "op": "pct",
+              "value": -25
+            }
+          ],
+          "provisional": true
+        },
+        "low": {
+          "statMods": [
+            {
+              "stat": "crit_def",
+              "op": "pct",
+              "value": -15
+            }
+          ],
+          "provisional": true
+        }
+      }
+    },
+    {
+      "id": "accuracy_up",
+      "category": "buff",
+      "polarity": "buff",
+      "tiers": {
+        "supreme": {
+          "statMods": [
+            {
+              "stat": "accuracy",
+              "op": "pt",
+              "value": 30
+            }
+          ]
+        },
+        "high": {
+          "statMods": [
+            {
+              "stat": "accuracy",
+              "op": "pt",
+              "value": 20
+            }
+          ]
+        },
+        "mid": {
+          "statMods": [
+            {
+              "stat": "accuracy",
+              "op": "pt",
+              "value": 10
+            }
+          ],
+          "provisional": true
+        },
+        "low": {
+          "statMods": [
+            {
+              "stat": "accuracy",
+              "op": "pt",
+              "value": 5
+            }
+          ],
+          "provisional": true
+        }
+      }
+    },
+    {
+      "id": "accuracy_down",
+      "category": "buff",
+      "polarity": "debuff",
+      "tiers": {
+        "supreme": {
+          "statMods": [
+            {
+              "stat": "accuracy",
+              "op": "pt",
+              "value": -30
+            }
+          ]
+        },
+        "high": {
+          "statMods": [
+            {
+              "stat": "accuracy",
+              "op": "pt",
+              "value": -20
+            }
+          ]
+        },
+        "mid": {
+          "statMods": [
+            {
+              "stat": "accuracy",
+              "op": "pt",
+              "value": -10
+            }
+          ],
+          "provisional": true
+        },
+        "low": {
+          "statMods": [
+            {
+              "stat": "accuracy",
+              "op": "pt",
+              "value": -5
+            }
+          ],
+          "provisional": true
+        }
+      }
+    },
+    {
+      "id": "evasion_up",
+      "category": "buff",
+      "polarity": "buff",
+      "tiers": {
+        "supreme": {
+          "statMods": [
+            {
+              "stat": "evasion",
+              "op": "pt",
+              "value": 30
+            }
+          ]
+        },
+        "high": {
+          "statMods": [
+            {
+              "stat": "evasion",
+              "op": "pt",
+              "value": 20
+            }
+          ],
+          "provisional": true
+        },
+        "mid": {
+          "statMods": [
+            {
+              "stat": "evasion",
+              "op": "pt",
+              "value": 10
+            }
+          ],
+          "provisional": true
+        },
+        "low": {
+          "statMods": [
+            {
+              "stat": "evasion",
+              "op": "pt",
+              "value": 5
+            }
+          ],
+          "provisional": true
+        }
+      }
+    },
+    {
+      "id": "evasion_down",
+      "category": "buff",
+      "polarity": "debuff",
+      "tiers": {
+        "supreme": {
+          "statMods": [
+            {
+              "stat": "evasion",
+              "op": "pt",
+              "value": -30
+            }
+          ]
+        },
+        "high": {
+          "statMods": [
+            {
+              "stat": "evasion",
+              "op": "pt",
+              "value": -20
+            }
+          ],
+          "provisional": true
+        },
+        "mid": {
+          "statMods": [
+            {
+              "stat": "evasion",
+              "op": "pt",
+              "value": -10
+            }
+          ],
+          "provisional": true
+        },
+        "low": {
+          "statMods": [
+            {
+              "stat": "evasion",
+              "op": "pt",
+              "value": -5
+            }
+          ],
+          "provisional": true
+        }
+      }
+    },
+    {
+      "id": "burn",
+      "category": "status",
+      "polarity": "debuff",
+      "tiers": {
+        "supreme": {
+          "dotAtkPct": 70.0,
+          "statMods": [
+            {
+              "stat": "atk",
+              "op": "pct",
+              "value": -30
+            }
+          ]
+        },
+        "high": {
+          "dotAtkPct": 50,
+          "statMods": [
+            {
+              "stat": "atk",
+              "op": "pct",
+              "value": -20
+            }
+          ]
+        },
+        "mid": {
+          "dotAtkPct": 35.0,
+          "provisional": true,
+          "statMods": [
+            {
+              "stat": "atk",
+              "op": "pct",
+              "value": -15
+            }
+          ]
+        },
+        "low": {
+          "dotAtkPct": 24.5,
+          "provisional": true,
+          "statMods": [
+            {
+              "stat": "atk",
+              "op": "pct",
+              "value": -10
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "paralysis",
+      "category": "status",
+      "polarity": "debuff",
+      "tiers": {
+        "supreme": {
+          "dotAtkPct": 70.0,
+          "statMods": [
+            {
+              "stat": "def",
+              "op": "pct",
+              "value": -30
+            }
+          ]
+        },
+        "high": {
+          "dotAtkPct": 50,
+          "statMods": [
+            {
+              "stat": "def",
+              "op": "pct",
+              "value": -20
+            }
+          ]
+        },
+        "mid": {
+          "dotAtkPct": 35.0,
+          "provisional": true,
+          "statMods": [
+            {
+              "stat": "def",
+              "op": "pct",
+              "value": -15
+            }
+          ]
+        },
+        "low": {
+          "dotAtkPct": 24.5,
+          "provisional": true,
+          "statMods": [
+            {
+              "stat": "def",
+              "op": "pct",
+              "value": -10
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "bleed",
+      "category": "status",
+      "polarity": "debuff",
+      "tiers": {
+        "supreme": {
+          "dotAtkPct": 100.0,
+          "provisional": true
+        },
+        "high": {
+          "dotAtkPct": 70
+        },
+        "mid": {
+          "dotAtkPct": 50.0,
+          "provisional": true
+        },
+        "low": {
+          "dotAtkPct": 35.0,
+          "provisional": true
+        }
+      }
+    },
+    {
+      "id": "regen",
+      "category": "buff",
+      "polarity": "buff",
+      "tiers": {
+        "supreme": {
+          "hotAtkPct": 120.0
+        },
+        "high": {
+          "hotAtkPct": 84.0,
+          "provisional": true
+        },
+        "mid": {
+          "hotAtkPct": 60.0,
+          "provisional": true
+        },
+        "low": {
+          "hotAtkPct": 42.0,
+          "provisional": true
+        }
+      }
+    },
+    {
+      "id": "blessing_regen",
+      "category": "buff",
+      "polarity": "buff",
+      "tiers": {
+        "supreme": {
+          "hotAtkPct": 150
+        }
+      }
+    },
+    {
+      "id": "shield",
+      "category": "buff",
+      "polarity": "buff",
+      "tiers": {
+        "supreme": {
+          "shieldMaxHpPct": 25.0
+        },
+        "high": {
+          "shieldMaxHpPct": 17.5,
+          "provisional": true
+        },
+        "mid": {
+          "shieldMaxHpPct": 12.5,
+          "provisional": true
+        },
+        "low": {
+          "shieldMaxHpPct": 8.75,
+          "provisional": true
+        }
+      }
+    },
+    {
+      "id": "freeze",
+      "category": "control",
+      "polarity": "debuff",
+      "tiers": {
+        "supreme": {
+          "cannotAct": true,
+          "statMods": [
+            {
+              "stat": "crit_def",
+              "op": "pct",
+              "value": -50
+            }
+          ]
+        },
+        "high": {
+          "cannotAct": true,
+          "statMods": [
+            {
+              "stat": "crit_def",
+              "op": "pct",
+              "value": -40
+            }
+          ]
+        },
+        "mid": {
+          "cannotAct": true,
+          "statMods": [
+            {
+              "stat": "crit_def",
+              "op": "pct",
+              "value": -25
+            }
+          ],
+          "provisional": true
+        },
+        "low": {
+          "cannotAct": true,
+          "statMods": [
+            {
+              "stat": "crit_def",
+              "op": "pct",
+              "value": -15
+            }
+          ],
+          "provisional": true
+        }
+      }
+    },
+    {
+      "id": "bind",
+      "category": "control",
+      "polarity": "debuff",
+      "tiers": {
+        "none": {
+          "cannotAct": true
+        }
+      }
+    },
+    {
+      "id": "silence",
+      "category": "control",
+      "polarity": "debuff",
+      "tiers": {
+        "none": {
+          "ultimateGaugeStopped": true
+        }
+      }
+    },
+    {
+      "id": "blind",
+      "category": "status",
+      "polarity": "debuff",
+      "tiers": {
+        "none": {
+          "statMods": [
+            {
+              "stat": "accuracy",
+              "op": "pt",
+              "value": -10
+            }
+          ],
+          "provisional": true
+        }
+      }
+    },
+    {
+      "id": "taunt",
+      "category": "control",
+      "polarity": "debuff",
+      "tiers": {
+        "none": {
+          "forceTargetCaster": true,
+          "provisional": true
+        }
+      }
+    },
+    {
+      "id": "heal_block",
+      "category": "status",
+      "polarity": "debuff",
+      "tiers": {
+        "none": {
+          "healBlocked": true
+        }
+      }
+    },
+    {
+      "id": "invincible",
+      "category": "buff",
+      "polarity": "buff",
+      "tiers": {
+        "none": {
+          "damageImmune": true
+        }
+      }
+    },
+    {
+      "id": "cc_barrier",
+      "category": "buff",
+      "polarity": "buff",
+      "tiers": {
+        "none": {
+          "immuneTo": [
+            "bind",
+            "freeze"
+          ]
+        }
+      }
+    },
+    {
+      "id": "crit_shield",
+      "category": "buff",
+      "polarity": "buff",
+      "tiers": {
+        "none": {
+          "critDamageImmune": true,
+          "provisional": true
+        }
+      }
+    },
+    {
+      "id": "reflect_shield",
+      "category": "buff",
+      "polarity": "buff",
+      "tiers": {
+        "none": {
+          "reflectPct": 30,
+          "provisional": true
+        }
+      }
+    }
+  ]
+}

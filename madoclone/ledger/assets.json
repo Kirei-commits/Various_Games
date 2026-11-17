@@ -1,0 +1,3575 @@
+{
+  "schemaVersion": 1,
+  "assets": [
+    {
+      "id": "art.chr_001.icon",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_001/icon.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのicon（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_001.portrait",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_001/portrait.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのportrait（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_001.battle",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_001/battle.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのbattle（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_002.icon",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_002/icon.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのicon（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_002.portrait",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_002/portrait.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのportrait（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_002.battle",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_002/battle.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのbattle（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_003.icon",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_003/icon.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのicon（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_003.portrait",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_003/portrait.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのportrait（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_003.battle",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_003/battle.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのbattle（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_004.icon",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_004/icon.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのicon（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_004.portrait",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_004/portrait.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのportrait（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_004.battle",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_004/battle.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのbattle（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_005.icon",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_005/icon.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのicon（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_005.portrait",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_005/portrait.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのportrait（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_005.battle",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_005/battle.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのbattle（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_006.icon",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_006/icon.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのicon（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_006.portrait",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_006/portrait.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのportrait（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_006.battle",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_006/battle.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのbattle（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_007.icon",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_007/icon.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのicon（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_007.portrait",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_007/portrait.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのportrait（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_007.battle",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_007/battle.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのbattle（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_008.icon",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_008/icon.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのicon（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_008.portrait",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_008/portrait.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのportrait（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_008.battle",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_008/battle.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのbattle（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_009.icon",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_009/icon.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのicon（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_009.portrait",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_009/portrait.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのportrait（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_009.battle",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_009/battle.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのbattle（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_010.icon",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_010/icon.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのicon（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_010.portrait",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_010/portrait.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのportrait（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_010.battle",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_010/battle.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのbattle（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_011.icon",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_011/icon.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのicon（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_011.portrait",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_011/portrait.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのportrait（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_011.battle",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_011/battle.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのbattle（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_012.icon",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_012/icon.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのicon（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_012.portrait",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_012/portrait.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのportrait（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_012.battle",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_012/battle.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのbattle（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_013.icon",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_013/icon.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのicon（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_013.portrait",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_013/portrait.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのportrait（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_013.battle",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_013/battle.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのbattle（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_014.icon",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_014/icon.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのicon（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_014.portrait",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_014/portrait.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのportrait（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_014.battle",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_014/battle.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのbattle（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_015.icon",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_015/icon.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのicon（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_015.portrait",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_015/portrait.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのportrait（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_015.battle",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_015/battle.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのbattle（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_016.icon",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_016/icon.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのicon（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_016.portrait",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_016/portrait.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのportrait（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_016.battle",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_016/battle.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのbattle（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_017.icon",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_017/icon.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのicon（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_017.portrait",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_017/portrait.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのportrait（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_017.battle",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_017/battle.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのbattle（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_018.icon",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_018/icon.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのicon（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_018.portrait",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_018/portrait.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのportrait（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_018.battle",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_018/battle.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのbattle（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_019.icon",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_019/icon.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのicon（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_019.portrait",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_019/portrait.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのportrait（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_019.battle",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_019/battle.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのbattle（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_020.icon",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_020/icon.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのicon（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_020.portrait",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_020/portrait.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのportrait（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_020.battle",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_020/battle.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのbattle（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_021.icon",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_021/icon.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのicon（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_021.portrait",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_021/portrait.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのportrait（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_021.battle",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_021/battle.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのbattle（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_022.icon",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_022/icon.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのicon（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_022.portrait",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_022/portrait.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのportrait（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_022.battle",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_022/battle.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのbattle（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_023.icon",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_023/icon.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのicon（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_023.portrait",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_023/portrait.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのportrait（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_023.battle",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_023/battle.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのbattle（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_024.icon",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_024/icon.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのicon（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_024.portrait",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_024/portrait.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのportrait（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_024.battle",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_024/battle.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのbattle（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_025.icon",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_025/icon.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのicon（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_025.portrait",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_025/portrait.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのportrait（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_025.battle",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_025/battle.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのbattle（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_026.icon",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_026/icon.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのicon（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_026.portrait",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_026/portrait.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのportrait（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_026.battle",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_026/battle.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのbattle（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_027.icon",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_027/icon.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのicon（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_027.portrait",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_027/portrait.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのportrait（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_027.battle",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_027/battle.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのbattle（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_028.icon",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_028/icon.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのicon（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_028.portrait",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_028/portrait.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのportrait（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_028.battle",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_028/battle.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのbattle（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_029.icon",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_029/icon.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのicon（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_029.portrait",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_029/portrait.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのportrait（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_029.battle",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_029/battle.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのbattle（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_030.icon",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_030/icon.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのicon（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_030.portrait",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_030/portrait.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのportrait（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_030.battle",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_030/battle.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのbattle（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_031.icon",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_031/icon.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのicon（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_031.portrait",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_031/portrait.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのportrait（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_031.battle",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_031/battle.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのbattle（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_032.icon",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_032/icon.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのicon（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_032.portrait",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_032/portrait.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのportrait（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_032.battle",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_032/battle.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのbattle（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_033.icon",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_033/icon.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのicon（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_033.portrait",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_033/portrait.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのportrait（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_033.battle",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_033/battle.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのbattle（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_034.icon",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_034/icon.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのicon（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_034.portrait",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_034/portrait.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのportrait（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_034.battle",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_034/battle.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのbattle（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_035.icon",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_035/icon.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのicon（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_035.portrait",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_035/portrait.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのportrait（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_035.battle",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_035/battle.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのbattle（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_036.icon",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_036/icon.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのicon（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_036.portrait",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_036/portrait.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのportrait（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_036.battle",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_036/battle.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのbattle（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_037.icon",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_037/icon.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのicon（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_037.portrait",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_037/portrait.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのportrait（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_037.battle",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_037/battle.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのbattle（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_038.icon",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_038/icon.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのicon（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_038.portrait",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_038/portrait.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのportrait（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_038.battle",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_038/battle.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのbattle（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_039.icon",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_039/icon.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのicon（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_039.portrait",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_039/portrait.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのportrait（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_039.battle",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_039/battle.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのbattle（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_040.icon",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_040/icon.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのicon（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_040.portrait",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_040/portrait.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのportrait（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_040.battle",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_040/battle.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのbattle（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_041.icon",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_041/icon.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのicon（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_041.portrait",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_041/portrait.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのportrait（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_041.battle",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_041/battle.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのbattle（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_042.icon",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_042/icon.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのicon（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_042.portrait",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_042/portrait.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのportrait（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_042.battle",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_042/battle.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのbattle（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_043.icon",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_043/icon.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのicon（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_043.portrait",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_043/portrait.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのportrait（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_043.battle",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_043/battle.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのbattle（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_044.icon",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_044/icon.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのicon（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_044.portrait",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_044/portrait.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのportrait（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_044.battle",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_044/battle.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのbattle（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_045.icon",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_045/icon.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのicon（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_045.portrait",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_045/portrait.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのportrait（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_045.battle",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_045/battle.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのbattle（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_046.icon",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_046/icon.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのicon（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_046.portrait",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_046/portrait.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのportrait（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_046.battle",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_046/battle.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのbattle（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_047.icon",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_047/icon.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのicon（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_047.portrait",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_047/portrait.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのportrait（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_047.battle",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_047/battle.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのbattle（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_048.icon",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_048/icon.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのicon（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_048.portrait",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_048/portrait.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのportrait（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_048.battle",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_048/battle.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのbattle（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_049.icon",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_049/icon.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのicon（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_049.portrait",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_049/portrait.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのportrait（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_049.battle",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_049/battle.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのbattle（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_050.icon",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_050/icon.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのicon（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_050.portrait",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_050/portrait.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのportrait（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_050.battle",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_050/battle.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのbattle（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_051.icon",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_051/icon.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのicon（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_051.portrait",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_051/portrait.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのportrait（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_051.battle",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_051/battle.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのbattle（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_052.icon",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_052/icon.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのicon（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_052.portrait",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_052/portrait.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのportrait（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_052.battle",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_052/battle.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのbattle（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_053.icon",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_053/icon.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのicon（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_053.portrait",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_053/portrait.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのportrait（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_053.battle",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_053/battle.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのbattle（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_054.icon",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_054/icon.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのicon（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_054.portrait",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_054/portrait.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのportrait（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_054.battle",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_054/battle.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのbattle（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_055.icon",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_055/icon.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのicon（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_055.portrait",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_055/portrait.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのportrait（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_055.battle",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_055/battle.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのbattle（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_056.icon",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_056/icon.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのicon（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_056.portrait",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_056/portrait.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのportrait（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_056.battle",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_056/battle.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのbattle（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_057.icon",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_057/icon.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのicon（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_057.portrait",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_057/portrait.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのportrait（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_057.battle",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_057/battle.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのbattle（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_058.icon",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_058/icon.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのicon（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_058.portrait",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_058/portrait.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのportrait（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_058.battle",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_058/battle.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのbattle（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_059.icon",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_059/icon.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのicon（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_059.portrait",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_059/portrait.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのportrait（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_059.battle",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_059/battle.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのbattle（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_060.icon",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_060/icon.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのicon（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_060.portrait",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_060/portrait.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのportrait（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_060.battle",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_060/battle.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのbattle（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_061.icon",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_061/icon.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのicon（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_061.portrait",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_061/portrait.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのportrait（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_061.battle",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_061/battle.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのbattle（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_062.icon",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_062/icon.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのicon（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_062.portrait",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_062/portrait.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのportrait（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_062.battle",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_062/battle.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのbattle（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_063.icon",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_063/icon.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのicon（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_063.portrait",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_063/portrait.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのportrait（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_063.battle",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_063/battle.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのbattle（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_064.icon",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_064/icon.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのicon（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_064.portrait",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_064/portrait.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのportrait（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_064.battle",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_064/battle.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのbattle（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_065.icon",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_065/icon.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのicon（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_065.portrait",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_065/portrait.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのportrait（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_065.battle",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_065/battle.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのbattle（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_066.icon",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_066/icon.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのicon（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_066.portrait",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_066/portrait.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのportrait（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_066.battle",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_066/battle.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのbattle（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_067.icon",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_067/icon.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのicon（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_067.portrait",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_067/portrait.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのportrait（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_067.battle",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_067/battle.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのbattle（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_068.icon",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_068/icon.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのicon（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_068.portrait",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_068/portrait.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのportrait（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_068.battle",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_068/battle.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのbattle（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_069.icon",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_069/icon.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのicon（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_069.portrait",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_069/portrait.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのportrait（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_069.battle",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_069/battle.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのbattle（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_070.icon",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_070/icon.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのicon（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_070.portrait",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_070/portrait.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのportrait（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_070.battle",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_070/battle.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのbattle（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_071.icon",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_071/icon.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのicon（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_071.portrait",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_071/portrait.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのportrait（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_071.battle",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_071/battle.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのbattle（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_072.icon",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_072/icon.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのicon（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_072.portrait",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_072/portrait.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのportrait（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_072.battle",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_072/battle.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのbattle（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_073.icon",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_073/icon.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのicon（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_073.portrait",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_073/portrait.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのportrait（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_073.battle",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_073/battle.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのbattle（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_074.icon",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_074/icon.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのicon（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_074.portrait",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_074/portrait.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのportrait（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_074.battle",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_074/battle.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのbattle（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_075.icon",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_075/icon.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのicon（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_075.portrait",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_075/portrait.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのportrait（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_075.battle",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_075/battle.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのbattle（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_076.icon",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_076/icon.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのicon（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_076.portrait",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_076/portrait.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのportrait（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_076.battle",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_076/battle.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのbattle（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_077.icon",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_077/icon.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのicon（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_077.portrait",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_077/portrait.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのportrait（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_077.battle",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_077/battle.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのbattle（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_078.icon",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_078/icon.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのicon（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_078.portrait",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_078/portrait.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのportrait（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_078.battle",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_078/battle.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのbattle（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_079.icon",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_079/icon.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのicon（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_079.portrait",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_079/portrait.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのportrait（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_079.battle",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_079/battle.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのbattle（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_080.icon",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_080/icon.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのicon（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_080.portrait",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_080/portrait.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのportrait（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_080.battle",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_080/battle.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのbattle（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_081.icon",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_081/icon.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのicon（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_081.portrait",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_081/portrait.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのportrait（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_081.battle",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_081/battle.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのbattle（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_082.icon",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_082/icon.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのicon（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_082.portrait",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_082/portrait.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのportrait（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_082.battle",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_082/battle.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのbattle（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_083.icon",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_083/icon.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのicon（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_083.portrait",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_083/portrait.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのportrait（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_083.battle",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_083/battle.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのbattle（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_084.icon",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_084/icon.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのicon（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_084.portrait",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_084/portrait.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのportrait（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_084.battle",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_084/battle.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのbattle（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_085.icon",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_085/icon.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのicon（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_085.portrait",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_085/portrait.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのportrait（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_085.battle",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_085/battle.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのbattle（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_086.icon",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_086/icon.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのicon（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_086.portrait",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_086/portrait.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのportrait（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_086.battle",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_086/battle.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのbattle（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_087.icon",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_087/icon.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのicon（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_087.portrait",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_087/portrait.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのportrait（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_087.battle",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_087/battle.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのbattle（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_088.icon",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_088/icon.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのicon（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_088.portrait",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_088/portrait.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのportrait（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_088.battle",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_088/battle.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのbattle（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_089.icon",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_089/icon.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのicon（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_089.portrait",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_089/portrait.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのportrait（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_089.battle",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_089/battle.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのbattle（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_090.icon",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_090/icon.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのicon（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_090.portrait",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_090/portrait.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのportrait（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_090.battle",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_090/battle.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのbattle（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_091.icon",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_091/icon.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのicon（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_091.portrait",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_091/portrait.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのportrait（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_091.battle",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_091/battle.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのbattle（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_092.icon",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_092/icon.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのicon（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_092.portrait",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_092/portrait.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのportrait（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_092.battle",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_092/battle.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのbattle（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_093.icon",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_093/icon.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのicon（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_093.portrait",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_093/portrait.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのportrait（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_093.battle",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_093/battle.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのbattle（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_094.icon",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_094/icon.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのicon（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_094.portrait",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_094/portrait.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのportrait（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_094.battle",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_094/battle.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのbattle（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_095.icon",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_095/icon.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのicon（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_095.portrait",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_095/portrait.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのportrait（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_095.battle",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_095/battle.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのbattle（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_096.icon",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_096/icon.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのicon（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_096.portrait",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_096/portrait.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのportrait（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_096.battle",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_096/battle.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのbattle（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_097.icon",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_097/icon.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのicon（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_097.portrait",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_097/portrait.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのportrait（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_097.battle",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_097/battle.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのbattle（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_098.icon",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_098/icon.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのicon（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_098.portrait",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_098/portrait.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのportrait（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_098.battle",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_098/battle.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのbattle（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_099.icon",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_099/icon.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのicon（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_099.portrait",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_099/portrait.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのportrait（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_099.battle",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_099/battle.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのbattle（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_100.icon",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_100/icon.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのicon（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_100.portrait",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_100/portrait.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのportrait（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_100.battle",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_100/battle.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのbattle（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_101.icon",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_101/icon.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのicon（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_101.portrait",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_101/portrait.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのportrait（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_101.battle",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_101/battle.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのbattle（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_102.icon",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_102/icon.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのicon（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_102.portrait",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_102/portrait.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのportrait（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_102.battle",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_102/battle.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのbattle（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_103.icon",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_103/icon.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのicon（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_103.portrait",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_103/portrait.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのportrait（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_103.battle",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_103/battle.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのbattle（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_104.icon",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_104/icon.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのicon（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_104.portrait",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_104/portrait.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのportrait（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_104.battle",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_104/battle.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのbattle（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_105.icon",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_105/icon.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのicon（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_105.portrait",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_105/portrait.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのportrait（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.chr_105.battle",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/chr_105/battle.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "キャラのbattle（属性色・格の枠・役割の模様）"
+    },
+    {
+      "id": "art.cur.gem",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/cur/gem.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "通貨アイコン"
+    },
+    {
+      "id": "art.cur.gacha_ticket",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/cur/gacha_ticket.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "通貨アイコン"
+    },
+    {
+      "id": "art.cur.roulette_coin",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/cur/roulette_coin.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "通貨アイコン"
+    },
+    {
+      "id": "art.cur.merit_medal",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/cur/merit_medal.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "通貨アイコン"
+    },
+    {
+      "id": "art.cur.coin",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/cur/coin.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "通貨アイコン"
+    },
+    {
+      "id": "art.cur.exp",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/cur/exp.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "通貨アイコン"
+    },
+    {
+      "id": "art.cur.bond_heart",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/cur/bond_heart.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "通貨アイコン"
+    },
+    {
+      "id": "art.cur.collection_medal",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/cur/collection_medal.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "通貨アイコン"
+    },
+    {
+      "id": "art.cur.familiar_power",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/cur/familiar_power.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "通貨アイコン"
+    },
+    {
+      "id": "art.cur.familiar_fish",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/cur/familiar_fish.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "通貨アイコン"
+    },
+    {
+      "id": "art.cur.spirit_power",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/cur/spirit_power.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "通貨アイコン"
+    },
+    {
+      "id": "art.cur.star_sand",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/cur/star_sand.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "通貨アイコン"
+    },
+    {
+      "id": "art.cur.dragon_power",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/cur/dragon_power.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "通貨アイコン"
+    },
+    {
+      "id": "art.cur.dragon_flame",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/cur/dragon_flame.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "通貨アイコン"
+    },
+    {
+      "id": "art.cur.mana_shard",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/cur/mana_shard.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "通貨アイコン"
+    },
+    {
+      "id": "art.cur.mana_crystal",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/cur/mana_crystal.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "通貨アイコン"
+    },
+    {
+      "id": "art.cur.awaken_shard",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/cur/awaken_shard.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "通貨アイコン"
+    },
+    {
+      "id": "art.cur.wine",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/cur/wine.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "通貨アイコン"
+    },
+    {
+      "id": "art.cur.research_memo",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/cur/research_memo.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "通貨アイコン"
+    },
+    {
+      "id": "art.cur.magnifier",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/cur/magnifier.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "通貨アイコン"
+    },
+    {
+      "id": "art.cur.tournament_point",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/cur/tournament_point.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "通貨アイコン"
+    },
+    {
+      "id": "art.cur.guild_coin",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/cur/guild_coin.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "通貨アイコン"
+    },
+    {
+      "id": "art.el.valor",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/el/valor.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "属性アイコン"
+    },
+    {
+      "id": "art.el.skill",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/el/skill.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "属性アイコン"
+    },
+    {
+      "id": "art.el.heart",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/el/heart.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "属性アイコン"
+    },
+    {
+      "id": "art.el.wisdom",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/el/wisdom.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "属性アイコン"
+    },
+    {
+      "id": "art.bg.home",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/bg/home.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "背景"
+    },
+    {
+      "id": "art.bg.battle",
+      "type": "sprite",
+      "path": "Assets/Game/View/Resources/MadoArt/bg/battle.png",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/art/gen_art.py で生成）",
+      "note": "背景"
+    },
+    {
+      "id": "audio.se.tap",
+      "type": "audio",
+      "path": "Assets/Game/View/Resources/MadoAudio/se/tap.wav",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/audio/gen_audio.py で合成）",
+      "note": "効果音"
+    },
+    {
+      "id": "audio.se.ok",
+      "type": "audio",
+      "path": "Assets/Game/View/Resources/MadoAudio/se/ok.wav",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/audio/gen_audio.py で合成）",
+      "note": "効果音"
+    },
+    {
+      "id": "audio.se.cancel",
+      "type": "audio",
+      "path": "Assets/Game/View/Resources/MadoAudio/se/cancel.wav",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/audio/gen_audio.py で合成）",
+      "note": "効果音"
+    },
+    {
+      "id": "audio.se.error",
+      "type": "audio",
+      "path": "Assets/Game/View/Resources/MadoAudio/se/error.wav",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/audio/gen_audio.py で合成）",
+      "note": "効果音"
+    },
+    {
+      "id": "audio.se.coin",
+      "type": "audio",
+      "path": "Assets/Game/View/Resources/MadoAudio/se/coin.wav",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/audio/gen_audio.py で合成）",
+      "note": "効果音"
+    },
+    {
+      "id": "audio.se.levelup",
+      "type": "audio",
+      "path": "Assets/Game/View/Resources/MadoAudio/se/levelup.wav",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/audio/gen_audio.py で合成）",
+      "note": "効果音"
+    },
+    {
+      "id": "audio.se.win",
+      "type": "audio",
+      "path": "Assets/Game/View/Resources/MadoAudio/se/win.wav",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/audio/gen_audio.py で合成）",
+      "note": "効果音"
+    },
+    {
+      "id": "audio.se.lose",
+      "type": "audio",
+      "path": "Assets/Game/View/Resources/MadoAudio/se/lose.wav",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/audio/gen_audio.py で合成）",
+      "note": "効果音"
+    },
+    {
+      "id": "audio.se.hit",
+      "type": "audio",
+      "path": "Assets/Game/View/Resources/MadoAudio/se/hit.wav",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/audio/gen_audio.py で合成）",
+      "note": "効果音"
+    },
+    {
+      "id": "audio.se.gacha",
+      "type": "audio",
+      "path": "Assets/Game/View/Resources/MadoAudio/se/gacha.wav",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/audio/gen_audio.py で合成）",
+      "note": "効果音"
+    },
+    {
+      "id": "audio.se.gacha_rare",
+      "type": "audio",
+      "path": "Assets/Game/View/Resources/MadoAudio/se/gacha_rare.wav",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/audio/gen_audio.py で合成）",
+      "note": "効果音"
+    },
+    {
+      "id": "audio.se.claim",
+      "type": "audio",
+      "path": "Assets/Game/View/Resources/MadoAudio/se/claim.wav",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/audio/gen_audio.py で合成）",
+      "note": "効果音"
+    },
+    {
+      "id": "audio.bgm.home",
+      "type": "audio",
+      "path": "Assets/Game/View/Resources/MadoAudio/bgm/home.wav",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/audio/gen_audio.py で合成）",
+      "note": "BGM（ループ）"
+    },
+    {
+      "id": "audio.bgm.battle",
+      "type": "audio",
+      "path": "Assets/Game/View/Resources/MadoAudio/bgm/battle.wav",
+      "origin": "self",
+      "license": "CC0",
+      "source": null,
+      "author": "自作（tools/audio/gen_audio.py で合成）",
+      "note": "BGM（ループ）"
+    }
+  ]
+}

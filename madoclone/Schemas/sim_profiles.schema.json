@@ -1,0 +1,203 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "sim_profiles.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "allySubstats",
+    "items"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "rank",
+          "star",
+          "lv",
+          "partyCharacterIds",
+          "globalMultiplier"
+        ],
+        "properties": {
+          "rank": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "star": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 16
+          },
+          "lv": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "partyCharacterIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^chr_[0-9]+$"
+            }
+          },
+          "globalMultiplier": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "atk",
+              "hp",
+              "def"
+            ],
+            "properties": {
+              "atk": {
+                "type": "number",
+                "minimum": 0
+              },
+              "hp": {
+                "type": "number",
+                "minimum": 0
+              },
+              "def": {
+                "type": "number",
+                "minimum": 0
+              }
+            }
+          }
+        }
+      }
+    },
+    "allySubstats": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "accuracyPct",
+        "evasionPct",
+        "critRatePct",
+        "critDamagePct",
+        "critResistPct",
+        "critDefensePct"
+      ],
+      "properties": {
+        "accuracyPct": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "a",
+            "b"
+          ],
+          "properties": {
+            "a": {
+              "type": "number"
+            },
+            "b": {
+              "type": "number"
+            },
+            "min": {
+              "type": "number"
+            }
+          }
+        },
+        "evasionPct": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "a",
+            "b"
+          ],
+          "properties": {
+            "a": {
+              "type": "number"
+            },
+            "b": {
+              "type": "number"
+            },
+            "min": {
+              "type": "number"
+            }
+          }
+        },
+        "critRatePct": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "a",
+            "b"
+          ],
+          "properties": {
+            "a": {
+              "type": "number"
+            },
+            "b": {
+              "type": "number"
+            },
+            "min": {
+              "type": "number"
+            }
+          }
+        },
+        "critDamagePct": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "a",
+            "b"
+          ],
+          "properties": {
+            "a": {
+              "type": "number"
+            },
+            "b": {
+              "type": "number"
+            },
+            "min": {
+              "type": "number"
+            }
+          }
+        },
+        "critResistPct": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "a",
+            "b"
+          ],
+          "properties": {
+            "a": {
+              "type": "number"
+            },
+            "b": {
+              "type": "number"
+            },
+            "min": {
+              "type": "number"
+            }
+          }
+        },
+        "critDefensePct": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "a",
+            "b"
+          ],
+          "properties": {
+            "a": {
+              "type": "number"
+            },
+            "b": {
+              "type": "number"
+            },
+            "min": {
+              "type": "number"
+            }
+          }
+        }
+      }
+    }
+  }
+}

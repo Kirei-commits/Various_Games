@@ -1,0 +1,388 @@
+{
+  "schemaVersion": 1,
+  "skills": [
+    {
+      "id": "enemy_attacker_blast",
+      "trigger": {
+        "type": "interval",
+        "everySec": 8
+      },
+      "effects": [
+        {
+          "type": "damage",
+          "multiplierPct": 140,
+          "target": "enemy_area"
+        }
+      ]
+    },
+    {
+      "id": "enemy_tank_guard",
+      "trigger": {
+        "type": "interval",
+        "everySec": 6
+      },
+      "effects": [
+        {
+          "type": "applyBuff",
+          "buffId": "taunt",
+          "target": "enemy_all",
+          "durationSec": 3
+        },
+        {
+          "type": "applyBuff",
+          "buffId": "def_up",
+          "tier": "supreme",
+          "target": "self",
+          "durationSec": 5
+        }
+      ]
+    },
+    {
+      "id": "enemy_healer_heal",
+      "trigger": {
+        "type": "interval",
+        "everySec": 5
+      },
+      "effects": [
+        {
+          "type": "heal",
+          "multiplierPct": 300,
+          "target": "ally_lowest_hp"
+        }
+      ]
+    },
+    {
+      "id": "enemy_healer_cleanse",
+      "trigger": {
+        "type": "interval",
+        "everySec": 12
+      },
+      "effects": [
+        {
+          "type": "cleanse",
+          "target": "ally_all"
+        }
+      ]
+    },
+    {
+      "id": "trait_heal_silence",
+      "trigger": {
+        "type": "interval",
+        "everySec": 10
+      },
+      "effects": [
+        {
+          "type": "applyBuff",
+          "buffId": "heal_block",
+          "target": "enemy_all",
+          "durationSec": 4
+        },
+        {
+          "type": "applyBuff",
+          "buffId": "silence",
+          "target": "enemy_all",
+          "durationSec": 3
+        }
+      ]
+    },
+    {
+      "id": "trait_cc_barrier",
+      "trigger": {
+        "type": "always"
+      },
+      "effects": [
+        {
+          "type": "applyBuff",
+          "buffId": "cc_barrier",
+          "target": "self"
+        }
+      ]
+    },
+    {
+      "id": "trait_purge",
+      "trigger": {
+        "type": "interval",
+        "everySec": 10
+      },
+      "effects": [
+        {
+          "type": "cleanse",
+          "target": "self"
+        },
+        {
+          "type": "applyBuff",
+          "buffId": "atk_up",
+          "tier": "mid",
+          "target": "self",
+          "durationSec": 8
+        }
+      ]
+    },
+    {
+      "id": "trait_enrage",
+      "trigger": {
+        "type": "onHpBelow",
+        "pct": 50,
+        "once": true
+      },
+      "effects": [
+        {
+          "type": "applyBuff",
+          "buffId": "atk_up",
+          "tier": "high",
+          "target": "self",
+          "durationSec": 999
+        }
+      ]
+    },
+    {
+      "id": "final_phase1",
+      "trigger": {
+        "type": "interval",
+        "everySec": 8
+      },
+      "effects": [
+        {
+          "type": "damage",
+          "multiplierPct": 300,
+          "target": "enemy_all"
+        }
+      ]
+    },
+    {
+      "id": "final_phase2",
+      "trigger": {
+        "type": "onHpBelow",
+        "pct": 66,
+        "once": true
+      },
+      "effects": [
+        {
+          "type": "applyBuff",
+          "buffId": "cc_barrier",
+          "target": "self",
+          "durationSec": 999
+        }
+      ]
+    },
+    {
+      "id": "final_phase2_purge",
+      "trigger": {
+        "type": "interval",
+        "everySec": 10
+      },
+      "effects": [
+        {
+          "type": "cleanse",
+          "target": "self"
+        }
+      ]
+    },
+    {
+      "id": "final_phase3",
+      "trigger": {
+        "type": "onHpBelow",
+        "pct": 33,
+        "once": true
+      },
+      "effects": [
+        {
+          "type": "applyBuff",
+          "buffId": "atk_up",
+          "tier": "supreme",
+          "target": "self",
+          "durationSec": 999
+        },
+        {
+          "type": "applyBuff",
+          "buffId": "accuracy_up",
+          "tier": "supreme",
+          "target": "self",
+          "durationSec": 999
+        },
+        {
+          "type": "damage",
+          "multiplierPct": 400,
+          "target": "enemy_all"
+        },
+        {
+          "type": "applyBuff",
+          "buffId": "silence",
+          "target": "enemy_all",
+          "durationSec": 3,
+          "when": "afterHit"
+        }
+      ]
+    }
+  ],
+  "roleSkills": {
+    "attacker": [
+      "enemy_attacker_blast"
+    ],
+    "tank": [
+      "enemy_tank_guard"
+    ],
+    "healer": [
+      "enemy_healer_heal",
+      "enemy_healer_cleanse"
+    ]
+  },
+  "traits": [
+    {
+      "id": "heal_silence",
+      "skills": [
+        "trait_heal_silence"
+      ]
+    },
+    {
+      "id": "resist_valor",
+      "resistElement": "valor",
+      "resistMultiplier": 0.5
+    },
+    {
+      "id": "resist_skill",
+      "resistElement": "skill",
+      "resistMultiplier": 0.5
+    },
+    {
+      "id": "resist_heart",
+      "resistElement": "heart",
+      "resistMultiplier": 0.5
+    },
+    {
+      "id": "high_crit",
+      "critRatePt": 25,
+      "critDamageMultiplier": 1.25
+    },
+    {
+      "id": "high_accuracy",
+      "accuracyPt": 30,
+      "atkMultiplier": 1.15
+    },
+    {
+      "id": "cc_barrier",
+      "skills": [
+        "trait_cc_barrier"
+      ]
+    },
+    {
+      "id": "high_evasion",
+      "evasionPt": 25
+    },
+    {
+      "id": "purge",
+      "skills": [
+        "trait_purge"
+      ]
+    },
+    {
+      "id": "enrage",
+      "skills": [
+        "trait_enrage"
+      ]
+    },
+    {
+      "id": "final_boss",
+      "skills": [
+        "final_phase1",
+        "final_phase2",
+        "final_phase2_purge",
+        "final_phase3"
+      ]
+    }
+  ],
+  "bossPlan": [
+    {
+      "fromRank": 4,
+      "toRank": 6,
+      "traits": [
+        "heal_silence"
+      ]
+    },
+    {
+      "fromRank": 7,
+      "toRank": 7,
+      "traits": [
+        "resist_valor"
+      ]
+    },
+    {
+      "fromRank": 8,
+      "toRank": 8,
+      "traits": [
+        "resist_skill"
+      ]
+    },
+    {
+      "fromRank": 9,
+      "toRank": 9,
+      "traits": [
+        "resist_heart"
+      ]
+    },
+    {
+      "fromRank": 10,
+      "toRank": 12,
+      "traits": [
+        "high_crit"
+      ]
+    },
+    {
+      "fromRank": 13,
+      "toRank": 15,
+      "traits": [
+        "high_accuracy"
+      ]
+    },
+    {
+      "fromRank": 16,
+      "toRank": 18,
+      "traits": [
+        "cc_barrier"
+      ]
+    },
+    {
+      "fromRank": 19,
+      "toRank": 21,
+      "traits": [
+        "high_evasion"
+      ]
+    },
+    {
+      "fromRank": 22,
+      "toRank": 24,
+      "traits": [
+        "purge"
+      ]
+    },
+    {
+      "fromRank": 25,
+      "toRank": 26,
+      "traits": [
+        "cc_barrier",
+        "high_evasion"
+      ]
+    },
+    {
+      "fromRank": 27,
+      "toRank": 28,
+      "traits": [
+        "purge",
+        "high_crit"
+      ]
+    },
+    {
+      "fromRank": 29,
+      "toRank": 50,
+      "traits": [
+        "high_crit",
+        "high_accuracy",
+        "purge",
+        "enrage"
+      ]
+    }
+  ],
+  "finalBossTraits": [
+    "final_boss"
+  ]
+}

@@ -1,0 +1,281 @@
+{
+  "schemaVersion": 1,
+  "maxCardLv": 140,
+  "levelOffset": 3,
+  "subRefLv": 111,
+  "pullCostBondHeart": 1,
+  "gachaLvCostBase": 10760,
+  "gachaLvCostGrowth": 1.1,
+  "sellCoinBase": 100,
+  "sellExpPerCoin": 20,
+  "pullCounts": [20, 100, 250, 500, 1000],
+  "fixedUnitScale": {
+    "hp": 0.0005424,
+    "atk": 0.0004047,
+    "def": 0.0003046
+  },
+  "subEffects": [
+    {
+      "stat": "critRatePct",
+      "min": 2.4,
+      "max": 2.6
+    },
+    {
+      "stat": "critDamagePct",
+      "min": 230,
+      "max": 250
+    },
+    {
+      "stat": "critResistPct",
+      "min": 2.4,
+      "max": 2.6
+    },
+    {
+      "stat": "critDefensePct",
+      "min": 230,
+      "max": 250
+    },
+    {
+      "stat": "accuracyPct",
+      "min": 2.4,
+      "max": 2.6
+    },
+    {
+      "stat": "evasionPct",
+      "min": 2.4,
+      "max": 2.6
+    }
+  ],
+  "rarities": [
+    {
+      "id": "N",
+      "mainCoefMin": 0.5,
+      "mainCoefMax": 0.5,
+      "speedCoef": 0.1,
+      "speedStatCoefMin": 0.1667,
+      "speedStatCoefMax": 0.1667,
+      "subScale": 0.2,
+      "fixedHp": 3.93,
+      "fixedAtk": 0.2,
+      "fixedDef": 0.07
+    },
+    {
+      "id": "N+",
+      "mainCoefMin": 0.75,
+      "mainCoefMax": 0.75,
+      "speedCoef": 0.15,
+      "speedStatCoefMin": 0.25,
+      "speedStatCoefMax": 0.25,
+      "subScale": 0.25,
+      "fixedHp": 8.85,
+      "fixedAtk": 0.46,
+      "fixedDef": 0.16
+    },
+    {
+      "id": "R",
+      "mainCoefMin": 1.0,
+      "mainCoefMax": 1.0,
+      "speedCoef": 0.2,
+      "speedStatCoefMin": 0.3333,
+      "speedStatCoefMax": 0.3333,
+      "subScale": 0.3,
+      "fixedHp": 15.74,
+      "fixedAtk": 0.82,
+      "fixedDef": 0.29
+    },
+    {
+      "id": "R+",
+      "mainCoefMin": 1.25,
+      "mainCoefMax": 1.25,
+      "speedCoef": 0.25,
+      "speedStatCoefMin": 0.4167,
+      "speedStatCoefMax": 0.4167,
+      "subScale": 0.4,
+      "fixedHp": 24.59,
+      "fixedAtk": 1.27,
+      "fixedDef": 0.45
+    },
+    {
+      "id": "SR",
+      "mainCoefMin": 1.75,
+      "mainCoefMax": 1.75,
+      "speedCoef": 0.35,
+      "speedStatCoefMin": 0.5833,
+      "speedStatCoefMax": 0.5833,
+      "subScale": 0.5,
+      "fixedHp": 48.19,
+      "fixedAtk": 2.5,
+      "fixedDef": 0.89
+    },
+    {
+      "id": "SR+",
+      "mainCoefMin": 2.25,
+      "mainCoefMax": 2.25,
+      "speedCoef": 0.45,
+      "speedStatCoefMin": 0.75,
+      "speedStatCoefMax": 0.75,
+      "subScale": 0.6,
+      "fixedHp": 79.67,
+      "fixedAtk": 4.13,
+      "fixedDef": 1.47
+    },
+    {
+      "id": "SSR",
+      "mainCoefMin": 2.75,
+      "mainCoefMax": 2.75,
+      "speedCoef": 0.55,
+      "speedStatCoefMin": 0.9167,
+      "speedStatCoefMax": 0.9167,
+      "subScale": 0.7,
+      "fixedHp": 119.01,
+      "fixedAtk": 6.17,
+      "fixedDef": 2.2
+    },
+    {
+      "id": "SSR+",
+      "mainCoefMin": 3.25,
+      "mainCoefMax": 3.25,
+      "speedCoef": 0.65,
+      "speedStatCoefMin": 1.0833,
+      "speedStatCoefMax": 1.0833,
+      "subScale": 0.85,
+      "fixedHp": 166.22,
+      "fixedAtk": 8.62,
+      "fixedDef": 3.07
+    },
+    {
+      "id": "UR",
+      "mainCoefMin": 3.75,
+      "mainCoefMax": 3.75,
+      "speedCoef": 0.75,
+      "speedStatCoefMin": 1.25,
+      "speedStatCoefMax": 1.25,
+      "subScale": 1.0,
+      "fixedHp": 221.3,
+      "fixedAtk": 11.47,
+      "fixedDef": 4.08
+    },
+    {
+      "id": "UR+",
+      "mainCoefMin": 5.0,
+      "mainCoefMax": 5.5,
+      "speedCoef": 1.0,
+      "speedStatCoefMin": 1.5,
+      "speedStatCoefMax": 1.75,
+      "subScale": 1.3,
+      "fixedHp": 783.2,
+      "fixedAtk": 20.27,
+      "fixedDef": 8.0
+    },
+    {
+      "id": "EX",
+      "mainCoefMin": 6.75,
+      "mainCoefMax": 7.25,
+      "speedCoef": 1.3,
+      "speedStatCoefMin": 2.25,
+      "speedStatCoefMax": 2.4167,
+      "subScale": 1.45,
+      "fixedHp": 1392.36,
+      "fixedAtk": 36.04,
+      "fixedDef": 14.22
+    }
+  ],
+  "gachaBands": [
+    {
+      "minLv": 1,
+      "weights": [
+        70,
+        25,
+        5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "minLv": 20,
+      "weights": [
+        20,
+        40,
+        30,
+        10,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "minLv": 50,
+      "weights": [
+        0.0,
+        0.0,
+        20,
+        50,
+        25,
+        5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "minLv": 80,
+      "weights": [
+        0.0,
+        0.0,
+        0.0,
+        50,
+        40,
+        9,
+        1,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "minLv": 110,
+      "weights": [
+        0.0,
+        0.0,
+        0.0,
+        45,
+        43,
+        10.5,
+        1.4,
+        0.1,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "minLv": 140,
+      "weights": [
+        0.0,
+        0.0,
+        0.0,
+        42.38,
+        42.5,
+        12,
+        2.2,
+        0.6,
+        0.17,
+        0.09,
+        0.06
+      ]
+    }
+  ]
+}
